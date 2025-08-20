@@ -12,6 +12,7 @@ import { logger } from '../../core/Logger';
 import { DefaultSignature } from '../../utils/sign';
 import { formatWalletAddress } from '../../utils/address';
 import { MnemonicToKeyPair } from '../../utils/mnemonic';
+import { CallForSuccess } from '../../utils/retry';
 
 /**
  * Configuration for creating a WalletV5R1 adapter
@@ -46,7 +47,9 @@ export class WalletV5R1Adapter implements WalletInterface {
         // Initialize key pair - this will be properly set in initialize()
         // this.keyPair = { publicKey: Buffer.alloc(32), secretKey: Buffer.alloc(64) };
         // this.publicKey = '';
-        this.keyPair = keyPairFromSeed(Buffer.from(this.config.privateKey));
+        const privateKey =
+            this.config.privateKey.length === 32 ? this.config.privateKey : this.config.privateKey.slice(0, 32);
+        this.keyPair = keyPairFromSeed(Buffer.from(privateKey));
         this.publicKey = Uint8Array.from(this.keyPair.publicKey);
         this.walletContract = WalletV5.createFromConfig(
             {
@@ -80,7 +83,11 @@ export class WalletV5R1Adapter implements WalletInterface {
      */
     async getBalance(): Promise<bigint> {
         try {
-            const balance = await this.client.getBalance(this.walletContract.address);
+            const balance = await CallForSuccess(
+                async () => this.client.getBalance(this.walletContract.address),
+                5,
+                1000,
+            );
             return balance;
         } catch (error) {
             logger.warn('Failed to get balance', { error });

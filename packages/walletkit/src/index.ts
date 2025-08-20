@@ -29,4 +29,4 @@ export { DisconnectHandler } from './handlers/DisconnectHandler';
 export { WalletV5, WalletV5Config, WalletId, Opcodes } from './contracts/w5/WalletV5R1';
 export { WalletV5R1CodeCell, WalletV5R1CodeBoc } from './contracts/w5/WalletV5R1.source';
 export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
-export { WalletV5R1Initializer, createWalletV5R1 } from './contracts/w5/WalletV5R1Initializer';
+export { createWalletV5R1 } from './contracts/w5/WalletV5R1Adapter';

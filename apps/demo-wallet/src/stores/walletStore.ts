@@ -1,20 +1,36 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+// import { TonClient } from '@ton/ton';
+import { TonWalletKit, WalletInitConfigMnemonic, createWalletV5R1, type WalletInterface } from '@ton/walletkit';
 
 import { storage, STORAGE_KEYS, SimpleEncryption } from '../utils';
 import { useAuthStore } from './authStore';
 import type { Transaction, WalletState } from '../types/wallet';
 
+// Initialize TonClient and WalletKit
+// const tonClient = new TonClient({
+//     endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+// });
+
+const walletKit = new TonWalletKit({
+    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    network: 'mainnet',
+    wallets: [],
+});
+
 interface WalletStore extends WalletState {
     // Transaction history
     transactions: Transaction[];
+
+    // Walletkit instance and current wallet
+    currentWallet?: WalletInterface;
 
     // Actions
     createWallet: (mnemonic: string[]) => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
-    updateBalance: (balance: string) => void;
+    updateBalance: () => Promise<void>;
     addTransaction: (transaction: Transaction) => void;
 
     // Getters
@@ -28,6 +44,7 @@ export const useWalletStore = create<WalletStore>()(
             isAuthenticated: false,
             hasWallet: false,
             transactions: [],
+            currentWallet: undefined,
 
             // Actions
             createWallet: async (mnemonic: string[]) => {
@@ -45,27 +62,46 @@ export const useWalletStore = create<WalletStore>()(
 
                     storage.set(STORAGE_KEYS.ENCRYPTED_MNEMONIC, encryptedMnemonic);
 
-                    // Generate wallet details from mnemonic
-                    const mockAddress = 'EQBvI0aFLnw2QbZeUOETQdwQceZl0OOl-0KaJYQs3LiJayNM';
-                    const mockPublicKey = mnemonic.join('').slice(0, 64);
+                    // Create wallet using walletkit
+                    const walletConfig = new WalletInitConfigMnemonic({
+                        mnemonic,
+                        version: 'v5r1',
+                        mnemonicType: 'ton',
+                        network: 'mainnet',
+                    });
 
-                    // Store wallet details
+                    await walletKit.addWallet(walletConfig);
+                    const wallets = walletKit.getWallets();
+                    const wallet = wallets[0];
+
+                    // const wallet = await createWalletV5R1(walletConfig, {
+                    //     tonClient: tonClient,
+                    // });
+
+                    // Get real wallet info
+                    const address = wallet.getAddress();
+                    const balance = await wallet.getBalance();
+                    const publicKey = Array.from(wallet.publicKey)
+                        .map((b) => b.toString(16).padStart(2, '0'))
+                        .join('');
+
+                    // Store wallet data
                     const walletData = {
-                        address: mockAddress,
-                        publicKey: mockPublicKey,
-                        balance: '2621200000000', // 2.6212 TON in nanoTON
+                        address,
+                        publicKey,
+                        balance: balance.toString(),
                     };
 
-                    // Save wallet data separately from mnemonic
                     storage.set(STORAGE_KEYS.WALLET_STATE, walletData);
 
                     set({
                         hasWallet: true,
                         isAuthenticated: true,
-                        address: mockAddress,
-                        publicKey: mockPublicKey,
-                        balance: walletData.balance,
+                        address,
+                        publicKey,
+                        balance: balance.toString(),
                         mnemonic: undefined, // Never store in memory
+                        currentWallet: wallet,
                     });
                 } catch (error) {
                     console.error('Error creating wallet:', error);
@@ -92,52 +128,53 @@ export const useWalletStore = create<WalletStore>()(
                         return;
                     }
 
-                    // Load wallet data
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const walletData = storage.get<any>(STORAGE_KEYS.WALLET_STATE);
-                    if (walletData) {
-                        set({
-                            hasWallet: true,
-                            isAuthenticated: true,
-                            address: walletData.address,
-                            publicKey: walletData.publicKey,
-                            balance: walletData.balance || '2621200000000', // Default balance if not set
-                        });
-                    } else {
-                        // Fallback: we have mnemonic but no wallet data, reconstruct it
-                        try {
-                            const decryptedString = await SimpleEncryption.decrypt(
-                                encryptedMnemonic,
-                                authState.currentPassword,
-                            );
-                            const mnemonic = JSON.parse(decryptedString) as string[];
+                    // Decrypt the mnemonic and recreate wallet with walletkit
+                    const decryptedString = await SimpleEncryption.decrypt(
+                        encryptedMnemonic,
+                        authState.currentPassword,
+                    );
+                    const mnemonic = JSON.parse(decryptedString) as string[];
 
-                            // Regenerate wallet data
-                            const mockAddress = 'EQBvI0aFLnw2QbZeUOETQdwQceZl0OOl-0KaJYQs3LiJayNM';
-                            const mockPublicKey = mnemonic.join('').slice(0, 64);
-                            const balance = '2621200000000';
+                    // Create wallet using walletkit
+                    const walletConfig = new WalletInitConfigMnemonic({
+                        mnemonic,
+                        version: 'v5r1',
+                        mnemonicType: 'ton',
+                        network: 'mainnet',
+                    });
 
-                            const newWalletData = {
-                                address: mockAddress,
-                                publicKey: mockPublicKey,
-                                balance: balance,
-                            };
+                    await walletKit.addWallet(walletConfig);
+                    const wallets = walletKit.getWallets();
+                    const wallet = wallets[0];
 
-                            // Save the regenerated wallet data
-                            storage.set(STORAGE_KEYS.WALLET_STATE, newWalletData);
+                    // const wallet = await createWalletV5R1(walletConfig, {
+                    //     tonClient: tonClient,
+                    // });
 
-                            set({
-                                hasWallet: true,
-                                isAuthenticated: true,
-                                address: mockAddress,
-                                publicKey: mockPublicKey,
-                                balance: balance,
-                            });
-                        } catch (decryptError) {
-                            console.error('Error reconstructing wallet data:', decryptError);
-                            set({ hasWallet: false, isAuthenticated: false });
-                        }
-                    }
+                    // Get real wallet info
+                    const address = wallet.getAddress();
+                    const balance = await wallet.getBalance();
+                    const publicKey = Array.from(wallet.publicKey)
+                        .map((b) => b.toString(16).padStart(2, '0'))
+                        .join('');
+
+                    // Update stored wallet data with real info
+                    const walletData = {
+                        address,
+                        publicKey,
+                        balance: balance.toString(),
+                    };
+
+                    storage.set(STORAGE_KEYS.WALLET_STATE, walletData);
+
+                    set({
+                        hasWallet: true,
+                        isAuthenticated: true,
+                        address,
+                        publicKey,
+                        balance: balance.toString(),
+                        currentWallet: wallet,
+                    });
                 } catch (error) {
                     console.error('Error loading wallet:', error);
                     set({ hasWallet: false, isAuthenticated: false });
@@ -196,20 +233,36 @@ export const useWalletStore = create<WalletStore>()(
                     mnemonic: undefined,
                     publicKey: undefined,
                     transactions: [],
+                    currentWallet: undefined,
                 });
             },
 
-            updateBalance: (balance: string) => {
-                set({ balance });
+            updateBalance: async () => {
+                const state = get();
+                if (!state.currentWallet) {
+                    console.warn('No wallet available to update balance');
+                    return;
+                }
 
-                // Update stored wallet data
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const walletData = storage.get<any>(STORAGE_KEYS.WALLET_STATE);
-                if (walletData) {
-                    storage.set(STORAGE_KEYS.WALLET_STATE, {
-                        ...walletData,
-                        balance,
-                    });
+                try {
+                    // Get fresh balance from blockchain
+                    const balance = await state.currentWallet.getBalance();
+                    const balanceString = balance.toString();
+
+                    set({ balance: balanceString });
+
+                    // Update stored wallet data
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const walletData = storage.get<any>(STORAGE_KEYS.WALLET_STATE);
+                    if (walletData) {
+                        storage.set(STORAGE_KEYS.WALLET_STATE, {
+                            ...walletData,
+                            balance: balanceString,
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error updating balance:', error);
+                    throw new Error('Failed to update balance');
                 }
             },
 
@@ -225,6 +278,7 @@ export const useWalletStore = create<WalletStore>()(
                 hasWallet: state.hasWallet,
                 isAuthenticated: false, // Never persist authentication
                 transactions: state.transactions,
+                // currentWallet is not persisted as it contains methods and client instances
             }),
         },
     ),

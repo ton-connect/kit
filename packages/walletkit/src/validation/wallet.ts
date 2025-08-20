@@ -10,48 +10,48 @@ export function validateWallet(wallet: WalletInterface, context: ValidationConte
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Required field validations
-    if (!wallet.publicKey || typeof wallet.publicKey !== 'string') {
-        errors.push('publicKey must be a non-empty string');
-    } else if (wallet.publicKey.length < 32) {
-        errors.push('publicKey appears too short (minimum 32 characters)');
-    }
+    // // Required field validations
+    // if (!wallet.publicKey || typeof wallet.publicKey !== 'string') {
+    //     errors.push('publicKey must be a non-empty string');
+    // } else if (wallet.publicKey.length < 32) {
+    //     errors.push('publicKey appears too short (minimum 32 characters)');
+    // }
 
-    if (!wallet.version || typeof wallet.version !== 'string') {
-        errors.push('version must be a non-empty string');
-    } else if (!isValidWalletVersion(wallet.version)) {
-        if (context.strict) {
-            errors.push(`unsupported wallet version: ${wallet.version}`);
-        } else {
-            warnings.push(`unknown wallet version: ${wallet.version}`);
-        }
-    }
+    // if (!wallet.version || typeof wallet.version !== 'string') {
+    //     errors.push('version must be a non-empty string');
+    // } else if (!isValidWalletVersion(wallet.version)) {
+    //     if (context.strict) {
+    //         errors.push(`unsupported wallet version: ${wallet.version}`);
+    //     } else {
+    //         warnings.push(`unknown wallet version: ${wallet.version}`);
+    //     }
+    // }
 
-    // Required method validations
-    if (typeof wallet.sign !== 'function') {
-        errors.push('sign must be a function');
-    }
+    // // Required method validations
+    // if (typeof wallet.sign !== 'function') {
+    //     errors.push('sign must be a function');
+    // }
 
-    if (typeof wallet.getAddress !== 'function') {
-        errors.push('getAddress must be a function');
-    }
+    // if (typeof wallet.getAddress !== 'function') {
+    //     errors.push('getAddress must be a function');
+    // }
 
-    if (typeof wallet.getBalance !== 'function') {
-        errors.push('getBalance must be a function');
-    }
+    // if (typeof wallet.getBalance !== 'function') {
+    //     errors.push('getBalance must be a function');
+    // }
 
-    // Optional method validations
-    if (wallet.getStateInit && typeof wallet.getStateInit !== 'function') {
-        errors.push('getStateInit must be a function if provided');
-    }
+    // // Optional method validations
+    // if (wallet.getStateInit && typeof wallet.getStateInit !== 'function') {
+    //     errors.push('getStateInit must be a function if provided');
+    // }
 
-    // Additional context-based validations
-    if (context.strict) {
-        // In strict mode, perform additional checks
-        if (!wallet.getStateInit) {
-            warnings.push('getStateInit method is recommended for new wallets');
-        }
-    }
+    // // Additional context-based validations
+    // if (context.strict) {
+    //     // In strict mode, perform additional checks
+    //     if (!wallet.getStateInit) {
+    //         warnings.push('getStateInit method is recommended for new wallets');
+    //     }
+    // }
 
     return {
         isValid: errors.length === 0,

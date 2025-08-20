@@ -216,7 +216,7 @@ export class Initializer {
         const results = await Promise.allSettled(
             options.wallets.map(async (walletConfig) => {
                 try {
-                    const wallet = await this.createWalletFromConfig(walletConfig);
+                    const wallet = await createWalletFromConfig(walletConfig, this.tonClient!);
 
                     const validation = validateWallet(wallet);
                     if (!validation.isValid) {
@@ -242,51 +242,6 @@ export class Initializer {
     }
 
     /**
-     * Create a WalletInterface from various configuration types
-     */
-    private async createWalletFromConfig(config: WalletInitConfig): Promise<WalletInterface> {
-        // Handle mnemonic configuration
-        if (config instanceof WalletInitConfigMnemonic) {
-            if (config.version === 'v5r1') {
-                return createWalletV5R1(config, {
-                    tonClient: this.tonClient!,
-                });
-            }
-            throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
-        }
-
-        // Handle private key configuration - check for publicKey but not mnemonic
-        if (config instanceof WalletInitConfigPrivateKey) {
-            if (config.version === 'v5r1') {
-                return createWalletV5R1(config, {
-                    tonClient: this.tonClient!,
-                });
-            }
-            throw new Error(`Unsupported wallet version for private key: ${config.version}`);
-        }
-
-        // If it's already a WalletInterface, return as-is
-        if (Initializer.isWalletInterface(config)) {
-            return config as WalletInterface;
-        }
-
-        throw new Error('Unsupported wallet configuration format');
-    }
-
-    private static isWalletInterface(config: unknown): config is WalletInterface {
-        return (
-            typeof config === 'object' &&
-            config !== null &&
-            'publicKey' in config &&
-            'version' in config &&
-            typeof (config as WalletInterface)?.sign === 'function' &&
-            typeof (config as WalletInterface)?.getAddress === 'function' &&
-            typeof (config as WalletInterface)?.getBalance === 'function' &&
-            typeof (config as WalletInterface)?.getStateInit === 'function'
-        );
-    }
-
-    /**
      * Cleanup resources during shutdown
      */
     async cleanup(components: Partial<InitializationResult>): Promise<void> {
@@ -306,4 +261,49 @@ export class Initializer {
             logger.error('Error during cleanup', { error });
         }
     }
+}
+
+function isWalletInterface(config: unknown): config is WalletInterface {
+    return (
+        typeof config === 'object' &&
+        config !== null &&
+        'publicKey' in config &&
+        'version' in config &&
+        typeof (config as WalletInterface)?.sign === 'function' &&
+        typeof (config as WalletInterface)?.getAddress === 'function' &&
+        typeof (config as WalletInterface)?.getBalance === 'function' &&
+        typeof (config as WalletInterface)?.getStateInit === 'function'
+    );
+}
+
+/**
+ * Create a WalletInterface from various configuration types
+ */
+export async function createWalletFromConfig(config: WalletInitConfig, tonClient: TonClient): Promise<WalletInterface> {
+    // Handle mnemonic configuration
+    if (config instanceof WalletInitConfigMnemonic) {
+        if (config.version === 'v5r1') {
+            return createWalletV5R1(config, {
+                tonClient,
+            });
+        }
+        throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
+    }
+
+    // Handle private key configuration - check for publicKey but not mnemonic
+    if (config instanceof WalletInitConfigPrivateKey) {
+        if (config.version === 'v5r1') {
+            return createWalletV5R1(config, {
+                tonClient,
+            });
+        }
+        throw new Error(`Unsupported wallet version for private key: ${config.version}`);
+    }
+
+    // If it's already a WalletInterface, return as-is
+    if (isWalletInterface(config)) {
+        return config as WalletInterface;
+    }
+
+    throw new Error('Unsupported wallet configuration format');
 }

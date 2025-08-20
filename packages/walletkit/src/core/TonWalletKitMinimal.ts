@@ -10,8 +10,9 @@ import type {
     EventTransactionRequest,
     EventSignDataRequest,
     EventDisconnect,
+    WalletInitConfig,
 } from '../types';
-import { Initializer, type InitializationResult } from './Initializer';
+import { createWalletFromConfig, Initializer, type InitializationResult } from './Initializer';
 import { logger } from './Logger';
 import type { WalletManager } from './WalletManager';
 import type { SessionManager } from './SessionManager';
@@ -109,8 +110,9 @@ export class TonWalletKit implements ITonWalletKit {
         return this.walletManager.getWallets();
     }
 
-    async addWallet(wallet: WalletInterface): Promise<void> {
+    async addWallet(walletConfig: WalletInitConfig): Promise<void> {
         await this.ensureInitialized();
+        const wallet = await createWalletFromConfig(walletConfig, this.tonClient);
         await this.walletManager.addWallet(wallet);
     }
 

@@ -105,10 +105,10 @@ export const useTonWallet = (): UseTonWalletReturn => {
             if (!mnemonic) throw new Error('No wallet available');
 
             // Mock balance - simulate random balance between 0 and 10 TON
-            const randomBalance = Math.floor(Math.random() * 10000000000).toString(); // Random balance in nanoTON
+            // const randomBalance = Math.floor(Math.random() * 10000000000).toString(); // Random balance in nanoTON
 
-            walletStore.updateBalance(randomBalance);
-            return randomBalance;
+            // walletStore.updateBalance(randomBalance);
+            return '1';
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to get balance';
             setError(errorMessage);

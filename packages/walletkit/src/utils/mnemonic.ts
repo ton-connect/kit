@@ -10,7 +10,7 @@ export async function MnemonicToKeyPair(
     }
 
     if (mnemonicType === 'ton') {
-        const key = await mnemonicToWalletKey(mnemonicArray, mnemonicType);
+        const key = await mnemonicToWalletKey(mnemonicArray);
         return {
             publicKey: new Uint8Array(key.publicKey),
             secretKey: new Uint8Array(key.secretKey),

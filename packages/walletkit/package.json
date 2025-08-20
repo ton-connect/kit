@@ -2,10 +2,26 @@
   "name": "@ton/walletkit",
   "version": "0.1.0",
   "description": "Wallet kit for TON Connect",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:clean && npm run build:cjs && npm run build:esm",
+    "build:clean": "rimraf dist",
+    "build:cjs": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
     "dev": "tsc --watch",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix"
@@ -30,6 +46,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
-    "eslint": "^9.33.0"
+    "eslint": "^9.33.0",
+    "rimraf": "^6.0.1"
   }
 }

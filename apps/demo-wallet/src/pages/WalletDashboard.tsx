@@ -7,6 +7,7 @@ import { useTonWallet } from '../hooks';
 
 export const WalletDashboard: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
     const navigate = useNavigate();
 
     const { balance, address, transactions } = useWalletStore();
@@ -22,6 +23,18 @@ export const WalletDashboard: React.FC = () => {
             setIsRefreshing(false);
         }
     }, [getBalance]);
+
+    const handleCopyAddress = useCallback(async () => {
+        if (!address) return;
+
+        try {
+            await navigator.clipboard.writeText(address);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy address:', err);
+        }
+    }, [address]);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
@@ -59,8 +72,51 @@ export const WalletDashboard: React.FC = () => {
 
                         {address && (
                             <div className="bg-gray-50 rounded-md p-3">
-                                <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Address</p>
-                                <p className="text-sm font-mono text-gray-700">{formatAddress(address)}</p>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs text-gray-500 uppercase tracking-wide">Address</p>
+                                    <button
+                                        onClick={handleCopyAddress}
+                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                                        title="Copy address"
+                                    >
+                                        {isCopied ? (
+                                            <>
+                                                <svg
+                                                    className="w-3 h-3 mr-1"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M5 13l4 4L19 7"
+                                                    />
+                                                </svg>
+                                                Copied!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg
+                                                    className="w-3 h-3 mr-1"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                                    />
+                                                </svg>
+                                                Copy
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                                <p className="text-sm font-mono text-gray-700 break-all">{address}</p>
                             </div>
                         )}
 

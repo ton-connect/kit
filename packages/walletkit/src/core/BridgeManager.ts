@@ -130,7 +130,6 @@ export class BridgeManager {
                 session,
                 clientId,
             }));
-
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
@@ -139,23 +138,19 @@ export class BridgeManager {
                     heartbeatReconnectIntervalMs: this.config.reconnectInterval,
                 },
             });
-
             this.isConnected = true;
             this.reconnectAttempts = 0;
             logger.info('Bridge connected successfully');
         } catch (error) {
             logger.error('Bridge connection failed', { error });
-
             // Attempt reconnection if not at max attempts
             if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
                 this.reconnectAttempts++;
                 logger.info('Bridge reconnection attempt', { attempt: this.reconnectAttempts });
-
                 setTimeout(() => {
                     this.connectToBridge().catch((error) => logger.error('Bridge reconnection failed', { error }));
                 }, this.config.reconnectInterval);
             }
-
             throw error;
         }
     }

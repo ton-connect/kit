@@ -206,11 +206,12 @@ export class SignDataHandler implements EventHandler<EventSignDataRequest> {
      */
     private createPlaceholderWallet(): WalletInterface {
         return {
-            publicKey: '',
+            publicKey: new Uint8Array(0),
             version: '',
             sign: async () => new Uint8Array(0),
-            getAddress: async () => '',
-            getBalance: async () => '0',
+            getAddress: () => '',
+            getBalance: async () => BigInt(0),
+            getStateInit: async () => '',
         };
     }
 }
