@@ -2,7 +2,7 @@ import { TonWalletKit, WalletInitConfigMnemonic, type WalletInterface, type Even
 
 import { SimpleEncryption } from '../../utils';
 import type { Transaction } from '../../types/wallet';
-import type { WalletSliceCreator } from '../../types/store';
+import type { SetState, WalletSliceCreator } from '../../types/store';
 
 // Initialize WalletKit
 const walletKit = new TonWalletKit({
@@ -11,7 +11,7 @@ const walletKit = new TonWalletKit({
     wallets: [],
 });
 
-export const createWalletSlice: WalletSliceCreator = (set, get) => ({
+export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     wallet: {
         // Initial state
         isAuthenticated: false,

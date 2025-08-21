@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage, subscribeWithSelector } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
+import { immer } from 'zustand/middleware/immer';
 
 import { createAuthSlice } from './slices/authSlice';
 import { createWalletSlice, setupWalletKitListeners } from './slices/walletSlice';
@@ -43,11 +44,15 @@ export const useStore = create<AppState>()(
     devtools(
         subscribeWithSelector(
             persist(
-                (...a) => ({
-                    // Combine both slices
+                immer((...a) => ({
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ...createAuthSlice(...a),
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ...createWalletSlice(...a),
-                }),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                })) as unknown as any,
                 {
                     name: 'demo-wallet-app-store', // ✅ one clean key
                     storage: createJSONStorage(() => localStorage),

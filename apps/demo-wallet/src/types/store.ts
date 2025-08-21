@@ -49,3 +49,8 @@ export interface MigrationState {
 }
 
 export type MigrationFunction = (persistedState: unknown, version: number) => unknown;
+
+export type SetState = {
+    (state: AppState | Partial<AppState>): void;
+    (updater: (state: AppState) => void): void;
+};

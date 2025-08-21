@@ -1,6 +1,6 @@
-import type { AuthSliceCreator } from '../../types/store';
+import type { AuthSliceCreator, SetState } from '../../types/store';
 
-export const createAuthSlice: AuthSliceCreator = (set, get) => ({
+export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
     // Initial state
     auth: {
         isPasswordSet: false,
@@ -49,12 +49,9 @@ export const createAuthSlice: AuthSliceCreator = (set, get) => ({
             const isValid = state.auth.passwordHash.every((byte: number, index: number) => byte === currentHash[index]);
 
             if (isValid) {
-                set({
-                    auth: {
-                        ...state.auth,
-                        isUnlocked: true,
-                        currentPassword: password,
-                    },
+                set((state) => {
+                    state.auth.isUnlocked = true;
+                    state.auth.currentPassword = password;
                 });
                 return true;
             }
@@ -67,10 +64,10 @@ export const createAuthSlice: AuthSliceCreator = (set, get) => ({
     },
 
     lock: () => {
-        const state = get();
+        // const state = get();
         set({
             auth: {
-                ...state.auth,
+                // ...state.auth,
                 isUnlocked: false,
                 currentPassword: undefined,
             },
@@ -78,10 +75,10 @@ export const createAuthSlice: AuthSliceCreator = (set, get) => ({
     },
 
     reset: () => {
-        const state = get();
+        // const state = get();
         set({
             auth: {
-                ...state.auth,
+                // ...state.auth,
                 isPasswordSet: false,
                 isUnlocked: false,
                 currentPassword: undefined, // Clear password
