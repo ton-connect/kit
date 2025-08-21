@@ -62,6 +62,8 @@ export class WalletId {
 }
 
 export class WalletV5 implements Contract {
+    private subwalletId: bigint | undefined;
+
     constructor(
         readonly address: Address,
         readonly init?: { code: Cell; data: Cell },
@@ -74,7 +76,9 @@ export class WalletV5 implements Contract {
     static createFromConfig(config: WalletV5Config, code: Cell, workchain = 0) {
         const data = walletV5ConfigToCell(config);
         const init = { code, data };
-        return new WalletV5(contractAddress(workchain, init), init);
+        const wallet = new WalletV5(contractAddress(workchain, init), init);
+        wallet.subwalletId = config.walletId;
+        return wallet;
     }
 
     async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
@@ -157,8 +161,13 @@ export class WalletV5 implements Contract {
     }
 
     async getWalletId(provider: ContractProvider) {
-        const result = await provider.get('get_subwallet_id', []);
-        return WalletId.deserialize(result.stack.readBigNumber());
+        if (this.subwalletId) {
+            return WalletId.deserialize(this.subwalletId);
+        } else {
+            const result = await provider.get('get_subwallet_id', []);
+            this.subwalletId = result.stack.readBigNumber();
+            return WalletId.deserialize(this.subwalletId);
+        }
     }
 
     async getExtensions(provider: ContractProvider) {

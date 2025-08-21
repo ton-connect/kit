@@ -1,5 +1,7 @@
 // Wallet-related type definitions
 
+import { ConnectTransactionParamContent } from './internal';
+
 /**
  * TON network types
  */
@@ -80,6 +82,13 @@ export interface WalletInterface {
 
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<string>;
+
+    getSignedExternal(
+        input: ConnectTransactionParamContent,
+        options: {
+            fakeSignature: boolean;
+        },
+    ): Promise<string>;
 }
 
 export type WalletInitConfig = WalletInterface | WalletInitConfigMnemonic | WalletInitConfigPrivateKey;

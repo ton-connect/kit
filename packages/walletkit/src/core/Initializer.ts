@@ -194,7 +194,7 @@ export class Initializer {
         requestProcessor: RequestProcessor;
         responseHandler: ResponseHandler;
     } {
-        const requestProcessor = new RequestProcessor(sessionManager, bridgeManager);
+        const requestProcessor = new RequestProcessor(sessionManager, bridgeManager, this.tonClient);
         const responseHandler = new ResponseHandler(bridgeManager, sessionManager);
 
         return {

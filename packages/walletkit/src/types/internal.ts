@@ -1,6 +1,7 @@
 // Internal types for TonWalletKit modules
 
 import { ConnectItem, ConnectRequest, SendTransactionRpcRequest } from '@tonconnect/protocol';
+import { ExtraCurrency } from '@ton/core';
 
 import type { WalletInterface } from './wallet';
 
@@ -81,12 +82,17 @@ export interface RawBridgeEventConnect extends BridgeEventBase {
     timestamp?: number;
 }
 
+export interface ConnectExtraCurrency {
+    [k: number]: string;
+}
+
 export interface ConnectTransactionParamContent {
     messages: {
         address: string;
         amount: string;
         payload?: string; // boc
         stateInit?: string; // boc
+        extraCurrency?: ConnectExtraCurrency;
     }[];
     network: string;
     valid_until: number; // unixtime

@@ -140,24 +140,24 @@ export class TransactionHandler implements EventHandler<EventTransactionRequest>
     /**
      * Parse and validate messages array
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private parseMessages(messages: any[]): string[] {
-        if (!Array.isArray(messages)) {
-            throw new Error('Messages must be an array');
-        }
 
-        return messages.map((msg, index) => {
-            if (typeof msg === 'string') {
-                return msg; // Already a BOC string
-            }
-            if (typeof msg === 'object' && msg !== null) {
-                // Convert object to BOC (this is a placeholder)
-                // TODO: Implement proper message encoding
-                return this.encodeMessageToBoc(msg);
-            }
-            throw new Error(`Invalid message at index ${index}`);
-        });
-    }
+    // private parseMessages(messages: any[]): string[] {
+    //     if (!Array.isArray(messages)) {
+    //         throw new Error('Messages must be an array');
+    //     }
+
+    //     return messages.map((msg, index) => {
+    //         if (typeof msg === 'string') {
+    //             return msg; // Already a BOC string
+    //         }
+    //         if (typeof msg === 'object' && msg !== null) {
+    //             // Convert object to BOC (this is a placeholder)
+    //             // TODO: Implement proper message encoding
+    //             return this.encodeMessageToBoc(msg);
+    //         }
+    //         throw new Error(`Invalid message at index ${index}`);
+    //     });
+    // }
 
     /**
      * Create human-readable transaction preview
@@ -251,25 +251,25 @@ export class TransactionHandler implements EventHandler<EventTransactionRequest>
     /**
      * Encode message object to BOC string
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private encodeMessageToBoc(message: any): string {
-        // TODO: Implement proper message encoding to BOC
-        // This is a placeholder
-        log.warn('Message encoding not implemented, using placeholder BOC');
-        return 'te6ccgECFAEAAtQAART/APSkE/S88sgLAQIBYgIDAgLNBAUE';
-    }
+
+    // private encodeMessageToBoc(message: any): string {
+    //     // TODO: Implement proper message encoding to BOC
+    //     // This is a placeholder
+    //     log.warn('Message encoding not implemented, using placeholder BOC');
+    //     return 'te6ccgECFAEAAtQAART/APSkE/S88sgLAQIBYgIDAgLNBAUE';
+    // }
 
     /**
      * Create placeholder wallet
      */
-    private createPlaceholderWallet(): WalletInterface {
-        return {
-            publicKey: new Uint8Array(0),
-            version: '',
-            sign: async () => new Uint8Array(0),
-            getAddress: () => '',
-            getBalance: async () => BigInt(0),
-            getStateInit: async () => '',
-        };
-    }
+    // private createPlaceholderWallet(): WalletInterface {
+    //     return {
+    //         publicKey: new Uint8Array(0),
+    //         version: '',
+    //         sign: async () => new Uint8Array(0),
+    //         getAddress: () => '',
+    //         getBalance: async () => BigInt(0),
+    //         getStateInit: async () => '',
+    //     };
+    // }
 }

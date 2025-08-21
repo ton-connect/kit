@@ -1,18 +1,30 @@
 // WalletV5R1 adapter that implements WalletInterface
 
-import { beginCell, Dictionary, StateInit, storeStateInit } from '@ton/core';
+import {
+    beginCell,
+    Cell,
+    Dictionary,
+    loadStateInit,
+    SendMode,
+    StateInit,
+    storeMessage,
+    storeStateInit,
+} from '@ton/core';
 import { TonClient } from '@ton/ton';
-import { keyPairFromSeed } from '@ton/crypto';
+import { KeyPair, keyPairFromSeed } from '@ton/crypto';
+import { external, internal } from '@ton/core';
 
 import type { TonNetwork, WalletInterface } from '../../types';
 import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
-import { DefaultSignature } from '../../utils/sign';
+import { DefaultSignature, FakeSignature } from '../../utils/sign';
 import { formatWalletAddress } from '../../utils/address';
 import { MnemonicToKeyPair } from '../../utils/mnemonic';
 import { CallForSuccess } from '../../utils/retry';
+import { ConnectTransactionParamContent } from '../../types/internal';
+import { ActionSendMsg, packActionsList } from './actions';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -80,6 +92,61 @@ export class WalletV5R1Adapter implements WalletInterface {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
     }
 
+    async getSignedExternal(
+        input: ConnectTransactionParamContent,
+        options: { fakeSignature: boolean },
+    ): Promise<string> {
+        // if (keyPair.secretKey.length === 32) {
+        //     keyPair.secretKey = Buffer.concat([Uint8Array.from(keyPair.secretKey), Uint8Array.from(keyPair.publicKey)]);
+        // }
+
+        const actions = packActionsList(
+            input.messages.map((m) => {
+                const msg = internal({
+                    body: m.payload ? Cell.fromBase64(m.payload) : undefined,
+                    to: m.address,
+                    value: BigInt(m.amount),
+                    bounce: false,
+                    extracurrency: m.extraCurrency
+                        ? Object.fromEntries(Object.entries(m.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
+                        : undefined,
+                });
+
+                if (m.stateInit) {
+                    msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
+                }
+                return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
+            }),
+        );
+
+        let seqno = 0;
+        try {
+            seqno = await CallForSuccess(async () => this.getSeqno(), 5, 1000);
+        } catch (_) {
+            //
+        }
+        const provider = this.client.provider(this.walletContract.address);
+        let walletId;
+        try {
+            walletId = (await this.walletContract.getWalletId(provider)).serialized; // WalletId.deserialize(subwalletId);
+        } catch (_) {
+            //
+        }
+
+        if (!walletId) {
+            throw new Error('Failed to get seqno or walletId');
+        }
+
+        const transfer = await this.createBodyV5(seqno, walletId, actions, options);
+
+        const ext = external({
+            to: this.walletContract.address,
+            init: this.walletContract.init,
+            body: transfer,
+        });
+        return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64');
+    }
+
     /**
      * Get wallet's current balance in nanotons
      */
@@ -127,7 +194,8 @@ export class WalletV5R1Adapter implements WalletInterface {
             return await this.walletContract.getSeqno(provider);
         } catch (error) {
             log.warn('Failed to get seqno', { error });
-            return 0;
+            // return 0;
+            throw error;
         }
     }
 
@@ -155,6 +223,25 @@ export class WalletV5R1Adapter implements WalletInterface {
             log.warn('Failed to check deployment status', { error });
             return false;
         }
+    }
+
+    async createBodyV5(seqno: number, walletId: bigint, actionsList: Cell, options: { fakeSignature: boolean }) {
+        const Opcodes = {
+            auth_signed: 0x7369676e,
+        };
+
+        const expireAt = Math.floor(Date.now() / 1000) + 60;
+        const payload = beginCell()
+            .storeUint(Opcodes.auth_signed, 32)
+            .storeUint(walletId, 32)
+            .storeUint(expireAt, 32)
+            .storeUint(seqno, 32) // seqno
+            .storeSlice(actionsList.beginParse())
+            .endCell();
+
+        const signingData = payload.hash();
+        const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
+        return beginCell().storeSlice(payload.beginParse()).storeBuffer(Buffer.from(signature)).endCell();
     }
 }
 

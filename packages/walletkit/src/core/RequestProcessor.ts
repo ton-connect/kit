@@ -2,12 +2,14 @@
 
 import { Address } from '@ton/core';
 import { CHAIN, SendTransactionRpcResponseSuccess } from '@tonconnect/protocol';
+import { TonClient } from '@ton/ton';
 
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
 import { CreateTonProofMessageBytes, createTonProofMessage } from '../utils/tonProof';
+import { CallForSuccess } from '../utils/retry';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -72,6 +74,7 @@ export class RequestProcessor {
     constructor(
         private sessionManager: SessionManager,
         private bridgeManager: BridgeManager,
+        private client: TonClient,
     ) {}
 
     /**
@@ -126,6 +129,8 @@ export class RequestProcessor {
                 result: signedBoc,
                 id: event.id,
             };
+
+            await CallForSuccess(() => this.client.sendFile(Buffer.from(signedBoc, 'base64')));
 
             await this.bridgeManager.sendResponse(event.from, event.id, response);
 
@@ -300,12 +305,9 @@ export class RequestProcessor {
      * Sign transaction and return BOC
      */
     private async signTransaction(event: EventTransactionRequest): Promise<string> {
-        // TODO: Implement proper transaction signing
-        // This would involve:
-        // 1. Parsing the transaction messages from event.request.messages
-        // 2. Creating the transaction cell structure
-        // 3. Signing with the wallet's private key
-        // 4. Encoding the result to BOC format
+        const signedBoc = await event.wallet.getSignedExternal(event.request, {
+            fakeSignature: false,
+        });
 
         log.debug('Signing transaction', {
             id: event.id,
@@ -315,8 +317,8 @@ export class RequestProcessor {
         });
 
         // Mock implementation - replace with actual signing logic
-        const mockSignedBoc = 'te6ccgECFAEAAtQAART/APSkE/S88sgLAQIBYgIDAgLNBAUE';
+        // const mockSignedBoc = 'te6ccgECFAEAAtQAART/APSkE/S88sgLAQIBYgIDAgLNBAUE';
 
-        return mockSignedBoc;
+        return signedBoc;
     }
 }
