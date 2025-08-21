@@ -1,7 +1,7 @@
 // Transaction request handler
 
 import type { WalletInterface, EventTransactionRequest, HumanReadableTx, TonNetwork } from '../types';
-import type { RawBridgeEvent, RequestContext, EventHandler } from '../types/internal';
+import type { RawBridgeEvent, RequestContext, EventHandler, RawBridgeEventGeneric } from '../types/internal';
 import { isValidNanotonAmount, validateTransactionMessages } from '../validation/transaction';
 import { logger } from '../core/Logger';
 
@@ -28,7 +28,7 @@ export class TransactionHandler implements EventHandler<EventTransactionRequest>
      * Parse raw transaction request from bridge event
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private parseTransactionRequest(event: RawBridgeEvent): any {
+    private parseTransactionRequest(event: RawBridgeEventGeneric): any {
         const params = event.params || {};
 
         const request = {

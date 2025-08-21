@@ -1,7 +1,7 @@
 // Disconnect event handler
 
 import type { WalletInterface, EventDisconnect } from '../types';
-import type { RawBridgeEvent, RequestContext, EventHandler } from '../types/internal';
+import type { RawBridgeEvent, RequestContext, EventHandler, RawBridgeEventGeneric } from '../types/internal';
 
 export class DisconnectHandler implements EventHandler<EventDisconnect> {
     canHandle(event: RawBridgeEvent): boolean {
@@ -26,7 +26,7 @@ export class DisconnectHandler implements EventHandler<EventDisconnect> {
     /**
      * Extract disconnect reason from bridge event
      */
-    private extractDisconnectReason(event: RawBridgeEvent): string | undefined {
+    private extractDisconnectReason(event: RawBridgeEventGeneric): string | undefined {
         const params = event.params || {};
 
         // Check various possible fields for reason

@@ -22,7 +22,7 @@
     "build:clean": "rimraf dist",
     "build:cjs": "tsc -p tsconfig.json",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "dev": "tsc --watch",
+    "dev": "tsc -p tsconfig.esm.json --watch",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix"
   },

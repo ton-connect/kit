@@ -5,27 +5,27 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 import type { WalletInterface, TonNetwork } from './wallet';
 import type { HumanReadableTx } from '../validation/transaction';
 
-export type EventConnectRequest = ConnectRequest;
+// export type EventConnectRequest = ConnectRequest;
 
 /**
  * Connect request event from dApp
  */
-// export interface EventConnectRequest {
-//     /** Unique request identifier */
-//     id: string;
+export interface EventConnectRequest {
+    /** Unique request identifier */
+    id: string;
 
-//     /** dApp display name */
-//     dAppName: string;
+    /** dApp display name */
+    dAppName: string;
 
-//     /** URL to dApp manifest */
-//     manifestUrl: string;
+    /** URL to dApp manifest */
+    manifestUrl: string;
 
-//     /** Preview information for UI display */
-//     preview: ConnectPreview;
+    /** Preview information for UI display */
+    preview: ConnectPreview;
 
-//     /** Wallet that will handle this request */
-//     wallet: WalletInterface;
-// }
+    /** Wallet that will handle this request */
+    wallet?: WalletInterface;
+}
 
 /**
  * Connect request preview information

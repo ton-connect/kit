@@ -1,6 +1,7 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import type { TonClient } from '@ton/ton';
+import { ConnectRequest } from '@tonconnect/protocol';
 
 import type {
     TonWalletKit as ITonWalletKit,
@@ -11,6 +12,7 @@ import type {
     EventSignDataRequest,
     EventDisconnect,
     WalletInitConfig,
+    RawBridgeEvent,
 } from '../types';
 import { createWalletFromConfig, Initializer, type InitializationResult } from './Initializer';
 import { logger } from './Logger';
@@ -19,6 +21,7 @@ import type { SessionManager } from './SessionManager';
 import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import type { ResponseHandler } from './ResponseHandler';
+import { RawBridgeEventConnect } from '../types/internal';
 
 /**
  * Minimal TonWalletKit implementation - pure orchestration
@@ -206,7 +209,10 @@ export class TonWalletKit implements ITonWalletKit {
             }
 
             // Create a bridge event from the parsed URL
-            const bridgeEvent = this.createBridgeEventFromUrl(parsedUrl);
+            const bridgeEvent = this.createConnectEventFromUrl(parsedUrl);
+            if (!bridgeEvent) {
+                throw new Error('Invalid TON Connect URL format');
+            }
 
             // Route the event through the normal event system
             const wallet = this.walletManager.getWallets()[0]; // Use first available wallet
@@ -232,19 +238,6 @@ export class TonWalletKit implements ITonWalletKit {
             let parsedUrl: URL;
 
             parsedUrl = new URL(url);
-
-            // Handle different URL schemes
-            // if (url.startsWith('tc://')) {
-            //     // Convert tc:// to https:// for parsing
-            //     parsedUrl = new URL(url.replace('tc://', 'https://'));
-            // } else if (url.startsWith('ton://')) {
-            //     // Convert ton:// to https:// for parsing
-            //     parsedUrl = new URL(url.replace('ton://', 'https://'));
-            // } else if (url.startsWith('https://') || url.startsWith('http://')) {
-            //     parsedUrl = new URL(url);
-            // } else {
-            //     return null;
-            // }
 
             // Extract query parameters
             const params: { [key: string]: string } = {};
@@ -275,23 +268,45 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Create bridge event from parsed URL parameters
      */
-    private createBridgeEventFromUrl(params: {
+    private createConnectEventFromUrl(params: {
         version: string;
         clientId: string;
         requestId: string;
-        returnStrategy: string;
         r: string;
-        [key: string]: string;
-    }) {
+        returnStrategy?: string;
+    }): RawBridgeEventConnect | undefined {
+        // clientId =
+        // '39166d5445bcaca9499de367e4b113477e15347a7fbef0977494b4555e3dac65'
+        // id =
+        // '39166d5445bcaca9499de367e4b113477e15347a7fbef0977494b4555e3dac65'
+        // r =
+        // '{"manifestUrl":"https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json","items":[{"name":"ton_addr"},{"name":"ton_proof","payload":"80f1696bddc5e46a4136cb523483da58a0b4d525d781ecc5df55820930b4dbc2"}]}'
+        // requestId =
+        // '39166d5445bcaca9499de367e4b113477e15347a7fbef0977494b4555e3dac65'
+        // ret =
+        // 'none'
+        // returnStrategy =
+        // 'none'
+        // v =
+        // '2'
+        // version =
+        // '2'
+
+        // const clientId = parsed.searchParams.get('id') || ''; // '230f1e4df32364888a5dbd92a410266fcb974b73e30ff3e546a654fc8ee2c953'
+        const rString = params.r;
+        const r = rString ? (JSON.parse(rString) as ConnectRequest) : undefined;
+
+        if (!r?.manifestUrl || !params.clientId) {
+            return undefined;
+        }
         return {
             id: params.requestId,
-            method: 'tonconnect_connect',
+            method: 'start_connect',
             params: {
                 manifest: {
-                    url: params.r,
+                    url: r.manifestUrl,
                 },
                 items: [{ name: 'ton_addr' }, { name: 'ton_proof', payload: params.requestId }],
-                clientId: params.clientId,
                 returnStrategy: params.returnStrategy,
             },
             sessionId: params.clientId,

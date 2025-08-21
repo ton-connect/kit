@@ -1,6 +1,6 @@
 // Main exports for TonWalletKit
 
-export { TonWalletKit } from './core/TonWalletKitMinimal';
+export { TonWalletKit } from './core/TonWalletKit';
 
 // Re-export all types for convenience
 export * from './types';

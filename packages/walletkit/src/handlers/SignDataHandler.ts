@@ -1,7 +1,7 @@
 // Sign data request handler
 
 import type { WalletInterface, EventSignDataRequest } from '../types';
-import type { RawBridgeEvent, RequestContext, EventHandler } from '../types/internal';
+import type { RawBridgeEvent, RequestContext, EventHandler, RawBridgeEventGeneric } from '../types/internal';
 import { sanitizeString } from '../validation/sanitization';
 
 export class SignDataHandler implements EventHandler<EventSignDataRequest> {
@@ -28,7 +28,7 @@ export class SignDataHandler implements EventHandler<EventSignDataRequest> {
     /**
      * Parse data to sign from bridge event
      */
-    private parseDataToSign(event: RawBridgeEvent): Uint8Array {
+    private parseDataToSign(event: RawBridgeEventGeneric): Uint8Array {
         const params = event.params || {};
 
         // Data can come in various formats

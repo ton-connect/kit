@@ -1,24 +1,28 @@
 // Connect request handler
 
 import type { WalletInterface, EventConnectRequest } from '../types';
-import type { RawBridgeEvent, RequestContext, EventHandler } from '../types/internal';
+import type { RawBridgeEvent, RequestContext, EventHandler, RawBridgeEventConnect } from '../types/internal';
 import { sanitizeString } from '../validation/sanitization';
 
 export class ConnectHandler implements EventHandler<EventConnectRequest> {
     canHandle(event: RawBridgeEvent): boolean {
-        return event.method === 'connect' || event.method === 'tonconnect_connect' || event.method === 'wallet_connect';
+        return (
+            event.method === 'start_connect' ||
+            event.method === 'tonconnect_connect' ||
+            event.method === 'wallet_connect'
+        );
     }
 
-    async handle(event: RawBridgeEvent, context: RequestContext): Promise<EventConnectRequest> {
+    async handle(event: RawBridgeEventConnect, context: RequestContext): Promise<EventConnectRequest> {
         const connectEvent: EventConnectRequest = {
-            manifestUrl: '',
-            items: [],
+            // manifestUrl: '',
+            // items: [],
             // id: event.id,
             // dAppName: this.extractDAppName(event),
             // manifestUrl: this.extractManifestUrl(event),
             // preview: this.createPreview(event),
             // wallet: context.wallet || this.createPlaceholderWallet(),
-        };
+        } as any;
 
         return connectEvent;
     }
@@ -45,7 +49,7 @@ export class ConnectHandler implements EventHandler<EventConnectRequest> {
      * Create preview object for connect request
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createPreview(event: RawBridgeEvent): any {
+    private createPreview(event: RawBridgeEventConnect): any {
         const manifest = event.params?.manifest;
 
         const sanitizedManifest = manifest && {
