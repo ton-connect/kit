@@ -1,26 +1,47 @@
 // Transaction request handler
 
 import type { WalletInterface, EventTransactionRequest, HumanReadableTx, TonNetwork } from '../types';
-import type { RawBridgeEvent, RequestContext, EventHandler, RawBridgeEventGeneric } from '../types/internal';
+import type {
+    RawBridgeEvent,
+    RequestContext,
+    EventHandler,
+    RawBridgeEventGeneric,
+    RawBridgeEventTransaction,
+    ConnectTransactionParamContent,
+    ValidationResult,
+} from '../types/internal';
 import { isValidNanotonAmount, validateTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
+import {} from '@tonconnect/protocol';
+import { isValidAddress } from '../utils/address';
 
 const log = globalLogger.createChild('TransactionHandler');
 
 export class TransactionHandler implements EventHandler<EventTransactionRequest> {
     canHandle(event: RawBridgeEvent): boolean {
-        return event.method === 'sendTransaction' || event.method === 'tonconnect_sendTransaction';
+        return event.method === 'sendTransaction';
     }
 
-    async handle(event: RawBridgeEvent, context: RequestContext): Promise<EventTransactionRequest> {
+    async handle(event: RawBridgeEventTransaction, context: RequestContext): Promise<EventTransactionRequest> {
+        if (!event.wallet) {
+            log.error('Wallet not found', { event, context });
+            throw new Error('Wallet not found');
+        }
+
         const request = this.parseTransactionRequest(event);
-        const preview = await this.createTransactionPreview(request, context.wallet);
+        if (!request) {
+            log.error('Failed to parse transaction request', { event, context });
+            throw new Error('Failed to parse transaction request');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const preview = {} as any; //await this.createTransactionPreview(request, event.wallet);
 
         const txEvent: EventTransactionRequest = {
-            id: event.id,
+            ...event,
             request,
             preview,
-            wallet: context.wallet || this.createPlaceholderWallet(),
+            wallet: event.wallet,
         };
 
         return txEvent;
@@ -29,57 +50,91 @@ export class TransactionHandler implements EventHandler<EventTransactionRequest>
     /**
      * Parse raw transaction request from bridge event
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private parseTransactionRequest(event: RawBridgeEventGeneric): any {
-        const params = event.params || {};
 
-        const request = {
-            from: params.from || '',
-            network: this.parseNetwork(params.network),
-            validUntil: this.parseValidUntil(params.valid_until || params.validUntil),
-            messages: this.parseMessages(params.messages || []),
-        };
+    private parseTransactionRequest(event: RawBridgeEventTransaction): ConnectTransactionParamContent | undefined {
+        try {
+            if (event.params.length !== 1) {
+                throw new Error('Invalid transaction request');
+            }
+            const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
 
-        // Validate messages
-        const validation = validateTransactionMessages(request.messages);
-        if (!validation.isValid) {
-            throw new Error(`Invalid transaction messages: ${validation.errors.join(', ')}`);
+            const validUntilValidation = this.validateValidUntil(params.valid_until);
+            if (!validUntilValidation.isValid) {
+                throw new Error(`Invalid validUntil timestamp: ${validUntilValidation.errors.join(', ')}`);
+            }
+
+            const networkValidation = this.validateNetwork(params.network);
+            if (!networkValidation.isValid) {
+                throw new Error(`Invalid network: ${networkValidation.errors.join(', ')}`);
+            }
+
+            const fromValidation = this.validateFrom(params.from);
+            if (!fromValidation.isValid) {
+                throw new Error(`Invalid from address: ${fromValidation.errors.join(', ')}`);
+            }
+
+            const messagesValidation = validateTransactionMessages(params.messages);
+            if (!messagesValidation.isValid) {
+                throw new Error(`Invalid transaction messages: ${messagesValidation.errors.join(', ')}`);
+            }
+
+            return params;
+        } catch (error) {
+            log.error('Failed to parse transaction request', { error });
+            return undefined;
         }
-
-        return request;
     }
 
     /**
      * Parse network from various possible formats
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private parseNetwork(network: any): TonNetwork {
+    private validateNetwork(network: any): ValidationResult {
         if (typeof network === 'string') {
-            return network.toLowerCase() === 'testnet' ? 'testnet' : 'mainnet';
+            if (network === '-3' || network === '-239') {
+                return { isValid: true, errors: [] };
+            }
         }
-        if (typeof network === 'number') {
-            // -239 for mainnet, -3 for testnet (common convention)
-            return network === -3 ? 'testnet' : 'mainnet';
+
+        return { isValid: false, errors: ['Invalid network'] };
+        // if (typeof network === 'number') {
+        //     // -239 for mainnet, -3 for testnet (common convention)
+        //     return { isValid: true, errors: [] };
+        // }
+        // return { isValid: false, errors: ['Invalid network'] };
+    }
+
+    private validateFrom(from: unknown): ValidationResult {
+        if (typeof from !== 'string') {
+            return { isValid: false, errors: ['Invalid from address'] };
         }
-        return 'mainnet'; // default
+
+        if (isValidAddress(from)) {
+            return { isValid: true, errors: [] };
+        }
+
+        return { isValid: false, errors: ['Invalid from address'] };
     }
 
     /**
      * Parse validUntil timestamp
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private parseValidUntil(validUntil: any): number {
-        if (typeof validUntil === 'number') {
-            return validUntil;
+    private validateValidUntil(validUntil: any): ValidationResult {
+        if (typeof validUntil === 'number' && !isNaN(validUntil)) {
+            return { isValid: true, errors: [] };
         }
-        if (typeof validUntil === 'string') {
-            const parsed = parseInt(validUntil, 10);
-            if (!isNaN(parsed)) {
-                return parsed;
-            }
-        }
-        // Default to 10 minutes from now
-        return Math.floor(Date.now() / 1000) + 600;
+
+        return { isValid: false, errors: ['Invalid validUntil timestamp'] };
+        // throw new Error('Invalid validUntil timestamp');
+        // if (typeof validUntil === 'string') {
+        //     const parsed = parseInt(validUntil, 10);
+        //     if (!isNaN(parsed)) {
+        //         return parsed;
+        //     }
+        // }
+        // // Default to 10 minutes from now
+        // return Math.floor(Date.now() / 1000) + 600;
     }
 
     /**

@@ -226,7 +226,10 @@ export class Logger {
 /**
  * Default logger instance
  */
-export const globalLogger = new Logger();
+export const globalLogger = new Logger({
+    level: LogLevel.DEBUG,
+    enableStackTrace: true,
+});
 
 /**
  * Create a logger with custom configuration

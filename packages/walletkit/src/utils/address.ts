@@ -6,3 +6,27 @@ export function formatWalletAddress(address: string | Address, isTestnet: boolea
     }
     return address.toString({ bounceable: false, testOnly: isTestnet });
 }
+
+export function isValidAddress(address: unknown): boolean {
+    if (typeof address !== 'string') {
+        return false;
+    }
+
+    try {
+        Address.parse(address);
+    } catch (_) {
+        return false;
+    }
+
+    return true;
+}
+
+export function isFriendlyTonAddress(address: string): boolean {
+    try {
+        Address.parseFriendly(address);
+    } catch (_) {
+        return false;
+    }
+
+    return true;
+}

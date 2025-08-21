@@ -310,7 +310,7 @@ export class RequestProcessor {
             id: event.id,
             messagesCount: event.request.messages.length,
             from: event.request.from,
-            validUntil: event.request.validUntil,
+            validUntil: event.request.valid_until,
         });
 
         // Mock implementation - replace with actual signing logic

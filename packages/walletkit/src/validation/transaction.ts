@@ -2,6 +2,7 @@
 
 import type { ValidationResult, ValidationContext } from './types';
 import { validateTonAddress } from './address';
+import { isFriendlyTonAddress } from '../utils/address';
 
 /**
  * Human-readable transaction message
@@ -62,18 +63,17 @@ export function validateTransactionMessages(messages: any[], context: Validation
 export function validateTransactionMessage(message: any, context: ValidationContext = {}): ValidationResult {
     const errors: string[] = [];
 
-    if (typeof message === 'string') {
-        // BOC format - validate base64
-        if (!isValidBOC(message)) {
-            errors.push('invalid BOC format');
-        }
-    } else if (typeof message === 'object' && message !== null) {
-        // Object format - validate required fields
-        const objErrors = validateMessageObject(message, context).errors;
-        errors.push(...objErrors);
-    } else {
-        errors.push('message must be a BOC string or message object');
+    if (typeof message !== 'object') {
+        return { isValid: false, errors: ['Invalid message'] };
     }
+
+    if (message === null || message === undefined) {
+        return { isValid: false, errors: ['Invalid message'] };
+    }
+
+    // Object format - validate required fields
+    const objErrors = validateMessageObject(message, context).errors;
+    errors.push(...objErrors);
 
     return {
         isValid: errors.length === 0,
@@ -89,19 +89,20 @@ export function validateMessageObject(message: any, context: ValidationContext =
     const errors: string[] = [];
 
     // Required fields
-    if (!message.to || typeof message.to !== 'string') {
+    if (!message.address || typeof message.address !== 'string') {
         errors.push('to address is required and must be a string');
     } else {
-        const addressValidation = validateTonAddress(message.to, context);
-        if (!addressValidation.isValid) {
-            errors.push(`invalid to address: ${addressValidation.errors.join(', ')}`);
+        if (!isFriendlyTonAddress(message.address)) {
+            errors.push('to address must be a valid TON address');
         }
     }
 
-    if (message.value !== undefined) {
-        if (!isValidNanotonAmount(message.value)) {
+    if (message.amount !== undefined) {
+        if (!isValidNanotonAmount(message.amount)) {
             errors.push('value must be a valid nanonton amount (string of digits)');
         }
+    } else {
+        errors.push('value must be a valid nanonton amount (string of digits)');
     }
 
     // Optional fields validation
@@ -192,15 +193,15 @@ export function validateBOC(bocString: string): ValidationResult {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isValidNanotonAmount(amount: any): boolean {
-    if (typeof amount !== 'string' && typeof amount !== 'number') {
+    if (typeof amount !== 'string') {
         return false;
     }
 
     const amountStr = String(amount);
 
     // Check if it's a valid non-negative integer
-    const parsed = parseInt(amountStr, 10);
-    return !isNaN(parsed) && parsed >= 0 && parsed.toString() === amountStr;
+    const parsed = BigInt(amountStr);
+    return parsed >= 0 && parsed.toString() === amountStr;
 }
 
 /**

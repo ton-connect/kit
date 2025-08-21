@@ -170,6 +170,7 @@ export class Initializer {
                 bridgeUrl: options.bridgeUrl,
             },
             sessionManager,
+            storageAdapter,
         );
         await bridgeManager.initialize();
 
@@ -210,6 +211,7 @@ export class Initializer {
             // The event routing will be handled by the main TonWalletKit class
             // This is just setting up the bridge callback
             log.debug('Bridge event received', { method: event.method });
+            _eventRouter.routeEvent(event);
         });
     }
 

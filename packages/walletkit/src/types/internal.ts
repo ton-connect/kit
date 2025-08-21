@@ -1,6 +1,6 @@
 // Internal types for TonWalletKit modules
 
-import { ConnectItem, ConnectRequest } from '@tonconnect/protocol';
+import { ConnectItem, ConnectRequest, SendTransactionRpcRequest } from '@tonconnect/protocol';
 
 import type { WalletInterface } from './wallet';
 
@@ -48,7 +48,6 @@ export interface RequestContext {
     id: string;
     sessionId?: string;
     timestamp: Date;
-    wallet?: WalletInterface;
 }
 
 export interface ValidationResult {
@@ -56,8 +55,10 @@ export interface ValidationResult {
     errors: string[];
 }
 
+type BridgeEventBase = { from: string; wallet?: WalletInterface };
+
 // Bridge event types (raw from bridge)
-export interface RawBridgeEventGeneric {
+export interface RawBridgeEventGeneric extends BridgeEventBase {
     id: string;
     method: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +67,7 @@ export interface RawBridgeEventGeneric {
     timestamp?: number;
 }
 
-export interface RawBridgeEventConnect {
+export interface RawBridgeEventConnect extends BridgeEventBase {
     id: string;
     method: 'startConnect';
     params: {
@@ -80,7 +81,21 @@ export interface RawBridgeEventConnect {
     timestamp?: number;
 }
 
-export type RawBridgeEvent = RawBridgeEventGeneric | RawBridgeEventConnect;
+export interface ConnectTransactionParamContent {
+    messages: {
+        address: string;
+        amount: string;
+        payload?: string; // boc
+        stateInit?: string; // boc
+    }[];
+    network: string;
+    valid_until: number; // unixtime
+    from?: string;
+}
+
+export type RawBridgeEventTransaction = BridgeEventBase & SendTransactionRpcRequest;
+
+export type RawBridgeEvent = RawBridgeEventGeneric | RawBridgeEventConnect | RawBridgeEventTransaction;
 
 // Internal event routing types
 export type EventType = 'startConnect' | 'sendTransaction' | 'signData' | 'disconnect';

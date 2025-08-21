@@ -3,7 +3,7 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import { BridgeProvider, ClientConnection, WalletConsumer } from 'bridge-sdk';
 
-import type { BridgeConfig, RawBridgeEvent, EventCallback } from '../types/internal';
+import type { BridgeConfig, RawBridgeEvent, EventCallback, StorageAdapter } from '../types/internal';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 
@@ -13,12 +13,14 @@ export class BridgeManager {
     private config: BridgeConfig;
     private bridgeProvider?: BridgeProvider<WalletConsumer>;
     private sessionManager: SessionManager;
+    private storageAdapter: StorageAdapter;
     private isConnected = false;
     private reconnectAttempts = 0;
     private eventCallback?: EventCallback<RawBridgeEvent>;
     private lastEventId?: string;
+    private storageKey = 'bridge_last_event_id';
 
-    constructor(config: BridgeConfig, sessionManager: SessionManager) {
+    constructor(config: BridgeConfig, sessionManager: SessionManager, storageAdapter: StorageAdapter) {
         this.config = {
             heartbeatInterval: 5000,
             reconnectInterval: 15000,
@@ -26,6 +28,7 @@ export class BridgeManager {
             ...config,
         };
         this.sessionManager = sessionManager;
+        this.storageAdapter = storageAdapter;
     }
 
     /**
@@ -45,6 +48,7 @@ export class BridgeManager {
         }
 
         try {
+            await this.loadLastEventId();
             await this.connectToBridge();
         } catch (error) {
             log.error('Failed to initialize bridge', { error });
@@ -189,6 +193,7 @@ export class BridgeManager {
                 clients,
                 listener: this.handleBridgeEvent.bind(this),
                 options: {
+                    lastEventId: this.lastEventId,
                     // heartbeatReconnectIntervalMs: this.config.reconnectInterval,
                 },
             });
@@ -230,8 +235,9 @@ export class BridgeManager {
      * Handle incoming bridge events
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private handleBridgeEvent(event: any): void {
+    private async handleBridgeEvent(event: any): Promise<void> {
         try {
+            log.info('Bridge event received', { event });
             // Convert bridge event to our internal format
             const rawEvent: RawBridgeEvent = {
                 id: event.id || crypto.randomUUID(),
@@ -239,16 +245,59 @@ export class BridgeManager {
                 params: event.params || event,
                 sessionId: event.sessionId,
                 timestamp: Date.now(),
+                from: event?.from,
             };
+
+            if (rawEvent.from) {
+                const session = await this.sessionManager.getSession(rawEvent.from);
+                if (session?.wallet) {
+                    rawEvent.wallet = session.wallet;
+                }
+            }
 
             // Forward to event callback
             if (this.eventCallback) {
                 this.eventCallback(rawEvent);
             }
 
-            this.lastEventId = event?.lastEventId;
+            log.info('Bridge event processed', { rawEvent });
+
+            // Update and persist last event ID
+            if (event?.lastEventId && event.lastEventId !== this.lastEventId) {
+                this.lastEventId = event.lastEventId;
+                await this.saveLastEventId();
+            }
         } catch (error) {
             log.error('Error handling bridge event', { error });
+        }
+    }
+
+    /**
+     * Load last event ID from storage
+     */
+    private async loadLastEventId(): Promise<void> {
+        try {
+            const savedEventId = await this.storageAdapter.get<string>(this.storageKey);
+            if (savedEventId) {
+                this.lastEventId = savedEventId;
+                log.debug('Loaded last event ID from storage', { lastEventId: this.lastEventId });
+            }
+        } catch (error) {
+            log.warn('Failed to load last event ID from storage', { error });
+        }
+    }
+
+    /**
+     * Save last event ID to storage
+     */
+    private async saveLastEventId(): Promise<void> {
+        try {
+            if (this.lastEventId) {
+                await this.storageAdapter.set(this.storageKey, this.lastEventId);
+                log.debug('Saved last event ID to storage', { lastEventId: this.lastEventId });
+            }
+        } catch (error) {
+            log.warn('Failed to save last event ID to storage', { error });
         }
     }
 }

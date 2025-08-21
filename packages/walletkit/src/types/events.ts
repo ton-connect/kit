@@ -4,6 +4,7 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 
 import type { WalletInterface, TonNetwork } from './wallet';
 import type { HumanReadableTx } from '../validation/transaction';
+import { ConnectTransactionParamContent, RawBridgeEventTransaction } from './internal';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -47,19 +48,20 @@ export interface ConnectPreview {
 /**
  * Transaction request event from dApp
  */
-export interface EventTransactionRequest {
+
+export type EventTransactionRequest = RawBridgeEventTransaction & {
     /** Unique request identifier */
     id: string;
 
     /** Raw transaction request data */
-    request: TransactionRequest;
+    request: ConnectTransactionParamContent;
 
     /** Human-readable preview for UI display */
     preview: TransactionPreview;
 
     /** Wallet that will handle this request */
     wallet: WalletInterface;
-}
+};
 
 /**
  * Raw transaction request data

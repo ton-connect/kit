@@ -312,6 +312,11 @@ export const setupWalletKitListeners = (showConnectRequest: (request: EventConne
         log.info('Connect request received:', event);
         showConnectRequest(event);
     });
+    walletKit.onTransactionRequest((event) => {
+        log.info('Transaction request received:', event);
+
+        // showTransactionRequest(event);
+    });
 };
 
 // Export walletKit for external access if needed

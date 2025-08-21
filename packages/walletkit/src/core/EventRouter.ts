@@ -13,6 +13,7 @@ import type {
     EventHandler,
     EventCallback,
     RawBridgeEventConnect,
+    RawBridgeEventTransaction,
 } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
@@ -39,7 +40,7 @@ export class EventRouter {
     /**
      * Route incoming bridge event to appropriate handler
      */
-    async routeEvent(event: RawBridgeEvent, wallet?: WalletInterface, sessionId?: string): Promise<void> {
+    async routeEvent(event: RawBridgeEvent, sessionId?: string): Promise<void> {
         // Validate event structure
         const validation = validateBridgeEvent(event);
         if (!validation.isValid) {
@@ -52,7 +53,6 @@ export class EventRouter {
             id: event.id,
             sessionId,
             timestamp: new Date(),
-            wallet,
         };
 
         try {
@@ -69,7 +69,7 @@ export class EventRouter {
                 const connectEvent = await handler.handle(event as RawBridgeEventConnect, context);
                 this.notifyConnectRequestCallbacks(connectEvent);
             } else if (handler instanceof TransactionHandler) {
-                const txEvent = await handler.handle(event, context);
+                const txEvent = await handler.handle(event as RawBridgeEventTransaction, context);
                 this.notifyTransactionRequestCallbacks(txEvent);
             } else if (handler instanceof SignDataHandler) {
                 const signEvent = await handler.handle(event, context);
