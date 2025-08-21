@@ -61,18 +61,15 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 .join('');
 
             // Update state - persistence layer will handle storage
-            set({
-                wallet: {
-                    ...state.wallet,
-                    hasWallet: true,
-                    isAuthenticated: true,
-                    address,
-                    publicKey,
-                    balance: balance.toString(),
-                    encryptedMnemonic,
-                    mnemonic: undefined, // Never store in memory
-                    currentWallet: wallet,
-                },
+            set((state) => {
+                state.wallet.hasWallet = true;
+                state.wallet.isAuthenticated = true;
+                state.wallet.address = address;
+                state.wallet.publicKey = publicKey;
+                state.wallet.balance = balance.toString();
+                state.wallet.encryptedMnemonic = encryptedMnemonic;
+                state.wallet.mnemonic = undefined; // Never store in memory
+                state.wallet.currentWallet = wallet;
             });
         } catch (error) {
             console.error('Error creating wallet:', error);
@@ -94,7 +91,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         try {
             // Check if we have an encrypted mnemonic in state
             if (!state.wallet.encryptedMnemonic) {
-                set({ wallet: { ...state.wallet, hasWallet: false, isAuthenticated: false } });
+                set((state) => {
+                    state.wallet.hasWallet = false;
+                    state.wallet.isAuthenticated = false;
+                });
                 return;
             }
 
@@ -125,20 +125,20 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 .join('');
 
             // Update state - persistence layer will handle storage
-            set({
-                wallet: {
-                    ...state.wallet,
-                    hasWallet: true,
-                    isAuthenticated: true,
-                    address,
-                    publicKey,
-                    balance: balance.toString(),
-                    currentWallet: wallet,
-                },
+            set((state) => {
+                state.wallet.hasWallet = true;
+                state.wallet.isAuthenticated = true;
+                state.wallet.address = address;
+                state.wallet.publicKey = publicKey;
+                state.wallet.balance = balance.toString();
+                state.wallet.currentWallet = wallet;
             });
         } catch (error) {
             console.error('Error loading wallet:', error);
-            set({ wallet: { ...state.wallet, hasWallet: false, isAuthenticated: false } });
+            set((state) => {
+                state.wallet.hasWallet = false;
+                state.wallet.isAuthenticated = false;
+            });
         }
     },
 
@@ -180,20 +180,16 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     },
 
     clearWallet: () => {
-        const state = get();
-        set({
-            wallet: {
-                ...state.wallet,
-                isAuthenticated: false,
-                hasWallet: false,
-                address: undefined,
-                balance: undefined,
-                mnemonic: undefined,
-                publicKey: undefined,
-                transactions: [],
-                currentWallet: undefined,
-                encryptedMnemonic: undefined,
-            },
+        set((state) => {
+            state.wallet.isAuthenticated = false;
+            state.wallet.hasWallet = false;
+            state.wallet.address = undefined;
+            state.wallet.balance = undefined;
+            state.wallet.mnemonic = undefined;
+            state.wallet.publicKey = undefined;
+            state.wallet.transactions = [];
+            state.wallet.currentWallet = undefined;
+            state.wallet.encryptedMnemonic = undefined;
         });
     },
 
@@ -210,11 +206,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const balanceString = balance.toString();
 
             // Update state - persistence layer will handle storage
-            set({
-                wallet: {
-                    ...state.wallet,
-                    balance: balanceString,
-                },
+            set((state) => {
+                state.wallet.balance = balanceString;
             });
         } catch (error) {
             console.error('Error updating balance:', error);
@@ -223,12 +216,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     },
 
     addTransaction: (transaction: Transaction) => {
-        const state = get();
-        set({
-            wallet: {
-                ...state.wallet,
-                transactions: [transaction, ...state.wallet.transactions],
-            },
+        set((state) => {
+            state.wallet.transactions = [transaction, ...state.wallet.transactions];
         });
     },
 
@@ -245,13 +234,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
     // Connect request handling
     showConnectRequest: (request: EventConnectRequest) => {
-        const state = get();
-        set({
-            wallet: {
-                ...state.wallet,
-                pendingConnectRequest: request,
-                isConnectModalOpen: true,
-            },
+        set((state) => {
+            state.wallet.pendingConnectRequest = request;
+            state.wallet.isConnectModalOpen = true;
         });
     },
 
@@ -273,12 +258,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             await walletKit.approveConnectRequest(updatedRequest);
 
             // Close the modal and clear pending request
-            set({
-                wallet: {
-                    ...state.wallet,
-                    pendingConnectRequest: undefined,
-                    isConnectModalOpen: false,
-                },
+            set((state) => {
+                state.wallet.pendingConnectRequest = undefined;
+                state.wallet.isConnectModalOpen = false;
             });
         } catch (error) {
             console.error('Failed to approve connect request:', error);
@@ -297,12 +279,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             await walletKit.rejectConnectRequest(state.wallet.pendingConnectRequest, reason);
 
             // Close the modal and clear pending request
-            set({
-                wallet: {
-                    ...state.wallet,
-                    pendingConnectRequest: undefined,
-                    isConnectModalOpen: false,
-                },
+            set((state) => {
+                state.wallet.pendingConnectRequest = undefined;
+                state.wallet.isConnectModalOpen = false;
             });
         } catch (error) {
             console.error('Failed to reject connect request:', error);
@@ -311,13 +290,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     },
 
     closeConnectModal: () => {
-        const state = get();
-        set({
-            wallet: {
-                ...state.wallet,
-                isConnectModalOpen: false,
-                pendingConnectRequest: undefined,
-            },
+        set((state) => {
+            state.wallet.isConnectModalOpen = false;
+            state.wallet.pendingConnectRequest = undefined;
         });
     },
 

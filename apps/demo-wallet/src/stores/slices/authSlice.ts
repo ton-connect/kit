@@ -20,13 +20,11 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
 
             const passwordHash = Array.from(new Uint8Array(passwordHashBuffer));
 
-            set({
-                auth: {
-                    isPasswordSet: true,
-                    isUnlocked: true,
-                    currentPassword: password,
-                    passwordHash,
-                },
+            set((state) => {
+                state.auth.isPasswordSet = true;
+                state.auth.isUnlocked = true;
+                state.auth.currentPassword = password;
+                state.auth.passwordHash = passwordHash;
             });
         } catch (error) {
             console.error('Error setting password:', error);
@@ -65,25 +63,19 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
 
     lock: () => {
         // const state = get();
-        set({
-            auth: {
-                // ...state.auth,
-                isUnlocked: false,
-                currentPassword: undefined,
-            },
+        set((state) => {
+            state.auth.isUnlocked = false;
+            state.auth.currentPassword = undefined;
         });
     },
 
     reset: () => {
         // const state = get();
-        set({
-            auth: {
-                // ...state.auth,
-                isPasswordSet: false,
-                isUnlocked: false,
-                currentPassword: undefined, // Clear password
-                passwordHash: undefined, // Clear password hash
-            },
+        set((state) => {
+            state.auth.isPasswordSet = false;
+            state.auth.isUnlocked = false;
+            state.auth.currentPassword = undefined;
+            state.auth.passwordHash = undefined;
         });
     },
 });
