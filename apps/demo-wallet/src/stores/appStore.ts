@@ -103,7 +103,7 @@ export const useStore = create<AppState>()(
 if (typeof window !== 'undefined') {
     // Set up wallet kit listeners with the store's request handlers
     const store = useStore.getState();
-    setupWalletKitListeners(store.showConnectRequest, store.showTransactionRequest);
+    setupWalletKitListeners(store.showConnectRequest, store.showTransactionRequest, store.showSignDataRequest);
 }
 
 // Helper hooks for accessing specific parts of the store
@@ -162,6 +162,18 @@ export const useTransactionRequests = () =>
             approveTransactionRequest: state.approveTransactionRequest,
             rejectTransactionRequest: state.rejectTransactionRequest,
             closeTransactionModal: state.closeTransactionModal,
+        })),
+    );
+
+export const useSignDataRequests = () =>
+    useStore(
+        useShallow((state) => ({
+            pendingSignDataRequest: state.wallet.pendingSignDataRequest,
+            isSignDataModalOpen: state.wallet.isSignDataModalOpen,
+            showSignDataRequest: state.showSignDataRequest,
+            approveSignDataRequest: state.approveSignDataRequest,
+            rejectSignDataRequest: state.rejectSignDataRequest,
+            closeSignDataModal: state.closeSignDataModal,
         })),
     );
 

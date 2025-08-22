@@ -127,6 +127,9 @@ export interface EventSignDataRequest {
 
     /** Wallet that will handle this request */
     wallet: WalletInterface;
+
+    /** Domain of the dApp */
+    domain: string;
 }
 
 export type SignDataPreviewText = {

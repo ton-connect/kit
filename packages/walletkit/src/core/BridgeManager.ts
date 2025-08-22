@@ -245,10 +245,12 @@ export class BridgeManager {
                 sessionId: event.sessionId,
                 timestamp: Date.now(),
                 from: event?.from,
+                domain: '',
             };
 
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);
+                rawEvent.domain = session?.domain || '';
                 if (session?.wallet) {
                     rawEvent.wallet = session.wallet;
                 }

@@ -4,6 +4,7 @@ import {
     type WalletInterface,
     type EventConnectRequest,
     type EventTransactionRequest,
+    type EventSignDataRequest,
 } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
@@ -36,6 +37,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         isConnectModalOpen: false,
         pendingTransactionRequest: undefined,
         isTransactionModalOpen: false,
+        pendingSignDataRequest: undefined,
+        isSignDataModalOpen: false,
         encryptedMnemonic: undefined,
     },
 
@@ -202,6 +205,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             state.wallet.transactions = [];
             state.wallet.currentWallet = undefined;
             state.wallet.encryptedMnemonic = undefined;
+            state.wallet.pendingConnectRequest = undefined;
+            state.wallet.isConnectModalOpen = false;
+            state.wallet.pendingTransactionRequest = undefined;
+            state.wallet.isTransactionModalOpen = false;
+            state.wallet.pendingSignDataRequest = undefined;
+            state.wallet.isSignDataModalOpen = false;
         });
     },
 
@@ -366,6 +375,64 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         });
     },
 
+    // Sign data request handling
+    showSignDataRequest: (request: EventSignDataRequest) => {
+        set((state) => {
+            state.wallet.pendingSignDataRequest = request;
+            state.wallet.isSignDataModalOpen = true;
+        });
+    },
+
+    approveSignDataRequest: async () => {
+        const state = get();
+        if (!state.wallet.pendingSignDataRequest) {
+            log.error('No pending sign data request to approve');
+            return;
+        }
+
+        try {
+            // Approve the sign data request with the wallet kit
+            await walletKit.signDataRequest(state.wallet.pendingSignDataRequest);
+
+            // Close the modal and clear pending request
+            set((state) => {
+                state.wallet.pendingSignDataRequest = undefined;
+                state.wallet.isSignDataModalOpen = false;
+            });
+        } catch (error) {
+            log.error('Failed to approve sign data request:', error);
+            throw error;
+        }
+    },
+
+    rejectSignDataRequest: async (reason?: string) => {
+        const state = get();
+        if (!state.wallet.pendingSignDataRequest) {
+            log.error('No pending sign data request to reject');
+            return;
+        }
+
+        try {
+            await walletKit.rejectSignDataRequest(state.wallet.pendingSignDataRequest, reason);
+
+            // Close the modal and clear pending request
+            set((state) => {
+                state.wallet.pendingSignDataRequest = undefined;
+                state.wallet.isSignDataModalOpen = false;
+            });
+        } catch (error) {
+            log.error('Failed to reject sign data request:', error);
+            throw error;
+        }
+    },
+
+    closeSignDataModal: () => {
+        set((state) => {
+            state.wallet.isSignDataModalOpen = false;
+            state.wallet.pendingSignDataRequest = undefined;
+        });
+    },
+
     // Getters
     getAvailableWallets: () => {
         return walletKit.getWallets();
@@ -376,6 +443,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 export const setupWalletKitListeners = (
     showConnectRequest: (request: EventConnectRequest) => void,
     showTransactionRequest: (request: EventTransactionRequest) => void,
+    showSignDataRequest: (request: EventSignDataRequest) => void,
 ) => {
     walletKit.onConnectRequest((event) => {
         log.info('Connect request received:', event);
@@ -384,6 +452,10 @@ export const setupWalletKitListeners = (
     walletKit.onTransactionRequest((event) => {
         log.info('Transaction request received:', event);
         showTransactionRequest(event);
+    });
+    walletKit.onSignDataRequest((event) => {
+        log.info('Sign data request received:', event);
+        showSignDataRequest(event);
     });
 };
 

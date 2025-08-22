@@ -30,13 +30,19 @@ export class SessionManager {
     /**
      * Create new session
      */
-    async createSession(sessionId: string, dAppName: string, wallet: WalletInterface): Promise<SessionData> {
+    async createSession(
+        sessionId: string,
+        dAppName: string,
+        domain: string,
+        wallet: WalletInterface,
+    ): Promise<SessionData> {
         const now = new Date();
         // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
         const randomKeyPair = new SessionCrypto().stringifyKeypair();
         const sessionData: SessionStorageData = {
             sessionId,
             dAppName,
+            domain,
             walletAddress: wallet.getAddress(),
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
@@ -67,6 +73,7 @@ export class SessionManager {
                 publicKey: session.publicKey,
                 createdAt: new Date(session.createdAt),
                 lastActivityAt: new Date(session.lastActivityAt),
+                domain: session.domain,
             };
         }
         return undefined;
@@ -226,6 +233,7 @@ export class SessionManager {
             const sessionMetadata: SessionStorageData[] = this.getSessions().map((session) => ({
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
+                domain: session.domain,
                 walletAddress: session.walletAddress,
                 createdAt: session.createdAt,
                 lastActivityAt: session.lastActivityAt,

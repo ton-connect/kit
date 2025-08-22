@@ -312,6 +312,7 @@ export class TonWalletKit implements ITonWalletKit {
             },
             sessionId: params.clientId,
             timestamp: Date.now(),
+            domain: '',
         };
     }
 

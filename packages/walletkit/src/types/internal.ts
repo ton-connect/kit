@@ -7,6 +7,7 @@ import type { WalletInterface } from './wallet';
 export interface SessionData {
     sessionId: string;
     dAppName: string;
+    domain: string;
     walletAddress: string;
     wallet?: WalletInterface;
     createdAt: Date;
@@ -18,6 +19,7 @@ export interface SessionData {
 export interface SessionStorageData {
     sessionId: string;
     dAppName: string;
+    domain: string;
     walletAddress: string;
     createdAt: string;
     lastActivityAt: string;
@@ -49,7 +51,7 @@ export interface ValidationResult {
     errors: string[];
 }
 
-type BridgeEventBase = { from: string; wallet?: WalletInterface };
+type BridgeEventBase = { from: string; wallet?: WalletInterface; domain: string };
 
 // Bridge event types (raw from bridge)
 export interface RawBridgeEventGeneric extends BridgeEventBase {
@@ -95,11 +97,22 @@ export interface ConnectTransactionParamContent {
 export type RawBridgeEventTransaction = BridgeEventBase & SendTransactionRpcRequest;
 export type RawBridgeEventSignData = BridgeEventBase & SignDataRpcRequest;
 
+export interface RawBridgeEventDisconnect extends BridgeEventBase {
+    id: string;
+    method: 'disconnect';
+    params: {
+        reason?: string;
+    };
+    sessionId?: string;
+    timestamp?: number;
+}
+
 export type RawBridgeEvent =
     | RawBridgeEventGeneric
     | RawBridgeEventConnect
     | RawBridgeEventTransaction
-    | RawBridgeEventSignData;
+    | RawBridgeEventSignData
+    | RawBridgeEventDisconnect;
 
 // Internal event routing types
 export type EventType = 'startConnect' | 'sendTransaction' | 'signData' | 'disconnect';

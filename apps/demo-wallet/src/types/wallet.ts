@@ -1,4 +1,9 @@
-import type { EventConnectRequest, EventTransactionRequest, WalletInterface } from '@ton/walletkit';
+import type {
+    EventConnectRequest,
+    EventTransactionRequest,
+    EventSignDataRequest,
+    WalletInterface,
+} from '@ton/walletkit';
 
 export interface WalletState {
     wallet: {
@@ -22,6 +27,10 @@ export interface WalletState {
         // Transaction request state
         pendingTransactionRequest?: EventTransactionRequest;
         isTransactionModalOpen: boolean;
+
+        // Sign data request state
+        pendingSignDataRequest?: EventSignDataRequest;
+        isSignDataModalOpen: boolean;
 
         // Encrypted mnemonic stored in state
         encryptedMnemonic?: string;

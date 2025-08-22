@@ -35,12 +35,14 @@ export class SignDataHandler
             throw new Error('No preview found for data');
         }
 
+        const url = new URL(event.domain);
         const signEvent: EventSignDataRequest = {
             from: event.from,
             id: event.id,
             data,
             preview,
             wallet: event.wallet,
+            domain: url.hostname,
         };
 
         return signEvent;

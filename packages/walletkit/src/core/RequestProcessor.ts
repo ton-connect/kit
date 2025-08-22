@@ -93,7 +93,9 @@ export class RequestProcessor {
                 throw new Error('Wallet is required');
             }
             // Create session for this connection'
-            const newSession = await this.sessionManager.createSession(event.id, event.dAppName, event.wallet);
+            const url = new URL(event.dAppUrl);
+            const domain = url.hostname;
+            const newSession = await this.sessionManager.createSession(event.id, event.dAppName, domain, event.wallet);
             // Create bridge session
             await this.bridgeManager.createSession(newSession.sessionId);
             // Send approval response
@@ -176,7 +178,7 @@ export class RequestProcessor {
             // Sign data with wallet
             const signData = PrepareTonConnectData({
                 payload: event.data,
-                domain: 'localhost:3000',
+                domain: event.domain,
                 address: event.wallet.getAddress().toString(),
             });
             const signature = await event.wallet.sign(signData.hash);

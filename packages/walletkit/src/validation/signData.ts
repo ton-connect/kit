@@ -75,7 +75,7 @@ function validateSignDataPayloadBinary(data: Record<string, unknown>): Validatio
     }
 
     if (data.network !== undefined) {
-        if (!isValidString(data.network) || !/^\d+$/.test(data.network)) {
+        if (!isValidString(data.network) || !/^-?\d+$/.test(data.network)) {
             return "Invalid 'network' format";
         }
     }
@@ -106,7 +106,7 @@ function validateSignDataPayloadCell(data: Record<string, unknown>): ValidationR
     }
 
     if (data.network !== undefined) {
-        if (!isValidString(data.network) || !/^\d+$/.test(data.network)) {
+        if (!isValidString(data.network) || !/^-?\d+$/.test(data.network)) {
             return "Invalid 'network' format";
         }
     }

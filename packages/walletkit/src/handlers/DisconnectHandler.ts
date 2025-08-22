@@ -1,18 +1,18 @@
 // Disconnect event handler
 
 import type { EventDisconnect } from '../types';
-import type { RawBridgeEvent, EventHandler, RawBridgeEventGeneric } from '../types/internal';
+import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 
 export class DisconnectHandler
     extends BasicHandler<EventDisconnect>
-    implements EventHandler<EventDisconnect, RawBridgeEventGeneric>
+    implements EventHandler<EventDisconnect, RawBridgeEventDisconnect>
 {
-    canHandle(event: RawBridgeEvent): event is RawBridgeEventGeneric {
+    canHandle(event: RawBridgeEvent): event is RawBridgeEventDisconnect {
         return event.method === 'disconnect';
     }
 
-    async handle(event: RawBridgeEvent): Promise<EventDisconnect> {
+    async handle(event: RawBridgeEventDisconnect): Promise<EventDisconnect> {
         if (!event.wallet) {
             throw new Error('No wallet found in event');
         }
@@ -30,11 +30,11 @@ export class DisconnectHandler
     /**
      * Extract disconnect reason from bridge event
      */
-    private extractDisconnectReason(event: RawBridgeEventGeneric): string | undefined {
+    private extractDisconnectReason(event: RawBridgeEventDisconnect): string | undefined {
         const params = event.params || {};
 
-        // Check various possible fields for reason
-        const reason = params.reason || params.message || params.error || params.cause;
+        // Check for reason field
+        const reason = params.reason;
 
         if (typeof reason === 'string' && reason.length > 0) {
             return reason.slice(0, 200); // Limit length

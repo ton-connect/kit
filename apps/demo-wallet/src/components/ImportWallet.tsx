@@ -152,7 +152,9 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                         {words.map((word, index) => (
                             <div key={index} className="relative">
                                 <input
-                                    ref={(el) => (inputRefs.current[index] = el)}
+                                    ref={(el) => {
+                                        inputRefs.current[index] = el;
+                                    }}
                                     type="text"
                                     value={word}
                                     onChange={(e) => handleWordChange(index, e.target.value)}

@@ -1,8 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Layout, Button, Card, ConnectRequestModal, TransactionRequestModal } from '../components';
-import { useWallet, useTonConnect, useTransactionRequests } from '../stores';
+import {
+    Layout,
+    Button,
+    Card,
+    ConnectRequestModal,
+    TransactionRequestModal,
+    SignDataRequestModal,
+} from '../components';
+import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests } from '../stores';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 
@@ -26,6 +33,8 @@ export const WalletDashboard: React.FC = () => {
     } = useTonConnect();
     const { pendingTransactionRequest, isTransactionModalOpen, approveTransactionRequest, rejectTransactionRequest } =
         useTransactionRequests();
+    const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
+        useSignDataRequests();
     const { getBalance, error } = useTonWallet();
 
     const handleRefreshBalance = useCallback(async () => {
@@ -361,6 +370,16 @@ export const WalletDashboard: React.FC = () => {
                     isOpen={isTransactionModalOpen}
                     onApprove={approveTransactionRequest}
                     onReject={rejectTransactionRequest}
+                />
+            )}
+
+            {/* Sign Data Request Modal */}
+            {pendingSignDataRequest && (
+                <SignDataRequestModal
+                    request={pendingSignDataRequest}
+                    isOpen={isSignDataModalOpen}
+                    onApprove={approveSignDataRequest}
+                    onReject={rejectSignDataRequest}
                 />
             )}
         </Layout>
