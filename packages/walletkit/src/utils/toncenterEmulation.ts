@@ -2,6 +2,7 @@ import { Address, Cell } from '@ton/ton';
 import { parseInternal } from '@truecarry/tlb-abi';
 
 import { ConnectTransactionParamContent } from '../types/internal';
+import { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -26,8 +27,7 @@ export interface MoneyFlow {
 }
 
 export interface ToncenterEmulationResult {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    result: any;
+    result: ToncenterEmulationResponse;
 }
 
 export interface ToncenterEmulationHook {
@@ -69,7 +69,7 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
     if (!response.ok) {
         throw new Error('Failed to fetch toncenter emulation result');
     }
-    const result = await response.json();
+    const result = (await response.json()) as ToncenterEmulationResponse;
     return { result };
 }
 
@@ -89,14 +89,10 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResult): 
     const firstTx = emulation.result.transactions[emulation.result.trace.tx_hash];
 
     // Get all transactions for our account
-    const ourTxes = Object.values(emulation.result.transactions).filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (t: any) => t.account === firstTx.account,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any[];
+    const ourTxes = Object.values(emulation.result.transactions).filter((t) => t.account === firstTx.account);
 
     const messagesFrom = ourTxes.flatMap((t) => t.out_msgs);
-    const messagesTo = ourTxes.flatMap((t) => t.in_msg);
+    const messagesTo = ourTxes.flatMap((t) => t.in_msg).filter((m) => m !== null);
 
     // Calculate TON outputs
     const outputs = messagesFrom.reduce((acc, m) => {
@@ -122,8 +118,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResult): 
         amount: bigint;
     }[] = [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const t of Object.values(emulation.result.transactions as any[])) {
+    for (const t of Object.values(emulation.result.transactions)) {
         if (!t.in_msg?.source) {
             continue;
         }
@@ -146,8 +141,9 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResult): 
             continue;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tokenInfo = metadata.token_info.find((t: any) => t.valid && t.type === 'jetton_wallets');
+        const tokenInfo = metadata.token_info.find((t) => t.valid && t.type === 'jetton_wallets') as
+            | EmulationTokenInfoWallets
+            | undefined;
 
         if (!tokenInfo) {
             continue;

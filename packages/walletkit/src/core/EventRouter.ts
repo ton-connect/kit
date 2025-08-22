@@ -3,7 +3,7 @@
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from '../types';
 import type { RawBridgeEvent, EventHandler, EventCallback } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
-import { TransactionHandler } from '../handlers/TransactionHandler';
+import { TransactionHandler, type EmulationResultCallback } from '../handlers/TransactionHandler';
 import { SignDataHandler } from '../handlers/SignDataHandler';
 import { DisconnectHandler } from '../handlers/DisconnectHandler';
 import { validateBridgeEvent } from '../validation/events';
@@ -13,6 +13,7 @@ const log = globalLogger.createChild('EventRouter');
 
 export class EventRouter {
     private handlers: EventHandler[] = [];
+    private emulationResultCallback?: EmulationResultCallback;
 
     // Event callbacks
     private connectRequestCallbacks: EventCallback<EventConnectRequest>[] = [];
@@ -20,7 +21,8 @@ export class EventRouter {
     private signDataRequestCallbacks: EventCallback<EventSignDataRequest>[] = [];
     private disconnectCallbacks: EventCallback<EventDisconnect>[] = [];
 
-    constructor() {
+    constructor(emulationCallback?: EmulationResultCallback) {
+        this.emulationResultCallback = emulationCallback;
         this.setupHandlers();
     }
 
@@ -116,7 +118,7 @@ export class EventRouter {
     private setupHandlers(): void {
         this.handlers = [
             new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this)),
-            new TransactionHandler(this.notifyTransactionRequestCallbacks.bind(this)),
+            new TransactionHandler(this.notifyTransactionRequestCallbacks.bind(this), this.emulationResultCallback),
             new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this)),
             new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this)),
         ];

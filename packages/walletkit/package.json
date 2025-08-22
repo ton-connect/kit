@@ -45,7 +45,8 @@
     "@tonconnect/protocol": "^2.3.0",
     "@tonconnect/sdk": "^3.2.0",
     "@truecarry/tlb-abi": "^0.2.0",
-    "bridge-sdk": "link:..\\..\\..\\bridge-sdk"
+    "bridge-sdk": "link:..\\..\\..\\bridge-sdk",
+    "lru-cache": "^11.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

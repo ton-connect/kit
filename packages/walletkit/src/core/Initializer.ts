@@ -16,6 +16,7 @@ import { WalletManager } from './WalletManager';
 import { SessionManager } from './SessionManager';
 import { BridgeManager } from './BridgeManager';
 import { EventRouter } from './EventRouter';
+import type { EmulationResultCallback } from '../handlers/TransactionHandler';
 import { RequestProcessor } from './RequestProcessor';
 import { ResponseHandler } from './ResponseHandler';
 import { globalLogger } from './Logger';
@@ -67,7 +68,10 @@ export class Initializer {
     /**
      * Initialize all components
      */
-    async initialize(options: TonWalletKitOptions): Promise<InitializationResult> {
+    async initialize(
+        options: TonWalletKitOptions,
+        emulationCallback?: EmulationResultCallback,
+    ): Promise<InitializationResult> {
         try {
             log.info('Initializing TonWalletKit...');
 
@@ -81,6 +85,7 @@ export class Initializer {
             const { walletManager, sessionManager, bridgeManager, eventRouter } = await this.initializeManagers(
                 options,
                 storageAdapter,
+                emulationCallback,
             );
 
             // 5. Initialize processors
@@ -145,6 +150,7 @@ export class Initializer {
     private async initializeManagers(
         options: TonWalletKitOptions,
         storageAdapter: StorageAdapter,
+        emulationCallback?: EmulationResultCallback,
     ): Promise<{
         walletManager: WalletManager;
         sessionManager: SessionManager;
@@ -174,7 +180,7 @@ export class Initializer {
         );
         await bridgeManager.initialize();
 
-        const eventRouter = new EventRouter();
+        const eventRouter = new EventRouter(emulationCallback);
 
         return {
             walletManager,

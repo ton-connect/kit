@@ -20,6 +20,7 @@ import type { SessionManager } from './SessionManager';
 import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import type { ResponseHandler } from './ResponseHandler';
+import { JettonsManager, type JettonInfo } from './JettonsManager';
 import { RawBridgeEventConnect } from '../types/internal';
 
 const log = globalLogger.createChild('TonWalletKit');
@@ -43,6 +44,7 @@ export class TonWalletKit implements ITonWalletKit {
     private requestProcessor!: RequestProcessor;
     private responseHandler!: ResponseHandler;
     private tonClient!: TonClient;
+    private jettonsManager: JettonsManager;
     private initializer: Initializer;
 
     // State
@@ -51,6 +53,7 @@ export class TonWalletKit implements ITonWalletKit {
 
     constructor(options: TonWalletKitOptions) {
         this.initializer = new Initializer();
+        this.jettonsManager = new JettonsManager();
 
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize(options);
@@ -65,7 +68,22 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.isInitialized) return;
 
         try {
-            const components = await this.initializer.initialize(options);
+            // Create emulation callback for jetton caching
+            const emulationCallback = (emulationResult: unknown) => {
+                if (emulationResult && typeof emulationResult === 'object' && 'metadata' in emulationResult) {
+                    this.jettonsManager.addJettonsFromEmulationMetadata(
+                        emulationResult.metadata as Record<
+                            string,
+                            {
+                                is_indexed: boolean;
+                                token_info?: unknown[];
+                            }
+                        >,
+                    );
+                }
+            };
+
+            const components = await this.initializer.initialize(options, emulationCallback);
             this.assignComponents(components);
             this.setupEventRouting();
             this.isInitialized = true;
@@ -393,5 +411,26 @@ export class TonWalletKit implements ITonWalletKit {
         }
 
         this.isInitialized = false;
+    }
+
+    // === Jettons API ===
+
+    /**
+     * Jettons API access
+     */
+    jettons = {
+        getJettonInfo: (jettonAddress: string): JettonInfo | null => {
+            return this.jettonsManager.getJettonInfo(jettonAddress);
+        },
+        getAddressJettons: (userAddress: string, offset = 0, limit = 50): Promise<JettonInfo[]> => {
+            return this.jettonsManager.getAddressJettons(userAddress, offset, limit);
+        },
+    };
+
+    /**
+     * Get jettons manager for internal use
+     */
+    getJettonsManager(): JettonsManager {
+        return this.jettonsManager;
     }
 }

@@ -14,6 +14,7 @@ export { EventRouter } from './core/EventRouter';
 export { RequestProcessor } from './core/RequestProcessor';
 export { ResponseHandler } from './core/ResponseHandler';
 export { Initializer } from './core/Initializer';
+export { JettonsManager, type JettonInfo } from './core/JettonsManager';
 
 // Re-export logger for customization
 // export { Logger, LogLevel, createLogger } from './core/Logger';

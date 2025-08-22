@@ -67,6 +67,8 @@ export const useStore = create<AppState>()(
                         auth: {
                             isPasswordSet: state.auth.isPasswordSet,
                             passwordHash: state.auth.passwordHash,
+                            isUnlocked: state.auth.isUnlocked,
+                            currentPassword: state.auth.currentPassword,
                             // isUnlocked: omit - never persist unlocked state for security
                         },
                         wallet: {

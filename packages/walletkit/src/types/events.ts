@@ -5,6 +5,7 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 import type { WalletInterface, TonNetwork } from './wallet';
 import { ConnectTransactionParamContent, RawBridgeEventTransaction } from './internal';
 import { MoneyFlow } from '../utils/toncenterEmulation';
+import { ToncenterEmulationResponse } from './toncenter/emulation';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -105,6 +106,9 @@ export interface TransactionPreview {
     // /** Human-readable message descriptions */
     // messages: HumanReadableTx[];
     moneyFlow: MoneyFlow;
+
+    /** Emulation result */
+    emulationResult: ToncenterEmulationResponse;
 }
 
 /**

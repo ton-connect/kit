@@ -1,7 +1,6 @@
-import React from 'react';
-
 import { AppRouter } from './components';
 import './App.css';
+import './storePatch';
 
 function App() {
     return <AppRouter />;

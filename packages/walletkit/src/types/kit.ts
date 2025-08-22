@@ -2,6 +2,7 @@
 
 import type { WalletInterface, WalletInitConfig } from './wallet';
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from './events';
+import type { JettonInfo } from '../core/JettonsManager';
 
 /**
  * Main TonWalletKit interface
@@ -73,6 +74,17 @@ export interface TonWalletKit {
 
     /** Register disconnect handler */
     onDisconnect(cb: (event: EventDisconnect) => void): void;
+
+    // === Jettons API ===
+
+    /** Jettons API access */
+    jettons: {
+        /** Get jetton information by address */
+        getJettonInfo(jettonAddress: string): JettonInfo | null;
+
+        /** Get jettons for a specific user address */
+        getAddressJettons(userAddress: string, offset?: number, limit?: number): Promise<JettonInfo[]>;
+    };
 }
 
 /**

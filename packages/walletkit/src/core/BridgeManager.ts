@@ -76,7 +76,6 @@ export class BridgeManager {
 
         // const walletSession = new SessionCrypto();
         // this.sessions.set(appSessionId, walletSession);
-        // debugger;
         // If bridge is already connected, add this client
         if (this.bridgeProvider && this.isConnected) {
             log.info('[BRIDGE] Updating clients');

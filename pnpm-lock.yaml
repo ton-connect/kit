@@ -126,6 +126,9 @@ importers:
       bridge-sdk:
         specifier: link:..\..\..\bridge-sdk
         version: link:../../../bridge-sdk
+      lru-cache:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@types/node':
         specifier: ^24.3.0

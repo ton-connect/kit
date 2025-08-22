@@ -24,10 +24,19 @@ import { CallForSuccess } from '../utils/retry';
 
 const log = globalLogger.createChild('TransactionHandler');
 
+// Callback for emulation results - allows external processing
+export type EmulationResultCallback = (emulationResult: unknown) => void;
+
 export class TransactionHandler
     extends BasicHandler<EventTransactionRequest>
     implements EventHandler<EventTransactionRequest, RawBridgeEventTransaction>
 {
+    private emulationResultCallback?: EmulationResultCallback;
+
+    constructor(notify: (event: EventTransactionRequest) => void, emulationCallback?: EmulationResultCallback) {
+        super(notify);
+        this.emulationResultCallback = emulationCallback;
+    }
     canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
         return event.method === 'sendTransaction';
     }
@@ -187,6 +196,7 @@ export class TransactionHandler
         return {
             // messages: [],
             moneyFlow: emulationResult.moneyFlow,
+            emulationResult: emulationResult.emulationResult,
 
             // messages: humanReadableMessages,
             // totalFees: emulationResult.totalFees,
@@ -255,6 +265,15 @@ export class TransactionHandler
         const emulationResult = await CallForSuccess(() => fetchToncenterEmulation(message));
 
         const moneyFlow = processToncenterMoneyFlow(emulationResult);
+
+        // Notify callback about emulation result for jetton caching
+        if (this.emulationResultCallback && emulationResult.result) {
+            try {
+                this.emulationResultCallback(emulationResult.result);
+            } catch (error) {
+                log.warn('Error in emulation result callback', { error });
+            }
+        }
 
         return {
             emulationResult: emulationResult.result,

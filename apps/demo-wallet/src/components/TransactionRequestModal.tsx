@@ -1,11 +1,12 @@
-import React, { memo, useMemo, useState } from 'react';
-import type { EventTransactionRequest } from '@ton/walletkit';
-import { fromNano, Address } from '@ton/ton';
+import React, { memo, useEffect, useMemo, useState } from 'react';
+import type { EventTransactionRequest, JettonInfo } from '@ton/walletkit';
+import { Address } from '@ton/ton';
 
 import { Button } from './Button';
 import { Card } from './Card';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
+import { walletKit } from '../stores/slices/walletSlice';
 
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
@@ -38,15 +39,6 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
     const handleReject = () => {
         onReject('User rejected the transaction');
-    };
-
-    const formatTON = (nanotons: string | bigint): string => {
-        try {
-            const value = typeof nanotons === 'string' ? BigInt(nanotons) : nanotons;
-            return fromNano(value);
-        } catch {
-            return '0';
-        }
     };
 
     const formatAddress = (address: string | Address): string => {
@@ -217,22 +209,42 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     );
 };
 
+function useJettonInfo(jettonAddress: Address | string | null) {
+    const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
+    useEffect(() => {
+        if (!jettonAddress) {
+            setJettonInfo(null);
+            return;
+        }
+        const jettonInfo = walletKit.jettons.getJettonInfo(jettonAddress.toString());
+        setJettonInfo(jettonInfo);
+    }, [jettonAddress]);
+    return jettonInfo;
+}
+
+function SafeParseAddress(address: string) {
+    try {
+        return Address.parse(address).toString();
+    } catch {
+        return null;
+    }
+}
+
 export const JettonNameDisplay = memo(function JettonNameDisplay({
     jettonAddress,
 }: {
     jettonAddress: Address | string | undefined;
 }) {
-    // const jettonInfo = useJettonInfo(
-    //     jettonAddress
-    //         ? typeof jettonAddress === 'string' && jettonAddress !== 'TON'
-    //             ? SafeParseAddress(jettonAddress)
-    //             : jettonAddress
-    //         : null,
-    // );
+    const jettonInfo = useJettonInfo(
+        jettonAddress
+            ? typeof jettonAddress === 'string' && jettonAddress !== 'TON'
+                ? SafeParseAddress(jettonAddress)
+                : jettonAddress
+            : null,
+    );
 
-    // const name = jettonInfo.jettonInfo?.metadata?.name;
-    // return <div>{<AddressRow address={jettonAddress} text={name} />}</div>;
-    return <div>{jettonAddress === 'TON' ? jettonAddress : 'USDT'}</div>;
+    const name = jettonInfo?.name;
+    return <div>{name ?? jettonAddress?.toString() ?? 'UNKNOWN'}</div>;
 });
 
 export const JettonAmountDisplay = memo(function JettonAmountDisplay({
@@ -242,21 +254,17 @@ export const JettonAmountDisplay = memo(function JettonAmountDisplay({
     amount: bigint;
     jettonAddress: Address | string | undefined;
 }) {
-    // const jettonInfo = useJettonInfo(
-    //     jettonAddress
-    //         ? typeof jettonAddress === 'string' && jettonAddress !== 'TON'
-    //             ? SafeParseAddress(jettonAddress)
-    //             : jettonAddress
-    //         : null,
-    // );
-    // const decimals = parseInt(jettonInfo.jettonInfo?.metadata.decimals || '9') || 9;
-    // const symbol = jettonInfo.jettonInfo?.metadata?.symbol || 'UNKWN';
-    const decimals =
-        jettonAddress === 'TON' ? 9 : jettonAddress === 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' ? 6 : 9;
-    const symbol = jettonAddress === 'TON' ? 'TON' : 'USDT';
+    const jettonInfo = useJettonInfo(
+        jettonAddress
+            ? typeof jettonAddress === 'string' && jettonAddress !== 'TON'
+                ? SafeParseAddress(jettonAddress)
+                : jettonAddress
+            : null,
+    );
+
     return (
         <div>
-            {formatUnits(amount, decimals)} {symbol}
+            {formatUnits(amount, jettonInfo?.decimals ?? 9)} {jettonInfo?.symbol ?? 'UNKWN'}
         </div>
     );
 });
@@ -266,12 +274,16 @@ export const JettonImage = memo(function JettonImage({
 }: {
     jettonAddress: Address | string | undefined;
 }) {
-    // const jettonInfo = useJettonInfo(
-    //     jettonAddress ? (typeof jettonAddress === 'string' ? Address.parse(jettonAddress) : jettonAddress) : null,
-    // );
+    const jettonInfo = useJettonInfo(
+        jettonAddress
+            ? typeof jettonAddress === 'string' && jettonAddress !== 'TON'
+                ? SafeParseAddress(jettonAddress)
+                : jettonAddress
+            : null,
+    );
 
-    // return <img src={jettonInfo.jettonInfo?.metadata.image} alt={jettonInfo.jettonInfo?.metadata.name} />;
-    return <></>;
+    return <img src={jettonInfo?.image} alt={jettonInfo?.name} className="w-8 h-8 rounded-full" />;
+    // return <></>;
 });
 
 const JettonFlowItem = memo(function JettonFlowItem({
@@ -282,8 +294,9 @@ const JettonFlowItem = memo(function JettonFlowItem({
     amount: bigint;
 }) {
     return (
-        <div className="flex items-center">
-            <span className="truncate max-w-[200px]">
+        <div className="flex items-center justify-between">
+            <span className="truncate max-w-[200px] flex items-center gap-2">
+                <JettonImage jettonAddress={jettonAddress} />
                 <JettonNameDisplay jettonAddress={jettonAddress} />
             </span>
             <div className={`flex ml-2 font-medium ${amount >= 0n ? 'text-green-600' : 'text-red-600'}`}>
@@ -306,24 +319,26 @@ export const JettonFlow = memo(function JettonFlow({
     const jettonFlows = useMemo(() => {
         return jettonTransfers.reduce<Record<string, bigint>>((acc, transfer) => {
             const jettonKey = transfer.jetton?.toString() || 'unknown';
-            console.log('jettonKey', jettonKey);
+            // console.log('jettonKey', jettonKey);
             if (jettonKey === 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez') {
                 return acc;
             }
             if (jettonKey === 'EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S') {
                 return acc;
             }
-            if (!acc[jettonKey]) {
-                acc[jettonKey] = 0n;
+
+            const rawKey = Address.parse(jettonKey).toRawString().toLocaleUpperCase();
+            if (!acc[rawKey]) {
+                acc[rawKey] = 0n;
             }
 
             // Add to balance if receiving tokens (to our address)
             // Subtract from balance if sending tokens (from our address)
             if (ourAddress && transfer.to.equals(ourAddress)) {
-                acc[jettonKey] += transfer.amount;
+                acc[rawKey] += transfer.amount;
             }
             if (ourAddress && transfer.from.equals(ourAddress)) {
-                acc[jettonKey] -= transfer.amount;
+                acc[rawKey] -= transfer.amount;
             }
 
             return acc;
@@ -333,14 +348,16 @@ export const JettonFlow = memo(function JettonFlow({
     return (
         <div className="mt-2">
             <div className="font-semibold mb-1">Money Flow:</div>
-            <JettonFlowItem jettonAddress={'TON'} amount={tonDifference} />
-            {Object.entries(jettonFlows).length > 0 ? (
-                Object.entries(jettonFlows).map(([jettonAddr, amount]) => (
-                    <JettonFlowItem key={jettonAddr} jettonAddress={jettonAddr} amount={amount} />
-                ))
-            ) : (
-                <></>
-            )}
+            <div className="flex flex-col gap-2">
+                <JettonFlowItem jettonAddress={'TON'} amount={tonDifference} />
+                {Object.entries(jettonFlows).length > 0 ? (
+                    Object.entries(jettonFlows).map(([jettonAddr, amount]) => (
+                        <JettonFlowItem key={jettonAddr} jettonAddress={jettonAddr} amount={amount} />
+                    ))
+                ) : (
+                    <></>
+                )}
+            </div>
         </div>
     );
 });
