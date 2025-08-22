@@ -73,7 +73,7 @@ export const UnlockWallet: React.FC = () => {
                     </form>
                 </Card>
 
-                <div className="text-center">
+                <div className="text-center flex flex-col items-center">
                     <Button variant="secondary" onClick={handleReset} className="text-sm">
                         Reset Wallet
                     </Button>

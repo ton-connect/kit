@@ -95,7 +95,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', 
     return (
         <div className="min-h-screen bg-gray-100">
             <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="md:w-lg mx-auto px-4 py-2 flex justify-between items-center">
+                <div className="sm:w-md md:w-lg mx-auto px-4 py-2 flex justify-between items-center">
                     <h1 className="text-lg font-bold text-gray-900">{title}</h1>
                     {showLogout && (
                         <div className="relative" ref={dropdownRef}>

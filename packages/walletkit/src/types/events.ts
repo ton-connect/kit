@@ -31,6 +31,12 @@ export interface EventConnectRequest {
     wallet?: WalletInterface;
 }
 
+export interface ConnectPermission {
+    name: string;
+    title: string;
+    description: string;
+}
+
 /**
  * Connect request preview information
  */
@@ -42,7 +48,7 @@ export interface ConnectPreview {
         iconUrl?: string;
     };
     requestedItems?: string[];
-    permissions?: string[];
+    permissions?: ConnectPermission[];
 }
 
 /**

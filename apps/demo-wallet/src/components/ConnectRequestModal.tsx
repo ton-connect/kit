@@ -104,22 +104,23 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                         </div>
 
                         {/* Requested Permissions */}
-                        {(request.preview.requestedItems || []).length > 0 && (
+                        {(request.preview.permissions || []).length > 0 && (
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Requested Access:</h4>
-                                <div className="space-y-2">
-                                    {request.preview.requestedItems?.map((item, index) => (
-                                        <div key={index} className="flex items-center space-x-2">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                            <span className="text-sm text-gray-700">
-                                                {typeof item === 'string'
-                                                    ? item === 'ton_addr'
-                                                        ? 'Wallet Address'
-                                                        : item === 'ton_proof'
-                                                          ? 'Proof of Ownership'
-                                                          : item
-                                                    : 'Unknown Permission'}
-                                            </span>
+                                <h4 className="font-medium text-gray-900 mb-3">Requested Permissions:</h4>
+                                <div className="space-y-3">
+                                    {request.preview.permissions?.map((permission, index) => (
+                                        <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h5 className="text-sm font-medium text-gray-900 mb-1">
+                                                        {permission.title}
+                                                    </h5>
+                                                    <p className="text-xs text-gray-600 leading-relaxed">
+                                                        {permission.description}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

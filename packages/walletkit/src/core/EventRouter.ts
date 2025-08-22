@@ -115,10 +115,10 @@ export class EventRouter {
      */
     private setupHandlers(): void {
         this.handlers = [
-            new ConnectHandler(this.notifyConnectRequestCallbacks),
-            new TransactionHandler(this.notifyTransactionRequestCallbacks),
-            new SignDataHandler(this.notifySignDataRequestCallbacks),
-            new DisconnectHandler(this.notifyDisconnectCallbacks),
+            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this)),
+            new TransactionHandler(this.notifyTransactionRequestCallbacks.bind(this)),
+            new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this)),
+            new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this)),
         ];
     }
 

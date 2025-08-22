@@ -4,6 +4,8 @@
   "description": "",
   "private": true,
   "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix"
   },

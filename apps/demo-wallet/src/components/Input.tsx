@@ -16,7 +16,7 @@ export const Input: React.FC<InputProps> = ({ label, error, helperText, classNam
 
     return (
         <div className="space-y-1">
-            {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
+            {label && <label className="block text-sm font-medium text-gray-700 text-left">{label}</label>}
             <input className={inputClasses.trim()} {...props} />
             {error && <p className="text-sm text-red-600">{error}</p>}
             {helperText && !error && <p className="text-sm text-gray-500">{helperText}</p>}

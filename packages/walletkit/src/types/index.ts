@@ -38,7 +38,6 @@ export type {
     SessionData,
     BridgeConfig,
     EventCallback,
-    RequestContext,
     ValidationResult,
     RawBridgeEvent,
     EventType,
