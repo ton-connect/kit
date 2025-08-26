@@ -14,7 +14,7 @@ export class StorageEventStore implements EventStore {
     private storageAdapter: StorageAdapter;
     private config: DurableEventsConfig;
     private storageKey = 'durable_events';
-    private indexKey = 'durable_events_index';
+    private operationLock = new Map<string, Promise<void>>();
 
     constructor(storageAdapter: StorageAdapter, config: DurableEventsConfig) {
         this.storageAdapter = storageAdapter;
@@ -95,33 +95,38 @@ export class StorageEventStore implements EventStore {
      * Attempt to acquire exclusive lock on an event for processing
      */
     async acquireLock(eventId: string, walletAddress: string): Promise<StoredEvent | undefined> {
-        const event = await this.getEvent(eventId);
-        if (!event) {
-            log.warn('Cannot lock non-existent event', { eventId });
-            return undefined;
-        }
+        return this.withLock('storage', async () => {
+            const allEvents = await this.getAllEventsFromStorage();
+            const event = allEvents[eventId];
+            if (!event) {
+                log.warn('Cannot lock non-existent event', { eventId });
+                return undefined;
+            }
 
-        if (event.status !== 'new') {
-            log.debug('Cannot lock event - not in new status', {
-                eventId,
-                status: event.status,
-                lockedBy: event.lockedBy,
-            });
-            return undefined;
-        }
+            if (event.status !== 'new') {
+                log.debug('Cannot lock event - not in new status', {
+                    eventId,
+                    status: event.status,
+                    lockedBy: event.lockedBy,
+                });
+                return undefined;
+            }
 
-        // Update event to processing status with lock
-        const updatedEvent: StoredEvent = {
-            ...event,
-            status: 'processing',
-            processingStartedAt: Date.now(),
-            lockedBy: walletAddress,
-        };
+            // Update event to processing status with lock
+            const updatedEvent: StoredEvent = {
+                ...event,
+                status: 'processing',
+                processingStartedAt: Date.now(),
+                lockedBy: walletAddress,
+            };
 
-        await this.saveEvent(updatedEvent);
+            // Save atomically within the lock
+            allEvents[eventId] = updatedEvent;
+            await this.storageAdapter.set(this.storageKey, allEvents);
 
-        log.debug('Event lock acquired', { eventId, walletAddress });
-        return updatedEvent;
+            log.debug('Event lock acquired', { eventId, walletAddress });
+            return updatedEvent;
+        });
     }
 
     /**
@@ -152,7 +157,8 @@ export class StorageEventStore implements EventStore {
      */
     async getEvent(eventId: string): Promise<StoredEvent | null> {
         try {
-            return await this.storageAdapter.get<StoredEvent>(this.getEventKey(eventId));
+            const allEvents = await this.getAllEventsFromStorage();
+            return allEvents[eventId] || null;
         } catch (error) {
             log.warn('Failed to get event', { eventId, error });
             return null;
@@ -206,19 +212,25 @@ export class StorageEventStore implements EventStore {
         const events = await this.getAllEvents();
         const cutoffTime = Date.now() - this.config.retentionDays * 24 * 60 * 60 * 1000;
         let cleanedUpCount = 0;
+        const eventsToRemove: string[] = [];
 
         for (const event of events) {
             if (event.status === 'completed' && event.completedAt && event.completedAt < cutoffTime) {
-                await this.storageAdapter.remove(this.getEventKey(event.id));
-                cleanedUpCount++;
-
-                log.debug('Cleaned up old event', { eventId: event.id });
+                eventsToRemove.push(event.id);
+                log.debug('Marked event for cleanup', { eventId: event.id });
             }
         }
 
-        // Update index after cleanup
-        if (cleanedUpCount > 0) {
-            await this.rebuildIndex();
+        // Remove all old events in a single atomic operation
+        if (eventsToRemove.length > 0) {
+            await this.withLock('storage', async () => {
+                const allEvents = await this.getAllEventsFromStorage();
+                for (const eventId of eventsToRemove) {
+                    delete allEvents[eventId];
+                    cleanedUpCount++;
+                }
+                await this.storageAdapter.set(this.storageKey, allEvents);
+            });
             log.info('Event cleanup completed', { cleanedUpCount });
         }
 
@@ -230,17 +242,8 @@ export class StorageEventStore implements EventStore {
      */
     async getAllEvents(): Promise<StoredEvent[]> {
         try {
-            const eventIds = await this.getEventIndex();
-            const events: StoredEvent[] = [];
-
-            for (const eventId of eventIds) {
-                const event = await this.getEvent(eventId);
-                if (event) {
-                    events.push(event);
-                }
-            }
-
-            return events;
+            const allEvents = await this.getAllEventsFromStorage();
+            return Object.values(allEvents);
         } catch (error) {
             log.warn('Failed to get all events', { error });
             return [];
@@ -249,40 +252,57 @@ export class StorageEventStore implements EventStore {
 
     // Private helper methods
 
-    private getEventKey(eventId: string): string {
-        return `${this.storageKey}:${eventId}`;
+    private async withLock<T>(lockKey: string, operation: () => Promise<T>): Promise<T> {
+        // Wait for any existing operation to complete
+        const existingLock = this.operationLock.get(lockKey);
+        if (existingLock) {
+            await existingLock;
+        }
+
+        // Create and store new operation promise
+        const operationPromise = operation();
+        this.operationLock.set(
+            lockKey,
+            operationPromise.then(
+                () => {},
+                () => {},
+            ),
+        ); // Convert to void promise
+
+        try {
+            const result = await operationPromise;
+            this.operationLock.delete(lockKey);
+            return result;
+        } catch (error) {
+            this.operationLock.delete(lockKey);
+            throw error;
+        }
+    }
+
+    private async getAllEventsFromStorage(): Promise<Record<string, StoredEvent>> {
+        try {
+            const eventsData = await this.storageAdapter.get<Record<string, StoredEvent>>(this.storageKey);
+            return eventsData || {};
+        } catch (error) {
+            log.warn('Failed to get events from storage', { error });
+            return {};
+        }
     }
 
     private async saveEvent(event: StoredEvent): Promise<void> {
-        // Save the event
-        await this.storageAdapter.set(this.getEventKey(event.id), event);
-
-        // Update index
-        await this.addToIndex(event.id);
+        return this.withLock('storage', async () => {
+            const allEvents = await this.getAllEventsFromStorage();
+            allEvents[event.id] = event;
+            await this.storageAdapter.set(this.storageKey, allEvents);
+        });
     }
 
-    private async getEventIndex(): Promise<string[]> {
-        try {
-            const index = await this.storageAdapter.get<string[]>(this.indexKey);
-            return index || [];
-        } catch (error) {
-            log.warn('Failed to get event index', { error });
-            return [];
-        }
-    }
-
-    private async addToIndex(eventId: string): Promise<void> {
-        const index = await this.getEventIndex();
-        if (!index.includes(eventId)) {
-            index.push(eventId);
-            await this.storageAdapter.set(this.indexKey, index);
-        }
-    }
-
-    private async rebuildIndex(): Promise<void> {
-        const events = await this.getAllEvents();
-        const index = events.map((event) => event.id);
-        await this.storageAdapter.set(this.indexKey, index);
+    private async removeEvent(eventId: string): Promise<void> {
+        return this.withLock('storage', async () => {
+            const allEvents = await this.getAllEventsFromStorage();
+            delete allEvents[eventId];
+            await this.storageAdapter.set(this.storageKey, allEvents);
+        });
     }
 
     private extractEventType(method: string): EventType {
