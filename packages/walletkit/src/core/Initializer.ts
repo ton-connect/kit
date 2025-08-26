@@ -9,6 +9,7 @@ import {
     WalletInitConfig,
     WalletInitConfigMnemonic,
     WalletInitConfigPrivateKey,
+    DEFAULT_DURABLE_EVENTS_CONFIG,
 } from '../types';
 import type { StorageAdapter } from '../storage';
 import { createStorageAdapter } from '../storage';
@@ -170,14 +171,7 @@ export class Initializer {
         const sessionManager = new SessionManager(storageAdapter, walletManager);
         await sessionManager.initialize();
 
-        const eventStore = new StorageEventStore(storageAdapter, {
-            enabled: true,
-            recoveryIntervalMs: 1000,
-            processingTimeoutMs: 10000,
-            cleanupIntervalMs: 10000,
-            retentionDays: 7,
-            maxEventSizeBytes: 100 * 1024, // 100kb
-        });
+        const eventStore = new StorageEventStore(storageAdapter);
 
         const bridgeManager = new BridgeManager(
             {
@@ -187,7 +181,7 @@ export class Initializer {
             storageAdapter,
             eventStore,
         );
-        await bridgeManager.initialize();
+        await bridgeManager.start();
 
         const eventRouter = new EventRouter(this.eventEmitter);
 
@@ -195,14 +189,8 @@ export class Initializer {
         // TODO - change default values
         const eventProcessor = new StorageEventProcessor(
             eventStore,
-            {
-                enabled: true,
-                recoveryIntervalMs: 60000, // 1 minute
-                processingTimeoutMs: 300000, // 5 minutes
-                cleanupIntervalMs: 86400000, // 24 hours
-                retentionDays: 7,
-                maxEventSizeBytes: 100 * 1024, // 100KB
-            },
+            DEFAULT_DURABLE_EVENTS_CONFIG,
+
             walletManager,
             sessionManager,
             eventRouter,

@@ -1,24 +1,24 @@
 // Durable event storage implementation
 
-import type { StoredEvent, EventStore, DurableEventsConfig, EventStatus } from '../types/durableEvents';
+import type { StoredEvent, EventStore, EventStatus } from '../types/durableEvents';
 import type { RawBridgeEvent, EventType, StorageAdapter } from '../types/internal';
 import { globalLogger } from './Logger';
 import { validateBridgeEvent } from '../validation/events';
 
 const log = globalLogger.createChild('EventStore');
 
+const MAX_EVENT_SIZE_BYTES = 100 * 1024; // 100kb
+
 /**
  * Concrete implementation of EventStore using StorageAdapter
  */
 export class StorageEventStore implements EventStore {
     private storageAdapter: StorageAdapter;
-    private config: DurableEventsConfig;
     private storageKey = 'durable_events';
     private operationLock = new Map<string, Promise<void>>();
 
-    constructor(storageAdapter: StorageAdapter, config: DurableEventsConfig) {
+    constructor(storageAdapter: StorageAdapter) {
         this.storageAdapter = storageAdapter;
-        this.config = config;
     }
 
     /**
@@ -36,8 +36,8 @@ export class StorageEventStore implements EventStore {
         const eventStr = JSON.stringify(rawEvent);
         const sizeBytes = new TextEncoder().encode(eventStr).length;
 
-        if (sizeBytes > this.config.maxEventSizeBytes) {
-            throw new Error(`Event too large: ${sizeBytes} bytes (max: ${this.config.maxEventSizeBytes})`);
+        if (sizeBytes > MAX_EVENT_SIZE_BYTES) {
+            throw new Error(`Event too large: ${sizeBytes} bytes (max: ${MAX_EVENT_SIZE_BYTES})`);
         }
 
         // Extract event type from method
@@ -182,7 +182,7 @@ export class StorageEventStore implements EventStore {
     /**
      * Recover stale events that have been processing too long
      */
-    async recoverStaleEvents(): Promise<number> {
+    async recoverStaleEvents(processingTimeoutMs: number): Promise<number> {
         const events = await this.getAllEvents();
         const now = Date.now();
         let recoveredCount = 0;
@@ -191,7 +191,7 @@ export class StorageEventStore implements EventStore {
             if (
                 event.status === 'processing' &&
                 event.processingStartedAt &&
-                now - event.processingStartedAt > this.config.processingTimeoutMs
+                now - event.processingStartedAt > processingTimeoutMs
             ) {
                 // Reset to new status
                 const recoveredEvent: StoredEvent = {
@@ -222,9 +222,9 @@ export class StorageEventStore implements EventStore {
     /**
      * Clean up old completed events
      */
-    async cleanupOldEvents(): Promise<number> {
+    async cleanupOldEvents(retentionMs: number): Promise<number> {
         const events = await this.getAllEvents();
-        const cutoffTime = Date.now() - this.config.retentionDays * 24 * 60 * 60 * 1000;
+        const cutoffTime = Date.now() - retentionMs;
         let cleanedUpCount = 0;
         const eventsToRemove: string[] = [];
 

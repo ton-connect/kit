@@ -25,9 +25,9 @@ export class StorageEventProcessor implements IEventProcessor {
     // Active processing loops per wallet
     private processingLoops: Map<string, boolean> = new Map();
 
-    // Recovery interval
-    private recoveryInterval?: ReturnType<typeof setInterval>;
-    private cleanupInterval?: ReturnType<typeof setInterval>;
+    // Recovery and cleanup timeouts
+    private recoveryTimeoutId?: number;
+    private cleanupTimeoutId?: number;
 
     constructor(
         eventStore: EventStore,
@@ -165,14 +165,15 @@ export class StorageEventProcessor implements IEventProcessor {
      * Start the recovery process for stale events
      */
     startRecoveryLoop(): void {
-        if (this.recoveryInterval) {
+        if (this.recoveryTimeoutId) {
             log.debug('Recovery loop already running');
             return;
         }
 
-        this.recoveryInterval = setInterval(async () => {
+        // Self-calling timeout for recovery
+        const recoveryLoop = async () => {
             try {
-                const recoveredCount = await this.eventStore.recoverStaleEvents();
+                const recoveredCount = await this.eventStore.recoverStaleEvents(this.config.processingTimeoutMs);
                 if (recoveredCount > 0) {
                     // Trigger processing for all wallets since we recovered events
                     this.triggerProcessingForAllWallets();
@@ -180,16 +181,30 @@ export class StorageEventProcessor implements IEventProcessor {
             } catch (error) {
                 log.error('Error in recovery loop', { error: (error as Error).message });
             }
-        }, this.config.recoveryIntervalMs);
 
-        // Also start cleanup loop
-        this.cleanupInterval = setInterval(async () => {
+            // Schedule next recovery cycle if still running
+            if (this.recoveryTimeoutId !== undefined) {
+                this.recoveryTimeoutId = setTimeout(recoveryLoop, this.config.recoveryIntervalMs) as unknown as number;
+            }
+        };
+
+        // Self-calling timeout for cleanup
+        const cleanupLoop = async () => {
             try {
-                await this.eventStore.cleanupOldEvents();
+                await this.eventStore.cleanupOldEvents(this.config.retentionMs);
             } catch (error) {
                 log.error('Error in cleanup loop', { error: (error as Error).message });
             }
-        }, this.config.cleanupIntervalMs);
+
+            // Schedule next cleanup cycle if still running
+            if (this.cleanupTimeoutId !== undefined) {
+                this.cleanupTimeoutId = setTimeout(cleanupLoop, this.config.cleanupIntervalMs) as unknown as number;
+            }
+        };
+
+        // Start both loops
+        this.recoveryTimeoutId = setTimeout(recoveryLoop, this.config.recoveryIntervalMs) as unknown as number;
+        this.cleanupTimeoutId = setTimeout(cleanupLoop, this.config.cleanupIntervalMs) as unknown as number;
 
         log.info('Recovery and cleanup loops started');
     }
@@ -198,14 +213,14 @@ export class StorageEventProcessor implements IEventProcessor {
      * Stop the recovery process
      */
     stopRecoveryLoop(): void {
-        if (this.recoveryInterval) {
-            clearInterval(this.recoveryInterval);
-            this.recoveryInterval = undefined;
+        if (this.recoveryTimeoutId) {
+            clearTimeout(this.recoveryTimeoutId);
+            this.recoveryTimeoutId = undefined;
         }
 
-        if (this.cleanupInterval) {
-            clearInterval(this.cleanupInterval);
-            this.cleanupInterval = undefined;
+        if (this.cleanupTimeoutId) {
+            clearTimeout(this.cleanupTimeoutId);
+            this.cleanupTimeoutId = undefined;
         }
 
         log.info('Recovery and cleanup loops stopped');

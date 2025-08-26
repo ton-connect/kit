@@ -21,10 +21,17 @@ export class BridgeManager {
     private lastEventId?: string;
     private storageKey = 'bridge_last_event_id';
 
+    // Event processing queue and concurrency control
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private eventQueue: any[] = [];
+    private isProcessing = false;
+
     // Durable events support
     private eventStore: EventStore;
     private durableEventsConfig?: DurableEventsConfig;
     private eventEmitter?: EventEmitter;
+
+    private requestProcessingTimeoutId?: number;
 
     constructor(
         config: BridgeConfig,
@@ -50,7 +57,7 @@ export class BridgeManager {
     /**
      * Initialize bridge connection
      */
-    async initialize(): Promise<void> {
+    async start(): Promise<void> {
         if (this.bridgeProvider) {
             log.warn('Bridge already initialized');
             return;
@@ -60,9 +67,15 @@ export class BridgeManager {
             await this.loadLastEventId();
             await this.connectToBridge();
         } catch (error) {
-            log.error('Failed to initialize bridge', { error });
+            log.error('Failed to start bridge', { error });
             throw error;
         }
+
+        const requestProcessing = () => {
+            this.processBridgeEvents();
+            this.requestProcessingTimeoutId = setTimeout(requestProcessing, 1000) as unknown as number;
+        };
+        requestProcessing();
     }
 
     /**
@@ -152,9 +165,17 @@ export class BridgeManager {
             this.bridgeProvider = undefined;
         }
 
+        // Clear event queue and reset processing state
+        this.eventQueue = [];
+        this.isProcessing = false;
+
         // this.sessions.clear();
         this.isConnected = false;
         this.reconnectAttempts = 0;
+        if (this.requestProcessingTimeoutId) {
+            clearTimeout(this.requestProcessingTimeoutId);
+            this.requestProcessingTimeoutId = undefined;
+        }
     }
 
     /**
@@ -197,7 +218,7 @@ export class BridgeManager {
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
-                listener: this.handleBridgeEvent.bind(this),
+                listener: this.queueBridgeEvent.bind(this),
                 options: {
                     lastEventId: this.lastEventId,
                     // heartbeatReconnectIntervalMs: this.config.reconnectInterval,
@@ -221,6 +242,14 @@ export class BridgeManager {
     }
 
     /**
+     * Restart bridge connection in case of error, so we can receive events again
+     */
+    private async restartConnection(): Promise<void> {
+        await this.close();
+        await this.start();
+    }
+
+    /**
      * Add client to existing bridge connection
      */
     private async updateClients(): Promise<void> {
@@ -228,7 +257,6 @@ export class BridgeManager {
         if (this.bridgeProvider) {
             const clients = await this.getClients();
             log.info('[BRIDGE] Restoring connection', { clients: clients.length });
-            // await this.bridgeProvider.close();
             await this.bridgeProvider.restoreConnection(clients, {
                 lastEventId: this.lastEventId,
             });
@@ -236,7 +264,54 @@ export class BridgeManager {
     }
 
     /**
-     * Handle incoming bridge events
+     * Queue incoming bridge events for processing
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private queueBridgeEvent(event: any): void {
+        log.debug('Bridge event queued', { eventId: event?.id });
+        this.eventQueue.push(event);
+
+        // Trigger processing (don't wait for it to complete)
+        this.processBridgeEvents().catch((error) => {
+            log.error('Error in background event processing', { error });
+        });
+    }
+
+    /**
+     * Process events from the queue with concurrency control
+     */
+    private async processBridgeEvents(): Promise<void> {
+        // Ensure only one processing instance runs at a time
+        if (this.isProcessing) {
+            log.debug('Event processing already in progress, skipping');
+            return;
+        }
+
+        this.isProcessing = true;
+        log.debug('Started event processing');
+
+        try {
+            // Process all events in FIFO order
+            while (this.eventQueue.length > 0) {
+                const event = this.eventQueue.shift();
+                if (event) {
+                    await this.handleBridgeEvent(event);
+                }
+            }
+        } catch (error) {
+            log.error('Error during event processing', { error });
+            this.isProcessing = false;
+            log.debug('Event processing completed');
+            this.restartConnection();
+            return;
+        } finally {
+            this.isProcessing = false;
+            log.debug('Event processing completed');
+        }
+    }
+
+    /**
+     * Handle individual bridge event (original processing logic)
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private async handleBridgeEvent(event: any): Promise<void> {

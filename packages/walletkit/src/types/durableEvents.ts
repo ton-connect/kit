@@ -46,35 +46,27 @@ export interface StoredEvent {
  * Configuration for durable events
  */
 export interface DurableEventsConfig {
-    /** Whether durable events are enabled */
-    enabled: boolean;
-
-    /** Interval for recovery process in milliseconds */
+    /** Interval for loop in milliseconds */
     recoveryIntervalMs: number;
 
-    /** Timeout for processing before recovery in milliseconds */
+    /** Timeout after which event is considered stale and will be recovered */
     processingTimeoutMs: number;
 
     /** Interval for cleanup process in milliseconds */
     cleanupIntervalMs: number;
 
-    /** How long to retain completed events in days */
-    retentionDays: number;
-
-    /** Maximum event size in bytes */
-    maxEventSizeBytes: number;
+    /** How long to retain events in milliseconds */
+    retentionMs: number;
 }
 
 /**
  * Default configuration for durable events
  */
 export const DEFAULT_DURABLE_EVENTS_CONFIG: DurableEventsConfig = {
-    enabled: true,
-    recoveryIntervalMs: 60000, // 1 minute
-    processingTimeoutMs: 300000, // 5 minutes
-    cleanupIntervalMs: 86400000, // 24 hours
-    retentionDays: 7,
-    maxEventSizeBytes: 102400, // 100KB
+    recoveryIntervalMs: 10 * 1000, // 10 seconds
+    processingTimeoutMs: 60 * 1000, // 1 minute
+    cleanupIntervalMs: 60 * 1000, // 1 minute
+    retentionMs: 60 * 10 * 1000, // 10 minutes
 };
 
 /**
@@ -111,13 +103,13 @@ export interface EventStore {
      * Recover stale events that have been processing too long
      * Returns number of events recovered
      */
-    recoverStaleEvents(): Promise<number>;
+    recoverStaleEvents(processingTimeoutMs: number): Promise<number>;
 
     /**
      * Clean up old completed events
      * Returns number of events cleaned up
      */
-    cleanupOldEvents(): Promise<number>;
+    cleanupOldEvents(retentionMs: number): Promise<number>;
 
     /**
      * Get all events (for debugging)
