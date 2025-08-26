@@ -130,26 +130,40 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
-     * Update event status and timestamps
+     * Update event status and timestamps with optimistic locking
      */
-    async updateEventStatus(eventId: string, status: EventStatus): Promise<void> {
-        const event = await this.getEvent(eventId);
-        if (!event) {
-            throw new Error(`Event not found: ${eventId}`);
-        }
+    async updateEventStatus(eventId: string, status: EventStatus, oldStatus: EventStatus): Promise<StoredEvent> {
+        return this.withLock('storage', async () => {
+            const allEvents = await this.getAllEventsFromStorage();
+            const event = allEvents[eventId];
 
-        const updatedEvent: StoredEvent = {
-            ...event,
-            status,
-        };
+            if (!event) {
+                throw new Error(`Event not found: ${eventId}`);
+            }
 
-        if (status === 'completed') {
-            updatedEvent.completedAt = Date.now();
-        }
+            if (event.status !== oldStatus) {
+                throw new Error(
+                    `Event status mismatch: expected '${oldStatus}', but current status is '${event.status}'`,
+                );
+            }
 
-        await this.saveEvent(updatedEvent);
+            const updatedEvent: StoredEvent = {
+                ...event,
+                status,
+            };
 
-        log.debug('Event status updated', { eventId, status });
+            if (status === 'completed') {
+                updatedEvent.completedAt = Date.now();
+            }
+
+            // Save atomically within the lock
+            allEvents[eventId] = updatedEvent;
+            await this.storageAdapter.set(this.storageKey, allEvents);
+
+            log.debug('Event status updated', { eventId, oldStatus, newStatus: status });
+
+            return updatedEvent;
+        });
     }
 
     /**

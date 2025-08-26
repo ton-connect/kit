@@ -124,7 +124,7 @@ export class StorageEventProcessor implements IEventProcessor {
                 });
 
                 // Mark as completed
-                await this.eventStore.updateEventStatus(acquiredEvent.id, 'completed');
+                await this.eventStore.updateEventStatus(acquiredEvent.id, 'completed', 'processing');
 
                 log.info('Event processing completed', { eventId: acquiredEvent.id });
                 return true;
@@ -151,7 +151,7 @@ export class StorageEventProcessor implements IEventProcessor {
      */
     async completeEvent(eventId: string): Promise<void> {
         try {
-            await this.eventStore.updateEventStatus(eventId, 'completed');
+            await this.eventStore.updateEventStatus(eventId, 'completed', 'processing');
             log.debug('Event marked as completed', { eventId });
         } catch (error) {
             log.error('Failed to mark event as completed', {

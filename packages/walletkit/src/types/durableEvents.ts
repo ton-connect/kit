@@ -98,9 +98,9 @@ export interface EventStore {
     acquireLock(eventId: string, walletAddress: string): Promise<StoredEvent | undefined>;
 
     /**
-     * Update event status and timestamps
+     * Update event status and timestamps with optimistic locking
      */
-    updateEventStatus(eventId: string, status: EventStatus): Promise<void>;
+    updateEventStatus(eventId: string, status: EventStatus, oldStatus: EventStatus): Promise<StoredEvent>;
 
     /**
      * Get event by ID
