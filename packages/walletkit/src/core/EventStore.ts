@@ -5,6 +5,10 @@ import type { RawBridgeEvent, EventType, StorageAdapter } from '../types/interna
 import { globalLogger } from './Logger';
 import { validateBridgeEvent } from '../validation/events';
 
+const getEventUUID = () => {
+    return crypto.randomUUID();
+};
+
 const log = globalLogger.createChild('EventStore');
 
 const MAX_EVENT_SIZE_BYTES = 100 * 1024; // 100kb
@@ -45,7 +49,7 @@ export class StorageEventStore implements EventStore {
 
         // Create stored event
         const storedEvent: StoredEvent = {
-            id: rawEvent.id,
+            id: getEventUUID(),
             sessionId: rawEvent.from,
             eventType,
             rawEvent,
