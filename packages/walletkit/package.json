@@ -49,8 +49,7 @@
   ],
   "dependencies": {
     "@noble/curves": "^1.9.7",
-    "@ton-community/tlb-codegen": "npm:@truecarry/tlb-codegen@1.2.0",
-    "@ton-community/tlb-parser": "^0.1.4",
+    "@ton-community/tlb-runtime": "^1.0.0-alpha.2",
     "@ton/core": "^0.61.0",
     "@ton/crypto": "^3.3.0",
     "@ton/ton": "^15.3.1",

@@ -1,13 +1,13 @@
 // Sign data request handler
 
 import { SignDataPayload } from '@tonconnect/protocol';
+import { parseTLB } from '@ton-community/tlb-runtime';
 
 import type { EventSignDataRequest, SignDataPreview } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { globalLogger } from '../core/Logger';
 import { validateSignDataPayload } from '../validation/signData';
-import { parseTLB } from '../utils/tlb-runtime';
 
 const log = globalLogger.createChild('SignDataHandler');
 
