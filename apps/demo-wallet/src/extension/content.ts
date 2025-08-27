@@ -11,7 +11,7 @@ import { injectBridgeCode } from '@ton/walletkit/bridge';
 
 function injectTonConnectBridge() {
     try {
-        // Use walletKit.getInjectCode() to generate the injection code
+        // Inject the bridge directly into the window object
         injectBridgeCode({
             walletName: 'tonkeeper',
             deviceInfo: {

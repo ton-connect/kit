@@ -1,6 +1,5 @@
 const toolchainConfig = require('@ton/toolchain');
 const globals = require('globals');
-const { globalIgnores } = require('eslint/config');
 
 module.exports = [
     ...toolchainConfig,
@@ -13,5 +12,5 @@ module.exports = [
         },
         rules: {},
     },
-    globalIgnores(['dist/*', 'dist_extension/*']),
+    { ignores: ['**/dist/*', '**/dist-extension/*'] },
 ];
