@@ -6,7 +6,9 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "tabs",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -15,10 +17,14 @@
     "service_worker": "src/extension/background.js",
     "type": "module"
   },
-  "content_scripts": [
+  "web_accessible_resources": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["src/extension/content.js"]
+      "resources": [
+        "src/extension/content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "action": {
@@ -36,11 +42,5 @@
     "32": "vite.svg",
     "48": "vite.svg",
     "128": "vite.svg"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["assets/*", "*.js", "*.css"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }

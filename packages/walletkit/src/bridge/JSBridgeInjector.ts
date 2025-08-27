@@ -1,4 +1,5 @@
-// JS Bridge injection code generator for TonConnect
+// Simplified JS Bridge injection code for TonConnect
+// All logic is handled by the parent extension through WalletKit
 
 import type { JSBridgeInjectOptions, DeviceInfo } from '../types/jsBridge';
 import { sanitizeWalletName } from '../utils/walletNameValidation';
@@ -24,13 +25,14 @@ const DEFAULT_DEVICE_INFO: DeviceInfo = {
 };
 
 /**
- * Injects TonConnect JS Bridge directly into the window object
- * Creates a bridge implementation and attaches it to the window
+ * Injects a simplified TonConnect JS Bridge that forwards all requests to the parent extension
+ * The extension handles all logic through WalletKit
  *
  * @param options - Configuration options for the bridge
  * @throws Error if wallet name is invalid
  */
-export function injectBridgeCode(options: JSBridgeInjectOptions): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): void {
     const walletName = sanitizeWalletName(options.walletName);
 
     // Merge device info with defaults
@@ -40,9 +42,9 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
         ...options.deviceInfo,
     };
 
-    const isWalletBrowser =
-        typeof globalThis !== 'undefined' &&
-        typeof (globalThis as typeof globalThis & { chrome?: { runtime?: unknown } }).chrome?.runtime !== 'undefined';
+    const isWalletBrowser = false;
+    // typeof globalThis !== 'undefined' &&
+    // typeof (globalThis as typeof globalThis & { chrome?: { runtime?: unknown } }).chrome?.runtime !== 'undefined';
 
     // Check if wallet already exists and has tonconnect
     if (
@@ -55,9 +57,8 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
     }
 
     /**
-     * TonConnect Bridge Implementation
-     * Implements the TonConnect JS Bridge specification
-     * @see https://github.com/ton-blockchain/ton-connect/blob/main/bridge.md#js-bridge
+     * Simplified TonConnect Bridge Implementation
+     * Forwards all requests to the parent extension where WalletKit handles the logic
      */
     class TonConnectBridge {
         deviceInfo: DeviceInfo;
@@ -66,8 +67,14 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
         isWalletBrowser: boolean;
         private _eventListeners: Array<(event: unknown) => void>;
         private _messageId: number;
-        private _pendingRequests: Map<number, unknown>;
-        private _connected: boolean;
+        private _pendingRequests: Map<
+            number,
+            {
+                resolve: (value: unknown) => void;
+                reject: (reason: unknown) => void;
+                timeoutId: ReturnType<typeof setTimeout>;
+            }
+        >;
 
         constructor() {
             // Bridge properties as per TonConnect spec
@@ -80,153 +87,44 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
             this._eventListeners = [];
             this._messageId = 0;
             this._pendingRequests = new Map();
-            this._connected = false;
 
             // Bind methods to preserve context
             this.connect = this.connect.bind(this);
             this.restoreConnection = this.restoreConnection.bind(this);
             this.send = this.send.bind(this);
             this.listen = this.listen.bind(this);
-            this._handleResponse = this._handleResponse.bind(this);
-            this._handleEvent = this._handleEvent.bind(this);
         }
 
         /**
-         * Initiates connect request
-         * @param protocolVersion - Protocol version to use
-         * @param message - ConnectRequest message
-         * @returns ConnectEvent or ConnectEventError
+         * Initiates connect request - forwards to extension
          */
         async connect(protocolVersion: number, message: unknown): Promise<unknown> {
-            if (!protocolVersion || !message) {
-                throw new Error('Invalid connect parameters');
-            }
-
-            return new Promise((resolve, reject) => {
-                const messageId = ++this._messageId;
-
-                // Store pending request with timeout
-                const timeoutId = setTimeout(() => {
-                    if (this._pendingRequests.has(messageId)) {
-                        this._pendingRequests.delete(messageId);
-                        reject(new Error('Connection request timeout'));
-                    }
-                }, 30000); // 30 second timeout
-
-                this._pendingRequests.set(messageId, {
-                    resolve,
-                    reject,
-                    type: 'connect',
-                    timeoutId,
-                });
-
-                // Send request to extension/wallet
-                window.postMessage(
-                    {
-                        type: 'TONCONNECT_BRIDGE_REQUEST',
-                        source: `${walletName}-tonconnect`,
-                        method: 'connect',
-                        messageId: messageId,
-                        params: {
-                            protocolVersion: protocolVersion,
-                            message: message,
-                        },
-                    },
-                    '*',
-                );
-            });
+            console.log('jsbridge:connect', protocolVersion, message);
+            return this._sendToExtension('connect', { protocolVersion, message });
         }
 
         /**
-         * Attempts to restore previous connection
-         * @returns ConnectEvent with ton_addr or ConnectEventError
+         * Attempts to restore previous connection - forwards to extension
          */
         async restoreConnection(): Promise<unknown> {
-            return new Promise((resolve, reject) => {
-                const messageId = ++this._messageId;
-
-                const timeoutId = setTimeout(() => {
-                    if (this._pendingRequests.has(messageId)) {
-                        this._pendingRequests.delete(messageId);
-                        // Return ConnectEventError format for unknown app
-                        reject({
-                            event: 'connect_error',
-                            id: messageId,
-                            payload: {
-                                code: 100,
-                                message: 'Unknown app',
-                            },
-                        });
-                    }
-                }, 10000); // 10 second timeout for restore
-
-                this._pendingRequests.set(messageId, {
-                    resolve,
-                    reject,
-                    type: 'restoreConnection',
-                    timeoutId,
-                });
-
-                window.postMessage(
-                    {
-                        type: 'TONCONNECT_BRIDGE_REQUEST',
-                        source: `${walletName}-tonconnect`,
-                        method: 'restoreConnection',
-                        messageId: messageId,
-                        params: {},
-                    },
-                    '*',
-                );
-            });
+            console.log('jsbridge:restoreConnection');
+            return this._sendToExtension('restoreConnection', {});
         }
 
         /**
-         * Sends a message to the bridge
-         * @param message - AppRequest message
-         * @returns WalletResponse
+         * Sends a message to the bridge - forwards to extension
          */
         async send(message: unknown): Promise<unknown> {
-            if (!message || typeof message !== 'object') {
-                throw new Error('Invalid message parameter');
-            }
-
-            return new Promise((resolve, reject) => {
-                const messageId = ++this._messageId;
-
-                const timeoutId = setTimeout(() => {
-                    if (this._pendingRequests.has(messageId)) {
-                        this._pendingRequests.delete(messageId);
-                        reject(new Error('Request timeout'));
-                    }
-                }, 60000); // 60 second timeout for requests
-
-                this._pendingRequests.set(messageId, {
-                    resolve,
-                    reject,
-                    type: 'send',
-                    timeoutId,
-                });
-
-                window.postMessage(
-                    {
-                        type: 'TONCONNECT_BRIDGE_REQUEST',
-                        source: `${walletName}-tonconnect`,
-                        method: 'send',
-                        messageId: messageId,
-                        params: { message: message },
-                    },
-                    '*',
-                );
-            });
+            console.log('jsbridge:send', message);
+            return this._sendToExtension('send', { message });
         }
 
         /**
          * Registers a listener for events from the wallet
-         * @param callback - Event callback function
-         * @returns Unsubscribe function
          */
         listen(callback: (event: unknown) => void): () => void {
             if (typeof callback !== 'function') {
+                console.log('jsbridge:listen', callback);
                 throw new Error('Callback must be a function');
             }
 
@@ -242,49 +140,65 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
         }
 
         /**
-         * Internal method to handle responses from extension
+         * Sends request to extension and returns promise
          * @private
          */
-        _handleResponse(data: Record<string, unknown>): void {
-            if (!data.messageId || !this._pendingRequests.has(data.messageId as number)) {
-                return;
-            }
+        private async _sendToExtension(method: string, params: unknown): Promise<unknown> {
+            return new Promise((resolve, reject) => {
+                const messageId = ++this._messageId;
 
-            const pendingRequest = this._pendingRequests.get(data.messageId as number);
+                // Set timeout for request
+                const timeoutId = setTimeout(
+                    () => {
+                        if (this._pendingRequests.has(messageId)) {
+                            this._pendingRequests.delete(messageId);
+                            reject(new Error(`${method} request timeout`));
+                        }
+                    },
+                    method === 'restoreConnection' ? 10000 : 30000,
+                );
+
+                // Store pending request
+                this._pendingRequests.set(messageId, { resolve, reject, timeoutId });
+
+                // Send to extension via postMessage
+                window.postMessage(
+                    {
+                        type: 'TONCONNECT_BRIDGE_REQUEST',
+                        source: `${walletName}-tonconnect`,
+                        method,
+                        messageId,
+                        params,
+                    },
+                    '*',
+                );
+            });
+        }
+
+        /**
+         * Handles responses from extension
+         * @private
+         */
+        _handleResponse(data: { messageId: number; success: boolean; result?: unknown; error?: unknown }): void {
+            const pendingRequest = this._pendingRequests.get(data.messageId);
             if (!pendingRequest) return;
 
-            const { resolve, reject, timeoutId } = pendingRequest as {
-                resolve: (value: unknown) => void;
-                reject: (reason: unknown) => void;
-                timeoutId: ReturnType<typeof setTimeout>;
-            };
-            this._pendingRequests.delete(data.messageId as number);
-
-            // Clear timeout
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
+            const { resolve, reject, timeoutId } = pendingRequest;
+            this._pendingRequests.delete(data.messageId);
+            clearTimeout(timeoutId);
 
             if (data.success) {
                 resolve(data.result);
             } else {
-                const error = data.error;
-                if (typeof error === 'object' && error && 'code' in error && 'message' in error) {
-                    // Structured error
-                    reject(error);
-                } else {
-                    // Simple error message
-                    reject(new Error((error as string) || 'Unknown error'));
-                }
+                reject(data.error);
             }
         }
 
         /**
-         * Internal method to handle events from extension
+         * Handles events from extension
          * @private
          */
         _handleEvent(event: unknown): void {
-            // Dispatch to all listeners
             this._eventListeners.forEach((callback) => {
                 try {
                     callback(event);
@@ -299,21 +213,20 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
     // Create bridge instance
     const bridge = new TonConnectBridge();
 
-    // Set up message listener for responses and events
+    // Set up message listener for responses and events from extension
     const messageListener = (event: MessageEvent) => {
-        // Only handle messages from same window
         if (event.source !== window) return;
 
         const data = event.data;
         if (!data || typeof data !== 'object') return;
 
-        // Handle bridge responses
+        // Handle bridge responses from extension
         if (data.type === 'TONCONNECT_BRIDGE_RESPONSE' && data.source === `${walletName}-tonconnect`) {
             bridge._handleResponse(data);
             return;
         }
 
-        // Handle bridge events
+        // Handle bridge events from extension
         if (data.type === 'TONCONNECT_BRIDGE_EVENT' && data.source === `${walletName}-tonconnect`) {
             bridge._handleEvent(data.event);
             return;
@@ -350,5 +263,5 @@ export function injectBridgeCode(options: JSBridgeInjectOptions): void {
     }
 
     // eslint-disable-next-line no-console
-    console.log(`TonConnect JS Bridge injected for ${walletName}`);
+    console.log(`TonConnect JS Bridge injected for ${walletName} - forwarding to extension`, window);
 }
