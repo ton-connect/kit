@@ -22,7 +22,7 @@ export default defineConfig({
         tailwindcss(),
         webExtension({
             manifest: generateManifest,
-            additionalInputs: ['src/extension/content.ts'],
+            additionalInputs: ['src/extension/content.ts', 'src/extension/inject.ts'],
             browser: process.env.TARGET || 'chrome',
             htmlViteConfig: {
                 build: {

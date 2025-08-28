@@ -27,7 +27,6 @@ import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
 import type { BridgeRequest } from '../types/jsBridge';
-import { JSBridgeManager } from '../bridge/JSBridgeManager';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -54,7 +53,6 @@ export class TonWalletKit implements ITonWalletKit {
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
-    private jsBridgeManager?: JSBridgeManager;
 
     // Event emitter for this kit instance
     private eventEmitter: EventEmitter;
@@ -87,16 +85,6 @@ export class TonWalletKit implements ITonWalletKit {
 
             // Start the event processor recovery loop
             this.eventProcessor.startRecoveryLoop();
-
-            if (options.config?.jsBridgeOptions) {
-                this.jsBridgeManager = new JSBridgeManager(
-                    this.eventRouter,
-                    this.sessionManager,
-                    this.walletManager,
-                    options.config.jsBridgeOptions,
-                );
-                await this.jsBridgeManager.start();
-            }
 
             this.isInitialized = true;
         } catch (error) {
@@ -403,7 +391,7 @@ export class TonWalletKit implements ITonWalletKit {
         return {
             from: params.clientId,
             id: params.requestId,
-            method: 'startConnect',
+            method: 'connect',
             params: {
                 manifest: {
                     url: r.manifestUrl,
@@ -529,26 +517,13 @@ export class TonWalletKit implements ITonWalletKit {
         return this.eventEmitter;
     }
 
-    // === JS Bridge Support ===
-    /**
-     * Get the JS Bridge Manager instance for advanced use cases
-     * @returns JSBridgeManager instance if available
-     */
-    getJSBridgeManager(): JSBridgeManager | undefined {
-        return this.jsBridgeManager;
-    }
-
     /**
      * Process a bridge request from injected JS Bridge
      * This method is called by extension content scripts
      * @param request - The bridge request to process
      * @returns Promise resolving to the response data
      */
-    async processBridgeRequest(request: BridgeRequest): Promise<unknown> {
-        if (!this.jsBridgeManager || !this.jsBridgeManager.isAvailable()) {
-            throw new Error('JS Bridge Manager is not available');
-        }
-
-        return await this.jsBridgeManager.processBridgeRequest(request);
+    async processInjectedBridgeRequest(request: BridgeRequest): Promise<unknown> {
+        return this.bridgeManager.queueJsBridgeEvent(request);
     }
 }

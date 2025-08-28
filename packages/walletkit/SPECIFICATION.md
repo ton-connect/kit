@@ -75,7 +75,7 @@ Notes:
 
 - URL processing:
   - `handleTonConnectUrl(url: string): Promise<void>`
-    - Parses TON Connect URLs and routes a synthetic `startConnect` event.
+    - Parses TON Connect URLs and routes a synthetic `connect` event.
     - Errors if URL is malformed or missing required `v`, `id`, `r` params.
 
 - Request processing:

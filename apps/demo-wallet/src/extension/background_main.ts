@@ -2,30 +2,27 @@
 /* eslint-disable no-console, no-undef */
 console.log('TON Wallet Demo extension background script loaded');
 
-import { TonWalletKit, JSBridgeManager } from '@ton/walletkit';
+import { TonWalletKit } from '@ton/walletkit';
 import type { BridgeRequest } from '@ton/walletkit';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
-let jsBridgeManager: JSBridgeManager | null = null;
 
 async function initializeWalletKit() {
     try {
         // Initialize WalletKit with JS Bridge support
         walletKit = new TonWalletKit({
-            bridgeUrl: 'https://bridge.tonapi.io/bridge',
             apiUrl: 'https://tonapi.io',
             config: {
-                jsBridgeOptions: {
-                    enabled: true,
-                    defaultWalletName: 'tonkeeper',
+                bridge: {
+                    enableJsBridge: true,
+                    bridgeUrl: 'https://bridge.tonapi.io/bridge',
                 },
             },
         });
 
         // Wait for WalletKit to be ready
         await walletKit.waitForReady();
-        jsBridgeManager = walletKit.getJSBridgeManager() || null;
 
         console.log('WalletKit initialized with JS Bridge support');
     } catch (error) {
@@ -78,14 +75,10 @@ async function handleBridgeRequest(
     sendResponse: (response: { success: boolean; result?: unknown; error?: unknown }) => void,
 ) {
     try {
-        if (!jsBridgeManager) {
-            throw new Error('JS Bridge Manager not initialized');
-        }
-
-        console.log('Processing bridge request through WalletKit:', bridgeRequest.method);
+        console.log('Processing bridge request through WalletKit:', bridgeRequest);
 
         // Process the request through WalletKit's JS Bridge Manager
-        const result = await jsBridgeManager.processBridgeRequest(bridgeRequest);
+        const result = await walletKit?.processInjectedBridgeRequest(bridgeRequest);
 
         sendResponse({ success: true, result });
     } catch (error) {
@@ -127,25 +120,25 @@ async function handleGetWalletState(sendResponse: (response: unknown) => void) {
 // Function to inject content script
 async function injectContentScript(tabId: number) {
     try {
+        const tab = (await chrome.tabs.get(tabId)) || '';
+        // Skip chrome:// pages
+        if (tab.url?.startsWith('chrome://')) {
+            return;
+        }
         await chrome.scripting.executeScript({
             target: { tabId },
             files: ['src/extension/content.js'],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             world: 'MAIN' as any, // needed to access window
         });
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: ['src/extension/inject.js'],
+        });
     } catch (error) {
         console.error('Error injecting script:', error);
     }
 }
-
-// Send bridge events to content scripts when needed
-// function sendBridgeEventToTab(tabId: number, source: string, event: unknown) {
-//     chrome.tabs.sendMessage(tabId, {
-//         type: 'TONCONNECT_BRIDGE_EVENT',
-//         source,
-//         event,
-//     });
-// }
 
 // Export for module compatibility
 export {};

@@ -43,7 +43,7 @@ Central persistent storage for all bridge events.
 interface StoredEvent {
   id: string;
   sessionId?: string;
-  eventType: 'startConnect' | 'sendTransaction' | 'signData' | 'disconnect';
+  eventType: 'connect' | 'sendTransaction' | 'signData' | 'disconnect';
   rawEvent: RawBridgeEvent;
   status: 'new' | 'processing' | 'completed';
   createdAt: number;
