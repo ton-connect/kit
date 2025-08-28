@@ -6,6 +6,7 @@ import {
     type EventTransactionRequest,
     type EventSignDataRequest,
     type EventDisconnect,
+    ExtensionStorageAdapter,
 } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
@@ -18,10 +19,18 @@ const log = createComponentLogger('WalletSlice');
 
 // Initialize WalletKit
 const walletKit = new TonWalletKit({
-    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    // bridgeUrl: 'https://bridge.tonapi.io/bridge',
     network: 'mainnet',
     wallets: [],
     apiKey: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+    config: {
+        bridge: {
+            bridgeUrl: 'https://bridge.tonapi.io/bridge',
+            enableJsBridge: true,
+        },
+    },
+    // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
+    storage: new ExtensionStorageAdapter({}, chrome.storage.local as any),
 });
 
 export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({

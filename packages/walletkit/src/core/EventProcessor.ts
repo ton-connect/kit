@@ -10,6 +10,10 @@ import { globalLogger } from './Logger';
 
 const log = globalLogger.createChild('EventProcessor');
 
+export interface EventProcessorConfig {
+    disableEvents?: boolean;
+}
+
 /**
  * Processes durable events for wallets based on their active sessions and enabled event types
  */
@@ -27,11 +31,18 @@ export class StorageEventProcessor implements IEventProcessor {
     // Wake-up promises for processing loops
     private wakeUpResolvers: Map<string, () => void> = new Map();
 
+    // No-wallet processing loop state
+    private noWalletProcessing: boolean = false;
+    private noWalletWakeUpResolver?: () => void;
+
     // Recovery and cleanup timeouts
     private recoveryTimeoutId?: number;
     private cleanupTimeoutId?: number;
 
+    private processorConfig: EventProcessorConfig;
+
     constructor(
+        processorConfig: EventProcessorConfig = {},
         eventStore: EventStore,
         config: DurableEventsConfig,
         walletManager: WalletManager,
@@ -39,6 +50,8 @@ export class StorageEventProcessor implements IEventProcessor {
         eventRouter: EventRouter,
         eventEmitter: EventEmitter,
     ) {
+        this.processorConfig = processorConfig;
+
         this.eventStore = eventStore;
         this.config = config;
         this.walletManager = walletManager;
@@ -46,9 +59,14 @@ export class StorageEventProcessor implements IEventProcessor {
         this.eventRouter = eventRouter;
         this.eventEmitter = eventEmitter;
 
+        if (this.processorConfig.disableEvents) {
+            return;
+        }
+
         // Listen for bridge storage updates to trigger processing
         this.eventEmitter.on('bridge-storage-updated', () => {
             this.triggerProcessingForAllWallets();
+            this.triggerNoWalletProcessing();
         });
     }
 
@@ -56,6 +74,10 @@ export class StorageEventProcessor implements IEventProcessor {
      * Start processing events for a wallet
      */
     async startProcessing(walletAddress: string): Promise<void> {
+        if (this.processorConfig.disableEvents) {
+            return;
+        }
+
         if (this.processingLoops.get(walletAddress)) {
             log.debug('Processing already active for wallet', { walletAddress });
             return;
@@ -72,6 +94,10 @@ export class StorageEventProcessor implements IEventProcessor {
      * Stop processing events for a wallet
      */
     async stopProcessing(walletAddress: string): Promise<void> {
+        if (this.processorConfig.disableEvents) {
+            return;
+        }
+
         this.processingLoops.set(walletAddress, false);
 
         // Wake up the processing loop so it can exit cleanly
@@ -82,6 +108,45 @@ export class StorageEventProcessor implements IEventProcessor {
         }
 
         log.info('Stopped event processing for wallet', { walletAddress });
+    }
+
+    /**
+     * Start processing events that don't require a wallet (e.g., connect events)
+     */
+    async startNoWalletProcessing(): Promise<void> {
+        if (this.processorConfig.disableEvents) {
+            return;
+        }
+
+        if (this.noWalletProcessing) {
+            log.debug('No-wallet processing already active');
+            return;
+        }
+
+        this.noWalletProcessing = true;
+        log.info('Started no-wallet event processing');
+
+        // Start processing loop
+        this.processNoWalletEventsLoop();
+    }
+
+    /**
+     * Stop processing events that don't require a wallet
+     */
+    async stopNoWalletProcessing(): Promise<void> {
+        if (this.processorConfig.disableEvents) {
+            return;
+        }
+
+        this.noWalletProcessing = false;
+
+        // Wake up the processing loop so it can exit cleanly
+        if (this.noWalletWakeUpResolver) {
+            this.noWalletWakeUpResolver();
+            this.noWalletWakeUpResolver = undefined;
+        }
+
+        log.info('Stopped no-wallet event processing');
     }
 
     /**
@@ -149,6 +214,64 @@ export class StorageEventProcessor implements IEventProcessor {
         } catch (error) {
             log.error('Error in processNextEvent', {
                 walletAddress,
+                error: (error as Error).message,
+            });
+            return false;
+        }
+    }
+
+    /**
+     * Process next available event that doesn't require a wallet
+     */
+    async processNextNoWalletEvent(): Promise<boolean> {
+        try {
+            // Get events that don't require a wallet (currently only connect events)
+            const enabledEventTypes = this.getNoWalletEnabledEventTypes();
+            const events = await this.eventStore.getNoWalletEvents(enabledEventTypes);
+
+            if (events.length === 0) {
+                return false; // No events to process
+            }
+
+            // Try to acquire lock on the first event
+            // Use a special "no-wallet" identifier for locking
+            const eventToUse = events[0];
+            const acquiredEvent = await this.eventStore.acquireLock(eventToUse.id, 'no-wallet');
+
+            if (!acquiredEvent) {
+                log.debug('Failed to acquire lock on no-wallet event', { eventId: eventToUse.id });
+                return false;
+            }
+
+            log.info('Processing no-wallet event', {
+                eventId: acquiredEvent.id,
+                eventType: acquiredEvent.eventType,
+                sessionId: acquiredEvent.sessionId,
+            });
+
+            // Process the event through existing EventRouter
+            try {
+                await this.eventRouter.routeEvent({
+                    ...acquiredEvent.rawEvent,
+                    // Don't set wallet for no-wallet events
+                });
+
+                // Mark as completed
+                await this.eventStore.updateEventStatus(acquiredEvent.id, 'completed', 'processing');
+
+                log.info('No-wallet event processing completed', { eventId: acquiredEvent.id });
+                return true;
+            } catch (error) {
+                log.error('Error processing no-wallet event', {
+                    eventId: acquiredEvent.id,
+                    error: (error as Error).message,
+                });
+
+                // Leave event in processing state - recovery will handle it
+                return false;
+            }
+        } catch (error) {
+            log.error('Error in processNextNoWalletEvent', {
                 error: (error as Error).message,
             });
             return false;
@@ -266,6 +389,33 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
+     * Main processing loop for no-wallet events
+     */
+    private async processNoWalletEventsLoop(): Promise<void> {
+        while (this.noWalletProcessing) {
+            try {
+                const processed = await this.processNextNoWalletEvent();
+
+                if (!processed) {
+                    // No events processed, wait for either timeout or wake-up signal
+                    await this.waitForNoWalletWakeUpOrTimeout(1000);
+                }
+            } catch (error) {
+                log.error('Error in no-wallet processing loop', {
+                    error: (error as Error).message,
+                });
+
+                // Wait before retrying (shorter timeout for errors)
+                await this.waitForNoWalletWakeUpOrTimeout(5000);
+            }
+        }
+
+        // Clean up wake-up resolver
+        this.noWalletWakeUpResolver = undefined;
+        log.debug('No-wallet processing loop ended');
+    }
+
+    /**
      * Trigger processing for all active wallets
      */
     private triggerProcessingForAllWallets(): void {
@@ -281,6 +431,16 @@ export class StorageEventProcessor implements IEventProcessor {
                     log.debug('No wake-up resolver found for wallet', { walletAddress });
                 }
             }
+        }
+    }
+
+    /**
+     * Trigger processing for no-wallet events
+     */
+    private triggerNoWalletProcessing(): void {
+        if (this.noWalletProcessing && this.noWalletWakeUpResolver) {
+            log.debug('Waking up no-wallet processing loop');
+            this.noWalletWakeUpResolver();
         }
     }
 
@@ -308,9 +468,41 @@ export class StorageEventProcessor implements IEventProcessor {
     }
 
     /**
+     * Wait for either a wake-up signal or timeout for no-wallet processing
+     */
+    private async waitForNoWalletWakeUpOrTimeout(timeoutMs: number): Promise<void> {
+        return new Promise<void>((resolve) => {
+            // Set up timeout
+            const timeoutId = setTimeout(() => {
+                // Clean up wake-up resolver and resolve
+                this.noWalletWakeUpResolver = undefined;
+                resolve();
+            }, timeoutMs);
+
+            // Set up wake-up resolver
+            const wakeUpResolver = () => {
+                clearTimeout(timeoutId);
+                this.noWalletWakeUpResolver = undefined;
+                resolve();
+            };
+
+            this.noWalletWakeUpResolver = wakeUpResolver;
+        });
+    }
+
+    /**
      * Get enabled event types based on registered handlers in EventRouter
      */
     private getEnabledEventTypes(): EventType[] {
         return this.eventRouter.getEnabledEventTypes();
+    }
+
+    /**
+     * Get enabled event types for no-wallet processing (currently only connect)
+     */
+    private getNoWalletEnabledEventTypes(): EventType[] {
+        const enabledTypes = this.eventRouter.getEnabledEventTypes();
+        // Currently, only connect events don't require a wallet
+        return enabledTypes.filter((type) => type === 'connect');
     }
 }

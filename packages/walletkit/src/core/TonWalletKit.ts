@@ -86,6 +86,9 @@ export class TonWalletKit implements ITonWalletKit {
             // Start the event processor recovery loop
             this.eventProcessor.startRecoveryLoop();
 
+            // Start no-wallet event processing (for connect events)
+            await this.eventProcessor.startNoWalletProcessing();
+
             this.isInitialized = true;
         } catch (error) {
             log.error('TonWalletKit initialization failed', { error });

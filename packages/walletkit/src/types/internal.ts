@@ -28,7 +28,7 @@ export interface SessionStorageData {
 }
 
 export interface BridgeConfig {
-    bridgeUrl: string;
+    bridgeUrl?: string;
     heartbeatInterval?: number;
     reconnectInterval?: number;
     maxReconnectAttempts?: number;

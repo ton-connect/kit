@@ -84,6 +84,11 @@ export interface EventStore {
     getEventsForWallet(walletAddress: string, sessionIds: string[], eventTypes: EventType[]): Promise<StoredEvent[]>;
 
     /**
+     * Get events that don't require a wallet or session (e.g., connect events)
+     */
+    getNoWalletEvents(eventTypes: EventType[]): Promise<StoredEvent[]>;
+
+    /**
      * Attempt to acquire exclusive lock on an event for processing
      * Returns true if lock acquired, false if already locked
      */
@@ -124,7 +129,7 @@ export interface EventProcessor {
     /**
      * Start processing events for a wallet
      */
-    startProcessing(walletAddress: string, enabledEventTypes: EventType[]): Promise<void>;
+    startProcessing(walletAddress: string): Promise<void>;
 
     /**
      * Stop processing events for a wallet
@@ -135,7 +140,23 @@ export interface EventProcessor {
      * Process next available event for a wallet
      * Returns true if an event was processed, false if none available
      */
-    processNextEvent(walletAddress: string, enabledEventTypes: EventType[]): Promise<boolean>;
+    processNextEvent(walletAddress: string): Promise<boolean>;
+
+    /**
+     * Start processing events that don't require a wallet (e.g., connect events)
+     */
+    startNoWalletProcessing(): Promise<void>;
+
+    /**
+     * Stop processing events that don't require a wallet
+     */
+    stopNoWalletProcessing(): Promise<void>;
+
+    /**
+     * Process next available event that doesn't require a wallet
+     * Returns true if an event was processed, false if none available
+     */
+    processNextNoWalletEvent(): Promise<boolean>;
 
     /**
      * Mark an event as completed after successful processing

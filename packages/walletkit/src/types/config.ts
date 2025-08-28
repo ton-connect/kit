@@ -2,17 +2,12 @@
 
 import type { WalletInitConfig } from './wallet';
 import type { StorageAdapter } from '../storage';
+import { EventProcessorConfig } from '../core/EventProcessor';
 
 /**
  * Main configuration options for TonWalletKit
  */
 export interface TonWalletKitOptions {
-    /** TON Connect bridge URL */
-    bridge: {
-        bridgeUrl: string;
-        enableJsBridge?: boolean;
-    };
-
     /** Optional TON API URL for blockchain queries */
     apiUrl?: string;
 
@@ -29,12 +24,14 @@ export interface TonWalletKitOptions {
     network?: 'mainnet' | 'testnet';
 
     /** Optional configuration overrides */
-    config?: {
+    config: {
         /** Bridge reconnection settings */
-        bridge?: {
+        bridge: {
             heartbeatInterval?: number;
             reconnectInterval?: number;
             maxReconnectAttempts?: number;
+            bridgeUrl?: string;
+            enableJsBridge?: boolean;
         };
 
         /** Storage settings */
@@ -51,6 +48,8 @@ export interface TonWalletKitOptions {
             strictMode?: boolean;
             allowUnknownWalletVersions?: boolean;
         };
+
+        eventProcessor?: EventProcessorConfig;
     };
 }
 

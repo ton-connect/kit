@@ -175,7 +175,7 @@ export class Initializer {
         const eventRouter = new EventRouter(this.eventEmitter, sessionManager);
 
         const bridgeManager = new BridgeManager(
-            options.bridge,
+            options.config.bridge,
             sessionManager,
             storageAdapter,
             eventStore,
@@ -187,9 +187,9 @@ export class Initializer {
         // Create event processor for durable events
         // TODO - change default values
         const eventProcessor = new StorageEventProcessor(
+            options.config.eventProcessor,
             eventStore,
             DEFAULT_DURABLE_EVENTS_CONFIG,
-
             walletManager,
             sessionManager,
             eventRouter,
@@ -268,6 +268,7 @@ export class Initializer {
 
             if (components.eventProcessor) {
                 components.eventProcessor.stopRecoveryLoop();
+                await components.eventProcessor.stopNoWalletProcessing();
             }
 
             if (components.bridgeManager) {

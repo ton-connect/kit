@@ -18,6 +18,7 @@ export interface StorageConfig {
     namespace?: string;
     maxRetries?: number;
     retryDelay?: number;
+    allowMemory?: boolean;
 }
 
 /**

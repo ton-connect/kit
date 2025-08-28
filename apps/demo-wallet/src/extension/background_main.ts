@@ -2,7 +2,7 @@
 /* eslint-disable no-console, no-undef */
 console.log('TON Wallet Demo extension background script loaded');
 
-import { TonWalletKit } from '@ton/walletkit';
+import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { BridgeRequest } from '@ton/walletkit';
 
 // Initialize WalletKit and JSBridge
@@ -18,7 +18,12 @@ async function initializeWalletKit() {
                     enableJsBridge: true,
                     bridgeUrl: 'https://bridge.tonapi.io/bridge',
                 },
+                eventProcessor: {
+                    disableEvents: true,
+                },
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            storage: new ExtensionStorageAdapter({}, chrome.storage.local as any),
         });
 
         // Wait for WalletKit to be ready
@@ -40,7 +45,7 @@ chrome.runtime.onInstalled.addListener(() => {
 initializeWalletKit();
 
 // Handle messages from content scripts or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     console.log('Background received message:', message);
 
     // Handle different message types
@@ -48,7 +53,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'TONCONNECT_BRIDGE_REQUEST':
             // Handle TonConnect bridge requests through WalletKit
             handleBridgeRequest(message.payload, sender, sendResponse);
-            return true; // Keep message channel open for async response
+            break;
         case 'WALLET_REQUEST':
             // Forward wallet requests to popup or handle them
             handleWalletRequest(message.payload);
@@ -56,10 +61,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case 'GET_WALLET_STATE':
             // Get current wallet state
             handleGetWalletState(sendResponse);
-            return true; // Keep message channel open for async response
+            break;
+        // return true; // Keep message channel open for async response
         default:
             console.log('Unknown message type:', message.type);
     }
+
+    await chrome.action.openPopup().catch((e) => {
+        console.log('popup not opened', e);
+    });
+    console.log('popup opened');
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {

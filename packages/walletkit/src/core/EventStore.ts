@@ -96,6 +96,23 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
+     * Get events that don't require a wallet or session (e.g., connect events)
+     */
+    async getNoWalletEvents(eventTypes: EventType[]): Promise<StoredEvent[]> {
+        const events = await this.getAllEvents();
+
+        return events
+            .filter(
+                (event) =>
+                    // Only new events
+                    event.status === 'new' &&
+                    // Must be one of the requested event types
+                    eventTypes.includes(event.eventType),
+            )
+            .sort((a, b) => a.createdAt - b.createdAt); // Oldest first
+    }
+
+    /**
      * Attempt to acquire exclusive lock on an event for processing
      */
     async acquireLock(eventId: string, walletAddress: string): Promise<StoredEvent | undefined> {
