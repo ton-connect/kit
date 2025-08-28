@@ -213,7 +213,7 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         const removeSession = async (sessionId: string) => {
-            await this.bridgeManager.sendResponse(sessionId, null, {
+            await this.bridgeManager.sendResponse(sessionId, false, null, {
                 event: 'disconnect',
                 id: Date.now(),
                 payload: {},

@@ -190,7 +190,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          * Handles responses from extension
          * @private
          */
-        _handleResponse(data: { messageId: number; success: boolean; result?: unknown; error?: unknown }): void {
+        _handleResponse(data: { messageId: number; success: boolean; payload?: unknown; error?: unknown }): void {
             const pendingRequest = this._pendingRequests.get(data.messageId.toString());
             if (!pendingRequest) return;
 
@@ -199,7 +199,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
             clearTimeout(timeoutId);
 
             if (data.success) {
-                resolve(data.result);
+                resolve(data.payload);
             } else {
                 reject(data.error);
             }
@@ -233,6 +233,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
         // Handle bridge responses from extension
         if (data.type === 'TONCONNECT_BRIDGE_RESPONSE' && data.source === `${walletName}-tonconnect`) {
+            debugger
             bridge._handleResponse(data);
             return;
         }
@@ -277,16 +278,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
     console.log(`TonConnect JS Bridge injected for ${walletName} - forwarding to extension`, window);
 }
 
-declare global {
-    var chrome: {
-        runtime: {
-            sendMessage: (message: unknown) => void;
-            onMessage: {
-                addListener: (listener: (message: unknown, sender: unknown, sendResponse: unknown) => void) => void;
-            };
-        };
-    };
-}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function injectIsolatedCode(window: any, options: JSBridgeInjectOptions): void {
     // const walletName = sanitizeWalletName(options.walletName);
@@ -323,5 +314,30 @@ export function injectIsolatedCode(window: any, options: JSBridgeInjectOptions):
     chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
         // eslint-disable-next-line no-console
         console.log('Inject script received message from extension:', message);
+
+        if (message.type === 'TONCONNECT_BRIDGE_RESPONSE') {
+            debugger
+            if (message.source !== source) {
+                console.log('source not ok')
+                return;
+            }
+
+            const payload = message.payload;
+            if (!payload) {
+                console.log('payload not ok')
+                return;
+            }
+            
+            window.postMessage(
+                {
+                    type: 'TONCONNECT_BRIDGE_RESPONSE',
+                    source: source,
+                    payload,
+                    messageId: message?.messageId,
+                    success: message?.success,
+                },
+                '*',
+            );
+        }
     });
 }

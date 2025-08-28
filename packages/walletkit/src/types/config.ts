@@ -32,6 +32,7 @@ export interface TonWalletKitOptions {
             maxReconnectAttempts?: number;
             bridgeUrl?: string;
             enableJsBridge?: boolean;
+            bridgeName?: string;
         };
 
         /** Storage settings */

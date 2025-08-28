@@ -13,11 +13,11 @@ import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
 import type { Transaction } from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
+import { isExtension } from '../../utils/isExtension';
 
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
 
-// Initialize WalletKit
 const walletKit = new TonWalletKit({
     // bridgeUrl: 'https://bridge.tonapi.io/bridge',
     network: 'mainnet',
@@ -27,10 +27,11 @@ const walletKit = new TonWalletKit({
         bridge: {
             bridgeUrl: 'https://bridge.tonapi.io/bridge',
             enableJsBridge: true,
+            bridgeName: 'tonkeeper',
         },
     },
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
-    storage: new ExtensionStorageAdapter({}, chrome.storage.local as any),
+    storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
 });
 
 export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({

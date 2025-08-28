@@ -39,6 +39,8 @@ export class ConnectHandler
             manifestUrl,
             request: event.params?.items || [],
             preview: this.createPreview(event, manifest),
+            isJsBridge: event.isJsBridge,
+            tabId: event.tabId,
         };
 
         return connectEvent;

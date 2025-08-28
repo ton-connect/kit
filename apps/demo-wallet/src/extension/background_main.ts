@@ -89,7 +89,10 @@ async function handleBridgeRequest(
         console.log('Processing bridge request through WalletKit:', bridgeRequest);
 
         // Process the request through WalletKit's JS Bridge Manager
-        const result = await walletKit?.processInjectedBridgeRequest(bridgeRequest);
+        const result = await walletKit?.processInjectedBridgeRequest({
+            ...bridgeRequest,
+            tabId: _sender.tab?.id?.toString(),
+        });
 
         sendResponse({ success: true, result });
     } catch (error) {
