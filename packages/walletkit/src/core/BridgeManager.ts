@@ -129,9 +129,13 @@ export class BridgeManager {
      * Send response to dApp
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async sendResponse(sessionId: string, requestId: string | null, response: any): Promise<void> {
+    async sendResponse(sessionId: string, isJsBridge: boolean, requestId: string | null, response: any): Promise<void> {
         if (!this.bridgeProvider) {
             throw new Error('Bridge not initialized');
+        }
+
+        if (isJsBridge) {
+            return this.sendJsBridgeResponse(sessionId, isJsBridge, requestId, response);
         }
 
         const session = await this.sessionManager.getSession(sessionId);
@@ -155,6 +159,23 @@ export class BridgeManager {
             });
             throw error;
         }
+    }
+
+    async sendJsBridgeResponse(sessionId: string, isJsBridge: boolean, requestId: string | null, response: any): Promise<void> {
+        if (!this.bridgeProvider) {
+            throw new Error('Bridge not initialized');
+        }
+
+        const source = this.config.bridgeName + '-tonconnect';
+        chrome.tabs.sendMessage(parseInt(sessionId), {
+            type: 'TONCONNECT_BRIDGE_RESPONSE',
+            source: source,
+            messageId: requestId,
+            success: true,
+            payload: response,
+        });
+
+        // await this.bridgeProvider.send(response, sessionCrypto, sessionId);
     }
 
     /**
@@ -285,7 +306,11 @@ export class BridgeManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public queueJsBridgeEvent(event: any): void {
         log.debug('JS Bridge event queued', { eventId: event?.id });
-        this.eventQueue.push(event);
+        this.eventQueue.push({
+            ...event,
+            isJsBridge: true,
+            tabId: event.tabId,
+        });
 
         // Trigger processing (don't wait for it to complete)
         this.processBridgeEvents().catch((error) => {
@@ -339,6 +364,8 @@ export class BridgeManager {
                 timestamp: Date.now(),
                 from: event?.from,
                 domain: '',
+                isJsBridge: event?.isJsBridge,
+                tabId: event?.tabId,
             };
 
             if (rawEvent.from) {

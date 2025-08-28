@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "dev:extension": "vite build --config vite.extension.config.ts && npm run copy-extension-files && vite build --watch --config vite.extension.config.ts",
-    "build:extension": "vite build --config vite.extension.config.ts",
+    "dev:extension": "cross-env VITE_APP_ENV=extension vite build --watch --config vite.extension.config.ts",
+    "build:extension": "cross-env VITE_APP_ENV=extension vite build --config vite.extension.config.ts",
     "copy-extension-files": "node -e \"require('fs').copyFileSync('public/manifest.json', 'dist-extension/manifest.json')\"",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -29,9 +29,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@types/chrome": "^0.1.4",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "cross-env": "^10.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -39,7 +41,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2",
-    "vite-plugin-web-extension": "^4.4.5",
-    "vite-bundle-analyzer": "^1.2.1"
+    "vite-bundle-analyzer": "^1.2.1",
+    "vite-plugin-web-extension": "^4.4.5"
   }
 }

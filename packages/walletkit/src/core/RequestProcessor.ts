@@ -93,6 +93,13 @@ export class RequestProcessor {
             if (!event.wallet) {
                 throw new Error('Wallet is required');
             }
+
+            if (event.isJsBridge) {
+                const response = await this.createConnectApprovalResponse(event);
+                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response.result);
+                return;
+            }
+
             // Create session for this connection'
             const url = new URL(event.dAppUrl);
             const domain = url.hostname;
@@ -101,7 +108,7 @@ export class RequestProcessor {
             await this.bridgeManager.createSession(newSession.sessionId);
             // Send approval response
             const response = await this.createConnectApprovalResponse(event);
-            await this.bridgeManager.sendResponse(newSession.sessionId, event.id, response.result);
+            await this.bridgeManager.sendResponse(newSession.sessionId, false, event.id, response.result);
         } catch (error) {
             log.error('Failed to approve connect request', { error });
             throw error;
@@ -142,7 +149,7 @@ export class RequestProcessor {
 
             await CallForSuccess(() => this.client.sendFile(Buffer.from(signedBoc, 'base64')));
 
-            await this.bridgeManager.sendResponse(event.from, event.id, response);
+            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
 
             return { signedBoc };
         } catch (error) {
@@ -164,7 +171,7 @@ export class RequestProcessor {
                 id: event.id,
             };
 
-            await this.bridgeManager.sendResponse(event.from, event.id, response);
+            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
             throw error;
@@ -196,7 +203,7 @@ export class RequestProcessor {
                 },
             };
 
-            await this.bridgeManager.sendResponse(event.from, event.id, response);
+            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
 
             return { signature };
         } catch (error) {
@@ -215,7 +222,7 @@ export class RequestProcessor {
                 reason: reason || 'User rejected data signing',
             };
 
-            await this.bridgeManager.sendResponse(event.id, event.id, response);
+            await this.bridgeManager.sendResponse(event.id, false, event.id, response);
         } catch (error) {
             log.error('Failed to reject sign data request', { error });
             throw error;

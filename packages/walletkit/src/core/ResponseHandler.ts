@@ -116,7 +116,7 @@ export class ResponseHandler {
             }
 
             // Send response through bridge
-            await this.bridgeManager.sendResponse(requestId, requestId, response);
+            await this.bridgeManager.sendResponse(requestId, false, requestId, response);
 
             // Log successful response
             this.logResponse(requestId, sessionId, response, true);
@@ -130,7 +130,7 @@ export class ResponseHandler {
 
             // Try to send an error response about the failed response
             try {
-                await this.bridgeManager.sendResponse(requestId, requestId, {
+                await this.bridgeManager.sendResponse(requestId, false, requestId, {
                     error: 'RESPONSE_FAILED',
                     reason: 'Failed to send original response',
                 });

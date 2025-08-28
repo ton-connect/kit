@@ -21,6 +21,7 @@ export default defineConfig({
         react(),
         tailwindcss(),
         webExtension({
+            disableAutoLaunch: true,
             manifest: generateManifest,
             additionalInputs: ['src/extension/content.ts', 'src/extension/inject.ts'],
             browser: process.env.TARGET || 'chrome',

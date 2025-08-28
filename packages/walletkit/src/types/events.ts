@@ -30,6 +30,9 @@ export interface EventConnectRequest {
 
     /** Wallet that will handle this request */
     wallet?: WalletInterface;
+
+    isJsBridge?: boolean;
+    tabId?: number;
 }
 
 export interface ConnectPermission {

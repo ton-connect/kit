@@ -29,6 +29,7 @@ export interface SessionStorageData {
 
 export interface BridgeConfig {
     bridgeUrl?: string;
+    bridgeName?: string;
     heartbeatInterval?: number;
     reconnectInterval?: number;
     maxReconnectAttempts?: number;
@@ -55,6 +56,9 @@ type BridgeEventBase = {
     from: string;
     wallet?: WalletInterface;
     domain: string;
+
+    isJsBridge?: boolean;
+    tabId?: number;
 };
 
 // Bridge event types (raw from bridge)

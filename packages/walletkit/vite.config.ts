@@ -13,6 +13,7 @@ export default defineConfig({
         rollupOptions: {
             external: ['buffer'],
         },
+        sourcemap: true,
     },
     // define: {
     //     global: 'globalThis',
