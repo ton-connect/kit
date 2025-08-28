@@ -172,19 +172,17 @@ export class Initializer {
         await sessionManager.initialize();
 
         const eventStore = new StorageEventStore(storageAdapter);
+        const eventRouter = new EventRouter(this.eventEmitter, sessionManager);
 
         const bridgeManager = new BridgeManager(
-            {
-                bridgeUrl: options.bridgeUrl,
-            },
+            options.bridge,
             sessionManager,
             storageAdapter,
             eventStore,
+            eventRouter,
             this.eventEmitter,
         );
         await bridgeManager.start();
-
-        const eventRouter = new EventRouter(this.eventEmitter, sessionManager);
 
         // Create event processor for durable events
         // TODO - change default values

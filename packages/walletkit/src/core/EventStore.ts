@@ -325,8 +325,8 @@ export class StorageEventStore implements EventStore {
 
     private extractEventType(method: string): EventType {
         switch (method) {
-            case 'startConnect':
-                return 'startConnect';
+            case 'connect':
+                return 'connect';
             case 'sendTransaction':
                 return 'sendTransaction';
             case 'signData':

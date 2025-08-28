@@ -68,11 +68,12 @@ export interface RawBridgeEventGeneric extends BridgeEventBase {
 
 export interface RawBridgeEventConnect extends BridgeEventBase {
     id: string;
-    method: 'startConnect';
+    method: 'connect';
     params: {
-        manifest: {
-            url: string;
+        manifest?: {
+            url?: string;
         };
+        manifestUrl?: string;
         items: ConnectItem[];
         returnStrategy?: string;
     };
@@ -116,7 +117,7 @@ export type RawBridgeEvent =
     | RawBridgeEventDisconnect;
 
 // Internal event routing types
-export type EventType = 'startConnect' | 'sendTransaction' | 'signData' | 'disconnect';
+export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface EventHandler<T = any, V extends RawBridgeEvent = RawBridgeEvent> {

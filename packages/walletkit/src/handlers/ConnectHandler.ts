@@ -15,7 +15,7 @@ export class ConnectHandler
     implements EventHandler<EventConnectRequest, RawBridgeEventConnect>
 {
     canHandle(event: RawBridgeEvent): event is RawBridgeEventConnect {
-        return event.method === 'startConnect';
+        return event.method === 'connect';
     }
 
     async handle(event: RawBridgeEventConnect): Promise<EventConnectRequest> {
@@ -64,7 +64,7 @@ export class ConnectHandler
      * Extract manifest URL from bridge event
      */
     private extractManifestUrl(event: RawBridgeEventConnect): string {
-        const url = event.params?.manifest?.url || '';
+        const url = event.params?.manifest?.url ?? event.params?.manifestUrl ?? '';
 
         return sanitizeString(url);
     }

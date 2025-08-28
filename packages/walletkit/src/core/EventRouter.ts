@@ -187,7 +187,7 @@ export class EventRouter {
         const enabledTypes: EventType[] = [];
 
         if (this.connectRequestCallbacks.length > 0) {
-            enabledTypes.push('startConnect');
+            enabledTypes.push('connect');
         }
         if (this.transactionRequestCallbacks.length > 0) {
             enabledTypes.push('sendTransaction');

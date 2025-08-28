@@ -2,14 +2,16 @@
 
 import type { WalletInitConfig } from './wallet';
 import type { StorageAdapter } from '../storage';
-import { JSBridgeManagerOptions } from '../bridge/JSBridgeManager';
 
 /**
  * Main configuration options for TonWalletKit
  */
 export interface TonWalletKitOptions {
     /** TON Connect bridge URL */
-    bridgeUrl: string;
+    bridge: {
+        bridgeUrl: string;
+        enableJsBridge?: boolean;
+    };
 
     /** Optional TON API URL for blockchain queries */
     apiUrl?: string;
@@ -49,8 +51,6 @@ export interface TonWalletKitOptions {
             strictMode?: boolean;
             allowUnknownWalletVersions?: boolean;
         };
-
-        jsBridgeOptions?: JSBridgeManagerOptions;
     };
 }
 

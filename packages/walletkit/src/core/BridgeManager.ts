@@ -8,6 +8,7 @@ import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
+import { EventRouter } from './EventRouter';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -28,6 +29,7 @@ export class BridgeManager {
 
     // Durable events support
     private eventStore: EventStore;
+    private eventRouter: EventRouter;
     private eventEmitter?: EventEmitter;
 
     private requestProcessingTimeoutId?: number;
@@ -37,6 +39,7 @@ export class BridgeManager {
         sessionManager: SessionManager,
         storageAdapter: StorageAdapter,
         eventStore: EventStore,
+        eventRouter: EventRouter,
         eventEmitter?: EventEmitter,
     ) {
         this.config = {
@@ -49,6 +52,7 @@ export class BridgeManager {
         this.storageAdapter = storageAdapter;
         this.eventStore = eventStore;
         this.eventEmitter = eventEmitter;
+        this.eventRouter = eventRouter;
     }
 
     /**
@@ -62,7 +66,7 @@ export class BridgeManager {
 
         try {
             await this.loadLastEventId();
-            await this.connectToBridge();
+            await this.connectToSSEBridge();
         } catch (error) {
             log.error('Failed to start bridge', { error });
             throw error;
@@ -202,7 +206,11 @@ export class BridgeManager {
     /**
      * Connect to TON Connect bridge
      */
-    private async connectToBridge(): Promise<void> {
+    private async connectToSSEBridge(): Promise<void> {
+        if (!this.config.bridgeUrl) {
+            return;
+        }
+
         try {
             // Prepare clients array for existing sessions
             const clients = await this.getClients();
@@ -231,7 +239,7 @@ export class BridgeManager {
                 this.reconnectAttempts++;
                 log.info('Bridge reconnection attempt', { attempt: this.reconnectAttempts });
                 setTimeout(() => {
-                    this.connectToBridge().catch((error) => log.error('Bridge reconnection failed', { error }));
+                    this.connectToSSEBridge().catch((error) => log.error('Bridge reconnection failed', { error }));
                 }, this.config.reconnectInterval);
             }
             throw error;
@@ -274,6 +282,17 @@ export class BridgeManager {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public queueJsBridgeEvent(event: any): void {
+        log.debug('JS Bridge event queued', { eventId: event?.id });
+        this.eventQueue.push(event);
+
+        // Trigger processing (don't wait for it to complete)
+        this.processBridgeEvents().catch((error) => {
+            log.error('Error in background event processing', { error });
+        });
+    }
+
     /**
      * Process events from the queue with concurrency control
      */
@@ -285,7 +304,6 @@ export class BridgeManager {
         }
 
         this.isProcessing = true;
-        log.debug('Started event processing');
 
         try {
             // Process all events in FIFO order
@@ -298,12 +316,10 @@ export class BridgeManager {
         } catch (error) {
             log.error('Error during event processing', { error });
             this.isProcessing = false;
-            log.debug('Event processing completed');
             this.restartConnection();
             return;
         } finally {
             this.isProcessing = false;
-            log.debug('Event processing completed');
         }
     }
 
@@ -346,6 +362,11 @@ export class BridgeManager {
                 }
 
                 log.info('Event stored durably', { eventId: rawEvent.id, method: rawEvent.method });
+
+                // todo - fire on emit, not inside bridge
+                if (rawEvent.method == 'connect') {
+                    await this.eventRouter.routeEvent(rawEvent);
+                }
             } catch (error) {
                 log.error('Failed to store event durably', {
                     eventId: rawEvent.id,

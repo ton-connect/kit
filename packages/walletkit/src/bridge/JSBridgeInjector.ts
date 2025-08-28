@@ -1,7 +1,9 @@
 // Simplified JS Bridge injection code for TonConnect
 // All logic is handled by the parent extension through WalletKit
 
-import type { JSBridgeInjectOptions, DeviceInfo } from '../types/jsBridge';
+import type { ConnectRequest } from '@tonconnect/protocol';
+
+import type { JSBridgeInjectOptions, DeviceInfo, BridgeRequestPayload } from '../types/jsBridge';
 import { sanitizeWalletName } from '../utils/walletNameValidation';
 
 /**
@@ -68,7 +70,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         private _eventListeners: Array<(event: unknown) => void>;
         private _messageId: number;
         private _pendingRequests: Map<
-            number,
+            string,
             {
                 resolve: (value: unknown) => void;
                 reject: (reason: unknown) => void;
@@ -98,25 +100,34 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         /**
          * Initiates connect request - forwards to extension
          */
-        async connect(protocolVersion: number, message: unknown): Promise<unknown> {
-            console.log('jsbridge:connect', protocolVersion, message);
-            return this._sendToExtension('connect', { protocolVersion, message });
+        async connect(protocolVersion: number, message: ConnectRequest): Promise<unknown> {
+            if (protocolVersion < 2) {
+                throw new Error('Unsupported protocol version');
+            }
+            return this._sendToExtension({
+                method: 'connect',
+                params: { protocolVersion, ...message },
+            });
         }
 
         /**
          * Attempts to restore previous connection - forwards to extension
          */
         async restoreConnection(): Promise<unknown> {
-            console.log('jsbridge:restoreConnection');
-            return this._sendToExtension('restoreConnection', {});
+            return this._sendToExtension({
+                method: 'restoreConnection',
+                params: [],
+            });
         }
 
         /**
          * Sends a message to the bridge - forwards to extension
          */
         async send(message: unknown): Promise<unknown> {
-            console.log('jsbridge:send', message);
-            return this._sendToExtension('send', { message });
+            return this._sendToExtension({
+                method: 'send',
+                params: [message],
+            });
         }
 
         /**
@@ -124,7 +135,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          */
         listen(callback: (event: unknown) => void): () => void {
             if (typeof callback !== 'function') {
-                console.log('jsbridge:listen', callback);
                 throw new Error('Callback must be a function');
             }
 
@@ -143,19 +153,19 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          * Sends request to extension and returns promise
          * @private
          */
-        private async _sendToExtension(method: string, params: unknown): Promise<unknown> {
+        private async _sendToExtension(data: Omit<BridgeRequestPayload, 'id'>): Promise<unknown> {
             return new Promise((resolve, reject) => {
-                const messageId = ++this._messageId;
+                const messageId = (++this._messageId).toString();
 
                 // Set timeout for request
                 const timeoutId = setTimeout(
                     () => {
                         if (this._pendingRequests.has(messageId)) {
                             this._pendingRequests.delete(messageId);
-                            reject(new Error(`${method} request timeout`));
+                            reject(new Error(`${messageId} request timeout`));
                         }
                     },
-                    method === 'restoreConnection' ? 10000 : 30000,
+                    data.method === 'restoreConnection' ? 10000 : 30000,
                 );
 
                 // Store pending request
@@ -166,9 +176,10 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
                     {
                         type: 'TONCONNECT_BRIDGE_REQUEST',
                         source: `${walletName}-tonconnect`,
-                        method,
-                        messageId,
-                        params,
+                        payload: {
+                            ...data,
+                            id: messageId,
+                        },
                     },
                     '*',
                 );
@@ -180,11 +191,11 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          * @private
          */
         _handleResponse(data: { messageId: number; success: boolean; result?: unknown; error?: unknown }): void {
-            const pendingRequest = this._pendingRequests.get(data.messageId);
+            const pendingRequest = this._pendingRequests.get(data.messageId.toString());
             if (!pendingRequest) return;
 
             const { resolve, reject, timeoutId } = pendingRequest;
-            this._pendingRequests.delete(data.messageId);
+            this._pendingRequests.delete(data.messageId.toString());
             clearTimeout(timeoutId);
 
             if (data.success) {
@@ -264,4 +275,53 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
     // eslint-disable-next-line no-console
     console.log(`TonConnect JS Bridge injected for ${walletName} - forwarding to extension`, window);
+}
+
+declare global {
+    var chrome: {
+        runtime: {
+            sendMessage: (message: unknown) => void;
+            onMessage: {
+                addListener: (listener: (message: unknown, sender: unknown, sendResponse: unknown) => void) => void;
+            };
+        };
+    };
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function injectIsolatedCode(window: any, options: JSBridgeInjectOptions): void {
+    // const walletName = sanitizeWalletName(options.walletName);
+
+    const ourMessageType = 'TONCONNECT_BRIDGE_REQUEST';
+    const source = options.walletName + '-tonconnect';
+    window.addEventListener('message', (event: MessageEvent) => {
+        if (event?.data?.type === ourMessageType && event?.data?.source === source) {
+            const payload = event?.data?.payload;
+            if (!payload) {
+                return;
+            }
+
+            // eslint-disable-next-line no-undef
+            chrome.runtime.sendMessage({
+                type: 'TONCONNECT_BRIDGE_REQUEST',
+                source,
+                payload,
+            });
+            // console.log('Message sent to background');
+        } else {
+            // console.log(
+            //     'Unknown message type:',
+            //     event?.data,
+            //     event?.data?.type,
+            //     ourMessageType,
+            //     event?.data?.source,
+            //     source,
+            // );
+        }
+    });
+
+    // eslint-disable-next-line no-undef
+    chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+        // eslint-disable-next-line no-console
+        console.log('Inject script received message from extension:', message);
+    });
 }

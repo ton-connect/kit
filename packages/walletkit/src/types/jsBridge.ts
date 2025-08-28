@@ -114,12 +114,20 @@ export interface JSBridgeInjectOptions {
 export interface BridgeRequest {
     type: 'TONCONNECT_BRIDGE_REQUEST';
     source: string;
-    method: 'connect' | 'restoreConnection' | 'send';
-    messageId: number;
-    params: {
-        protocolVersion?: number;
-        message?: ConnectRequest | AppRequest;
-    };
+    payload: BridgeRequestPayload;
+    // method: 'connect' | 'restoreConnection' | 'send';
+    // messageId: number;
+    // params: {
+    //     protocolVersion?: number;
+    //     message?: ConnectRequest | AppRequest;
+    // };
+}
+
+export interface BridgeRequestPayload {
+    id: string;
+    method: string;
+    params: unknown;
+    from?: string;
 }
 
 export interface BridgeResponse {

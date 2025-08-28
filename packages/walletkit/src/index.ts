@@ -40,8 +40,6 @@ export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
 export { createWalletV5R1 } from './contracts/w5/WalletV5R1Adapter';
 
 // Re-export JS Bridge components
-export { JSBridgeManager, type JSBridgeManagerOptions } from './bridge/JSBridgeManager';
-export { JSBridgeMessageHandler } from './bridge/JSBridgeMessageHandler';
 export type {
     JSBridgeInjectOptions,
     TonConnectBridge,
