@@ -35,6 +35,11 @@ export interface EventConnectRequest {
     tabId?: number;
 }
 
+export interface EventRestoreConnectionRequest {
+    /** Unique request identifier */
+    id: string;
+}
+
 export interface ConnectPermission {
     name: string;
     title: string;

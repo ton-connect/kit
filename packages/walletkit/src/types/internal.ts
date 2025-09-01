@@ -85,6 +85,13 @@ export interface RawBridgeEventConnect extends BridgeEventBase {
     timestamp?: number;
 }
 
+export interface RawBridgeEventRestoreConnection extends BridgeEventBase {
+    id: string;
+    method: 'restoreConnection';
+    params: object; // no params
+    timestamp?: number;
+}
+
 export interface ConnectExtraCurrency {
     [k: number]: string;
 }
@@ -117,12 +124,13 @@ export interface RawBridgeEventDisconnect extends BridgeEventBase {
 export type RawBridgeEvent =
     | RawBridgeEventGeneric
     | RawBridgeEventConnect
+    | RawBridgeEventRestoreConnection
     | RawBridgeEventTransaction
     | RawBridgeEventSignData
     | RawBridgeEventDisconnect;
 
 // Internal event routing types
-export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect';
+export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface EventHandler<T = any, V extends RawBridgeEvent = RawBridgeEvent> {

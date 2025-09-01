@@ -1,7 +1,7 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
-import type { TonClient } from '@ton/ton';
-import { ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
+import { Address, type TonClient } from '@ton/ton';
+import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
 
 import type {
     TonWalletKit as ITonWalletKit,
@@ -22,7 +22,7 @@ import type { RequestProcessor } from './RequestProcessor';
 import type { ResponseHandler } from './ResponseHandler';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
-import { RawBridgeEventConnect } from '../types/internal';
+import { RawBridgeEventConnect, RawBridgeEventRestoreConnection } from '../types/internal';
 import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
@@ -68,6 +68,56 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize(options);
+
+        this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
+            const session = await this.sessionManager.getSessionByDomain(event.domain);
+            if (session) {
+                // Create base response data
+                const connectResponse: ConnectEventSuccess = {
+                    event: 'connect',
+                    id: Date.now(),
+                    payload: {
+                        device: {
+                            platform: 'browser',
+                            appName: 'tonkeeper',
+                            appVersion: '1.0.0',
+                            maxProtocolVersion: 2,
+                            features: [
+                                {
+                                    name: 'SendTransaction',
+                                    maxMessages: 4, // Default for most wallet types
+                                    extraCurrencySupported: true,
+                                },
+                                {
+                                    name: 'SignData',
+                                    types: ['text', 'binary', 'cell'],
+                                },
+                            ],
+                        },
+                        items: [
+                            {
+                                name: 'ton_addr',
+                                address: Address.parse(session.walletAddress).toRawString(),
+                                network: CHAIN.MAINNET,
+                                walletStateInit: '',
+                                publicKey: '',
+                                // walletStateInit,
+                                // publicKey,
+                            },
+                        ],
+                    },
+                };
+
+                this.bridgeManager.sendJsBridgeResponse(
+                    event?.tabId?.toString() || '',
+                    true,
+                    event?.id,
+                    connectResponse,
+                );
+            } else {
+                log.error('Session not found for domain', { domain: event.domain });
+            }
+        });
     }
 
     // === Initialization ===

@@ -322,12 +322,13 @@ export class BridgeManager {
                 domain: event.domain,
             });
         } else if (event.method == 'restoreConnection') {
-            this.eventQueue.push({
-                ...event,
-                isJsBridge: true,
-                tabId: event.tabId,
-                domain: event.domain,
-            });
+            this.eventEmitter?.emit('restoreConnection', event);
+            // this.eventQueue.push({
+            //     ...event,
+            //     isJsBridge: true,
+            //     tabId: event.tabId,
+            //     domain: event.domain,
+            // });
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
                 ...event,

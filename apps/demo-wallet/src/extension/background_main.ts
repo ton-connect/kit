@@ -17,6 +17,7 @@ async function initializeWalletKit() {
                 bridge: {
                     enableJsBridge: true,
                     bridgeUrl: 'https://bridge.tonapi.io/bridge',
+                    bridgeName: 'tonkeeper',
                 },
                 eventProcessor: {
                     disableEvents: true,

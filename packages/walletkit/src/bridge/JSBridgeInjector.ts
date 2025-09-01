@@ -241,8 +241,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
     // Set up message listener for responses and events from extension
     const messageListener = (event: MessageEvent) => {
-        // сщт
-        // console.log('messageListener', event);
         if (event.source !== window) return;
 
         const data = event.data;

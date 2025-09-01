@@ -116,6 +116,7 @@ export interface BridgeRequest {
     source: string;
     payload: BridgeRequestPayload;
     tabId?: string;
+    domain?: string;
     // method: 'connect' | 'restoreConnection' | 'send';
     // messageId: number;
     // params: {

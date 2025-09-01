@@ -236,7 +236,10 @@ export class StorageEventProcessor implements IEventProcessor {
             // Try to acquire lock on the first event
             // Use a special "no-wallet" identifier for locking
             const eventToUse = events[0];
-            const acquiredEvent = await this.eventStore.acquireLock(eventToUse.id, 'no-wallet');
+            const acquiredEvent = await this.eventStore.acquireLock(
+                eventToUse.id,
+                eventToUse?.rawEvent?.walletAddress || 'no-wallet',
+            );
 
             if (!acquiredEvent) {
                 log.debug('Failed to acquire lock on no-wallet event', { eventId: eventToUse.id });
@@ -503,6 +506,8 @@ export class StorageEventProcessor implements IEventProcessor {
     private getNoWalletEnabledEventTypes(): EventType[] {
         const enabledTypes = this.eventRouter.getEnabledEventTypes();
         // Currently, only connect events don't require a wallet
-        return enabledTypes.filter((type) => type === 'connect');
+        return enabledTypes
+            .filter((type) => type === 'connect' || type === 'restoreConnection')
+            .concat(['restoreConnection']);
     }
 }

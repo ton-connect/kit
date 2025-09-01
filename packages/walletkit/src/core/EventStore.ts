@@ -350,6 +350,8 @@ export class StorageEventStore implements EventStore {
                 return 'signData';
             case 'disconnect':
                 return 'disconnect';
+            case 'restoreConnection':
+                return 'restoreConnection';
             default:
                 throw new Error(`Unknown event method: ${method}`);
         }
