@@ -12,7 +12,6 @@ export { SessionManager } from './core/SessionManager';
 export { BridgeManager } from './core/BridgeManager';
 export { EventRouter } from './core/EventRouter';
 export { RequestProcessor } from './core/RequestProcessor';
-export { ResponseHandler } from './core/ResponseHandler';
 export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
@@ -21,10 +20,6 @@ export type { EventListener } from './core/EventEmitter';
 // Re-export durable events components
 export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
-
-// Re-export logger for customization
-// export { Logger, LogLevel, createLogger } from './core/Logger';
-// export type { LoggerConfig, LogContext } from './core/Logger';
 
 // Re-export handlers for customization
 export { ConnectHandler } from './handlers/ConnectHandler';

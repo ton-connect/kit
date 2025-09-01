@@ -19,7 +19,6 @@ import { SessionManager } from './SessionManager';
 import { BridgeManager } from './BridgeManager';
 import { EventRouter } from './EventRouter';
 import { RequestProcessor } from './RequestProcessor';
-import { ResponseHandler } from './ResponseHandler';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { createWalletV5R1 } from '../contracts/w5/WalletV5R1Adapter';
@@ -47,7 +46,6 @@ export interface InitializationResult {
     bridgeManager: BridgeManager;
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
-    responseHandler: ResponseHandler;
     storageAdapter: StorageAdapter;
     tonClient: TonClient;
     eventProcessor: StorageEventProcessor;
@@ -91,7 +89,7 @@ export class Initializer {
                 await this.initializeManagers(options, storageAdapter);
 
             // 5. Initialize processors
-            const { requestProcessor, responseHandler } = this.initializeProcessors(sessionManager, bridgeManager);
+            const { requestProcessor } = this.initializeProcessors(sessionManager, bridgeManager);
 
             log.info('TonWalletKit initialized successfully');
 
@@ -101,7 +99,6 @@ export class Initializer {
                 bridgeManager,
                 eventRouter,
                 requestProcessor,
-                responseHandler,
                 storageAdapter,
                 tonClient: this.tonClient,
                 eventProcessor,
@@ -213,14 +210,11 @@ export class Initializer {
         bridgeManager: BridgeManager,
     ): {
         requestProcessor: RequestProcessor;
-        responseHandler: ResponseHandler;
     } {
         const requestProcessor = new RequestProcessor(sessionManager, bridgeManager, this.tonClient, this.network);
-        const responseHandler = new ResponseHandler(bridgeManager, sessionManager);
 
         return {
             requestProcessor,
-            responseHandler,
         };
     }
 

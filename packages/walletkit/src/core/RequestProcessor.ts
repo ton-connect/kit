@@ -94,12 +94,6 @@ export class RequestProcessor {
                 throw new Error('Wallet is required');
             }
 
-            if (event.isJsBridge) {
-                const response = await this.createConnectApprovalResponse(event);
-                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response.result);
-                return;
-            }
-
             // Create session for this connection'
             const url = new URL(event.dAppUrl);
             const domain = url.hostname;
@@ -108,7 +102,8 @@ export class RequestProcessor {
             await this.bridgeManager.createSession(newSession.sessionId);
             // Send approval response
             const response = await this.createConnectApprovalResponse(event);
-            await this.bridgeManager.sendResponse(newSession.sessionId, false, event.id, response.result);
+            event.from = newSession.sessionId;
+            await this.bridgeManager.sendResponse(event, response.result);
         } catch (error) {
             log.error('Failed to approve connect request', { error });
             throw error;
@@ -149,12 +144,7 @@ export class RequestProcessor {
 
             await CallForSuccess(() => this.client.sendFile(Buffer.from(signedBoc, 'base64')));
 
-            if (event.isJsBridge) {
-                // const response = await this.createConnectApprovalResponse(event);
-                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response);
-            } else {
-                await this.bridgeManager.sendResponse(event.from, false, event.id, response);
-            }
+            await this.bridgeManager.sendResponse(event, response);
 
             return { signedBoc };
         } catch (error) {
@@ -176,7 +166,7 @@ export class RequestProcessor {
                 id: event.id,
             };
 
-            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
+            await this.bridgeManager.sendResponse(event, response);
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
             throw error;
@@ -188,6 +178,9 @@ export class RequestProcessor {
      */
     async approveSignDataRequest(event: EventSignDataRequest): Promise<{ signature: Uint8Array }> {
         try {
+            if (!event.domain) {
+                throw new Error('Domain is required for sign data request');
+            }
             // Sign data with wallet
             const signData = PrepareTonConnectData({
                 payload: event.data,
@@ -208,12 +201,7 @@ export class RequestProcessor {
                 },
             };
 
-            if (event.isJsBridge) {
-                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response);
-            } else {
-                await this.bridgeManager.sendResponse(event.from, false, event.id, response);
-            }
-
+            await this.bridgeManager.sendResponse(event, response);
             return { signature };
         } catch (error) {
             log.error('Failed to approve sign data request', { error });
@@ -231,7 +219,7 @@ export class RequestProcessor {
                 reason: reason || 'User rejected data signing',
             };
 
-            await this.bridgeManager.sendResponse(event.id, false, event.id, response);
+            await this.bridgeManager.sendResponse(event, response);
         } catch (error) {
             log.error('Failed to reject sign data request', { error });
             throw error;
@@ -353,9 +341,6 @@ export class RequestProcessor {
             from: event.request.from,
             validUntil: event.request.valid_until,
         });
-
-        // Mock implementation - replace with actual signing logic
-        // const mockSignedBoc = 'te6ccgECFAEAAtQAART/APSkE/S88sgLAQIBYgIDAgLNBAUE';
 
         return signedBoc;
     }

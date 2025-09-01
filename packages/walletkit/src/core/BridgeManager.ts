@@ -3,7 +3,7 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import { BridgeProvider, ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, RawBridgeEvent, StorageAdapter } from '../types/internal';
+import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, StorageAdapter } from '../types/internal';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
@@ -128,19 +128,35 @@ export class BridgeManager {
     /**
      * Send response to dApp
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async sendResponse(sessionId: string, isJsBridge: boolean, requestId: string | null, response: any): Promise<void> {
+
+    async sendResponse(
+        event: BridgeEventBase,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        response: any,
+    ): Promise<void> {
         if (!this.bridgeProvider) {
             throw new Error('Bridge not initialized');
         }
 
-        if (isJsBridge) {
-            return this.sendJsBridgeResponse(sessionId, isJsBridge, requestId, response);
+        // const sessionId = event.from;
+
+        if (event.isJsBridge) {
+            return this.sendJsBridgeResponse(
+                event.tabId?.toString() || '',
+                event.isJsBridge,
+                event.id ?? null,
+                response,
+            );
+        }
+
+        const sessionId = event.from || event.sessionId;
+        if (!sessionId) {
+            throw new Error('Session ID is required');
         }
 
         const session = await this.sessionManager.getSession(sessionId);
         if (!session) {
-            throw new Error(`Session ${sessionId} not found`);
+            throw new Error(`Session ${event.sessionId} not found`);
         }
 
         try {
@@ -150,11 +166,11 @@ export class BridgeManager {
             });
             await this.bridgeProvider.send(response, sessionCrypto, sessionId);
 
-            log.debug('Response sent successfully', { sessionId, requestId });
+            log.debug('Response sent successfully', { sessionId: sessionId, requestId: event.id });
         } catch (error) {
             log.error('Failed to send response through bridge', {
-                sessionId,
-                requestId,
+                sessionId: sessionId,
+                requestId: event.id,
                 error,
             });
             throw error;

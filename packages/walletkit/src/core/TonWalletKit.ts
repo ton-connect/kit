@@ -19,10 +19,10 @@ import type { WalletManager } from './WalletManager';
 import type { SessionManager } from './SessionManager';
 import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
-import type { ResponseHandler } from './ResponseHandler';
+// import type { ResponseHandler } from './ResponseHandler';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
-import { RawBridgeEventConnect, RawBridgeEventRestoreConnection } from '../types/internal';
+import { BridgeEventBase, RawBridgeEventConnect, RawBridgeEventRestoreConnection } from '../types/internal';
 import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
@@ -47,7 +47,7 @@ export class TonWalletKit implements ITonWalletKit {
     private sessionManager!: SessionManager;
     private eventRouter!: EventRouter;
     private requestProcessor!: RequestProcessor;
-    private responseHandler!: ResponseHandler;
+    // private responseHandler!: ResponseHandler;
     private tonClient!: TonClient;
     private jettonsManager: JettonsManager;
     private initializer: Initializer;
@@ -70,53 +70,50 @@ export class TonWalletKit implements ITonWalletKit {
         this.initializationPromise = this.initialize(options);
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
+            if (!event.domain) {
+                log.error('Domain is required for restore connection');
+                return;
+            }
             const session = await this.sessionManager.getSessionByDomain(event.domain);
-            if (session) {
-                // Create base response data
-                const connectResponse: ConnectEventSuccess = {
-                    event: 'connect',
-                    id: Date.now(),
-                    payload: {
-                        device: {
-                            platform: 'browser',
-                            appName: 'tonkeeper',
-                            appVersion: '1.0.0',
-                            maxProtocolVersion: 2,
-                            features: [
-                                {
-                                    name: 'SendTransaction',
-                                    maxMessages: 4, // Default for most wallet types
-                                    extraCurrencySupported: true,
-                                },
-                                {
-                                    name: 'SignData',
-                                    types: ['text', 'binary', 'cell'],
-                                },
-                            ],
-                        },
-                        items: [
+            if (!session) {
+                log.error('Session not found for domain', { domain: event.domain });
+                return;
+            }
+            // Create base response data
+            const connectResponse: ConnectEventSuccess = {
+                event: 'connect',
+                id: Date.now(),
+                payload: {
+                    device: {
+                        platform: 'browser',
+                        appName: 'tonkeeper',
+                        appVersion: '1.0.0',
+                        maxProtocolVersion: 2,
+                        features: [
                             {
-                                name: 'ton_addr',
-                                address: Address.parse(session.walletAddress).toRawString(),
-                                network: CHAIN.MAINNET,
-                                walletStateInit: '',
-                                publicKey: '',
-                                // walletStateInit,
-                                // publicKey,
+                                name: 'SendTransaction',
+                                maxMessages: 4, // Default for most wallet types
+                                extraCurrencySupported: true,
+                            },
+                            {
+                                name: 'SignData',
+                                types: ['text', 'binary', 'cell'],
                             },
                         ],
                     },
-                };
+                    items: [
+                        {
+                            name: 'ton_addr',
+                            address: Address.parse(session.walletAddress).toRawString(),
+                            network: CHAIN.MAINNET,
+                            walletStateInit: '',
+                            publicKey: '',
+                        },
+                    ],
+                },
+            };
 
-                this.bridgeManager.sendJsBridgeResponse(
-                    event?.tabId?.toString() || '',
-                    true,
-                    event?.id,
-                    connectResponse,
-                );
-            } else {
-                log.error('Session not found for domain', { domain: event.domain });
-            }
+            this.bridgeManager.sendJsBridgeResponse(event?.tabId?.toString() || '', true, event?.id, connectResponse);
         });
     }
 
@@ -154,7 +151,7 @@ export class TonWalletKit implements ITonWalletKit {
         this.sessionManager = components.sessionManager;
         this.eventRouter = components.eventRouter;
         this.requestProcessor = components.requestProcessor;
-        this.responseHandler = components.responseHandler;
+        // this.responseHandler = components.responseHandler;
         this.tonClient = components.tonClient;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
@@ -263,11 +260,24 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         const removeSession = async (sessionId: string) => {
-            await this.bridgeManager.sendResponse(sessionId, false, null, {
-                event: 'disconnect',
-                id: Date.now(),
-                payload: {},
-            } as DisconnectEvent);
+            // TODO FIX REMOVE SESSION
+            await this.bridgeManager.sendResponse(
+                {
+                    sessionId: sessionId,
+                    isJsBridge: false,
+                    id: Date.now(),
+                } as unknown as BridgeEventBase,
+                {
+                    event: 'disconnect',
+                    id: Date.now(),
+                    payload: {},
+                } as DisconnectEvent,
+            );
+            // await this.bridgeManager.sendResponse(sessionId, false, null, {
+            //     event: 'disconnect',
+            //     id: Date.now(),
+            //     payload: {},
+            // } as DisconnectEvent);
             await this.sessionManager.removeSession(sessionId);
         };
         if (sessionId) {
@@ -537,7 +547,7 @@ export class TonWalletKit implements ITonWalletKit {
                 sessionManager: this.sessionManager,
                 eventRouter: this.eventRouter,
                 requestProcessor: this.requestProcessor,
-                responseHandler: this.responseHandler,
+                // responseHandler: this.responseHandler,
                 tonClient: this.tonClient,
                 eventProcessor: this.eventProcessor,
             });

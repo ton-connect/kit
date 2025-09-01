@@ -52,6 +52,11 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
         case 'TONCONNECT_BRIDGE_REQUEST':
             // Handle TonConnect bridge requests through WalletKit
             handleBridgeRequest(message.payload, sender, sendResponse);
+            if (message.payload.method === 'connect' || message.payload.method === 'send') {
+                await chrome.action.openPopup().catch((e) => {
+                    console.log('popup not opened', e);
+                });
+            }
             break;
         case 'WALLET_REQUEST':
             // Forward wallet requests to popup or handle them
@@ -66,58 +71,11 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
             if (!sender.tab?.id) {
                 return;
             }
-            // setTimeout(() => {
-            //     if (!sender.tab?.id) {
-            //         return;
-            //     }
-            //     injectContentScript(sender.tab.id);
-            // }, 3000);
             injectContentScript(sender.tab.id);
             break;
-        // return true; // Keep message channel open for async response
         default:
             console.log('Unknown message type:', message.type);
     }
-
-    await chrome.action.openPopup().catch((e) => {
-        console.log('popup not opened', e);
-    });
-    console.log('popup opened');
-});
-
-// Handle messages from content scripts or popup
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log('Background received message:', message);
-
-    // Handle different message types
-    switch (message.type) {
-        case 'TONCONNECT_BRIDGE_REQUEST':
-            // Handle TonConnect bridge requests through WalletKit
-            handleBridgeRequest(message.payload, sender, sendResponse);
-            await chrome.action.openPopup().catch((e) => {
-                console.log('popup not opened', e);
-            });
-            break;
-        case 'WALLET_REQUEST':
-            // Forward wallet requests to popup or handle them
-            handleWalletRequest(message.payload);
-            break;
-        case 'GET_WALLET_STATE':
-            // Get current wallet state
-            handleGetWalletState(sendResponse);
-            break;
-        case 'INJECT_CONTENT_SCRIPT':
-            if (!sender.tab?.id) {
-                return;
-            }
-            injectContentScript(sender.tab.id);
-            break;
-        // return true; // Keep message channel open for async response
-        default:
-            console.log('Unknown message type:', message.type);
-    }
-
-    console.log('popup opened');
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {

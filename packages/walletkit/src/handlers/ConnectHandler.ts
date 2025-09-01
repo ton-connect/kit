@@ -33,6 +33,7 @@ export class ConnectHandler
         }
 
         const connectEvent: EventConnectRequest = {
+            ...event,
             id: event.id,
             dAppName: this.extractDAppName(event, manifest),
             dAppUrl: manifest?.url || '',

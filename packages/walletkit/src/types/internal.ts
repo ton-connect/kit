@@ -52,14 +52,16 @@ export interface ValidationResult {
     errors: string[];
 }
 
-type BridgeEventBase = {
+export type BridgeEventBase = {
+    id?: string;
     from: string;
     walletAddress?: string;
     wallet?: WalletInterface;
-    domain: string;
+    domain?: string;
 
     isJsBridge?: boolean;
     tabId?: number;
+    sessionId?: string;
 };
 
 // Bridge event types (raw from bridge)
