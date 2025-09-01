@@ -161,12 +161,19 @@ export class BridgeManager {
         }
     }
 
-    async sendJsBridgeResponse(sessionId: string, isJsBridge: boolean, requestId: string | null, response: any): Promise<void> {
+    async sendJsBridgeResponse(
+        sessionId: string,
+        _isJsBridge: boolean,
+        requestId: string | null,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        response: any,
+    ): Promise<void> {
         if (!this.bridgeProvider) {
             throw new Error('Bridge not initialized');
         }
 
         const source = this.config.bridgeName + '-tonconnect';
+        // eslint-disable-next-line no-undef
         chrome.tabs.sendMessage(parseInt(sessionId), {
             type: 'TONCONNECT_BRIDGE_RESPONSE',
             source: source,
@@ -306,11 +313,31 @@ export class BridgeManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public queueJsBridgeEvent(event: any): void {
         log.debug('JS Bridge event queued', { eventId: event?.id });
-        this.eventQueue.push({
-            ...event,
-            isJsBridge: true,
-            tabId: event.tabId,
-        });
+
+        if (event.method == 'connect') {
+            this.eventQueue.push({
+                ...event,
+                isJsBridge: true,
+                tabId: event.tabId,
+                domain: event.domain,
+            });
+        } else if (event.method == 'restoreConnection') {
+            this.eventQueue.push({
+                ...event,
+                isJsBridge: true,
+                tabId: event.tabId,
+                domain: event.domain,
+            });
+        } else if (event.method == 'send' && event?.params?.length === 1) {
+            this.eventQueue.push({
+                ...event,
+                ...event.params[0],
+                id: event.id,
+                isJsBridge: true,
+                tabId: event.tabId,
+                domain: event.domain,
+            });
+        }
 
         // Trigger processing (don't wait for it to complete)
         this.processBridgeEvents().catch((error) => {
@@ -363,7 +390,7 @@ export class BridgeManager {
                 // sessionId: event.from,
                 timestamp: Date.now(),
                 from: event?.from,
-                domain: '',
+                domain: event?.domain,
                 isJsBridge: event?.isJsBridge,
                 tabId: event?.tabId,
             };
@@ -373,6 +400,21 @@ export class BridgeManager {
                 rawEvent.domain = session?.domain || '';
                 if (session?.wallet) {
                     rawEvent.wallet = session.wallet;
+                }
+                if (session?.walletAddress) {
+                    rawEvent.walletAddress = session.walletAddress;
+                }
+            } else if (rawEvent.domain) {
+                const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
+                if (session?.wallet) {
+                    rawEvent.wallet = session.wallet;
+                }
+                if (session?.walletAddress) {
+                    rawEvent.walletAddress = session.walletAddress;
+                }
+
+                if (session?.sessionId) {
+                    rawEvent.from = session.sessionId;
                 }
             }
 

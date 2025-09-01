@@ -54,6 +54,7 @@ export interface ValidationResult {
 
 type BridgeEventBase = {
     from: string;
+    walletAddress?: string;
     wallet?: WalletInterface;
     domain: string;
 

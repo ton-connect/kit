@@ -26,6 +26,8 @@ const DEFAULT_DEVICE_INFO: DeviceInfo = {
     ],
 };
 
+let extensionId: string | undefined = undefined;
+
 /**
  * Injects a simplified TonConnect JS Bridge that forwards all requests to the parent extension
  * The extension handles all logic through WalletKit
@@ -171,18 +173,31 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
                 // Store pending request
                 this._pendingRequests.set(messageId, { resolve, reject, timeoutId });
 
-                // Send to extension via postMessage
-                window.postMessage(
-                    {
-                        type: 'TONCONNECT_BRIDGE_REQUEST',
-                        source: `${walletName}-tonconnect`,
-                        payload: {
-                            ...data,
-                            id: messageId,
-                        },
+                if (typeof chrome === 'undefined' || !extensionId) {
+                    return;
+                }
+                // eslint-disable-next-line no-undef
+                chrome.runtime.sendMessage(extensionId, {
+                    type: 'TONCONNECT_BRIDGE_REQUEST',
+                    source: `${walletName}-tonconnect`,
+                    payload: {
+                        ...data,
+                        id: messageId,
                     },
-                    '*',
-                );
+                });
+
+                // Send to extension via postMessage
+                // window.postMessage(
+                //     {
+                //         type: 'TONCONNECT_BRIDGE_REQUEST',
+                //         source: `${walletName}-tonconnect`,
+                //         payload: {
+                //             ...data,
+                //             id: messageId,
+                //         },
+                //     },
+                //     '*',
+                // );
             });
         }
 
@@ -226,6 +241,8 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
     // Set up message listener for responses and events from extension
     const messageListener = (event: MessageEvent) => {
+        // сщт
+        // console.log('messageListener', event);
         if (event.source !== window) return;
 
         const data = event.data;
@@ -233,7 +250,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
         // Handle bridge responses from extension
         if (data.type === 'TONCONNECT_BRIDGE_RESPONSE' && data.source === `${walletName}-tonconnect`) {
-            debugger
             bridge._handleResponse(data);
             return;
         }
@@ -241,6 +257,11 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         // Handle bridge events from extension
         if (data.type === 'TONCONNECT_BRIDGE_EVENT' && data.source === `${walletName}-tonconnect`) {
             bridge._handleEvent(data.event);
+            return;
+        }
+
+        if (data.type === 'INJECT_EXTENSION_ID') {
+            extensionId = data.extensionId;
             return;
         }
     };
@@ -276,68 +297,55 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
     // eslint-disable-next-line no-console
     console.log(`TonConnect JS Bridge injected for ${walletName} - forwarding to extension`, window);
-}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function injectIsolatedCode(window: any, options: JSBridgeInjectOptions): void {
-    // const walletName = sanitizeWalletName(options.walletName);
+    const injectContentScript = () => {
+        if (typeof chrome === 'undefined') {
+            return;
+        }
+        // eslint-disable-next-line no-undef
+        chrome.runtime.sendMessage(extensionId, {
+            type: 'INJECT_CONTENT_SCRIPT',
+        });
+    };
 
-    const ourMessageType = 'TONCONNECT_BRIDGE_REQUEST';
-    const source = options.walletName + '-tonconnect';
-    window.addEventListener('message', (event: MessageEvent) => {
-        if (event?.data?.type === ourMessageType && event?.data?.source === source) {
-            const payload = event?.data?.payload;
-            if (!payload) {
+    // Listen for DOM changes and log when iframe is created
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type !== 'childList') {
                 return;
             }
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType !== Node.ELEMENT_NODE) {
+                    return;
+                }
+                const element = node as Element;
 
-            // eslint-disable-next-line no-undef
-            chrome.runtime.sendMessage({
-                type: 'TONCONNECT_BRIDGE_REQUEST',
-                source,
-                payload,
+                // Check if any child elements are iframes
+                const iframes = element.querySelectorAll('iframe');
+                for (const _ of iframes) {
+                    injectContentScript();
+                }
+
+                if (element.tagName !== 'IFRAME') {
+                    return;
+                }
+
+                if (typeof chrome === 'undefined') {
+                    return;
+                }
+                injectContentScript();
+
+                element.removeEventListener('load', injectContentScript);
+                element.removeEventListener('error', injectContentScript);
+                element.addEventListener('load', injectContentScript);
+                element.addEventListener('error', injectContentScript);
             });
-            // console.log('Message sent to background');
-        } else {
-            // console.log(
-            //     'Unknown message type:',
-            //     event?.data,
-            //     event?.data?.type,
-            //     ourMessageType,
-            //     event?.data?.source,
-            //     source,
-            // );
-        }
+        });
     });
 
-    // eslint-disable-next-line no-undef
-    chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
-        // eslint-disable-next-line no-console
-        console.log('Inject script received message from extension:', message);
-
-        if (message.type === 'TONCONNECT_BRIDGE_RESPONSE') {
-            debugger
-            if (message.source !== source) {
-                console.log('source not ok')
-                return;
-            }
-
-            const payload = message.payload;
-            if (!payload) {
-                console.log('payload not ok')
-                return;
-            }
-            
-            window.postMessage(
-                {
-                    type: 'TONCONNECT_BRIDGE_RESPONSE',
-                    source: source,
-                    payload,
-                    messageId: message?.messageId,
-                    success: message?.success,
-                },
-                '*',
-            );
-        }
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
     });
 }

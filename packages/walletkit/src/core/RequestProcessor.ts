@@ -149,7 +149,12 @@ export class RequestProcessor {
 
             await CallForSuccess(() => this.client.sendFile(Buffer.from(signedBoc, 'base64')));
 
-            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
+            if (event.isJsBridge) {
+                // const response = await this.createConnectApprovalResponse(event);
+                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response);
+            } else {
+                await this.bridgeManager.sendResponse(event.from, false, event.id, response);
+            }
 
             return { signedBoc };
         } catch (error) {
@@ -203,7 +208,11 @@ export class RequestProcessor {
                 },
             };
 
-            await this.bridgeManager.sendResponse(event.from, false, event.id, response);
+            if (event.isJsBridge) {
+                await this.bridgeManager.sendResponse(event.tabId?.toString() || '', true, event.id, response);
+            } else {
+                await this.bridgeManager.sendResponse(event.from, false, event.id, response);
+            }
 
             return { signature };
         } catch (error) {

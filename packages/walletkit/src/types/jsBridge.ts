@@ -115,6 +115,7 @@ export interface BridgeRequest {
     type: 'TONCONNECT_BRIDGE_REQUEST';
     source: string;
     payload: BridgeRequestPayload;
+    tabId?: string;
     // method: 'connect' | 'restoreConnection' | 'send';
     // messageId: number;
     // params: {

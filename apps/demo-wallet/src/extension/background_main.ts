@@ -44,11 +44,9 @@ chrome.runtime.onInstalled.addListener(() => {
 // Initialize on startup
 initializeWalletKit();
 
-// Handle messages from content scripts or popup
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    console.log('Background received message:', message);
+chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
+    console.log('Background received message external:', message, sender, sendResponse);
 
-    // Handle different message types
     switch (message.type) {
         case 'TONCONNECT_BRIDGE_REQUEST':
             // Handle TonConnect bridge requests through WalletKit
@@ -62,6 +60,19 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             // Get current wallet state
             handleGetWalletState(sendResponse);
             break;
+        case 'INJECT_CONTENT_SCRIPT':
+            console.log('INJECT_CONTENT_SCRIPT', sender);
+            if (!sender.tab?.id) {
+                return;
+            }
+            // setTimeout(() => {
+            //     if (!sender.tab?.id) {
+            //         return;
+            //     }
+            //     injectContentScript(sender.tab.id);
+            // }, 3000);
+            injectContentScript(sender.tab.id);
+            break;
         // return true; // Keep message channel open for async response
         default:
             console.log('Unknown message type:', message.type);
@@ -70,6 +81,41 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     await chrome.action.openPopup().catch((e) => {
         console.log('popup not opened', e);
     });
+    console.log('popup opened');
+});
+
+// Handle messages from content scripts or popup
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    console.log('Background received message:', message);
+
+    // Handle different message types
+    switch (message.type) {
+        case 'TONCONNECT_BRIDGE_REQUEST':
+            // Handle TonConnect bridge requests through WalletKit
+            handleBridgeRequest(message.payload, sender, sendResponse);
+            await chrome.action.openPopup().catch((e) => {
+                console.log('popup not opened', e);
+            });
+            break;
+        case 'WALLET_REQUEST':
+            // Forward wallet requests to popup or handle them
+            handleWalletRequest(message.payload);
+            break;
+        case 'GET_WALLET_STATE':
+            // Get current wallet state
+            handleGetWalletState(sendResponse);
+            break;
+        case 'INJECT_CONTENT_SCRIPT':
+            if (!sender.tab?.id) {
+                return;
+            }
+            injectContentScript(sender.tab.id);
+            break;
+        // return true; // Keep message channel open for async response
+        default:
+            console.log('Unknown message type:', message.type);
+    }
+
     console.log('popup opened');
 });
 
@@ -88,10 +134,22 @@ async function handleBridgeRequest(
     try {
         console.log('Processing bridge request through WalletKit:', bridgeRequest);
 
+        const getHostFromUrl = (url: string | undefined) => {
+            if (!url) {
+                return undefined;
+            }
+            try {
+                const urlObj = new URL(url);
+                return urlObj.host;
+            } catch {
+                return undefined;
+            }
+        };
         // Process the request through WalletKit's JS Bridge Manager
         const result = await walletKit?.processInjectedBridgeRequest({
             ...bridgeRequest,
             tabId: _sender.tab?.id?.toString(),
+            domain: getHostFromUrl(_sender.tab?.url),
         });
 
         sendResponse({ success: true, result });
@@ -140,14 +198,29 @@ async function injectContentScript(tabId: number) {
             return;
         }
         await chrome.scripting.executeScript({
-            target: { tabId },
+            target: { tabId, allFrames: true },
             files: ['src/extension/content.js'],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             world: 'MAIN' as any, // needed to access window
         });
         await chrome.scripting.executeScript({
-            target: { tabId },
-            files: ['src/extension/inject.js'],
+            target: { tabId, allFrames: true },
+            args: [chrome.runtime.id],
+            func: (extensionId) => {
+                window.postMessage(
+                    {
+                        type: 'INJECT_EXTENSION_ID',
+                        extensionId,
+                    },
+                    '*',
+                );
+                chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+                    window.postMessage({
+                        ...message,
+                        sender: _sender,
+                    });
+                });
+            },
         });
     } catch (error) {
         console.error('Error injecting script:', error);

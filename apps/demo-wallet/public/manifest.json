@@ -10,6 +10,11 @@
     "tabs",
     "notifications"
   ],
+  "externally_connectable": {
+    "matches": [
+      "<all_urls>"
+    ]
+  },
   "host_permissions": [
     "<all_urls>"
   ],

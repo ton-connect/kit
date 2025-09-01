@@ -79,6 +79,19 @@ export class SessionManager {
         return undefined;
     }
 
+    async getSessionByDomain(domain: string): Promise<SessionData | undefined> {
+        // const session = this.sessions(domain);
+        // if (session) {
+        //     return this.getSession(session.sessionId);
+        // }
+        for (const session of this.sessions.values()) {
+            if (session.domain === domain) {
+                return this.getSession(session.sessionId);
+            }
+        }
+        return undefined;
+    }
+
     /**
      * Get all sessions as array
      */

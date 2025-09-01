@@ -3,7 +3,7 @@
 import type { ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
 
 import type { WalletInterface, TonNetwork } from './wallet';
-import { ConnectTransactionParamContent, RawBridgeEventTransaction } from './internal';
+import { ConnectTransactionParamContent, RawBridgeEventSignData, RawBridgeEventTransaction } from './internal';
 import { MoneyFlow } from '../utils/toncenterEmulation';
 import { ToncenterEmulationResponse } from './toncenter/emulation';
 
@@ -117,7 +117,7 @@ export interface TransactionPreview {
 /**
  * Sign data request event from dApp
  */
-export interface EventSignDataRequest {
+export interface EventSignDataRequest extends RawBridgeEventSignData {
     from: string;
     /** Unique request identifier */
     id: string;

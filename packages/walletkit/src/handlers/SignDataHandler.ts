@@ -36,6 +36,7 @@ export class SignDataHandler
         }
 
         const signEvent: EventSignDataRequest = {
+            ...event,
             from: event.from,
             id: event.id,
             data,
