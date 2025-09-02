@@ -35,7 +35,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		97A418FE2E6637AA00705BA8 /* Exceptions for "IOSKitDemo" folder */ = {
+		97A418FE2E6637AA00705BA8 /* Exceptions for "IOSKitDemo" folder in "IOSKitDemo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -48,7 +48,7 @@
 		97A418D32E66378700705BA7 /* IOSKitDemo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				97A418FE2E6637AA00705BA8 /* Exceptions for "IOSKitDemo" folder */,
+				97A418FE2E6637AA00705BA8 /* Exceptions for "IOSKitDemo" folder in "IOSKitDemo" target */,
 			);
 			path = IOSKitDemo;
 			sourceTree = "<group>";
