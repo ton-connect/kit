@@ -22,7 +22,10 @@ IOSKitDemo/
 │   │   ├── WalletKitNativeEngine.swift # JavaScriptCore implementation
 │   │   └── WalletKitTypes.swift       # Type definitions
 │   ├── WalletKitAdapter/              # WebKit bridge files
-│   │   └── walletkit-adapter.html     # Minimal HTML bridge
+│   │   └── dist-js/
+│   │       ├── index.html           # Built HTML bridge with bundled JS
+│   │       └── assets/
+│   │           └── index-XXXX.js    # Bundled JavaScript assets
 │   └── SwiftUI Views/                 # Demo UI components
 ├── INTEGRATION.md                     # Detailed integration guide
 └── README.md                         # This file
@@ -188,7 +191,7 @@ Create a manifest file describing your app:
 ### Common Issues
 
 1. **WebKit Bridge not loading**
-   - Ensure `walletkit-adapter.html` is in your app bundle
+   - Ensure the entire `dist-js/` directory (including `index.html` and `assets/`) is in your app bundle
    - Check Xcode build phases include the file
    - Verify file permissions
 

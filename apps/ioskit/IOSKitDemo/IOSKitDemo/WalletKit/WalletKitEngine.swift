@@ -199,17 +199,17 @@ class WalletKitEngine: NSObject {
     }
     
     private func loadWalletKitBundle() -> URL? {
-        // Try to find walletkit-adapter.html in the app bundle
-        // First try in WalletKitAdapter directory (if preserved), then at root level
-        var adapterPath: String? = Bundle.main.path(forResource: "walletkit-adapter", ofType: "html", inDirectory: "WalletKitAdapter")
+        // Try to find index.html in the dist-js directory
+        // First try in dist-js directory, then at root level
+        var adapterPath: String? = Bundle.main.path(forResource: "index", ofType: "html", inDirectory: "dist-js")
         
         if adapterPath == nil {
             // Fallback: try at root level (modern Xcode often flattens directory structure)
-            adapterPath = Bundle.main.path(forResource: "walletkit-adapter", ofType: "html")
+            adapterPath = Bundle.main.path(forResource: "index", ofType: "html")
         }
         
         guard let finalPath = adapterPath else {
-            print("❌ WalletKit: walletkit-adapter.html not found in app bundle")
+            print("❌ WalletKit: dist-js/index.html not found in app bundle")
             print("📋 Available bundle resources:")
             if let bundlePath = Bundle.main.resourcePath {
                 let enumerator = FileManager.default.enumerator(at: URL(fileURLWithPath: bundlePath), 
@@ -228,7 +228,7 @@ class WalletKitEngine: NSObject {
         }
         
         let adapterURL = URL(fileURLWithPath: finalPath)
-        print("✅ WalletKit: Found walletkit-adapter.html at \(adapterURL.path)")
+        print("✅ WalletKit: Found dist-js/index.html at \(adapterURL.path)")
         
         return adapterURL
     }

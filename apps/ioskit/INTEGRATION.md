@@ -19,7 +19,10 @@ IOSKitDemo/IOSKitDemo/
 │   ├── WalletKitNativeEngine.swift    # JavaScriptCore-based implementation
 │   └── WalletKitTypes.swift           # Type definitions
 ├── WalletKitAdapter/                   # Minimal WebKit bridge
-│   └── walletkit-adapter.html         # HTML bridge that forwards to Swift
+│   └── dist-js/
+│       ├── index.html                 # Built HTML bridge with bundled JS
+│       └── assets/
+│           └── index-XXXX.js          # Bundled JavaScript assets
 └── WalletKitWeb/                       # (Optional) Full demo-wallet build
 ```
 
@@ -120,7 +123,7 @@ let walletKit = TonWalletKitSwift(
 2. **Add WebKit Adapter (if using WebKit bridge):**
    - Drag the `WalletKitAdapter/` folder into your Xcode project
    - Make sure "Copy items if needed" is checked
-   - Ensure `walletkit-adapter.html` is included in the app bundle
+   - Ensure the entire `dist-js/` directory (including `index.html` and `assets/`) is included in the app bundle
 
 3. **Add Required Frameworks:**
    ```
@@ -230,15 +233,20 @@ These will be implemented in future updates. For now, use the WebKit bridge appr
 ### WebKit Bridge Issues
 
 1. **HTML file not found:**
-   - Ensure `walletkit-adapter.html` is added to your Xcode project
-   - Check that the file is included in your app target
-   - Verify the file is in the `WalletKitAdapter` folder in your bundle
+   - Ensure the entire `dist-js/` directory is added to your Xcode project
+   - Check that `index.html` and the `assets/` directory are included in your app target
+   - Verify the files are in the `WalletKitAdapter` folder in your bundle
 
-2. **JavaScript errors:**
+2. **JavaScript assets not loading:**
+   - Ensure the `assets/` directory with JavaScript files is included in your app bundle
+   - Check that the relative path `./assets/index-XXXX.js` resolves correctly
+   - Verify WebView has read access to the assets directory
+
+3. **JavaScript errors:**
    - Enable web inspector in iOS Simulator
    - Check console logs in Xcode for JavaScript errors
 
-3. **Bridge communication issues:**
+4. **Bridge communication issues:**
    - Check that message handlers are properly set up
    - Verify that `window.walletKitSwiftBridge` is available
 

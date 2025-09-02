@@ -23,3 +23,5 @@ build/
 *~
 *.dat
 *.dep
+
+dist-js/
