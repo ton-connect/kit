@@ -24,7 +24,7 @@ class WalletKitEngine: NSObject {
     }
     
     // Request tracking
-    private var pendingRequests: [String: CheckedContinuation<Any, Error>] = [:]
+    private var pendingRequests: [String: Any] = [:]
     private let requestQueue = DispatchQueue(label: "walletkit.requests", qos: .userInitiated)
     
     // MARK: - Initialization
@@ -133,7 +133,8 @@ class WalletKitEngine: NSObject {
         };
         
         // Initialize WalletKit when document is ready
-        document.addEventListener('DOMContentLoaded', async function() {
+        async function initializeWalletKit() {
+            console.log('🚀 Starting WalletKit initialization...');
             try {
                 // Import WalletKit (this would be the actual import in a real implementation)
                 // For now, we'll simulate the WalletKit interface
@@ -212,19 +213,36 @@ class WalletKitEngine: NSObject {
                     }
                 };
                 
+                console.log('🔄 About to initialize WalletKit...');
                 await window.walletKit.initialize();
+                console.log('✅ WalletKit.initialize() completed successfully');
                 
                 // Notify Swift that initialization is complete
+                console.log('📤 Sending initialized event to Swift with success: true');
                 window.walletKitSwiftBridge.sendEvent('initialized', { success: true });
+                console.log('✅ Initialized event sent to Swift');
                 
             } catch (error) {
-                console.error('WalletKit initialization failed:', error);
+                console.error('❌ WalletKit initialization failed:', error);
+                console.log('📤 Sending initialized event to Swift with success: false');
                 window.walletKitSwiftBridge.sendEvent('initialized', { 
                     success: false, 
                     error: error.message 
                 });
+                console.log('✅ Failed initialization event sent to Swift');
             }
-        });
+        }
+        
+        // Set up initialization - handle both loading and already-loaded states
+        document.addEventListener('DOMContentLoaded', initializeWalletKit);
+        
+        // Fallback: if document is already loaded, initialize immediately
+        if (document.readyState === 'loading') {
+            console.log('📄 Document is loading, waiting for DOMContentLoaded...');
+        } else {
+            console.log('📄 Document already loaded, initializing immediately...');
+            initializeWalletKit();
+        }
         
         // Console logging
         const originalLog = console.log;
@@ -266,24 +284,32 @@ class WalletKitEngine: NSObject {
         // Wait for initialization event from JavaScript
         var initializationHandled = false
         
+        print("🔍 WalletKit: Setting up initialization completion handler")
+        
         eventPublisher
             .first { event in
+                print("🔍 WalletKit: Received event: \(event)")
                 if case .stateChanged = event {
+                    print("✅ WalletKit: StateChanged event received - initialization complete!")
                     return true
                 }
                 return false
             }
-            .sink { _ in
+            .sink { completion in
+                print("🔍 WalletKit: Event publisher completed: \(completion)")
+            } receiveValue: { _ in
                 if !initializationHandled {
+                    print("✅ WalletKit: Initialization successful!")
                     initializationHandled = true
                     completion(.success(()))
                 }
-            } receiveValue: { _ in }
+            }
             .store(in: &cancellables)
         
-        // Timeout after 10 seconds
-        DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
+        // Timeout after 15 seconds (increased from 10)
+        DispatchQueue.global().asyncAfter(deadline: .now() + 15) {
             if !initializationHandled {
+                print("❌ WalletKit: Initialization timeout after 15 seconds")
                 initializationHandled = true
                 completion(.failure(WalletKitError.initializationFailed("Initialization timeout")))
             }
@@ -303,7 +329,7 @@ class WalletKitEngine: NSObject {
             let requestId = UUID().uuidString
             
             requestQueue.sync {
-                self.pendingRequests[requestId] = continuation as! CheckedContinuation<Any, Error>
+                self.pendingRequests[requestId] = continuation
             }
             
             let script = "window.walletKit.\(method)(\(encodeJavaScriptArgs(args))).then(result => window.walletKitSwiftBridge.handleResponse('\(requestId)', true, result)).catch(error => window.walletKitSwiftBridge.handleResponse('\(requestId)', false, null, error.message))"
@@ -312,7 +338,7 @@ class WalletKitEngine: NSObject {
                 webView.evaluateJavaScript(script) { _, error in
                     if let error = error {
                         self.requestQueue.sync {
-                            if let continuation = self.pendingRequests.removeValue(forKey: requestId) {
+                            if let continuation = self.pendingRequests.removeValue(forKey: requestId) as? CheckedContinuation<Any, Error> {
                                 continuation.resume(throwing: WalletKitError.bridgeError(error.localizedDescription))
                             }
                         }
@@ -323,7 +349,7 @@ class WalletKitEngine: NSObject {
             // Timeout after 30 seconds
             DispatchQueue.global().asyncAfter(deadline: .now() + 30) {
                 self.requestQueue.sync {
-                    if let continuation = self.pendingRequests.removeValue(forKey: requestId) {
+                    if let continuation = self.pendingRequests.removeValue(forKey: requestId) as? CheckedContinuation<Any, Error> {
                         continuation.resume(throwing: WalletKitError.bridgeError("Request timeout"))
                     }
                 }
@@ -506,15 +532,23 @@ extension WalletKitEngine: WKScriptMessageHandler {
     }
     
     private func handleEventMessage(_ messageDict: [String: Any]) {
+        print("🔍 WalletKit: Received bridge event message: \(messageDict)")
+        
         guard let eventType = messageDict["eventType"] as? String,
               let data = messageDict["data"] as? [String: Any] else {
+            print("❌ WalletKit: Invalid event message format")
             return
         }
+        
+        print("🔍 WalletKit: Processing event type: \(eventType), data: \(data)")
         
         switch eventType {
         case "initialized":
             if let success = data["success"] as? Bool, success {
+                print("✅ WalletKit: JavaScript initialization successful, sending stateChanged event")
                 eventSubject.send(.stateChanged)
+            } else {
+                print("❌ WalletKit: JavaScript initialization failed")
             }
         case "connectRequest":
             if let event = parseConnectRequestEvent(data) {
@@ -544,7 +578,7 @@ extension WalletKitEngine: WKScriptMessageHandler {
         }
         
         requestQueue.sync {
-            if let continuation = self.pendingRequests.removeValue(forKey: requestId) {
+            if let continuation = self.pendingRequests.removeValue(forKey: requestId) as? CheckedContinuation<Any, Error> {
                 if success {
                     let result = messageDict["result"] ?? [:]
                     continuation.resume(returning: result)
