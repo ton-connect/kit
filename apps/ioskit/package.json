@@ -15,7 +15,6 @@
   "main": "src/walletkit/WalletKitSwift.swift",
   "files": [
     "src/walletkit/",
-    "src/demo/",
     "README_NATIVE.md"
   ],
   "keywords": [
