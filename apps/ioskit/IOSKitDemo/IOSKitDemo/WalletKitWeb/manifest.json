@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "TON Wallet Demo",
+  "version": "0.0.0",
+  "description": "A demo TON wallet browser extension",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "notifications"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "<all_urls>"
+    ]
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/extension/background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/extension/content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "action": {
+    "default_popup": "index.extension.html",
+    "default_title": "TON Wallet Demo",
+    "default_icon": {
+      "16": "vite.svg",
+      "32": "vite.svg",
+      "48": "vite.svg",
+      "128": "vite.svg"
+    }
+  },
+  "icons": {
+    "16": "vite.svg",
+    "32": "vite.svg",
+    "48": "vite.svg",
+    "128": "vite.svg"
+  }
+}

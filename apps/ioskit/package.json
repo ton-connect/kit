@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "echo 'iOS build handled by Xcode'",
+
     "clean": "rm -rf build/ DerivedData/",
     "setup": "./setup.sh"
   },

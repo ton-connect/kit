@@ -79,9 +79,14 @@ class WalletKitEngine: NSObject {
         }
         #endif
         
-        // Load minimal HTML to initialize JavaScript environment
-        let html = createMinimalHTML()
-        webView?.loadHTMLString(html, baseURL: nil)
+        // Load the compiled WalletKit web app
+        if let walletKitURL = loadWalletKitBundle() {
+            webView?.loadFileURL(walletKitURL, allowingReadAccessTo: walletKitURL.deletingLastPathComponent())
+        } else {
+            // Fallback to minimal HTML if bundle not found
+            let html = createMinimalHTML()
+            webView?.loadHTMLString(html, baseURL: nil)
+        }
         
         // Setup completion handling
         setupInitializationCompletion(completion: completion)
@@ -91,7 +96,7 @@ class WalletKitEngine: NSObject {
         let storageType = storageTypeString(config.storage)
         
         return """
-        // WalletKit Swift Bridge
+        // WalletKit Swift Bridge - Integration with compiled WalletKit web app
         window.walletKitSwiftBridge = {
             callbacks: {},
             
@@ -130,136 +135,19 @@ class WalletKitEngine: NSObject {
                     eventType: eventType,
                     data: data
                 });
+            },
+            
+            // Configuration for WalletKit
+            config: {
+                network: '\(config.network.rawValue)',
+                storage: '\(storageType)',
+                manifestUrl: '\(config.manifestUrl)',
+                isMobile: true,
+                isNative: true
             }
         };
         
-        // Initialize WalletKit when document is ready
-        async function initializeWalletKit() {
-            console.log('🚀 Starting WalletKit initialization...');
-            try {
-                // Import WalletKit (this would be the actual import in a real implementation)
-                // For now, we'll simulate the WalletKit interface
-                
-                console.log('Initializing WalletKit with config:', {
-                    network: '\(config.network.rawValue)',
-                    storage: '\(storageType)',
-                    manifestUrl: '\(config.manifestUrl)'
-                });
-                
-                // Test different console log levels
-                console.info('WalletKit console logging is now active');
-                console.warn('This is a warning message test');
-                console.debug('Debug logging is working');
-                
-                // Create WalletKit instance
-                window.walletKit = {
-                    // Simulate WalletKit methods
-                    initialized: false,
-                    wallets: [],
-                    sessions: [],
-                    
-                    async initialize() {
-                        this.initialized = true;
-                        console.log('WalletKit initialized');
-                        return true;
-                    },
-                    
-                    async addWallet(config) {
-                        console.debug('Adding wallet with config:', config);
-                        const wallet = {
-                            address: 'EQ...' + Math.random().toString(36).substring(7),
-                            name: config.name,
-                            network: config.network,
-                            version: config.version
-                        };
-                        this.wallets.push(wallet);
-                        console.log('✅ Wallet added successfully:', wallet);
-                        return wallet;
-                    },
-                    
-                    async getWallets() {
-                        return this.wallets;
-                    },
-                    
-                    async getSessions() {
-                        return this.sessions;
-                    },
-                    
-                    async handleTonConnectUrl(url) {
-                        console.info('🔗 Processing TON Connect URL:', url);
-                        
-                        try {
-                            // Simulate connect request event
-                            const event = {
-                                id: Math.random().toString(36).substring(7),
-                                dAppName: 'Demo DApp',
-                                dAppUrl: 'https://demo.tonconnect.org',
-                                manifestUrl: 'https://demo.tonconnect.org/manifest.json',
-                                requestedItems: ['ton_addr'],
-                                permissions: [{
-                                    name: 'ton_addr',
-                                    title: 'Wallet Address',
-                                    description: 'Access to your wallet address'
-                                }]
-                            };
-                            
-                            console.log('📨 Generated connect request event:', event);
-                            window.walletKitSwiftBridge.sendEvent('connectRequest', event);
-                            return true;
-                        } catch (error) {
-                            console.error('❌ Failed to process TON Connect URL:', error);
-                            throw error;
-                        }
-                    },
-                    
-                    // Add other methods as needed...
-                    async approveConnectRequest(requestId, walletAddress) {
-                        console.log('Approving connect request:', requestId, walletAddress);
-                        return { success: true };
-                    },
-                    
-                    async approveTransactionRequest(requestId) {
-                        console.log('Approving transaction request:', requestId);
-                        return {
-                            hash: 'tx_' + Math.random().toString(36).substring(7),
-                            signedBoc: 'signed_boc_data'
-                        };
-                    }
-                };
-                
-                console.log('🔄 About to initialize WalletKit...');
-                await window.walletKit.initialize();
-                console.log('✅ WalletKit.initialize() completed successfully');
-                
-                // Notify Swift that initialization is complete
-                console.log('📤 Sending initialized event to Swift with success: true');
-                window.walletKitSwiftBridge.sendEvent('initialized', { success: true });
-                console.log('✅ Initialized event sent to Swift');
-                
-            } catch (error) {
-                console.error('❌ WalletKit initialization failed:', error);
-                console.error('Error details:', { message: error.message, stack: error.stack });
-                console.log('📤 Sending initialized event to Swift with success: false');
-                window.walletKitSwiftBridge.sendEvent('initialized', { 
-                    success: false, 
-                    error: error.message 
-                });
-                console.log('✅ Failed initialization event sent to Swift');
-            }
-        }
-        
-        // Set up initialization - handle both loading and already-loaded states
-        document.addEventListener('DOMContentLoaded', initializeWalletKit);
-        
-        // Fallback: if document is already loaded, initialize immediately
-        if (document.readyState === 'loading') {
-            console.log('📄 Document is loading, waiting for DOMContentLoaded...');
-        } else {
-            console.log('📄 Document already loaded, initializing immediately...');
-            initializeWalletKit();
-        }
-        
-        // Console logging - intercept all console methods
+        // Console logging - intercept all console methods for bridge communication
         const originalConsole = {
             log: console.log,
             warn: console.warn,
@@ -289,6 +177,8 @@ class WalletKitEngine: NSObject {
         console.error = createConsoleHandler('ERROR', originalConsole.error);
         console.info = createConsoleHandler('INFO', originalConsole.info);
         console.debug = createConsoleHandler('DEBUG', originalConsole.debug);
+        
+        console.log('🚀 WalletKit Swift Bridge initialized');
         """
     }
     
@@ -306,6 +196,41 @@ class WalletKitEngine: NSObject {
         </body>
         </html>
         """
+    }
+    
+    private func loadWalletKitBundle() -> URL? {
+        // Try to find walletkit-adapter.html in the app bundle
+        // First try in WalletKitAdapter directory (if preserved), then at root level
+        var adapterPath: String? = Bundle.main.path(forResource: "walletkit-adapter", ofType: "html", inDirectory: "WalletKitAdapter")
+        
+        if adapterPath == nil {
+            // Fallback: try at root level (modern Xcode often flattens directory structure)
+            adapterPath = Bundle.main.path(forResource: "walletkit-adapter", ofType: "html")
+        }
+        
+        guard let finalPath = adapterPath else {
+            print("❌ WalletKit: walletkit-adapter.html not found in app bundle")
+            print("📋 Available bundle resources:")
+            if let bundlePath = Bundle.main.resourcePath {
+                let enumerator = FileManager.default.enumerator(at: URL(fileURLWithPath: bundlePath), 
+                                                                includingPropertiesForKeys: nil, 
+                                                                options: [.skipsHiddenFiles])
+                var count = 0
+                while let file = enumerator?.nextObject() as? URL, count < 20 {
+                    print("  - \(file.lastPathComponent)")
+                    count += 1
+                }
+                if count >= 20 {
+                    print("  ... and more")
+                }
+            }
+            return nil
+        }
+        
+        let adapterURL = URL(fileURLWithPath: finalPath)
+        print("✅ WalletKit: Found walletkit-adapter.html at \(adapterURL.path)")
+        
+        return adapterURL
     }
     
     private func storageTypeString(_ storage: StorageConfig) -> String {
