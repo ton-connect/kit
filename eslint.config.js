@@ -12,5 +12,5 @@ module.exports = [
         },
         rules: {},
     },
-    { ignores: ['**/dist/*', '**/dist-extension/*'] },
+    { ignores: ['**/dist/*', '**/dist-extension/*', 'apps/ioskit/*'] },
 ];

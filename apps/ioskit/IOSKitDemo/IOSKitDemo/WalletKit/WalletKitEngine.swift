@@ -382,7 +382,7 @@ class WalletKitEngine: NSObject {
         let walletsData: [[String: Any]] = try await callJavaScript("getWallets")
         let sessionsData: [[String: Any]] = try await callJavaScript("getSessions")
         
-        let wallets = try walletsData.compactMap { dict -> WalletInfo? in
+        let wallets = walletsData.compactMap { dict -> WalletInfo? in
             guard let data = try? JSONSerialization.data(withJSONObject: dict),
                   let wallet = try? JSONDecoder().decode(WalletInfo.self, from: data) else {
                 return nil
@@ -390,13 +390,26 @@ class WalletKitEngine: NSObject {
             return wallet
         }
         
-        let sessions = try sessionsData.compactMap { dict -> SessionInfo? in
+        let sessions = sessionsData.compactMap { dict -> SessionInfo? in
             guard let data = try? JSONSerialization.data(withJSONObject: dict),
                   let session = try? JSONDecoder().decode(SessionInfo.self, from: data) else {
                 return nil
             }
             return session
         }
+        
+        return (wallets, sessions)
+    }
+    
+    /// Internal method to get current state without calling JavaScript (to avoid infinite loops)
+    private func getCurrentStateInternal() async throws -> ([WalletInfo], [SessionInfo]) {
+        print("📋 WalletKit: Getting current state internally")
+        
+        // For now, return empty arrays as this would normally come from JavaScript storage
+        // In a real implementation, you would have a Swift-side storage mechanism
+        // or maintain the state in the Swift engine itself
+        let wallets: [WalletInfo] = []
+        let sessions: [SessionInfo] = []
         
         return (wallets, sessions)
     }
@@ -409,8 +422,29 @@ class WalletKitEngine: NSObject {
         }
     }
     
+    /// Internal method to disconnect without calling JavaScript (to avoid infinite loops)
+    private func disconnectInternal(sessionId: String?) async throws {
+        print("🔌 WalletKit: Disconnecting internally - sessionId: \(sessionId ?? "all")")
+        
+        // For now, just log the disconnect action
+        // In a real implementation, you would handle the disconnection logic here
+        // without calling back to JavaScript
+        
+        // Send disconnect event to notify the UI
+        let disconnectEvent: [String: Any] = [
+            "sessionId": sessionId ?? "",
+            "reason": "User disconnected"
+        ]
+        
+        if let event = parseDisconnectEvent(disconnectEvent) {
+            eventSubject.send(.disconnect(event))
+        }
+    }
+    
     func handleTonConnectUrl(_ url: String) async throws {
-        let _: [String: Any] = try await callJavaScript("handleTonConnectUrl", args: [url])
+        print("🔗 WalletKit: Swift calling JavaScript to handle TonConnect URL: \(url)")
+        let result: [String: Any] = try await callJavaScript("handleTonConnectUrl", args: [url])
+        print("✅ WalletKit: JavaScript returned result: \(result)")
     }
     
     func approveConnectRequest(_ requestId: String, walletAddress: String) async throws {
@@ -457,7 +491,7 @@ class WalletKitEngine: NSObject {
     func getJettons(walletAddress: String) async throws -> [JettonInfo] {
         let jettonsData: [[String: Any]] = try await callJavaScript("getJettons", args: [walletAddress])
         
-        let jettons = try jettonsData.compactMap { dict -> JettonInfo? in
+        let jettons = jettonsData.compactMap { dict -> JettonInfo? in
             guard let data = try? JSONSerialization.data(withJSONObject: dict),
                   let jetton = try? JSONDecoder().decode(JettonInfo.self, from: data) else {
                 return nil
@@ -551,6 +585,8 @@ extension WalletKitEngine: WKScriptMessageHandler {
             handleEventMessage(messageDict)
         case "response":
             handleResponseMessage(messageDict)
+        case "request":
+            handleRequestMessage(messageDict)
         default:
             print("Unknown bridge message type: \(type)")
         }
@@ -619,6 +655,134 @@ extension WalletKitEngine: WKScriptMessageHandler {
             } else {
                 print("⚠️ WalletKit: No handler found for request \(requestId)")
             }
+        }
+    }
+    
+    private func handleRequestMessage(_ messageDict: [String: Any]) {
+        guard let method = messageDict["method"] as? String,
+              let requestId = messageDict["requestId"] as? String else {
+            print("❌ WalletKit: Invalid request message format")
+            return
+        }
+        
+        let args = messageDict["args"] as? [Any] ?? []
+        
+        print("🔍 WalletKit: Handling request method: \(method) with args: \(args)")
+        
+        // Handle JavaScript-to-Swift method calls
+        Task {
+            await handleJavaScriptRequest(method: method, args: args, requestId: requestId)
+        }
+    }
+    
+    private func handleJavaScriptRequest(method: String, args: [Any], requestId: String) async {
+        switch method {
+        case "test":
+            let response: [String: Any] = [
+                "message": "WalletKit Swift Bridge is working!",
+                "timestamp": Date().timeIntervalSince1970,
+                "receivedArgs": args
+            ]
+            sendJavaScriptResponse(requestId: requestId, success: true, result: response)
+            
+
+        case "getCurrentState":
+            do {
+                // Use internal method to avoid infinite loop (JavaScript -> Swift -> JavaScript)
+                let (wallets, sessions) = try await self.getCurrentStateInternal()
+                let response: [String: Any] = [
+                    "wallets": wallets.map { wallet in
+                        // Convert WalletInfo to dictionary
+                        [
+                            "id": wallet.id,
+                            "address": wallet.address,
+                            "walletName": wallet.walletName,
+                            "network": wallet.network.rawValue,
+                            "version": wallet.version,
+                            "balance": wallet.balance as Any,
+                            "publicKey": wallet.publicKey as Any
+                        ]
+                    },
+                    "sessions": sessions.map { session in
+                        // Convert SessionInfo to dictionary
+                        [
+                            "id": session.id,
+                            "sessionId": session.sessionId,
+                            "dAppName": session.dAppName,
+                            "dAppUrl": session.dAppUrl as Any,
+                            "dAppIconUrl": session.dAppIconUrl as Any,
+                            "walletAddress": session.walletAddress,
+                            "createdAt": session.createdAt.timeIntervalSince1970,
+                            "lastActivity": session.lastActivity.timeIntervalSince1970
+                        ]
+                    }
+                ]
+                sendJavaScriptResponse(requestId: requestId, success: true, result: response)
+            } catch {
+                print("❌ WalletKit: Error getting current state: \(error)")
+                sendJavaScriptResponse(requestId: requestId, success: false, error: error.localizedDescription)
+            }
+            
+        case "disconnect":
+            do {
+                let sessionId = args.first as? String
+                // Use internal method to avoid infinite loop (JavaScript -> Swift -> JavaScript)
+                try await self.disconnectInternal(sessionId: sessionId)
+                let response: [String: Any] = [
+                    "success": true,
+                    "sessionId": sessionId as Any,
+                    "message": "Disconnected successfully"
+                ]
+                sendJavaScriptResponse(requestId: requestId, success: true, result: response)
+            } catch {
+                print("❌ WalletKit: Error disconnecting: \(error)")
+                sendJavaScriptResponse(requestId: requestId, success: false, error: error.localizedDescription)
+            }
+            
+        default:
+            print("⚠️ WalletKit: Unknown method: \(method)")
+            sendJavaScriptResponse(requestId: requestId, success: false, error: "Method not implemented: \(method)")
+        }
+    }
+    
+    private func sendJavaScriptResponse(requestId: String, success: Bool, result: Any? = nil, error: String? = nil) {
+        guard let webView = webView else {
+            print("❌ WalletKit: Cannot send response - webView is nil")
+            return
+        }
+        
+        // Properly escape the error string to prevent JavaScript injection and errors
+        let errorString = error?.replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n") ?? ""
+        
+        let script = "window.walletKitSwiftBridge.handleResponse('\(requestId)', \(success), \(encodeJavaScriptValue(result)), '\(errorString)')"
+        
+        print("🔍 WalletKit: Executing JavaScript response: \(script)")
+        
+        DispatchQueue.main.async {
+            webView.evaluateJavaScript(script) { _, scriptError in
+                if let scriptError = scriptError {
+                    print("❌ WalletKit: Error sending response: \(scriptError)")
+                } else {
+                    print("✅ WalletKit: Successfully sent response for request \(requestId)")
+                }
+            }
+        }
+    }
+    
+    private func encodeJavaScriptValue(_ value: Any?) -> String {
+        guard let value = value else { return "null" }
+        
+        do {
+            let data = try JSONSerialization.data(withJSONObject: value, options: [])
+            guard let string = String(data: data, encoding: .utf8) else {
+                return "null"
+            }
+            return string
+        } catch {
+            print("❌ WalletKit: Failed to encode value: \(error)")
+            return "null"
         }
     }
     
