@@ -40,8 +40,7 @@ struct EngineSelectionView: View {
         NavigationView {
             VStack(spacing: 20) {
                 if let walletKit = walletKit, walletKit.isInitialized {
-                    WalletKitView(config: createWalletKitConfig())
-                        .environmentObject(walletKit)
+                    WalletKitView(walletKit: walletKit)
                 } else {
                     VStack(spacing: 30) {
                         // Header

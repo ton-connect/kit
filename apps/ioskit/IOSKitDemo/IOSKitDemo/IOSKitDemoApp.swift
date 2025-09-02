@@ -10,9 +10,6 @@ import SwiftUI
 @main
 struct IOSKitDemoApp: App {
     
-    // WalletKit instance shared across the app
-    @StateObject private var walletKit = TonWalletKitSwift(config: walletKitConfig)
-    
     init() {
         print("🚀 IOSKit Demo starting up with Native WalletKit...")
         setupAppConfiguration()
@@ -20,8 +17,7 @@ struct IOSKitDemoApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(walletKit)
+            EngineSelectionView()
                 .onAppear {
                     print("✅ Native WalletKit Demo interface loaded")
                 }
@@ -33,15 +29,6 @@ struct IOSKitDemoApp: App {
     
     // MARK: - Configuration
     
-    private static var walletKitConfig: WalletKitConfig {
-        WalletKitConfig(
-            apiKey: nil, // Add your API key if needed
-            network: .mainnet,
-            storage: .local,
-            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-wallet/master/public/tonconnect-manifest.json"
-        )
-    }
-    
     private func setupAppConfiguration() {
         setupAppearance()
         
@@ -49,7 +36,7 @@ struct IOSKitDemoApp: App {
         print("🔧 Debug mode enabled")
         print("📱 Device: \(UIDevice.current.model)")
         print("📱 iOS Version: \(UIDevice.current.systemVersion)")
-        print("🔗 WalletKit Config: \(Self.walletKitConfig)")
+        print("🎯 Using EngineSelectionView for WalletKit initialization")
         #endif
     }
     
@@ -68,17 +55,9 @@ struct IOSKitDemoApp: App {
     }
     
     private func handleTonConnectURL(_ url: URL) {
-        print("🔗 Handling TonConnect URL with Native WalletKit: \(url)")
-        
-        // Handle TonConnect deep links with native WalletKit
-        Task {
-            do {
-                try await walletKit.handleTonConnectUrl(url.absoluteString)
-                print("✅ TonConnect URL handled successfully")
-            } catch {
-                print("❌ Failed to handle TonConnect URL: \(error)")
-            }
-        }
+        print("🔗 Handling TonConnect URL: \(url)")
+        // URL handling will be managed by the active WalletKit instance in EngineSelectionView
+        // TODO: Implement proper deep link routing when wallet is initialized
     }
 }
 

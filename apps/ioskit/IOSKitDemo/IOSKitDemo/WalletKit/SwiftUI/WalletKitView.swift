@@ -7,7 +7,7 @@ import SwiftUI
 
 /// Main WalletKit interface view
 public struct WalletKitView: View {
-    @StateObject private var walletKit: TonWalletKitSwift
+    @ObservedObject private var walletKit: TonWalletKitSwift
     @State private var showingAddWallet = false
     @State private var showingConnectRequest: ConnectRequestEvent?
     @State private var showingTransactionRequest: TransactionRequestEvent?
@@ -15,8 +15,13 @@ public struct WalletKitView: View {
     @State private var showingURLInput = false
     @State private var urlToHandle = ""
     
+    public init(walletKit: TonWalletKitSwift) {
+        self.walletKit = walletKit
+    }
+    
+    // Legacy init for backward compatibility
     public init(config: WalletKitConfig) {
-        self._walletKit = StateObject(wrappedValue: TonWalletKitSwift(config: config))
+        self.walletKit = TonWalletKitSwift(config: config)
     }
     
     public var body: some View {
@@ -61,7 +66,7 @@ public struct WalletKitView: View {
         }
         .onAppear {
             setupEventHandlers()
-            initializeWalletKit()
+            // Don't auto-initialize here - expect pre-initialized instance
         }
     }
     

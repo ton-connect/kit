@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var debugMessage = ""
     
     var body: some View {
-        WalletKitView(config: walletKitConfig)
+        WalletKitView(walletKit: walletKit)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
