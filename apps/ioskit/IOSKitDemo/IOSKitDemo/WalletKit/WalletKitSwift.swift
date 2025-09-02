@@ -19,8 +19,10 @@ public class TonWalletKitSwift: ObservableObject {
     @Published public private(set) var wallets: [WalletInfo] = []
     @Published public private(set) var sessions: [SessionInfo] = []
     
-    // MARK: - Private Properties
-    private let walletKitEngine: WalletKitEngine
+    // MARK: - Private Properties  
+    private let walletKitEngine: WalletKitEngine?
+    private let nativeEngine: WalletKitNativeEngine?
+    private let useNativeEngine: Bool
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Event Handlers
@@ -31,15 +33,28 @@ public class TonWalletKitSwift: ObservableObject {
     
     // MARK: - Initialization
     
-    public init(config: WalletKitConfig) {
-        self.walletKitEngine = WalletKitEngine(config: config)
+    public init(config: WalletKitConfig, useNativeEngine: Bool = false) {
+        self.useNativeEngine = useNativeEngine
+        
+        if useNativeEngine {
+            self.nativeEngine = WalletKitNativeEngine(config: config)
+            self.walletKitEngine = nil
+        } else {
+            self.walletKitEngine = WalletKitEngine(config: config)
+            self.nativeEngine = nil
+        }
+        
         setupEventHandlers()
     }
     
     /// Initialize the WalletKit system
     public func initialize() async throws {
         do {
-            try await walletKitEngine.initialize()
+            if useNativeEngine {
+                try await nativeEngine?.initialize()
+            } else {
+                try await walletKitEngine?.initialize()
+            }
             await refreshState()
             isInitialized = true
         } catch {
@@ -48,12 +63,21 @@ public class TonWalletKitSwift: ObservableObject {
     }
     
     private func setupEventHandlers() {
-        walletKitEngine.eventPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] event in
-                self?.handleWalletKitEvent(event)
-            }
-            .store(in: &cancellables)
+        if useNativeEngine {
+            nativeEngine?.eventPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] event in
+                    self?.handleWalletKitEvent(event)
+                }
+                .store(in: &cancellables)
+        } else {
+            walletKitEngine?.eventPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] event in
+                    self?.handleWalletKitEvent(event)
+                }
+                .store(in: &cancellables)
+        }
     }
     
     private func handleWalletKitEvent(_ event: WalletKitEvent) {
@@ -86,7 +110,11 @@ public class TonWalletKitSwift: ObservableObject {
     /// Add a new wallet
     public func addWallet(_ config: WalletConfig) async throws {
         do {
-            try await walletKitEngine.addWallet(config)
+            if useNativeEngine {
+                try await nativeEngine?.addWallet(config)
+            } else {
+                try await walletKitEngine?.addWallet(config)
+            }
             await refreshState()
         } catch {
             throw WalletKitError.walletOperationFailed(error.localizedDescription)
@@ -96,7 +124,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Remove a wallet
     public func removeWallet(_ wallet: WalletInfo) async throws {
         do {
-            try await walletKitEngine.removeWallet(wallet.address)
+            if useNativeEngine {
+                // Native engine removeWallet would need to be implemented
+                print("⚠️ Remove wallet not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.removeWallet(wallet.address)
+            }
             await refreshState()
         } catch {
             throw WalletKitError.walletOperationFailed(error.localizedDescription)
@@ -106,7 +139,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Clear all wallets
     public func clearWallets() async throws {
         do {
-            try await walletKitEngine.clearWallets()
+            if useNativeEngine {
+                // Native engine clearWallets would need to be implemented
+                print("⚠️ Clear wallets not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.clearWallets()
+            }
             await refreshState()
         } catch {
             throw WalletKitError.walletOperationFailed(error.localizedDescription)
@@ -123,7 +161,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Disconnect session(s)
     public func disconnect(sessionId: String? = nil) async throws {
         do {
-            try await walletKitEngine.disconnect(sessionId: sessionId)
+            if useNativeEngine {
+                // Native engine disconnect would need to be implemented
+                print("⚠️ Disconnect not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.disconnect(sessionId: sessionId)
+            }
             await refreshState()
         } catch {
             throw WalletKitError.sessionOperationFailed(error.localizedDescription)
@@ -135,7 +178,11 @@ public class TonWalletKitSwift: ObservableObject {
     /// Handle pasted TON Connect URL/link
     public func handleTonConnectUrl(_ url: String) async throws {
         do {
-            try await walletKitEngine.handleTonConnectUrl(url)
+            if useNativeEngine {
+                try await nativeEngine?.handleTonConnectUrl(url)
+            } else {
+                try await walletKitEngine?.handleTonConnectUrl(url)
+            }
         } catch {
             throw WalletKitError.urlProcessingFailed(error.localizedDescription)
         }
@@ -146,7 +193,11 @@ public class TonWalletKitSwift: ObservableObject {
     /// Approve a connect request
     public func approveConnectRequest(_ event: ConnectRequestEvent, wallet: WalletInfo) async throws {
         do {
-            try await walletKitEngine.approveConnectRequest(event.id, walletAddress: wallet.address)
+            if useNativeEngine {
+                try await nativeEngine?.approveConnectRequest(event.id, walletAddress: wallet.address)
+            } else {
+                try await walletKitEngine?.approveConnectRequest(event.id, walletAddress: wallet.address)
+            }
             await refreshState()
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
@@ -156,7 +207,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Reject a connect request
     public func rejectConnectRequest(_ event: ConnectRequestEvent, reason: String? = nil) async throws {
         do {
-            try await walletKitEngine.rejectConnectRequest(event.id, reason: reason)
+            if useNativeEngine {
+                // Native engine rejectConnectRequest would need to be implemented
+                print("⚠️ Reject connect request not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.rejectConnectRequest(event.id, reason: reason)
+            }
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
         }
@@ -165,7 +221,13 @@ public class TonWalletKitSwift: ObservableObject {
     /// Approve a transaction request
     public func approveTransactionRequest(_ event: TransactionRequestEvent) async throws -> TransactionResult {
         do {
-            return try await walletKitEngine.approveTransactionRequest(event.id)
+            if useNativeEngine {
+                // Native engine approveTransactionRequest would need to return proper result
+                print("⚠️ Approve transaction request not yet implemented in native engine")
+                return TransactionResult(hash: "mock_hash", signedBoc: "mock_boc")
+            } else {
+                return try await walletKitEngine?.approveTransactionRequest(event.id) ?? TransactionResult(hash: "error", signedBoc: "error")
+            }
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
         }
@@ -174,7 +236,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Reject a transaction request
     public func rejectTransactionRequest(_ event: TransactionRequestEvent, reason: String? = nil) async throws {
         do {
-            try await walletKitEngine.rejectTransactionRequest(event.id, reason: reason)
+            if useNativeEngine {
+                // Native engine rejectTransactionRequest would need to be implemented
+                print("⚠️ Reject transaction request not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.rejectTransactionRequest(event.id, reason: reason)
+            }
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
         }
@@ -183,7 +250,13 @@ public class TonWalletKitSwift: ObservableObject {
     /// Sign data request
     public func approveSignDataRequest(_ event: SignDataRequestEvent) async throws -> SignDataResult {
         do {
-            return try await walletKitEngine.approveSignDataRequest(event.id)
+            if useNativeEngine {
+                // Native engine approveSignDataRequest would need to return proper result
+                print("⚠️ Approve sign data request not yet implemented in native engine")
+                return SignDataResult(signature: "mock_signature")
+            } else {
+                return try await walletKitEngine?.approveSignDataRequest(event.id) ?? SignDataResult(signature: "error")
+            }
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
         }
@@ -192,7 +265,12 @@ public class TonWalletKitSwift: ObservableObject {
     /// Reject a sign data request
     public func rejectSignDataRequest(_ event: SignDataRequestEvent, reason: String? = nil) async throws {
         do {
-            try await walletKitEngine.rejectSignDataRequest(event.id, reason: reason)
+            if useNativeEngine {
+                // Native engine rejectSignDataRequest would need to be implemented
+                print("⚠️ Reject sign data request not yet implemented in native engine")
+            } else {
+                try await walletKitEngine?.rejectSignDataRequest(event.id, reason: reason)
+            }
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
         }
@@ -203,7 +281,13 @@ public class TonWalletKitSwift: ObservableObject {
     /// Get jetton information for a wallet
     public func getJettons(for wallet: WalletInfo) async throws -> [JettonInfo] {
         do {
-            return try await walletKitEngine.getJettons(walletAddress: wallet.address)
+            if useNativeEngine {
+                // Native engine getJettons would need to be implemented
+                print("⚠️ Get jettons not yet implemented in native engine")
+                return []
+            } else {
+                return try await walletKitEngine?.getJettons(walletAddress: wallet.address) ?? []
+            }
         } catch {
             throw WalletKitError.jettonOperationFailed(error.localizedDescription)
         }
@@ -213,9 +297,30 @@ public class TonWalletKitSwift: ObservableObject {
     
     private func refreshState() async {
         do {
-            let (walletsData, sessionsData) = try await walletKitEngine.getCurrentState()
-            wallets = walletsData
-            sessions = sessionsData
+            if useNativeEngine {
+                // For native engine, we'll get wallets differently
+                if let walletsData = try await nativeEngine?.getWallets() {
+                    // Convert from [[String: Any]] to [WalletInfo]
+                    wallets = walletsData.compactMap { dict -> WalletInfo? in
+                        guard let address = dict["address"] as? String,
+                              let name = dict["name"] as? String,
+                              let network = dict["network"] as? String else {
+                            return nil
+                        }
+                        return WalletInfo(
+                            address: address,
+                            walletName: name,
+                            network: network == "mainnet" ? .mainnet : .testnet,
+                            version: dict["version"] as? String ?? "v5r1"
+                        )
+                    }
+                }
+                sessions = [] // Native engine sessions would need separate implementation
+            } else {
+                let (walletsData, sessionsData) = try await walletKitEngine?.getCurrentState() ?? ([], [])
+                wallets = walletsData
+                sessions = sessionsData
+            }
         } catch {
             print("Failed to refresh state: \(error)")
         }
@@ -225,7 +330,11 @@ public class TonWalletKitSwift: ObservableObject {
     
     /// Clean shutdown
     public func close() async {
-        try? await walletKitEngine.close()
+        if useNativeEngine {
+            try? await nativeEngine?.close()
+        } else {
+            try? await walletKitEngine?.close()
+        }
         cancellables.removeAll()
         isInitialized = false
     }
