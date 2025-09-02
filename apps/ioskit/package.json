@@ -1,13 +1,29 @@
 {
   "name": "@kit/ioskit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "build": "echo 'iOS build handled by Xcode'",
-    "clean": "rm -rf build/ DerivedData/"
+    "clean": "rm -rf build/ DerivedData/",
+    "setup": "./setup.sh"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*"
   },
-  "description": "Demo iOS app with TonConnect Kit bridge"
+  "description": "Native iOS app with TonWalletKit Swift wrapper",
+  "main": "src/walletkit/WalletKitSwift.swift",
+  "files": [
+    "src/walletkit/",
+    "src/demo/",
+    "README_NATIVE.md"
+  ],
+  "keywords": [
+    "ton",
+    "blockchain",
+    "wallet",
+    "ios",
+    "swift",
+    "swiftui",
+    "tonconnect"
+  ]
 }

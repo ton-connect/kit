@@ -19,7 +19,7 @@ class WalletKitIntegration {
     
     /// Connect to wallet using WalletKit
     /// Replace this with actual WalletKit integration
-    func connectWallet() async throws -> WalletInfo {
+    func connectWallet() async throws -> LegacyWalletInfo {
         // Simulate async wallet connection
         try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
         
@@ -28,7 +28,7 @@ class WalletKitIntegration {
         // let wallet = try await WalletKit.connect()
         // return WalletInfo(from: wallet)
         
-        return WalletInfo(
+        return LegacyWalletInfo(
             address: "EQD_V9j8p5rQNPx0eK9-2j7J4WROUbm1tFNVzVlzCq-wgmKk",
             chain: -239,
             walletName: "Demo Wallet (WalletKit)",
@@ -38,7 +38,7 @@ class WalletKitIntegration {
     
     /// Send transaction using WalletKit
     /// Replace this with actual WalletKit integration
-    func sendTransaction(_ request: TransactionRequest) async throws -> TransactionResult {
+    func sendTransaction(_ request: TransactionRequest) async throws -> LegacyTransactionResult {
         // Simulate async transaction
         try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
         
@@ -48,7 +48,7 @@ class WalletKitIntegration {
         // let result = try await WalletKit.sendTransaction(transaction)
         // return TransactionResult(from: result)
         
-        return TransactionResult(
+        return LegacyTransactionResult(
             hash: "walletkit_tx_\(UUID().uuidString)",
             timestamp: Date().timeIntervalSince1970,
             transaction: request
@@ -57,7 +57,7 @@ class WalletKitIntegration {
     
     /// Sign data using WalletKit
     /// Replace this with actual WalletKit integration
-    func signData(_ request: SignDataRequest) async throws -> SignDataResult {
+    func signData(_ request: SignDataRequest) async throws -> LegacySignDataResult {
         // Simulate async signing
         try await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
         
@@ -66,7 +66,7 @@ class WalletKitIntegration {
         // let signature = try await WalletKit.signData(request.message)
         // return SignDataResult(signature: signature, ...)
         
-        return SignDataResult(
+        return LegacySignDataResult(
             signature: "walletkit_signature_\(UUID().uuidString)",
             timestamp: Date().timeIntervalSince1970,
             data: request
@@ -89,13 +89,13 @@ class WalletKitIntegration {
     // MARK: - Wallet State Management
     
     private var isWalletConnected = false
-    private var currentWallet: WalletInfo?
+    private var currentWallet: LegacyWalletInfo?
     
-    func getWalletState() -> (connected: Bool, wallet: WalletInfo?) {
+    func getWalletState() -> (connected: Bool, wallet: LegacyWalletInfo?) {
         return (isWalletConnected, currentWallet)
     }
     
-    func updateWalletState(connected: Bool, wallet: WalletInfo?) {
+    func updateWalletState(connected: Bool, wallet: LegacyWalletInfo?) {
         isWalletConnected = connected
         currentWallet = wallet
         
@@ -202,7 +202,7 @@ extension TonConnectBridge {
 }
 
 // MARK: - Helper Extensions
-extension WalletInfo {
+extension LegacyWalletInfo {
     func toDictionary() -> [String: Any] {
         return [
             "address": address,
@@ -213,7 +213,7 @@ extension WalletInfo {
     }
 }
 
-extension TransactionResult {
+extension LegacyTransactionResult {
     func toDictionary() -> [String: Any] {
         return [
             "hash": hash,
@@ -243,7 +243,7 @@ extension TransactionRequest {
     }
 }
 
-extension SignDataResult {
+extension LegacySignDataResult {
     func toDictionary() -> [String: Any] {
         return [
             "signature": signature,

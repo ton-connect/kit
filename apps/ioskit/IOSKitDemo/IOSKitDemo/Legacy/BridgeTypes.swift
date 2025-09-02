@@ -24,7 +24,7 @@ struct BridgeResponse {
 
 // MARK: - TonConnect Types
 
-struct WalletInfo: Codable {
+struct LegacyWalletInfo: Codable {
     let address: String
     let chain: Int
     let walletName: String
@@ -44,7 +44,7 @@ struct TransactionRequest: Codable {
     let memo: String?
 }
 
-struct TransactionResult: Codable {
+struct LegacyTransactionResult: Codable {
     let hash: String
     let timestamp: Double
     let transaction: TransactionRequest
@@ -56,7 +56,7 @@ struct SignDataRequest: Codable {
     let domain: String?
 }
 
-struct SignDataResult: Codable {
+struct LegacySignDataResult: Codable {
     let signature: String
     let timestamp: Double
     let data: SignDataRequest

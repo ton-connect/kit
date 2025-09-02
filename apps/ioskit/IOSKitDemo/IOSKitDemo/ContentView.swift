@@ -2,117 +2,105 @@
 //  ContentView.swift
 //  IOSKitDemo
 //
-//  SwiftUI view that hosts the TonConnect bridge
+//  Native SwiftUI view using TonWalletKit
 //
 
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var bridgeViewModel = TonConnectBridgeViewModel()
+    @EnvironmentObject var walletKit: TonWalletKitSwift
+    @State private var showingDebugAlert = false
+    @State private var debugMessage = ""
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // TonConnect Bridge WebView
-                TonConnectBridgeView()
-                    .environmentObject(bridgeViewModel)
-                
-                // Loading indicator
-                if bridgeViewModel.isLoading {
-                    VStack {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        Text("Loading TonConnect...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .padding(.top, 8)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.3))
-                }
-            }
-            .navigationTitle("TonConnect Demo")
-            .navigationBarTitleDisplayMode(.large)
+        WalletKitView(config: walletKitConfig)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        Button("Reload Bridge") {
-                            bridgeViewModel.reloadBridge()
+                        Button("Refresh") {
+                            refreshWalletKit()
                         }
                         
                         Button("Show Debug Info") {
-                            bridgeViewModel.showDebugInfo()
+                            showDebugInfo()
+                        }
+                        
+                        Button("Test URL") {
+                            testTonConnectURL()
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
             }
-        }
-        .alert("Debug Info", isPresented: $bridgeViewModel.showingDebugAlert) {
-            Button("OK") { }
-        } message: {
-            Text(bridgeViewModel.debugMessage)
-        }
-    }
-}
-
-// MARK: - TonConnect Bridge SwiftUI Wrapper
-struct TonConnectBridgeView: UIViewControllerRepresentable {
-    @EnvironmentObject var viewModel: TonConnectBridgeViewModel
-    
-    func makeUIViewController(context: Context) -> TonConnectBridge {
-        let bridge = TonConnectBridge()
-        viewModel.setBridge(bridge)
-        return bridge
+            .alert("Debug Info", isPresented: $showingDebugAlert) {
+                Button("OK") { }
+            } message: {
+                Text(debugMessage)
+            }
     }
     
-    func updateUIViewController(_ uiViewController: TonConnectBridge, context: Context) {
-        // Update if needed
+    // MARK: - Configuration
+    
+    private var walletKitConfig: WalletKitConfig {
+        WalletKitConfig(
+            apiKey: nil, // Add your API key if needed
+            network: .mainnet,
+            storage: .local,
+            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-wallet/master/public/tonconnect-manifest.json"
+        )
     }
-}
-
-// MARK: - View Model for Bridge State Management
-class TonConnectBridgeViewModel: ObservableObject {
-    @Published var isLoading = true
-    @Published var showingDebugAlert = false
-    @Published var debugMessage = ""
     
-    private var bridge: TonConnectBridge?
+    // MARK: - Actions
     
-    func setBridge(_ bridge: TonConnectBridge) {
-        self.bridge = bridge
-        
-        // Stop loading after a delay (simulating bridge initialization)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.isLoading = false
+    private func refreshWalletKit() {
+        Task {
+            // Trigger a state refresh
+            print("🔄 Refreshing WalletKit state...")
+            // The @Published properties in walletKit will automatically update the UI
         }
     }
     
-    func reloadBridge() {
-        isLoading = true
-        
-        // Simulate bridge reload
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.isLoading = false
-        }
-        
-        print("🔄 Bridge reloaded via SwiftUI")
-    }
-    
-    func showDebugInfo() {
+    private func showDebugInfo() {
         debugMessage = """
-        TonConnect Bridge Status
+        Native WalletKit Status
         
-        Bridge: \(bridge != nil ? "✅ Active" : "❌ Inactive")
-        WebView: \(bridge?.view != nil ? "✅ Loaded" : "❌ Not Loaded")
-        Loading: \(isLoading ? "🔄 In Progress" : "✅ Complete")
+        Initialized: \(walletKit.isInitialized ? "✅ Yes" : "❌ No")
+        Wallets Count: \(walletKit.wallets.count)
+        Sessions Count: \(walletKit.sessions.count)
+        Network: \(walletKitConfig.network == .mainnet ? "Mainnet" : "Testnet")
+        Storage: \(storageTypeString())
         
-        SwiftUI Integration: ✅ Active
-        Bridge Version: 1.0.0
+        SwiftUI Integration: ✅ Native
+        WalletKit Version: 2.0.0 (Native)
         """
         
         showingDebugAlert = true
+    }
+    
+    private func testTonConnectURL() {
+        // Test with a sample TonConnect URL
+        let testURL = "https://app.tonkeeper.com/ton-connect?v=2&id=demo&r=%7B%22manifestUrl%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Fton-connect%2Fdemo-dapp-with-wallet%2Fmaster%2Fpublic%2Ftonconnect-manifest.json%22%2C%22items%22%3A%5B%7B%22name%22%3A%22ton_addr%22%7D%5D%7D"
+        
+        Task {
+            do {
+                try await walletKit.handleTonConnectUrl(testURL)
+                print("✅ Test TonConnect URL handled successfully")
+            } catch {
+                print("❌ Failed to handle test TonConnect URL: \(error)")
+            }
+        }
+    }
+    
+    private func storageTypeString() -> String {
+        switch walletKitConfig.storage {
+        case .local:
+            return "Local Storage"
+        case .memory:
+            return "Memory Storage"
+        case .custom(let id):
+            return "Custom Storage (\(id))"
+        }
     }
 }
 
@@ -120,6 +108,11 @@ class TonConnectBridgeViewModel: ObservableObject {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .environmentObject(TonWalletKitSwift(config: WalletKitConfig(
+                network: .testnet,
+                storage: .memory,
+                manifestUrl: "https://example.com/manifest.json"
+            )))
     }
 }
 
