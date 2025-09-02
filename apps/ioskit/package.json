@@ -3,10 +3,11 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "build": "echo 'iOS build handled by Xcode'",
-
-    "clean": "rm -rf build/ DerivedData/",
-    "setup": "./setup.sh"
+    "build": "vite build",
+    "build:ios": "pnpm build && echo '✅ iOS bridge built to dist-js/index.html'",
+    "clean": "rm -rf build/ DerivedData/ dist-js/",
+    "setup": "./setup.sh",
+    "dev": "vite"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*"
@@ -25,5 +26,10 @@
     "swift",
     "swiftui",
     "tonconnect"
-  ]
+  ],
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.4",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
 }

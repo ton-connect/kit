@@ -1,37 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WalletKit iOS Bridge</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: transparent;
-            display: none; /* Hidden - this is just a bridge */
-        }
-        #bridge-status {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            z-index: 9999;
-        }
-    </style>
-</head>
-<body>
-    <div id="bridge-status">WalletKit Bridge Loading...</div>
+export function main() {
+    console.log('Hello, world!');
+}
+main();
 
-    
-    
-    <script>
-        console.log('🚀 WalletKit iOS Bridge starting...');
+console.log('🚀 WalletKit iOS Bridge starting...');
         
         // Bridge configuration will be injected by Swift
         let bridgeConfig = {
@@ -292,7 +264,3 @@
         } else {
             initializeWalletKit();
         }
-        
-    </script>
-</body>
-</html>
