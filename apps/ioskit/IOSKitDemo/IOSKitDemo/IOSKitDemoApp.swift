@@ -2,7 +2,7 @@
 //  IOSKitDemoApp.swift
 //  IOSKitDemo
 //
-//  SwiftUI App with TonConnect integration
+//  Native SwiftUI App with TonWalletKit integration
 //
 
 import SwiftUI
@@ -10,16 +10,20 @@ import SwiftUI
 @main
 struct IOSKitDemoApp: App {
     
+    // WalletKit instance shared across the app
+    @StateObject private var walletKit = TonWalletKitSwift(config: walletKitConfig)
+    
     init() {
-        print("🚀 IOSKit Demo starting up...")
+        print("🚀 IOSKit Demo starting up with Native WalletKit...")
         setupAppConfiguration()
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(walletKit)
                 .onAppear {
-                    print("✅ TonConnect Demo interface loaded")
+                    print("✅ Native WalletKit Demo interface loaded")
                 }
                 .onOpenURL { url in
                     handleTonConnectURL(url)
@@ -27,26 +31,26 @@ struct IOSKitDemoApp: App {
         }
     }
     
+    // MARK: - Configuration
+    
+    private static var walletKitConfig: WalletKitConfig {
+        WalletKitConfig(
+            apiKey: nil, // Add your API key if needed
+            network: .mainnet,
+            storage: .local,
+            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-wallet/master/public/tonconnect-manifest.json"
+        )
+    }
+    
     private func setupAppConfiguration() {
-        // Configure app for TonConnect
-        setupNetworkConfiguration()
         setupAppearance()
         
         #if DEBUG
         print("🔧 Debug mode enabled")
         print("📱 Device: \(UIDevice.current.model)")
         print("📱 iOS Version: \(UIDevice.current.systemVersion)")
+        print("🔗 WalletKit Config: \(Self.walletKitConfig)")
         #endif
-    }
-    
-    private func setupNetworkConfiguration() {
-        // Configure URL cache for better WebView performance
-        let memoryCapacity = 50 * 1024 * 1024 // 50 MB
-        let diskCapacity = 100 * 1024 * 1024   // 100 MB
-        let cache = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "tonconnect_cache")
-        URLCache.shared = cache
-        
-        print("✅ Network cache configured")
     }
     
     private func setupAppearance() {
@@ -60,36 +64,21 @@ struct IOSKitDemoApp: App {
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         
-        // Set global tint color
-        UIApplication.shared.windows.first?.tintColor = UIColor.systemBlue
+        print("✅ App appearance configured")
     }
     
     private func handleTonConnectURL(_ url: URL) {
-        print("🔗 Handling TonConnect URL: \(url)")
+        print("🔗 Handling TonConnect URL with Native WalletKit: \(url)")
         
-        // Handle TonConnect deep links
-        if url.scheme == "tonconnect" || url.host == "tonconnect" {
-            // Post notification for TonConnect bridge to handle
-            let userInfo = ["url": url]
-            NotificationCenter.default.post(
-                name: .tonConnectURLReceived,
-                object: nil,
-                userInfo: userInfo
-            )
+        // Handle TonConnect deep links with native WalletKit
+        Task {
+            do {
+                try await walletKit.handleTonConnectUrl(url.absoluteString)
+                print("✅ TonConnect URL handled successfully")
+            } catch {
+                print("❌ Failed to handle TonConnect URL: \(error)")
+            }
         }
-    }
-}
-
-// MARK: - App State Management
-extension IOSKitDemoApp {
-    private func handleMemoryWarning() {
-        print("⚠️ Memory warning received")
-        
-        // Clear caches if needed
-        URLCache.shared.removeAllCachedResponses()
-        
-        // Post notification for bridge to handle memory pressure
-        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
     }
 }
 
