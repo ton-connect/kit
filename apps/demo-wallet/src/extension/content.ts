@@ -26,3 +26,8 @@ function injectTonConnectBridge() {
 }
 
 injectTonConnectBridge();
+
+window.postMessage({
+    type: 'START_INJECTED_BRIDGE',
+    extensionId: chrome.runtime.id,
+})
