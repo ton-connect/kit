@@ -55,24 +55,24 @@ export class BridgeManager {
      * Initialize bridge connection
      */
     async start(): Promise<void> {
-        if (this.bridgeProvider) {
-            log.warn('Bridge already initialized');
-            return;
-        }
-
-        try {
-            await this.loadLastEventId();
-            await this.connectToBridge();
-        } catch (error) {
-            log.error('Failed to start bridge', { error });
-            throw error;
-        }
-
-        const requestProcessing = () => {
-            this.processBridgeEvents();
-            this.requestProcessingTimeoutId = setTimeout(requestProcessing, 1000) as unknown as number;
-        };
-        requestProcessing();
+        // if (this.bridgeProvider) {
+        //     log.warn('Bridge already initialized');
+        //     return;
+        // }
+        //
+        // try {
+        //     await this.loadLastEventId();
+        //     await this.connectToBridge();
+        // } catch (error) {
+        //     log.error('Failed to start bridge', { error });
+        //     throw error;
+        // }
+        //
+        // const requestProcessing = () => {
+        //     this.processBridgeEvents();
+        //     this.requestProcessingTimeoutId = setTimeout(requestProcessing, 1000) as unknown as number;
+        // };
+        // requestProcessing();
     }
 
     /**

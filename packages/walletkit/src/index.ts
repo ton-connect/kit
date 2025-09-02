@@ -23,8 +23,8 @@ export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
 
 // Re-export logger for customization
-// export { Logger, LogLevel, createLogger } from './core/Logger';
-// export type { LoggerConfig, LogContext } from './core/Logger';
+export { Logger, LogLevel, createLogger, createReactNativeLogger } from './core/Logger';
+export type { LoggerConfig, LogContext, PerformanceData } from './core/Logger';
 
 // Re-export handlers for customization
 export { ConnectHandler } from './handlers/ConnectHandler';
@@ -57,3 +57,17 @@ export type {
 
 // Re-export validation utilities
 export { validateWalletName, sanitizeWalletName, isValidWalletName } from './utils/walletNameValidation';
+
+// Re-export React Native debugging utilities
+export {
+    isReactNative,
+    isDevelopment,
+    logReactNativeError,
+    ReactNativePerformanceMonitor,
+    ReactNativeDebugInfo,
+    globalPerformanceMonitor,
+    globalDebugInfo,
+    reactNativeLog,
+    initializeReactNativeDebugging,
+    exportDebugReport,
+} from './utils/reactNativeDebug';

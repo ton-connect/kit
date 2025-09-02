@@ -32,26 +32,32 @@ src/
 ## 🚀 Quick Start
 
 ```typescript
-import { TonWalletKit, WalletInterface } from '@ton/walletkit';
+import {
+  TonWalletKit,
+  WalletInterface,
+  createReactNativeLogger
+} from '@ton/walletkit';
 
-// Define your wallet implementation
-const wallet: WalletInterface = {
-  publicKey: 'your-public-key',
-  version: 'v4r2',
-  sign: async (bytes) => yourSigningFunction(bytes),
-  getAddress: async () => yourAddressFunction(),
-  getBalance: async () => yourBalanceFunction(),
-};
+const log = createReactNativeLogger('MyApp');
+log.startTimer('wallet kit init');
+log.info('started MyApp', {
+  version: '1.0.0',
+  environment: 'development'
+});
 
 // Initialize the kit
 const kit = new TonWalletKit({
   bridgeUrl: 'https://bridge.tonapi.io/bridge',
   wallets: [wallet],
 });
-
+log.endTimer('wallet kit init', {
+  walletType: 'v5r1',
+  success: true
+});
 // Handle connection requests
 kit.onConnectRequest(async (event) => {
   const approved = await showUserConfirmation(event);
+  log.warn(`approved: ${approved}`);
   if (approved) {
     await kit.approveConnectRequest(event);
   } else {
