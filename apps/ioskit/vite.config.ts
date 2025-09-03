@@ -2,8 +2,12 @@ import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile'
 // https://vite.dev/config/
 export default defineConfig({
-    plugins: [viteSingleFile()],
+    plugins: [],
     build: {
+        lib: {
+            entry: 'src-js/index.ts',
+            name: 'index',
+        },
         assetsDir: '',
         outDir: 'IOSKitDemo/IOSKitDemo/dist-js',
         assetsInlineLimit: () => true,

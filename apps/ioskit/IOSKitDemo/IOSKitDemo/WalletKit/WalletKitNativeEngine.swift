@@ -75,8 +75,12 @@ class WalletKitNativeEngine: NSObject {
         
         context.setObject(consoleLog, forKeyedSubscript: "nativeLog" as NSString)
         
-        // Add basic console object
+        // Add basic console object and window object
         context.evaluateScript("""
+            // Create global window object for browser compatibility
+            const window = globalThis || this || {};
+            
+            // Add basic console object
             const console = {
                 log: function(...args) {
                     nativeLog(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
@@ -91,6 +95,21 @@ class WalletKitNativeEngine: NSObject {
                     nativeLog('[INFO] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')); 
                 }
             };
+            
+            // Make console available globally
+            window.console = console;
+            
+            // Add other common browser globals that might be needed
+            window.setTimeout = function(callback, delay) {
+                // Note: This is a simplified implementation
+                // In a real scenario, you might need a more robust timer implementation
+                callback();
+                return 1;
+            };
+            
+            window.clearTimeout = function(id) {
+                // Simplified implementation
+            };
         """)
         
         print("✅ JavaScript context initialized")
@@ -101,17 +120,74 @@ class WalletKitNativeEngine: NSObject {
             throw WalletKitError.initializationFailed("JavaScript context not initialized")
         }
         
-        // For now, we'll create a minimal mock of the WalletKit library
-        // In a real implementation, you would load the actual compiled WalletKit JavaScript code
-        
-        let walletKitMockScript = createWalletKitMock()
-        
-        let result = context.evaluateScript(walletKitMockScript)
-        if result?.isUndefined == true {
-            throw WalletKitError.initializationFailed("Failed to load WalletKit library")
+        do {
+            // Load the actual compiled WalletKit JavaScript from ioskit.mjs
+            let jsCode = try loadJavaScriptFromMJS()
+            
+            print("📋 Loading WalletKit JavaScript from ioskit.mjs (\(jsCode.count) characters)...")
+            
+            let result = context.evaluateScript(jsCode)
+            
+            // Check for evaluation success
+            if let exception = context.exception {
+                throw WalletKitError.initializationFailed("JavaScript execution failed: \(exception)")
+            }
+            
+            print("✅ WalletKit JavaScript library loaded from ioskit.mjs")
+            
+        } catch {
+            // If loading the actual library fails, fall back to mock for debugging
+            print("⚠️ Failed to load actual WalletKit library, using mock: \(error)")
+            
+            let walletKitMockScript = createWalletKitMock()
+            let result = context.evaluateScript(walletKitMockScript)
+            
+            if result?.isUndefined == true {
+                throw WalletKitError.initializationFailed("Failed to load WalletKit library (including mock)")
+            }
+            
+            print("✅ WalletKit mock library loaded")
+        }
+    }
+    
+    private func loadJavaScriptFromMJS() throws -> String {
+        // Get the path to the compiled MJS file
+        guard let bundlePath = Bundle.main.path(forResource: "dist-js/ioskit", ofType: "mjs") else {
+            // Try alternative path
+            let fallbackPath = Bundle.main.bundlePath + "/dist-js/ioskit.mjs"
+            guard FileManager.default.fileExists(atPath: fallbackPath) else {
+                throw WalletKitError.initializationFailed("Could not find compiled JavaScript bundle at dist-js/ioskit.mjs")
+            }
+            
+            return try loadAndTransformMJS(from: fallbackPath)
         }
         
-        print("✅ WalletKit library loaded")
+        return try loadAndTransformMJS(from: bundlePath)
+    }
+    
+    private func loadAndTransformMJS(from path: String) throws -> String {
+        let mjsContent = try String(contentsOfFile: path)
+        
+        // Transform the ES module to work in JavaScriptCore
+        // Remove the export statement and make the main function available globally
+        let transformedContent = mjsContent.replacingOccurrences(
+            of: "export {\n  A3 as main\n};",
+            with: """
+            // Make main function available globally for JavaScriptCore
+            var main = A3;
+            
+            // Auto-initialize on load
+            console.log('🚀 WalletKit iOS Bridge starting from MJS...');
+            try {
+                main();
+                console.log('✅ WalletKit main() called successfully from MJS');
+            } catch (error) {
+                console.error('❌ Error calling main() from MJS:', error);
+            }
+            """
+        )
+        
+        return transformedContent
     }
     
     private func initializeWalletKit() throws {
@@ -119,64 +195,70 @@ class WalletKitNativeEngine: NSObject {
             throw WalletKitError.initializationFailed("JavaScript context not initialized")
         }
         
-        // Create WalletKit instance with configuration
-        let initScript = """
-            (async () => {
-                try {
-                    const config = {
-                        network: '\(config.network.rawValue)',
-                        storage: { type: 'memory' },
-                        manifestUrl: '\(config.manifestUrl)'
-                    };
-                    
-                    console.log('🔄 Initializing WalletKit with config:', JSON.stringify(config));
-                    
-                    window.walletKitInstance = new TonWalletKit(config);
-                    await window.walletKitInstance.initialize();
-                    
-                    console.log('✅ WalletKit instance initialized');
-                    
-                    // Set up event listeners
-                    window.walletKitInstance.onConnectRequest((event) => {
-                        nativeEventCallback('connectRequest', JSON.stringify(event));
-                    });
-                    
-                    window.walletKitInstance.onTransactionRequest((event) => {
-                        nativeEventCallback('transactionRequest', JSON.stringify(event));
-                    });
-                    
-                    window.walletKitInstance.onSignDataRequest((event) => {
-                        nativeEventCallback('signDataRequest', JSON.stringify(event));
-                    });
-                    
-                    window.walletKitInstance.onDisconnect((event) => {
-                        nativeEventCallback('disconnect', JSON.stringify(event));
-                    });
-                    
-                    return true;
-                } catch (error) {
-                    console.error('WalletKit initialization failed:', error.message);
-                    throw error;
-                }
-            })()
+        // Set up Swift bridge for JavaScript
+        let sendEventCallback: @convention(block) (String, JSValue) -> Void = { eventType, eventData in
+            let eventString = eventData.toString() ?? "{}"
+            print("📨 Swift Bridge: Received event '\(eventType)': \(eventString)")
+            self.handleJavaScriptEvent(eventType: eventType, data: eventString)
+        }
+        
+        let callNativeCallback: @convention(block) (String, JSValue) -> JSValue = { method, args in
+            print("📞 Swift Bridge: Native call '\(method)' with args: \(args)")
+            
+            // Handle different native method calls
+            switch method {
+            case "addWallet":
+                // Return a promise-like object for now
+                return JSValue(object: ["success": true], in: context)!
+            case "getWallets":
+                // Return empty array for now
+                return JSValue(object: [], in: context)!
+            case "getSessions":
+                // Return empty array for now
+                return JSValue(object: [], in: context)!
+            default:
+                return JSValue(object: ["error": "Method not implemented"], in: context)!
+            }
+        }
+        
+        // Set up the Swift bridge object that JavaScript expects
+        let bridgeSetupScript = """
+            // Set up the Swift bridge that the JavaScript expects
+            window.walletKitSwiftBridge = {
+                config: {
+                    network: '\(config.network.rawValue)',
+                    storage: 'memory',
+                    manifestUrl: '\(config.manifestUrl)',
+                    isMobile: true,
+                    isNative: true
+                },
+                sendEvent: sendEventCallback,
+                callNative: callNativeCallback
+            };
+            
+            console.log('✅ Swift bridge configured');
         """
         
-        // Set up native event callback
-        let eventCallback: @convention(block) (String, String) -> Void = { eventType, eventData in
-            self.handleJavaScriptEvent(eventType: eventType, data: eventData)
+        context.setObject(sendEventCallback, forKeyedSubscript: "sendEventCallback" as NSString)
+        context.setObject(callNativeCallback, forKeyedSubscript: "callNativeCallback" as NSString)
+        
+        let result = context.evaluateScript(bridgeSetupScript)
+        
+        if let exception = context.exception {
+            throw WalletKitError.initializationFailed("Bridge setup failed: \(exception)")
         }
-        context.setObject(eventCallback, forKeyedSubscript: "nativeEventCallback" as NSString)
         
-        let result = context.evaluateScript(initScript)
-        
-        // Wait for the promise to resolve (simplified)
-        DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
-            if let instance = context.objectForKeyedSubscript("walletKitInstance") {
-                self.walletKitInstance = instance
-                print("✅ WalletKit instance ready")
+        // The JavaScript should auto-initialize from the MJS file, so we just wait a bit
+        DispatchQueue.global().asyncAfter(deadline: .now() + 2.0) {
+            // Check if walletKit global was created
+            if let walletKitGlobal = context.objectForKeyedSubscript("walletKit") {
+                self.walletKitInstance = walletKitGlobal
+                print("✅ WalletKit bridge instance ready")
                 
                 // Send initialization complete event
                 self.eventSubject.send(.stateChanged)
+            } else {
+                print("⚠️ WalletKit global not found after initialization")
             }
         }
     }
@@ -396,7 +478,7 @@ class WalletKitNativeEngine: NSObject {
         ])
         
         let configString = String(data: configJSON, encoding: .utf8)!
-        let script = "window.walletKitInstance.addWallet(\(configString))"
+        let script = "window.walletKit.addWallet(\(configString))"
         
         let _ = context.evaluateScript(script)
     }
@@ -406,7 +488,7 @@ class WalletKitNativeEngine: NSObject {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
-        let result = context.evaluateScript("JSON.stringify(window.walletKitInstance.getWallets())")
+        let result = context.evaluateScript("JSON.stringify(window.walletKit.getWallets())")
         
         if let jsonString = result?.toString(),
            let jsonData = jsonString.data(using: .utf8),
@@ -422,7 +504,7 @@ class WalletKitNativeEngine: NSObject {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
-        let script = "window.walletKitInstance.handleTonConnectUrl('\(url)')"
+        let script = "window.walletKit.handleTonConnectUrl('\(url)')"
         let _ = context.evaluateScript(script)
     }
     
@@ -431,7 +513,7 @@ class WalletKitNativeEngine: NSObject {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
-        let script = "window.walletKitInstance.approveConnectRequest('\(requestId)', '\(walletAddress)')"
+        let script = "window.walletKit.approveConnectRequest('\(requestId)', '\(walletAddress)')"
         let _ = context.evaluateScript(script)
     }
     
@@ -497,10 +579,9 @@ class WalletKitNativeEngine: NSObject {
     func debugGetWalletKitState() -> String? {
         return debugEvaluateScript("""
             JSON.stringify({
-                wallets: window.walletKitInstance?.wallets || [],
-                sessions: window.walletKitInstance?.sessions || [],
-                config: window.walletKitInstance?.config || {},
-                initialized: !!window.walletKitInstance
+                walletKitAvailable: !!window.walletKit,
+                bridgeAvailable: !!window.walletKitSwiftBridge,
+                initialized: true
             }, null, 2)
         """)
     }
