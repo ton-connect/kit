@@ -1,312 +1,247 @@
-import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
+import { Buffer } from 'buffer';
 
-declare global {
-    interface Window {
-        walletKitSwiftBridge?: {
-            config?: any;
-            sendEvent: (eventType: string, data: any) => void;
-            callNative: (method: string, args: any[]) => Promise<any>;
-        };
-
-        walletKit?: any;
-    }
+if (typeof window !== 'undefined' && !window.Buffer) {
+    window.Buffer = Buffer;
+}
+if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
+    globalThis.Buffer = Buffer;
+}
+if (typeof global !== 'undefined' && !global.Buffer) {
+    global.Buffer = Buffer;
 }
 
-export function main() {
-    console.log('Hello, world!');
-
-    const walletKit = new TonWalletKit({
-        apiUrl: 'https://tonapi.io',
-        config: {
-            bridge: {
-                enableJsBridge: true,
-                bridgeUrl: 'https://bridge.tonapi.io/bridge',
-                bridgeName: 'tonkeeper',
-            },
-            eventProcessor: {
-                disableEvents: true,
-            },
-        },
-    });
-
-
-    console.log('🚀 WalletKit iOS Bridge starting...');
-
-    // Bridge configuration will be injected by Swift
-    let bridgeConfig = {
-        network: 'testnet',
-        storage: 'memory',
-        manifestUrl: '',
-        isMobile: true,
-        isNative: true
-    };
-
-    // Update config if provided by Swift bridge
-    if (window.walletKitSwiftBridge?.config) {
-        bridgeConfig = { ...bridgeConfig, ...window.walletKitSwiftBridge.config };
-        console.log('📋 Using bridge config:', bridgeConfig);
+// Polyfills for iOS JavaScriptCore
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (typeof window !== 'undefined') {
+    // EventTarget polyfill
+    if (typeof EventTarget === 'undefined') {
+        const EventTargetPolyfill = class EventTarget {
+            private _listeners: Map<string, ((event: any) => void)[]> = new Map();
+            
+            addEventListener(type: string, listener: any): void {
+                if (!this._listeners.has(type)) {
+                    this._listeners.set(type, []);
+                }
+                const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                if (actualListener) {
+                    this._listeners.get(type)!.push(actualListener);
+                }
+            }
+            
+            removeEventListener(type: string, listener: any): void {
+                const typeListeners = this._listeners.get(type);
+                if (typeListeners) {
+                    const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                    if (actualListener) {
+                        const index = typeListeners.indexOf(actualListener);
+                        if (index > -1) {
+                            typeListeners.splice(index, 1);
+                        }
+                    }
+                }
+            }
+            
+            dispatchEvent(event: any): boolean {
+                const typeListeners = this._listeners.get(event.type);
+                if (typeListeners) {
+                    typeListeners.forEach(listener => {
+                        try {
+                            listener(event);
+                        } catch (error) {
+                            console.error('Error in event listener:', error);
+                        }
+                    });
+                }
+                return true;
+            }
+        };
+        (window as any).EventTarget = EventTargetPolyfill;
+        (globalThis as any).EventTarget = EventTargetPolyfill;
     }
 
-    let initialized = false;
-
-    // In this minimal adapter, we don't initialize the full WalletKit here
-    // Instead, we rely on the Swift side to handle the actual wallet operations
-    // and this WebView serves as a bridge for UI interactions and event communication
-
-    async function initializeWalletKit() {
-        try {
-            console.log('🔄 Initializing WalletKit Bridge with config:', bridgeConfig);
-
-            // Simulate initialization delay
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            initialized = true;
-            console.log('✅ WalletKit Bridge initialized successfully');
-
-            // Update status
-            const status = document.getElementById('bridge-status');
-            if (status) {
-                status.textContent = 'WalletKit Bridge Ready';
-                status.style.background = 'rgba(0, 128, 0, 0.8)';
+    // Event polyfill
+    if (typeof Event === 'undefined') {
+        const EventPolyfill = class Event {
+            type: string;
+            bubbles: boolean;
+            cancelable: boolean;
+            
+            constructor(type: string, eventInit?: { bubbles?: boolean; cancelable?: boolean }) {
+                this.type = type;
+                this.bubbles = eventInit?.bubbles || false;
+                this.cancelable = eventInit?.cancelable || false;
             }
+        };
+        (window as any).Event = EventPolyfill;
+        (globalThis as any).Event = EventPolyfill;
+    }
 
-            // Notify Swift that initialization is complete
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('initialized', { success: true });
+    // CustomEvent polyfill
+    if (typeof CustomEvent === 'undefined') {
+        const CustomEventPolyfill = class CustomEvent extends (window as any).Event {
+            detail: any;
+            
+            constructor(type: string, eventInit?: { bubbles?: boolean; cancelable?: boolean; detail?: any }) {
+                super(type, eventInit);
+                this.detail = eventInit?.detail;
             }
+        };
+        (window as any).CustomEvent = CustomEventPolyfill;
+        (globalThis as any).CustomEvent = CustomEventPolyfill;
+    }
 
-        } catch (error) {
-            console.error('❌ WalletKit Bridge initialization failed:', error);
-
-            // Update status
-            const status = document.getElementById('bridge-status');
-            if (status) {
-                status.textContent = 'WalletKit Bridge Failed';
-                status.style.background = 'rgba(128, 0, 0, 0.8)';
+    // MessageEvent polyfill
+    if (typeof MessageEvent === 'undefined') {
+        const MessageEventPolyfill = class MessageEvent extends (window as any).Event {
+            data: any;
+            source: any;
+            origin: string;
+            
+            constructor(type: string, eventInit?: { data?: any; source?: any; origin?: string; bubbles?: boolean; cancelable?: boolean }) {
+                super(type, eventInit);
+                this.data = eventInit?.data;
+                this.source = eventInit?.source;
+                this.origin = eventInit?.origin || '';
             }
+        };
+        (window as any).MessageEvent = MessageEventPolyfill;
+        (globalThis as any).MessageEvent = MessageEventPolyfill;
+    }
 
-            // Notify Swift of failure
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('initialized', {
-                    success: false,
-                    error: error.message
+    // MutationObserver polyfill (simplified - iOS doesn't need DOM mutation watching)
+    if (typeof MutationObserver === 'undefined') {
+        const MutationObserverPolyfill = class MutationObserver {
+            constructor(callback: (mutations: any[], observer: MutationObserver) => void) {
+                // No-op for iOS
+            }
+            
+            observe(target: any, options?: any): void {
+                // No-op for iOS
+            }
+            
+            disconnect(): void {
+                // No-op for iOS
+            }
+            
+            takeRecords(): any[] {
+                return [];
+            }
+        };
+        (window as any).MutationObserver = MutationObserverPolyfill;
+        (globalThis as any).MutationObserver = MutationObserverPolyfill;
+    }
+
+    // Node constants polyfill
+    if (typeof Node === 'undefined') {
+        (window as any).Node = {
+            ELEMENT_NODE: 1,
+            ATTRIBUTE_NODE: 2,
+            TEXT_NODE: 3,
+            CDATA_SECTION_NODE: 4,
+            ENTITY_REFERENCE_NODE: 5,
+            ENTITY_NODE: 6,
+            PROCESSING_INSTRUCTION_NODE: 7,
+            COMMENT_NODE: 8,
+            DOCUMENT_NODE: 9,
+            DOCUMENT_TYPE_NODE: 10,
+            DOCUMENT_FRAGMENT_NODE: 11,
+            NOTATION_NODE: 12
+        };
+    }
+
+    // EventTarget methods polyfill
+    if (!(window as any).addEventListener) {
+        const listeners = new Map<string, ((event: any) => void)[]>();
+        
+        (window as any).addEventListener = function(type: string, listener: any) {
+            if (!listeners.has(type)) {
+                listeners.set(type, []);
+            }
+            const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+            if (actualListener) {
+                listeners.get(type)!.push(actualListener);
+            }
+        };
+        
+        (window as any).removeEventListener = function(type: string, listener: any) {
+            const typeListeners = listeners.get(type);
+            if (typeListeners) {
+                const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                if (actualListener) {
+                    const index = typeListeners.indexOf(actualListener);
+                    if (index > -1) {
+                        typeListeners.splice(index, 1);
+                    }
+                }
+            }
+        };
+        
+        (window as any).dispatchEvent = function(event: any) {
+            const typeListeners = listeners.get(event.type);
+            if (typeListeners) {
+                typeListeners.forEach(listener => {
+                    try {
+                        listener(event);
+                    } catch (error) {
+                        console.error('Error in event listener:', error);
+                    }
                 });
             }
+            return true;
+        };
+    }
+
+    // Additional polyfills commonly needed in iOS
+    if (typeof AbortController === 'undefined') {
+        (window as any).AbortController = class AbortController {
+            signal = {
+                aborted: false,
+                addEventListener: () => {},
+                removeEventListener: () => {}
+            };
+            
+            abort() {
+                this.signal.aborted = true;
+            }
+        };
+    }
+
+    if (typeof crypto === 'undefined' || !(crypto as any).randomUUID) {
+        if (typeof crypto === 'undefined') {
+            (window as any).crypto = {};
+        }
+        
+        if (!(crypto as any).randomUUID) {
+            (crypto as any).randomUUID = function(): string {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            };
         }
     }
 
-    // Bridge API that Swift will call
-    // In this minimal approach, these methods just forward calls to Swift
-    // Swift handles the actual WalletKit integration
-    window.walletKit = {
-        // Wallet management
-        async addWallet(config) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('➕ Bridge: Adding wallet:', config);
-
-            // Forward to Swift via bridge
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('addWallet', [config]);
+    // Basic DOM polyfills
+    if (typeof document === 'undefined') {
+        (window as any).document = {
+            readyState: 'complete',
+            getElementById: () => null,
+            addEventListener: (window as any).addEventListener,
+            removeEventListener: (window as any).removeEventListener,
+            dispatchEvent: (window as any).dispatchEvent,
+            querySelectorAll: () => [],
+            body: {
+                addEventListener: (window as any).addEventListener,
+                removeEventListener: (window as any).removeEventListener
             }
-            throw new Error('Swift bridge not available');
-        },
-
-        async removeWallet(address) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('➖ Bridge: Removing wallet:', address);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('removeWallet', [address]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async clearWallets() {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('🗑️ Bridge: Clearing all wallets');
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('clearWallets', []);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async getWallets() {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('📋 Bridge: Getting wallets');
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('getWallets', []);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async getSessions() {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('📋 Bridge: Getting sessions');
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('getSessions', []);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        // Connection handling
-        async handleTonConnectUrl(url) {
-            if (!walletKit.isReady()) throw new Error('WalletKit Bridge not initialized');
-            console.log('🔗 Bridge: Handling TON Connect URL:', url);
-
-            try {
-                const result = await walletKit.handleTonConnectUrl(url);
-                console.log('🔗 Bridge: Handled TON Connect URL:', result);
-
-                return result;
-            } catch (error) {
-                console.error('❌ Error processing TonConnect URL:', error);
-                return {
-                    success: false,
-                    url: url,
-                    error: error.message
-                };
-            }
-
-            // Actually process the TonConnect URL here instead of calling back to Swift
-            // try {
-            //     // Parse and validate the TonConnect URL
-            //     console.log('📋 Processing TonConnect URL:', url);
-
-            //     // Simulate processing the URL and generating a connect request
-            //     const connectRequest = {
-            //         id: Math.random().toString(36).substring(7),
-            //         dAppName: 'Demo DApp from URL',
-            //         dAppUrl: 'https://demo.tonconnect.org',
-            //         dAppIconUrl: null,
-            //         manifestUrl: url.includes('manifest') ? url : 'https://demo.tonconnect.org/manifest.json',
-            //         requestedItems: ['ton_addr'],
-            //         permissions: [{
-            //             name: 'ton_addr',
-            //             title: 'Wallet Address',
-            //             description: 'Access to your wallet address'
-            //         }]
-            //     };
-
-            //     console.log('✅ Generated connect request:', connectRequest);
-
-            //     // Send connect request event to Swift
-            //     if (window.walletKitSwiftBridge) {
-            //         window.walletKitSwiftBridge.sendEvent('connectRequest', connectRequest);
-            //     }
-
-            //     // Return success result to Swift
-            //     return {
-            //         success: true,
-            //         url: url,
-            //         message: 'TonConnect URL processed successfully',
-            //         connectRequest: connectRequest
-            //     };
-            // } catch (error) {
-            //     console.error('❌ Error processing TonConnect URL:', error);
-            //     return {
-            //         success: false,
-            //         url: url,
-            //         error: error.message
-            //     };
-            // }
-        },
-
-        async approveConnectRequest(requestId, walletAddress) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving connect request:', requestId, walletAddress);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('approveConnectRequest', [requestId, walletAddress]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async rejectConnectRequest(requestId, reason) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting connect request:', requestId, reason);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('rejectConnectRequest', [requestId, reason]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        // Transaction handling
-        async approveTransactionRequest(requestId) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving transaction request:', requestId);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('approveTransactionRequest', [requestId]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async rejectTransactionRequest(requestId, reason) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting transaction request:', requestId, reason);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('rejectTransactionRequest', [requestId, reason]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        // Sign data handling
-        async approveSignDataRequest(requestId) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving sign data request:', requestId);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('approveSignDataRequest', [requestId]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        async rejectSignDataRequest(requestId, reason) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting sign data request:', requestId, reason);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('rejectSignDataRequest', [requestId, reason]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        // Session management
-        async disconnect(sessionId) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('🔌 Bridge: Disconnecting session:', sessionId);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('disconnect', [sessionId]);
-            }
-            throw new Error('Swift bridge not available');
-        },
-
-        // Jettons
-        async getJettons(walletAddress) {
-            if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('🪙 Bridge: Getting jettons for:', walletAddress);
-
-            if (window.walletKitSwiftBridge) {
-                return await window.walletKitSwiftBridge.callNative('getJettons', [walletAddress]);
-            }
-            throw new Error('Swift bridge not available');
-        }
-    };
-
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeWalletKit);
-    } else {
-        initializeWalletKit();
+        };
+        
+        (window as any).Element = function() {};
+        (window as any).Element.prototype.querySelectorAll = () => [];
+        (window as any).Element.prototype.addEventListener = () => {};
+        (window as any).Element.prototype.removeEventListener = () => {};
     }
 }
 
-console.log('🚀 WalletKit iOS Bridge starting...');
-main();
-console.log('🚀 WalletKit iOS Bridge started');
+import('./main');

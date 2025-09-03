@@ -10,7 +10,8 @@
     "dev": "vite"
   },
   "dependencies": {
-    "@ton/walletkit": "workspace:*"
+    "@ton/walletkit": "workspace:*",
+    "buffer": "^6.0.3"
   },
   "description": "Native iOS app with TonWalletKit Swift wrapper",
   "main": "src/walletkit/WalletKitSwift.swift",

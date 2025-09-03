@@ -93,6 +93,9 @@ class WalletKitNativeEngine: NSObject {
                 },
                 info: function(...args) { 
                     nativeLog('[INFO] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')); 
+                },
+                debug: function(...args) { 
+                    nativeLog('[DEBUG] ' + args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ')); 
                 }
             };
             
@@ -136,33 +139,56 @@ class WalletKitNativeEngine: NSObject {
             print("✅ WalletKit JavaScript library loaded from ioskit.mjs")
             
         } catch {
-            // If loading the actual library fails, fall back to mock for debugging
-            print("⚠️ Failed to load actual WalletKit library, using mock: \(error)")
-            
-            let walletKitMockScript = createWalletKitMock()
-            let result = context.evaluateScript(walletKitMockScript)
-            
-            if result?.isUndefined == true {
-                throw WalletKitError.initializationFailed("Failed to load WalletKit library (including mock)")
-            }
-            
-            print("✅ WalletKit mock library loaded")
+            print("❌ Failed to load WalletKit library: \(error)")
+            throw WalletKitError.initializationFailed("Failed to load WalletKit library: \(error)")
         }
     }
     
     private func loadJavaScriptFromMJS() throws -> String {
         // Get the path to the compiled MJS file
-        guard let bundlePath = Bundle.main.path(forResource: "dist-js/ioskit", ofType: "mjs") else {
-            // Try alternative path
-            let fallbackPath = Bundle.main.bundlePath + "/dist-js/ioskit.mjs"
-            guard FileManager.default.fileExists(atPath: fallbackPath) else {
-                throw WalletKitError.initializationFailed("Could not find compiled JavaScript bundle at dist-js/ioskit.mjs")
-            }
-            
+        // Try multiple approaches to find the file
+        
+        // Option 1: Look for the file as a bundle resource (flattened path)
+        if let bundlePath = Bundle.main.path(forResource: "ioskit", ofType: "mjs") {
+            print("📍 Found bundle at main resource path: \(bundlePath)")
+            return try loadAndTransformMJS(from: bundlePath)
+        }
+        
+        // Option 2: Try nested resource path
+        if let bundlePath = Bundle.main.path(forResource: "dist-js/ioskit", ofType: "mjs") {
+            print("📍 Found bundle at nested resource path: \(bundlePath)")
+            return try loadAndTransformMJS(from: bundlePath)
+        }
+        
+        // Option 3: Try direct file path in bundle
+        let fallbackPath = Bundle.main.bundlePath + "/dist-js/ioskit.mjs"
+        if FileManager.default.fileExists(atPath: fallbackPath) {
+            print("📍 Found bundle at fallback path: \(fallbackPath)")
             return try loadAndTransformMJS(from: fallbackPath)
         }
         
-        return try loadAndTransformMJS(from: bundlePath)
+        // Option 4: Try alternative bundle structure
+        let alternativePath = Bundle.main.resourcePath! + "/dist-js/ioskit.mjs"
+        if FileManager.default.fileExists(atPath: alternativePath) {
+            print("📍 Found bundle at alternative path: \(alternativePath)")
+            return try loadAndTransformMJS(from: alternativePath)
+        }
+        
+        // Debug: List available files to help diagnose the issue
+        print("❌ Bundle search failed. Bundle info:")
+        print("   Bundle path: \(Bundle.main.bundlePath)")
+        print("   Resource path: \(Bundle.main.resourcePath ?? "nil")")
+        
+        if let resourcePath = Bundle.main.resourcePath {
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(atPath: resourcePath)
+                print("   Contents: \(contents.prefix(10))") // Show first 10 files
+            } catch {
+                print("   Could not list contents: \(error)")
+            }
+        }
+        
+        throw WalletKitError.initializationFailed("Could not find compiled JavaScript bundle at dist-js/ioskit.mjs. Tried multiple paths.")
     }
     
     private func loadAndTransformMJS(from path: String) throws -> String {
@@ -202,26 +228,8 @@ class WalletKitNativeEngine: NSObject {
             self.handleJavaScriptEvent(eventType: eventType, data: eventString)
         }
         
-        let callNativeCallback: @convention(block) (String, JSValue) -> JSValue = { method, args in
-            print("📞 Swift Bridge: Native call '\(method)' with args: \(args)")
-            
-            // Handle different native method calls
-            switch method {
-            case "addWallet":
-                // Return a promise-like object for now
-                return JSValue(object: ["success": true], in: context)!
-            case "getWallets":
-                // Return empty array for now
-                return JSValue(object: [], in: context)!
-            case "getSessions":
-                // Return empty array for now
-                return JSValue(object: [], in: context)!
-            default:
-                return JSValue(object: ["error": "Method not implemented"], in: context)!
-            }
-        }
-        
         // Set up the Swift bridge object that JavaScript expects
+        // Only keep sendEvent since Swift will call JS directly (no callNative needed)
         let bridgeSetupScript = """
             // Set up the Swift bridge that the JavaScript expects
             window.walletKitSwiftBridge = {
@@ -232,15 +240,13 @@ class WalletKitNativeEngine: NSObject {
                     isMobile: true,
                     isNative: true
                 },
-                sendEvent: sendEventCallback,
-                callNative: callNativeCallback
+                sendEvent: sendEventCallback
             };
             
-            console.log('✅ Swift bridge configured');
+            console.log('✅ Swift bridge configured (events only - Swift calls JS directly)');
         """
         
         context.setObject(sendEventCallback, forKeyedSubscript: "sendEventCallback" as NSString)
-        context.setObject(callNativeCallback, forKeyedSubscript: "callNativeCallback" as NSString)
         
         let result = context.evaluateScript(bridgeSetupScript)
         
@@ -295,173 +301,7 @@ class WalletKitNativeEngine: NSObject {
         }
     }
     
-    private func createWalletKitMock() -> String {
-        return """
-            // Mock TonWalletKit for iOS Integration
-            // This is a simplified version - in production, you'd load the actual compiled library
-            
-            class TonWalletKit {
-                constructor(config) {
-                    this.config = config;
-                    this.wallets = [];
-                    this.sessions = [];
-                    this.eventListeners = {
-                        connectRequest: [],
-                        transactionRequest: [],
-                        signDataRequest: [],
-                        disconnect: []
-                    };
-                    console.log('TonWalletKit Mock created with config:', JSON.stringify(config));
-                }
-                
-                async initialize() {
-                    console.log('TonWalletKit Mock initializing...');
-                    // Simulate initialization delay
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    console.log('✅ TonWalletKit Mock initialized');
-                }
-                
-                // Event handling
-                onConnectRequest(callback) {
-                    this.eventListeners.connectRequest.push(callback);
-                }
-                
-                onTransactionRequest(callback) {
-                    this.eventListeners.transactionRequest.push(callback);
-                }
-                
-                onSignDataRequest(callback) {
-                    this.eventListeners.signDataRequest.push(callback);
-                }
-                
-                onDisconnect(callback) {
-                    this.eventListeners.disconnect.push(callback);
-                }
-                
-                // Wallet management
-                async addWallet(walletConfig) {
-                    console.log('Adding wallet:', JSON.stringify(walletConfig));
-                    const wallet = {
-                        address: 'EQ' + Math.random().toString(36).substring(7),
-                        name: walletConfig.name || 'Wallet ' + (this.wallets.length + 1),
-                        network: walletConfig.network || 'testnet',
-                        version: walletConfig.version || 'v5r1'
-                    };
-                    this.wallets.push(wallet);
-                    return wallet;
-                }
-                
-                async removeWallet(address) {
-                    console.log('Removing wallet:', address);
-                    const index = this.wallets.findIndex(w => w.address === address);
-                    if (index !== -1) {
-                        this.wallets.splice(index, 1);
-                    }
-                    return { success: true };
-                }
-                
-                async clearWallets() {
-                    console.log('Clearing all wallets');
-                    this.wallets = [];
-                    return { success: true };
-                }
-                
-                getWallets() {
-                    return this.wallets;
-                }
-                
-                getSessions() {
-                    return this.sessions;
-                }
-                
-                // Connection handling
-                async handleTonConnectUrl(url) {
-                    console.log('Handling TON Connect URL:', url);
-                    
-                    // Simulate a connect request
-                    const connectRequest = {
-                        id: Math.random().toString(36).substring(7),
-                        dAppName: 'Demo DApp',
-                        dAppUrl: 'https://demo.tonconnect.org',
-                        manifestUrl: 'https://demo.tonconnect.org/manifest.json',
-                        requestedItems: ['ton_addr'],
-                        permissions: [{
-                            name: 'ton_addr',
-                            title: 'Wallet Address',
-                            description: 'Access to your wallet address'
-                        }]
-                    };
-                    
-                    // Trigger connect request event
-                    this.eventListeners.connectRequest.forEach(callback => {
-                        try {
-                            callback(connectRequest);
-                        } catch (error) {
-                            console.error('Error in connect request callback:', error);
-                        }
-                    });
-                    
-                    return { success: true };
-                }
-                
-                async approveConnectRequest(requestId, walletAddress) {
-                    console.log('Approving connect request:', requestId, 'for wallet:', walletAddress);
-                    
-                    const session = {
-                        id: Math.random().toString(36).substring(7),
-                        requestId,
-                        walletAddress,
-                        dAppName: 'Demo DApp',
-                        connectedAt: Date.now()
-                    };
-                    
-                    this.sessions.push(session);
-                    return { success: true, session };
-                }
-                
-                async rejectConnectRequest(requestId, reason) {
-                    console.log('Rejecting connect request:', requestId, 'reason:', reason);
-                    return { success: true };
-                }
-                
-                // Add other methods as needed...
-                async approveTransactionRequest(requestId) {
-                    console.log('Approving transaction request:', requestId);
-                    return { 
-                        success: true, 
-                        hash: 'tx_' + Math.random().toString(36).substring(7),
-                        signedBoc: 'mock_signed_boc_data'
-                    };
-                }
-                
-                async rejectTransactionRequest(requestId, reason) {
-                    console.log('Rejecting transaction request:', requestId, 'reason:', reason);
-                    return { success: true };
-                }
-                
-                async disconnect(sessionId) {
-                    console.log('Disconnecting session:', sessionId);
-                    if (sessionId) {
-                        const index = this.sessions.findIndex(s => s.id === sessionId);
-                        if (index !== -1) {
-                            this.sessions.splice(index, 1);
-                        }
-                    } else {
-                        this.sessions = [];
-                    }
-                    return { success: true };
-                }
-                
-                async getJettons(walletAddress) {
-                    console.log('Getting jettons for:', walletAddress);
-                    return []; // Empty for now
-                }
-            }
-            
-            // Make available globally
-            window.TonWalletKit = TonWalletKit;
-        """
-    }
+
     
     // MARK: - API Methods
     
@@ -508,6 +348,40 @@ class WalletKitNativeEngine: NSObject {
         let _ = context.evaluateScript(script)
     }
     
+    func removeWallet(_ address: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.removeWallet('\(address)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func clearWallets() async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.clearWallets()"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func getSessions() async throws -> [[String: Any]] {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let result = context.evaluateScript("JSON.stringify(window.walletKit.getSessions())")
+        
+        if let jsonString = result?.toString(),
+           let jsonData = jsonString.data(using: .utf8),
+           let sessionsArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] {
+            return sessionsArray
+        }
+        
+        return []
+    }
+    
     func approveConnectRequest(_ requestId: String, walletAddress: String) async throws {
         guard let context = jsContext, let instance = walletKitInstance else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
@@ -517,7 +391,75 @@ class WalletKitNativeEngine: NSObject {
         let _ = context.evaluateScript(script)
     }
     
-    // Add other API methods as needed...
+    func rejectConnectRequest(_ requestId: String, reason: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.rejectConnectRequest('\(requestId)', '\(reason)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func approveTransactionRequest(_ requestId: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.approveTransactionRequest('\(requestId)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func rejectTransactionRequest(_ requestId: String, reason: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.rejectTransactionRequest('\(requestId)', '\(reason)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func approveSignDataRequest(_ requestId: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.approveSignDataRequest('\(requestId)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func rejectSignDataRequest(_ requestId: String, reason: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.rejectSignDataRequest('\(requestId)', '\(reason)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func disconnect(_ sessionId: String) async throws {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let script = "window.walletKit.disconnect('\(sessionId)')"
+        let _ = context.evaluateScript(script)
+    }
+    
+    func getJettons(_ walletAddress: String) async throws -> [[String: Any]] {
+        guard let context = jsContext, let instance = walletKitInstance else {
+            throw WalletKitError.bridgeError("WalletKit not initialized")
+        }
+        
+        let result = context.evaluateScript("JSON.stringify(window.walletKit.getJettons('\(walletAddress)'))")
+        
+        if let jsonString = result?.toString(),
+           let jsonData = jsonString.data(using: .utf8),
+           let jettonsArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] {
+            return jettonsArray
+        }
+        
+        return []
+    }
     
     // MARK: - Event Parsing (reuse from WalletKitEngine)
     
