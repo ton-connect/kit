@@ -114,6 +114,9 @@ importers:
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../../packages/walletkit
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
     devDependencies:
       typescript:
         specifier: ~5.8.3
