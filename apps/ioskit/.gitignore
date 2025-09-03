@@ -25,3 +25,4 @@ build/
 *.dep
 
 dist-js/
+IOSKitDemo/IOSKitDemo/dist-js/

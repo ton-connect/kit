@@ -2,34 +2,29 @@
 //  EngineSelectionView.swift
 //  IOSKitDemo
 //
-//  Demo view showing both WalletKit integration methods
+//  Demo view showing WalletKit Native JavaScriptCore integration
 //
 
 import SwiftUI
 
 struct EngineSelectionView: View {
-    @State private var selectedEngine: EngineType = .webKit
+    @State private var selectedEngine: EngineType = .native
     @State private var walletKit: TonWalletKitSwift?
     @State private var isInitializing = false
     @State private var initializationError: Error?
     
     enum EngineType: String, CaseIterable {
-        case webKit = "WebKit Bridge"
         case native = "Native JavaScriptCore"
         
         var description: String {
             switch self {
-            case .webKit:
-                return "Uses WebView with HTML bridge (Recommended)"
             case .native:
-                return "Uses JavaScriptCore directly (Limited features)"
+                return "Uses JavaScriptCore directly for optimal performance"
             }
         }
         
         var icon: String {
             switch self {
-            case .webKit:
-                return "globe"
             case .native:
                 return "gearshape.2"
             }
@@ -58,14 +53,12 @@ struct EngineSelectionView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Engine Selection
+                        // Engine Info
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("Choose Integration Method:")
+                            Text("Integration Method:")
                                 .font(.headline)
                             
-                            ForEach(EngineType.allCases, id: \.self) { engine in
-                                engineSelectionCard(for: engine)
-                            }
+                            engineInfoCard()
                         }
                         .padding()
                         .background(Color.gray.opacity(0.05))
@@ -77,7 +70,7 @@ struct EngineSelectionView: View {
                                 VStack(spacing: 10) {
                                     ProgressView()
                                         .scaleEffect(1.2)
-                                    Text("Initializing \(selectedEngine.rawValue)...")
+                                    Text("Initializing Native JavaScriptCore Engine...")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                     Text("This may take a moment...")
@@ -123,12 +116,13 @@ struct EngineSelectionView: View {
                         
                         // Info Section
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("About Integration Methods")
+                            Text("About Native Engine")
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("• WebKit Bridge: Stable, full-featured, uses WebView")
-                                Text("• Native Engine: Direct JS execution, some features pending")
+                                Text("• Direct JavaScript execution with JavaScriptCore")
+                                Text("• Optimal performance without WebView overhead") 
+                                Text("• Lightweight and efficient iOS integration")
                             }
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -155,11 +149,12 @@ struct EngineSelectionView: View {
     }
     
     @ViewBuilder
-    private func engineSelectionCard(for engine: EngineType) -> some View {
+    private func engineInfoCard() -> some View {
+        let engine = EngineType.native
         HStack(spacing: 12) {
             Image(systemName: engine.icon)
                 .font(.title2)
-                .foregroundColor(selectedEngine == engine ? .blue : .gray)
+                .foregroundColor(.blue)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
@@ -168,20 +163,10 @@ struct EngineSelectionView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    if engine == .webKit {
-                        Text("Recommended")
-                            .font(.caption)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(4)
-                    }
-                    
                     Spacer()
                     
-                    Image(systemName: selectedEngine == engine ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(selectedEngine == engine ? .blue : .gray)
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.blue)
                 }
                 
                 Text(engine.description)
@@ -190,16 +175,12 @@ struct EngineSelectionView: View {
             }
         }
         .padding()
-        .background(selectedEngine == engine ? Color.blue.opacity(0.1) : Color.clear)
+        .background(Color.blue.opacity(0.1))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(selectedEngine == engine ? Color.blue : Color.clear, lineWidth: 2)
+                .stroke(Color.blue, lineWidth: 2)
         )
-        .contentShape(Rectangle())
-        .onTapGesture {
-            selectedEngine = engine
-        }
     }
     
     private func initializeWalletKit() {
@@ -207,9 +188,8 @@ struct EngineSelectionView: View {
         initializationError = nil
         
         let config = createWalletKitConfig()
-        let useNativeEngine = selectedEngine == .native
         
-        let newWalletKit = TonWalletKitSwift(config: config, useNativeEngine: useNativeEngine)
+        let newWalletKit = TonWalletKitSwift(config: config)
         
         Task {
             do {
@@ -218,7 +198,7 @@ struct EngineSelectionView: View {
                 await MainActor.run {
                     self.walletKit = newWalletKit
                     self.isInitializing = false
-                    print("✅ WalletKit initialized with \(selectedEngine.rawValue)")
+                    print("✅ WalletKit initialized with Native JavaScriptCore Engine")
                 }
             } catch {
                 await MainActor.run {

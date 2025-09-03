@@ -476,4 +476,46 @@ class WalletKitNativeEngine: NSObject {
         jsContext = nil
         walletKitInstance = nil
     }
+    
+    // MARK: - Debug/Inspection Methods
+    
+    /// Get access to the underlying JavaScript context for debugging
+    /// Only available in DEBUG builds for security
+    #if DEBUG
+    func getJSContext() -> JSContext? {
+        return jsContext
+    }
+    
+    /// Execute arbitrary JavaScript for inspection/debugging
+    func debugEvaluateScript(_ script: String) -> String? {
+        guard let context = jsContext else { return nil }
+        let result = context.evaluateScript(script)
+        return result?.toString()
+    }
+    
+    /// Get the current state of the WalletKit instance as JSON
+    func debugGetWalletKitState() -> String? {
+        return debugEvaluateScript("""
+            JSON.stringify({
+                wallets: window.walletKitInstance?.wallets || [],
+                sessions: window.walletKitInstance?.sessions || [],
+                config: window.walletKitInstance?.config || {},
+                initialized: !!window.walletKitInstance
+            }, null, 2)
+        """)
+    }
+    
+    /// Enable verbose logging for all JavaScript calls
+    func enableVerboseLogging() {
+        debugEvaluateScript("""
+            // Override all console methods with verbose logging
+            const originalLog = console.log;
+            console.log = function(...args) {
+                const stack = new Error().stack;
+                nativeLog('[VERBOSE] ' + args.join(' ') + '\\nStack: ' + stack);
+                originalLog.apply(console, args);
+            };
+        """)
+    }
+    #endif
 }
