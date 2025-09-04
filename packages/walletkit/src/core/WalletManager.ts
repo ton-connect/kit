@@ -2,6 +2,7 @@
 
 import type { WalletInterface } from '../types';
 import type { StorageAdapter } from '../types/internal';
+import { WalletInitInterface } from '../types/wallet';
 import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
 
@@ -58,7 +59,7 @@ export class WalletManager {
     /**
      * Remove wallet by public key
      */
-    async removeWallet(addressOrWallet: string | WalletInterface): Promise<boolean> {
+    async removeWallet(addressOrWallet: string | WalletInitInterface): Promise<boolean> {
         const address = typeof addressOrWallet === 'string' ? addressOrWallet : addressOrWallet.getAddress();
 
         const removed = this.wallets.delete(address);

@@ -1,6 +1,6 @@
 // Main TonWalletKit interface definition
 
-import type { WalletInterface, WalletInitConfig } from './wallet';
+import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './wallet';
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from './events';
 import type { JettonsAPI } from './jettons';
 
@@ -23,7 +23,7 @@ export interface TonWalletKit {
     addWallet(walletConfig: WalletInitConfig): Promise<void>;
 
     /** Remove a wallet */
-    removeWallet(wallet: WalletInterface): Promise<void>;
+    removeWallet(wallet: WalletInitInterface): Promise<void>;
 
     /** Clear all wallets */
     clearWallets(): Promise<void>;

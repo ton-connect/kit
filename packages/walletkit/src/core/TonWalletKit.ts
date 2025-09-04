@@ -27,6 +27,7 @@ import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
 import type { BridgeRequest } from '../types/jsBridge';
+import { WalletInitInterface } from '../types/wallet';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -230,8 +231,13 @@ export class TonWalletKit implements ITonWalletKit {
         await this.eventProcessor.startProcessing(wallet.getAddress());
     }
 
-    async removeWallet(wallet: WalletInterface): Promise<void> {
+    async removeWallet(argWallet: WalletInitInterface | string): Promise<void> {
         await this.ensureInitialized();
+
+        const wallet = typeof argWallet === 'string' ? this.walletManager.getWallet(argWallet) : argWallet;
+        if (!wallet) {
+            throw new Error('Wallet not found');
+        }
 
         // Stop event processing for the wallet
         await this.eventProcessor.stopProcessing(wallet.getAddress());

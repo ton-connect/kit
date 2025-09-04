@@ -6,6 +6,7 @@ import type { WalletInterface } from '../types';
 import type { WalletManager } from '../core/WalletManager';
 import type { SessionData, SessionStorageData, StorageAdapter } from '../types/internal';
 import { globalLogger } from './Logger';
+import { WalletInitInterface } from '../types/wallet';
 
 const log = globalLogger.createChild('SessionManager');
 
@@ -102,7 +103,7 @@ export class SessionManager {
     /**
      * Get sessions for specific wallet
      */
-    getSessionsForWallet(wallet: WalletInterface): SessionStorageData[] {
+    getSessionsForWallet(wallet: WalletInitInterface): SessionStorageData[] {
         return this.getSessions().filter((session) => session.walletAddress === wallet.getAddress());
     }
 
@@ -131,7 +132,7 @@ export class SessionManager {
     /**
      * Remove all sessions for a wallet
      */
-    async removeSessionsForWallet(wallet: WalletInterface): Promise<number> {
+    async removeSessionsForWallet(wallet: WalletInitInterface): Promise<number> {
         const sessionsToRemove = this.getSessionsForWallet(wallet);
 
         let removedCount = 0;
