@@ -29,7 +29,7 @@ export interface HumanReadableTx {
  * Validate transaction messages array
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessages(messages: any[]): ValidationResult {
+export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     if (!Array.isArray(messages)) {
@@ -44,7 +44,7 @@ export function validateTransactionMessages(messages: any[]): ValidationResult {
 
     // Validate each message
     messages.forEach((msg, index) => {
-        const msgErrors = validateTransactionMessage(msg).errors;
+        const msgErrors = validateTransactionMessage(msg, isTonConnect).errors;
         msgErrors.forEach((error) => {
             errors.push(`message[${index}]: ${error}`);
         });
@@ -60,7 +60,7 @@ export function validateTransactionMessages(messages: any[]): ValidationResult {
  * Validate individual transaction message
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessage(message: any): ValidationResult {
+export function validateTransactionMessage(message: any, isTonConnect: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     if (typeof message !== 'object') {
@@ -69,6 +69,10 @@ export function validateTransactionMessage(message: any): ValidationResult {
 
     if (message === null || message === undefined) {
         return { isValid: false, errors: ['Invalid message'] };
+    }
+
+    if (isTonConnect && typeof message.mode !== 'undefined') {
+        errors.push('mode must be undefined for tonconnect!');
     }
 
     // Object format - validate required fields
@@ -124,7 +128,7 @@ export function validateMessageObject(message: any): ValidationResult {
  * Validate transaction request structure
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionRequest(request: any): ValidationResult {
+export function validateTransactionRequest(request: any, isTonConnect: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     if (!request || typeof request !== 'object') {
@@ -133,7 +137,7 @@ export function validateTransactionRequest(request: any): ValidationResult {
     }
 
     // Validate required fields
-    const messagesValidation = validateTransactionMessages(request.messages || []);
+    const messagesValidation = validateTransactionMessages(request.messages || [], isTonConnect);
     if (!messagesValidation.isValid) {
         errors.push(...messagesValidation.errors);
     }

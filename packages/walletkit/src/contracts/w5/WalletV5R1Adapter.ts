@@ -14,7 +14,7 @@ import { TonClient } from '@ton/ton';
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
 
-import type { TonNetwork, WalletInterface } from '../../types';
+import type { TonNetwork } from '../../types';
 import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
@@ -25,6 +25,7 @@ import { MnemonicToKeyPair } from '../../utils/mnemonic';
 import { CallForSuccess } from '../../utils/retry';
 import { ConnectTransactionParamContent } from '../../types/internal';
 import { ActionSendMsg, packActionsList } from './actions';
+import { WalletInitInterface } from '../../types/wallet';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -45,10 +46,10 @@ export interface WalletV5R1AdapterConfig {
 /**
  * WalletV5R1 adapter that implements WalletInterface for WalletV5 contracts
  */
-export class WalletV5R1Adapter implements WalletInterface {
+export class WalletV5R1Adapter implements WalletInitInterface {
     private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
     private walletContract: WalletV5;
-    private client: TonClient;
+    client: TonClient;
     private config: WalletV5R1AdapterConfig;
 
     public readonly publicKey: Uint8Array;
@@ -253,7 +254,7 @@ export async function createWalletV5R1(
     options: {
         tonClient: TonClient;
     },
-): Promise<WalletInterface> {
+): Promise<WalletInitInterface> {
     let keyPair: {
         publicKey: Uint8Array;
         secretKey: Uint8Array;

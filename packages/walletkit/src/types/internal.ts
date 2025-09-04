@@ -98,16 +98,18 @@ export interface ConnectExtraCurrency {
     [k: number]: string;
 }
 
+export interface ConnectTransactionParamMessage {
+    address: string;
+    amount: string;
+    payload?: string; // boc
+    stateInit?: string; // boc
+    extraCurrency?: ConnectExtraCurrency;
+    mode?: number;
+}
 export interface ConnectTransactionParamContent {
-    messages: {
-        address: string;
-        amount: string;
-        payload?: string; // boc
-        stateInit?: string; // boc
-        extraCurrency?: ConnectExtraCurrency;
-    }[];
-    network: string;
-    valid_until: number; // unixtime
+    messages: ConnectTransactionParamMessage[];
+    network?: string;
+    valid_until?: number; // unixtime
     from?: string;
 }
 

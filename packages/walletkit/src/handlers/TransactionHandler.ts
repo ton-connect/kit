@@ -8,7 +8,7 @@ import type {
     ConnectTransactionParamContent,
     ValidationResult,
 } from '../types/internal';
-import { validateTransactionMessages } from '../validation/transaction';
+import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
 import { isValidAddress } from '../utils/address';
 import {
@@ -43,7 +43,7 @@ export class TransactionHandler
             throw new Error('Wallet not found');
         }
 
-        const request = this.parseTransactionRequest(event);
+        const request = this.parseTonConnectTransactionRequest(event);
         if (!request) {
             log.error('Failed to parse transaction request', { event });
             throw new Error('Failed to parse transaction request');
@@ -65,7 +65,9 @@ export class TransactionHandler
      * Parse raw transaction request from bridge event
      */
 
-    private parseTransactionRequest(event: RawBridgeEventTransaction): ConnectTransactionParamContent | undefined {
+    private parseTonConnectTransactionRequest(
+        event: RawBridgeEventTransaction,
+    ): ConnectTransactionParamContent | undefined {
         try {
             if (event.params.length !== 1) {
                 throw new Error('Invalid transaction request');
@@ -87,7 +89,7 @@ export class TransactionHandler
                 throw new Error(`Invalid from address: ${fromValidation.errors.join(', ')}`);
             }
 
-            const messagesValidation = validateTransactionMessages(params.messages);
+            const messagesValidation = validateTonConnectTransactionMessages(params.messages);
             if (!messagesValidation.isValid) {
                 throw new Error(`Invalid transaction messages: ${messagesValidation.errors.join(', ')}`);
             }

@@ -1,6 +1,11 @@
 // Wallet-related type definitions
 
-import { ConnectTransactionParamContent } from './internal';
+import { TonClient } from '@ton/ton';
+import { SendMode } from '@ton/core';
+
+import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
+import { JettonTransferParams } from './jettons';
+import { NftTransferParamsHuman, NftTransferParamsNative } from './nfts';
 
 /**
  * TON network types
@@ -8,6 +13,14 @@ import { ConnectTransactionParamContent } from './internal';
 export type TonNetwork = 'mainnet' | 'testnet';
 
 export type WalletVersion = 'v5r1' | 'unknown'; // | 'v4r2';
+
+export interface WalletInitConfigMnemonicInterface {
+    mnemonic: string[];
+    version?: WalletVersion;
+    mnemonicType?: 'ton' | 'bip39';
+    walletId?: number;
+    network?: TonNetwork;
+}
 
 export class WalletInitConfigMnemonic {
     mnemonic: string[];
@@ -37,6 +50,13 @@ export class WalletInitConfigMnemonic {
     }
 }
 
+export interface WalletInitConfigPrivateKeyInterface {
+    privateKey: string;
+    version?: WalletVersion;
+    walletId?: number;
+    network?: TonNetwork;
+}
+
 export class WalletInitConfigPrivateKey {
     privateKey: string; // private key in hex format
     version: WalletVersion;
@@ -64,21 +84,20 @@ export class WalletInitConfigPrivateKey {
 /**
  * Core wallet interface that all wallets must implement
  */
-export interface WalletInterface {
+export interface WalletInitInterface {
     /** Unique identifier for this wallet (typically public key) */
     publicKey: Uint8Array;
 
     /** Wallet contract version (e.g., 'v4r2', 'v5r1') */
     version: string;
 
+    client: TonClient;
+
     /** Sign raw bytes with wallet's private key */
     sign(bytes: Uint8Array): Promise<Uint8Array>;
 
     /** Get wallet's TON address */
     getAddress(options?: { testnet?: boolean }): string;
-
-    /** Get wallet's current balance in nanotons */
-    getBalance(): Promise<bigint>;
 
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<string>;
@@ -91,7 +110,51 @@ export interface WalletInterface {
     ): Promise<string>;
 }
 
-export type WalletInitConfig = WalletInterface | WalletInitConfigMnemonic | WalletInitConfigPrivateKey;
+export type TonTransferMessage = {
+    toAddress: string;
+    amount: string;
+    stateInit?: string; // base64 boc
+    extraCurrency?: ConnectExtraCurrency;
+    mode?: SendMode;
+} & (TonTransferParamsBody | TonTransferParamsComment);
+export type TonTransferParams = {
+    messages: TonTransferMessage[];
+};
+
+export interface TonTransferParamsBody {
+    body?: string; // base64 boc
+    comment: never;
+}
+
+export interface TonTransferParamsComment {
+    body: never;
+    comment?: string;
+}
+
+export interface WalletTonInterface {
+    createSendTon(params: TonTransferParams): Promise<ConnectTransactionParamContent>;
+    getBalance(): Promise<bigint>;
+}
+
+export interface WalletJettonInterface {
+    createSendJetton(params: JettonTransferParams): Promise<ConnectTransactionParamContent>;
+    getBalance(jettonAddress: string): Promise<bigint>;
+    getJettonWalletAddress(jettonAddress: string): Promise<string>;
+}
+
+export interface WalletNftInterface {
+    createSendNft(params: NftTransferParamsHuman): Promise<ConnectTransactionParamContent>;
+    createSendNftNative(params: NftTransferParamsNative): Promise<ConnectTransactionParamContent>;
+}
+
+export type WalletInitConfig =
+    | WalletInitInterface
+    | WalletInitConfigMnemonic
+    | WalletInitConfigPrivateKey
+    | WalletInitConfigMnemonicInterface
+    | WalletInitConfigPrivateKeyInterface;
+
+export type WalletInterface = WalletInitInterface & WalletTonInterface & WalletNftInterface; // & WalletJettonInterface & WalletNftInterface;
 
 /**
  * Wallet metadata for storage/serialization

@@ -24,6 +24,10 @@ import type { EventEmitter } from './EventEmitter';
 import { createWalletV5R1 } from '../contracts/w5/WalletV5R1Adapter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
+import { WalletInitInterface } from '../types/wallet';
+import { WalletTonClass } from './wallet/extensions/ton';
+// import { WalletJettonClass } from './wallet/extensions/jetton';
+import { WalletNftClass } from './wallet/extensions/nft';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -288,7 +292,6 @@ function isWalletInterface(config: unknown): config is WalletInterface {
         'version' in config &&
         typeof (config as WalletInterface)?.sign === 'function' &&
         typeof (config as WalletInterface)?.getAddress === 'function' &&
-        typeof (config as WalletInterface)?.getBalance === 'function' &&
         typeof (config as WalletInterface)?.getStateInit === 'function'
     );
 }
@@ -297,30 +300,69 @@ function isWalletInterface(config: unknown): config is WalletInterface {
  * Create a WalletInterface from various configuration types
  */
 export async function createWalletFromConfig(config: WalletInitConfig, tonClient: TonClient): Promise<WalletInterface> {
+    let wallet: WalletInitInterface;
     // Handle mnemonic configuration
     if (config instanceof WalletInitConfigMnemonic) {
         if (config.version === 'v5r1') {
-            return createWalletV5R1(config, {
+            wallet = await createWalletV5R1(config, {
                 tonClient,
             });
+        } else {
+            throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
         }
-        throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
     }
 
     // Handle private key configuration - check for publicKey but not mnemonic
     if (config instanceof WalletInitConfigPrivateKey) {
         if (config.version === 'v5r1') {
-            return createWalletV5R1(config, {
+            wallet = await createWalletV5R1(config, {
                 tonClient,
             });
+        } else {
+            throw new Error(`Unsupported wallet version for private key: ${config.version}`);
         }
-        throw new Error(`Unsupported wallet version for private key: ${config.version}`);
     }
 
     // If it's already a WalletInterface, return as-is
     if (isWalletInterface(config)) {
-        return config as WalletInterface;
+        wallet = config as WalletInitInterface;
+    } else {
+        throw new Error('Unsupported wallet configuration format');
     }
 
-    throw new Error('Unsupported wallet configuration format');
+    if (!wallet) {
+        throw new Error('Failed to create wallet from config');
+    }
+
+    return wrapWalletInterface(wallet, tonClient);
+}
+
+// using proxy api to make wallet extension modular
+export async function wrapWalletInterface(
+    wallet: WalletInitInterface,
+    _tonClient: TonClient,
+): Promise<WalletInterface> {
+    const ourClassesToExtend = [WalletTonClass, WalletNftClass];
+    return new Proxy(wallet, {
+        get: (target, prop) => {
+            if (typeof prop === 'symbol') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return (target as any)[prop];
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ourMethonImplementation = ourClassesToExtend.find((cls) => !!(cls.prototype as any)[prop]);
+            if (ourMethonImplementation) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const value = (ourMethonImplementation.prototype as any)[prop];
+                // return ourMethonImplementation.prototype[prop].bind(target);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return (...args: any[]) => value.apply(target, [...args]);
+            }
+
+            // Delegate all other properties and methods to the target
+            const value = (target as unknown as Record<string, unknown>)[prop];
+
+            return value;
+        },
+    }) as WalletInterface;
 }
