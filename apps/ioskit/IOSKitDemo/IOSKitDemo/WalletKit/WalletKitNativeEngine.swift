@@ -9,6 +9,7 @@ import Foundation
 import JavaScriptCore
 import Combine
 import os.log
+import JavaScriptCoreExtras
 
 /// Native engine that runs the actual WalletKit JavaScript library
 class WalletKitNativeEngine: NSObject {
@@ -73,6 +74,10 @@ class WalletKitNativeEngine: NSObject {
             print("🌐 WalletKit JS: \(message)")
         }
         
+        TimerJS.registerInto(jsContext: context)
+        // JSIntervals.provideToContext(context: context)
+        try context.install([.fetch])
+        
         context.setObject(consoleLog, forKeyedSubscript: "nativeLog" as NSString)
         
         // Add basic console object and window object
@@ -101,18 +106,6 @@ class WalletKitNativeEngine: NSObject {
             
             // Make console available globally
             window.console = console;
-            
-            // Add other common browser globals that might be needed
-            window.setTimeout = function(callback, delay) {
-                // Note: This is a simplified implementation
-                // In a real scenario, you might need a more robust timer implementation
-                callback();
-                return 1;
-            };
-            
-            window.clearTimeout = function(id) {
-                // Simplified implementation
-            };
         """)
         
         print("✅ JavaScript context initialized")
@@ -313,8 +306,9 @@ class WalletKitNativeEngine: NSObject {
         let configJSON = try JSONSerialization.data(withJSONObject: [
             "mnemonic": config.mnemonic,
             "name": config.name,
-            "network": config.network.rawValue,
-            "version": config.version
+            "network": "mainnet", //config.network.rawValue,
+            "version": config.version,
+            "mnemonicType": "ton"
         ])
         
         let configString = String(data: configJSON, encoding: .utf8)!

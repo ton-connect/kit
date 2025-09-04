@@ -14,6 +14,7 @@ export default defineConfig({
             external: ['buffer'],
         },
         sourcemap: true,
+        minify: false,
     },
     // define: {
     //     global: 'globalThis',

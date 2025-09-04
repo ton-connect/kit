@@ -22,7 +22,9 @@ export default defineConfig({
         // Inline all assets including JS and CSS
         // assetsInlineLimit: 100000000, // Large number to inline everything
         // Don't generate separate CSS files
-        cssCodeSplit: false
+        cssCodeSplit: false,
+        minify: false,
+        sourcemap: true
     },
     // Ensure TypeScript files are processed
     esbuild: {

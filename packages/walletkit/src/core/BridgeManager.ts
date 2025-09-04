@@ -79,19 +79,22 @@ export class BridgeManager {
             return;
         }
 
-        try {
-            await this.loadLastEventId();
-            await this.connectToSSEBridge();
-        } catch (error) {
-            log.error('Failed to start bridge', { error });
-            throw error;
-        }
+        // try {
+        //     // await this.loadLastEventId();
+        //     // await this.connectToSSEBridge();
+        // } catch (error) {
+        //     log.error('Failed to start bridge', { error });
+        //     throw error;
+        // }
 
+        console.log('return from bridge start');
         const requestProcessing = () => {
             this.processBridgeEvents();
             this.requestProcessingTimeoutId = setTimeout(requestProcessing, 1000) as unknown as number;
         };
+        console.log('requestProcessing');
         requestProcessing();
+        console.log('requestProcessing done');
     }
 
     /**

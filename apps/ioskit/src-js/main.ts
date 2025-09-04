@@ -12,8 +12,28 @@ declare global {
     }
 }
 
-export function main() {
+export async function main() {
     console.log('Hello, world!');
+
+    console.log('fetch')
+    try {
+        const result = await fetch('https://api.ipify.org?format=json');
+        console.log('fetch result', result);
+        const data = await result.json();
+        console.log('fetch data', data);
+    } catch (error) {
+        console.error('fetch error', error);
+    }
+
+    console.log('setTimeout');
+    setTimeout(() => {
+        console.log('setTimeout done inside');
+    }, 1000);
+    setInterval(() => {
+        console.log('setTimeout done inside');
+    }, 1000);
+    console.log('setTimeout done');
+
 
     const walletKit = new TonWalletKit({
         apiUrl: 'https://tonapi.io',
@@ -25,6 +45,9 @@ export function main() {
             },
             eventProcessor: {
                 disableEvents: true,
+            },
+            storage: {
+                allowMemory: true,
             },
         },
     });
@@ -138,6 +161,7 @@ export function main() {
             console.log('➕ Bridge: Adding wallet:', config);
 
             try {
+                console.log('addWallet', walletKit);
                 const result = await walletKit.addWallet(config);
                 console.log('✅ Wallet added:', result);
                 return result;
@@ -344,5 +368,8 @@ export function main() {
 }
 
 console.log('🚀 WalletKit iOS Bridge starting...');
-main();
-console.log('🚀 WalletKit iOS Bridge started');
+main().then(() => {
+    console.log('🚀 WalletKit iOS Bridge started');
+}).catch((error) => {
+    console.error('❌ WalletKit iOS Bridge failed to start:', error);
+});

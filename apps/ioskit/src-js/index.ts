@@ -1,3 +1,5 @@
+import 'url-polyfill';
+
 import { Buffer } from 'buffer';
 
 if (typeof window !== 'undefined' && !window.Buffer) {
@@ -241,6 +243,33 @@ if (typeof window !== 'undefined') {
         (window as any).Element.prototype.querySelectorAll = () => [];
         (window as any).Element.prototype.addEventListener = () => {};
         (window as any).Element.prototype.removeEventListener = () => {};
+    }
+
+    // Location polyfill
+    if (!(window as any).location) {
+        (window as any).location = {
+            href: 'about:blank',
+            origin: 'about:blank',
+            protocol: 'about:',
+            host: '',
+            hostname: '',
+            port: '',
+            pathname: '/blank',
+            search: '',
+            hash: '',
+            assign: function(url: string) {
+                this.href = url;
+            },
+            replace: function(url: string) {
+                this.href = url;
+            },
+            reload: function() {
+                // No-op for iOS
+            },
+            toString: function() {
+                return this.href;
+            }
+        };
     }
 }
 

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		97075DAC2E68A6140061517D /* JavaScriptCoreExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 97075DAB2E68A6140061517D /* JavaScriptCoreExtras */; };
 		97A418FD2E6637A900705BA7 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97A418FC2E6637A900705BA7 /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -71,6 +72,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				97A418FD2E6637A900705BA7 /* WebKit.framework in Frameworks */,
+				97075DAC2E68A6140061517D /* JavaScriptCoreExtras in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +142,7 @@
 			);
 			name = IOSKitDemo;
 			packageProductDependencies = (
+				97075DAB2E68A6140061517D /* JavaScriptCoreExtras */,
 			);
 			productName = IOSKitDemo;
 			productReference = 97A418D12E66378700705BA7 /* IOSKitDemo.app */;
@@ -223,6 +226,9 @@
 			);
 			mainGroup = 97A418C82E66378700705BA7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				97075DAA2E68A6140061517D /* XCRemoteSwiftPackageReference "javascript-core-extras" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 97A418D22E66378700705BA7 /* Products */;
 			projectDirPath = "";
@@ -592,6 +598,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		97075DAA2E68A6140061517D /* XCRemoteSwiftPackageReference "javascript-core-extras" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mhayes853/javascript-core-extras.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		97075DAB2E68A6140061517D /* JavaScriptCoreExtras */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 97075DAA2E68A6140061517D /* XCRemoteSwiftPackageReference "javascript-core-extras" */;
+			productName = JavaScriptCoreExtras;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 97A418C92E66378700705BA7 /* Project object */;
 }
