@@ -79,13 +79,15 @@ export class BridgeManager {
             return;
         }
 
-        // try {
-        //     // await this.loadLastEventId();
-        //     // await this.connectToSSEBridge();
-        // } catch (error) {
-        //     log.error('Failed to start bridge', { error });
-        //     throw error;
-        // }
+        try {
+            await this.loadLastEventId();
+            await this.connectToSSEBridge();
+        } catch (error) {
+            console.log('Failed to start bridge', error);
+            console.trace(error);
+            log.error('Failed to start bridge', { error });
+            throw error;
+        }
 
         console.log('return from bridge start');
         const requestProcessing = () => {
@@ -305,13 +307,16 @@ export class BridgeManager {
 
         try {
             // Prepare clients array for existing sessions
+            console.log('Getting clients');
             const clients = await this.getClients();
             if (clients.length === 0) {
+                console.log('No clients, adding default client');
                 clients.push({
                     clientId: '0',
                     session: new SessionCrypto(),
                 });
             }
+            console.log('Opening bridge');
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
@@ -325,7 +330,7 @@ export class BridgeManager {
             this.reconnectAttempts = 0;
             log.info('Bridge connected successfully');
         } catch (error) {
-            log.error('Bridge connection failed', { error });
+            log.error('Bridge connection failed', { error: error?.toString() });
             // Attempt reconnection if not at max attempts
             if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
                 this.reconnectAttempts++;
