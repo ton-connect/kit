@@ -1,14 +1,6 @@
-import {
-    Address,
-    beginCell,
-    Cell,
-    Contract,
-    contractAddress,
-    ContractProvider,
-    Dictionary,
-    Sender,
-    SendMode,
-} from '@ton/core';
+import { Address, beginCell, Cell, Contract, contractAddress, Dictionary, Sender, SendMode } from '@ton/core';
+
+import { ContractProvider } from '../../core/TonClient';
 
 export function bufferToBigInt(buffer: Buffer): bigint {
     return BigInt('0x' + buffer.toString('hex'));
@@ -142,7 +134,7 @@ export class WalletV5 implements Contract {
 
     async getSeqno(provider: ContractProvider) {
         const state = await provider.getState();
-        if (state.state.type === 'active') {
+        if (state.state === 'active') {
             const res = await provider.get('seqno', []);
             return res.stack.readNumber();
         } else {
@@ -152,7 +144,7 @@ export class WalletV5 implements Contract {
 
     async getIsSignatureAuthAllowed(provider: ContractProvider) {
         const state = await provider.getState();
-        if (state.state.type === 'active') {
+        if (state.state === 'active') {
             const res = await provider.get('is_signature_allowed', []);
             return res.stack.readNumber();
         } else {

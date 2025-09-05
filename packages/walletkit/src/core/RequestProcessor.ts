@@ -8,8 +8,8 @@ import {
     SendTransactionRpcResponseSuccess,
     SignDataRpcResponseSuccess,
 } from '@tonconnect/protocol';
-import { TonClient } from '@ton/ton';
 
+import { TonClient } from './TonClient';
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
@@ -142,7 +142,7 @@ export class RequestProcessor {
                 id: event.id,
             };
 
-            await CallForSuccess(() => this.client.sendFile(Buffer.from(signedBoc, 'base64')));
+            await CallForSuccess(() => this.client.sendBoc(Buffer.from(signedBoc, 'base64')));
 
             await this.bridgeManager.sendResponse(event, response);
 

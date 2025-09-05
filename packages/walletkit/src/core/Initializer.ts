@@ -1,8 +1,8 @@
 // Initialization and setup logic
 
-import { TonClient } from '@ton/ton';
 import { CHAIN } from '@tonconnect/protocol';
 
+import { TonClient } from './TonClient';
 import {
     TonWalletKitOptions,
     WalletInterface,
@@ -118,16 +118,12 @@ export class Initializer {
      */
     private initializeTonClient(options: TonWalletKitOptions): TonClient {
         // Use provided API URL or default to mainnet
-        const endpoint = options.apiUrl || 'https://toncenter.com/api/v2/jsonRPC';
+        const endpoint = options.apiUrl || 'https://toncenter.com';
 
-        const clientConfig: ConstructorParameters<typeof TonClient>[0] = {
+        const clientConfig = {
             endpoint,
+            apiKey: options.apiKey,
         };
-
-        // Add API key if provided
-        if (options.apiKey) {
-            clientConfig.apiKey = options.apiKey;
-        }
 
         return new TonClient(clientConfig);
     }
@@ -300,7 +296,43 @@ function isWalletInterface(config: unknown): config is WalletInterface {
  * Create a WalletInterface from various configuration types
  */
 export async function createWalletFromConfig(config: WalletInitConfig, tonClient: TonClient): Promise<WalletInterface> {
-    let wallet: WalletInitInterface;
+    let wallet: WalletInitInterface | undefined;
+
+    // Normalize plain interface-shaped objects into class instances to make instanceof checks work
+    if (config && typeof config === 'object' && !('sign' in (config as unknown as Record<string, unknown>))) {
+        // Try mnemonic-shaped object
+        if ('mnemonic' in (config as unknown as Record<string, unknown>)) {
+            const c = config as unknown as {
+                mnemonic: string[];
+                version?: string;
+                mnemonicType?: 'ton' | 'bip39';
+                walletId?: number;
+                network?: 'mainnet' | 'testnet';
+            };
+            const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
+            config = new WalletInitConfigMnemonic({
+                mnemonic: c.mnemonic,
+                version: normalizedVersion,
+                mnemonicType: c.mnemonicType ?? 'ton',
+                walletId: c.walletId,
+                network: c.network,
+            });
+        } else if ('privateKey' in (config as unknown as Record<string, unknown>)) {
+            const c = config as unknown as {
+                privateKey: string;
+                version?: string;
+                walletId?: number;
+                network?: 'mainnet' | 'testnet';
+            };
+            const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
+            config = new WalletInitConfigPrivateKey({
+                privateKey: c.privateKey,
+                version: normalizedVersion,
+                walletId: c.walletId,
+                network: c.network,
+            });
+        }
+    }
     // Handle mnemonic configuration
     if (config instanceof WalletInitConfigMnemonic || 'mnemonic' in config) {
         if (config.version === 'v5r1') {
@@ -322,14 +354,12 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
             throw new Error(`Unsupported wallet version for private key: ${config.version}`);
         }
     } else if (isWalletInterface(config)) {
-        // If it's already a WalletInterface, return as-is
+        // If it's already a WalletInterface, use it as-is
         wallet = config as WalletInitInterface;
-    } else {
-        throw new Error('Unsupported wallet configuration format');
     }
 
     if (!wallet) {
-        throw new Error('Failed to create wallet from config');
+        throw new Error('Unsupported wallet configuration format');
     }
 
     return wrapWalletInterface(wallet, tonClient);

@@ -10,10 +10,10 @@ import {
     storeMessage,
     storeStateInit,
 } from '@ton/core';
-import { TonClient } from '@ton/ton';
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
 
+import { TonClient } from '../../core/TonClient';
 import type { TonNetwork } from '../../types';
 import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
@@ -71,7 +71,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
                 publicKey: this.keyPair.publicKey,
                 seqno: 0,
                 signatureAllowed: true,
-                walletId: 2147483409n, // todo fix
+                walletId: config.walletId ? BigInt(config.walletId) : 2147483409n, // TODO fix maybe use default wallet_id for mainnet 698983191 https://docs.ton.org/v3/guidelines/smart-contracts/howto/wallet/#:~:text=The%20default%20subwallet_id%20value%20is%20698983191
                 extensions: Dictionary.empty(),
             },
             WalletV5R1CodeCell,
@@ -218,7 +218,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getContractState(this.walletContract.address);
+            const state = await this.client.getAccountState(this.walletContract.address);
             return state.state === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });

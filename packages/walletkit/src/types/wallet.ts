@@ -1,11 +1,11 @@
 // Wallet-related type definitions
 
-import { TonClient } from '@ton/ton';
 import { SendMode } from '@ton/core';
 
 import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
 import { JettonTransferParams } from './jettons';
 import { NftTransferParamsHuman, NftTransferParamsNative } from './nfts';
+import type { TonClient } from '../core/TonClient';
 import { TransactionPreview } from './events';
 
 /**

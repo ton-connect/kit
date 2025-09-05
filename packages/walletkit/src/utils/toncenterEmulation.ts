@@ -1,4 +1,4 @@
-import { Address, Cell } from '@ton/ton';
+import { Address, Cell } from '@ton/core';
 import { parseInternal } from '@truecarry/tlb-abi';
 
 import { ConnectTransactionParamContent } from '../types/internal';

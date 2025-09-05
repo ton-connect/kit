@@ -1,8 +1,9 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
-import { Address, type TonClient } from '@ton/ton';
+import { Address } from '@ton/core';
 import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
 
+import { TonClient } from './TonClient';
 import type {
     TonWalletKit as ITonWalletKit,
     TonWalletKitOptions,

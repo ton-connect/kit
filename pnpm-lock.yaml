@@ -35,9 +35,6 @@ importers:
       '@ton/crypto':
         specifier: ^3.3.0
         version: 3.3.0
-      '@ton/ton':
-        specifier: ^15.3.1
-        version: 15.3.1(@ton/core@0.61.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../../packages/walletkit
@@ -129,9 +126,6 @@ importers:
       '@ton/crypto':
         specifier: ^3.3.0
         version: 3.3.0
-      '@ton/ton':
-        specifier: ^15.3.1
-        version: 15.3.1(@ton/core@0.61.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)
       '@tonconnect/bridge-sdk':
         specifier: ^0.2.4
         version: 0.2.4

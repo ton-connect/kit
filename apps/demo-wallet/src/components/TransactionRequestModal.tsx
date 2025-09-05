@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import type { EventTransactionRequest, JettonInfo } from '@ton/walletkit';
-import { Address } from '@ton/ton';
+import { Address } from '@ton/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -94,7 +94,9 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-600">Valid Until:</span>
                                 <span className="text-sm text-black">
-                                    {new Date(request.request.valid_until * 1000).toLocaleString()}
+                                    {typeof request.request.valid_until === 'number'
+                                        ? new Date(request.request.valid_until * 1000).toLocaleString()
+                                        : '—'}
                                 </span>
                             </div>
                         </div>
