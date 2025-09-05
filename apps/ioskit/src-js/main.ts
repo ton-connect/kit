@@ -15,6 +15,28 @@ declare global {
 export async function main() {
     console.log('Hello, world!');
 
+    // Test crypto.getRandomValues polyfill
+    console.log('🔒 Testing crypto.getRandomValues polyfill...');
+    try {
+        // Test with Uint8Array
+        const randomBytes = new Uint8Array(16);
+        crypto.getRandomValues(randomBytes);
+        console.log('✅ crypto.getRandomValues with Uint8Array:', Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join(''));
+        
+        // Test with Uint32Array
+        const randomInts = new Uint32Array(4);
+        crypto.getRandomValues(randomInts);
+        console.log('✅ crypto.getRandomValues with Uint32Array:', Array.from(randomInts));
+        
+        // Test crypto.randomUUID
+        const uuid = crypto.randomUUID();
+        console.log('✅ crypto.randomUUID:', uuid);
+        
+        console.log('🎉 All crypto polyfill tests passed!');
+    } catch (error) {
+        console.error('❌ crypto polyfill test failed:', error);
+    }
+
     console.log('fetch')
     try {
         const result = await fetch('https://api.ipify.org?format=json');
@@ -29,9 +51,9 @@ export async function main() {
     setTimeout(() => {
         console.log('setTimeout done inside');
     }, 1000);
-    setInterval(() => {
-        console.log('setTimeout done inside');
-    }, 1000);
+    // setInterval(() => {
+    //     console.log('setTimeout done inside');
+    // }, 1000);
     console.log('setTimeout done');
 
 
