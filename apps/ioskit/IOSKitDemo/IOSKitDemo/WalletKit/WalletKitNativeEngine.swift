@@ -10,6 +10,7 @@ import JavaScriptCore
 import Combine
 import os.log
 import JavaScriptCoreExtras
+import Security
 
 /// Native engine that runs the actual WalletKit JavaScript library
 class WalletKitNativeEngine: NSObject {
@@ -74,11 +75,33 @@ class WalletKitNativeEngine: NSObject {
             print("🌐 WalletKit JS: \(message)")
         }
         
+        // Set up secure random function for crypto.getRandomValues polyfill
+        let getSecureRandomBytes: @convention(block) (Int) -> JSValue = { [weak self] length in
+            guard let self = self, let context = self.jsContext else {
+                return JSValue(undefinedIn: context)
+            }
+            
+            do {
+                let randomBytes = try self.generateSecureRandomBytes(count: length)
+                let jsArray = JSValue(newArrayIn: context)!
+                
+                for (index, byte) in randomBytes.enumerated() {
+                    jsArray.setObject(NSNumber(value: byte), atIndexedSubscript: index)
+                }
+                
+                return jsArray
+            } catch {
+                print("❌ Failed to generate secure random bytes: \(error)")
+                return JSValue(undefinedIn: context)
+            }
+        }
+        
         TimerJS.registerInto(jsContext: context)
         // JSIntervals.provideToContext(context: context)
         try context.install([.fetch])
         
         context.setObject(consoleLog, forKeyedSubscript: "nativeLog" as NSString)
+        context.setObject(getSecureRandomBytes, forKeyedSubscript: "getSecureRandomBytes" as NSString)
         
         // Add basic console object and window object
         context.evaluateScript("""
@@ -104,11 +127,76 @@ class WalletKitNativeEngine: NSObject {
                 }
             };
             
-            // Make console available globally
+            // Set up crypto polyfill using Swift's secure random
+            const crypto = {
+                getRandomValues: function(array) {
+                    if (!array) {
+                        throw new Error('crypto.getRandomValues: array is required');
+                    }
+                    
+                    // Check if it's a typed array
+                    if (!(array instanceof Int8Array || array instanceof Uint8Array || 
+                          array instanceof Uint8ClampedArray || array instanceof Int16Array || 
+                          array instanceof Uint16Array || array instanceof Int32Array || 
+                          array instanceof Uint32Array)) {
+                        throw new Error('crypto.getRandomValues: argument must be a typed array');
+                    }
+                    
+                    // Get random bytes from Swift
+                    const randomBytes = getSecureRandomBytes(array.length);
+                    if (!randomBytes) {
+                        throw new Error('crypto.getRandomValues: failed to generate random bytes');
+                    }
+                    
+                    // Fill the array with random values
+                    for (let i = 0; i < array.length; i++) {
+                        array[i] = randomBytes[i];
+                    }
+                    
+                    return array;
+                },
+                
+                // Add randomUUID for completeness (using crypto.getRandomValues)
+                randomUUID: function() {
+                    const bytes = new Uint8Array(16);
+                    this.getRandomValues(bytes);
+                    
+                    // Set version (4) and variant bits according to RFC 4122
+                    bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
+                    bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 10
+                    
+                    const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+                    return hex.substring(0, 8) + '-' + hex.substring(8, 12) + '-' + 
+                           hex.substring(12, 16) + '-' + hex.substring(16, 20) + '-' + 
+                           hex.substring(20, 32);
+                }
+            };
+            
+            // Make console and crypto available globally
             window.console = console;
+            window.crypto = crypto;
+            globalThis.crypto = crypto;
+            self = {}
+            self.crypto = crypto;
         """)
         
         print("✅ JavaScript context initialized")
+    }
+    
+    /// Generate cryptographically secure random bytes using Swift's Security framework
+    private func generateSecureRandomBytes(count: Int) throws -> [UInt8] {
+        guard count > 0 else {
+            throw WalletKitError.initializationFailed("Random bytes count must be positive")
+        }
+        
+        var randomBytes = [UInt8](repeating: 0, count: count)
+        let result = SecRandomCopyBytes(kSecRandomDefault, count, &randomBytes)
+        
+        guard result == errSecSuccess else {
+            throw WalletKitError.initializationFailed("Failed to generate secure random bytes: \(result)")
+        }
+        
+        return randomBytes
     }
     
     private func loadWalletKitLibrary() throws {
