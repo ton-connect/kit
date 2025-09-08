@@ -228,10 +228,10 @@ export async function main() {
 
             try {
                 const wallets = await walletKit.getWallets();
-                console.log('✅ Got wallets:', wallets);
+                console.log('✅ Got wallets:', JSON.stringify(wallets, (_, v) => typeof v === 'bigint' ? v.toString() : v));
                 return wallets;
             } catch (error) {
-                console.error('❌ Failed to get wallets:', error);
+                console.error('❌ Failed to get wallets:', error.toString());
                 throw error;
             }
         },
