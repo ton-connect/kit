@@ -11,6 +11,7 @@ import Combine
 import os.log
 import JavaScriptCoreExtras
 import Security
+import CommonCrypto
 
 /// Native engine that runs the actual WalletKit JavaScript library
 class WalletKitNativeEngine: NSObject, WalletKitEngine {
@@ -104,8 +105,24 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         // JSIntervals.provideToContext(context: context)
         try context.install([.fetch])
         
+        // Set up PBKDF2 function for JavaScript
+        let pbkdf2Derive: @convention(block) (String, String, Int, Int, String) -> JSValue = { [weak self] password, salt, iterations, keySize, hash in
+            guard let self = self, let context = self.jsContext else {
+                return JSValue(undefinedIn: context)
+            }
+            
+            do {
+                let derivedKey = try self.derivePBKDF2(password: password, salt: salt, iterations: iterations, keySize: keySize, hash: hash)
+                return JSValue(object: derivedKey, in: context)
+            } catch {
+                print("❌ PBKDF2 derivation failed: \(error)")
+                return JSValue(undefinedIn: context)
+            }
+        }
+        
         context.setObject(consoleLog, forKeyedSubscript: "nativeLog" as NSString)
         context.setObject(getSecureRandomBytes, forKeyedSubscript: "getSecureRandomBytes" as NSString)
+        context.setObject(pbkdf2Derive, forKeyedSubscript: "nativePbkdf2Derive" as NSString)
         
         // Set up EventSource bridge functions
         let eventSourceCreate: @convention(block) (String, String, JSValue?) -> String = { [weak self] url, eventSourceId, options in
@@ -337,6 +354,20 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
                 };
             }
             
+            // PBKDF2 polyfill using native Swift implementation
+            window.Pbkdf2 = {
+                derive: function(password, salt, iterations, keySize, hash) {
+                    return new Promise(function(resolve, reject) {
+                        try {
+                            const result = nativePbkdf2Derive(password, salt, iterations, keySize, hash);
+                            resolve(result);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    });
+                }
+            };
+            
             // Make console and crypto available globally
             window.console = console;
             window.crypto = crypto;
@@ -365,6 +396,54 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         }
         
         return randomBytes
+    }
+    
+    /// Native PBKDF2 implementation using Swift's Security framework
+    private func derivePBKDF2(password: String, salt: String, iterations: Int, keySize: Int, hash: String) throws -> String {
+        // Convert strings to Data
+        guard let passwordData = password.data(using: .utf8),
+              let saltData = salt.data(using: .utf8) else {
+            throw WalletKitError.initializationFailed("Failed to convert password or salt to data")
+        }
+        
+        // Map hash algorithm names to CCHmacAlgorithm
+        let algorithm: CCPseudoRandomAlgorithm
+        switch hash.lowercased() {
+        case "sha-1", "sha1":
+            algorithm = CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA1)
+        case "sha-256", "sha256":
+            algorithm = CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256)
+        case "sha-512", "sha512":
+            algorithm = CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA512)
+        default:
+            throw WalletKitError.initializationFailed("Unsupported hash algorithm: \(hash)")
+        }
+        
+        // Prepare output buffer
+        var derivedKey = Data(count: keySize)
+        
+        // Perform PBKDF2 derivation
+        let result = derivedKey.withUnsafeMutableBytes { derivedKeyBytes in
+            passwordData.withUnsafeBytes { passwordBytes in
+                saltData.withUnsafeBytes { saltBytes in
+                    CCKeyDerivationPBKDF(
+                        CCPBKDFAlgorithm(kCCPBKDF2),
+                        passwordBytes.bindMemory(to: Int8.self).baseAddress, passwordData.count,
+                        saltBytes.bindMemory(to: UInt8.self).baseAddress, saltData.count,
+                        algorithm,
+                        UInt32(iterations),
+                        derivedKeyBytes.bindMemory(to: UInt8.self).baseAddress, keySize
+                    )
+                }
+            }
+        }
+        
+        guard result == kCCSuccess else {
+            throw WalletKitError.initializationFailed("PBKDF2 derivation failed with error: \(result)")
+        }
+        
+        // Convert to hex string
+        return derivedKey.map { String(format: "%02x", $0) }.joined()
     }
     
     // MARK: - EventSource Bridge Methods

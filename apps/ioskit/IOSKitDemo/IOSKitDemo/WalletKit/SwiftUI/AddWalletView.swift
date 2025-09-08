@@ -13,6 +13,7 @@ struct AddWalletView: View {
     @State private var walletName = ""
     @State private var selectedNetwork: TonNetwork = .mainnet
     @State private var mnemonicWords: [String] = Array(repeating: "", count: 24)
+    @State private var mnemonicText: String = ""
     @State private var isProcessing = false
     @State private var errorMessage: String?
     
@@ -105,6 +106,47 @@ struct AddWalletView: View {
                         .fontWeight(.medium)
                         .padding(.horizontal)
                     
+                    // Text field for pasting complete mnemonic
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Paste your 24-word recovery phrase:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        TextEditor(text: $mnemonicText)
+                            .frame(minHeight: 80)
+                            .padding(8)
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(8)
+                            .font(.system(size: 14).monospaced())
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .onChange(of: mnemonicText) { newValue in
+                                parseMnemonicText(newValue)
+                            }
+                        
+                        HStack {
+                            Button("Paste from Clipboard") {
+                                pasteFromClipboard()
+                            }
+                            .buttonStyle(.bordered)
+                            .font(.caption)
+                            
+                            Spacer()
+                            
+                            Button("Clear") {
+                                clearMnemonic()
+                            }
+                            .buttonStyle(.bordered)
+                            .font(.caption)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    Text("Or enter words individually:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                         ForEach(0..<mnemonicWordCount, id: \.self) { index in
                             VStack(spacing: 4) {
@@ -117,24 +159,14 @@ struct AddWalletView: View {
                                     .font(.caption)
                                     .autocapitalization(.none)
                                     .disableAutocorrection(true)
+                                    .onChange(of: mnemonicWords[index]) { newValue in
+                                        updateMnemonicText()
+                                    }
                             }
                         }
                     }
                     .padding(.horizontal)
                 }
-                
-                // Import from text
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Or paste recovery phrase")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    Button("Paste from Clipboard") {
-                        pasteFromClipboard()
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .padding(.horizontal)
             }
         }
     }
@@ -244,18 +276,47 @@ struct AddWalletView: View {
     }
     
     private func pasteFromClipboard() {
-        guard let clipboardString = UIPasteboard.general.string else { return }
+        guard let clipboardString = UIPasteboard.general.string else { 
+            errorMessage = "No text found in clipboard."
+            return
+        }
         
-        let words = clipboardString
+        mnemonicText = clipboardString.trimmingCharacters(in: .whitespacesAndNewlines)
+        parseMnemonicText(mnemonicText)
+    }
+    
+    private func parseMnemonicText(_ text: String) {
+        let words = text
             .components(separatedBy: .whitespacesAndNewlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         
+        // Clear existing words first
+        mnemonicWords = Array(repeating: "", count: 24)
+        
         if words.count == mnemonicWordCount {
             mnemonicWords = words
-        } else {
-            errorMessage = "Invalid recovery phrase. Expected \(mnemonicWordCount) words, got \(words.count)."
+            errorMessage = nil
+        } else if words.count > 0 && words.count != mnemonicWordCount {
+            // Fill as many words as we can
+            for (index, word) in words.enumerated() {
+                if index < mnemonicWordCount {
+                    mnemonicWords[index] = word
+                }
+            }
+            errorMessage = "Expected \(mnemonicWordCount) words, got \(words.count). Please check your recovery phrase."
         }
+    }
+    
+    private func updateMnemonicText() {
+        let nonEmptyWords = mnemonicWords.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        mnemonicText = nonEmptyWords.joined(separator: " ")
+    }
+    
+    private func clearMnemonic() {
+        mnemonicText = ""
+        mnemonicWords = Array(repeating: "", count: 24)
+        errorMessage = nil
     }
     
     private func importWallet() {

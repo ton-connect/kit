@@ -183,12 +183,13 @@ export async function main() {
             console.log('➕ Bridge: Adding wallet:', config);
 
             try {
-                console.log('addWallet', walletKit);
+                config.network = 'mainnet';
+                console.log('addWallet', config);
                 const result = await walletKit.addWallet(config);
                 console.log('✅ Wallet added:', result);
                 return result;
             } catch (error) {
-                console.error('❌ Failed to add wallet:', error);
+                console.error('❌ Failed to add wallet:', error.toString());
                 throw error;
             }
         },
