@@ -27,6 +27,10 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         eventSubject.eraseToAnyPublisher()
     }
     
+    // EventSource management
+    private var eventSources: [String: EventSourceTask] = [:]
+    private var eventSourceCallbacks: [String: JSValue] = [:]
+    
     // MARK: - Initialization
     
     init(config: WalletKitConfig) {
@@ -103,6 +107,25 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         context.setObject(consoleLog, forKeyedSubscript: "nativeLog" as NSString)
         context.setObject(getSecureRandomBytes, forKeyedSubscript: "getSecureRandomBytes" as NSString)
         
+        // Set up EventSource bridge functions
+        let eventSourceCreate: @convention(block) (String, String, JSValue?) -> String = { [weak self] url, eventSourceId, options in
+            guard let self = self else { return "error" }
+            
+            Task { [weak self] in
+                await self?.createEventSource(url: url, eventSourceId: eventSourceId, options: options)
+            }
+            return "success"
+        }
+        
+        let eventSourceClose: @convention(block) (String) -> Void = { [weak self] eventSourceId in
+            Task { [weak self] in
+                await self?.closeEventSource(eventSourceId: eventSourceId)
+            }
+        }
+        
+        context.setObject(eventSourceCreate, forKeyedSubscript: "nativeEventSourceCreate" as NSString)
+        context.setObject(eventSourceClose, forKeyedSubscript: "nativeEventSourceClose" as NSString)
+        
         // Add basic console object and window object
         context.evaluateScript("""
             // Create global window object for browser compatibility
@@ -172,12 +195,157 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
                 }
             };
             
+            // EventSource polyfill
+            
+            // Global instance tracker for Swift bridge
+            if (!window.eventSourceInstances) {
+                window.eventSourceInstances = {};
+            }
+            
+            class EventSource {
+                constructor(url, options = {}) {
+                    this.url = url;
+                    this.readyState = 0; // CONNECTING
+                    this.withCredentials = options.withCredentials || false;
+                    
+                    // Event handlers
+                    this.onopen = null;
+                    this.onmessage = null;
+                    this.onerror = null;
+                    
+                    // Event listeners
+                    this._eventListeners = new Map();
+                    
+                    // Generate unique ID for this EventSource instance
+                    this._id = 'es_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    
+                    // Register this instance globally for Swift bridge
+                    window.eventSourceInstances[this._id] = this;
+                    
+                    // Start connection
+                    setTimeout(() => this._connect(), 0);
+                }
+                
+                _connect() {
+                    try {
+                        this.readyState = 0; // CONNECTING
+                        const result = nativeEventSourceCreate(this.url, this._id, {
+                            withCredentials: this.withCredentials
+                        });
+                        
+                        if (result === 'error') {
+                            this._handleError(new Error('Failed to create native EventSource'));
+                        }
+                    } catch (error) {
+                        this._handleError(error);
+                    }
+                }
+                
+                close() {
+                    if (this.readyState !== 2) { // Not already CLOSED
+                        this.readyState = 2; // CLOSED
+                        nativeEventSourceClose(this._id);
+                        
+                        // Clean up global instance tracking
+                        if (window.eventSourceInstances && window.eventSourceInstances[this._id]) {
+                            delete window.eventSourceInstances[this._id];
+                        }
+                    }
+                }
+                
+                addEventListener(type, listener, options) {
+                    if (typeof listener !== 'function') return;
+                    
+                    if (!this._eventListeners.has(type)) {
+                        this._eventListeners.set(type, []);
+                    }
+                    this._eventListeners.get(type).push(listener);
+                }
+                
+                removeEventListener(type, listener) {
+                    if (!this._eventListeners.has(type)) return;
+                    
+                    const listeners = this._eventListeners.get(type);
+                    const index = listeners.indexOf(listener);
+                    if (index !== -1) {
+                        listeners.splice(index, 1);
+                    }
+                }
+                
+                _dispatchEvent(event) {
+                    // Call specific handler
+                    if (event.type === 'open' && this.onopen) {
+                        this.onopen(event);
+                    } else if (event.type === 'message' && this.onmessage) {
+                        this.onmessage(event);
+                    } else if (event.type === 'error' && this.onerror) {
+                        this.onerror(event);
+                    }
+                    
+                    // Call addEventListener listeners
+                    if (this._eventListeners.has(event.type)) {
+                        const listeners = this._eventListeners.get(event.type);
+                        listeners.forEach(listener => {
+                            try {
+                                listener(event);
+                            } catch (e) {
+                                console.error('EventSource listener error:', e);
+                            }
+                        });
+                    }
+                }
+                
+                _handleOpen() {
+                    this.readyState = 1; // OPEN
+                    const event = new CustomEvent('open');
+                    this._dispatchEvent(event);
+                }
+                
+                _handleMessage(data, eventType, lastEventId) {
+                    const event = new CustomEvent(eventType || 'message');
+                    event.data = data;
+                    event.lastEventId = lastEventId || '';
+                    event.origin = new URL(this.url).origin;
+                    this._dispatchEvent(event);
+                }
+                
+                _handleError(error) {
+                    this.readyState = 2; // CLOSED
+                    const event = new CustomEvent('error');
+                    event.error = error;
+                    this._dispatchEvent(event);
+                }
+                
+                // Constants
+                static get CONNECTING() { return 0; }
+                static get OPEN() { return 1; }
+                static get CLOSED() { return 2; }
+                
+                get CONNECTING() { return 0; }
+                get OPEN() { return 1; }
+                get CLOSED() { return 2; }
+            }
+            
+            // CustomEvent implementation for non-DOM environments
+            if (!window.CustomEvent) {
+                window.CustomEvent = function(type, options) {
+                    options = options || {};
+                    this.type = type;
+                    this.bubbles = options.bubbles || false;
+                    this.cancelable = options.cancelable || false;
+                    this.detail = options.detail || null;
+                };
+            }
+            
             // Make console and crypto available globally
             window.console = console;
             window.crypto = crypto;
             globalThis.crypto = crypto;
+            window.EventSource = EventSource;
+            globalThis.EventSource = EventSource;
             self = {}
             self.crypto = crypto;
+            self.EventSource = EventSource;
         """)
         
         print("✅ JavaScript context initialized")
@@ -199,6 +367,128 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         return randomBytes
     }
     
+    // MARK: - EventSource Bridge Methods
+    
+    private func createEventSource(url: String, eventSourceId: String, options: JSValue?) async {
+        // Create URL request
+        guard let requestUrl = URL(string: url) else {
+            print("❌ Invalid EventSource URL: \(url)")
+            await handleEventSourceError(eventSourceId: eventSourceId, error: NSError(domain: "EventSourceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"]))
+            return
+        }
+        
+        var urlRequest = URLRequest(url: requestUrl)
+        urlRequest.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        urlRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        
+        // Create EventSource with proper actor isolation
+        let task = await Task { @EventSourceActor in
+            let eventSource = EventSource()
+            return eventSource.createTask(urlRequest: urlRequest)
+        }.value
+        
+        // Store the task and start listening
+        await MainActor.run {
+            self.eventSources[eventSourceId] = task
+        }
+        
+        // Start async task to handle events
+        Task { [weak self] in
+            guard let self = self else { return }
+            
+            for await event in await task.events {
+                await MainActor.run {
+                    self.handleEventSourceEvent(eventSourceId: eventSourceId, event: event)
+                }
+            }
+        }
+        
+        print("✅ EventSource created for URL: \(url)")
+    }
+    
+    private func closeEventSource(eventSourceId: String) async {
+        await MainActor.run {
+            if let task = self.eventSources[eventSourceId] {
+                // Cancel task on the EventSourceActor
+                Task { @EventSourceActor in
+                    task.cancel()
+                }
+                self.eventSources.removeValue(forKey: eventSourceId)
+                self.eventSourceCallbacks.removeValue(forKey: eventSourceId)
+                print("✅ EventSource closed: \(eventSourceId)")
+            }
+        }
+    }
+    
+    private func handleEventSourceEvent(eventSourceId: String, event: EventSourceTask.TaskEvent) {
+        guard let context = jsContext else { return }
+        
+        let script: String
+        
+        switch event {
+        case .open:
+            script = """
+                if (window.eventSourceInstances && window.eventSourceInstances['\(eventSourceId)']) {
+                    window.eventSourceInstances['\(eventSourceId)']._handleOpen();
+                }
+            """
+            
+        case .closed:
+            script = """
+                if (window.eventSourceInstances && window.eventSourceInstances['\(eventSourceId)']) {
+                    const instance = window.eventSourceInstances['\(eventSourceId)'];
+                    instance.readyState = 2; // CLOSED
+                    delete window.eventSourceInstances['\(eventSourceId)'];
+                }
+            """
+            
+        case .event(let eventData):
+            let data = eventData.data?.replacingOccurrences(of: "\\", with: "\\\\")
+                .replacingOccurrences(of: "'", with: "\\'")
+                .replacingOccurrences(of: "\n", with: "\\n")
+                .replacingOccurrences(of: "\r", with: "\\r") ?? ""
+            
+            let eventType = eventData.event?.replacingOccurrences(of: "'", with: "\\'") ?? "message"
+            let eventId = eventData.id?.replacingOccurrences(of: "'", with: "\\'") ?? ""
+            
+            script = """
+                if (window.eventSourceInstances && window.eventSourceInstances['\(eventSourceId)']) {
+                    window.eventSourceInstances['\(eventSourceId)']._handleMessage('\(data)', '\(eventType)', '\(eventId)');
+                }
+            """
+            
+        case .error(let error):
+            let errorMessage = error.localizedDescription.replacingOccurrences(of: "'", with: "\\'")
+            script = """
+                if (window.eventSourceInstances && window.eventSourceInstances['\(eventSourceId)']) {
+                    window.eventSourceInstances['\(eventSourceId)']._handleError(new Error('\(errorMessage)'));
+                }
+            """
+        }
+        
+        DispatchQueue.main.async {
+            context.evaluateScript(script)
+        }
+    }
+    
+    private func handleEventSourceError(eventSourceId: String, error: Error) async {
+        guard let context = jsContext else { return }
+        
+        let errorMessage = error.localizedDescription.replacingOccurrences(of: "'", with: "\\'")
+        let script = """
+            if (window.eventSourceInstances && window.eventSourceInstances['\(eventSourceId)']) {
+                window.eventSourceInstances['\(eventSourceId)']._handleError(new Error('\(errorMessage)'));
+            }
+        """
+        
+        await MainActor.run {
+            _ = context.evaluateScript(script)
+        }
+        
+        // Clean up
+        await closeEventSource(eventSourceId: eventSourceId)
+    }
+    
     private func loadWalletKitLibrary() throws {
         guard let context = jsContext else {
             throw WalletKitError.initializationFailed("JavaScript context not initialized")
@@ -210,7 +500,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
             
             print("📋 Loading WalletKit JavaScript from ioskit.mjs (\(jsCode.count) characters)...")
             
-            let result = context.evaluateScript(jsCode)
+            _ = context.evaluateScript(jsCode)
             
             // Check for evaluation success
             if let exception = context.exception {
@@ -273,7 +563,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     private func loadAndTransformMJS(from path: String) throws -> String {
-        let mjsContent = try String(contentsOfFile: path)
+        let mjsContent = try String(contentsOfFile: path, encoding: .utf8)
         
         // Transform the ES module to work in JavaScriptCore
         // Remove the export statement and make the main function available globally
@@ -329,7 +619,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
         
         context.setObject(sendEventCallback, forKeyedSubscript: "sendEventCallback" as NSString)
         
-        let result = context.evaluateScript(bridgeSetupScript)
+        _ = context.evaluateScript(bridgeSetupScript)
         
         if let exception = context.exception {
             throw WalletKitError.initializationFailed("Bridge setup failed: \(exception)")
@@ -387,7 +677,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     // MARK: - API Methods
     
     func addWallet(_ config: WalletConfig) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -406,7 +696,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func getWallets() async throws -> [[String: Any]] {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -422,7 +712,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func handleTonConnectUrl(_ url: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -431,7 +721,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func removeWallet(_ address: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -440,7 +730,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func clearWallets() async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -449,7 +739,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func getSessions() async throws -> [[String: Any]] {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -465,7 +755,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func approveConnectRequest(_ requestId: String, walletAddress: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -474,7 +764,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func rejectConnectRequest(_ requestId: String, reason: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -483,7 +773,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func approveTransactionRequest(_ requestId: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -492,7 +782,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func rejectTransactionRequest(_ requestId: String, reason: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -501,7 +791,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func approveSignDataRequest(_ requestId: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -510,7 +800,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func rejectSignDataRequest(_ requestId: String, reason: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -519,7 +809,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func disconnect(_ sessionId: String) async throws {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -528,7 +818,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func getJettons(_ walletAddress: String) async throws -> [[String: Any]] {
-        guard let context = jsContext, let instance = walletKitInstance else {
+        guard let context = jsContext, walletKitInstance != nil else {
             throw WalletKitError.bridgeError("WalletKit not initialized")
         }
         
@@ -578,6 +868,16 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     }
     
     func close() async throws {
+        // Close all EventSource connections
+        for (eventSourceId, task) in eventSources {
+            Task { @EventSourceActor in
+                task.cancel()
+            }
+            print("🔌 Closed EventSource: \(eventSourceId)")
+        }
+        eventSources.removeAll()
+        eventSourceCallbacks.removeAll()
+        
         isInitialized = false
         jsContext = nil
         walletKitInstance = nil
@@ -612,7 +912,7 @@ class WalletKitNativeEngine: NSObject, WalletKitEngine {
     
     /// Enable verbose logging for all JavaScript calls
     func enableVerboseLogging() {
-        debugEvaluateScript("""
+        _ = debugEvaluateScript("""
             // Override all console methods with verbose logging
             const originalLog = console.log;
             console.log = function(...args) {
