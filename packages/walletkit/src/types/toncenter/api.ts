@@ -41,8 +41,3 @@ export interface EstimatedFee {
     inFwdFee: number;
     storageFee: number;
 }
-
-export interface EstimateFeeResult {
-    sourceFees: EstimatedFee;
-    destinationFees: EstimatedFee[];
-}

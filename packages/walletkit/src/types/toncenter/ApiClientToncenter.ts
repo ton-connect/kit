@@ -1,8 +1,8 @@
-import { Address, Cell, Message, TupleItem } from '@ton/core';
+import { Address, TupleItem } from '@ton/core';
 
 import { ConnectTransactionParamMessage } from '../internal';
 import { ToncenterEmulationResponse } from './emulation';
-import { EstimateFeeResult, FullAccountState, GetResult } from './api';
+import { FullAccountState, GetResult } from './api';
 
 export interface ApiToncenter {
     fetchEmulation(
@@ -17,7 +17,6 @@ export interface ApiToncenter {
         stack: TupleItem[] = [],
         seqno?: number,
     ): Promise<GetResult>;
-    estimateFee(msg: Message | Cell | string, checkSignature = false): Promise<EstimateFeeResult>;
     getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState>;
     getBalance(address: Address | string, seqno?: number): Promise<bigint>;
 }

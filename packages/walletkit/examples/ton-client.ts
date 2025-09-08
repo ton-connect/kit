@@ -72,8 +72,6 @@ async function main() {
         { fakeSignature: false },
     );
     logInfo(msg);
-    const fee = await tonClient.estimateFee(msg);
-    logInfo({ fee });
     const emulation = await tonClient.fetchEmulation(existAccount.getAddress(), [
         {
             address: existAccount.getAddress(),

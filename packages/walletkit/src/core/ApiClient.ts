@@ -1,7 +1,7 @@
 import { Address, Cell, ExtraCurrency, loadMessage, Message, TupleItem, TupleReader } from '@ton/core';
 
 import { base64ToUint8Array, base64ToBigInt, uint8ArrayToBase64 } from '../utils/base64';
-import { BlockId, EstimateFeeResult, FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
+import { BlockId, FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
 import { ApiToncenter } from '../types/toncenter/ApiClientToncenter';
@@ -102,44 +102,6 @@ export class ApiClient implements ApiToncenter {
             exitCode: raw.exit_code,
             lastTransaction: parseInternalTransactionId(raw.last_transaction_id),
             blockId: parseRawBlockId(raw.block_id),
-        };
-    }
-
-    async estimateFee(msg: Message | Cell | string, checkSignature = false): Promise<EstimateFeeResult> {
-        const { info, body, init } = toMessage(msg);
-        if (!info.dest) {
-            throw new TonClientError('not set address destination', 400);
-        }
-        const props: Record<string, unknown> = {
-            address: info.dest.toString(),
-            body: body.toBoc().toString('base64'),
-            init_code: '',
-            init_data: '',
-            ignore_chksig: !checkSignature,
-        };
-        if (init) {
-            props.init_code = init.code?.toBoc().toString('base64');
-            props.init_data = init.data?.toBoc().toString('base64');
-        }
-        const response = await this.postJson<EstimateFeeResponse>('/api/v2/estimateFee', props);
-        if (!response.ok) throw new TonClientError(response.error, response.code, response);
-
-        const { source_fees, destination_fees } = response.result;
-        return {
-            sourceFees: {
-                fwdFee: source_fees.fwd_fee,
-                gasFee: source_fees.gas_fee,
-                inFwdFee: source_fees.in_fwd_fee,
-                storageFee: source_fees.storage_fee,
-            },
-            destinationFees: destination_fees.map((it) => {
-                return {
-                    fwdFee: it.fwd_fee,
-                    gasFee: it.gas_fee,
-                    inFwdFee: it.in_fwd_fee,
-                    storageFee: it.storage_fee,
-                };
-            }),
         };
     }
 
@@ -291,23 +253,12 @@ interface SmcRunResult {
     last_transaction_id: InternalTransactionId;
     '@extra': string;
 }
-interface V2EstimatedFee {
-    fwd_fee: number;
-    gas_fee: number;
-    in_fwd_fee: number;
-    storage_fee: number;
-}
-interface V2EstimateFeeResult {
-    source_fees: V2EstimatedFee;
-    destination_fees: V2EstimatedFee[];
-}
 interface V2SendMessageResult {
     message_hash: string;
     message_hash_norm: string;
 }
 type GetAccountStateResponse = Response<RawAddressInformation>;
 type RunGetMethodResponse = Response<SmcRunResult>;
-type EstimateFeeResponse = Response<V2EstimateFeeResult>;
 
 type TvmStackEntry =
     | { '@type': 'tvm.list' | 'tvm.tuple'; elements: TvmStackEntry[] }
