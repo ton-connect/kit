@@ -12,7 +12,8 @@
   "dependencies": {
     "@ton/walletkit": "workspace:*",
     "buffer": "^6.0.3",
-    "url-polyfill": "^1.1.13"
+    "url-polyfill": "^1.1.13",
+    "whatwg-url": "^14.2.0"
   },
   "description": "Native iOS app with TonWalletKit Swift wrapper",
   "main": "src/walletkit/WalletKitSwift.swift",

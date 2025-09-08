@@ -20,8 +20,9 @@ public class TonWalletKitSwift: ObservableObject {
     @Published public private(set) var sessions: [SessionInfo] = []
     
     // MARK: - Private Properties  
-    private let nativeEngine: WalletKitNativeEngine
+    private let engine: WalletKitEngine
     private var cancellables = Set<AnyCancellable>()
+    public let engineType: WalletKitEngineType
     
     // MARK: - Event Handlers
     public var onConnectRequest: ((ConnectRequestEvent) -> Void)?
@@ -31,15 +32,16 @@ public class TonWalletKitSwift: ObservableObject {
     
     // MARK: - Initialization
     
-    public init(config: WalletKitConfig) {
-        self.nativeEngine = WalletKitNativeEngine(config: config)
+    public init(config: WalletKitConfig, engineType: WalletKitEngineType = .native) {
+        self.engineType = engineType
+        self.engine = engineType.createEngine(config: config)
         setupEventHandlers()
     }
     
     /// Initialize the WalletKit system
     public func initialize() async throws {
         do {
-            try await nativeEngine.initialize()
+            try await engine.initialize()
             await refreshState()
             isInitialized = true
         } catch {
@@ -48,7 +50,7 @@ public class TonWalletKitSwift: ObservableObject {
     }
     
     private func setupEventHandlers() {
-        nativeEngine.eventPublisher
+        engine.eventPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] event in
                 self?.handleWalletKitEvent(event)
@@ -86,7 +88,7 @@ public class TonWalletKitSwift: ObservableObject {
     /// Add a new wallet
     public func addWallet(_ config: WalletConfig) async throws {
         do {
-            try await nativeEngine.addWallet(config)
+            try await engine.addWallet(config)
             await refreshState()
         } catch {
             throw WalletKitError.walletOperationFailed(error.localizedDescription)
@@ -126,7 +128,7 @@ public class TonWalletKitSwift: ObservableObject {
     /// Handle pasted TON Connect URL/link
     public func handleTonConnectUrl(_ url: String) async throws {
         do {
-            try await nativeEngine.handleTonConnectUrl(url)
+            try await engine.handleTonConnectUrl(url)
         } catch {
             throw WalletKitError.urlProcessingFailed(error.localizedDescription)
         }
@@ -137,7 +139,7 @@ public class TonWalletKitSwift: ObservableObject {
     /// Approve a connect request
     public func approveConnectRequest(_ event: ConnectRequestEvent, wallet: WalletInfo) async throws {
         do {
-            try await nativeEngine.approveConnectRequest(event.id, walletAddress: wallet.address)
+            try await engine.approveConnectRequest(event.id, walletAddress: wallet.address)
             await refreshState()
         } catch {
             throw WalletKitError.requestProcessingFailed(error.localizedDescription)
@@ -189,8 +191,8 @@ public class TonWalletKitSwift: ObservableObject {
     
     private func refreshState() async {
         do {
-            // For native engine, we'll get wallets differently
-            let walletsData = try await nativeEngine.getWallets()
+            // Get wallets from the engine
+            let walletsData = try await engine.getWallets()
             // Convert from [[String: Any]] to [WalletInfo]
             wallets = walletsData.compactMap { dict -> WalletInfo? in
                 guard let address = dict["address"] as? String,
@@ -205,7 +207,7 @@ public class TonWalletKitSwift: ObservableObject {
                     version: dict["version"] as? String ?? "v5r1"
                 )
             }
-            sessions = [] // Native engine sessions would need separate implementation
+            sessions = [] // Engine sessions would need separate implementation
         } catch {
             print("Failed to refresh state: \(error)")
         }
@@ -215,7 +217,7 @@ public class TonWalletKitSwift: ObservableObject {
     
     /// Clean shutdown
     public func close() async {
-        try? await nativeEngine.close()
+        try? await engine.close()
         cancellables.removeAll()
         isInitialized = false
     }
