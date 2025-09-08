@@ -13,7 +13,7 @@ import JavaScriptCoreExtras
 import Security
 
 /// Native engine that runs the actual WalletKit JavaScript library
-class WalletKitNativeEngine: NSObject {
+class WalletKitNativeEngine: NSObject, WalletKitEngine {
     
     // MARK: - Properties
     private var jsContext: JSContext?

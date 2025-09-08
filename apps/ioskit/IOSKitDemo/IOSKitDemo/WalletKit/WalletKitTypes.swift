@@ -334,7 +334,7 @@ public struct JettonInfo: Codable, Identifiable {
 
 // MARK: - Internal Event Types
 
-enum WalletKitEvent {
+public enum WalletKitEvent {
     case connectRequest(ConnectRequestEvent)
     case transactionRequest(TransactionRequestEvent)
     case signDataRequest(SignDataRequestEvent)

@@ -8,28 +8,10 @@
 import SwiftUI
 
 struct EngineSelectionView: View {
-    @State private var selectedEngine: EngineType = .native
+    @State private var selectedEngine: WalletKitEngineType = .native
     @State private var walletKit: TonWalletKitSwift?
     @State private var isInitializing = false
     @State private var initializationError: Error?
-    
-    enum EngineType: String, CaseIterable {
-        case native = "Native JavaScriptCore"
-        
-        var description: String {
-            switch self {
-            case .native:
-                return "Uses JavaScriptCore directly for optimal performance"
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .native:
-                return "gearshape.2"
-            }
-        }
-    }
     
     var body: some View {
         NavigationView {
@@ -53,12 +35,17 @@ struct EngineSelectionView: View {
                                 .foregroundColor(.secondary)
                         }
                         
-                        // Engine Info
+                        // Engine Selection
                         VStack(alignment: .leading, spacing: 15) {
                             Text("Integration Method:")
                                 .font(.headline)
                             
-                            engineInfoCard()
+                            // Engine Type Picker
+                            VStack(spacing: 12) {
+                                ForEach(WalletKitEngineType.allCases, id: \.self) { engineType in
+                                    engineSelectionCard(engineType)
+                                }
+                            }
                         }
                         .padding()
                         .background(Color.gray.opacity(0.05))
@@ -70,12 +57,18 @@ struct EngineSelectionView: View {
                                 VStack(spacing: 10) {
                                     ProgressView()
                                         .scaleEffect(1.2)
-                                    Text("Initializing Native JavaScriptCore Engine...")
+                                    Text("Initializing \(selectedEngine.displayName)...")
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
-                                    Text("This may take a moment...")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                    if selectedEngine.debuggingSupport {
+                                        Text("WebView loading with Safari debugging...")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    } else {
+                                        Text("This may take a moment...")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                                 .padding()
                             } else {
@@ -116,19 +109,26 @@ struct EngineSelectionView: View {
                         
                         // Info Section
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("About Native Engine")
+                            Text("About \(selectedEngine.displayName)")
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("• Direct JavaScript execution with JavaScriptCore")
-                                Text("• Optimal performance without WebView overhead") 
-                                Text("• Lightweight and efficient iOS integration")
+                                if selectedEngine == .native {
+                                    Text("• Direct JavaScript execution with JavaScriptCore")
+                                    Text("• Optimal performance without WebView overhead")
+                                    Text("• Lightweight and efficient iOS integration")
+                                } else {
+                                    Text("• JavaScript execution in WKWebView environment")
+                                    Text("• Full Safari Web Inspector debugging support")
+                                    Text("• Enhanced error reporting and stack traces")
+                                    Text("• Perfect for development and debugging")
+                                }
                             }
                             .font(.caption)
                             .foregroundColor(.secondary)
                         }
                         .padding()
-                        .background(Color.blue.opacity(0.05))
+                        .background(selectedEngine == .webView ? Color.green.opacity(0.05) : Color.blue.opacity(0.05))
                         .cornerRadius(8)
                     }
                     .padding()
@@ -149,38 +149,55 @@ struct EngineSelectionView: View {
     }
     
     @ViewBuilder
-    private func engineInfoCard() -> some View {
-        let engine = EngineType.native
+    private func engineSelectionCard(_ engineType: WalletKitEngineType) -> some View {
+        let isSelected = selectedEngine == engineType
+        let accentColor: Color = engineType == .webView ? .green : .blue
+        
         HStack(spacing: 12) {
-            Image(systemName: engine.icon)
+            Image(systemName: engineType.icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(isSelected ? accentColor : .gray)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(engine.rawValue)
+                    Text(engineType.displayName)
                         .font(.subheadline)
                         .fontWeight(.medium)
+                        .foregroundColor(isSelected ? .primary : .secondary)
                     
                     Spacer()
                     
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
+                    if engineType.debuggingSupport {
+                        Image(systemName: "ladybug")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                    }
+                    
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(accentColor)
+                    } else {
+                        Image(systemName: "circle")
+                            .foregroundColor(.gray)
+                    }
                 }
                 
-                Text(engine.description)
+                Text(engineType.description)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
         }
         .padding()
-        .background(Color.blue.opacity(0.1))
+        .background(isSelected ? accentColor.opacity(0.1) : Color.gray.opacity(0.05))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.blue, lineWidth: 2)
+                .stroke(isSelected ? accentColor : Color.gray.opacity(0.3), lineWidth: isSelected ? 2 : 1)
         )
+        .onTapGesture {
+            selectedEngine = engineType
+        }
     }
     
     private func initializeWalletKit() {
@@ -189,7 +206,7 @@ struct EngineSelectionView: View {
         
         let config = createWalletKitConfig()
         
-        let newWalletKit = TonWalletKitSwift(config: config)
+        let newWalletKit = TonWalletKitSwift(config: config, engineType: selectedEngine)
         
         Task {
             do {
@@ -198,7 +215,12 @@ struct EngineSelectionView: View {
                 await MainActor.run {
                     self.walletKit = newWalletKit
                     self.isInitializing = false
-                    print("✅ WalletKit initialized with Native JavaScriptCore Engine")
+                    print("✅ WalletKit initialized with \(selectedEngine.displayName)")
+                    
+                    // Show debugging hint for WebView
+                    if selectedEngine.debuggingSupport {
+                        print("🐛 Debug Tip: Open Safari → Develop → [This Device] → WalletKit WebView to debug JavaScript")
+                    }
                 }
             } catch {
                 await MainActor.run {

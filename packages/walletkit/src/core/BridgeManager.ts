@@ -294,6 +294,9 @@ export class BridgeManager {
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
                 listener: this.queueBridgeEvent.bind(this),
+                errorListener: (error: any) => {
+                    console.log('Bridge error listener', error.toString());
+                },
                 options: {
                     lastEventId: this.lastEventId,
                     // heartbeatReconnectIntervalMs: this.config.reconnectInterval,
