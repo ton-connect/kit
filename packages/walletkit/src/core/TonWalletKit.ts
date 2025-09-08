@@ -230,7 +230,7 @@ export class TonWalletKit implements ITonWalletKit {
         const wallet = await createWalletFromConfig(walletConfig, this.tonClient);
         console.log('createWalletFromConfig');
         const walletAdded = await this.walletManager.addWallet(wallet);
-        console.log('walletManager.addWallet');
+        console.log('walletManager.addWallet', walletAdded.toString());
         // wallet already exists
         if (!walletAdded) {
             return undefined;
