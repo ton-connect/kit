@@ -1,6 +1,6 @@
 import { Address } from '@ton/core';
 
-import { createWalletV5R1, TonClient, WalletInitConfigMnemonic } from '../src';
+import { createWalletV5R1, ApiClient, WalletInitConfigMnemonic } from '../src';
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -11,7 +11,7 @@ const apiKey = process.env.TONCENTER_API_KEY;
 const mnemonic = process.env.MNEMONIC;
 
 const endpoint = 'https://toncenter.com';
-const tonClient = new TonClient({
+const tonClient = new ApiClient({
     endpoint,
     apiKey,
 });
@@ -31,7 +31,7 @@ function nextWalletId(parent?: Address | string) {
     return parseInt(bytes.reverse().join(''), 16);
 }
 
-function createWallet(parent?: Address | string) {
+async function createWallet(parent?: Address | string) {
     return createWalletV5R1(
         new WalletInitConfigMnemonic({
             mnemonic: mnemonic!.trim().split(' '),
@@ -51,12 +51,12 @@ async function main() {
     logInfo('Account balance:', {
         balance: await tonClient.getBalance(existAccount.getAddress()),
     });
-    logInfo('Account not exist state:', {
-        state: await tonClient.getAccountState(notExistAccount.getAddress()),
-    });
     const result = await tonClient.runGetMethod(existAccount.getAddress(), 'seqno');
     logInfo('get method seqno:', {
         result: result.stack.readNumber(),
+    });
+    logInfo('Account not exist state:', {
+        state: await tonClient.getAccountState(notExistAccount.getAddress()),
     });
     const msg = await existAccount.getSignedExternal(
         {

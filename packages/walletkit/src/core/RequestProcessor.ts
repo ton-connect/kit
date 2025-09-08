@@ -9,7 +9,7 @@ import {
     SignDataRpcResponseSuccess,
 } from '@tonconnect/protocol';
 
-import { TonClient } from './TonClient';
+import { ApiClient } from './ApiClient';
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
@@ -81,7 +81,7 @@ export class RequestProcessor {
     constructor(
         private sessionManager: SessionManager,
         private bridgeManager: BridgeManager,
-        private client: TonClient,
+        private client: ApiClient,
         private network: CHAIN,
     ) {}
 

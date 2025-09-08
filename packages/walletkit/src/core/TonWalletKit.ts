@@ -3,7 +3,7 @@
 import { Address } from '@ton/core';
 import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
 
-import { TonClient } from './TonClient';
+import { ApiClient } from './ApiClient';
 import type {
     TonWalletKit as ITonWalletKit,
     TonWalletKitOptions,
@@ -56,7 +56,7 @@ export class TonWalletKit implements ITonWalletKit {
     private eventRouter!: EventRouter;
     private requestProcessor!: RequestProcessor;
     // private responseHandler!: ResponseHandler;
-    private tonClient!: TonClient;
+    private tonClient!: ApiClient;
     private jettonsManager: JettonsManager;
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
@@ -535,7 +535,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Get the shared TON client instance
      */
-    getTonClient(): TonClient {
+    getTonClient(): ApiClient {
         if (!this.isInitialized) {
             throw new Error('TonWalletKit not yet initialized');
         }

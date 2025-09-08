@@ -16,7 +16,7 @@ export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
-export { TonClient } from './core/TonClient';
+export { ApiClient } from './core/ApiClient';
 
 // Re-export durable events components
 export { StorageEventStore } from './core/EventStore';

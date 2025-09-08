@@ -2,7 +2,7 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import { TonClient } from './TonClient';
+import { ApiClient } from './ApiClient';
 import {
     TonWalletKitOptions,
     WalletInterface,
@@ -51,7 +51,7 @@ export interface InitializationResult {
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
     storageAdapter: StorageAdapter;
-    tonClient: TonClient;
+    tonClient: ApiClient;
     eventProcessor: StorageEventProcessor;
 }
 
@@ -60,7 +60,7 @@ export interface InitializationResult {
  */
 export class Initializer {
     // private config: InitializationConfig;
-    private tonClient!: TonClient;
+    private tonClient!: ApiClient;
     private eventEmitter: EventEmitter;
     private network: CHAIN;
     private retryAttempts: number;
@@ -116,7 +116,7 @@ export class Initializer {
     /**
      * Initialize TON client (single provider for all downstream classes)
      */
-    private initializeTonClient(options: TonWalletKitOptions): TonClient {
+    private initializeTonClient(options: TonWalletKitOptions): ApiClient {
         // Use provided API URL or default to mainnet
         const endpoint = options.apiUrl || 'https://toncenter.com';
 
@@ -125,7 +125,7 @@ export class Initializer {
             apiKey: options.apiKey,
         };
 
-        return new TonClient(clientConfig);
+        return new ApiClient(clientConfig);
     }
 
     /**
@@ -295,7 +295,7 @@ function isWalletInterface(config: unknown): config is WalletInterface {
 /**
  * Create a WalletInterface from various configuration types
  */
-export async function createWalletFromConfig(config: WalletInitConfig, tonClient: TonClient): Promise<WalletInterface> {
+export async function createWalletFromConfig(config: WalletInitConfig, tonClient: ApiClient): Promise<WalletInterface> {
     let wallet: WalletInitInterface | undefined;
 
     // Normalize plain interface-shaped objects into class instances to make instanceof checks work
@@ -368,7 +368,7 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
 // using proxy api to make wallet extension modular
 export async function wrapWalletInterface(
     wallet: WalletInitInterface,
-    _tonClient: TonClient,
+    _tonClient: ApiClient,
 ): Promise<WalletInterface> {
     const ourClassesToExtend = [WalletTonClass, WalletJettonClass, WalletNftClass];
     const newProxy = new Proxy(wallet, {

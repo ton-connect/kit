@@ -1,6 +1,16 @@
-import { Address, beginCell, Cell, Contract, contractAddress, Dictionary, Sender, SendMode } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Contract,
+    contractAddress,
+    Dictionary,
+    Sender,
+    SendMode,
+    ContractProvider,
+} from '@ton/core';
 
-import { ContractProvider } from '../../core/TonClient';
+import { ApiClient } from '../../core/ApiClient';
 
 export function bufferToBigInt(buffer: Buffer): bigint {
     return BigInt('0x' + buffer.toString('hex'));
@@ -127,16 +137,16 @@ export class WalletV5 implements Contract {
         await provider.external(body);
     }
 
-    async getPublicKey(provider: ContractProvider) {
-        const result = await provider.get('get_public_key', []);
-        return result.stack.readBigNumber();
+    async getPublicKey(client: ApiClient) {
+        const { stack } = await client.runGetMethod(this.address, 'get_public_key');
+        return stack.readBigNumber();
     }
 
-    async getSeqno(provider: ContractProvider) {
-        const state = await provider.getState();
+    async getSeqno(client: ApiClient) {
+        const state = await client.getAccountState(this.address);
         if (state.state === 'active') {
-            const res = await provider.get('seqno', []);
-            return res.stack.readNumber();
+            const { stack } = await client.runGetMethod(this.address, 'seqno');
+            return stack.readNumber();
         } else {
             return 0;
         }
@@ -144,7 +154,7 @@ export class WalletV5 implements Contract {
 
     async getIsSignatureAuthAllowed(provider: ContractProvider) {
         const state = await provider.getState();
-        if (state.state === 'active') {
+        if (state.state.type === 'active') {
             const res = await provider.get('is_signature_allowed', []);
             return res.stack.readNumber();
         } else {
@@ -152,23 +162,23 @@ export class WalletV5 implements Contract {
         }
     }
 
-    async getWalletId(provider: ContractProvider) {
+    async getWalletId(client: ApiClient) {
         if (this.subwalletId) {
             return WalletId.deserialize(this.subwalletId);
         } else {
-            const result = await provider.get('get_subwallet_id', []);
-            this.subwalletId = result.stack.readBigNumber();
+            const { stack } = await client.runGetMethod(this.address, 'get_subwallet_id');
+            this.subwalletId = stack.readBigNumber();
             return WalletId.deserialize(this.subwalletId);
         }
     }
 
-    async getExtensions(provider: ContractProvider) {
-        const result = await provider.get('get_extensions', []);
-        return result.stack.readCellOpt();
+    async getExtensions(client: ApiClient) {
+        const { stack } = await client.runGetMethod(this.address, 'get_extensions');
+        return stack.readCellOpt();
     }
 
-    async getExtensionsArray(provider: ContractProvider) {
-        const extensions = await this.getExtensions(provider);
+    async getExtensionsArray(client: ApiClient) {
+        const extensions = await this.getExtensions(client);
         if (!extensions) {
             return [];
         }

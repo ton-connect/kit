@@ -1,12 +1,10 @@
-import { Address, Cell, ExtraCurrency, loadMessage, Message, StateInit, TupleItem, TupleReader } from '@ton/core';
-import { Sender, SendMode, Contract, OpenedContract, Transaction } from '@ton/core';
-// Local Maybe type to avoid cross-package path fragility
-type Maybe<T> = T | null | undefined;
+import { Address, Cell, ExtraCurrency, loadMessage, Message, TupleItem, TupleReader } from '@ton/core';
 
 import { base64ToUint8Array, base64ToBigInt, uint8ArrayToBase64 } from '../utils/base64';
-import { BlockId, EstimateFeeResult, FullAccountState, GetResult, TransactionId } from '../types/api';
+import { BlockId, EstimateFeeResult, FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
-import { ConnectTransactionParamContent } from '../types/internal';
+import { ConnectTransactionParamMessage } from '../types/internal';
+import { ApiToncenter } from '../types/toncenter/ApiClientToncenter';
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -20,29 +18,11 @@ export class TonClientError extends Error {
     }
 }
 
-export interface TonClientConfig {
+export interface ApiClientConfig {
     endpoint?: string;
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
-}
-
-export interface ContractProvider {
-    getState(): Promise<FullAccountState>;
-    get(method: string | number, stack: TupleItem[]): Promise<GetResult>;
-    external(message: Cell): Promise<void>;
-    internal(
-        via: Sender,
-        args: {
-            value: bigint | string;
-            extracurrency?: ExtraCurrency;
-            bounce?: Maybe<boolean>;
-            sendMode?: SendMode;
-            body?: Maybe<Cell | string>;
-        },
-    ): Promise<void>;
-    open<T extends Contract>(contract: T): OpenedContract<T>;
-    getTransactions(address: Address, lt: bigint, hash: Buffer, limit?: number): Promise<Transaction[]>;
 }
 
 export function toMessage(msg: Message | Cell | string): Message {
@@ -55,13 +35,13 @@ export function toMessage(msg: Message | Cell | string): Message {
     return msg;
 }
 
-export class TonClient {
+export class ApiClient implements ApiToncenter {
     private readonly endpoint: string;
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
 
-    constructor(config: TonClientConfig = {}) {
+    constructor(config: ApiClientConfig = {}) {
         this.endpoint = config.endpoint ?? 'https://toncenter.com';
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
@@ -70,7 +50,7 @@ export class TonClient {
 
     async fetchEmulation(
         address: Address | string,
-        messages: ConnectTransactionParamContent['messages'],
+        messages: ConnectTransactionParamMessage[],
         seqno?: number,
     ): Promise<ToncenterEmulationResponse> {
         if (address instanceof Address) {
@@ -93,10 +73,8 @@ export class TonClient {
         if (typeof boc !== 'string') {
             boc = uint8ArrayToBase64(boc);
         }
-        const hash = Cell.fromBase64(boc).hash().toString('hex');
-        const response = await this.postJson<OkResponse>('/api/v2/sendBoc', { boc });
-        if (!response.ok) throw new TonClientError(response.error, response.code, response);
-        return hash;
+        const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
+        return base64ToBigInt(response.message_hash_norm).toString(16);
     }
 
     async runGetMethod(
@@ -165,23 +143,6 @@ export class TonClient {
         };
     }
 
-    provider(address: Address, _init?: StateInit | null): ContractProvider {
-        // TODO implemented provider
-        const notImplemented = () => {
-            throw new TonClientError('not implemented in minimal TonClient', 500);
-        };
-        return {
-            getState: (): Promise<FullAccountState> => this.getAccountState(address),
-            get: async (method: string | number, stack: TupleItem[] = []): Promise<GetResult> => {
-                return this.runGetMethod(address, method.toString(), stack);
-            },
-            external: async () => notImplemented(),
-            internal: async () => notImplemented(),
-            open: <T extends Contract>(_contract: T) => notImplemented(),
-            getTransactions: (_address: Address, _lt: bigint, _hash: Buffer, _limit?: number) => notImplemented(),
-        } as unknown as ContractProvider;
-    }
-
     async getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState> {
         if (address instanceof Address) {
             address = address.toString();
@@ -220,22 +181,21 @@ export class TonClient {
         return this.getAccountState(address, seqno).then((state) => state.balance);
     }
 
-    private async doRequest(url: URL, props: globalThis.RequestInit = {}): Promise<globalThis.Response> {
-        // Ensure fetch is called with correct global binding to avoid Illegal invocation in some environments
-        const boundFetch = this.fetchApi.bind(globalThis);
-        if (!this.timeout || this.timeout <= 0)
-            return boundFetch(url as unknown as Parameters<typeof fetch>[0], props as Parameters<typeof fetch>[1]);
+    private async doRequest(url: URL, init: globalThis.RequestInit = {}): Promise<globalThis.Response> {
+        const fetchFn = this.fetchApi;
+
+        if (!this.timeout || this.timeout <= 0) {
+            return fetchFn(url, init);
+        }
+
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-        const response = await boundFetch(
-            url as unknown as Parameters<typeof fetch>[0],
-            {
-                ...props,
-                signal: controller.signal,
-            } as Parameters<typeof fetch>[1],
-        );
-        clearTimeout(timeoutId);
-        return response;
+
+        try {
+            return await fetchFn(url, { ...init, signal: controller.signal });
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 
     private async fetch<T>(url: URL, props: globalThis.RequestInit = {}): Promise<T> {
@@ -341,14 +301,13 @@ interface V2EstimateFeeResult {
     source_fees: V2EstimatedFee;
     destination_fees: V2EstimatedFee[];
 }
-interface Ok {
-    '@type': 'ok';
-    '@extra': string;
+interface V2SendMessageResult {
+    message_hash: string;
+    message_hash_norm: string;
 }
 type GetAccountStateResponse = Response<RawAddressInformation>;
 type RunGetMethodResponse = Response<SmcRunResult>;
 type EstimateFeeResponse = Response<V2EstimateFeeResult>;
-type OkResponse = Response<Ok>;
 
 type TvmStackEntry =
     | { '@type': 'tvm.list' | 'tvm.tuple'; elements: TvmStackEntry[] }

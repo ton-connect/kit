@@ -5,7 +5,7 @@ import { SendMode } from '@ton/core';
 import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
 import { JettonTransferParams } from './jettons';
 import { NftTransferParamsHuman, NftTransferParamsNative } from './nfts';
-import type { TonClient } from '../core/TonClient';
+import type { ApiClient } from '../core/ApiClient';
 import { TransactionPreview } from './events';
 
 /**
@@ -92,7 +92,7 @@ export interface WalletInitInterface {
     /** Wallet contract version (e.g., 'v4r2', 'v5r1') */
     version: string;
 
-    client: TonClient;
+    client: ApiClient;
 
     /** Sign raw bytes with wallet's private key */
     sign(bytes: Uint8Array): Promise<Uint8Array>;

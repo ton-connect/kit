@@ -13,7 +13,7 @@ import {
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
 
-import { TonClient } from '../../core/TonClient';
+import { ApiClient } from '../../core/ApiClient';
 import type { TonNetwork } from '../../types';
 import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
@@ -38,7 +38,7 @@ export interface WalletV5R1AdapterConfig {
     /** Wallet ID configuration */
     walletId?: number;
     /** Shared TON client instance */
-    tonClient: TonClient;
+    tonClient: ApiClient;
     /** Network */
     network: TonNetwork;
 }
@@ -49,7 +49,7 @@ export interface WalletV5R1AdapterConfig {
 export class WalletV5R1Adapter implements WalletInitInterface {
     private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
     private walletContract: WalletV5;
-    client: TonClient;
+    client: ApiClient;
     private config: WalletV5R1AdapterConfig;
 
     public readonly publicKey: Uint8Array;
@@ -126,14 +126,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         } catch (_) {
             //
         }
-        const provider = this.client.provider(this.walletContract.address);
-        let walletId;
-        try {
-            walletId = (await this.walletContract.getWalletId(provider)).serialized; // WalletId.deserialize(subwalletId);
-        } catch (_) {
-            //
-        }
-
+        const walletId = (await this.walletContract.getWalletId(this.client)).serialized;
         if (!walletId) {
             throw new Error('Failed to get seqno or walletId');
         }
@@ -191,8 +184,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async getSeqno(): Promise<number> {
         try {
-            const provider = this.client.provider(this.walletContract.address);
-            return await this.walletContract.getSeqno(provider);
+            return this.walletContract.getSeqno(this.client);
         } catch (error) {
             log.warn('Failed to get seqno', { error });
             // return 0;
@@ -205,8 +197,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async getWalletId(): Promise<WalletId> {
         try {
-            const provider = this.client.provider(this.walletContract.address);
-            return await this.walletContract.getWalletId(provider);
+            return this.walletContract.getWalletId(this.client);
         } catch (error) {
             log.warn('Failed to get wallet ID', { error });
             return new WalletId({ subwalletNumber: this.config.walletId || 0 });
@@ -252,7 +243,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
 export async function createWalletV5R1(
     config: WalletInitConfigMnemonic | WalletInitConfigPrivateKey,
     options: {
-        tonClient: TonClient;
+        tonClient: ApiClient;
     },
 ): Promise<WalletInitInterface> {
     let keyPair: {
