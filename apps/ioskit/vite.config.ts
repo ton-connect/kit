@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile'
+import path from 'path';
+
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [],
@@ -29,5 +31,21 @@ export default defineConfig({
     // Ensure TypeScript files are processed
     esbuild: {
         target: 'es2015'
-    }
+    },
+    resolve: {
+        alias: [
+            {
+                find: "@ton/crypto-primitives",
+                replacement: require.resolve("@ton/crypto-primitives/dist/native.js"),
+            },
+            {
+                find: 'expo-crypto',
+                replacement: path.resolve('empty.js'),
+            },
+            {
+                find: 'react-native-fast-pbkdf2',
+                replacement: path.resolve('pbkdf2.js'),
+            }
+        ],
+    },
 });
