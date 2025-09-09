@@ -77,7 +77,7 @@ export class WalletJettonClass implements WalletJettonInterface {
 
         // Get the jetton wallet contract and query balance
         try {
-            const result = await this.client.runMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
+            const result = await this.client.runGetMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
 
             // The balance is the first return value from get_wallet_data
             const balance = result.stack.readBigNumber();
@@ -95,7 +95,7 @@ export class WalletJettonClass implements WalletJettonInterface {
 
         try {
             // Call get_wallet_address method on jetton master contract
-            const result = await this.client.runMethod(Address.parse(jettonAddress), 'get_wallet_address', [
+            const result = await this.client.runGetMethod(Address.parse(jettonAddress), 'get_wallet_address', [
                 { type: 'slice', cell: beginCell().storeAddress(Address.parse(this.getAddress())).endCell() },
             ]);
 

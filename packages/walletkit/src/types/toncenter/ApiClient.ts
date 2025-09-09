@@ -14,7 +14,7 @@ export interface ApiClient {
     runGetMethod(
         address: Address | string,
         method: string,
-        stack: TupleItem[] = [],
+        stack?: TupleItem[],
         seqno?: number,
     ): Promise<GetResult>;
     getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState>;

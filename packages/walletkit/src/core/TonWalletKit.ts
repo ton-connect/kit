@@ -536,7 +536,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Get the shared TON client instance
      */
-    getTonClient(): ApiClientToncenter {
+    getTonClient(): ApiClient {
         if (!this.isInitialized) {
             throw new Error('TonWalletKit not yet initialized');
         }
