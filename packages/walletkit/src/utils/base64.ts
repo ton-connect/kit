@@ -59,3 +59,11 @@ export function bigIntToBase64(data: bigint): string {
     const arr = new Uint8Array(bytes.reverse());
     return uint8ArrayToBase64(arr);
 }
+
+export function uint8ArrayToBigInt(data: Uint8Array): bigint {
+    let result = 0n;
+    for (let i = 0; i < data.length; i++) {
+        result = (result << 8n) + BigInt(data[i]);
+    }
+    return result;
+}

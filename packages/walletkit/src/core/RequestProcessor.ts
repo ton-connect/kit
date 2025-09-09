@@ -9,7 +9,6 @@ import {
     SignDataRpcResponseSuccess,
 } from '@tonconnect/protocol';
 
-import { ApiClient } from './ApiClient';
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
@@ -17,6 +16,7 @@ import { globalLogger } from './Logger';
 import { CreateTonProofMessageBytes, createTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
 import { PrepareTonConnectData } from '../utils/signData/sign';
+import { ApiClient } from '../types/toncenter/ApiClient';
 
 const log = globalLogger.createChild('RequestProcessor');
 

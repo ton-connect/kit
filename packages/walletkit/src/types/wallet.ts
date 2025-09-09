@@ -5,8 +5,8 @@ import { SendMode } from '@ton/core';
 import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
 import { JettonTransferParams } from './jettons';
 import { NftTransferParamsHuman, NftTransferParamsNative } from './nfts';
-import type { ApiClient } from '../core/ApiClient';
 import { TransactionPreview } from './events';
+import { ApiClient } from './toncenter/ApiClient';
 
 /**
  * TON network types
@@ -19,7 +19,7 @@ export interface WalletInitConfigMnemonicInterface {
     mnemonic: string[];
     version?: WalletVersion;
     mnemonicType?: 'ton' | 'bip39';
-    walletId?: number;
+    walletId?: bigint;
     network?: TonNetwork;
 }
 
@@ -61,7 +61,7 @@ export interface WalletInitConfigPrivateKeyInterface {
 export class WalletInitConfigPrivateKey {
     privateKey: string; // private key in hex format
     version: WalletVersion;
-    walletId?: number;
+    walletId?: bigint;
     network: TonNetwork;
 
     constructor({
@@ -72,7 +72,7 @@ export class WalletInitConfigPrivateKey {
     }: {
         privateKey: string;
         version?: WalletVersion;
-        walletId?: number;
+        walletId?: bigint;
         network?: TonNetwork;
     }) {
         this.privateKey = privateKey;

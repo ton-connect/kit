@@ -4,7 +4,7 @@ import { ConnectTransactionParamMessage } from '../internal';
 import { ToncenterEmulationResponse } from './emulation';
 import { FullAccountState, GetResult } from './api';
 
-export interface ApiToncenter {
+export interface ApiClient {
     fetchEmulation(
         address: Address | string,
         messages: ConnectTransactionParamMessage[],
