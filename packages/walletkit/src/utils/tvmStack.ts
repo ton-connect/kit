@@ -16,7 +16,7 @@ function parseStackItem(item: RawStackItem): TupleItem {
         case 'null':
             return { type: 'null' };
         case 'cell':
-            return { type: 'cell', cell: Cell.fromBoc(Buffer.from(item.value, 'hex'))[0] };
+            return { type: 'cell', cell: Cell.fromBoc(Buffer.from(item.value, 'base64'))[0] };
         case 'tuple':
         case 'list':
             if (item.value.length === 0) {
@@ -28,6 +28,7 @@ function parseStackItem(item: RawStackItem): TupleItem {
     }
 }
 
+// todo - add support for all types
 export function parseStack(list: RawStackItem[]): TupleReader {
     let stack: TupleItem[] = [];
     for (let item of list) {
@@ -36,10 +37,15 @@ export function parseStack(list: RawStackItem[]): TupleReader {
     return new TupleReader(stack);
 }
 
+// todo - add support for all types
 function serializeStackItem(item: TupleItem): RawStackItem {
     switch (item.type) {
         case 'int':
             return { type: 'num', value: `${item.value < 0 ? '-' : ''}0x${item.value.toString(16)}` };
+        case 'slice':
+            return { type: 'slice', value: item.cell.toBoc().toString('base64') };
+        case 'cell':
+            return { type: 'cell', value: item.cell.toBoc().toString('base64') };
         default:
             throw Error(`Unsupported serialize stack item type: ${item.type}`);
     }
