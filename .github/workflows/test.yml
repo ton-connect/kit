@@ -1,0 +1,31 @@
+name: Basic build and tests
+
+on:
+  push:
+
+
+jobs:
+  unit:
+    name: unit
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out code
+      uses: actions/checkout@v5
+    
+    - name: Read .nvmrc
+      run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
+
+    - uses: pnpm/action-setup@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '${{ env.NVMRC }}'
+        cache: 'pnpm'
+
+    - name: Set up dependencies
+      run: pnpm i --frozen-lockfile
+
+    - name: build
+      run: pnpm build
