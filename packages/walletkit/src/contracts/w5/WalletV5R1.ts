@@ -8,19 +8,18 @@ import {
     Sender,
     SendMode,
     ContractProvider,
+    AccountStatus,
 } from '@ton/core';
 
-import { ApiClient } from '../../core/ApiClient';
-
-export function bufferToBigInt(buffer: Buffer): bigint {
-    return BigInt('0x' + buffer.toString('hex'));
-}
+import { ApiClient } from '../../types/toncenter/ApiClient';
+import { WalletOptions } from '../Wallet';
+import { defaultWalletIdV5R1 } from './WalletV5R1Adapter';
 
 export type WalletV5Config = {
     signatureAllowed: boolean;
     seqno: number;
-    walletId: bigint;
-    publicKey: Uint8Array;
+    walletId: number;
+    publicKey: bigint;
     extensions: Dictionary<bigint, bigint>;
 };
 
@@ -29,7 +28,7 @@ export function walletV5ConfigToCell(config: WalletV5Config): Cell {
         .storeBit(config.signatureAllowed)
         .storeUint(config.seqno, 32)
         .storeUint(config.walletId, 32)
-        .storeBuffer(Buffer.from(config.publicKey), 32)
+        .storeUint(config.publicKey, 256)
         .storeDict(config.extensions, Dictionary.Keys.BigUint(256), Dictionary.Values.BigInt(1))
         .endCell();
 }
@@ -47,9 +46,9 @@ export const Opcodes = {
 };
 
 export class WalletId {
-    static deserialize(walletId: bigint): WalletId {
+    static deserialize(walletId: number): WalletId {
         return new WalletId({
-            subwalletNumber: Number(walletId),
+            subwalletNumber: walletId,
         });
     }
 
@@ -64,21 +63,22 @@ export class WalletId {
 }
 
 export class WalletV5 implements Contract {
-    private subwalletId: bigint | undefined;
+    private subwalletId: number | undefined;
 
     constructor(
+        readonly client: ApiClient,
         readonly address: Address,
         readonly init?: { code: Cell; data: Cell },
     ) {}
 
-    static createFromAddress(address: Address) {
-        return new WalletV5(address);
+    static createFromAddress(client: ApiClient, address: Address) {
+        return new WalletV5(client, address);
     }
 
-    static createFromConfig(config: WalletV5Config, code: Cell, workchain = 0) {
+    static createFromConfig(config: WalletV5Config, options: WalletOptions) {
         const data = walletV5ConfigToCell(config);
-        const init = { code, data };
-        const wallet = new WalletV5(contractAddress(workchain, init), init);
+        const init = { code: options.code, data };
+        const wallet = new WalletV5(options.client, contractAddress(options.workchain, init), init);
         wallet.subwalletId = config.walletId;
         return wallet;
     }
@@ -137,62 +137,77 @@ export class WalletV5 implements Contract {
         await provider.external(body);
     }
 
-    async getPublicKey(client: ApiClient) {
-        const { stack } = await client.runGetMethod(this.address, 'get_public_key');
-        return stack.readBigNumber();
+    get publicKey(): Promise<bigint> {
+        return this.client.runGetMethod(this.address, 'get_public_key').then((data) => {
+            if (data.exitCode === 0) {
+                return data.stack.readBigNumber();
+            } else if (this.init) {
+                return this.init.data
+                    .asSlice()
+                    .skip(1 + 32 + 32)
+                    .loadUintBig(256);
+            } else {
+                return 0n;
+            }
+        });
     }
 
-    async getSeqno(client: ApiClient) {
-        const state = await client.getAccountState(this.address);
-        if (state.state === 'active') {
-            const { stack } = await client.runGetMethod(this.address, 'seqno');
-            return stack.readNumber();
+    get status(): Promise<AccountStatus> {
+        return this.client.getAccountState(this.address).then((state) => state.status);
+    }
+
+    get seqno() {
+        return this.client.runGetMethod(this.address, 'seqno').then((data) => {
+            if (data.exitCode === 0) {
+                return data.stack.readNumber();
+            } else {
+                return 0;
+            }
+        });
+    }
+
+    get isSignatureAuthAllowed(): Promise<boolean> {
+        return this.client.runGetMethod(this.address, 'is_signature_allowed').then((data) => {
+            if (data.exitCode === 0) {
+                return data.stack.readBoolean();
+            } else {
+                return false;
+            }
+        });
+    }
+
+    get walletId(): Promise<WalletId> {
+        if (this.subwalletId !== undefined) {
+            return new Promise((resolve) => {
+                resolve(WalletId.deserialize(this.subwalletId!));
+            });
         } else {
-            return 0;
+            return this.client.runGetMethod(this.address, 'get_subwallet_id').then((data) => {
+                if (data.exitCode === 0) {
+                    this.subwalletId = data.stack.readNumber();
+                    return WalletId.deserialize(this.subwalletId);
+                } else {
+                    return WalletId.deserialize(defaultWalletIdV5R1);
+                }
+            });
         }
     }
 
-    async getIsSignatureAuthAllowed(provider: ContractProvider) {
-        const state = await provider.getState();
-        if (state.state.type === 'active') {
-            const res = await provider.get('is_signature_allowed', []);
-            return res.stack.readNumber();
-        } else {
-            return -1;
-        }
-    }
-
-    async getWalletId(client: ApiClient) {
-        if (this.subwalletId) {
-            return WalletId.deserialize(this.subwalletId);
-        } else {
-            const { stack } = await client.runGetMethod(this.address, 'get_subwallet_id');
-            this.subwalletId = stack.readBigNumber();
-            return WalletId.deserialize(this.subwalletId);
-        }
-    }
-
-    async getExtensions(client: ApiClient) {
-        const { stack } = await client.runGetMethod(this.address, 'get_extensions');
-        return stack.readCellOpt();
-    }
-
-    async getExtensionsArray(client: ApiClient) {
-        const extensions = await this.getExtensions(client);
-        if (!extensions) {
-            return [];
-        }
-
-        const dict: Dictionary<bigint, bigint> = Dictionary.loadDirect(
-            Dictionary.Keys.BigUint(256),
-            Dictionary.Values.BigInt(1),
-            extensions,
-        );
-
-        return dict.keys().map((key) => {
-            const wc = this.address.workChain;
-            const addressHex = key;
-            return Address.parseRaw(`${wc}:${addressHex.toString(16).padStart(64, '0')}`);
+    get extensions(): Promise<Address[]> {
+        return this.client.runGetMethod(this.address, 'get_extensions').then((data) => {
+            if (data.exitCode === 0) {
+                const dict: Dictionary<bigint, bigint> = Dictionary.loadDirect(
+                    Dictionary.Keys.BigUint(256),
+                    Dictionary.Values.BigInt(1),
+                    data.stack.readCellOpt(),
+                );
+                const wc = this.address.workChain;
+                return dict.keys().map((key) => {
+                    return Address.parseRaw(`${wc}:${key.toString(16).padStart(64, '0')}`);
+                });
+            } else {
+                return [];
+            }
         });
     }
 }

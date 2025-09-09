@@ -3,7 +3,7 @@
 import { Address } from '@ton/core';
 import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
 
-import { ApiClient } from './ApiClient';
+import { ApiClientToncenter } from './ApiClientToncenter';
 import type {
     TonWalletKit as ITonWalletKit,
     TonWalletKitOptions,
@@ -35,6 +35,7 @@ import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
 import type { BridgeRequest } from '../types/jsBridge';
 import { WalletInitInterface } from '../types/wallet';
+import { ApiClient } from '../types/toncenter/ApiClient';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -535,7 +536,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Get the shared TON client instance
      */
-    getTonClient(): ApiClient {
+    getTonClient(): ApiClientToncenter {
         if (!this.isInitialized) {
             throw new Error('TonWalletKit not yet initialized');
         }

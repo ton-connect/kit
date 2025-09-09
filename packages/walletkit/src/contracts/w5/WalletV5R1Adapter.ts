@@ -13,7 +13,6 @@ import {
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
 
-import { ApiClient } from '../../core/ApiClient';
 import type { TonNetwork } from '../../types';
 import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
@@ -26,8 +25,12 @@ import { CallForSuccess } from '../../utils/retry';
 import { ConnectTransactionParamContent } from '../../types/internal';
 import { ActionSendMsg, packActionsList } from './actions';
 import { WalletInitInterface } from '../../types/wallet';
+import { ApiClient } from '../../types/toncenter/ApiClient';
+import { uint8ArrayToBigInt } from '../../utils/base64';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
+
+export const defaultWalletIdV5R1 = 2147483409;
 
 /**
  * Configuration for creating a WalletV5R1 adapter
@@ -36,7 +39,7 @@ export interface WalletV5R1AdapterConfig {
     /** Private key buffer (32 bytes) */
     privateKey: Uint8Array;
     /** Wallet ID configuration */
-    walletId?: number;
+    walletId?: number | bigint;
     /** Shared TON client instance */
     tonClient: ApiClient;
     /** Network */
@@ -48,10 +51,10 @@ export interface WalletV5R1AdapterConfig {
  */
 export class WalletV5R1Adapter implements WalletInitInterface {
     private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
-    private walletContract: WalletV5;
-    client: ApiClient;
     private config: WalletV5R1AdapterConfig;
 
+    readonly walletContract: WalletV5;
+    readonly client: ApiClient;
     public readonly publicKey: Uint8Array;
     public readonly version = 'v5r1';
 
@@ -68,14 +71,20 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         this.publicKey = Uint8Array.from(this.keyPair.publicKey);
         this.walletContract = WalletV5.createFromConfig(
             {
-                publicKey: this.keyPair.publicKey,
+                publicKey: uint8ArrayToBigInt(this.keyPair.publicKey),
                 seqno: 0,
                 signatureAllowed: true,
-                walletId: config.walletId ? BigInt(config.walletId) : 2147483409n, // TODO fix maybe use default wallet_id for mainnet 698983191 https://docs.ton.org/v3/guidelines/smart-contracts/howto/wallet/#:~:text=The%20default%20subwallet_id%20value%20is%20698983191
+                walletId:
+                    typeof config.walletId === 'bigint'
+                        ? Number(config.walletId)
+                        : (config.walletId ?? defaultWalletIdV5R1),
                 extensions: Dictionary.empty(),
             },
-            WalletV5R1CodeCell,
-            0,
+            {
+                code: WalletV5R1CodeCell,
+                workchain: 0,
+                client: this.client,
+            },
         );
     }
 
@@ -126,7 +135,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         } catch (_) {
             //
         }
-        const walletId = (await this.walletContract.getWalletId(this.client)).serialized;
+        const walletId = (await this.walletContract.walletId).serialized;
         if (!walletId) {
             throw new Error('Failed to get seqno or walletId');
         }
@@ -184,7 +193,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async getSeqno(): Promise<number> {
         try {
-            return this.walletContract.getSeqno(this.client);
+            return await this.walletContract.seqno;
         } catch (error) {
             log.warn('Failed to get seqno', { error });
             // return 0;
@@ -197,10 +206,12 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async getWalletId(): Promise<WalletId> {
         try {
-            return this.walletContract.getWalletId(this.client);
+            return this.walletContract.walletId;
         } catch (error) {
             log.warn('Failed to get wallet ID', { error });
-            return new WalletId({ subwalletNumber: this.config.walletId || 0 });
+            const walletId = this.config.walletId;
+            const subwalletNumber = typeof walletId === 'bigint' ? Number(walletId) : walletId || 0;
+            return new WalletId({ subwalletNumber });
         }
     }
 
@@ -210,7 +221,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
     async isDeployed(): Promise<boolean> {
         try {
             const state = await this.client.getAccountState(this.walletContract.address);
-            return state.state === 'active';
+            return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });
             return false;

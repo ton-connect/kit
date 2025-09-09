@@ -1,6 +1,14 @@
 import { Address } from '@ton/core';
 
-import { createWalletV5R1, ApiClient, WalletInitConfigMnemonic } from '../src';
+import {
+    defaultWalletIdV5R1,
+    createWalletV5R1,
+    ApiClientToncenter,
+    WalletInitConfigMnemonic,
+    WalletV5R1Adapter,
+    WalletV5,
+    ConnectTransactionParamMessage,
+} from '../src';
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -11,14 +19,14 @@ const apiKey = process.env.TONCENTER_API_KEY;
 const mnemonic = process.env.MNEMONIC;
 
 const endpoint = 'https://toncenter.com';
-const tonClient = new ApiClient({
+const tonClient = new ApiClientToncenter({
     endpoint,
     apiKey,
 });
 
-function nextWalletId(parent?: Address | string) {
+function nextWalletId(parent?: Address | string): number {
     if (!parent) {
-        return 2147483409; // TODO use default wallet_id for mainnet 698983191;
+        return defaultWalletIdV5R1;
     }
     if (typeof parent === 'string') {
         parent = Address.parse(parent);
@@ -41,45 +49,44 @@ async function createWallet(parent?: Address | string) {
     );
 }
 
+async function logWallet(wallet: WalletV5) {
+    return {
+        address: wallet.address,
+        publicKey: await wallet.publicKey,
+        status: await wallet.status,
+        seqno: await wallet.seqno,
+        walletId: await wallet.walletId,
+        isSignatureAuthAllowed: await wallet.isSignatureAuthAllowed,
+        extensions: await wallet.extensions,
+    };
+}
+
 async function main() {
     const existAccount = await createWallet();
-    logInfo(existAccount.getAddress());
-    const notExistAccount = await createWallet(existAccount.getAddress());
-    logInfo('Account exist state:', {
-        state: await tonClient.getAccountState(existAccount.getAddress()),
-    });
-    logInfo('Account balance:', {
-        balance: await tonClient.getBalance(existAccount.getAddress()),
-    });
-    const result = await tonClient.runGetMethod(existAccount.getAddress(), 'seqno');
-    logInfo('get method seqno:', {
-        result: result.stack.readNumber(),
-    });
-    logInfo('Account not exist state:', {
-        state: await tonClient.getAccountState(notExistAccount.getAddress()),
-    });
-    const msg = await existAccount.getSignedExternal(
+    const wallet = (existAccount as WalletV5R1Adapter).walletContract;
+    logInfo('exist account', await logWallet(wallet));
+    const notExistAccount = ((await createWallet(wallet.address)) as WalletV5R1Adapter).walletContract;
+    logInfo('not exist account', await logWallet(notExistAccount));
+    const message: ConnectTransactionParamMessage = {
+        address: wallet.address.toString(),
+        amount: '1',
+    };
+    const emulation = await tonClient.fetchEmulation(wallet.address, [message]);
+    logInfo(
+        'emulation total fees',
+        Object.values(emulation.transactions)
+            .map((it) => it.total_fees)
+            .reduce((acc, cnt) => acc + +cnt, 0),
+    );
+    const boc = await existAccount.getSignedExternal(
         {
             network: 'mainnet',
             valid_until: Math.floor(Date.now() / 1000) + 60,
-            messages: [
-                {
-                    address: existAccount.getAddress().toString(),
-                    amount: '1',
-                },
-            ],
+            messages: [message],
         },
         { fakeSignature: false },
     );
-    logInfo(msg);
-    const emulation = await tonClient.fetchEmulation(existAccount.getAddress(), [
-        {
-            address: existAccount.getAddress(),
-            amount: '1',
-        },
-    ]);
-    logInfo({ emulation });
-    const hash = await tonClient.sendBoc(msg);
+    const hash = await tonClient.sendBoc(boc);
     logInfo('send boc hash:', hash);
 }
 

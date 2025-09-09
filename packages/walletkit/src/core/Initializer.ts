@@ -2,7 +2,7 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import { ApiClient } from './ApiClient';
+import { ApiClientToncenter } from './ApiClientToncenter';
 import {
     TonWalletKitOptions,
     WalletInterface,
@@ -28,6 +28,7 @@ import { WalletInitInterface } from '../types/wallet';
 import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
+import { ApiClient } from '../types/toncenter/ApiClient';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -125,7 +126,7 @@ export class Initializer {
             apiKey: options.apiKey,
         };
 
-        return new ApiClient(clientConfig);
+        return new ApiClientToncenter(clientConfig);
     }
 
     /**
@@ -321,7 +322,7 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
             const c = config as unknown as {
                 privateKey: string;
                 version?: string;
-                walletId?: number;
+                walletId?: bigint;
                 network?: 'mainnet' | 'testnet';
             };
             const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;

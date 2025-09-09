@@ -16,7 +16,7 @@ export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
-export { ApiClient } from './core/ApiClient';
+export { ApiClientToncenter } from './core/ApiClientToncenter';
 
 // Re-export durable events components
 export { StorageEventStore } from './core/EventStore';
@@ -34,6 +34,7 @@ export type { WalletV5Config } from './contracts/w5/WalletV5R1';
 export { WalletV5R1CodeCell, WalletV5R1CodeBoc } from './contracts/w5/WalletV5R1.source';
 export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
 export { createWalletV5R1 } from './contracts/w5/WalletV5R1Adapter';
+export { defaultWalletIdV5R1 } from './contracts/w5/WalletV5R1Adapter';
 
 export { LocalStorageAdapter } from './storage/adapters/local';
 export { MemoryStorageAdapter } from './storage/adapters/memory';
