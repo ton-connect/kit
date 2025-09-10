@@ -101,71 +101,52 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             </div>
                         </div>
 
-                        {/* Money Flow Summary */}
-                        <div>
-                            <h4 className="font-medium text-gray-900 mb-3">Transaction Overview</h4>
-                            <div className="space-y-3">
-                                {/* TON Outputs */}
-                                {/* {request.preview.moneyFlow.outputs > 0n && (
-                                    <div className="border rounded-lg p-3 bg-red-50">
+                        {request.preview.result === 'success' && (
+                            <>
+                                {/* Money Flow Summary */}
+                                <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Transaction Overview</h4>
+                                    <div className="space-y-3">
+                                        <JettonFlow
+                                            jettonTransfers={request.preview.moneyFlow.jettonTransfers}
+                                            ourAddress={request.preview.moneyFlow.ourAddress}
+                                            tonDifference={
+                                                request.preview.moneyFlow.inputs - request.preview.moneyFlow.outputs
+                                            }
+                                        />
+
+                                        {/* No transfers message */}
+                                        {request.preview.moneyFlow.outputs === 0n &&
+                                            request.preview.moneyFlow.inputs === 0n &&
+                                            request.preview.moneyFlow.jettonTransfers.length === 0 && (
+                                                <div className="border rounded-lg p-3 bg-gray-50">
+                                                    <p className="text-sm text-gray-600 text-center">
+                                                        This transaction doesn't involve any token transfers
+                                                    </p>
+                                                </div>
+                                            )}
+                                    </div>
+                                </div>
+                                {/* Wallet Information */}
+                                {request.preview.moneyFlow.ourAddress && (
+                                    <div className="border rounded-lg p-4 bg-blue-50">
+                                        <h4 className="font-medium text-gray-900 mb-3">Wallet Information</h4>
                                         <div className="flex justify-between items-center">
-                                            <div>
-                                                <span className="text-sm font-medium text-red-800">TON Outgoing</span>
-                                                <p className="text-xs text-red-600">Amount you're sending</p>
-                                            </div>
-                                            <span className="text-lg font-bold text-red-700">
-                                                -{formatTON(request.preview.moneyFlow.outputs)} TON
+                                            <span className="text-sm text-gray-600">Your Wallet:</span>
+                                            <span className="text-sm font-mono">
+                                                {formatAddress(request.preview.moneyFlow.ourAddress)}
                                             </span>
                                         </div>
                                     </div>
-                                )} */}
+                                )}
+                            </>
+                        )}
 
-                                {/* TON Inputs */}
-                                {/* {request.preview.moneyFlow.inputs > 0n && request.preview.moneyFlow.outputs > 0n && (
-                                    <div className="flex gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <div>Ton:</div>
-                                            <div>
-                                                {formatUnits(
-                                                    request.preview.moneyFlow.inputs -
-                                                        request.preview.moneyFlow.outputs,
-                                                    9,
-                                                )}{' '}
-                                                TON
-                                            </div>
-                                        </div>
-                                    </div>
-                                )} */}
-
-                                <JettonFlow
-                                    jettonTransfers={request.preview.moneyFlow.jettonTransfers}
-                                    ourAddress={request.preview.moneyFlow.ourAddress}
-                                    tonDifference={request.preview.moneyFlow.inputs - request.preview.moneyFlow.outputs}
-                                />
-
-                                {/* No transfers message */}
-                                {request.preview.moneyFlow.outputs === 0n &&
-                                    request.preview.moneyFlow.inputs === 0n &&
-                                    request.preview.moneyFlow.jettonTransfers.length === 0 && (
-                                        <div className="border rounded-lg p-3 bg-gray-50">
-                                            <p className="text-sm text-gray-600 text-center">
-                                                This transaction doesn't involve any token transfers
-                                            </p>
-                                        </div>
-                                    )}
-                            </div>
-                        </div>
-
-                        {/* Wallet Information */}
-                        {request.preview.moneyFlow.ourAddress && (
-                            <div className="border rounded-lg p-4 bg-blue-50">
-                                <h4 className="font-medium text-gray-900 mb-3">Wallet Information</h4>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600">Your Wallet:</span>
-                                    <span className="text-sm font-mono">
-                                        {formatAddress(request.preview.moneyFlow.ourAddress)}
-                                    </span>
-                                </div>
+                        {request.preview.result === 'error' && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                <p className="text-sm text-red-800">
+                                    <strong>Error:</strong> {request.preview.emulationError.message}
+                                </p>
                             </div>
                         )}
 

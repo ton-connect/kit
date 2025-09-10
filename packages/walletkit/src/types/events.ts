@@ -11,6 +11,7 @@ import {
 } from './internal';
 import { MoneyFlow } from '../utils/toncenterEmulation';
 import { ToncenterEmulationResponse } from './toncenter/emulation';
+import { EmulationError } from './emulation/errors';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -103,23 +104,17 @@ export interface TransactionRequest {
 /**
  * Transaction preview for UI display
  */
-export interface TransactionPreview {
+export type TransactionPreview = TransactionPreviewEmulationError | TransactionPreviewEmulationResult;
+
+export interface TransactionPreviewEmulationError {
+    result: 'error';
+    emulationError: EmulationError;
+}
+
+export interface TransactionPreviewEmulationResult {
+    result: 'success';
     /** Estimated total fees */
-    // totalFees?: string;
-
-    // /** Whether transaction might bounce */
-    // willBounce?: boolean;
-
-    // /** Balance before transaction */
-    // balanceBefore?: string;
-
-    // /** Estimated balance after transaction */
-    // balanceAfter?: string;
-
-    // /** Human-readable message descriptions */
-    // messages: HumanReadableTx[];
     moneyFlow: MoneyFlow;
-
     /** Emulation result */
     emulationResult: ToncenterEmulationResponse;
 }

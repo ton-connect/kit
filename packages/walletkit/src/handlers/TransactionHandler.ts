@@ -1,6 +1,12 @@
 import { fromNano } from '@ton/core';
 
-import type { WalletInterface, EventTransactionRequest, HumanReadableTx, TransactionPreview } from '../types';
+import type {
+    WalletInterface,
+    EventTransactionRequest,
+    HumanReadableTx,
+    TransactionPreview,
+    ToncenterEmulationResponse,
+} from '../types';
 import type {
     RawBridgeEvent,
     EventHandler,
@@ -14,12 +20,12 @@ import { isValidAddress } from '../utils/address';
 import {
     createToncenterMessage,
     fetchToncenterEmulation,
-    MoneyFlow,
     processToncenterMoneyFlow,
 } from '../utils/toncenterEmulation';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
+import { EmulationErrorUnknown } from '../types/emulation/errors';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -161,17 +167,7 @@ export class TransactionHandler
         const emulationResult = await this.emulateTransaction(request, wallet);
         log.info('Emulation result', { emulationResult });
 
-        return {
-            // messages: [],
-            moneyFlow: emulationResult.moneyFlow,
-            emulationResult: emulationResult.emulationResult,
-
-            // messages: humanReadableMessages,
-            // totalFees: emulationResult.totalFees,
-            // willBounce: emulationResult.willBounce,
-            // balanceBefore: emulationResult.balanceBefore,
-            // balanceAfter: emulationResult.balanceAfter,
-        };
+        return emulationResult;
     }
 
     /**
@@ -221,20 +217,30 @@ export class TransactionHandler
     private async emulateTransaction(
         request: ConnectTransactionParamContent,
         wallet?: WalletInterface,
-    ): Promise<{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        emulationResult: any;
-        moneyFlow: MoneyFlow;
-    }> {
+    ): Promise<TransactionPreview> {
         const message = createToncenterMessage(wallet?.getAddress(), request.messages);
-        const emulationResult = await CallForSuccess(() => fetchToncenterEmulation(message));
+
+        let emulationResult: ToncenterEmulationResponse;
+        try {
+            const emulatedResult = await CallForSuccess(() => fetchToncenterEmulation(message));
+            if (emulatedResult.result === 'success') {
+                emulationResult = emulatedResult.emulationResult;
+            } else {
+                return emulatedResult;
+            }
+        } catch (error) {
+            return {
+                result: 'error',
+                emulationError: new EmulationErrorUnknown('Unknown emulation error', error),
+            };
+        }
 
         const moneyFlow = processToncenterMoneyFlow(emulationResult);
 
         // Emit emulation result event for jetton caching and other components
-        if (emulationResult.result) {
+        if (emulationResult) {
             try {
-                this.eventEmitter.emit('emulation:result', emulationResult.result);
+                this.eventEmitter.emit('emulation:result', emulationResult);
             } catch (error) {
                 log.warn('Error emitting emulation result event', { error });
             }
@@ -242,7 +248,8 @@ export class TransactionHandler
 
         // TODO implement user wallet money flow
         return {
-            emulationResult: emulationResult.result,
+            result: 'success',
+            emulationResult: emulationResult,
             moneyFlow,
         };
     }
