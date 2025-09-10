@@ -27,7 +27,7 @@ export const WalletDashboard: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false);
     const navigate = useNavigate();
 
-    const { balance, address, getAvailableWallets } = useWallet();
+    const { balance, address, getAvailableWallets, updateBalance } = useWallet();
     const { persistPassword, setPersistPassword } = useAuth();
     const {
         handleTonConnectUrl,
@@ -40,18 +40,18 @@ export const WalletDashboard: React.FC = () => {
         useTransactionRequests();
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
-    const { getBalance, error } = useTonWallet();
+    const { error } = useTonWallet();
 
     const handleRefreshBalance = useCallback(async () => {
         setIsRefreshing(true);
         try {
-            await getBalance();
+            await updateBalance();
         } catch (err) {
             log.error('Error refreshing balance:', err);
         } finally {
             setIsRefreshing(false);
         }
-    }, [getBalance]);
+    }, [updateBalance]);
 
     const handleCopyAddress = useCallback(async () => {
         if (!address) return;
@@ -97,9 +97,17 @@ export const WalletDashboard: React.FC = () => {
     useEffect(() => {
         // Auto-refresh balance on mount
         if (!balance) {
-            handleRefreshBalance();
+            updateBalance();
         }
-    }, [balance, handleRefreshBalance]);
+    }, [balance, updateBalance]);
+
+    // auto refresh balance every 10 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            updateBalance();
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [updateBalance]);
 
     return (
         <Layout title="TON Wallet" showLogout>

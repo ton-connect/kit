@@ -19,7 +19,6 @@ interface UseTonWalletReturn {
     initializeWallet: () => Promise<void>;
     createNewWallet: () => Promise<string[]>;
     importWallet: (mnemonic: string[]) => Promise<void>;
-    getBalance: () => Promise<string>;
     sendTransaction: (to: string, amount: string) => Promise<void>;
 }
 
@@ -98,28 +97,6 @@ export const useTonWallet = (): UseTonWalletReturn => {
         [tonKit, walletStore],
     );
 
-    const getBalance = useCallback(async (): Promise<string> => {
-        if (!tonKit) throw new Error('TON Kit not initialized');
-
-        try {
-            setError(null);
-
-            // Get mnemonic from store
-            const mnemonic = await walletStore.getDecryptedMnemonic();
-            if (!mnemonic) throw new Error('No wallet available');
-
-            // Mock balance - simulate random balance between 0 and 10 TON
-            // const randomBalance = Math.floor(Math.random() * 10000000000).toString(); // Random balance in nanoTON
-
-            // walletStore.updateBalance(randomBalance);
-            return '1';
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Failed to get balance';
-            setError(errorMessage);
-            throw new Error(errorMessage);
-        }
-    }, [tonKit, walletStore]);
-
     const sendTransaction = useCallback(
         async (to: string, amount: string): Promise<void> => {
             if (!tonKit) throw new Error('TON Kit not initialized');
@@ -166,7 +143,6 @@ export const useTonWallet = (): UseTonWalletReturn => {
         initializeWallet,
         createNewWallet,
         importWallet,
-        getBalance,
         sendTransaction,
     };
 };
