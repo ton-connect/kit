@@ -20,6 +20,7 @@ export interface AuthSlice extends AuthState {
     unlock: (password: string) => Promise<boolean>;
     lock: () => void;
     reset: () => void;
+    setPersistPassword: (persist: boolean) => void;
 }
 
 // Jettons slice interface

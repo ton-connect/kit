@@ -11,12 +11,7 @@ export interface ApiClient {
         seqno?: number,
     ): Promise<ToncenterEmulationResponse>;
     sendBoc(boc: string | Uint8Array): Promise<string>;
-    runGetMethod(
-        address: Address | string,
-        method: string,
-        stack?: TupleItem[],
-        seqno?: number,
-    ): Promise<GetResult>;
+    runGetMethod(address: Address | string, method: string, stack?: TupleItem[], seqno?: number): Promise<GetResult>;
     getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState>;
     getBalance(address: Address | string, seqno?: number): Promise<bigint>;
 }

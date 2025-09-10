@@ -11,6 +11,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         isUnlocked: false,
         currentPassword: undefined,
         passwordHash: undefined,
+        persistPassword: false,
     },
 
     // Actions
@@ -80,6 +81,17 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
             state.auth.isUnlocked = false;
             state.auth.currentPassword = undefined;
             state.auth.passwordHash = undefined;
+            state.auth.persistPassword = false;
+        });
+    },
+
+    setPersistPassword: (persist: boolean) => {
+        set((state) => {
+            state.auth.persistPassword = persist;
+            // If disabling persistence, clear the persisted password
+            if (!persist) {
+                state.auth.currentPassword = undefined;
+            }
         });
     },
 });

@@ -46,6 +46,7 @@ export interface AuthState {
         passwordHash?: number[]; // Store password hash in state
         isPasswordSet?: boolean;
         isUnlocked?: boolean;
+        persistPassword?: boolean; // Setting to persist password between reloads
     };
 }
 

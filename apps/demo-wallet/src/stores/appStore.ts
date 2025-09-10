@@ -72,8 +72,11 @@ export const useStore = create<AppState>()(
                         auth: {
                             isPasswordSet: state.auth.isPasswordSet,
                             passwordHash: state.auth.passwordHash,
-                            // isUnlocked: state.auth.isUnlocked,
-                            // currentPassword: state.auth.currentPassword,
+                            persistPassword: state.auth.persistPassword,
+                            // Conditionally persist password based on user setting
+                            ...(state.auth.persistPassword && {
+                                currentPassword: state.auth.currentPassword,
+                            }),
                             // isUnlocked: omit - never persist unlocked state for security
                         },
                         wallet: {
@@ -105,6 +108,16 @@ export const useStore = create<AppState>()(
                             if (!state.wallet.disconnectedSessions) {
                                 state.wallet.disconnectedSessions = [];
                             }
+                            // Auto-unlock if password is persisted and available
+                            if (
+                                state.auth.persistPassword &&
+                                state.auth.currentPassword &&
+                                state.auth.isPasswordSet &&
+                                !state.auth.isUnlocked
+                            ) {
+                                log.info('Auto-unlocking wallet with persisted password');
+                                state.auth.isUnlocked = true;
+                            }
                         }
                     },
                 },
@@ -131,10 +144,12 @@ export const useAuth = () =>
         useShallow((state) => ({
             isPasswordSet: state.auth.isPasswordSet,
             isUnlocked: state.auth.isUnlocked,
+            persistPassword: state.auth.persistPassword,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
             reset: state.reset,
+            setPersistPassword: state.setPersistPassword,
         })),
     );
 
