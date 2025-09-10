@@ -6,6 +6,7 @@ import { WalletTonInterface, TonTransferParams, TonTransferManyParams } from '..
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
+import { EmulationErrorUnknown } from '../../../types/emulation/errors';
 
 export class WalletTonClass implements WalletTonInterface {
     async createSendTon(this: WalletInterface, param: TonTransferParams): Promise<ConnectTransactionParamContent> {
@@ -93,14 +94,8 @@ export class WalletTonClass implements WalletTonInterface {
         return {
             transaction,
             preview: {
-                moneyFlow: {
-                    outputs: 0n,
-                    inputs: 0n,
-                    jettonTransfers: [],
-                    ourAddress: Address.parse(this.getAddress()),
-                },
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                emulationResult: {} as any,
+                result: 'error',
+                emulationError: new EmulationErrorUnknown('Unknown emulation error'),
             },
         };
     }
