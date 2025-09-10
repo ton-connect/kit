@@ -16,6 +16,7 @@ import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, 
 import { walletKit } from '../stores/slices/walletSlice';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
+import { usePasteHandler } from '../hooks/usePasteHandler';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
@@ -41,6 +42,9 @@ export const WalletDashboard: React.FC = () => {
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
     const { error } = useTonWallet();
+
+    // Use the paste handler hook
+    usePasteHandler(handleTonConnectUrl);
 
     const handleRefreshBalance = useCallback(async () => {
         setIsRefreshing(true);
