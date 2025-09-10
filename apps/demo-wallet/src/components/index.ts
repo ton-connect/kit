@@ -11,5 +11,6 @@ export { JettonsList } from './JettonsList';
 export { Layout } from './Layout';
 export { MnemonicDisplay } from './MnemonicDisplay';
 export { ProtectedRoute } from './ProtectedRoute';
+export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
 export { TransactionRequestModal } from './TransactionRequestModal';
