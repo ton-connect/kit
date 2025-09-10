@@ -227,6 +227,7 @@ export const useJettons = () =>
             userJettons: state.jettons.userJettons,
             jettonTransfers: state.jettons.jettonTransfers,
             popularJettons: state.jettons.popularJettons,
+            lastJettonsUpdate: state.jettons.lastJettonsUpdate,
 
             // Loading states
             isLoadingJettons: state.jettons.isLoadingJettons,

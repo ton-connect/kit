@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { useJettons } from '../stores';
+import { useJettons, useWallet } from '../stores';
 import { Button } from './Button';
 import { Card } from './Card';
 import { JettonRow } from './JettonRow';
@@ -13,17 +13,25 @@ interface JettonsCardProps {
 }
 
 export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
-    const { userJettons, isLoadingJettons, error, loadUserJettons, formatJettonAmount } = useJettons();
+    const { address } = useWallet();
+    const { lastJettonsUpdate, userJettons, isLoadingJettons, error, loadUserJettons, formatJettonAmount } =
+        useJettons();
 
     // Load jettons on mount if none are loaded
     useEffect(() => {
-        log.info('userJettons', userJettons);
-        log.info('isLoadingJettons', isLoadingJettons);
-        if (userJettons.length === 0 && !isLoadingJettons) {
-            log.info('Loading user jettons on mount');
-            loadUserJettons();
+        if (lastJettonsUpdate > 0 && Date.now() - lastJettonsUpdate < 10000) {
+            return;
         }
-    }, [userJettons.length, isLoadingJettons, loadUserJettons]);
+        loadUserJettons();
+    }, [address, loadUserJettons]);
+
+    // auto refresh jettons every 10 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            loadUserJettons();
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [loadUserJettons]);
 
     const handleViewAll = () => {
         // TODO: Navigate to jettons page when created
