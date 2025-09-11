@@ -300,42 +300,6 @@ function isWalletInterface(config: unknown): config is WalletInterface {
 export async function createWalletFromConfig(config: WalletInitConfig, tonClient: ApiClient): Promise<WalletInterface> {
     let wallet: WalletInitInterface | undefined;
 
-    // Normalize plain interface-shaped objects into class instances to make instanceof checks work
-    // if (config && typeof config === 'object' && !('sign' in (config as unknown as Record<string, unknown>))) {
-    //     // Try mnemonic-shaped object
-    //     if ('mnemonic' in (config as unknown as Record<string, unknown>)) {
-    //         const c = config as unknown as {
-    //             mnemonic: string[];
-    //             version?: string;
-    //             mnemonicType?: 'ton' | 'bip39';
-    //             walletId?: number;
-    //             network?: 'mainnet' | 'testnet';
-    //         };
-    //         const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
-    //         config = new WalletInitConfigMnemonic({
-    //             mnemonic: c.mnemonic,
-    //             version: normalizedVersion,
-    //             mnemonicType: c.mnemonicType ?? 'ton',
-    //             walletId: c.walletId,
-    //             network: c.network,
-    //         });
-    //     } else if ('privateKey' in (config as unknown as Record<string, unknown>)) {
-    //         const c = config as unknown as {
-    //             privateKey: string;
-    //             version?: string;
-    //             walletId?: bigint;
-    //             network?: 'mainnet' | 'testnet';
-    //         };
-    //         const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
-    //         config = new WalletInitConfigPrivateKey({
-    //             privateKey: c.privateKey,
-    //             version: normalizedVersion,
-    //             walletId: c.walletId,
-    //             network: c.network,
-    //         });
-    //     }
-    // }
-
     // Handle mnemonic configuration
     if (
         isWalletInitConfigMnemonic(config) ||
