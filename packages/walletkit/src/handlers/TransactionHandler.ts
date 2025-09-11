@@ -144,6 +144,9 @@ export class TransactionHandler
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private validateValidUntil(validUntil: any): ValidationResult {
+        if (typeof validUntil === 'undefined') {
+            return { isValid: true, errors: [] };
+        }
         if (typeof validUntil === 'number' && !isNaN(validUntil)) {
             return { isValid: true, errors: [] };
         }

@@ -1,6 +1,7 @@
 // WalletV5R1 adapter that implements WalletInterface
 
 import {
+    Address,
     beginCell,
     Cell,
     Dictionary,
@@ -118,22 +119,58 @@ export class WalletV5R1Adapter implements WalletInitInterface {
 
         const actions = packActionsList(
             input.messages.map((m) => {
+                let bounce = true;
+                const parsedAddress = Address.parseFriendly(m.address);
+                if (parsedAddress.isBounceable === false) {
+                    bounce = false;
+                }
+
                 const msg = internal({
-                    body: m.payload ? Cell.fromBase64(m.payload) : undefined,
                     to: m.address,
                     value: BigInt(m.amount),
-                    bounce: false,
+                    bounce: bounce,
                     extracurrency: m.extraCurrency
                         ? Object.fromEntries(Object.entries(m.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
                         : undefined,
                 });
 
+                if (m.payload) {
+                    try {
+                        msg.body = Cell.fromBase64(m.payload);
+                    } catch (error) {
+                        log.warn('Failed to load payload', { error });
+                        throw new Error('Couldnt parse payload');
+                    }
+                }
+
                 if (m.stateInit) {
-                    msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
+                    try {
+                        msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
+                    } catch (error) {
+                        log.warn('Failed to load state init', { error });
+                        throw new Error('Couldnt parse stateInit');
+                    }
                 }
                 return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
             }),
         );
+
+        const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
+            ...options,
+            validUntil: undefined,
+        };
+        // add valid untill
+        if (input.valid_until) {
+            const now = Math.floor(Date.now() / 1000);
+            const maxValidUntil = now + 600;
+            if (input.valid_until < now) {
+                throw new Error('Valid until is in the past');
+            } else if (input.valid_until > maxValidUntil) {
+                createBodyOptions.validUntil = maxValidUntil;
+            } else {
+                createBodyOptions.validUntil = input.valid_until;
+            }
+        }
 
         let seqno = 0;
         try {
@@ -146,7 +183,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
             throw new Error('Failed to get seqno or walletId');
         }
 
-        const transfer = await this.createBodyV5(seqno, walletId, actions, options);
+        const transfer = await this.createBodyV5(seqno, walletId, actions, createBodyOptions);
 
         const ext = external({
             to: this.walletContract.address,
@@ -234,12 +271,17 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         }
     }
 
-    async createBodyV5(seqno: number, walletId: bigint, actionsList: Cell, options: { fakeSignature: boolean }) {
+    async createBodyV5(
+        seqno: number,
+        walletId: bigint,
+        actionsList: Cell,
+        options: { validUntil: number | undefined; fakeSignature: boolean },
+    ) {
         const Opcodes = {
             auth_signed: 0x7369676e,
         };
 
-        const expireAt = Math.floor(Date.now() / 1000) + 60;
+        const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
         const payload = beginCell()
             .storeUint(Opcodes.auth_signed, 32)
             .storeUint(walletId, 32)

@@ -194,7 +194,7 @@ export class RequestProcessor {
                 id: event.id,
                 result: {
                     signature: Buffer.from(signature).toString('base64'),
-                    address: signData.address,
+                    address: Address.parse(signData.address).toRawString(),
                     timestamp: signData.timestamp,
                     domain: signData.domain,
                     payload: signData.payload,
