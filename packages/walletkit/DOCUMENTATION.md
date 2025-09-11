@@ -15,15 +15,15 @@ pnpm add @ton/walletkit
 ### 1) Initialize the kit
 
 ```ts
-import { TonWalletKit, WalletInitConfigMnemonic } from '@ton/walletkit';
+import { TonWalletKit, createWalletInitConfigMnemonic } from '@ton/walletkit';
 
 const kit = new TonWalletKit({
   bridgeUrl: 'https://bridge.tonapi.io/bridge',
   network: 'mainnet',
 });
 
-// Optionally preload a wallet (mnemonic or private key)
-const walletConfig = new WalletInitConfigMnemonic({
+// Optionally preload a wallet (mnemonic/private key/signer)
+const walletConfig = createWalletInitConfigMnemonic({
   mnemonic: ['word1', 'word2', '...'],
   version: 'v5r1',
   mnemonicType: 'ton',
@@ -39,13 +39,13 @@ Register simple callbacks that show UI and then approve or reject via kit method
 ```ts
 // Connect requests
 kit.onConnectRequest(async (req) => {
-  // Use wallet selected by your app (e.g., from user settings)
-  const userWalletAddress = getSelectedWalletAddress(); // provided by integrator
-  const wallet = kit.getWallet(userWalletAddress);
+  const selected = getSelectedWalletAddress();
+  const wallet = kit.getWallet(selected);
   if (!wallet) return;
 
-  // Minimal confirmation flow
-  if (confirm(`Connect ${req.dAppName}?`)) {
+  // Minimal confirmation flow using preview
+  const name = req.preview.manifest?.name ?? req.dAppName;
+  if (confirm(`Connect to ${name}?`)) {
     await kit.approveConnectRequest({ ...req, wallet });
   } else {
     await kit.rejectConnectRequest(req, 'User rejected');
@@ -54,6 +54,7 @@ kit.onConnectRequest(async (req) => {
 
 // Transaction requests
 kit.onTransactionRequest(async (tx) => {
+  // You can surface tx.preview.moneyFlow for fees and affected balances
   if (confirm('Do you confirm this transaction?')) {
     await kit.approveTransactionRequest(tx);
   } else {
@@ -63,6 +64,7 @@ kit.onTransactionRequest(async (tx) => {
 
 // Sign data requests
 kit.onSignDataRequest(async (sd) => {
+  // You can render sd.preview.kind === 'text' | 'binary' | 'cell'
   if (confirm('Sign this data?')) {
     await kit.signDataRequest(sd);
   } else {
@@ -72,7 +74,6 @@ kit.onSignDataRequest(async (sd) => {
 
 // Disconnect events
 kit.onDisconnect((evt) => {
-  // Perform cleanup in your app (close modals, clear session UI, etc.)
   cleanupAfterDisconnect(evt.wallet.getAddress());
 });
 ```
@@ -96,6 +97,90 @@ const current = kit.getWallet(address);
 if (!current) return;
 const balance = await current.getBalance();
 console.log(address, balance.toString());
+```
+
+### 5) Understanding previews (for your UI)
+
+- **ConnectPreview (`req.preview`)**: Information about the dApp asking to connect. Includes `manifest` (name, description, icon), `requestedItems`, and `permissions` your UI can show before approval.
+- **TransactionPreview (`tx.preview`)**: Human-readable transaction summary. On success, `preview.moneyFlow` contains estimated total fees and balance deltas, and `preview.emulationResult` has low-level emulation details. On error, `preview.result === 'error'` with an `emulationError`.
+- **SignDataPreview (`sd.preview`)**: Shape of the data to sign. `kind` is `'text' | 'binary' | 'cell'`; use this to render a safe preview.
+
+You can display these previews directly in your confirmation modals.
+
+### 6) Sending assets programmatically
+
+You can create transactions from your app using the wallet interfaces and then feed them into the regular approval flow via `handleNewTransaction`.
+
+#### Send TON
+
+```ts
+import type { TonTransferParams } from '@ton/walletkit';
+
+const from = kit.getWallet(getSelectedWalletAddress());
+if (!from) throw new Error('No wallet');
+
+const tonTransfer: TonTransferParams = {
+  toAddress: 'EQC...recipient...',
+  amount: (1n * 10n ** 9n).toString(), // 1 TON in nanotons
+  // Optional comment OR body (base64 BOC), not both
+  comment: 'Thanks!'
+};
+
+// 1) Build transaction content
+const tx = await from.createTransferTonTransaction(tonTransfer);
+
+// 2) Route into the normal flow (triggers onTransactionRequest)
+await kit.handleNewTransaction(from, tx);
+```
+
+#### Send Jettons (fungible tokens)
+
+```ts
+import type { JettonTransferParams } from '@ton/walletkit';
+
+const wallet = kit.getWallet(getSelectedWalletAddress());
+if (!wallet) throw new Error('No wallet');
+
+const jettonTransfer: JettonTransferParams = {
+  toAddress: 'EQC...recipient...',
+  jettonAddress: 'EQD...jetton-master...',
+  amount: '1000000000', // raw amount per token decimals
+  comment: 'Payment'
+};
+
+const tx = await wallet.createTransferJettonTransaction(jettonTransfer);
+await kit.handleNewTransaction(wallet, tx);
+```
+
+Notes:
+- `amount` is the raw integer amount (apply jetton decimals yourself).
+- The transaction includes TON for gas automatically.
+
+#### Send NFTs
+
+```ts
+import type { NftTransferParamsHuman } from '@ton/walletkit';
+
+const wallet = kit.getWallet(getSelectedWalletAddress());
+if (!wallet) throw new Error('No wallet');
+
+const nftTransfer: NftTransferParamsHuman = {
+  nftAddress: 'EQD...nft-item...',
+  toAddress: 'EQC...recipient...',
+  transferAmount: 10000000n, // TON used to invoke NFT transfer (nanotons)
+  comment: 'Gift'
+};
+
+const tx = await wallet.createTransferNftTransaction(nftTransfer);
+const { preview } = await wallet.getTransactionPreview(tx);
+await kit.handleNewTransaction(wallet, tx);
+```
+
+Fetching NFTs:
+
+```ts
+const items = await wallet.getNfts({ offset: 0, limit: 50 });
+// items.items is an array of NftItem
 ```
 
 ### Example: minimal UI state wiring
