@@ -7,9 +7,10 @@ import {
     TonWalletKitOptions,
     WalletInterface,
     WalletInitConfig,
-    WalletInitConfigMnemonic,
-    WalletInitConfigPrivateKey,
     DEFAULT_DURABLE_EVENTS_CONFIG,
+    isWalletInitConfigMnemonic,
+    isWalletInitConfigPrivateKey,
+    isWalletInitConfigSigner,
 } from '../types';
 import type { StorageAdapter } from '../storage';
 import { createStorageAdapter } from '../storage';
@@ -300,59 +301,53 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
     let wallet: WalletInitInterface | undefined;
 
     // Normalize plain interface-shaped objects into class instances to make instanceof checks work
-    if (config && typeof config === 'object' && !('sign' in (config as unknown as Record<string, unknown>))) {
-        // Try mnemonic-shaped object
-        if ('mnemonic' in (config as unknown as Record<string, unknown>)) {
-            const c = config as unknown as {
-                mnemonic: string[];
-                version?: string;
-                mnemonicType?: 'ton' | 'bip39';
-                walletId?: number;
-                network?: 'mainnet' | 'testnet';
-            };
-            const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
-            config = new WalletInitConfigMnemonic({
-                mnemonic: c.mnemonic,
-                version: normalizedVersion,
-                mnemonicType: c.mnemonicType ?? 'ton',
-                walletId: c.walletId,
-                network: c.network,
-            });
-        } else if ('privateKey' in (config as unknown as Record<string, unknown>)) {
-            const c = config as unknown as {
-                privateKey: string;
-                version?: string;
-                walletId?: bigint;
-                network?: 'mainnet' | 'testnet';
-            };
-            const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
-            config = new WalletInitConfigPrivateKey({
-                privateKey: c.privateKey,
-                version: normalizedVersion,
-                walletId: c.walletId,
-                network: c.network,
-            });
-        }
-    }
+    // if (config && typeof config === 'object' && !('sign' in (config as unknown as Record<string, unknown>))) {
+    //     // Try mnemonic-shaped object
+    //     if ('mnemonic' in (config as unknown as Record<string, unknown>)) {
+    //         const c = config as unknown as {
+    //             mnemonic: string[];
+    //             version?: string;
+    //             mnemonicType?: 'ton' | 'bip39';
+    //             walletId?: number;
+    //             network?: 'mainnet' | 'testnet';
+    //         };
+    //         const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
+    //         config = new WalletInitConfigMnemonic({
+    //             mnemonic: c.mnemonic,
+    //             version: normalizedVersion,
+    //             mnemonicType: c.mnemonicType ?? 'ton',
+    //             walletId: c.walletId,
+    //             network: c.network,
+    //         });
+    //     } else if ('privateKey' in (config as unknown as Record<string, unknown>)) {
+    //         const c = config as unknown as {
+    //             privateKey: string;
+    //             version?: string;
+    //             walletId?: bigint;
+    //             network?: 'mainnet' | 'testnet';
+    //         };
+    //         const normalizedVersion = c.version === 'v5r1' ? 'v5r1' : undefined;
+    //         config = new WalletInitConfigPrivateKey({
+    //             privateKey: c.privateKey,
+    //             version: normalizedVersion,
+    //             walletId: c.walletId,
+    //             network: c.network,
+    //         });
+    //     }
+    // }
+
     // Handle mnemonic configuration
-    if (config instanceof WalletInitConfigMnemonic || 'mnemonic' in config) {
+    if (
+        isWalletInitConfigMnemonic(config) ||
+        isWalletInitConfigPrivateKey(config) ||
+        isWalletInitConfigSigner(config)
+    ) {
         if (config.version === 'v5r1') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            wallet = await createWalletV5R1(config as any, {
+            wallet = await createWalletV5R1(config, {
                 tonClient,
             });
         } else {
             throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
-        }
-    } else if (config instanceof WalletInitConfigPrivateKey || 'privateKey' in config) {
-        // Handle private key configuration - check for publicKey but not mnemonic
-        if (config.version === 'v5r1') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            wallet = await createWalletV5R1(config as any, {
-                tonClient,
-            });
-        } else {
-            throw new Error(`Unsupported wallet version for private key: ${config.version}`);
         }
     } else if (isWalletInterface(config)) {
         // If it's already a WalletInterface, use it as-is
