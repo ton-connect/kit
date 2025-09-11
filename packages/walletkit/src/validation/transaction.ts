@@ -97,7 +97,7 @@ export function validateMessageObject(message: any): ValidationResult {
         errors.push('to address is required and must be a string');
     } else {
         if (!isFriendlyTonAddress(message.address)) {
-            errors.push('to address must be a valid TON address');
+            errors.push('to address must be a valid friendly TON address');
         }
     }
 

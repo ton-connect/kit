@@ -8,6 +8,8 @@ import {
     WalletInterface,
 } from '../src';
 import { createWalletFromConfig } from '../src/core/Initializer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -49,6 +51,7 @@ async function createWallet(parent?: Address | string): Promise<WalletInterface>
 }
 
 async function logWallet(wallet: WalletInterface) {
+    console.log('wallet', wallet);
     return {
         address: wallet.getAddress(),
         nfts: await wallet.getNfts({}),
@@ -80,13 +83,14 @@ async function main() {
         },
         { fakeSignature: false },
     );
-    const hash = await tonClient.sendBoc(boc);
-    logInfo('send boc hash:', hash);
+    // const hash = await tonClient.sendBoc(boc);
+    // logInfo('send boc hash:', hash);
 }
 
 main().catch((error) => {
     if (error instanceof Error) {
         logError(error.message);
+        logError(error.stack);
     } else {
         logError('Unknown error:', error);
     }
