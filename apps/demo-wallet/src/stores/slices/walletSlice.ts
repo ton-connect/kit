@@ -38,23 +38,10 @@ const walletKit = new TonWalletKit({
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
 });
 
-const useWalletInterfaceType: 'signer' | 'mnemonic' = 'signer';
-
-async function createWalletConfig(mnemonic: string[]): Promise<WalletInitConfig> {
-    // if (useSignerInterface) {
-    //     return new WalletInitConfigSigner({
-    //         publicKey: mnemonic,
-    //         version: 'v5r1',
-    //         network: 'mainnet',
-    //     });
-    // }
-
-    // return new WalletInitConfigMnemonic({
-    //     mnemonic,
-    //     version: 'v5r1',
-    //     mnemonicType: 'ton',
-    //     network: 'mainnet',
-    // });
+async function createWalletConfig(
+    mnemonic: string[],
+    useWalletInterfaceType: 'signer' | 'mnemonic',
+): Promise<WalletInitConfig> {
     switch (useWalletInterfaceType) {
         case 'signer': {
             const keyPair = await MnemonicToKeyPair(mnemonic);
@@ -64,7 +51,11 @@ async function createWalletConfig(mnemonic: string[]): Promise<WalletInitConfig>
                 version: 'v5r1',
                 network: 'mainnet',
                 sign: async (bytes: Uint8Array) => {
-                    return DefaultSignature(bytes, keyPair.secretKey);
+                    if (confirm('Are you sure you want to sign?')) {
+                        return DefaultSignature(bytes, keyPair.secretKey);
+                    }
+
+                    throw new Error('User did not confirm');
                 },
             });
         }
@@ -117,7 +108,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             );
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic);
+            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
@@ -176,7 +167,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const mnemonic = JSON.parse(decryptedString) as string[];
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic);
+            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();

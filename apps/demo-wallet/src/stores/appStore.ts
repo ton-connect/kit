@@ -73,6 +73,7 @@ export const useStore = create<AppState>()(
                             isPasswordSet: state.auth.isPasswordSet,
                             passwordHash: state.auth.passwordHash,
                             persistPassword: state.auth.persistPassword,
+                            useWalletInterfaceType: state.auth.useWalletInterfaceType,
                             // Conditionally persist password based on user setting
                             ...(state.auth.persistPassword && {
                                 currentPassword: state.auth.currentPassword,
@@ -145,11 +146,13 @@ export const useAuth = () =>
             isPasswordSet: state.auth.isPasswordSet,
             isUnlocked: state.auth.isUnlocked,
             persistPassword: state.auth.persistPassword,
+            useWalletInterfaceType: state.auth.useWalletInterfaceType,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
             reset: state.reset,
             setPersistPassword: state.setPersistPassword,
+            setUseWalletInterfaceType: state.setUseWalletInterfaceType,
         })),
     );
 

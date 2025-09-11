@@ -21,6 +21,7 @@ export interface AuthSlice extends AuthState {
     lock: () => void;
     reset: () => void;
     setPersistPassword: (persist: boolean) => void;
+    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic') => void;
 }
 
 // Jettons slice interface

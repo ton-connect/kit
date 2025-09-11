@@ -47,6 +47,7 @@ export interface AuthState {
         isPasswordSet?: boolean;
         isUnlocked?: boolean;
         persistPassword?: boolean; // Setting to persist password between reloads
+        useWalletInterfaceType?: 'signer' | 'mnemonic'; // Setting for wallet interface type
     };
 }
 

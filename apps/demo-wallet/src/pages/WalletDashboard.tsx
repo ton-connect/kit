@@ -29,7 +29,7 @@ export const WalletDashboard: React.FC = () => {
     const navigate = useNavigate();
 
     const { balance, address, getAvailableWallets, updateBalance } = useWallet();
-    const { persistPassword, setPersistPassword } = useAuth();
+    const { persistPassword, setPersistPassword, useWalletInterfaceType, setUseWalletInterfaceType } = useAuth();
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -290,6 +290,21 @@ export const WalletDashboard: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Wallet Interface Type</label>
+                                <p className="text-xs text-gray-500 mt-1">Choose how the wallet handles signing operations</p>
+                            </div>
+                            <select
+                                className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                                value={useWalletInterfaceType || 'mnemonic'}
+                                onChange={(e) => setUseWalletInterfaceType(e.target.value as 'signer' | 'mnemonic')}
+                            >
+                                <option value="mnemonic">Mnemonic</option>
+                                <option value="signer">Signer</option>
+                            </select>
+                        </div>
                     </div>
                 </Card>
 
