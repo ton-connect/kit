@@ -56,3 +56,5 @@ export type {
 
 // Re-export validation utilities
 export { validateWalletName, sanitizeWalletName, isValidWalletName } from './utils/walletNameValidation';
+export { MnemonicToKeyPair } from './utils/mnemonic';
+export { DefaultSignature, FakeSignature } from './utils/sign';

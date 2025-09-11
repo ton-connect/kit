@@ -18,6 +18,8 @@ export type TonNetwork = 'mainnet' | 'testnet';
 
 export type WalletVersion = 'v5r1' | 'unknown'; // | 'v4r2';
 
+export type WalletSigner = (bytes: Uint8Array) => Promise<Uint8Array>;
+
 export interface WalletInitConfigMnemonicInterface {
     mnemonic: string[];
     version?: WalletVersion;
@@ -26,32 +28,22 @@ export interface WalletInitConfigMnemonicInterface {
     network?: TonNetwork;
 }
 
-export class WalletInitConfigMnemonic {
-    mnemonic: string[];
-    version: WalletVersion;
-    mnemonicType: 'ton' | 'bip39';
-    walletId?: number;
-    network: TonNetwork;
+export function createWalletInitConfigMnemonic(
+    params: WalletInitConfigMnemonicInterface,
+): WalletInitConfigMnemonicInterface {
+    return {
+        mnemonic: params.mnemonic,
+        version: params.version ?? 'v5r1',
+        mnemonicType: params.mnemonicType ?? 'ton',
+        walletId: params.walletId,
+        network: params.network ?? 'mainnet',
+    };
+}
 
-    constructor({
-        mnemonic,
-        version = 'v5r1',
-        mnemonicType = 'ton',
-        walletId,
-        network,
-    }: {
-        mnemonic: string[];
-        version?: WalletVersion;
-        mnemonicType?: 'ton' | 'bip39';
-        walletId?: number;
-        network?: TonNetwork;
-    }) {
-        this.mnemonic = mnemonic;
-        this.version = version ?? 'v5r1';
-        this.mnemonicType = mnemonicType ?? 'ton';
-        this.walletId = walletId;
-        this.network = network ?? 'mainnet';
-    }
+export function isWalletInitConfigMnemonic(
+    config: WalletInitConfig,
+): config is ReturnType<typeof createWalletInitConfigMnemonic> {
+    return 'mnemonic' in config;
 }
 
 export interface WalletInitConfigPrivateKeyInterface {
@@ -61,28 +53,45 @@ export interface WalletInitConfigPrivateKeyInterface {
     network?: TonNetwork;
 }
 
-export class WalletInitConfigPrivateKey {
-    privateKey: string; // private key in hex format
-    version: WalletVersion;
-    walletId?: bigint;
-    network: TonNetwork;
+export function createWalletInitConfigPrivateKey(
+    params: WalletInitConfigPrivateKeyInterface,
+): WalletInitConfigPrivateKeyInterface {
+    return {
+        privateKey: params.privateKey,
+        version: params.version ?? 'v5r1',
+        walletId: params.walletId,
+        network: params.network ?? 'mainnet',
+    };
+}
 
-    constructor({
-        privateKey,
-        version = 'v5r1',
-        walletId,
-        network,
-    }: {
-        privateKey: string;
-        version?: WalletVersion;
-        walletId?: bigint;
-        network?: TonNetwork;
-    }) {
-        this.privateKey = privateKey;
-        this.version = version;
-        this.walletId = walletId;
-        this.network = network ?? 'mainnet';
-    }
+export function isWalletInitConfigPrivateKey(
+    config: WalletInitConfig,
+): config is ReturnType<typeof createWalletInitConfigPrivateKey> {
+    return 'privateKey' in config;
+}
+
+export interface WalletInitConfigSignerInterface {
+    publicKey: Uint8Array;
+    version?: WalletVersion;
+    walletId?: bigint;
+    network?: TonNetwork;
+    sign: WalletSigner;
+}
+
+export function createWalletInitConfigSigner(params: WalletInitConfigSignerInterface): WalletInitConfigSignerInterface {
+    return {
+        publicKey: params.publicKey,
+        version: params.version ?? 'v5r1',
+        walletId: params.walletId,
+        network: params.network ?? 'mainnet',
+        sign: params.sign,
+    };
+}
+
+export function isWalletInitConfigSigner(
+    config: WalletInitConfig,
+): config is ReturnType<typeof createWalletInitConfigSigner> {
+    return 'publicKey' in config && 'sign' in config;
 }
 
 /**
@@ -98,7 +107,7 @@ export interface WalletInitInterface {
     client: ApiClient;
 
     /** Sign raw bytes with wallet's private key */
-    sign(bytes: Uint8Array): Promise<Uint8Array>;
+    sign: WalletSigner;
 
     /** Get wallet's TON address */
     getAddress(options?: { testnet?: boolean }): string;
@@ -168,10 +177,9 @@ export interface WalletNftInterface {
 
 export type WalletInitConfig =
     | WalletInitInterface
-    | WalletInitConfigMnemonic
-    | WalletInitConfigPrivateKey
     | WalletInitConfigMnemonicInterface
-    | WalletInitConfigPrivateKeyInterface;
+    | WalletInitConfigPrivateKeyInterface
+    | WalletInitConfigSignerInterface;
 
 export type WalletInterface = WalletInitInterface & WalletTonInterface & WalletJettonInterface & WalletNftInterface;
 

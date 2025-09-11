@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import {
     defaultWalletIdV5R1,
     ApiClientToncenter,
-    WalletInitConfigMnemonic,
+    createWalletInitConfigMnemonic,
+    WalletV5R1Adapter,
+    WalletV5,
     ConnectTransactionParamMessage,
     WalletInterface,
 } from '../src';
@@ -43,11 +45,11 @@ function nextWalletId(parent?: Address | string): number {
     return parseInt(bytes.reverse().join(''), 16);
 }
 
-async function createWallet(parent?: Address | string): Promise<WalletInterface> {
-    return createWalletFromConfig(
-        new WalletInitConfigMnemonic({
+async function createWallet(parent?: Address | string) {
+    return createWalletV5R1(
+        createWalletInitConfigMnemonic({
             mnemonic: mnemonic!.trim().split(' '),
-            walletId: nextWalletId(parent),
+            walletId: BigInt(nextWalletId(parent)),
         }),
         tonClient,
     );

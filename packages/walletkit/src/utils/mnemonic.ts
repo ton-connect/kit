@@ -2,7 +2,7 @@ import { mnemonicToWalletKey } from '@ton/crypto';
 
 export async function MnemonicToKeyPair(
     mnemonic: string | string[],
-    mnemonicType: 'ton' | 'bip39',
+    mnemonicType: 'ton' | 'bip39' = 'ton',
 ): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
     const mnemonicArray = Array.isArray(mnemonic) ? mnemonic : mnemonic.split(' ');
     if (mnemonicArray.length !== 24) {

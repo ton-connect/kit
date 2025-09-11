@@ -16,11 +16,19 @@ export type {
     WalletJettonInterface,
     WalletNftInterface,
     WalletInitInterface,
+    WalletInitConfigSignerInterface,
     WalletInitConfigMnemonicInterface,
     WalletInitConfigPrivateKeyInterface,
 } from './wallet';
 
-export { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from './wallet';
+export {
+    createWalletInitConfigMnemonic,
+    createWalletInitConfigPrivateKey,
+    createWalletInitConfigSigner,
+    isWalletInitConfigMnemonic,
+    isWalletInitConfigPrivateKey,
+    isWalletInitConfigSigner,
+} from './wallet';
 
 // Transaction types (from validation module)
 export type { HumanReadableTx } from '../validation/transaction';
