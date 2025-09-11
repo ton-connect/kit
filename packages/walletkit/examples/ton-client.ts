@@ -1,6 +1,7 @@
+import util from 'util';
+
 import { Address } from '@ton/core';
 import dotenv from 'dotenv';
-import util from 'util';
 
 import {
     defaultWalletIdV5R1,

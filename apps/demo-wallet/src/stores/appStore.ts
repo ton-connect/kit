@@ -6,6 +6,7 @@ import { immer } from 'zustand/middleware/immer';
 import { createAuthSlice } from './slices/authSlice';
 import { createWalletSlice, setupWalletKitListeners } from './slices/walletSlice';
 import { createJettonsSlice } from './slices/jettonsSlice';
+import { createNftsSlice } from './slices/nftsSlice';
 import { createComponentLogger } from '../utils/logger';
 import type { AppState } from '../types/store';
 
@@ -60,6 +61,9 @@ export const useStore = create<AppState>()(
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     ...createJettonsSlice(...a),
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    ...createNftsSlice(...a),
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 })) as unknown as any,
                 {
@@ -217,6 +221,36 @@ export const useDisconnectEvents = () =>
             disconnectedSessions: state.wallet.disconnectedSessions || [],
             handleDisconnectEvent: state.handleDisconnectEvent,
             clearDisconnectNotifications: state.clearDisconnectNotifications,
+        })),
+    );
+
+export const useNfts = () =>
+    useStore(
+        useShallow((state) => ({
+            // Data
+            userNfts: state.nfts.userNfts,
+            lastNftsUpdate: state.nfts.lastNftsUpdate,
+
+            // Loading states
+            isLoadingNfts: state.nfts.isLoadingNfts,
+            isRefreshing: state.nfts.isRefreshing,
+
+            // Error states
+            error: state.nfts.error,
+
+            // Pagination
+            hasMore: state.nfts.hasMore,
+            offset: state.nfts.offset,
+
+            // Actions
+            loadUserNfts: state.loadUserNfts,
+            refreshNfts: state.refreshNfts,
+            loadMoreNfts: state.loadMoreNfts,
+            clearNfts: state.clearNfts,
+
+            // Utilities
+            getNftByAddress: state.getNftByAddress,
+            formatNftIndex: state.formatNftIndex,
         })),
     );
 

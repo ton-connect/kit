@@ -8,6 +8,7 @@ export { Input } from './Input';
 export { JettonsCard } from './JettonsCard';
 export { JettonRow } from './JettonRow';
 export { JettonsList } from './JettonsList';
+export { NftsCard } from './NftsCard';
 export { Layout } from './Layout';
 export { MnemonicDisplay } from './MnemonicDisplay';
 export { ProtectedRoute } from './ProtectedRoute';

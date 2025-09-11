@@ -10,6 +10,7 @@ import {
     SignDataRequestModal,
     DisconnectNotifications,
     JettonsCard,
+    NftsCard,
     RecentTransactions,
 } from '../components';
 import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
@@ -194,6 +195,9 @@ export const WalletDashboard: React.FC = () => {
 
                 {/* Jettons Card */}
                 <JettonsCard />
+
+                {/* NFTs Card */}
+                <NftsCard />
 
                 {/* TON Connect URL Input */}
                 <Card title="Connect to dApp">

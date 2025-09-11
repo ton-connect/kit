@@ -9,6 +9,7 @@ import type {
     JettonTransfer,
     JettonInfo,
     JettonBalance,
+    NftItem,
 } from '@ton/walletkit';
 
 import type { AuthState, WalletState, Transaction } from './wallet';
@@ -62,6 +63,38 @@ export interface JettonsSlice {
     formatJettonAmount: (amount: string, decimals: number) => string;
 }
 
+// NFTs slice interface
+export interface NftsSlice {
+    nfts: {
+        // Data
+        userNfts: NftItem[];
+
+        // Loading states
+        isLoadingNfts: boolean;
+        isRefreshing: boolean;
+
+        // Error states
+        error: string | null;
+
+        // Last update timestamp
+        lastNftsUpdate: number;
+
+        // Pagination
+        hasMore: boolean;
+        offset: number;
+    };
+
+    // Actions
+    loadUserNfts: (userAddress?: string, limit?: number) => Promise<void>;
+    refreshNfts: (userAddress?: string) => Promise<void>;
+    loadMoreNfts: (userAddress?: string) => Promise<void>;
+    clearNfts: () => void;
+
+    // Utility methods
+    getNftByAddress: (address: string) => NftItem | undefined;
+    formatNftIndex: (index: bigint) => string;
+}
+
 // Wallet slice interface
 export interface WalletSlice extends WalletState {
     // Actions
@@ -101,7 +134,7 @@ export interface WalletSlice extends WalletState {
 }
 
 // Combined app state
-export interface AppState extends AuthSlice, WalletSlice, JettonsSlice {}
+export interface AppState extends AuthSlice, WalletSlice, JettonsSlice, NftsSlice {}
 
 // Slice creator types
 export type AuthSliceCreator = StateCreator<AppState, [], [], AuthSlice>;
@@ -109,6 +142,8 @@ export type AuthSliceCreator = StateCreator<AppState, [], [], AuthSlice>;
 export type WalletSliceCreator = StateCreator<AppState, [], [], WalletSlice>;
 
 export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
+
+export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
 
 // Migration types
 export interface MigrationState {

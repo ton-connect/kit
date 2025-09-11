@@ -88,3 +88,7 @@ export type {
     EmulationTokenInfoWallets,
     EmulationTokenInfoMasters,
 } from './toncenter/emulation';
+
+export type { NftItem } from './toncenter/NftItem';
+
+export type { NftItems } from './toncenter/NftItems';
