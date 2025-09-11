@@ -4,9 +4,6 @@ import type { NftItem } from '@ton/walletkit';
 import { useNfts, useWallet } from '../stores';
 import { Button } from './Button';
 import { Card } from './Card';
-// import { createComponentLogger } from '../utils/logger';
-
-// const _log = createComponentLogger('NftsCard');
 
 interface NftsCardProps {
     className?: string;
@@ -44,40 +41,31 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
 
     const getNftImage = (nft: NftItem): string | null => {
         // Try to extract image from content metadata
-        if (nft.content && typeof nft.content === 'object') {
-            const content = nft.content as Record<string, unknown>;
-            if (content.image && typeof content.image === 'string') return content.image;
-            if (content.image_url && typeof content.image_url === 'string') return content.image_url;
-            if (content.uri && typeof content.uri === 'string') {
-                // If URI is an IPFS hash, convert to gateway URL
-                if (content.uri.startsWith('ipfs://')) {
-                    return `https://ipfs.io/ipfs/${content.uri.slice(7)}`;
-                }
-                return content.uri;
+        if (nft.metadata && typeof nft.metadata === 'object') {
+            if (nft.metadata?.extra?._image_medium) {
+                return nft.metadata.extra._image_medium;
+            }
+            if (nft.metadata.image && typeof nft.metadata.image === 'string') {
+                return nft.metadata.image;
             }
         }
         return null;
     };
 
     const getNftName = (nft: NftItem): string => {
-        if (nft.content && typeof nft.content === 'object') {
-            const content = nft.content as Record<string, unknown>;
-            if (content.name && typeof content.name === 'string') return content.name;
-            if (content.title && typeof content.title === 'string') return content.title;
-        }
-        if (nft.collection?.collectionContent) {
-            const collectionContent = nft.collection.collectionContent as Record<string, unknown>;
-            if (collectionContent.name && typeof collectionContent.name === 'string') {
-                return `${collectionContent.name} ${formatNftIndex(nft.index)}`;
+        if (nft.metadata && typeof nft.metadata === 'object') {
+            if (nft.metadata.name && typeof nft.metadata.name === 'string') {
+                return nft.metadata.name;
             }
         }
         return `NFT ${formatNftIndex(nft.index)}`;
     };
 
     const getNftDescription = (nft: NftItem): string | null => {
-        if (nft.content && typeof nft.content === 'object') {
-            const content = nft.content as Record<string, unknown>;
-            if (content.description && typeof content.description === 'string') return content.description;
+        if (nft.metadata && typeof nft.metadata === 'object') {
+            if (nft.metadata.description && typeof nft.metadata.description === 'string') {
+                return nft.metadata.description;
+            }
         }
         return null;
     };
