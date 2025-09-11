@@ -12,7 +12,7 @@ import { NftItems } from '../../../types/toncenter/NftItems';
 
 export class WalletNftClass implements WalletNftInterface {
     async getNfts(this: WalletInterface, params: LimitRequest): Promise<NftItems> {
-        const out = await this.client.nftItems({
+        const out = await this.client.nftItemsByOwner({
             ownerAddress: [this.getAddress()],
             offset: params.offset ?? 0,
             limit: params.limit ?? 100,
@@ -24,9 +24,8 @@ export class WalletNftClass implements WalletNftInterface {
     }
 
     async getNft(this: WalletInterface, address: Address | string): Promise<NftItem | null> {
-        const result = await this.client.nftItems({
+        const result = await this.client.nftItemsByAddress({
             address: [address],
-            ownerAddress: [this.getAddress()],
         });
         if (result.items.length > 0) {
             return result.items[0];

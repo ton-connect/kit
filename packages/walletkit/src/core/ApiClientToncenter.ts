@@ -34,11 +34,12 @@ export interface LimitRequest {
     offset?: number;
 }
 
-export interface NftItemsRequest extends LimitRequest {
+export interface NftItemsRequest {
     address?: Array<Address | string>;
+}
+
+export interface NftItemsByOwnerRequest extends LimitRequest {
     ownerAddress?: Array<Address | string>;
-    collectionAddress?: Array<Address | string>;
-    index?: Array<string>;
     sortByLastTransactionLt?: boolean;
 }
 
@@ -55,16 +56,24 @@ export class ApiClientToncenter implements ApiClient {
         this.fetchApi = config.fetchApi ?? fetch;
     }
 
-    async nftItems(request: NftItemsRequest): Promise<NftItemsResponse> {
+    async nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse> {
+        const props: Record<string, unknown> = {
+            address: (request.address ?? []).map(prepareAddress),
+        };
+        const response = await this.getJson<NftItemsResponseV3>('/api/v3/nft/items', props);
+        return toNftItemsResponse(response, {
+            limit: 0,
+            offset: 0,
+        });
+    }
+
+    async nftItemsByOwner(request: NftItemsByOwnerRequest): Promise<NftItemsResponse> {
         const pagination: Pagination = {
             limit: request.limit ?? 10,
             offset: request.offset ?? 0,
         };
         const props: Record<string, unknown> = {
-            address: (request.address ?? []).map(prepareAddress),
             owner_address: (request.ownerAddress ?? []).map(prepareAddress),
-            collection_address: (request.collectionAddress ?? []).map(prepareAddress),
-            index: request.index,
             sort_by_last_transaction_lt: request.sortByLastTransactionLt ?? false,
             limit: pagination.limit,
             offset: pagination.offset,

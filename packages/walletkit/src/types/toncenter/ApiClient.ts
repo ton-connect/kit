@@ -1,13 +1,14 @@
 import { Address, TupleItem } from '@ton/core';
 
-import { ConnectTransactionParamMessage } from '../internal';
-import { ToncenterEmulationResponse } from './emulation';
-import { FullAccountState, GetResult } from './api';
-import { NftItemsRequest } from '../../core/ApiClientToncenter';
-import { NftItemsResponse } from './NftItemsResponse';
+import type { ConnectTransactionParamMessage } from '../internal';
+import type { ToncenterEmulationResponse } from './emulation';
+import type { FullAccountState, GetResult } from './api';
+import type { NftItemsByOwnerRequest, NftItemsRequest } from '../../core/ApiClientToncenter';
+import type { NftItemsResponse } from './NftItemsResponse';
 
 export interface ApiClient {
-    nftItems(request: NftItemsRequest): Promise<NftItemsResponse>;
+    nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse>;
+    nftItemsByOwner(request: NftItemsByOwnerRequest): Promise<NftItemsResponse>;
     fetchEmulation(
         address: Address | string,
         messages: ConnectTransactionParamMessage[],
