@@ -88,7 +88,7 @@ export function createWalletInitConfigSigner(params: WalletInitConfigSignerInter
 export function isWalletInitConfigSigner(
     config: WalletInitConfig,
 ): config is ReturnType<typeof createWalletInitConfigSigner> {
-    return 'publicKey' in config;
+    return 'publicKey' in config && 'sign' in config;
 }
 
 /**
