@@ -72,12 +72,8 @@ export class WalletV5R1Adapter implements WalletInitInterface {
     constructor(config: WalletV5R1AdapterConfig) {
         this.config = config;
         this.client = config.tonClient;
-
-        // Initialize key pair - this will be properly set in initialize()
-        // const privateKey =
-        //     this.config.privateKey.length === 32 ? this.config.privateKey : this.config.privateKey.slice(0, 32);
-        // this.keyPair = keyPairFromSeed(Buffer.from(privateKey));
         this.signer = config.signer;
+
         this.publicKey = Uint8Array.from(this.config.publicKey);
         this.walletContract = WalletV5.createFromConfig(
             {
