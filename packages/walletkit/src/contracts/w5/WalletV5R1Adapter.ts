@@ -14,17 +14,25 @@ import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
 
 import type { TonNetwork } from '../../types';
-import { WalletInitConfigMnemonic, WalletInitConfigPrivateKey } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
-import { DefaultSignature, FakeSignature } from '../../utils/sign';
+import { createWalletSigner, FakeSignature } from '../../utils/sign';
 import { formatWalletAddress } from '../../utils/address';
 import { MnemonicToKeyPair } from '../../utils/mnemonic';
 import { CallForSuccess } from '../../utils/retry';
 import { ConnectTransactionParamContent } from '../../types/internal';
 import { ActionSendMsg, packActionsList } from './actions';
-import { WalletInitInterface } from '../../types/wallet';
+import {
+    WalletInitInterface,
+    WalletInitConfigMnemonicInterface,
+    WalletInitConfigPrivateKeyInterface,
+    WalletInitConfigSignerInterface,
+    isWalletInitConfigSigner,
+    isWalletInitConfigMnemonic,
+    isWalletInitConfigPrivateKey,
+    WalletSigner,
+} from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { uint8ArrayToBigInt } from '../../utils/base64';
 
@@ -36,8 +44,10 @@ export const defaultWalletIdV5R1 = 2147483409;
  * Configuration for creating a WalletV5R1 adapter
  */
 export interface WalletV5R1AdapterConfig {
-    /** Private key buffer (32 bytes) */
-    privateKey: Uint8Array;
+    /** Signer function */
+    signer: WalletSigner;
+    /** Public key */
+    publicKey: Uint8Array;
     /** Wallet ID configuration */
     walletId?: number | bigint;
     /** Shared TON client instance */
@@ -50,7 +60,8 @@ export interface WalletV5R1AdapterConfig {
  * WalletV5R1 adapter that implements WalletInterface for WalletV5 contracts
  */
 export class WalletV5R1Adapter implements WalletInitInterface {
-    private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
+    // private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
+    private signer: WalletSigner;
     private config: WalletV5R1AdapterConfig;
 
     readonly walletContract: WalletV5;
@@ -63,15 +74,14 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         this.client = config.tonClient;
 
         // Initialize key pair - this will be properly set in initialize()
-        // this.keyPair = { publicKey: Buffer.alloc(32), secretKey: Buffer.alloc(64) };
-        // this.publicKey = '';
-        const privateKey =
-            this.config.privateKey.length === 32 ? this.config.privateKey : this.config.privateKey.slice(0, 32);
-        this.keyPair = keyPairFromSeed(Buffer.from(privateKey));
-        this.publicKey = Uint8Array.from(this.keyPair.publicKey);
+        // const privateKey =
+        //     this.config.privateKey.length === 32 ? this.config.privateKey : this.config.privateKey.slice(0, 32);
+        // this.keyPair = keyPairFromSeed(Buffer.from(privateKey));
+        this.signer = config.signer;
+        this.publicKey = Uint8Array.from(this.config.publicKey);
         this.walletContract = WalletV5.createFromConfig(
             {
-                publicKey: uint8ArrayToBigInt(this.keyPair.publicKey),
+                publicKey: uint8ArrayToBigInt(this.publicKey),
                 seqno: 0,
                 signatureAllowed: true,
                 walletId:
@@ -92,7 +102,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      * Sign raw bytes with wallet's private key
      */
     async sign(bytes: Uint8Array): Promise<Uint8Array> {
-        return DefaultSignature(bytes, this.keyPair.secretKey);
+        return this.signer(bytes);
     }
 
     /**
@@ -252,25 +262,31 @@ export class WalletV5R1Adapter implements WalletInitInterface {
  * Utility function to create WalletV5R1 from any supported configuration
  */
 export async function createWalletV5R1(
-    config: WalletInitConfigMnemonic | WalletInitConfigPrivateKey,
+    config: WalletInitConfigMnemonicInterface | WalletInitConfigPrivateKeyInterface | WalletInitConfigSignerInterface,
     options: {
         tonClient: ApiClient;
     },
 ): Promise<WalletInitInterface> {
-    let keyPair: {
-        publicKey: Uint8Array;
-        secretKey: Uint8Array;
-    };
-    if (config instanceof WalletInitConfigMnemonic) {
-        keyPair = await MnemonicToKeyPair(config.mnemonic, config.mnemonicType);
-    } else if (config instanceof WalletInitConfigPrivateKey) {
-        keyPair = keyPairFromSeed(Buffer.from(config.privateKey, 'hex'));
+    let publicKey: Uint8Array;
+    let signer: WalletSigner;
+    if (isWalletInitConfigMnemonic(config)) {
+        const keyPair = await MnemonicToKeyPair(config.mnemonic, config.mnemonicType);
+        publicKey = keyPair.publicKey;
+        signer = createWalletSigner(keyPair.secretKey);
+    } else if (isWalletInitConfigPrivateKey(config)) {
+        const keyPair = keyPairFromSeed(Buffer.from(config.privateKey, 'hex'));
+        publicKey = keyPair.publicKey;
+        signer = createWalletSigner(keyPair.secretKey);
+    } else if (isWalletInitConfigSigner(config)) {
+        publicKey = config.publicKey;
+        signer = config.sign;
     } else {
         throw new Error('Unsupported wallet configuration format');
     }
 
     return new WalletV5R1Adapter({
-        privateKey: keyPair.secretKey,
+        publicKey: publicKey,
+        signer: signer,
         network: config.network || 'mainnet',
         tonClient: options.tonClient,
         walletId: config.walletId,

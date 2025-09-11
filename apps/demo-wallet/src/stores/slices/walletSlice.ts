@@ -1,12 +1,16 @@
 import {
     TonWalletKit,
-    WalletInitConfigMnemonic,
     type WalletInterface,
     type EventConnectRequest,
     type EventTransactionRequest,
     type EventSignDataRequest,
     type EventDisconnect,
     ExtensionStorageAdapter,
+    type WalletInitConfig,
+    createWalletInitConfigSigner,
+    createWalletInitConfigMnemonic,
+    MnemonicToKeyPair,
+    DefaultSignature,
 } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
@@ -33,6 +37,49 @@ const walletKit = new TonWalletKit({
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
 });
+
+const useWalletInterfaceType: 'signer' | 'mnemonic' = 'signer';
+
+async function createWalletConfig(mnemonic: string[]): Promise<WalletInitConfig> {
+    // if (useSignerInterface) {
+    //     return new WalletInitConfigSigner({
+    //         publicKey: mnemonic,
+    //         version: 'v5r1',
+    //         network: 'mainnet',
+    //     });
+    // }
+
+    // return new WalletInitConfigMnemonic({
+    //     mnemonic,
+    //     version: 'v5r1',
+    //     mnemonicType: 'ton',
+    //     network: 'mainnet',
+    // });
+    switch (useWalletInterfaceType) {
+        case 'signer': {
+            const keyPair = await MnemonicToKeyPair(mnemonic);
+
+            return createWalletInitConfigSigner({
+                publicKey: keyPair.publicKey,
+                version: 'v5r1',
+                network: 'mainnet',
+                sign: async (bytes: Uint8Array) => {
+                    return DefaultSignature(bytes, keyPair.secretKey);
+                },
+            });
+        }
+        case 'mnemonic': {
+            return createWalletInitConfigMnemonic({
+                mnemonic,
+                version: 'v5r1',
+                mnemonicType: 'ton',
+                network: 'mainnet',
+            });
+        }
+        default:
+            throw new Error(`Invalid wallet interface type: ${useWalletInterfaceType}`);
+    }
+}
 
 export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     wallet: {
@@ -70,12 +117,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             );
 
             // Create wallet using walletkit
-            const walletConfig = new WalletInitConfigMnemonic({
-                mnemonic,
-                version: 'v5r1',
-                mnemonicType: 'ton',
-                network: 'mainnet',
-            });
+            const walletConfig = await createWalletConfig(mnemonic);
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
@@ -134,12 +176,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const mnemonic = JSON.parse(decryptedString) as string[];
 
             // Create wallet using walletkit
-            const walletConfig = new WalletInitConfigMnemonic({
-                mnemonic,
-                version: 'v5r1',
-                mnemonicType: 'ton',
-                network: 'mainnet',
-            });
+            const walletConfig = await createWalletConfig(mnemonic);
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();

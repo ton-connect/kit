@@ -4,7 +4,7 @@ import {
     defaultWalletIdV5R1,
     createWalletV5R1,
     ApiClientToncenter,
-    WalletInitConfigMnemonic,
+    createWalletInitConfigMnemonic,
     WalletV5R1Adapter,
     WalletV5,
     ConnectTransactionParamMessage,
@@ -41,9 +41,9 @@ function nextWalletId(parent?: Address | string): number {
 
 async function createWallet(parent?: Address | string) {
     return createWalletV5R1(
-        new WalletInitConfigMnemonic({
+        createWalletInitConfigMnemonic({
             mnemonic: mnemonic!.trim().split(' '),
-            walletId: nextWalletId(parent),
+            walletId: BigInt(nextWalletId(parent)),
         }),
         { tonClient },
     );
