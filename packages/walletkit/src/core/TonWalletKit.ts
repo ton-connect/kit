@@ -35,6 +35,7 @@ import { BridgeManager } from './BridgeManager';
 import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 import { WalletInitInterface } from '../types/wallet';
 import { ApiClient } from '../types/toncenter/ApiClient';
+import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -57,10 +58,12 @@ export class TonWalletKit implements ITonWalletKit {
     private requestProcessor!: RequestProcessor;
     // private responseHandler!: ResponseHandler;
     private tonClient!: ApiClient;
-    private jettonsManager: JettonsManager;
+    private jettonsManager!: JettonsManager;
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
+
+    private config: TonWalletKitOptions;
 
     // Event emitter for this kit instance
     private eventEmitter: EventEmitter;
@@ -70,12 +73,12 @@ export class TonWalletKit implements ITonWalletKit {
     private initializationPromise?: Promise<void>;
 
     constructor(options: TonWalletKitOptions) {
-        this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer({}, this.eventEmitter);
-        this.jettonsManager = new JettonsManager(10000, this.eventEmitter, options.apiKey);
+        this.config = options;
 
+        this.eventEmitter = new EventEmitter();
+        this.initializer = new Initializer(options, this.eventEmitter);
         // Auto-initialize (lazy)
-        this.initializationPromise = this.initialize(options);
+        this.initializationPromise = this.initialize();
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
@@ -92,24 +95,7 @@ export class TonWalletKit implements ITonWalletKit {
                 event: 'connect',
                 id: Date.now(),
                 payload: {
-                    device: {
-                        platform: 'browser',
-                        appName: 'tonkeeper',
-                        appVersion: '1.0.0',
-                        maxProtocolVersion: 2,
-                        features: [
-                            'SendTransaction',
-                            {
-                                name: 'SendTransaction',
-                                maxMessages: 4, // Default for most wallet types
-                                extraCurrencySupported: true,
-                            },
-                            {
-                                name: 'SignData',
-                                types: ['text', 'binary', 'cell'],
-                            },
-                        ],
-                    },
+                    device: getDeviceInfoWithDefaults(this.config.deviceInfo),
                     items: [
                         {
                             name: 'ton_addr',
@@ -131,13 +117,15 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Initialize all components
      */
-    private async initialize(options: TonWalletKitOptions): Promise<void> {
+    private async initialize(): Promise<void> {
         if (this.isInitialized) return;
 
         try {
-            const components = await this.initializer.initialize(options);
+            const components = await this.initializer.initialize(this.config);
             this.assignComponents(components);
             this.setupEventRouting();
+
+            this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.tonClient);
 
             // Start the event processor recovery loop
             this.eventProcessor.startRecoveryLoop();

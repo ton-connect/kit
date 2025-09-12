@@ -18,6 +18,7 @@ import {
     JettonErrorCode,
     JettonsAPI,
 } from '../types/jettons';
+import { ApiClient } from '../types/toncenter/ApiClient';
 
 const log = globalLogger.createChild('JettonsManager');
 
@@ -88,7 +89,7 @@ export class JettonsManager implements JettonsAPI {
     constructor(
         cacheSize: number = 10000,
         private eventEmitter: EventEmitter,
-        private apiKey?: string,
+        private apiClient?: ApiClient,
     ) {
         this.cache = new LRUCache({
             max: cacheSize,
@@ -617,9 +618,9 @@ export class JettonsManager implements JettonsAPI {
             'Content-Type': 'application/json',
         };
 
-        if (this.apiKey) {
-            headers['X-API-Key'] = this.apiKey;
-        }
+        // if (this.apiKey) {
+        //     headers['X-API-Key'] = this.apiKey;
+        // }
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.DEFAULT_TIMEOUT);

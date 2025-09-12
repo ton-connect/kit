@@ -123,6 +123,11 @@ export const useStore = create<AppState>()(
                                 log.info('Auto-unlocking wallet with persisted password');
                                 state.auth.isUnlocked = true;
                             }
+
+                            if (state.wallet.encryptedMnemonic && !state.wallet.hasWallet) {
+                                log.info('Auto-creating wallet with persisted mnemonic');
+                                state.wallet.hasWallet = true;
+                            }
                         }
                     },
                 },

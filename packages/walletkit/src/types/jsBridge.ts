@@ -1,22 +1,8 @@
 // Types for TonConnect JS Bridge implementation
-import { Feature } from '@tonconnect/protocol';
+import { type DeviceInfo, type Feature } from '@tonconnect/protocol';
+import { type WalletInfo } from '@tonconnect/sdk';
 
-export { Feature };
-
-export interface DeviceInfo {
-    platform: 'web' | 'ios' | 'android' | 'desktop';
-    appName: string;
-    appVersion: string;
-    maxProtocolVersion: number;
-    features: Feature[];
-}
-
-export interface WalletInfo {
-    name: string;
-    image: string;
-    tondns?: string;
-    about_url: string;
-}
+export { type Feature, type DeviceInfo, type WalletInfo };
 
 export interface ConnectRequest {
     manifestUrl: string;
@@ -95,7 +81,6 @@ export interface TonConnectBridge {
  * Options for JS Bridge injection
  */
 export interface JSBridgeInjectOptions {
-    walletName: string;
     deviceInfo?: Partial<DeviceInfo>;
     walletInfo?: WalletInfo;
 }

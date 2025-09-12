@@ -1,31 +1,12 @@
-// Simplified JS Bridge injection code for TonConnect
-// All logic is handled by the parent extension through WalletKit
-
 import type { ConnectRequest } from '@tonconnect/protocol';
 
-import type { JSBridgeInjectOptions, DeviceInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
-import { sanitizeWalletName } from '../utils/walletNameValidation';
-
-/**
- * Default device info for JS Bridge
- */
-const DEFAULT_DEVICE_INFO: DeviceInfo = {
-    platform: 'web',
-    appName: 'Wallet',
-    appVersion: '1.0.0',
-    maxProtocolVersion: 2,
-    features: [
-        'SendTransaction',
-        {
-            name: 'SendTransaction',
-            maxMessages: 4,
-        },
-        {
-            name: 'SignData',
-            types: ['text', 'binary', 'cell'],
-        },
-    ],
-};
+import type {
+    JSBridgeInjectOptions,
+    DeviceInfo,
+    InjectedToExtensionBridgeRequestPayload,
+    WalletInfo,
+} from '../types/jsBridge';
+import { getDeviceInfoWithDefaults, getWalletInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 
 let extensionId: string | undefined = undefined;
 
@@ -36,20 +17,14 @@ let extensionId: string | undefined = undefined;
  * @param options - Configuration options for the bridge
  * @throws Error if wallet name is invalid
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): void {
-    const walletName = sanitizeWalletName(options.walletName);
 
-    // Merge device info with defaults
-    const deviceInfo: DeviceInfo = {
-        ...DEFAULT_DEVICE_INFO,
-        appName: walletName,
-        ...options.deviceInfo,
-    };
+export function injectBridgeCode(window: Window, options: JSBridgeInjectOptions): void {
+    const deviceInfo = getDeviceInfoWithDefaults(options.deviceInfo);
+    const walletInfo = getWalletInfoWithDefaults(options.walletInfo);
+
+    const walletName = walletInfo?.appName;
 
     const isWalletBrowser = false;
-    // typeof globalThis !== 'undefined' &&
-    // typeof (globalThis as typeof globalThis & { chrome?: { runtime?: unknown } }).chrome?.runtime !== 'undefined';
 
     // Check if wallet already exists and has tonconnect
     if (
@@ -67,7 +42,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
      */
     class TonConnectBridge {
         deviceInfo: DeviceInfo;
-        walletInfo: unknown;
+        walletInfo: WalletInfo;
         protocolVersion: number;
         isWalletBrowser: boolean;
         private _eventListeners: Array<(event: unknown) => void>;
@@ -83,7 +58,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         constructor() {
             // Bridge properties as per TonConnect spec
             this.deviceInfo = deviceInfo;
-            this.walletInfo = options.walletInfo;
+            this.walletInfo = walletInfo;
             this.protocolVersion = 2;
             this.isWalletBrowser = isWalletBrowser;
 

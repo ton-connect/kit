@@ -34,16 +34,6 @@ import { ApiClient } from '../types/toncenter/ApiClient';
 const log = globalLogger.createChild('Initializer');
 
 /**
- * Initialization configuration
- */
-export interface InitializationConfig {
-    retryAttempts?: number;
-    retryDelay?: number;
-    timeoutMs?: number;
-    network?: CHAIN;
-}
-
-/**
  * Initialization result
  */
 export interface InitializationResult {
@@ -61,19 +51,20 @@ export interface InitializationResult {
  * Handles initialization of all TonWalletKit components
  */
 export class Initializer {
-    // private config: InitializationConfig;
+    private config: TonWalletKitOptions;
     private tonClient!: ApiClient;
     private eventEmitter: EventEmitter;
-    private network: CHAIN;
-    private retryAttempts: number;
-    private retryDelay: number;
-    private timeoutMs: number;
+    // private network: CHAIN;
+    // private retryAttempts: number;
+    // private retryDelay: number;
+    // private timeoutMs: number;
 
-    constructor(config: InitializationConfig = {}, eventEmitter: EventEmitter) {
-        this.network = config.network ?? CHAIN.MAINNET;
-        this.retryAttempts = config.retryAttempts ?? 3;
-        this.retryDelay = config.retryDelay ?? 1000;
-        this.timeoutMs = config.timeoutMs ?? 10000;
+    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter) {
+        this.config = config;
+        // this.network = config.network ?? CHAIN.MAINNET;
+        // this.retryAttempts = config.retryAttempts ?? 3;
+        // this.retryDelay = config.retryDelay ?? 1000;
+        // this.timeoutMs = config.timeoutMs ?? 10000;
         this.eventEmitter = eventEmitter;
     }
 
@@ -119,12 +110,25 @@ export class Initializer {
      * Initialize TON client (single provider for all downstream classes)
      */
     private initializeTonClient(options: TonWalletKitOptions): ApiClient {
+        if (
+            options.apiClient &&
+            'nftItemsByAddress' in options.apiClient &&
+            'nftItemsByOwner' in options.apiClient &&
+            'fetchEmulation' in options.apiClient &&
+            'sendBoc' in options.apiClient &&
+            'runGetMethod' in options.apiClient &&
+            'getAccountState' in options.apiClient &&
+            'getBalance' in options.apiClient
+        ) {
+            return options.apiClient;
+        }
+
         // Use provided API URL or default to mainnet
-        const endpoint = options.apiUrl || 'https://toncenter.com';
+        const endpoint = options?.apiClient?.url || 'https://toncenter.com';
 
         const clientConfig = {
             endpoint,
-            apiKey: options.apiKey,
+            apiKey: options?.apiClient?.key,
         };
 
         return new ApiClientToncenter(clientConfig);
@@ -134,7 +138,17 @@ export class Initializer {
      * Initialize storage adapter
      */
     private initializeStorage(options: TonWalletKitOptions): StorageAdapter {
-        if (options.storage) {
+        if (
+            options.storage &&
+            'get' in options.storage &&
+            typeof options.storage.get === 'function' &&
+            'set' in options.storage &&
+            typeof options.storage.set === 'function' &&
+            'remove' in options.storage &&
+            typeof options.storage.remove === 'function' &&
+            'clear' in options.storage &&
+            typeof options.storage.clear === 'function'
+        ) {
             return options.storage;
         }
 
@@ -174,7 +188,8 @@ export class Initializer {
         const eventRouter = new EventRouter(this.eventEmitter, sessionManager);
 
         const bridgeManager = new BridgeManager(
-            options.config.bridge,
+            options?.walletManifest,
+            options?.bridge,
             sessionManager,
             storageAdapter,
             eventStore,
@@ -186,7 +201,7 @@ export class Initializer {
         // Create event processor for durable events
         // TODO - change default values
         const eventProcessor = new StorageEventProcessor(
-            options.config.eventProcessor,
+            options?.eventProcessor,
             eventStore,
             DEFAULT_DURABLE_EVENTS_CONFIG,
             walletManager,
@@ -213,7 +228,13 @@ export class Initializer {
     ): {
         requestProcessor: RequestProcessor;
     } {
-        const requestProcessor = new RequestProcessor(sessionManager, bridgeManager, this.tonClient, this.network);
+        const requestProcessor = new RequestProcessor(
+            this.config,
+            sessionManager,
+            bridgeManager,
+            this.tonClient,
+            this.config.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+        );
 
         return {
             requestProcessor,

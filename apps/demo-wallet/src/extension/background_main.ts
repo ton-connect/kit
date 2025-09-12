@@ -6,6 +6,7 @@ import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequest } from '@ton/walletkit';
 
 import type { InjectedToExtensionBridgeRequestPayload } from '../../../../packages/walletkit/dist/esm/types/jsBridge';
+import { getTonConnectWalletManifest } from '../utils/walletManifest';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -14,16 +15,9 @@ async function initializeWalletKit() {
     try {
         // Initialize WalletKit with JS Bridge support
         walletKit = new TonWalletKit({
-            apiUrl: 'https://tonapi.io',
-            config: {
-                bridge: {
-                    enableJsBridge: true,
-                    bridgeUrl: 'https://bridge.tonapi.io/bridge',
-                    bridgeName: 'tonkeeper',
-                },
-                eventProcessor: {
-                    disableEvents: true,
-                },
+            walletManifest: getTonConnectWalletManifest(),
+            eventProcessor: {
+                disableEvents: true,
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             storage: new ExtensionStorageAdapter({}, chrome.storage.local as any),

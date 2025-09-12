@@ -9,7 +9,7 @@ import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 import { EventRouter } from './EventRouter';
-import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
+import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload, WalletInfo } from '../types/jsBridge';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -36,17 +36,29 @@ export class BridgeManager {
     private requestProcessingTimeoutId?: number;
 
     constructor(
-        config: BridgeConfig,
+        walletManifest: WalletInfo | undefined,
+        config: BridgeConfig | undefined,
         sessionManager: SessionManager,
         storageAdapter: StorageAdapter,
         eventStore: EventStore,
         eventRouter: EventRouter,
         eventEmitter?: EventEmitter,
     ) {
+        const isManifestJsBridge = walletManifest && 'jsBridgeKey' in walletManifest ? true : false;
+        const manifestJsBridgeKey =
+            walletManifest && 'jsBridgeKey' in walletManifest ? walletManifest.jsBridgeKey : undefined;
+        const manifestBridgeUrl =
+            walletManifest && 'bridgeUrl' in walletManifest ? walletManifest.bridgeUrl : undefined;
+
         this.config = {
             heartbeatInterval: 5000,
             reconnectInterval: 15000,
             maxReconnectAttempts: 5,
+            ...{
+                enableJsBridge: isManifestJsBridge,
+                jsBridgeKey: manifestJsBridgeKey,
+                bridgeUrl: manifestBridgeUrl,
+            },
             ...config,
         };
         this.sessionManager = sessionManager;
@@ -194,7 +206,7 @@ export class BridgeManager {
             throw new Error('Bridge not initialized');
         }
 
-        const source = this.config.bridgeName + '-tonconnect';
+        const source = this.config.jsBridgeKey + '-tonconnect';
         // eslint-disable-next-line no-undef
         chrome.tabs.sendMessage(parseInt(sessionId), {
             type: 'TONCONNECT_BRIDGE_RESPONSE',

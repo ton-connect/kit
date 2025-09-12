@@ -5,14 +5,14 @@ import {
     CHAIN,
     CONNECT_EVENT_ERROR_CODES,
     ConnectEventError,
-    Feature,
+    ConnectEventSuccess,
     SEND_TRANSACTION_ERROR_CODES,
     SendTransactionRpcResponseError,
     SendTransactionRpcResponseSuccess,
     SignDataRpcResponseSuccess,
 } from '@tonconnect/protocol';
 
-import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '../types';
+import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, TonWalletKitOptions } from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -20,57 +20,16 @@ import { CreateTonProofMessageBytes, createTonProofMessage } from '../utils/tonP
 import { CallForSuccess } from '../utils/retry';
 import { PrepareTonConnectData } from '../utils/signData/sign';
 import { ApiClient } from '../types/toncenter/ApiClient';
+import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 
 const log = globalLogger.createChild('RequestProcessor');
-
-/**
- * TON Connect response types
- */
-interface ConnectDevice {
-    platform: 'windows' | 'mac' | 'linux' | 'android' | 'ios' | 'browser';
-    appName: string;
-    appVersion: string;
-    maxProtocolVersion: number;
-    features: Array<Feature>;
-}
-
-interface TonAddressItem {
-    name: 'ton_addr';
-    address: string;
-    network: CHAIN;
-    walletStateInit: string;
-    publicKey: string;
-}
-
-interface TonProofResponseItem {
-    name: 'ton_proof';
-    proof: {
-        timestamp: number;
-        domain: {
-            lengthBytes: number;
-            value: string;
-        };
-        payload: string;
-        signature: string;
-    };
-}
-
-type ConnectResponseItem = TonAddressItem | TonProofResponseItem;
-
-interface ConnectEventSuccess {
-    event: 'connect';
-    id: number;
-    payload: {
-        device: ConnectDevice;
-        items: ConnectResponseItem[];
-    };
-}
 
 /**
  * Handles approval and rejection of various request types
  */
 export class RequestProcessor {
     constructor(
+        private walletKitOptions: TonWalletKitOptions,
         private sessionManager: SessionManager,
         private bridgeManager: BridgeManager,
         private client: ApiClient,
@@ -252,24 +211,7 @@ export class RequestProcessor {
             event: 'connect',
             id: Date.now(),
             payload: {
-                device: {
-                    platform: 'browser',
-                    appName: 'tonkeeper',
-                    appVersion: '1.0.0',
-                    maxProtocolVersion: 2,
-                    features: [
-                        'SendTransaction',
-                        {
-                            name: 'SendTransaction',
-                            maxMessages: 4, // Default for most wallet types
-                            extraCurrencySupported: true,
-                        },
-                        {
-                            name: 'SignData',
-                            types: ['text', 'binary', 'cell'],
-                        },
-                    ],
-                },
+                device: getDeviceInfoWithDefaults(this.walletKitOptions.deviceInfo),
                 items: [
                     {
                         name: 'ton_addr',

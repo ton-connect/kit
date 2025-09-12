@@ -28,8 +28,11 @@ export interface SessionStorageData {
 }
 
 export interface BridgeConfig {
-    bridgeUrl?: string;
-    bridgeName?: string;
+    bridgeUrl?: string; // defaults to WalletInfo.bridgeUrl if exists
+    enableJsBridge?: boolean; // default to true if WalletInfo.jsBridgeKey exists
+    jsBridgeKey?: string; // defaults to WalletInfo.jsBridgeKey
+
+    // settings for bridge-sdk
     heartbeatInterval?: number;
     reconnectInterval?: number;
     maxReconnectAttempts?: number;
