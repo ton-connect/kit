@@ -142,8 +142,8 @@ export class TonWalletKit implements ITonWalletKit {
             await this.eventProcessor.startNoWalletProcessing();
 
             this.isInitialized = true;
-        } catch (error) {
-            log.error('TonWalletKit initialization failed', { error });
+        } catch (error: any) {
+            log.error('TonWalletKit initialization failed', { error: error?.toString() });
             throw error;
         }
     }

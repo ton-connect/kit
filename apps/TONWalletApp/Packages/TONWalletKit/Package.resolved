@@ -1,0 +1,24 @@
+{
+  "originHash" : "2113a322b4ad7974fc126b0b2f9491b72acc81580df3ab3c8a26b0819a2885fc",
+  "pins" : [
+    {
+      "identity" : "javascript-core-extras",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mhayes853/javascript-core-extras.git",
+      "state" : {
+        "revision" : "ab457366db09a64264dd99e7f91f00ba907d5437",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "b2ed9eabefe56202ee4939dd9fc46b6241c88317",
+        "version" : "1.6.1"
+      }
+    }
+  ],
+  "version" : 3
+}
