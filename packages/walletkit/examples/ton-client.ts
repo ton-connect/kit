@@ -7,12 +7,12 @@ import {
     defaultWalletIdV5R1,
     ApiClientToncenter,
     createWalletInitConfigMnemonic,
-    WalletV5R1Adapter,
-    WalletV5,
     ConnectTransactionParamMessage,
     WalletInterface,
+    createWalletV5R1,
 } from '../src';
-import { createWalletFromConfig } from '../src/core/Initializer';
+
+import { wrapWalletInterface } from '../src/core/Initializer';
 dotenv.config();
 
 // eslint-disable-next-line no-console
@@ -46,13 +46,13 @@ function nextWalletId(parent?: Address | string): number {
 }
 
 async function createWallet(parent?: Address | string) {
-    return createWalletV5R1(
+    return wrapWalletInterface(await createWalletV5R1(
         createWalletInitConfigMnemonic({
             mnemonic: mnemonic!.trim().split(' '),
             walletId: BigInt(nextWalletId(parent)),
         }),
-        tonClient,
-    );
+        { tonClient },
+    ), tonClient);
 }
 
 async function logWallet(wallet: WalletInterface) {

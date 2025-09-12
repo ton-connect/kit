@@ -48,8 +48,8 @@ public class JSPBKDF2Polyfill: JSPolyfill {
         keySize: Int,
         hash: String
     ) throws -> String {
-        guard let passwordData = password.data(using: .utf8),
-              let saltData = salt.data(using: .utf8) else {
+        guard let passwordData = Data(base64Encoded: password),
+              let saltData = Data(base64Encoded: salt) else {
             throw "Failed to convert password or salt to data"
         }
         

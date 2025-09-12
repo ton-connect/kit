@@ -235,7 +235,7 @@ public class JSWalletKitInitialPolyfill: JSPolyfill {
                     return new Promise(function(resolve, reject) {
                         try {
                             const result = nativePbkdf2Derive(password, salt, iterations, keySize, hash);
-                            resolve(result);
+                            resolve(Buffer.from(result, 'hex'));
                         } catch (error) {
                             reject(error);
                         }
