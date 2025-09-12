@@ -1,0 +1,35 @@
+{
+  "name": "walletkit-ios-bridge",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dependencies": {
+    "@ton/walletkit": "workspace:*",
+    "buffer": "^6.0.3",
+    "url-polyfill": "^1.1.13",
+    "whatwg-url": "^14.2.0"
+  },
+  "description": "Native iOS app with TonWalletKit Swift wrapper",
+  "main": "src/walletkit/WalletKitSwift.swift",
+  "files": [
+    "src/walletkit/",
+    "README_NATIVE.md"
+  ],
+  "keywords": [
+    "ton",
+    "blockchain",
+    "wallet",
+    "ios",
+    "swift",
+    "swiftui",
+    "tonconnect"
+  ],
+  "devDependencies": {
+    "typescript": "~5.8.3",
+    "vite": "^7.1.4",
+    "vite-plugin-singlefile": "^2.3.0"
+  }
+}
