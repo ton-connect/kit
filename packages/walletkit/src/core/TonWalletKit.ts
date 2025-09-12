@@ -32,7 +32,7 @@ import {
 import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
 import { BridgeManager } from './BridgeManager';
-import type { BridgeRequest } from '../types/jsBridge';
+import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 import { WalletInitInterface } from '../types/wallet';
 import { ApiClient } from '../types/toncenter/ApiClient';
 
@@ -617,7 +617,10 @@ export class TonWalletKit implements ITonWalletKit {
      * @param request - The bridge request to process
      * @returns Promise resolving to the response data
      */
-    async processInjectedBridgeRequest(request: BridgeRequest): Promise<unknown> {
-        return this.bridgeManager.queueJsBridgeEvent(request);
+    async processInjectedBridgeRequest(
+        messageInfo: BridgeEventMessageInfo,
+        request: InjectedToExtensionBridgeRequestPayload,
+    ): Promise<unknown> {
+        return this.bridgeManager.queueJsBridgeEvent(messageInfo, request);
     }
 }

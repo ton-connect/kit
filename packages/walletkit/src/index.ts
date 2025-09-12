@@ -49,7 +49,7 @@ export type {
     ConnectRequest,
     ConnectEvent,
     ConnectEventError,
-    BridgeRequest,
+    InjectedToExtensionBridgeRequest,
     BridgeResponse,
     BridgeEvent,
 } from './types/jsBridge';

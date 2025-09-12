@@ -63,6 +63,7 @@ export type BridgeEventBase = {
     tabId?: number;
     sessionId?: string;
     isLocal?: boolean;
+    messageId?: string;
 };
 
 // Bridge event types (raw from bridge)

@@ -111,24 +111,17 @@ export interface JSBridgeInjectOptions {
 /**
  * Internal message types for communication between injected bridge and extension
  */
-export interface BridgeRequest {
+export interface InjectedToExtensionBridgeRequest {
     type: 'TONCONNECT_BRIDGE_REQUEST';
+    messageId: string;
+    payload: InjectedToExtensionBridgeRequestPayload;
     source: string;
-    payload: BridgeRequestPayload;
-    tabId?: string;
-    domain?: string;
-    // method: 'connect' | 'restoreConnection' | 'send';
-    // messageId: number;
-    // params: {
-    //     protocolVersion?: number;
-    //     message?: ConnectRequest | AppRequest;
-    // };
 }
 
-export interface BridgeRequestPayload {
+export interface InjectedToExtensionBridgeRequestPayload {
     id: string;
     method: string;
-    params: unknown;
+    params: Array<unknown> | Record<string, unknown>;
     from?: string;
 }
 
@@ -145,4 +138,10 @@ export interface BridgeEvent {
     type: 'TONCONNECT_BRIDGE_EVENT';
     source: string;
     event: WalletEvent;
+}
+
+export interface BridgeEventMessageInfo {
+    messageId: string;
+    tabId?: string;
+    domain?: string;
 }

@@ -9,6 +9,7 @@ import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 import { EventRouter } from './EventRouter';
+import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -148,7 +149,7 @@ export class BridgeManager {
             return this.sendJsBridgeResponse(
                 event.tabId?.toString() || '',
                 event.isJsBridge,
-                event.id ?? null,
+                event.messageId ?? null,
                 response,
             );
         }
@@ -330,33 +331,34 @@ export class BridgeManager {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public queueJsBridgeEvent(event: any): void {
-        log.debug('JS Bridge event queued', { eventId: event?.id });
+    public queueJsBridgeEvent(
+        messageInfo: BridgeEventMessageInfo,
+        event: InjectedToExtensionBridgeRequestPayload,
+    ): void {
+        log.debug('JS Bridge event queued', { eventId: messageInfo.messageId });
 
         if (event.method == 'connect') {
             this.eventQueue.push({
                 ...event,
                 isJsBridge: true,
-                tabId: event.tabId,
-                domain: event.domain,
+                tabId: messageInfo.tabId,
+                domain: messageInfo.domain,
+                messageId: messageInfo.messageId,
             });
         } else if (event.method == 'restoreConnection') {
-            this.eventEmitter?.emit('restoreConnection', event);
-            // this.eventQueue.push({
-            //     ...event,
-            //     isJsBridge: true,
-            //     tabId: event.tabId,
-            //     domain: event.domain,
-            // });
+            this.eventEmitter?.emit('restoreConnection', {
+                ...event,
+                messageId: messageInfo.messageId,
+            });
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
                 ...event,
-                ...event.params[0],
-                id: event.id,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(event as any).params[0],
                 isJsBridge: true,
-                tabId: event.tabId,
-                domain: event.domain,
+                tabId: messageInfo.tabId,
+                domain: messageInfo.domain,
+                messageId: messageInfo.messageId,
             });
         }
 
@@ -416,6 +418,7 @@ export class BridgeManager {
                 domain: event?.domain,
                 isJsBridge: event?.isJsBridge,
                 tabId: event?.tabId,
+                messageId: event?.messageId,
             };
 
             if (rawEvent.from) {

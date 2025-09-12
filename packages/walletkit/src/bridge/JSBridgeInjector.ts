@@ -3,7 +3,7 @@
 
 import type { ConnectRequest } from '@tonconnect/protocol';
 
-import type { JSBridgeInjectOptions, DeviceInfo, BridgeRequestPayload } from '../types/jsBridge';
+import type { JSBridgeInjectOptions, DeviceInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 import { sanitizeWalletName } from '../utils/walletNameValidation';
 
 /**
@@ -153,7 +153,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          * Sends request to extension and returns promise
          * @private
          */
-        private async _sendToExtension(data: Omit<BridgeRequestPayload, 'id'>): Promise<unknown> {
+        private async _sendToExtension(data: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
             return new Promise((resolve, reject) => {
                 const messageId = crypto.randomUUID();
 
@@ -181,7 +181,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
                     payload: {
                         ...data,
                     },
-                    callbackId: messageId,
+                    messageId: messageId,
                 });
             });
         }
