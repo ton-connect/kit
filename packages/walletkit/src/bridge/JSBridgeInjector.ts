@@ -70,7 +70,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         protocolVersion: number;
         isWalletBrowser: boolean;
         private _eventListeners: Array<(event: unknown) => void>;
-        private _messageId: number;
         private _pendingRequests: Map<
             string,
             {
@@ -89,7 +88,6 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
 
             // Internal state
             this._eventListeners = [];
-            this._messageId = 0;
             this._pendingRequests = new Map();
 
             // Bind methods to preserve context
@@ -157,7 +155,7 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          */
         private async _sendToExtension(data: Omit<BridgeRequestPayload, 'id'>): Promise<unknown> {
             return new Promise((resolve, reject) => {
-                const messageId = (++this._messageId).toString();
+                const messageId = crypto.randomUUID();
 
                 // Set timeout for request
                 const timeoutId = setTimeout(
@@ -182,22 +180,9 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
                     source: `${walletName}-tonconnect`,
                     payload: {
                         ...data,
-                        id: messageId,
                     },
+                    callbackId: messageId,
                 });
-
-                // Send to extension via postMessage
-                // window.postMessage(
-                //     {
-                //         type: 'TONCONNECT_BRIDGE_REQUEST',
-                //         source: `${walletName}-tonconnect`,
-                //         payload: {
-                //             ...data,
-                //             id: messageId,
-                //         },
-                //     },
-                //     '*',
-                // );
             });
         }
 
