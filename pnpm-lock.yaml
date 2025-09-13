@@ -155,8 +155,8 @@ importers:
         specifier: ^15.3.1
         version: 15.3.1(@ton/core@0.61.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)
       '@tonconnect/bridge-sdk':
-        specifier: link:../../../bridge-sdk
-        version: link:../../../bridge-sdk
+        specifier: ^0.2.4
+        version: 0.2.4
       '@tonconnect/protocol':
         specifier: ^2.3.0
         version: 2.3.0
@@ -1481,6 +1481,9 @@ packages:
   '@ton/toolchain@https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8':
     resolution: {tarball: https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8}
     version: 1.5.0
+
+  '@tonconnect/bridge-sdk@0.2.4':
+    resolution: {integrity: sha512-W7fDoo8aT9FYnGPPLqh4Giiu1M5FP3GW4A+AeDB/xfTzM9XsO9aoWoSfrR1+QuNl2OmvtvneCFv4MnowM9+feg==}
 
   '@tonconnect/isomorphic-eventsource@0.0.2':
     resolution: {integrity: sha512-B4UoIjPi0QkvIzZH5fV3BQLWrqSYABdrzZQSI9sJA9aA+iC0ohOzFwVVGXanlxeDAy1bcvPbb29f6sVUk0UnnQ==}
@@ -6728,6 +6731,14 @@ snapshots:
       - jiti
       - supports-color
       - typescript
+
+  '@tonconnect/bridge-sdk@0.2.4':
+    dependencies:
+      '@tonconnect/isomorphic-eventsource': 0.0.2
+      '@tonconnect/isomorphic-fetch': 0.0.3
+      '@tonconnect/protocol': 2.3.0
+    transitivePeerDependencies:
+      - encoding
 
   '@tonconnect/isomorphic-eventsource@0.0.2':
     dependencies:

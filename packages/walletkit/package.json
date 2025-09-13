@@ -54,7 +54,7 @@
     "@ton/core": "^0.61.0",
     "@ton/crypto": "^3.3.0",
     "@ton/ton": "^15.3.1",
-    "@tonconnect/bridge-sdk": "link:../../../bridge-sdk",
+    "@tonconnect/bridge-sdk": "^0.2.4",
     "@tonconnect/protocol": "^2.3.0",
     "@tonconnect/sdk": "^3.2.0",
     "@truecarry/tlb-abi": "^0.2.0",
