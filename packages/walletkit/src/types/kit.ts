@@ -21,7 +21,7 @@ export interface TonWalletKit {
     getWallet(address: string): WalletInterface | undefined;
 
     /** Add a new wallet */
-    addWallet(walletConfig: WalletInitConfig): Promise<void>;
+    addWallet(walletConfig: WalletInitConfig): Promise<WalletInterface | undefined>;
 
     /** Remove a wallet */
     removeWallet(wallet: WalletInitInterface): Promise<void>;

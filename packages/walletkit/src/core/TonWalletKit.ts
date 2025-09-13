@@ -213,18 +213,19 @@ export class TonWalletKit implements ITonWalletKit {
         return this.walletManager.getWallet(address);
     }
 
-    async addWallet(walletConfig: WalletInitConfig): Promise<void> {
+    async addWallet(walletConfig: WalletInitConfig): Promise<WalletInterface | undefined> {
         await this.ensureInitialized();
         const wallet = await createWalletFromConfig(walletConfig, this.tonClient);
         const walletAdded = await this.walletManager.addWallet(wallet);
 
         // wallet already exists
         if (!walletAdded) {
-            return;
+            return undefined;
         }
 
         // Start event processing for the new wallet
         await this.eventProcessor.startProcessing(wallet.getAddress());
+        return wallet;
     }
 
     async removeWallet(argWallet: WalletInitInterface | string): Promise<void> {
