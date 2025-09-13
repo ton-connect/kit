@@ -1,3 +1,4 @@
+/* eslint-disable */
 /** @define {boolean} */
 var ENCODEINTO_BUILD = false;
 

@@ -1,4 +1,7 @@
-
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable import/order */
 
 // import 'url-polyfill';
 
@@ -6,12 +9,10 @@ import { URL, URLSearchParams } from 'whatwg-url';
 
 import { Buffer } from 'buffer';
 
-
 if (typeof window !== 'undefined') {
     window.Buffer = Buffer;
     window.URL = URL;
     window.URLSearchParams = URLSearchParams;
-
 }
 if (typeof globalThis !== 'undefined') {
     globalThis.Buffer = Buffer;
@@ -25,27 +26,29 @@ if (typeof global !== 'undefined') {
 }
 
 // Polyfills for iOS JavaScriptCore
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 if (typeof window !== 'undefined') {
     // EventTarget polyfill
     if (typeof EventTarget === 'undefined') {
         const EventTargetPolyfill = class EventTarget {
             private _listeners: Map<string, ((event: any) => void)[]> = new Map();
-            
+
             addEventListener(type: string, listener: any): void {
                 if (!this._listeners.has(type)) {
                     this._listeners.set(type, []);
                 }
-                const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                const actualListener =
+                    typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
                 if (actualListener) {
                     this._listeners.get(type)!.push(actualListener);
                 }
             }
-            
+
             removeEventListener(type: string, listener: any): void {
                 const typeListeners = this._listeners.get(type);
                 if (typeListeners) {
-                    const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                    const actualListener =
+                        typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
                     if (actualListener) {
                         const index = typeListeners.indexOf(actualListener);
                         if (index > -1) {
@@ -54,11 +57,11 @@ if (typeof window !== 'undefined') {
                     }
                 }
             }
-            
+
             dispatchEvent(event: any): boolean {
                 const typeListeners = this._listeners.get(event.type);
                 if (typeListeners) {
-                    typeListeners.forEach(listener => {
+                    typeListeners.forEach((listener) => {
                         try {
                             listener(event);
                         } catch (error) {
@@ -79,7 +82,7 @@ if (typeof window !== 'undefined') {
             type: string;
             bubbles: boolean;
             cancelable: boolean;
-            
+
             constructor(type: string, eventInit?: { bubbles?: boolean; cancelable?: boolean }) {
                 this.type = type;
                 this.bubbles = eventInit?.bubbles || false;
@@ -94,7 +97,7 @@ if (typeof window !== 'undefined') {
     if (typeof CustomEvent === 'undefined') {
         const CustomEventPolyfill = class CustomEvent extends (window as any).Event {
             detail: any;
-            
+
             constructor(type: string, eventInit?: { bubbles?: boolean; cancelable?: boolean; detail?: any }) {
                 super(type, eventInit);
                 this.detail = eventInit?.detail;
@@ -110,8 +113,11 @@ if (typeof window !== 'undefined') {
             data: any;
             source: any;
             origin: string;
-            
-            constructor(type: string, eventInit?: { data?: any; source?: any; origin?: string; bubbles?: boolean; cancelable?: boolean }) {
+
+            constructor(
+                type: string,
+                eventInit?: { data?: any; source?: any; origin?: string; bubbles?: boolean; cancelable?: boolean },
+            ) {
                 super(type, eventInit);
                 this.data = eventInit?.data;
                 this.source = eventInit?.source;
@@ -128,15 +134,15 @@ if (typeof window !== 'undefined') {
             constructor(callback: (mutations: any[], observer: MutationObserver) => void) {
                 // No-op for iOS
             }
-            
+
             observe(target: any, options?: any): void {
                 // No-op for iOS
             }
-            
+
             disconnect(): void {
                 // No-op for iOS
             }
-            
+
             takeRecords(): any[] {
                 return [];
             }
@@ -159,15 +165,15 @@ if (typeof window !== 'undefined') {
             DOCUMENT_NODE: 9,
             DOCUMENT_TYPE_NODE: 10,
             DOCUMENT_FRAGMENT_NODE: 11,
-            NOTATION_NODE: 12
+            NOTATION_NODE: 12,
         };
     }
 
     // EventTarget methods polyfill
     if (!(window as any).addEventListener) {
         const listeners = new Map<string, ((event: any) => void)[]>();
-        
-        (window as any).addEventListener = function(type: string, listener: any) {
+
+        (window as any).addEventListener = function (type: string, listener: any) {
             if (!listeners.has(type)) {
                 listeners.set(type, []);
             }
@@ -176,11 +182,12 @@ if (typeof window !== 'undefined') {
                 listeners.get(type)!.push(actualListener);
             }
         };
-        
-        (window as any).removeEventListener = function(type: string, listener: any) {
+
+        (window as any).removeEventListener = function (type: string, listener: any) {
             const typeListeners = listeners.get(type);
             if (typeListeners) {
-                const actualListener = typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
+                const actualListener =
+                    typeof listener === 'function' ? listener : listener?.handleEvent?.bind(listener);
                 if (actualListener) {
                     const index = typeListeners.indexOf(actualListener);
                     if (index > -1) {
@@ -189,11 +196,11 @@ if (typeof window !== 'undefined') {
                 }
             }
         };
-        
-        (window as any).dispatchEvent = function(event: any) {
+
+        (window as any).dispatchEvent = function (event: any) {
             const typeListeners = listeners.get(event.type);
             if (typeListeners) {
-                typeListeners.forEach(listener => {
+                typeListeners.forEach((listener) => {
                     try {
                         listener(event);
                     } catch (error) {
@@ -211,9 +218,9 @@ if (typeof window !== 'undefined') {
             signal = {
                 aborted: false,
                 addEventListener: () => {},
-                removeEventListener: () => {}
+                removeEventListener: () => {},
             };
-            
+
             abort() {
                 this.signal.aborted = true;
             }
@@ -224,12 +231,12 @@ if (typeof window !== 'undefined') {
         if (typeof crypto === 'undefined') {
             (window as any).crypto = {};
         }
-        
+
         if (!(crypto as any).randomUUID) {
-            (crypto as any).randomUUID = function(): string {
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    const r = Math.random() * 16 | 0;
-                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            (crypto as any).randomUUID = function (): string {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = (Math.random() * 16) | 0;
+                    const v = c === 'x' ? r : (r & 0x3) | 0x8;
                     return v.toString(16);
                 });
             };
@@ -247,11 +254,11 @@ if (typeof window !== 'undefined') {
             querySelectorAll: () => [],
             body: {
                 addEventListener: (window as any).addEventListener,
-                removeEventListener: (window as any).removeEventListener
-            }
+                removeEventListener: (window as any).removeEventListener,
+            },
         };
-        
-        (window as any).Element = function() {};
+
+        (window as any).Element = function () {};
         (window as any).Element.prototype.querySelectorAll = () => [];
         (window as any).Element.prototype.addEventListener = () => {};
         (window as any).Element.prototype.removeEventListener = () => {};
@@ -269,18 +276,18 @@ if (typeof window !== 'undefined') {
             pathname: '/blank',
             search: '',
             hash: '',
-            assign: function(url: string) {
+            assign: function (url: string) {
                 this.href = url;
             },
-            replace: function(url: string) {
+            replace: function (url: string) {
                 this.href = url;
             },
-            reload: function() {
+            reload: function () {
                 // No-op for iOS
             },
-            toString: function() {
+            toString: function () {
                 return this.href;
-            }
+            },
         };
     }
 }
