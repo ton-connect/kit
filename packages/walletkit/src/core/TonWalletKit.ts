@@ -142,6 +142,7 @@ export class TonWalletKit implements ITonWalletKit {
             await this.eventProcessor.startNoWalletProcessing();
 
             this.isInitialized = true;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             log.error('TonWalletKit initialization failed', { error: error?.toString() });
             throw error;

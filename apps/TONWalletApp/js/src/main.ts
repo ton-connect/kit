@@ -1,4 +1,6 @@
-import { ExtensionStorageAdapter, MemoryStorageAdapter, TonWalletKit } from '@ton/walletkit';
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { MemoryStorageAdapter, TonWalletKit } from '@ton/walletkit';
 
 declare global {
     interface Window {
@@ -21,23 +23,28 @@ export async function main() {
         // Test with Uint8Array
         const randomBytes = new Uint8Array(16);
         crypto.getRandomValues(randomBytes);
-        console.log('✅ crypto.getRandomValues with Uint8Array:', Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join(''));
-        
+        console.log(
+            '✅ crypto.getRandomValues with Uint8Array:',
+            Array.from(randomBytes)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join(''),
+        );
+
         // Test with Uint32Array
         const randomInts = new Uint32Array(4);
         crypto.getRandomValues(randomInts);
         console.log('✅ crypto.getRandomValues with Uint32Array:', Array.from(randomInts));
-        
+
         // Test crypto.randomUUID
         const uuid = crypto.randomUUID();
         console.log('✅ crypto.randomUUID:', uuid);
-        
+
         console.log('🎉 All crypto polyfill tests passed!');
     } catch (error) {
         console.error('❌ crypto polyfill test failed:', error);
     }
 
-    console.log('fetch')
+    console.log('fetch');
     try {
         const result = await fetch('https://api.ipify.org?format=json');
         console.log('fetch result', result);
@@ -58,24 +65,48 @@ export async function main() {
 
     console.log('Creating WalletKit instance');
 
-
-
     const walletKit = new TonWalletKit({
-        // apiUrl: 'https://tonapi.io',
-        config: {
-            bridge: {
-                enableJsBridge: true,
-                bridgeUrl: 'https://bridge.tonapi.io/bridge',
-                bridgeName: 'tonkeeper',
-            },
-            eventProcessor: {
-                disableEvents: true,
-            },
+        walletManifest: {
+            name: 'Wallet',
+            appName: 'Wallet',
+            imageUrl: 'https://example.com/image.png',
+            bridgeUrl: 'https://example.com/bridge.png',
+            universalLink: 'https://example.com/universal-link',
+            aboutUrl: 'https://example.com/about',
+            platforms: ['chrome', 'firefox', 'safari', 'android', 'ios', 'windows', 'macos', 'linux'],
+            jsBridgeKey: 'wallet',
         },
-        storage: new MemoryStorageAdapter({
-        }),
-    });
+        deviceInfo: {
+            platform: 'browser',
+            appName: 'Wallet',
+            appVersion: '1.0.0',
+            maxProtocolVersion: 2,
+            features: [
+                'SendTransaction',
+                {
+                    name: 'SendTransaction',
+                    maxMessages: 1,
+                },
+            ],
+        },
+        // apiUrl: 'https://tonapi.io',
+        // config: {
+        bridge: {
+            // enableJsBridge: true,
+            bridgeUrl: 'https://bridge.tonapi.io/bridge',
+            // bridgeName: 'tonkeeper',
+        },
+        eventProcessor: {
+            // disableEvents: true,
+        },
+        // },
 
+        apiClient: {
+            key: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+        },
+
+        storage: new MemoryStorageAdapter({}),
+    });
 
     console.log('🚀 WalletKit iOS Bridge starting...');
 
@@ -85,7 +116,7 @@ export async function main() {
         storage: 'memory',
         manifestUrl: '',
         isMobile: true,
-        isNative: true
+        isNative: true,
     };
 
     // Update config if provided by Swift bridge
@@ -150,7 +181,6 @@ export async function main() {
             if (window.walletKitSwiftBridge) {
                 window.walletKitSwiftBridge.sendEvent('initialized', { success: true });
             }
-
         } catch (error) {
             console.error('❌ WalletKit Bridge initialization failed:', error);
 
@@ -165,7 +195,7 @@ export async function main() {
             if (window.walletKitSwiftBridge) {
                 window.walletKitSwiftBridge.sendEvent('initialized', {
                     success: false,
-                    error: error.message
+                    error: error.message,
                 });
             }
         }
@@ -230,7 +260,10 @@ export async function main() {
 
             try {
                 const wallets = await walletKit.getWallets();
-                console.log('✅ Got wallets:', JSON.stringify(wallets, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+                console.log(
+                    '✅ Got wallets:',
+                    JSON.stringify(wallets, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
+                );
                 return wallets;
             } catch (error) {
                 console.error('❌ Failed to get wallets:', error.toString());
@@ -381,7 +414,7 @@ export async function main() {
                 console.error('❌ Failed to get jettons:', error);
                 throw error;
             }
-        }
+        },
     };
 
     // Initialize when DOM is ready
@@ -393,8 +426,10 @@ export async function main() {
 }
 
 console.log('🚀 WalletKit iOS Bridge starting...');
-main().then(() => {
-    console.log('🚀 WalletKit iOS Bridge started');
-}).catch((error) => {
-    console.error('❌ WalletKit iOS Bridge failed to start:', error);
-});
+main()
+    .then(() => {
+        console.log('🚀 WalletKit iOS Bridge started');
+    })
+    .catch((error) => {
+        console.error('❌ WalletKit iOS Bridge failed to start:', error);
+    });

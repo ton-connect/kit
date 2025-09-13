@@ -157,7 +157,7 @@ export class Initializer {
 
         return createStorageAdapter({
             prefix: 'tonwalletkit:',
-            ...options.config.storage,
+            ...options.storage,
         });
     }
 
