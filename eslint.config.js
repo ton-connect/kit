@@ -12,5 +12,7 @@ module.exports = [
         },
         rules: {},
     },
-    { ignores: ['**/dist/*', '**/dist-extension/*'] },
+    {
+        ignores: ['**/dist/*', '**/*stryker*/*', '**/*coverage*/*', '**/dist-extension/*'],
+    },
 ];

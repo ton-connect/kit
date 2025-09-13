@@ -4,18 +4,15 @@
   "description": "",
   "private": true,
   "scripts": {
+    "kit": "pnpm --filter @ton/walletkit",
     "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --max-warnings 0 --fix"
+    "dev": "turbo dev"
   },
-  "prettier": "@ton/toolchain/prettier",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
-    "@ton/toolchain": "github:the-ton-tech/toolchain#v1.5.0",
     "globals": "^16.3.0",
     "rimraf": "^6.0.1",
     "turbo": "^2.5.6"

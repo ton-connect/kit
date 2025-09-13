@@ -298,7 +298,9 @@ export const WalletDashboard: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Wallet Interface Type</label>
-                                <p className="text-xs text-gray-500 mt-1">Choose how the wallet handles signing operations</p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Choose how the wallet handles signing operations
+                                </p>
                             </div>
                             <select
                                 className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
