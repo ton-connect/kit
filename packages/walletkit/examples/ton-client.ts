@@ -1,18 +1,16 @@
 import util from 'util';
 
 import { Address } from '@ton/core';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 import {
     defaultWalletIdV5R1,
     ApiClientToncenter,
     createWalletInitConfigMnemonic,
-    WalletV5R1Adapter,
-    WalletV5,
+    createWalletV5R1,
     ConnectTransactionParamMessage,
     WalletInterface,
 } from '../src';
-import { createWalletFromConfig } from '../src/core/Initializer';
 dotenv.config();
 
 // eslint-disable-next-line no-console
