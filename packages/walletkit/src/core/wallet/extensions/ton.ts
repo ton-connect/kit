@@ -9,7 +9,10 @@ import { CallForSuccess } from '../../../utils/retry';
 import { EmulationErrorUnknown } from '../../../types/emulation/errors';
 
 export class WalletTonClass implements WalletTonInterface {
-    async createTransferTonTransaction(this: WalletInterface, param: TonTransferParams): Promise<ConnectTransactionParamContent> {
+    async createTransferTonTransaction(
+        this: WalletInterface,
+        param: TonTransferParams,
+    ): Promise<ConnectTransactionParamContent> {
         let messages: ConnectTransactionParamMessage[] = [];
         if (!isValidAddress(param.toAddress)) {
             throw new Error(`Invalid to address: ${param.toAddress}`);
