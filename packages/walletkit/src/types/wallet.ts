@@ -10,6 +10,9 @@ import { ApiClient } from './toncenter/ApiClient';
 import { LimitRequest } from '../core/ApiClientToncenter';
 import type { NftItem } from './toncenter/NftItem';
 import { NftItems } from './toncenter/NftItems';
+import { PrepareSignDataResult } from '../utils/signData/sign';
+import { Hash } from './primitive';
+import { TonProofParsedMessage } from '../utils/tonProof';
 
 /**
  * TON network types
@@ -106,21 +109,30 @@ export interface WalletInitInterface {
 
     client: ApiClient;
 
-    /** Sign raw bytes with wallet's private key */
-    sign: WalletSigner;
-
     /** Get wallet's TON address */
     getAddress(options?: { testnet?: boolean }): string;
 
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<string>;
 
-    getSignedExternal(
+    getSignedSendTransaction(
         input: ConnectTransactionParamContent,
-        options: {
+        options?: {
             fakeSignature: boolean;
         },
-    ): Promise<string>;
+    ): Promise<string>; // base64 encoded boc
+    getSignedSignData(
+        input: PrepareSignDataResult,
+        options?: {
+            fakeSignature: boolean;
+        },
+    ): Promise<Hash>;
+    getSignedTonProof(
+        input: TonProofParsedMessage,
+        options?: {
+            fakeSignature: boolean;
+        },
+    ): Promise<Hash>;
 }
 
 export type TonTransferMessage = {

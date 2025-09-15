@@ -13,6 +13,7 @@ import {
 } from '@ton/core';
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
+import { toHexString } from '@tonconnect/protocol';
 
 import type { TonNetwork } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
@@ -36,6 +37,9 @@ import {
 } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { uint8ArrayToBigInt } from '../../utils/base64';
+import { PrepareSignDataResult } from '../../utils/signData/sign';
+import { Hash } from '../../types/primitive';
+import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -109,14 +113,10 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
     }
 
-    async getSignedExternal(
+    async getSignedSendTransaction(
         input: ConnectTransactionParamContent,
         options: { fakeSignature: boolean },
     ): Promise<string> {
-        // if (keyPair.secretKey.length === 32) {
-        //     keyPair.secretKey = Buffer.concat([Uint8Array.from(keyPair.secretKey), Uint8Array.from(keyPair.publicKey)]);
-        // }
-
         const actions = packActionsList(
             input.messages.map((m) => {
                 let bounce = true;
@@ -293,6 +293,18 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         const signingData = payload.hash();
         const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
         return beginCell().storeSlice(payload.beginParse()).storeBuffer(Buffer.from(signature)).endCell();
+    }
+
+    async getSignedSignData(input: PrepareSignDataResult): Promise<Hash> {
+        const signature = await this.sign(input.hash);
+        return ('0x' + toHexString(signature)) as Hash;
+    }
+
+    async getSignedTonProof(input: TonProofParsedMessage): Promise<Hash> {
+        const message = await CreateTonProofMessageBytes(input);
+        const signature = await this.sign(message);
+
+        return ('0x' + toHexString(signature)) as Hash;
     }
 }
 

@@ -311,7 +311,6 @@ function isWalletInterface(config: unknown): config is WalletInterface {
         config !== null &&
         'publicKey' in config &&
         'version' in config &&
-        typeof (config as WalletInterface)?.sign === 'function' &&
         typeof (config as WalletInterface)?.getAddress === 'function' &&
         typeof (config as WalletInterface)?.getStateInit === 'function'
     );
