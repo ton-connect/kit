@@ -74,7 +74,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm text-gray-600">From:</span>
                                 <span className="text-sm font-mono text-black">
-                                    {formatAddress(request.wallet?.getAddress() || '')}
+                                    {formatAddress(request.walletAddress ?? '')}
                                 </span>
                             </div>
 
