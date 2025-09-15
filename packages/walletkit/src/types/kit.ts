@@ -4,6 +4,7 @@ import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './w
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from './events';
 import type { JettonsAPI } from './jettons';
 import { ConnectTransactionParamContent } from './internal';
+import { Hash } from './primitive';
 
 /**
  * Main TonWalletKit interface
@@ -60,7 +61,7 @@ export interface TonWalletKit {
     rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<void>;
 
     /** Approve a sign data request */
-    signDataRequest(event: EventSignDataRequest): Promise<{ signature: Uint8Array }>;
+    signDataRequest(event: EventSignDataRequest): Promise<{ signature: Hash }>;
 
     /** Reject a sign data request */
     rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void>;

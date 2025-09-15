@@ -36,6 +36,7 @@ import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } 
 import { WalletInitInterface } from '../types/wallet';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
+import { Hash } from '../types/primitive';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -510,7 +511,7 @@ export class TonWalletKit implements ITonWalletKit {
         await this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async signDataRequest(event: EventSignDataRequest): Promise<{ signature: Uint8Array }> {
+    async signDataRequest(event: EventSignDataRequest): Promise<{ signature: Hash }> {
         await this.ensureInitialized();
         return this.requestProcessor.approveSignDataRequest(event);
     }
