@@ -14,6 +14,9 @@ importers:
       '@ton/toolchain':
         specifier: github:the-ton-tech/toolchain#v1.5.0
         version: https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8(jest@29.7.0(@types/node@24.3.0)(node-notifier@10.0.1))(jiti@2.5.1)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.33.0
+        version: 9.33.0(jiti@2.5.1)
       globals:
         specifier: ^16.3.0
         version: 16.3.0
