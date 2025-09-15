@@ -13,6 +13,16 @@
         "removeComments": false,
         "declarationMap": true
     },
+    "exclude": [
+        "**/*.spec.ts",
+        "**/*.fixture.ts",
+        "**/*.config.ts",
+        "node_modules",
+        "coverage",
+        ".stryker-tmp",
+        "coverage",
+        "dist"
+    ],
     "include": [
         "src/**/*"
     ]
