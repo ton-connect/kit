@@ -12,7 +12,13 @@ import {
     SignDataRpcResponseSuccess,
 } from '@tonconnect/protocol';
 
-import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, TonWalletKitOptions } from '../types';
+import type {
+    EventConnectRequest,
+    EventTransactionRequest,
+    EventSignDataRequest,
+    EventSignDataApproval,
+    TonWalletKitOptions,
+} from '../types';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -22,6 +28,7 @@ import { PrepareTonConnectData } from '../utils/signData/sign';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
+import { EventConnectApproval, EventTransactionApproval } from '../types/events';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -41,7 +48,7 @@ export class RequestProcessor {
     /**
      * Process connect request approval
      */
-    async approveConnectRequest(event: EventConnectRequest): Promise<void> {
+    async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<void> {
         try {
             if (!event.walletAddress) {
                 throw new Error('Wallet is required');
@@ -52,21 +59,33 @@ export class RequestProcessor {
                 throw new Error('Wallet not found');
             }
 
-            // Create session for this connection'
-            const url = new URL(event.preview.dAppUrl);
-            const domain = url.hostname;
-            const newSession = await this.sessionManager.createSession(
-                event.from,
-                event.preview.dAppName,
-                domain,
-                wallet,
-            );
-            // Create bridge session
-            await this.bridgeManager.createSession(newSession.sessionId);
-            // Send approval response
-            const response = await this.createConnectApprovalResponse(event);
-            event.from = newSession.sessionId;
-            await this.bridgeManager.sendResponse(event, response.result);
+            // If event is EventConnectRequest, we need to create approval ourself
+            if ('preview' in event && 'request' in event) {
+                // Create session for this connection'
+                const url = new URL(event.preview.dAppUrl);
+                const domain = url.hostname;
+                const newSession = await this.sessionManager.createSession(
+                    event.from,
+                    event.preview.dAppName,
+                    domain,
+                    wallet,
+                );
+                // Create bridge session
+                await this.bridgeManager.createSession(newSession.sessionId);
+                // Send approval response
+                const response = await this.createConnectApprovalResponse(event);
+                // event.from = newSession.sessionId;
+                await this.bridgeManager.sendResponse(event, response.result);
+            } else if ('result' in event) {
+                // If event is EventConnectApproval, we need to send response to dApp and create session
+                const url = new URL(event.result.dAppUrl);
+                const domain = url.hostname;
+                await this.sessionManager.createSession(event.from, event.result.dAppName, domain, wallet);
+                await this.bridgeManager.sendResponse(event, event.result.response);
+            } else {
+                log.error('Invalid event', { event });
+                throw new Error('Invalid event');
+            }
         } catch (error) {
             log.error('Failed to approve connect request', { error });
             throw error;
@@ -111,22 +130,35 @@ export class RequestProcessor {
     /**
      * Process transaction request approval
      */
-    async approveTransactionRequest(event: EventTransactionRequest): Promise<{ signedBoc: string }> {
+    async approveTransactionRequest(
+        event: EventTransactionRequest | EventTransactionApproval,
+    ): Promise<{ signedBoc: string }> {
         try {
-            // Sign transaction with wallet
-            const signedBoc = await this.signTransaction(event);
+            if ('result' in event) {
+                await CallForSuccess(() => this.client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
 
-            // Send approval response
-            const response: SendTransactionRpcResponseSuccess = {
-                result: signedBoc,
-                id: event.id,
-            };
+                // Send approval response
+                const response: SendTransactionRpcResponseSuccess = {
+                    result: event.result.signedBoc,
+                    id: event.id || '',
+                };
 
-            await CallForSuccess(() => this.client.sendBoc(Buffer.from(signedBoc, 'base64')));
+                await this.bridgeManager.sendResponse(event, response);
+                return { signedBoc: event.result.signedBoc };
+            } else {
+                const signedBoc = await this.signTransaction(event);
 
-            await this.bridgeManager.sendResponse(event, response);
+                await CallForSuccess(() => this.client.sendBoc(Buffer.from(signedBoc, 'base64')));
 
-            return { signedBoc };
+                // Send approval response
+                const response: SendTransactionRpcResponseSuccess = {
+                    result: signedBoc,
+                    id: event.id || '',
+                };
+
+                await this.bridgeManager.sendResponse(event, response);
+                return { signedBoc };
+            }
         } catch (error) {
             log.error('Failed to approve transaction request', { error });
             throw error;
@@ -156,42 +188,61 @@ export class RequestProcessor {
     /**
      * Process sign data request approval
      */
-    async approveSignDataRequest(event: EventSignDataRequest): Promise<{ signature: Uint8Array }> {
+    async approveSignDataRequest(
+        event: EventSignDataRequest | EventSignDataApproval,
+    ): Promise<{ signature: Uint8Array }> {
         try {
-            if (!event.domain) {
-                throw new Error('Domain is required for sign data request');
+            if ('result' in event) {
+                // Send approval response
+                const response: SignDataRpcResponseSuccess = {
+                    id: event.id || '',
+                    result: {
+                        signature: event.result.signature,
+                        address: event.result.address,
+                        timestamp: event.result.timestamp,
+                        domain: event.result.domain,
+                        payload: event.result.payload,
+                    },
+                };
+
+                await this.bridgeManager.sendResponse(event, response);
+                return { signature: Buffer.from(event.result.signature, 'base64') };
+            } else {
+                if (!event.domain) {
+                    throw new Error('Domain is required for sign data request');
+                }
+
+                if (!event.walletAddress) {
+                    throw new Error('Wallet address is required for sign data request');
+                }
+
+                const wallet = this.walletManager.getWallet(event.walletAddress);
+                if (!wallet) {
+                    throw new Error('Wallet not found');
+                }
+                // Sign data with wallet
+                const signData = PrepareTonConnectData({
+                    payload: event.request,
+                    domain: event.domain,
+                    address: event.walletAddress,
+                });
+                const signature = await wallet.sign(signData.hash);
+
+                // Send approval response
+                const response: SignDataRpcResponseSuccess = {
+                    id: event.id,
+                    result: {
+                        signature: Buffer.from(signature).toString('base64'),
+                        address: Address.parse(signData.address).toRawString(),
+                        timestamp: signData.timestamp,
+                        domain: signData.domain,
+                        payload: signData.payload,
+                    },
+                };
+
+                await this.bridgeManager.sendResponse(event, response);
+                return { signature };
             }
-
-            if (!event.walletAddress) {
-                throw new Error('Wallet address is required for sign data request');
-            }
-
-            const wallet = this.walletManager.getWallet(event.walletAddress);
-            if (!wallet) {
-                throw new Error('Wallet not found');
-            }
-            // Sign data with wallet
-            const signData = PrepareTonConnectData({
-                payload: event.request,
-                domain: event.domain,
-                address: event.walletAddress,
-            });
-            const signature = await wallet.sign(signData.hash);
-
-            // Send approval response
-            const response: SignDataRpcResponseSuccess = {
-                id: event.id,
-                result: {
-                    signature: Buffer.from(signature).toString('base64'),
-                    address: Address.parse(signData.address).toRawString(),
-                    timestamp: signData.timestamp,
-                    domain: signData.domain,
-                    payload: signData.payload,
-                },
-            };
-
-            await this.bridgeManager.sendResponse(event, response);
-            return { signature };
         } catch (error) {
             log.error('Failed to approve sign data request', { error });
             throw error;

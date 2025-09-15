@@ -1,6 +1,6 @@
 // Event type definitions for TON Connect protocol
 
-import type { ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
+import type { ConnectEventSuccess, ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
 
 import {
     BridgeEventBase,
@@ -58,6 +58,38 @@ export interface EventDisconnect {
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EventRestoreConnectionRequest extends BridgeEventBase {}
+
+export interface EventConnectApproval extends BridgeEventBase {
+    result: ConnectApproval;
+}
+
+export interface ConnectApproval {
+    dAppName: string;
+    dAppUrl: string;
+    from: string;
+
+    response: ConnectEventSuccess;
+}
+
+export interface EventTransactionApproval extends BridgeEventBase {
+    result: TransactionApproval;
+}
+
+export interface TransactionApproval {
+    signedBoc: string;
+}
+
+export interface EventSignDataApproval extends BridgeEventBase {
+    result: SignDataApproval;
+}
+
+export interface SignDataApproval {
+    signature: string;
+    address: string;
+    timestamp: number;
+    domain: string;
+    payload: SignDataPayload;
+}
 
 export interface ConnectPermission {
     name: string;

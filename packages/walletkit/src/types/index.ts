@@ -38,6 +38,8 @@ export type {
     EventConnectRequest,
     EventTransactionRequest,
     EventSignDataRequest,
+    EventTransactionApproval,
+    EventSignDataApproval,
     EventDisconnect,
     ConnectPreview,
     TransactionPreview,
