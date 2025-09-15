@@ -26,6 +26,7 @@ import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
 import { EmulationErrorUnknown } from '../types/emulation/errors';
+import { WalletManager } from '../core/WalletManager';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -35,7 +36,11 @@ export class TransactionHandler
 {
     private eventEmitter: EventEmitter;
 
-    constructor(notify: (event: EventTransactionRequest) => void, eventEmitter: EventEmitter) {
+    constructor(
+        notify: (event: EventTransactionRequest) => void,
+        eventEmitter: EventEmitter,
+        private readonly walletManager: WalletManager,
+    ) {
         super(notify);
         this.eventEmitter = eventEmitter;
     }
@@ -44,9 +49,9 @@ export class TransactionHandler
     }
 
     async handle(event: RawBridgeEventTransaction): Promise<EventTransactionRequest> {
-        if (!event.wallet) {
-            log.error('Wallet not found', { event });
-            throw new Error('Wallet not found');
+        if (!event.walletAddress) {
+            log.error('Wallet address not found', { event });
+            throw new Error('Wallet address not found');
         }
 
         const request = this.parseTonConnectTransactionRequest(event);
@@ -55,13 +60,19 @@ export class TransactionHandler
             throw new Error('Failed to parse transaction request');
         }
 
-        const preview = await CallForSuccess(() => this.createTransactionPreview(request, event.wallet));
+        const wallet = this.walletManager.getWallet(event.walletAddress);
+        if (!wallet) {
+            log.error('Wallet not found', { event });
+            throw new Error('Wallet not found');
+        }
+
+        const preview = await CallForSuccess(() => this.createTransactionPreview(request, wallet));
 
         const txEvent: EventTransactionRequest = {
             ...event,
             request,
             preview,
-            wallet: event.wallet,
+            walletAddress: event.walletAddress,
         };
 
         return txEvent;

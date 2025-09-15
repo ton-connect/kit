@@ -21,6 +21,7 @@ import { CallForSuccess } from '../utils/retry';
 import { PrepareTonConnectData } from '../utils/signData/sign';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
+import { WalletManager } from './WalletManager';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -32,6 +33,7 @@ export class RequestProcessor {
         private walletKitOptions: TonWalletKitOptions,
         private sessionManager: SessionManager,
         private bridgeManager: BridgeManager,
+        private walletManager: WalletManager,
         private client: ApiClient,
         private network: CHAIN,
     ) {}
@@ -143,13 +145,18 @@ export class RequestProcessor {
             if (!event.domain) {
                 throw new Error('Domain is required for sign data request');
             }
+
+            const wallet = this.walletManager.getWallet(event.walletAddress);
+            if (!wallet) {
+                throw new Error('Wallet not found');
+            }
             // Sign data with wallet
             const signData = PrepareTonConnectData({
-                payload: event.data,
+                payload: event.request,
                 domain: event.domain,
-                address: event.wallet.getAddress().toString(),
+                address: event.walletAddress,
             });
-            const signature = await event.wallet.sign(signData.hash);
+            const signature = await wallet.sign(signData.hash);
 
             // Send approval response
             const response: SignDataRpcResponseSuccess = {
@@ -277,7 +284,14 @@ export class RequestProcessor {
      * Sign transaction and return BOC
      */
     private async signTransaction(event: EventTransactionRequest): Promise<string> {
-        const signedBoc = await event.wallet.getSignedExternal(event.request, {
+        if (!event.walletAddress) {
+            throw new Error('Wallet address is required');
+        }
+        const wallet = this.walletManager.getWallet(event.walletAddress);
+        if (!wallet) {
+            throw new Error('Wallet not found');
+        }
+        const signedBoc = await wallet.getSignedExternal(event.request, {
             fakeSignature: false,
         });
 

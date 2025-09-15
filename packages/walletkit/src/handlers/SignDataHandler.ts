@@ -20,8 +20,8 @@ export class SignDataHandler
     }
 
     async handle(event: RawBridgeEventSignData): Promise<EventSignDataRequest> {
-        if (!event.wallet) {
-            throw new Error('No wallet found in event');
+        if (!event.walletAddress) {
+            throw new Error('No wallet address found in event');
         }
 
         const data = this.parseDataToSign(event);
@@ -37,12 +37,9 @@ export class SignDataHandler
 
         const signEvent: EventSignDataRequest = {
             ...event,
-            from: event.from,
-            id: event.id,
-            data,
+            request: data,
             preview,
-            wallet: event.wallet,
-            domain: event.domain,
+            walletAddress: event.walletAddress,
         };
 
         return signEvent;

@@ -2,27 +2,15 @@
 
 import { ConnectItem, SendTransactionRpcRequest, SignDataRpcRequest } from '@tonconnect/protocol';
 
-import type { WalletInterface } from './wallet';
+// import type { WalletInterface } from './wallet';
 
 export interface SessionData {
     sessionId: string;
     dAppName: string;
     domain: string;
     walletAddress: string;
-    wallet?: WalletInterface;
-    createdAt: Date;
-    lastActivityAt: Date;
-    privateKey: string;
-    publicKey: string;
-}
-
-export interface SessionStorageData {
-    sessionId: string;
-    dAppName: string;
-    domain: string;
-    walletAddress: string;
-    createdAt: string;
-    lastActivityAt: string;
+    createdAt: string; // date
+    lastActivityAt: string; // date
     privateKey: string;
     publicKey: string;
 }
@@ -59,7 +47,6 @@ export type BridgeEventBase = {
     id?: string;
     from: string;
     walletAddress?: string;
-    wallet?: WalletInterface;
     domain?: string;
 
     isJsBridge?: boolean;

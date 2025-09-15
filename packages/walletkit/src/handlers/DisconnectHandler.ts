@@ -21,7 +21,7 @@ export class DisconnectHandler
     }
 
     async handle(event: RawBridgeEventDisconnect): Promise<EventDisconnect> {
-        if (!event.wallet) {
+        if (!event.walletAddress) {
             throw new Error('No wallet found in event');
         }
 
@@ -29,7 +29,7 @@ export class DisconnectHandler
 
         const disconnectEvent: EventDisconnect = {
             reason,
-            wallet: event.wallet,
+            walletAddress: event.walletAddress,
         };
 
         await this.sessionManager.removeSession(event.from);

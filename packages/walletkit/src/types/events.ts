@@ -2,7 +2,7 @@
 
 import type { ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
 
-import type { WalletInterface, TonNetwork } from './wallet';
+import type { WalletInterface } from './wallet';
 import {
     BridgeEventBase,
     ConnectTransactionParamContent,
@@ -71,35 +71,12 @@ export interface ConnectPreview {
  */
 
 export type EventTransactionRequest = RawBridgeEventTransaction & {
-    /** Unique request identifier */
-    id: string;
-
     /** Raw transaction request data */
     request: ConnectTransactionParamContent;
 
     /** Human-readable preview for UI display */
     preview: TransactionPreview;
-
-    /** Wallet that will handle this request */
-    wallet: WalletInterface;
 };
-
-/**
- * Raw transaction request data
- */
-export interface TransactionRequest {
-    /** Sender address */
-    from: string;
-
-    /** Target network */
-    network: TonNetwork;
-
-    /** Transaction validity timestamp */
-    validUntil: number;
-
-    /** Array of message BOCs */
-    messages: string[];
-}
 
 /**
  * Transaction preview for UI display
@@ -123,18 +100,14 @@ export interface TransactionPreviewEmulationResult {
  * Sign data request event from dApp
  */
 export interface EventSignDataRequest extends RawBridgeEventSignData {
-    from: string;
-    /** Unique request identifier */
-    id: string;
-
     /** Raw data to be signed */
-    data: SignDataPayload;
+    request: SignDataPayload;
 
     /** Human-readable preview for UI display */
     preview: SignDataPreview;
 
     /** Wallet that will handle this request */
-    wallet: WalletInterface;
+    walletAddress: string;
 }
 
 export type SignDataPreviewText = {
@@ -161,5 +134,5 @@ export interface EventDisconnect {
     reason?: string;
 
     /** Wallet associated with the disconnected session */
-    wallet: WalletInterface;
+    walletAddress: string;
 }

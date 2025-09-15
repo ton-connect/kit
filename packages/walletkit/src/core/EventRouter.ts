@@ -10,6 +10,7 @@ import { validateBridgeEvent } from '../validation/events';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { SessionManager } from './SessionManager';
+import { WalletManager } from './WalletManager';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -25,6 +26,7 @@ export class EventRouter {
     constructor(
         private eventEmitter: EventEmitter,
         private sessionManager: SessionManager,
+        private walletManager: WalletManager,
     ) {
         this.setupHandlers();
     }
@@ -120,7 +122,11 @@ export class EventRouter {
     private setupHandlers(): void {
         this.handlers = [
             new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this)),
-            new TransactionHandler(this.notifyTransactionRequestCallbacks.bind(this), this.eventEmitter),
+            new TransactionHandler(
+                this.notifyTransactionRequestCallbacks.bind(this),
+                this.eventEmitter,
+                this.walletManager,
+            ),
             new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this)),
             new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this), this.sessionManager),
         ];

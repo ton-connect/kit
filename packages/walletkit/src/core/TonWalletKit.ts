@@ -409,7 +409,7 @@ export class TonWalletKit implements ITonWalletKit {
             from: '',
             domain: '',
             isLocal: true,
-            wallet,
+            walletAddress: wallet.getAddress().toString(),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }

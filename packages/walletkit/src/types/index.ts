@@ -40,7 +40,6 @@ export type {
     EventSignDataRequest,
     EventDisconnect,
     ConnectPreview,
-    TransactionRequest,
     TransactionPreview,
     SignDataPreview,
 } from './events';

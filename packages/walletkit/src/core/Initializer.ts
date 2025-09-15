@@ -86,7 +86,7 @@ export class Initializer {
                 await this.initializeManagers(options, storageAdapter);
 
             // 5. Initialize processors
-            const { requestProcessor } = this.initializeProcessors(sessionManager, bridgeManager);
+            const { requestProcessor } = this.initializeProcessors(sessionManager, bridgeManager, walletManager);
 
             log.info('TonWalletKit initialized successfully');
 
@@ -185,7 +185,7 @@ export class Initializer {
         await sessionManager.initialize();
 
         const eventStore = new StorageEventStore(storageAdapter);
-        const eventRouter = new EventRouter(this.eventEmitter, sessionManager);
+        const eventRouter = new EventRouter(this.eventEmitter, sessionManager, walletManager);
 
         const bridgeManager = new BridgeManager(
             options?.walletManifest,
@@ -225,6 +225,7 @@ export class Initializer {
     private initializeProcessors(
         sessionManager: SessionManager,
         bridgeManager: BridgeManager,
+        walletManager: WalletManager,
     ): {
         requestProcessor: RequestProcessor;
     } {
@@ -232,6 +233,7 @@ export class Initializer {
             this.config,
             sessionManager,
             bridgeManager,
+            walletManager,
             this.tonClient,
             this.config.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
         );
