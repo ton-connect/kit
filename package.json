@@ -8,7 +8,8 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --max-warnings 0 --fix"
+    "lint:fix": "eslint . --max-warnings 0 --fix",
+    "quality": "turbo quality"
   },
   "prettier": "@ton/toolchain/prettier",
   "keywords": [],

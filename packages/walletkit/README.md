@@ -231,15 +231,6 @@ The modular architecture makes contributing easier:
 3. **Follow the pure function pattern** where possible
 4. **Update only the relevant interfaces**
 
-## Testing
-
-The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness, expected coverage and quality parameters are stored in a [quality.config.ts](quality.config.ts), `jest` is also used for better IDE compatibility.
-
-```bash
-pnpm kit check   # fix lint and test
-pnpm kit quality # lint, test with coverage & mutation
-```
-
 ## 📄 License
 
 ISC License - see LICENSE file for details.

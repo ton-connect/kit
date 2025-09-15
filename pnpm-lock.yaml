@@ -196,9 +196,6 @@ importers:
       vitest:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@24.3.0)(@vitest/ui@2.1.9)(lightningcss@1.30.1)
-      vtest:
-        specifier: ^1.1.0
-        version: 1.1.0
 
 packages:
 
@@ -5287,9 +5284,6 @@ packages:
         optional: true
       jsdom:
         optional: true
-
-  vtest@1.1.0:
-    resolution: {integrity: sha512-+FpcNrGdbcLa7wDhN6q+lsux1nR7Q4iTGUNAUknwwS9gTBU/1GtPQgrxARnvHYTKt0DEcCIphQq5gblTnmRuxQ==}
 
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
@@ -11717,8 +11711,6 @@ snapshots:
       - sugarss
       - supports-color
       - terser
-
-  vtest@1.1.0: {}
 
   walker@1.0.8:
     dependencies:

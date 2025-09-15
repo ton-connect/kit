@@ -18,6 +18,9 @@
     },
     "verify": {
       "dependsOn": ["//#lint", "build"]
+    },
+    "quality": {
+      "dependsOn": ["verify", "^quality"]
     }
   }
 }
