@@ -43,14 +43,24 @@ export class RequestProcessor {
      */
     async approveConnectRequest(event: EventConnectRequest): Promise<void> {
         try {
-            if (!event.wallet) {
+            if (!event.walletAddress) {
                 throw new Error('Wallet is required');
             }
 
+            const wallet = this.walletManager.getWallet(event.walletAddress);
+            if (!wallet) {
+                throw new Error('Wallet not found');
+            }
+
             // Create session for this connection'
-            const url = new URL(event.dAppUrl);
+            const url = new URL(event.preview.dAppUrl);
             const domain = url.hostname;
-            const newSession = await this.sessionManager.createSession(event.id, event.dAppName, domain, event.wallet);
+            const newSession = await this.sessionManager.createSession(
+                event.from,
+                event.preview.dAppName,
+                domain,
+                wallet,
+            );
             // Create bridge session
             await this.bridgeManager.createSession(newSession.sessionId);
             // Send approval response
@@ -70,21 +80,27 @@ export class RequestProcessor {
         try {
             log.info('Connect request rejected', {
                 id: event.id,
-                dAppName: event.dAppName,
+                dAppName: event.preview.dAppName,
                 reason: reason || 'User rejected connection',
             });
 
             const response: ConnectEventError = {
                 event: 'connect_error',
-                id: parseInt(event.id),
+                id: parseInt(event.id || ''),
                 payload: {
                     code: CONNECT_EVENT_ERROR_CODES.USER_REJECTS_ERROR,
                     message: reason || 'User rejected connection',
                 },
             };
-            const newSession = await this.sessionManager.createSession(event.id, event.dAppName, '', undefined, {
-                disablePersist: true,
-            });
+            const newSession = await this.sessionManager.createSession(
+                event.from,
+                event.preview.dAppName,
+                '',
+                undefined,
+                {
+                    disablePersist: true,
+                },
+            );
             await this.bridgeManager.sendResponse(event, response, newSession);
         } catch (error) {
             log.error('Failed to reject connect request', { error });
@@ -146,6 +162,10 @@ export class RequestProcessor {
                 throw new Error('Domain is required for sign data request');
             }
 
+            if (!event.walletAddress) {
+                throw new Error('Wallet address is required for sign data request');
+            }
+
             const wallet = this.walletManager.getWallet(event.walletAddress);
             if (!wallet) {
                 throw new Error('Wallet not found');
@@ -199,9 +219,13 @@ export class RequestProcessor {
      * Create connect approval response
      */
     private async createConnectApprovalResponse(event: EventConnectRequest): Promise<{ result: ConnectEventSuccess }> {
-        const wallet = event.wallet;
+        const walletAddress = event.walletAddress;
+        if (!walletAddress) {
+            throw new Error('Wallet address is required for connect approval');
+        }
+        const wallet = this.walletManager.getWallet(walletAddress);
         if (!wallet) {
-            throw new Error('Wallet is required for connect approval');
+            throw new Error('Wallet not found');
         }
 
         // Get wallet state init as base64 BOC
@@ -241,7 +265,7 @@ export class RequestProcessor {
                 Value: '',
             };
             try {
-                const dAppUrl = new URL(event.dAppUrl);
+                const dAppUrl = new URL(event.preview.dAppUrl);
                 domain = {
                     LengthBytes: Buffer.from(dAppUrl.host).length,
                     Value: dAppUrl.host,

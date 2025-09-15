@@ -2,7 +2,6 @@
 
 import type { ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
 
-import type { WalletInterface } from './wallet';
 import {
     BridgeEventBase,
     ConnectTransactionParamContent,
@@ -19,32 +18,46 @@ import { EmulationError } from './emulation/errors';
  * Connect request event from dApp
  */
 export interface EventConnectRequest extends BridgeEventBase {
-    /** Unique request identifier */
-    id: string;
-
-    /** dApp display name */
-    dAppName: string;
-    dAppUrl: string;
-
-    /** URL to dApp manifest */
-    manifestUrl: string;
-
     request: ConnectRequest['items'];
 
     /** Preview information for UI display */
     preview: ConnectPreview;
-
-    /** Wallet that will handle this request */
-    wallet?: WalletInterface;
-
-    isJsBridge?: boolean;
-    tabId?: number;
 }
 
-export interface EventRestoreConnectionRequest {
-    /** Unique request identifier */
-    id: string;
+/**
+ * Transaction request event from dApp
+ */
+export type EventTransactionRequest = RawBridgeEventTransaction & {
+    /** Raw transaction request data */
+    request: ConnectTransactionParamContent;
+
+    /** Human-readable preview for UI display */
+    preview: TransactionPreview;
+};
+
+/**
+ * Sign data request event from dApp
+ */
+export interface EventSignDataRequest extends RawBridgeEventSignData {
+    /** Raw data to be signed */
+    request: SignDataPayload;
+
+    /** Human-readable preview for UI display */
+    preview: SignDataPreview;
 }
+
+/**
+ * Disconnect event
+ */
+export interface EventDisconnect {
+    /** Optional disconnect reason */
+    reason?: string;
+
+    walletAddress: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface EventRestoreConnectionRequest extends BridgeEventBase {}
 
 export interface ConnectPermission {
     name: string;
@@ -62,21 +75,14 @@ export interface ConnectPreview {
         url?: string;
         iconUrl?: string;
     };
+
     requestedItems?: string[];
     permissions?: ConnectPermission[];
+
+    /** dApp display name */
+    dAppName: string;
+    dAppUrl: string;
 }
-
-/**
- * Transaction request event from dApp
- */
-
-export type EventTransactionRequest = RawBridgeEventTransaction & {
-    /** Raw transaction request data */
-    request: ConnectTransactionParamContent;
-
-    /** Human-readable preview for UI display */
-    preview: TransactionPreview;
-};
 
 /**
  * Transaction preview for UI display
@@ -96,20 +102,6 @@ export interface TransactionPreviewEmulationResult {
     emulationResult: ToncenterEmulationResponse;
 }
 
-/**
- * Sign data request event from dApp
- */
-export interface EventSignDataRequest extends RawBridgeEventSignData {
-    /** Raw data to be signed */
-    request: SignDataPayload;
-
-    /** Human-readable preview for UI display */
-    preview: SignDataPreview;
-
-    /** Wallet that will handle this request */
-    walletAddress: string;
-}
-
 export type SignDataPreviewText = {
     kind: 'text';
     content: string;
@@ -125,14 +117,3 @@ export type SignDataPreviewCell = {
     parsed?: Record<string, unknown>;
 };
 export type SignDataPreview = SignDataPreviewText | SignDataPreviewBinary | SignDataPreviewCell;
-
-/**
- * Disconnect event
- */
-export interface EventDisconnect {
-    /** Optional disconnect reason */
-    reason?: string;
-
-    /** Wallet associated with the disconnected session */
-    walletAddress: string;
-}

@@ -480,7 +480,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         // Add to disconnected sessions list
         set((state) => {
             state.wallet.disconnectedSessions.push({
-                walletAddress: event.wallet.getAddress(),
+                walletAddress: event.walletAddress,
                 reason: event.reason,
                 timestamp: Date.now(),
             });
@@ -517,9 +517,6 @@ export const setupWalletKitListeners = (
     });
 
     walletKit.onTransactionRequest(onTransactionRequest);
-    // setTimeout(() => {
-    //     walletKit.removeTransactionRequestCallback(onTransactionRequest);
-    // }, 10000);
 
     walletKit.onSignDataRequest((event) => {
         log.info('Sign data request received:', event);

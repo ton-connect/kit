@@ -35,11 +35,8 @@ export class ConnectHandler
         const connectEvent: EventConnectRequest = {
             ...event,
             id: event.id,
-            dAppName: this.extractDAppName(event, manifest),
-            dAppUrl: manifest?.url || '',
-            manifestUrl,
             request: event.params?.items || [],
-            preview: this.createPreview(event, manifest),
+            preview: this.createPreview(event, manifestUrl, manifest),
             isJsBridge: event.isJsBridge,
             tabId: event.tabId,
         };
@@ -56,8 +53,6 @@ export class ConnectHandler
             manifest?.name ||
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (event as any).params?.manifest?.name ||
-            // event.params?.dAppName ||
-            // event.params?.name ||
             'Unknown dApp';
 
         return sanitizeString(name);
@@ -76,15 +71,22 @@ export class ConnectHandler
      * Create preview object for connect request
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createPreview(event: RawBridgeEventConnect, fetchedManifest?: any): any {
+    private createPreview(event: RawBridgeEventConnect, manifestUrl: string, fetchedManifest?: any): any {
         const eventManifest = event.params?.manifest;
         const manifest = fetchedManifest || eventManifest;
+
+        const dAppUrl = manifest?.url || manifestUrl || '';
 
         const sanitizedManifest = manifest && {
             name: sanitizeString(manifest.name || ''),
             description: sanitizeString(manifest.description || ''),
             url: sanitizeString(manifest.url || ''),
             iconUrl: sanitizeString(manifest.iconUrl || ''),
+
+            dAppName: this.extractDAppName(event, manifest),
+            dAppUrl: dAppUrl,
+
+            manifestUrl: manifest?.url || '',
         };
 
         const requestedItems = event.params?.items || [];
@@ -109,7 +111,7 @@ export class ConnectHandler
         }
 
         return {
-            manifest: manifest ? sanitizedManifest : null,
+            manifest: sanitizedManifest,
             requestedItems: event.params?.items || [],
             permissions: permissions,
         };
