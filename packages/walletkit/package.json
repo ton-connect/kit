@@ -35,7 +35,7 @@
     "dev": "tsc -p tsconfig.esm.json --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:mutation": "stryker run stryker.config.ts",
+    "test:mutation": "stryker run stryker.config.js",
     "quality": "pnpm test:coverage && pnpm test:mutation",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix"
