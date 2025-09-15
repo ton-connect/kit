@@ -50,17 +50,17 @@ export class RequestProcessor {
      */
     async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<void> {
         try {
-            if (!event.walletAddress) {
-                throw new Error('Wallet is required');
-            }
-
-            const wallet = this.walletManager.getWallet(event.walletAddress);
-            if (!wallet) {
-                throw new Error('Wallet not found');
-            }
-
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
+                if (!event.walletAddress) {
+                    throw new Error('Wallet is required');
+                }
+
+                const wallet = this.walletManager.getWallet(event.walletAddress);
+                if (!wallet) {
+                    throw new Error('Wallet not found');
+                }
+
                 // Create session for this connection'
                 const url = new URL(event.preview.dAppUrl);
                 const domain = url.hostname;
@@ -77,6 +77,15 @@ export class RequestProcessor {
                 // event.from = newSession.sessionId;
                 await this.bridgeManager.sendResponse(event, response.result);
             } else if ('result' in event) {
+                if (!event.walletAddress) {
+                    throw new Error('Wallet is required');
+                }
+
+                const wallet = this.walletManager.getWallet(event.walletAddress);
+                if (!wallet) {
+                    throw new Error('Wallet not found');
+                }
+
                 // If event is EventConnectApproval, we need to send response to dApp and create session
                 const url = new URL(event.result.dAppUrl);
                 const domain = url.hostname;
