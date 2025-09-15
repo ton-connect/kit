@@ -56,6 +56,15 @@ export type BridgeEventBase = {
     messageId?: string;
 };
 
+export type EventApprovalBase = {
+    id: string;
+    from: string;
+    sessionId: string;
+    walletAddress: string;
+
+    messageId?: string;
+};
+
 // Bridge event types (raw from bridge)
 export interface RawBridgeEventGeneric extends BridgeEventBase {
     id: string;

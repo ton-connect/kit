@@ -5,6 +5,7 @@ import type { ConnectEventSuccess, ConnectRequest, SignDataPayload } from '@tonc
 import {
     BridgeEventBase,
     ConnectTransactionParamContent,
+    EventApprovalBase,
     RawBridgeEventSignData,
     RawBridgeEventTransaction,
 } from './internal';
@@ -59,7 +60,7 @@ export interface EventDisconnect {
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EventRestoreConnectionRequest extends BridgeEventBase {}
 
-export interface EventConnectApproval extends BridgeEventBase {
+export interface EventConnectApproval extends EventApprovalBase {
     result: ConnectApproval;
 }
 
@@ -71,7 +72,7 @@ export interface ConnectApproval {
     response: ConnectEventSuccess;
 }
 
-export interface EventTransactionApproval extends BridgeEventBase {
+export interface EventTransactionApproval extends EventApprovalBase {
     result: TransactionApproval;
 }
 
@@ -79,7 +80,7 @@ export interface TransactionApproval {
     signedBoc: string;
 }
 
-export interface EventSignDataApproval extends BridgeEventBase {
+export interface EventSignDataApproval extends EventApprovalBase {
     result: SignDataApproval;
 }
 
