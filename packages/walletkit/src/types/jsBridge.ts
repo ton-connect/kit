@@ -1,30 +1,8 @@
 // Types for TonConnect JS Bridge implementation
+import { type DeviceInfo, type Feature } from '@tonconnect/protocol';
+import { type WalletInfo } from '@tonconnect/sdk';
 
-type Feature =
-    | {
-          name: 'SendTransaction';
-          maxMessages: number; // maximum number of messages in one `SendTransaction` that the wallet supports
-          extraCurrencySupported?: boolean; // indicates if the wallet supports extra currencies
-      }
-    | {
-          name: 'SignData';
-          types: ('text' | 'binary' | 'cell')[]; // array of supported data types for signing
-      };
-
-export interface DeviceInfo {
-    platform: 'web' | 'ios' | 'android' | 'desktop';
-    appName: string;
-    appVersion: string;
-    maxProtocolVersion: number;
-    features: Feature[];
-}
-
-export interface WalletInfo {
-    name: string;
-    image: string;
-    tondns?: string;
-    about_url: string;
-}
+export { type Feature, type DeviceInfo, type WalletInfo };
 
 export interface ConnectRequest {
     manifestUrl: string;
@@ -103,7 +81,6 @@ export interface TonConnectBridge {
  * Options for JS Bridge injection
  */
 export interface JSBridgeInjectOptions {
-    walletName: string;
     deviceInfo?: Partial<DeviceInfo>;
     walletInfo?: WalletInfo;
 }
@@ -111,24 +88,17 @@ export interface JSBridgeInjectOptions {
 /**
  * Internal message types for communication between injected bridge and extension
  */
-export interface BridgeRequest {
+export interface InjectedToExtensionBridgeRequest {
     type: 'TONCONNECT_BRIDGE_REQUEST';
+    messageId: string;
+    payload: InjectedToExtensionBridgeRequestPayload;
     source: string;
-    payload: BridgeRequestPayload;
-    tabId?: string;
-    domain?: string;
-    // method: 'connect' | 'restoreConnection' | 'send';
-    // messageId: number;
-    // params: {
-    //     protocolVersion?: number;
-    //     message?: ConnectRequest | AppRequest;
-    // };
 }
 
-export interface BridgeRequestPayload {
+export interface InjectedToExtensionBridgeRequestPayload {
     id: string;
     method: string;
-    params: unknown;
+    params: Array<unknown> | Record<string, unknown>;
     from?: string;
 }
 
@@ -145,4 +115,10 @@ export interface BridgeEvent {
     type: 'TONCONNECT_BRIDGE_EVENT';
     source: string;
     event: WalletEvent;
+}
+
+export interface BridgeEventMessageInfo {
+    messageId: string;
+    tabId?: string;
+    domain?: string;
 }

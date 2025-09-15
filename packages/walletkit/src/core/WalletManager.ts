@@ -48,8 +48,7 @@ export class WalletManager {
         }
 
         if (this.wallets.has(wallet.getAddress())) {
-            log.info(`Wallet with address ${wallet.getAddress()} already exists`);
-            return false;
+            return true;
         }
 
         this.wallets.set(wallet.getAddress(), wallet);

@@ -35,7 +35,8 @@ export class SessionManager {
         sessionId: string,
         dAppName: string,
         domain: string,
-        wallet: WalletInterface,
+        wallet?: WalletInterface,
+        { disablePersist = false }: { disablePersist?: boolean } = {},
     ): Promise<SessionData> {
         const now = new Date();
         // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
@@ -44,17 +45,34 @@ export class SessionManager {
             sessionId,
             dAppName,
             domain,
-            walletAddress: wallet.getAddress(),
+            walletAddress: wallet?.getAddress() ?? '',
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
         };
 
+        if (disablePersist) {
+            return SessionManager.toSessionData(sessionData);
+        }
         this.sessions.set(sessionId, sessionData);
         await this.persistSessions();
 
         return (await this.getSession(sessionId))!;
+    }
+
+    static toSessionData(session: SessionStorageData): SessionData {
+        return {
+            sessionId: session.sessionId,
+            dAppName: session.dAppName,
+            walletAddress: session.walletAddress,
+            // wallet: thiscc.walletManager.getWallet(session.walletAddress),
+            privateKey: session.privateKey,
+            publicKey: session.publicKey,
+            createdAt: new Date(session.createdAt),
+            lastActivityAt: new Date(session.lastActivityAt),
+            domain: session.domain,
+        };
     }
 
     // async getSessionData(sessionId: string): Promise<SessionData | undefined> {}

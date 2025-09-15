@@ -46,7 +46,7 @@ export type {
 } from './events';
 
 // Configuration types
-export type { TonWalletKitOptions, RuntimeConfig } from './config';
+export type { TonWalletKitOptions } from './config';
 
 // Main kit interface
 export type { TonWalletKit, SessionInfo, KitStatus } from './kit';

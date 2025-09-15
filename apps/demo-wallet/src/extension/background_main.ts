@@ -3,7 +3,10 @@
 console.log('TON Wallet Demo extension background script loaded');
 
 import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
-import type { BridgeRequest } from '@ton/walletkit';
+import type { InjectedToExtensionBridgeRequest } from '@ton/walletkit';
+
+import type { InjectedToExtensionBridgeRequestPayload } from '../../../../packages/walletkit/dist/esm/types/jsBridge';
+import { getTonConnectWalletManifest } from '../utils/walletManifest';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -12,16 +15,9 @@ async function initializeWalletKit() {
     try {
         // Initialize WalletKit with JS Bridge support
         walletKit = new TonWalletKit({
-            apiUrl: 'https://tonapi.io',
-            config: {
-                bridge: {
-                    enableJsBridge: true,
-                    bridgeUrl: 'https://bridge.tonapi.io/bridge',
-                    bridgeName: 'tonkeeper',
-                },
-                eventProcessor: {
-                    disableEvents: true,
-                },
+            walletManifest: getTonConnectWalletManifest(),
+            eventProcessor: {
+                disableEvents: true,
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             storage: new ExtensionStorageAdapter({}, chrome.storage.local as any),
@@ -45,13 +41,25 @@ chrome.runtime.onInstalled.addListener(() => {
 // Initialize on startup
 initializeWalletKit();
 
+function isBridgeRequest(message: unknown): asserts message is InjectedToExtensionBridgeRequest {
+    if (
+        typeof message !== 'object' ||
+        message === null ||
+        !('type' in message) ||
+        message.type !== 'TONCONNECT_BRIDGE_REQUEST'
+    ) {
+        throw new Error('Invalid bridge request');
+    }
+}
+
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
     console.log('Background received message external:', message, sender, sendResponse);
 
     switch (message.type) {
         case 'TONCONNECT_BRIDGE_REQUEST':
+            isBridgeRequest(message);
             // Handle TonConnect bridge requests through WalletKit
-            handleBridgeRequest(message.payload, sender, sendResponse);
+            handleBridgeRequest(message.messageId, message.payload, sender, sendResponse);
             if (message.payload.method === 'connect' || message.payload.method === 'send') {
                 await chrome.action.openPopup().catch((e) => {
                     console.log('popup not opened', e);
@@ -86,7 +94,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 async function handleBridgeRequest(
-    bridgeRequest: BridgeRequest,
+    messageId: string,
+    bridgeRequest: InjectedToExtensionBridgeRequestPayload,
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response: { success: boolean; result?: unknown; error?: unknown }) => void,
 ) {
@@ -105,11 +114,16 @@ async function handleBridgeRequest(
             }
         };
         // Process the request through WalletKit's JS Bridge Manager
-        const result = await walletKit?.processInjectedBridgeRequest({
-            ...bridgeRequest,
-            tabId: _sender.tab?.id?.toString(),
-            domain: getHostFromUrl(_sender.tab?.url),
-        });
+        const result = await walletKit?.processInjectedBridgeRequest(
+            {
+                messageId,
+                tabId: _sender.tab?.id?.toString(),
+                domain: getHostFromUrl(_sender.tab?.url),
+            },
+            {
+                ...bridgeRequest,
+            },
+        );
 
         sendResponse({ success: true, result });
     } catch (error) {

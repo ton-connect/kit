@@ -1,30 +1,12 @@
-// Simplified JS Bridge injection code for TonConnect
-// All logic is handled by the parent extension through WalletKit
-
 import type { ConnectRequest } from '@tonconnect/protocol';
 
-import type { JSBridgeInjectOptions, DeviceInfo, BridgeRequestPayload } from '../types/jsBridge';
-import { sanitizeWalletName } from '../utils/walletNameValidation';
-
-/**
- * Default device info for JS Bridge
- */
-const DEFAULT_DEVICE_INFO: DeviceInfo = {
-    platform: 'web',
-    appName: 'Wallet',
-    appVersion: '1.0.0',
-    maxProtocolVersion: 2,
-    features: [
-        {
-            name: 'SendTransaction',
-            maxMessages: 4,
-        },
-        {
-            name: 'SignData',
-            types: ['text', 'binary', 'cell'],
-        },
-    ],
-};
+import type {
+    JSBridgeInjectOptions,
+    DeviceInfo,
+    InjectedToExtensionBridgeRequestPayload,
+    WalletInfo,
+} from '../types/jsBridge';
+import { getDeviceInfoWithDefaults, getWalletInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 
 let extensionId: string | undefined = undefined;
 
@@ -35,20 +17,14 @@ let extensionId: string | undefined = undefined;
  * @param options - Configuration options for the bridge
  * @throws Error if wallet name is invalid
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): void {
-    const walletName = sanitizeWalletName(options.walletName);
 
-    // Merge device info with defaults
-    const deviceInfo: DeviceInfo = {
-        ...DEFAULT_DEVICE_INFO,
-        appName: walletName,
-        ...options.deviceInfo,
-    };
+export function injectBridgeCode(window: Window, options: JSBridgeInjectOptions): void {
+    const deviceInfo = getDeviceInfoWithDefaults(options.deviceInfo);
+    const walletInfo = getWalletInfoWithDefaults(options.walletInfo);
+
+    const walletName = walletInfo?.appName;
 
     const isWalletBrowser = false;
-    // typeof globalThis !== 'undefined' &&
-    // typeof (globalThis as typeof globalThis & { chrome?: { runtime?: unknown } }).chrome?.runtime !== 'undefined';
 
     // Check if wallet already exists and has tonconnect
     if (
@@ -66,11 +42,10 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
      */
     class TonConnectBridge {
         deviceInfo: DeviceInfo;
-        walletInfo: unknown;
+        walletInfo: WalletInfo;
         protocolVersion: number;
         isWalletBrowser: boolean;
         private _eventListeners: Array<(event: unknown) => void>;
-        private _messageId: number;
         private _pendingRequests: Map<
             string,
             {
@@ -83,13 +58,12 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
         constructor() {
             // Bridge properties as per TonConnect spec
             this.deviceInfo = deviceInfo;
-            this.walletInfo = options.walletInfo;
+            this.walletInfo = walletInfo;
             this.protocolVersion = 2;
             this.isWalletBrowser = isWalletBrowser;
 
             // Internal state
             this._eventListeners = [];
-            this._messageId = 0;
             this._pendingRequests = new Map();
 
             // Bind methods to preserve context
@@ -155,9 +129,9 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
          * Sends request to extension and returns promise
          * @private
          */
-        private async _sendToExtension(data: Omit<BridgeRequestPayload, 'id'>): Promise<unknown> {
+        private async _sendToExtension(data: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
             return new Promise((resolve, reject) => {
-                const messageId = (++this._messageId).toString();
+                const messageId = crypto.randomUUID();
 
                 // Set timeout for request
                 const timeoutId = setTimeout(
@@ -182,22 +156,9 @@ export function injectBridgeCode(window: any, options: JSBridgeInjectOptions): v
                     source: `${walletName}-tonconnect`,
                     payload: {
                         ...data,
-                        id: messageId,
                     },
+                    messageId: messageId,
                 });
-
-                // Send to extension via postMessage
-                // window.postMessage(
-                //     {
-                //         type: 'TONCONNECT_BRIDGE_REQUEST',
-                //         source: `${walletName}-tonconnect`,
-                //         payload: {
-                //             ...data,
-                //             id: messageId,
-                //         },
-                //     },
-                //     '*',
-                // );
             });
         }
 

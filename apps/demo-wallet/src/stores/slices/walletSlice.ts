@@ -18,21 +18,20 @@ import { createComponentLogger } from '../../utils/logger';
 import type { Transaction } from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
+import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
 
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
 
 const walletKit = new TonWalletKit({
     // bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    deviceInfo: getTonConnectDeviceInfo(),
+    walletManifest: getTonConnectWalletManifest(),
+
     network: 'mainnet',
     wallets: [],
-    apiKey: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
-    config: {
-        bridge: {
-            bridgeUrl: 'https://bridge.tonapi.io/bridge',
-            enableJsBridge: true,
-            bridgeName: 'tonkeeper',
-        },
+    apiClient: {
+        key: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
     },
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,

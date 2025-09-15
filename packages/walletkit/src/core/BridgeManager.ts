@@ -3,12 +3,13 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import { BridgeProvider, ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, StorageAdapter } from '../types/internal';
+import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, SessionData, StorageAdapter } from '../types/internal';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 import { EventRouter } from './EventRouter';
+import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload, WalletInfo } from '../types/jsBridge';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -35,17 +36,29 @@ export class BridgeManager {
     private requestProcessingTimeoutId?: number;
 
     constructor(
-        config: BridgeConfig,
+        walletManifest: WalletInfo | undefined,
+        config: BridgeConfig | undefined,
         sessionManager: SessionManager,
         storageAdapter: StorageAdapter,
         eventStore: EventStore,
         eventRouter: EventRouter,
         eventEmitter?: EventEmitter,
     ) {
+        const isManifestJsBridge = walletManifest && 'jsBridgeKey' in walletManifest ? true : false;
+        const manifestJsBridgeKey =
+            walletManifest && 'jsBridgeKey' in walletManifest ? walletManifest.jsBridgeKey : undefined;
+        const manifestBridgeUrl =
+            walletManifest && 'bridgeUrl' in walletManifest ? walletManifest.bridgeUrl : undefined;
+
         this.config = {
             heartbeatInterval: 5000,
             reconnectInterval: 15000,
             maxReconnectAttempts: 5,
+            ...{
+                enableJsBridge: isManifestJsBridge,
+                jsBridgeKey: manifestJsBridgeKey,
+                bridgeUrl: manifestBridgeUrl,
+            },
             ...config,
         };
         this.sessionManager = sessionManager;
@@ -133,6 +146,7 @@ export class BridgeManager {
         event: BridgeEventBase,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         response: any,
+        _session?: SessionData,
     ): Promise<void> {
         if (!this.bridgeProvider) {
             throw new Error('Bridge not initialized');
@@ -148,7 +162,7 @@ export class BridgeManager {
             return this.sendJsBridgeResponse(
                 event.tabId?.toString() || '',
                 event.isJsBridge,
-                event.id ?? null,
+                event.messageId ?? null,
                 response,
             );
         }
@@ -158,7 +172,7 @@ export class BridgeManager {
             throw new Error('Session ID is required');
         }
 
-        const session = await this.sessionManager.getSession(sessionId);
+        const session = _session ?? (await this.sessionManager.getSession(sessionId));
         if (!session) {
             throw new Error(`Session ${event.sessionId} not found`);
         }
@@ -192,7 +206,7 @@ export class BridgeManager {
             throw new Error('Bridge not initialized');
         }
 
-        const source = this.config.bridgeName + '-tonconnect';
+        const source = this.config.jsBridgeKey + '-tonconnect';
         // eslint-disable-next-line no-undef
         chrome.tabs.sendMessage(parseInt(sessionId), {
             type: 'TONCONNECT_BRIDGE_RESPONSE',
@@ -330,33 +344,39 @@ export class BridgeManager {
         });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public queueJsBridgeEvent(event: any): void {
-        log.debug('JS Bridge event queued', { eventId: event?.id });
+    public queueJsBridgeEvent(
+        messageInfo: BridgeEventMessageInfo,
+        event: InjectedToExtensionBridgeRequestPayload,
+    ): void {
+        log.debug('JS Bridge event queued', { eventId: messageInfo?.messageId });
+
+        // Todo validate event
+        if (!event) {
+            return;
+        }
 
         if (event.method == 'connect') {
             this.eventQueue.push({
                 ...event,
                 isJsBridge: true,
-                tabId: event.tabId,
-                domain: event.domain,
+                tabId: messageInfo.tabId,
+                domain: messageInfo.domain,
+                messageId: messageInfo.messageId,
             });
         } else if (event.method == 'restoreConnection') {
-            this.eventEmitter?.emit('restoreConnection', event);
-            // this.eventQueue.push({
-            //     ...event,
-            //     isJsBridge: true,
-            //     tabId: event.tabId,
-            //     domain: event.domain,
-            // });
+            this.eventEmitter?.emit('restoreConnection', {
+                ...event,
+                messageId: messageInfo.messageId,
+            });
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
                 ...event,
-                ...event.params[0],
-                id: event.id,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(event as any).params[0],
                 isJsBridge: true,
-                tabId: event.tabId,
-                domain: event.domain,
+                tabId: messageInfo.tabId,
+                domain: messageInfo.domain,
+                messageId: messageInfo.messageId,
             });
         }
 
@@ -416,6 +436,7 @@ export class BridgeManager {
                 domain: event?.domain,
                 isJsBridge: event?.isJsBridge,
                 tabId: event?.tabId,
+                messageId: event?.messageId,
             };
 
             if (rawEvent.from) {

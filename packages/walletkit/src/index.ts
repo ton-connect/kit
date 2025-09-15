@@ -49,9 +49,17 @@ export type {
     ConnectRequest,
     ConnectEvent,
     ConnectEventError,
-    BridgeRequest,
+    InjectedToExtensionBridgeRequest,
     BridgeResponse,
     BridgeEvent,
+    BridgeEventMessageInfo,
+    AppRequest,
+    WalletResponse,
+    WalletEvent,
+    DisconnectEvent,
+    ConnectItem,
+    ConnectItemReply,
+    Feature,
 } from './types/jsBridge';
 
 // Re-export validation utilities
