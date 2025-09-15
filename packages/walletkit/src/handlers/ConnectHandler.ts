@@ -86,7 +86,7 @@ export class ConnectHandler
             dAppName: this.extractDAppName(event, manifest),
             dAppUrl: dAppUrl,
 
-            manifestUrl: manifest?.url || '',
+            manifestUrl: manifestUrl || '',
         };
 
         const requestedItems = event.params?.items || [];

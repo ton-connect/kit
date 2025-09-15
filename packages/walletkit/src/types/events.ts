@@ -102,6 +102,7 @@ export interface ConnectPermission {
  * Connect request preview information
  */
 export interface ConnectPreview {
+    manifestUrl?: string;
     manifest?: {
         name: string;
         description?: string;

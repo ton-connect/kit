@@ -68,7 +68,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 {request.preview.manifest?.iconUrl ? (
                                     <img
                                         src={request.preview.manifest.iconUrl}
-                                        alt={request.dAppName}
+                                        alt={request.preview?.dAppName}
                                         className="w-12 h-12 rounded-lg object-cover border"
                                         onError={(e) => {
                                             // Hide image if it fails to load
@@ -88,15 +88,15 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 )}
 
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 truncate">{request.dAppName}</h3>
+                                    <h3 className="font-semibold text-gray-900 truncate">{request.preview.dAppName}</h3>
                                     {request.preview.manifest?.description && (
                                         <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                                             {request.preview.manifest.description}
                                         </p>
                                     )}
-                                    {request.manifestUrl && (
+                                    {request.preview?.manifestUrl && (
                                         <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {new URL(request.manifestUrl).hostname}
+                                            {new URL(request.preview.manifestUrl).hostname}
                                         </p>
                                     )}
                                 </div>
