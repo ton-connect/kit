@@ -6,97 +6,69 @@ import { sha256_sync } from '@ton/crypto';
 import { ed25519 } from '@noble/curves/ed25519';
 
 interface Domain {
-    LengthBytes: number; // uint32 `json:"lengthBytes"`
-    Value: string; // string `json:"value"`
+    lengthBytes: number; // uint32 `json:"lengthBytes"`
+    value: string; // string `json:"value"`
 }
 
-interface ParsedMessage {
-    Workchain: number; // int32
-    Address: Buffer; // []byte
-    Timstamp: number; // int64
-    Domain: Domain; // Domain
-    Payload: string; // string
-    StateInit: string; // string
+export interface TonProofParsedMessage {
+    workchain: number; // int32
+    address: Uint8Array; // []byte
+    timstamp: number; // int64
+    domain: Domain; // Domain
+    payload: string; // string
+    stateInit: string; // string
 
-    Signature?: Buffer; // []byte
+    signature?: Uint8Array; // []byte
 }
 
 export function SignatureVerify(pubkey: Uint8Array, message: Uint8Array, signature: Uint8Array): boolean {
     return ed25519.verify(signature, message, pubkey);
-
-    // return ed25519.Verify(pubkey, message, signature)
 }
 
 const tonProofPrefix = 'ton-proof-item-v2/';
 const tonConnectPrefix = 'ton-connect';
 
-export async function CreateTonProofMessageBytes(message: ParsedMessage): Promise<Uint8Array> {
-    // wc := make([]byte, 4)
-    // binary.BigEndian.PutUint32(wc, uint32(message.Workchain))
-
+export async function CreateTonProofMessageBytes(message: TonProofParsedMessage): Promise<Uint8Array> {
     const wc = Buffer.alloc(4);
-    wc.writeUInt32BE(message.Workchain);
-
-    // ts := make([]byte, 8)
-    // binary.LittleEndian.PutUint64(ts, uint64(message.Timstamp))
+    wc.writeUInt32BE(message.workchain);
 
     const ts = Buffer.alloc(8);
-    ts.writeBigUInt64LE(BigInt(message.Timstamp));
+    ts.writeBigUInt64LE(BigInt(message.timstamp));
 
-    // dl := make([]byte, 4)
-    // binary.LittleEndian.PutUint32(dl, message.Domain.LengthBytes)
     const dl = Buffer.alloc(4);
-    dl.writeUInt32LE(message.Domain.LengthBytes);
+    dl.writeUInt32LE(message.domain.lengthBytes);
 
     const m = Buffer.concat([
         Buffer.from(tonProofPrefix),
         wc,
-        message.Address,
+        message.address,
         dl,
-        Buffer.from(message.Domain.Value),
+        Buffer.from(message.domain.value),
         ts,
-        Buffer.from(message.Payload),
+        Buffer.from(message.payload),
     ]);
 
-    // const messageHash =  //sha256.Sum256(m)
-    // const messageHash = await crypto.subtle.digest('SHA-256', m)
-    // const m = Buffer.from(tonProofPrefix)
-    // m.write(ts)
-
-    // m := []byte(tonProofPrefix)
-    // m = append(m, wc...)
-    // m = append(m, message.Address...)
-    // m = append(m, dl...)
-    // m = append(m, []byte(message.Domain.Value)...)
-    // m = append(m, ts...)
-    // m = append(m, []byte(message.Payload)...)
-
-    const messageHash = sha256_sync(m); // createHash('sha256').update(m).digest()
+    const messageHash = sha256_sync(m);
 
     const fullMes = Buffer.concat([Buffer.from([0xff, 0xff]), Buffer.from(tonConnectPrefix), Buffer.from(messageHash)]);
-    // []byte{0xff, 0xff}
-    // fullMes = append(fullMes, []byte(tonConnectPrefix)...)
-    // fullMes = append(fullMes, messageHash[:]...)
-
-    // const res = await crypto.subtle.digest('SHA-256', fullMes)
     const res = sha256_sync(fullMes);
     return Buffer.from(res);
 }
 
-export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReplySuccess): ParsedMessage {
+export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReplySuccess): TonProofParsedMessage {
     const address = Address.parse(walletInfo.account.address);
 
-    const res: ParsedMessage = {
-        Workchain: address.workChain,
-        Address: address.hash,
-        Domain: {
-            LengthBytes: tp.proof.domain.lengthBytes,
-            Value: tp.proof.domain.value,
+    const res: TonProofParsedMessage = {
+        workchain: address.workChain,
+        address: address.hash,
+        domain: {
+            lengthBytes: tp.proof.domain.lengthBytes,
+            value: tp.proof.domain.value,
         },
-        Signature: Buffer.from(tp.proof.signature, 'base64'),
-        Payload: tp.proof.payload,
-        StateInit: walletInfo.account.walletStateInit,
-        Timstamp: tp.proof.timestamp,
+        signature: Buffer.from(tp.proof.signature, 'base64'),
+        payload: tp.proof.payload,
+        stateInit: walletInfo.account.walletStateInit,
+        timstamp: tp.proof.timestamp,
     };
     return res;
 }
@@ -113,18 +85,17 @@ export function createTonProofMessage({
     payload: string;
     stateInit: string; // base64 boc
     timestamp: number; // unixtime
-}): ParsedMessage {
-    const res: ParsedMessage = {
-        Workchain: address.workChain,
-        Address: address.hash,
-        Domain: {
-            LengthBytes: domain.LengthBytes,
-            Value: domain.Value,
+}): TonProofParsedMessage {
+    const res: TonProofParsedMessage = {
+        workchain: address.workChain,
+        address: address.hash,
+        domain: {
+            lengthBytes: domain.lengthBytes,
+            value: domain.value,
         },
-        // Signature: Buffer.from(tp.proof.signature, 'base64'),
-        Payload: payload,
-        StateInit: stateInit,
-        Timstamp: timestamp,
+        payload: payload,
+        stateInit: stateInit,
+        timstamp: timestamp,
     };
     return res;
 }

@@ -22,13 +22,14 @@ import type {
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
-import { CreateTonProofMessageBytes, createTonProofMessage } from '../utils/tonProof';
+import { createTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
 import { PrepareTonConnectData } from '../utils/signData/sign';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
 import { EventConnectApproval, EventTransactionApproval } from '../types/events';
+import { asHash, Hash } from '../types/primitive';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -197,9 +198,7 @@ export class RequestProcessor {
     /**
      * Process sign data request approval
      */
-    async approveSignDataRequest(
-        event: EventSignDataRequest | EventSignDataApproval,
-    ): Promise<{ signature: Uint8Array }> {
+    async approveSignDataRequest(event: EventSignDataRequest | EventSignDataApproval): Promise<{ signature: Hash }> {
         try {
             if ('result' in event) {
                 // Send approval response
@@ -215,7 +214,7 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                return { signature: Buffer.from(event.result.signature, 'base64') };
+                return { signature: asHash(event.result.signature) };
             } else {
                 if (!event.domain) {
                     throw new Error('Domain is required for sign data request');
@@ -235,7 +234,7 @@ export class RequestProcessor {
                     domain: event.domain,
                     address: event.walletAddress,
                 });
-                const signature = await wallet.sign(signData.hash);
+                const signature = await wallet.getSignedSignData(signData);
 
                 // Send approval response
                 const response: SignDataRpcResponseSuccess = {
@@ -321,14 +320,14 @@ export class RequestProcessor {
         const proofItem = event.request.find((item) => item.name === 'ton_proof');
         if (proofItem) {
             let domain = {
-                LengthBytes: 0,
-                Value: '',
+                lengthBytes: 0,
+                value: '',
             };
             try {
                 const dAppUrl = new URL(event.preview.dAppUrl);
                 domain = {
-                    LengthBytes: Buffer.from(dAppUrl.host).length,
-                    Value: dAppUrl.host,
+                    lengthBytes: Buffer.from(dAppUrl.host).length,
+                    value: dAppUrl.host,
                 };
             } catch (error) {
                 log.error('Failed to parse domain', { error });
@@ -344,17 +343,19 @@ export class RequestProcessor {
                 timestamp,
             });
 
-            const signature = await wallet.sign(await CreateTonProofMessageBytes(signMessage));
+            const signature = await wallet.getSignedTonProof(signMessage);
+            // remove 0x
+            const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
             connectResponse.payload.items.push({
                 name: 'ton_proof',
                 proof: {
                     timestamp,
                     domain: {
-                        lengthBytes: domain.LengthBytes,
-                        value: domain.Value,
+                        lengthBytes: domain.lengthBytes,
+                        value: domain.value,
                     },
                     payload: proofItem.payload,
-                    signature: Buffer.from(signature).toString('base64'),
+                    signature: signatureBase64,
                 },
             });
         }
@@ -375,7 +376,7 @@ export class RequestProcessor {
         if (!wallet) {
             throw new Error('Wallet not found');
         }
-        const signedBoc = await wallet.getSignedExternal(event.request, {
+        const signedBoc = await wallet.getSignedSendTransaction(event.request, {
             fakeSignature: false,
         });
 
