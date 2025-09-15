@@ -1,6 +1,6 @@
 // import { StrykerOptions } from '@stryker-mutator/core';
 
-import { target } from './quality.config.ts';
+import { target } from './quality.config.js';
 
 const config = {
     packageManager: 'pnpm',

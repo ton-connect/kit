@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import type { ViteUserConfig } from 'vitest/config';
 
-import { target } from './quality.config.ts';
+import { target } from './quality.config.js';
 
 const config: ViteUserConfig = defineConfig({
     test: {
