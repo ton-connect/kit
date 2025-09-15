@@ -1,8 +1,8 @@
-import type { StrykerOptions } from '@stryker-mutator/core';
+// import { StrykerOptions } from '@stryker-mutator/core';
 
 import { target } from './quality.config.ts';
 
-const config: Partial<StrykerOptions> = {
+const config = {
     packageManager: 'pnpm',
     reporters: ['html', 'clear-text', 'progress'],
     testRunner: 'command',
