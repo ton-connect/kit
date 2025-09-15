@@ -145,7 +145,7 @@ describe('WalletV5R1Adapter', () => {
     });
 
     it('should create signed external message', async () => {
-        const boc = await wallet.getSignedExternal(
+        const boc = await wallet.getSignedSendTransaction(
             {
                 messages: [
                     {
