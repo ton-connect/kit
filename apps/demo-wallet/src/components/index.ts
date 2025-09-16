@@ -20,3 +20,6 @@ export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';
 export { WalletPreview } from './WalletPreview';
 export { WalletSwitcher } from './WalletSwitcher';
+
+// DeFi components
+export * from './defi';

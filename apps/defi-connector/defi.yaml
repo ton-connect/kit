@@ -1,0 +1,288 @@
+openapi: 3.1.0
+info:
+  title: Universal TON DeFi API (UTD-API)
+  version: 0.3.0
+  description: |
+    Universal API specification for DeFi protocols on TON.
+    - All numbers and amounts are integer strings (no floats).
+    - Only TON Connect style messages are returned.
+    - Gasless is an input flag, not global metadata.
+servers:
+  - url: https://api.example.com
+paths:
+  /api/ton/meta:
+    get:
+      summary: Get metadata
+      operationId: getMeta
+      responses:
+        '200':
+          description: Metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  spec:
+                    type: string
+                    example: UTD-API
+                  version:
+                    type: string
+                    example: 0.3.0
+                  name:
+                    type: string
+                  chain_id:
+                    type: integer
+                  supported_chain_ids:
+                    type: array
+                    items:
+                      type: integer
+                  contact:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                  docs_url:
+                    type: string
+  /api/ton/actions:
+    get:
+      summary: List available actions
+      operationId: listActions
+      responses:
+        '200':
+          description: List of supported actions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  actions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Action'
+  /api/ton/actions/{action_id}/quote:
+    post:
+      summary: Get a quote for an action
+      operationId: quoteAction
+      parameters:
+        - in: path
+          name: action_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwapInput'
+      responses:
+        '200':
+          description: Quote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapQuote'
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+        title:
+          type: string
+        version:
+          type: string
+        contracts:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              role:
+                type: string
+        input_schema:
+          type: object
+        output_schema:
+          type: object
+        quote_url:
+          type: string
+        build_url:
+          type: string
+        ui_hints:
+          type: object
+    SwapInput:
+      type: object
+      required:
+        - amount_in
+        - token_in
+        - token_out
+        - wallet_address
+        - chain_id
+      properties:
+        amount_in:
+          type: string
+          pattern: '^[0-9]+$'
+          description: Token input amount in smallest units
+          x-utd-type: Amount
+          x-utd-asset: token_in
+        token_in:
+          $ref: '#/components/schemas/TokenRef'
+          x-utd-type: Asset
+        token_out:
+          $ref: '#/components/schemas/TokenRef'
+          x-utd-type: Asset
+        wallet_address:
+          type: string
+          description: User wallet address
+          x-utd-type: UserAddress
+        slippage_bps:
+          type: string
+          description: Slippage in basis points
+          x-utd-type: Number
+        chain_id:
+          type: integer
+          description: Network number (1 = mainnet, 2 = testnet)
+        use_gasless:
+          type: boolean
+          description: If true, protocol sponsors gas
+          x-utd-type: Boolean
+        excess_address:
+          type: string
+          description: Address receiving excess TON if gasless is used
+          x-utd-type: Address
+        referrer:
+          type: string
+          description: Referrer address for fee sharing
+          x-utd-type: Address
+        client:
+          type: object
+          description: Client application information
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+        idempotency_key:
+          type: string
+          description: Unique key to prevent duplicate transactions
+    SwapQuote:
+      type: object
+      properties:
+        action_id:
+          type: string
+        quote_id:
+          type: string
+        build_id:
+          type: string
+          description: Unique identifier for the built transaction
+        token_in:
+          $ref: '#/components/schemas/TokenRef'
+          x-utd-type: Asset
+          description: Input token reference for amount formatting
+        token_out:
+          $ref: '#/components/schemas/TokenRef'
+          x-utd-type: Asset
+          description: Output token reference for amount formatting
+        expected_out:
+          type: string
+          x-utd-type: Amount
+          x-utd-asset: token_out
+        min_out:
+          type: string
+          x-utd-type: Amount
+          x-utd-asset: token_out
+        route:
+          type: array
+          items:
+            type: string
+        price_impact_bps:
+          type: string
+          x-utd-type: Number
+        fee:
+          type: string
+          x-utd-type: Amount
+          x-utd-asset: token_in
+        gas_ton:
+          type: string
+          x-utd-type: Amount
+          x-utd-asset: '#/components/schemas/TONNative'
+        ton_connect:
+          type: object
+          description: TON Connect transaction messages ready for execution
+          properties:
+            messages:
+              type: array
+              items:
+                type: object
+                properties:
+                  address:
+                    type: string
+                    x-utd-type: Address
+                    description: Contract address to call
+                  amount:
+                    type: string
+                    x-utd-type: Amount
+                    x-utd-asset: '#/components/schemas/TONNative'
+                    description: TON amount to send
+                  payload:
+                    type: string
+                    description: Base64 encoded transaction payload
+                  state_init:
+                    type: string
+                    nullable: true
+                    description: Base64 encoded state initialization
+            valid_until:
+              type: integer
+              description: Unix timestamp until which transaction is valid
+        nonce:
+          type: string
+          description: Transaction nonce for replay protection
+        gasless_used:
+          type: boolean
+          description: Whether gasless transaction was used
+        warnings:
+          type: array
+          items:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+    TokenRef:
+      type: object
+      required:
+        - standard
+        - address
+        - decimals
+        - symbol
+      properties:
+        standard:
+          type: string
+          enum: [jetton, ton]
+        address:
+          type: string
+          x-utd-type: Address
+        decimals:
+          type: integer
+        symbol:
+          type: string
+    TONNative:
+      type: object
+      x-utd-type: Asset
+      description: Native TON token for gas calculations
+      properties:
+        standard:
+          type: string
+          enum: [ton]
+        address:
+          type: string
+          example: EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c
+        decimals:
+          type: integer
+          example: 9
+        symbol:
+          type: string
+          example: TON

@@ -12,6 +12,7 @@ import {
     TracePage,
     TransactionDetail,
 } from '../pages';
+import { SetupPassword, UnlockWallet, SetupWallet, WalletDashboard, SendTransaction, DeFiExplorer } from '../pages';
 
 export const AppRouter: React.FC = () => {
     // const { isPasswordSet, isUnlocked } = useAuth();
@@ -73,6 +74,14 @@ export const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute requiresWallet>
                             <TracePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/defi"
+                    element={
+                        <ProtectedRoute requiresWallet>
+                            <DeFiExplorer />
                         </ProtectedRoute>
                     }
                 />

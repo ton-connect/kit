@@ -59,6 +59,12 @@ router.get('/actions', (_req: Request, res: Response) => {
             category: 'defi',
             title: 'Swap Tokens',
             version: '2.0.0',
+            contracts: [
+                {
+                    address: 'EQB3ncyBUTjZUA5EnFKR5_EnOMI9V1tTEAAPaiU71gc4TiUt', // STON.fi router v2
+                    role: 'router',
+                },
+            ],
             input_schema: {
                 type: 'object',
                 required: ['amount_in', 'token_in', 'token_out', 'wallet_address', 'chain_id'],

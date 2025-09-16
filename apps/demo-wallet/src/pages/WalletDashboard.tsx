@@ -223,17 +223,21 @@ export const WalletDashboard: React.FC = () => {
                             </div>
                         )}
 
-                        <div className="flex space-x-3">
-                            <Button
-                                variant="secondary"
-                                onClick={handleRefreshBalance}
-                                isLoading={isRefreshing}
-                                className="flex-1"
-                            >
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button variant="secondary" onClick={handleRefreshBalance} isLoading={isRefreshing}>
                                 Refresh
                             </Button>
-                            <Button onClick={() => navigate('/send')} className="flex-1">
-                                Send
+                            <Button onClick={() => navigate('/send')}>Send</Button>
+                            <Button variant="secondary" onClick={() => navigate('/defi')} className="col-span-2">
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                    />
+                                </svg>
+                                DeFi Explorer
                             </Button>
                         </div>
                     </div>
