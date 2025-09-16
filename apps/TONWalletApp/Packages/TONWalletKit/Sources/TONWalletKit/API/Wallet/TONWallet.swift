@@ -38,11 +38,9 @@ public class TONWallet {
         return value.toString()
     }
     
-    public func balance() async throws -> Int? {
-        guard let value = await wallet.getBalance()?.catchPromise() else {
-            return nil
-        }
+    public func balance() async throws -> String? {
+        let value = await wallet.getBalance()?.then()
         
-        return nil
+        return value?.toString()
     }
 }

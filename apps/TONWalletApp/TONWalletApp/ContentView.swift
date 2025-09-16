@@ -44,7 +44,7 @@ struct ContentView: View {
                     do {
                         let wallet = try await TONWallet.add(data: data)
                         address = try await wallet.address()
-                        balance = try await wallet.balance()
+                        let resз = try await wallet.balance()
                     } catch {
                         debugPrint(error.localizedDescription)
                     }
