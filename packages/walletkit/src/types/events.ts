@@ -104,7 +104,7 @@ export interface ConnectPermission {
 export interface ConnectPreview {
     manifestUrl?: string;
     manifest?: {
-        name: string;
+        name?: string;
         description?: string;
         url?: string;
         iconUrl?: string;
@@ -112,10 +112,6 @@ export interface ConnectPreview {
 
     requestedItems?: string[];
     permissions?: ConnectPermission[];
-
-    /** dApp display name */
-    dAppName: string;
-    dAppUrl: string;
 }
 
 /**

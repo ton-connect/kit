@@ -310,9 +310,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         try {
             // Set the wallet on the connect event as per user requirements
-            const updatedRequest = {
+            const updatedRequest: EventConnectRequest = {
                 ...state.wallet.pendingConnectRequest,
-                wallet: selectedWallet,
+                walletAddress: selectedWallet.getAddress(),
             };
 
             // Approve the connect request with the selected wallet

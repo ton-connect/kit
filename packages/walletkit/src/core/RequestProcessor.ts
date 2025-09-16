@@ -63,11 +63,11 @@ export class RequestProcessor {
                 }
 
                 // Create session for this connection'
-                const url = new URL(event.preview.dAppUrl);
+                const url = new URL(event.preview.manifest?.url || '');
                 const domain = url.hostname;
                 const newSession = await this.sessionManager.createSession(
                     event.from,
-                    event.preview.dAppName,
+                    event.preview.manifest?.name || '',
                     domain,
                     wallet,
                 );
@@ -109,7 +109,7 @@ export class RequestProcessor {
         try {
             log.info('Connect request rejected', {
                 id: event.id,
-                dAppName: event.preview.dAppName,
+                dAppName: event.preview.manifest?.name || '',
                 reason: reason || 'User rejected connection',
             });
 
@@ -123,7 +123,7 @@ export class RequestProcessor {
             };
             const newSession = await this.sessionManager.createSession(
                 event.from,
-                event.preview.dAppName,
+                event.preview.manifest?.name || '',
                 '',
                 undefined,
                 {
@@ -324,7 +324,7 @@ export class RequestProcessor {
                 value: '',
             };
             try {
-                const dAppUrl = new URL(event.preview.dAppUrl);
+                const dAppUrl = new URL(event.preview.manifest?.url || '');
                 domain = {
                     lengthBytes: Buffer.from(dAppUrl.host).length,
                     value: dAppUrl.host,
