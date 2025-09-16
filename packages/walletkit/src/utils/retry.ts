@@ -20,6 +20,7 @@ export async function CallForSuccess<T extends (...args: any[]) => any>(
             const res = await toCall();
             return res;
         } catch (err) {
+            console.log('CallForSuccess error', err?.toString());
             lastError = err;
             i++;
             await delay(delayMs);

@@ -5,11 +5,14 @@ export function base64Normalize(data: string): string {
 }
 
 export function parseBase64(data: string): string {
-    if (typeof atob === 'undefined') {
-        throw new Error('atob is not available in this environment');
+    if (typeof atob === 'undefined' && typeof Buffer === 'undefined') {
+        throw new Error('atob and Buffer is not available in this environment');
     }
     data = base64Normalize(data);
-    return atob(data);
+    if (typeof atob !== 'undefined') {
+        return atob(data);
+    }
+    return Buffer.from(data, 'base64').toString('utf-8');
 }
 
 export function base64ToHash(data?: string | null): Hash | null {
