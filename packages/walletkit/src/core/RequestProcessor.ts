@@ -235,12 +235,13 @@ export class RequestProcessor {
                     address: event.walletAddress,
                 });
                 const signature = await wallet.getSignedSignData(signData);
+                const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
 
                 // Send approval response
                 const response: SignDataRpcResponseSuccess = {
                     id: event.id,
                     result: {
-                        signature: Buffer.from(signature).toString('base64'),
+                        signature: signatureBase64,
                         address: Address.parse(signData.address).toRawString(),
                         timestamp: signData.timestamp,
                         domain: signData.domain,
