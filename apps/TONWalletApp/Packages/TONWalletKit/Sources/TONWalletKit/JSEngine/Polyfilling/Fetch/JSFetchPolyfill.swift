@@ -7,7 +7,6 @@
 
 import Foundation
 import JavaScriptCore
-import JavaScriptCoreExtras
 
 public class JSFetchPolyfill: JSPolyfill {
     
@@ -15,7 +14,7 @@ public class JSFetchPolyfill: JSPolyfill {
         do {
             try context.install([.fetch])
         } catch {
-            debugPrint("Unable to polyfill fetch function in JS")
+            debugPrint("Unable to polyfill fetch function in JS - \(error.localizedDescription)")
         }
     }
 }

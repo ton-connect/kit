@@ -32,7 +32,7 @@ public class WalletKitEngine: JSEngine {
             throw "JS setup failed: \(exception)"
         }
         
-        if let walletKitGlobal = context.objectForKeyedSubscript("walletKit") {
+        if context.objectForKeyedSubscript("walletKit") != nil {
             print("✅ WalletKit bridge instance ready")
         } else {
             print("⚠️ WalletKit global not found after initialization")

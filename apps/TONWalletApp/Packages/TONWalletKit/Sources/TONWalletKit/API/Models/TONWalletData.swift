@@ -12,7 +12,6 @@ public struct TONWalletData: Codable {
     public let name: String
     public let network: TONNetwork
     public let version: String
-    public let mnemonicType: String = "ton"
     
     public init(
         mnemonic: TONMnemonic,

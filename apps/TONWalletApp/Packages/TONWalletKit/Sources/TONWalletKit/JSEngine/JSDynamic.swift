@@ -63,6 +63,7 @@ extension JSValue: JSDynamicMember {
 
 extension JSValue: JSDynamicObject {
 
+    @discardableResult
     public func invoke(_ functionName: String, arguments: [Any]) -> JSValue? {
         invokeMethod(functionName, withArguments: arguments)
     }
@@ -75,7 +76,7 @@ extension JSValue: JSDynamicObject {
     }
     
     public func then() async -> JSValue {
-        return try await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             then { value in
                 continuation.resume(with: .success(value))
             }
@@ -90,7 +91,7 @@ extension JSValue: JSDynamicObject {
     }
     
     public func catchPromise() async -> JSValue {
-        return try await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             catchPromise { value in
                 continuation.resume(with: .success(value))
             }
