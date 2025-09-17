@@ -66,7 +66,7 @@ export class RequestProcessor {
                 const url = new URL(event.preview.manifest?.url || '');
                 const domain = url.hostname;
                 const newSession = await this.sessionManager.createSession(
-                    event.from,
+                    event.from || '',
                     event.preview.manifest?.name || '',
                     domain,
                     wallet,
@@ -122,7 +122,7 @@ export class RequestProcessor {
                 },
             };
             const newSession = await this.sessionManager.createSession(
-                event.from,
+                event.from || '',
                 event.preview.manifest?.name || '',
                 '',
                 undefined,

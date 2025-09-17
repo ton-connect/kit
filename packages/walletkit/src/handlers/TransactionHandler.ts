@@ -1,4 +1,9 @@
 import { fromNano } from '@ton/core';
+import {
+    SEND_TRANSACTION_ERROR_CODES,
+    SendTransactionRpcResponseError,
+    WalletResponseTemplateError,
+} from '@tonconnect/protocol';
 
 import type {
     WalletInterface,
@@ -27,6 +32,7 @@ import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
 import { EmulationErrorUnknown } from '../types/emulation/errors';
 import { WalletManager } from '../core/WalletManager';
+import { TransactionPreviewEmulationError } from '../types/events';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -48,25 +54,54 @@ export class TransactionHandler
         return event.method === 'sendTransaction';
     }
 
-    async handle(event: RawBridgeEventTransaction): Promise<EventTransactionRequest> {
+    async handle(event: RawBridgeEventTransaction): Promise<EventTransactionRequest | WalletResponseTemplateError> {
         if (!event.walletAddress) {
             log.error('Wallet address not found', { event });
-            throw new Error('Wallet address not found');
+            return {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
+                    message: 'Wallet address not found',
+                },
+                id: event.id,
+            } as SendTransactionRpcResponseError;
         }
 
         const request = this.parseTonConnectTransactionRequest(event);
         if (!request) {
             log.error('Failed to parse transaction request', { event });
-            throw new Error('Failed to parse transaction request');
+            this.eventEmitter.emit('event:error', event);
+
+            return {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                    message: 'Failed to parse transaction request',
+                },
+                id: event.id,
+            } as SendTransactionRpcResponseError;
         }
 
         const wallet = this.walletManager.getWallet(event.walletAddress);
         if (!wallet) {
             log.error('Wallet not found', { event });
-            throw new Error('Wallet not found');
+            return {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
+                    message: 'Wallet address not found',
+                },
+                id: event.id,
+            } as SendTransactionRpcResponseError;
         }
 
-        const preview = await CallForSuccess(() => this.createTransactionPreview(request, wallet));
+        let preview: TransactionPreview;
+        try {
+            preview = await CallForSuccess(() => this.createTransactionPreview(request, wallet));
+        } catch (error) {
+            log.error('Failed to create transaction preview', { error });
+            preview = {
+                emulationError: new EmulationErrorUnknown('Unknown emulation error', error),
+                result: 'error',
+            } as TransactionPreviewEmulationError;
+        }
 
         const txEvent: EventTransactionRequest = {
             ...event,

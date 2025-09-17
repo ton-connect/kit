@@ -1,7 +1,13 @@
 // Main TonWalletKit interface definition
 
 import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './wallet';
-import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from './events';
+import type {
+    EventConnectRequest,
+    EventTransactionRequest,
+    EventSignDataRequest,
+    EventDisconnect,
+    EventRequestError,
+} from './events';
 import type { JettonsAPI } from './jettons';
 import { ConnectTransactionParamContent } from './internal';
 import { Hash } from './primitive';
@@ -80,11 +86,15 @@ export interface TonWalletKit {
     /** Register disconnect handler */
     onDisconnect(cb: (event: EventDisconnect) => void): void;
 
+    /** Register error handler */
+    onRequestError(cb: (event: EventRequestError) => void): void;
+
     /** Remove request handlers */
     removeConnectRequestCallback(cb: (event: EventConnectRequest) => void): void;
     removeTransactionRequestCallback(cb: (event: EventTransactionRequest) => void): void;
     removeSignDataRequestCallback(cb: (event: EventSignDataRequest) => void): void;
     removeDisconnectCallback(cb: (event: EventDisconnect) => void): void;
+    removeErrorCallback(cb: (event: EventRequestError) => void): void;
 
     // === Jettons API ===
 

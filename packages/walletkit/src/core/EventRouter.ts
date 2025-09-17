@@ -1,7 +1,9 @@
 // Event routing and handler coordination
 
+import { WalletResponseTemplateError } from '@tonconnect/protocol';
+
 import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from '../types';
-import type { RawBridgeEvent, EventHandler, EventCallback, EventType } from '../types/internal';
+import type { RawBridgeEvent, EventHandler, EventCallback, EventType, BridgeEventBase } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
 import { SignDataHandler } from '../handlers/SignDataHandler';
@@ -11,17 +13,21 @@ import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { SessionManager } from './SessionManager';
 import { WalletManager } from './WalletManager';
+import { EventRequestError } from '../types/events';
+import { BridgeManager } from './BridgeManager';
 
 const log = globalLogger.createChild('EventRouter');
 
 export class EventRouter {
     private handlers: EventHandler[] = [];
+    private bridgeManager!: BridgeManager;
 
     // Event callbacks
     private connectRequestCallbacks: EventCallback<EventConnectRequest>[] = [];
     private transactionRequestCallbacks: EventCallback<EventTransactionRequest>[] = [];
     private signDataRequestCallbacks: EventCallback<EventSignDataRequest>[] = [];
     private disconnectCallbacks: EventCallback<EventDisconnect>[] = [];
+    private errorCallbacks: EventCallback<EventRequestError>[] = [];
 
     constructor(
         private eventEmitter: EventEmitter,
@@ -29,6 +35,10 @@ export class EventRouter {
         private walletManager: WalletManager,
     ) {
         this.setupHandlers();
+    }
+
+    setBridgeManager(bridgeManager: BridgeManager): void {
+        this.bridgeManager = bridgeManager;
     }
 
     /**
@@ -47,7 +57,16 @@ export class EventRouter {
             for (const handler of this.handlers) {
                 if (handler.canHandle(event)) {
                     const result = await handler.handle(event);
-                    await handler.notify(result);
+                    if ('error' in result) {
+                        this.notifyErrorCallbacks({ incomingEvent: event, result: result });
+                        try {
+                            await this.bridgeManager.sendResponse(event, result);
+                        } catch (error) {
+                            log.error('Error sending response for error event', { error, event, result });
+                        }
+                        return;
+                    }
+                    await handler.notify(result as BridgeEventBase);
                     break;
                 }
             }
@@ -73,6 +92,10 @@ export class EventRouter {
 
     onDisconnect(callback: EventCallback<EventDisconnect>): void {
         this.disconnectCallbacks.push(callback);
+    }
+
+    onRequestError(callback: EventCallback<EventRequestError>): void {
+        this.errorCallbacks.push(callback);
     }
 
     /**
@@ -106,6 +129,13 @@ export class EventRouter {
         }
     }
 
+    removeErrorCallback(callback: EventCallback<EventRequestError>): void {
+        const index = this.errorCallbacks.indexOf(callback);
+        if (index >= 0) {
+            this.errorCallbacks.splice(index, 1);
+        }
+    }
+
     /**
      * Clear all callbacks
      */
@@ -114,6 +144,7 @@ export class EventRouter {
         this.transactionRequestCallbacks = [];
         this.signDataRequestCallbacks = [];
         this.disconnectCallbacks = [];
+        this.errorCallbacks = [];
     }
 
     /**
@@ -135,7 +166,10 @@ export class EventRouter {
     /**
      * Notify connect request callbacks
      */
-    private notifyConnectRequestCallbacks(event: EventConnectRequest): void {
+    private notifyConnectRequestCallbacks(event: EventConnectRequest | WalletResponseTemplateError): void {
+        if ('error' in event) {
+            return;
+        }
         this.connectRequestCallbacks.forEach((callback) => {
             try {
                 callback(event);
@@ -180,6 +214,19 @@ export class EventRouter {
                 callback(event);
             } catch (error) {
                 log.error('Error in disconnect callback', { error });
+            }
+        });
+    }
+
+    /**
+     * Notify error callbacks
+     */
+    private notifyErrorCallbacks(event: EventRequestError): void {
+        this.errorCallbacks.forEach((callback) => {
+            try {
+                callback(event);
+            } catch (error) {
+                log.error('Error in error callback', { error });
             }
         });
     }

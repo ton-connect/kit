@@ -32,7 +32,7 @@ export class DisconnectHandler
             walletAddress: event.walletAddress,
         };
 
-        await this.sessionManager.removeSession(event.from);
+        await this.sessionManager.removeSession(event.from || '');
 
         return disconnectEvent;
     }

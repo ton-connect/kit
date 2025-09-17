@@ -41,6 +41,7 @@ export type {
     EventTransactionApproval,
     EventSignDataApproval,
     EventDisconnect,
+    EventRequestError,
     ConnectPreview,
     TransactionPreview,
     SignDataPreview,

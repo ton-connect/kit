@@ -37,6 +37,7 @@ import { WalletInitInterface } from '../types/wallet';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { Hash } from '../types/primitive';
+import { EventRequestError } from '../types/events';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -366,6 +367,20 @@ export class TonWalletKit implements ITonWalletKit {
 
     removeDisconnectCallback(cb: (event: EventDisconnect) => void): void {
         this.eventRouter.removeDisconnectCallback(cb);
+    }
+
+    onRequestError(cb: (event: EventRequestError) => void): void {
+        if (this.eventRouter) {
+            this.eventRouter.onRequestError(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.eventRouter.onRequestError(cb);
+            });
+        }
+    }
+
+    removeErrorCallback(cb: (event: EventRequestError) => void): void {
+        this.eventRouter.removeErrorCallback(cb);
     }
 
     // === URL Processing API ===

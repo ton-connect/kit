@@ -1,6 +1,12 @@
 // Internal types for TonWalletKit modules
 
-import { ConnectItem, SendTransactionRpcRequest, SignDataRpcRequest } from '@tonconnect/protocol';
+import {
+    ConnectItem,
+    SendTransactionRpcRequest,
+    SignDataRpcRequest,
+    WalletResponseError as _WalletResponseError,
+    WalletResponseTemplateError,
+} from '@tonconnect/protocol';
 
 // import type { WalletInterface } from './wallet';
 
@@ -45,7 +51,7 @@ export interface ValidationResult {
 
 export type BridgeEventBase = {
     id?: string;
-    from: string;
+    from?: string;
     walletAddress?: string;
     domain?: string;
 
@@ -137,9 +143,8 @@ export type RawBridgeEvent =
 // Internal event routing types
 export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface EventHandler<T = any, V extends RawBridgeEvent = RawBridgeEvent> {
+export interface EventHandler<T extends BridgeEventBase = BridgeEventBase, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;
-    handle(event: V): Promise<T>;
+    handle(event: V): Promise<T | WalletResponseTemplateError>;
     notify(event: T): Promise<void>;
 }

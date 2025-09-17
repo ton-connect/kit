@@ -1,6 +1,11 @@
 // Event type definitions for TON Connect protocol
 
-import type { ConnectEventSuccess, ConnectRequest, SignDataPayload } from '@tonconnect/protocol';
+import type {
+    ConnectEventSuccess,
+    ConnectRequest,
+    SignDataPayload,
+    WalletResponseTemplateError,
+} from '@tonconnect/protocol';
 
 import {
     BridgeEventBase,
@@ -8,6 +13,7 @@ import {
     EventApprovalBase,
     RawBridgeEventSignData,
     RawBridgeEventTransaction,
+    RawBridgeEvent,
 } from './internal';
 import { MoneyFlow } from '../utils/toncenterEmulation';
 import { ToncenterEmulationResponse } from './toncenter/emulation';
@@ -34,6 +40,8 @@ export type EventTransactionRequest = RawBridgeEventTransaction & {
 
     /** Human-readable preview for UI display */
     preview: TransactionPreview;
+
+    error?: string;
 };
 
 /**
@@ -50,11 +58,16 @@ export interface EventSignDataRequest extends RawBridgeEventSignData {
 /**
  * Disconnect event
  */
-export interface EventDisconnect {
+export interface EventDisconnect extends BridgeEventBase {
     /** Optional disconnect reason */
     reason?: string;
 
     walletAddress: string;
+}
+
+export interface EventRequestError {
+    incomingEvent: RawBridgeEvent;
+    result: WalletResponseTemplateError;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

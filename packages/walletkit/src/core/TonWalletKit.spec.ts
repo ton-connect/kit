@@ -2,6 +2,7 @@ import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config'
 import { TonWalletKit } from './TonWalletKit';
 import type { TonWalletKitOptions } from '../types';
 import { createDummyWallet, createMockApiClient } from '../contracts/w5/WalletV5R1.fixture';
+import { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 
 const mockApiClient = createMockApiClient();
 
@@ -73,8 +74,11 @@ describe('TonWalletKit', () => {
 
     it('processInjectedBridgeRequest returns void/undefined', async () => {
         const kit = await createKit();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await kit.processInjectedBridgeRequest({ method: 'noop' } as unknown as any);
+
+        const result = await kit.processInjectedBridgeRequest(
+            { method: 'noop' } as unknown as InjectedToExtensionBridgeRequest,
+            undefined as unknown as InjectedToExtensionBridgeRequestPayload,
+        );
         expect(result).toBeUndefined();
         await kit.close();
     });

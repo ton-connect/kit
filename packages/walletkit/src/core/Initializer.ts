@@ -196,6 +196,7 @@ export class Initializer {
             eventRouter,
             this.eventEmitter,
         );
+        eventRouter.setBridgeManager(bridgeManager);
         await bridgeManager.start();
 
         // Create event processor for durable events
