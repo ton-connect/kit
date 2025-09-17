@@ -18,15 +18,18 @@ export type {
     WalletInitConfigSignerInterface,
     WalletInitConfigMnemonicInterface,
     WalletInitConfigPrivateKeyInterface,
+    WalletInitConfigLedgerInterface,
 } from './wallet';
 
 export {
     createWalletInitConfigMnemonic,
     createWalletInitConfigPrivateKey,
     createWalletInitConfigSigner,
+    createWalletInitConfigLedger,
     isWalletInitConfigMnemonic,
     isWalletInitConfigPrivateKey,
     isWalletInitConfigSigner,
+    isWalletInitConfigLedger,
 } from './wallet';
 
 // Transaction types (from validation module)

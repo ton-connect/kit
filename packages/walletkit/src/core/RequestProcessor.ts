@@ -30,6 +30,7 @@ import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
 import { EventConnectApproval, EventTransactionApproval } from '../types/events';
 import { asHash, Hash } from '../types/primitive';
+import { SendRequestResult } from '../types/internal';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -49,7 +50,7 @@ export class RequestProcessor {
     /**
      * Process connect request approval
      */
-    async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<void> {
+    async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<SendRequestResult> {
         try {
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
@@ -96,6 +97,8 @@ export class RequestProcessor {
                 log.error('Invalid event', { event });
                 throw new Error('Invalid event');
             }
+
+            return { success: true };
         } catch (error) {
             log.error('Failed to approve connect request', { error });
             throw error;
@@ -105,7 +108,7 @@ export class RequestProcessor {
     /**
      * Process connect request rejection
      */
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
+    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<SendRequestResult> {
         try {
             log.info('Connect request rejected', {
                 id: event.id,
@@ -131,9 +134,11 @@ export class RequestProcessor {
                 },
             );
             await this.bridgeManager.sendResponse(event, response, newSession);
+            return { success: true };
         } catch (error) {
             log.error('Failed to reject connect request', { error });
-            throw error;
+            // throw error;
+            return { success: false, code: 500, error: error as Error };
         }
     }
 
@@ -142,7 +147,7 @@ export class RequestProcessor {
      */
     async approveTransactionRequest(
         event: EventTransactionRequest | EventTransactionApproval,
-    ): Promise<{ signedBoc: string }> {
+    ): Promise<SendRequestResult<{ signedBoc: string }>> {
         try {
             if ('result' in event) {
                 await CallForSuccess(() => this.client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
@@ -154,7 +159,7 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                return { signedBoc: event.result.signedBoc };
+                return { success: true, result: { signedBoc: event.result.signedBoc } };
             } else {
                 const signedBoc = await this.signTransaction(event);
 
@@ -167,18 +172,21 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                return { signedBoc };
+                return { success: true, result: { signedBoc } };
             }
         } catch (error) {
             log.error('Failed to approve transaction request', { error });
-            throw error;
+            if ((error as { message: string })?.message?.includes('Ledger device')) {
+                return { success: false, code: 601, message: 'Ledger device error', error: error as Error };
+            }
+            return { success: false, code: 500, error: error as Error };
         }
     }
 
     /**
      * Process transaction request rejection
      */
-    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<void> {
+    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult> {
         try {
             const response: SendTransactionRpcResponseError = {
                 error: {
@@ -189,16 +197,19 @@ export class RequestProcessor {
             };
 
             await this.bridgeManager.sendResponse(event, response);
+            return { success: true };
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
-            throw error;
+            return { success: false, code: 500, error: error as Error };
         }
     }
 
     /**
      * Process sign data request approval
      */
-    async approveSignDataRequest(event: EventSignDataRequest | EventSignDataApproval): Promise<{ signature: Hash }> {
+    async approveSignDataRequest(
+        event: EventSignDataRequest | EventSignDataApproval,
+    ): Promise<SendRequestResult<{ signature: Hash }>> {
         try {
             if ('result' in event) {
                 // Send approval response
@@ -214,7 +225,7 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                return { signature: asHash(event.result.signature) };
+                return { success: true, result: { signature: asHash(event.result.signature) } };
             } else {
                 if (!event.domain) {
                     throw new Error('Domain is required for sign data request');
@@ -250,18 +261,19 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                return { signature };
+                return { success: true, result: { signature: asHash(signatureBase64) } };
             }
         } catch (error) {
             log.error('Failed to approve sign data request', { error });
-            throw error;
+            // throw error;
+            return { success: false, code: 500, error: error as Error };
         }
     }
 
     /**
      * Process sign data request rejection
      */
-    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
+    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<SendRequestResult> {
         try {
             const response = {
                 error: 'USER_REJECTED',
@@ -269,9 +281,10 @@ export class RequestProcessor {
             };
 
             await this.bridgeManager.sendResponse(event, response);
+            return { success: true };
         } catch (error) {
             log.error('Failed to reject sign data request', { error });
-            throw error;
+            return { success: false, code: 500, error: error as Error };
         }
     }
 

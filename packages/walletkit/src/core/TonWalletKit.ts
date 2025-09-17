@@ -28,6 +28,7 @@ import {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
     RawBridgeEventTransaction,
+    SendRequestResult,
 } from '../types/internal';
 import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
@@ -506,34 +507,34 @@ export class TonWalletKit implements ITonWalletKit {
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: EventConnectRequest): Promise<void> {
+    async approveConnectRequest(event: EventConnectRequest): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.approveConnectRequest(event);
+        return this.requestProcessor.approveConnectRequest(event);
     }
 
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
+    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectConnectRequest(event, reason);
+        return this.requestProcessor.rejectConnectRequest(event, reason);
     }
 
-    async approveTransactionRequest(event: EventTransactionRequest): Promise<{ signedBoc: string }> {
+    async approveTransactionRequest(event: EventTransactionRequest): Promise<SendRequestResult<{ signedBoc: string }>> {
         await this.ensureInitialized();
         return this.requestProcessor.approveTransactionRequest(event);
     }
 
-    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<void> {
+    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectTransactionRequest(event, reason);
+        return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async signDataRequest(event: EventSignDataRequest): Promise<{ signature: Hash }> {
+    async signDataRequest(event: EventSignDataRequest): Promise<SendRequestResult<{ signature: Hash }>> {
         await this.ensureInitialized();
         return this.requestProcessor.approveSignDataRequest(event);
     }
 
-    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
+    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectSignDataRequest(event, reason);
+        return this.requestProcessor.rejectSignDataRequest(event, reason);
     }
 
     // === TON Client Access ===
