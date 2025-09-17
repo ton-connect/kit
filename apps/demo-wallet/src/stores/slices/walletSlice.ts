@@ -9,10 +9,13 @@ import {
     type WalletInitConfig,
     createWalletInitConfigSigner,
     createWalletInitConfigMnemonic,
+    createWalletInitConfigLedger,
+    createLedgerPath,
     MnemonicToKeyPair,
     DefaultSignature,
     CHAIN,
 } from '@ton/walletkit';
+import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -38,12 +41,17 @@ const walletKit = new TonWalletKit({
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
 });
 
-async function createWalletConfig(
-    mnemonic: string[],
-    useWalletInterfaceType: 'signer' | 'mnemonic',
-): Promise<WalletInitConfig> {
+async function createWalletConfig(params: {
+    mnemonic?: string[];
+    useWalletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
+    ledgerAccountNumber?: number;
+}): Promise<WalletInitConfig> {
+    const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0 } = params;
     switch (useWalletInterfaceType) {
         case 'signer': {
+            if (!mnemonic) {
+                throw new Error('Mnemonic required for signer wallet type');
+            }
             const keyPair = await MnemonicToKeyPair(mnemonic);
 
             return createWalletInitConfigSigner({
@@ -60,12 +68,39 @@ async function createWalletConfig(
             });
         }
         case 'mnemonic': {
+            if (!mnemonic) {
+                throw new Error('Mnemonic required for mnemonic wallet type');
+            }
             return createWalletInitConfigMnemonic({
                 mnemonic,
                 version: 'v5r1',
                 mnemonicType: 'ton',
                 network: CHAIN.MAINNET,
             });
+        }
+        case 'ledger': {
+            // For Ledger, we need to request WebUSB transport
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (typeof navigator === 'undefined' || !(navigator as any).usb) {
+                throw new Error('WebUSB not supported in this environment');
+            }
+
+            try {
+                const transport = await TransportWebHID.create();
+                const path = createLedgerPath(false, 0, ledgerAccountNumber);
+
+                return createWalletInitConfigLedger({
+                    transport,
+                    path,
+                    version: 'v4r2',
+                    network: CHAIN.MAINNET,
+                    workchain: 0,
+                    accountIndex: ledgerAccountNumber,
+                });
+            } catch (error) {
+                log.error('Failed to create Ledger transport:', error);
+                throw new Error('Failed to connect to Ledger device');
+            }
         }
         default:
             throw new Error(`Invalid wallet interface type: ${useWalletInterfaceType}`);
@@ -108,7 +143,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             );
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
+            const walletConfig = await createWalletConfig({
+                mnemonic,
+                useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+            });
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
@@ -143,13 +182,95 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         return get().createWallet(mnemonic);
     },
 
+    createLedgerWallet: async () => {
+        const state = get();
+        if (!state.auth.currentPassword) {
+            throw new Error('User not authenticated');
+        }
+
+        if (state.auth.useWalletInterfaceType !== 'ledger') {
+            throw new Error('Wallet type must be set to ledger');
+        }
+
+        try {
+            // Create wallet using walletkit with Ledger configuration
+            const walletConfig = await createWalletConfig({
+                useWalletInterfaceType: 'ledger',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+            });
+
+            await walletKit.addWallet(walletConfig);
+            const wallets = walletKit.getWallets();
+            const wallet = wallets[0];
+
+            // Get real wallet info
+            const address = wallet.getAddress();
+            const balance = await wallet.getBalance();
+            const publicKey = Array.from(wallet.publicKey)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            // Update state - no mnemonic to encrypt for Ledger
+            set((state) => {
+                state.wallet.hasWallet = true;
+                state.wallet.isAuthenticated = true;
+                state.wallet.address = address;
+                state.wallet.publicKey = publicKey;
+                state.wallet.balance = balance.toString();
+                state.wallet.encryptedMnemonic = undefined; // No mnemonic for Ledger
+                state.wallet.mnemonic = undefined;
+                state.wallet.currentWallet = wallet;
+            });
+        } catch (error) {
+            log.error('Error creating Ledger wallet:', error);
+            throw new Error('Failed to create Ledger wallet');
+        }
+    },
+
     loadWallet: async () => {
         const state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
         }
 
+        const wallets = await walletKit.getWallets();
+        if (wallets.length > 0) {
+            return;
+        }
+
         try {
+            // Handle Ledger wallet loading
+            if (state.auth.useWalletInterfaceType === 'ledger') {
+                // For Ledger wallets, recreate from device
+                const walletConfig = await createWalletConfig({
+                    useWalletInterfaceType: 'ledger',
+                    ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                });
+
+                await walletKit.addWallet(walletConfig);
+                const wallets = walletKit.getWallets();
+                const wallet = wallets[0];
+
+                // Get real wallet info
+                const address = wallet.getAddress();
+                const balance = await wallet.getBalance();
+                const publicKey = Array.from(wallet.publicKey)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                // Update state
+                set((state) => {
+                    state.wallet.hasWallet = true;
+                    state.wallet.isAuthenticated = true;
+                    state.wallet.address = address;
+                    state.wallet.publicKey = publicKey;
+                    state.wallet.balance = balance.toString();
+                    state.wallet.currentWallet = wallet;
+                });
+                return;
+            }
+
+            // Handle mnemonic-based wallets
             // Check if we have an encrypted mnemonic in state
             if (!state.wallet.encryptedMnemonic) {
                 set((state) => {
@@ -167,7 +288,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const mnemonic = JSON.parse(decryptedString) as string[];
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
+            const walletConfig = await createWalletConfig({
+                mnemonic,
+                useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+            });
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
