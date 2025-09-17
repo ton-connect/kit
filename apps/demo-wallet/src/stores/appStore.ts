@@ -78,6 +78,7 @@ export const useStore = create<AppState>()(
                             passwordHash: state.auth.passwordHash,
                             persistPassword: state.auth.persistPassword,
                             useWalletInterfaceType: state.auth.useWalletInterfaceType,
+                            ledgerAccountNumber: state.auth.ledgerAccountNumber,
                             // Conditionally persist password based on user setting
                             ...(state.auth.persistPassword && {
                                 currentPassword: state.auth.currentPassword,
@@ -156,12 +157,15 @@ export const useAuth = () =>
             isUnlocked: state.auth.isUnlocked,
             persistPassword: state.auth.persistPassword,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
+            ledgerAccountNumber: state.auth.ledgerAccountNumber,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
             reset: state.reset,
             setPersistPassword: state.setPersistPassword,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
+            setLedgerAccountNumber: state.setLedgerAccountNumber,
+            createLedgerWallet: state.createLedgerWallet,
         })),
     );
 
@@ -183,6 +187,7 @@ export const useWallet = () =>
             addTransaction: state.addTransaction,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
+            createLedgerWallet: state.createLedgerWallet,
         })),
     );
 

@@ -29,6 +29,12 @@ importers:
 
   apps/demo-wallet:
     dependencies:
+      '@ledgerhq/hw-transport-webhid':
+        specifier: ^6.30.6
+        version: 6.30.6
+      '@ledgerhq/hw-transport-webusb':
+        specifier: ^6.29.10
+        version: 6.29.10
       '@tailwindcss/vite':
         specifier: ^4.1.12
         version: 4.1.12(vite@7.1.3(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)(yaml@2.8.1))
@@ -120,6 +126,9 @@ importers:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.29.11
         version: 6.29.11
+      '@ledgerhq/hw-transport-webhid':
+        specifier: ^6.30.6
+        version: 6.30.6
       '@ledgerhq/hw-transport-webusb':
         specifier: ^6.29.10
         version: 6.29.10
@@ -1269,6 +1278,9 @@ packages:
 
   '@ledgerhq/hw-transport-node-hid@6.29.11':
     resolution: {integrity: sha512-mhP2TEm+8sZuP0AF7TUje6aOr46NgpIFrRS9RifMvfqAN6xzIBOU5OnE0mQIapNbu2AMs0jkYcDvGpTd/NSf4g==}
+
+  '@ledgerhq/hw-transport-webhid@6.30.6':
+    resolution: {integrity: sha512-AOzjFv5n1OTMfvEInAZRfLO11G5zfG8pB5zhmjK5d/mVQfFNcKsLZNAC2h4OZZMBtUy8UTT3n03z93e6k6n4pQ==}
 
   '@ledgerhq/hw-transport-webusb@6.29.10':
     resolution: {integrity: sha512-3op7ipyZrM/Gg2qUBUM6tGKgYVh7k3hvXPE7z4i5ElAFHBdM5XMI4OD2cfl38XE0fij1dk/NCpKntOekIL7lmA==}
@@ -7231,6 +7243,13 @@ snapshots:
       lodash: 4.17.21
       node-hid: 2.1.2
       usb: 2.9.0
+
+  '@ledgerhq/hw-transport-webhid@6.30.6':
+    dependencies:
+      '@ledgerhq/devices': 8.5.1
+      '@ledgerhq/errors': 6.25.0
+      '@ledgerhq/hw-transport': 6.31.10
+      '@ledgerhq/logs': 6.13.0
 
   '@ledgerhq/hw-transport-webusb@6.29.10':
     dependencies:

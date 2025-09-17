@@ -18,6 +18,7 @@ interface UseTonWalletReturn {
     error: string | null;
     initializeWallet: () => Promise<void>;
     createNewWallet: () => Promise<string[]>;
+    createLedgerWallet: () => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;
     sendTransaction: (to: string, amount: string) => Promise<void>;
 }
@@ -67,6 +68,21 @@ export const useTonWallet = (): UseTonWalletReturn => {
             return mnemonic;
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Failed to create wallet';
+            setError(errorMessage);
+            throw new Error(errorMessage);
+        }
+    }, [tonKit, walletStore]);
+
+    const createLedgerWallet = useCallback(async (): Promise<void> => {
+        if (!tonKit) throw new Error('TON Kit not initialized');
+
+        try {
+            setError(null);
+
+            // Create Ledger wallet
+            await walletStore.createLedgerWallet();
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create Ledger wallet';
             setError(errorMessage);
             throw new Error(errorMessage);
         }
@@ -142,6 +158,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
         error,
         initializeWallet,
         createNewWallet,
+        createLedgerWallet,
         importWallet,
         sendTransaction,
     };

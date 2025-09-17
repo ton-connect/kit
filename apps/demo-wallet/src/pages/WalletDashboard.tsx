@@ -30,7 +30,14 @@ export const WalletDashboard: React.FC = () => {
     const navigate = useNavigate();
 
     const { balance, address, getAvailableWallets, updateBalance } = useWallet();
-    const { persistPassword, setPersistPassword, useWalletInterfaceType, setUseWalletInterfaceType } = useAuth();
+    const {
+        persistPassword,
+        setPersistPassword,
+        useWalletInterfaceType,
+        setUseWalletInterfaceType,
+        ledgerAccountNumber,
+        setLedgerAccountNumber,
+    } = useAuth();
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -305,12 +312,34 @@ export const WalletDashboard: React.FC = () => {
                             <select
                                 className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                                 value={useWalletInterfaceType || 'mnemonic'}
-                                onChange={(e) => setUseWalletInterfaceType(e.target.value as 'signer' | 'mnemonic')}
+                                onChange={(e) =>
+                                    setUseWalletInterfaceType(e.target.value as 'signer' | 'mnemonic' | 'ledger')
+                                }
                             >
                                 <option value="mnemonic">Mnemonic</option>
                                 <option value="signer">Signer</option>
+                                <option value="ledger">Ledger Hardware Wallet</option>
                             </select>
                         </div>
+
+                        {useWalletInterfaceType === 'ledger' && (
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700">Ledger Account Number</label>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Account number for Ledger derivation path
+                                    </p>
+                                </div>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="2147483647"
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                                    value={ledgerAccountNumber || 0}
+                                    onChange={(e) => setLedgerAccountNumber(parseInt(e.target.value, 10) || 0)}
+                                />
+                            </div>
+                        )}
                     </div>
                 </Card>
 

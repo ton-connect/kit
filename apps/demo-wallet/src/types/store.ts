@@ -22,7 +22,8 @@ export interface AuthSlice extends AuthState {
     lock: () => void;
     reset: () => void;
     setPersistPassword: (persist: boolean) => void;
-    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic') => void;
+    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
+    setLedgerAccountNumber: (accountNumber: number) => void;
 }
 
 // Jettons slice interface
@@ -101,6 +102,7 @@ export interface WalletSlice extends WalletState {
     // Actions
     createWallet: (mnemonic: string[]) => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;
+    createLedgerWallet: () => Promise<void>;
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;

@@ -54,6 +54,7 @@
   "dependencies": {
     "@ledgerhq/hw-transport": "^6.31.10",
     "@ledgerhq/hw-transport-node-hid": "^6.29.11",
+    "@ledgerhq/hw-transport-webhid": "^6.30.6",
     "@ledgerhq/hw-transport-webusb": "^6.29.10",
     "@noble/curves": "^1.9.7",
     "@ton-community/assets-sdk": "^0.0.5",
@@ -89,7 +90,6 @@
     "vitest": "^2.0.0"
   },
   "overrides": {
-    
     "@ledgerhq/hw-transport-node-hid": {
       "node-hid": "^3.2.0"
     }
