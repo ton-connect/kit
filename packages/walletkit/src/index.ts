@@ -38,6 +38,18 @@ export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
 export { createWalletV5R1 } from './contracts/w5/WalletV5R1Adapter';
 export { defaultWalletIdV5R1 } from './contracts/w5/WalletV5R1Adapter';
 
+// Re-export wallet v4r2 contracts and Ledger support
+export { WalletV4R2 } from './contracts/v4/WalletV4R2';
+export type { WalletV4R2Config } from './contracts/v4/WalletV4R2';
+export { WalletV4R2CodeCell } from './contracts/v4/WalletV4R2.source';
+export {
+    WalletV4R2LedgerAdapter,
+    createWalletV4R2Ledger,
+    createLedgerPath,
+    defaultWalletIdV4R2,
+} from './contracts/v4/WalletV4R2LedgerAdapter';
+export type { WalletV4R2LedgerAdapterConfig } from './contracts/v4/WalletV4R2LedgerAdapter';
+
 export { LocalStorageAdapter } from './storage/adapters/local';
 export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';

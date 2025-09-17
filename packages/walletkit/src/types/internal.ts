@@ -143,3 +143,7 @@ export interface EventHandler<T extends BridgeEventBase = BridgeEventBase, V ext
     handle(event: V): Promise<T | WalletResponseTemplateError>;
     notify(event: T): Promise<void>;
 }
+
+export type SendRequestSuccess<T = undefined> = T extends undefined ? { success: true } : { success: true; result: T };
+export type SendRequestError = { success: false; code: number; message?: string; error?: Error };
+export type SendRequestResult<T = undefined> = SendRequestSuccess<T> | SendRequestError;
