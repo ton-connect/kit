@@ -44,11 +44,6 @@ export interface EventCallback<T = any> {
     (event: T): void | Promise<void>;
 }
 
-export interface ValidationResult {
-    isValid: boolean;
-    errors: string[];
-}
-
 export type BridgeEventBase = {
     id?: string;
     from?: string;

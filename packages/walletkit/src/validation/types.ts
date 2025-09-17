@@ -9,6 +9,10 @@ export interface ValidationResult {
     warnings?: string[];
 }
 
+export interface ReturnWithValidationResult<T> extends ValidationResult {
+    result: T;
+}
+
 /**
  * Validation rule definition
  */

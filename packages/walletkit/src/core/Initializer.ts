@@ -236,7 +236,7 @@ export class Initializer {
             bridgeManager,
             walletManager,
             this.tonClient,
-            this.config.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+            this.config.network === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
         );
 
         return {

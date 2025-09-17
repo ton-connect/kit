@@ -1,5 +1,6 @@
-import { fromNano } from '@ton/core';
+import { Address } from '@ton/core';
 import {
+    CHAIN,
     SEND_TRANSACTION_ERROR_CODES,
     SendTransactionRpcResponseError,
     WalletResponseTemplateError,
@@ -8,16 +9,15 @@ import {
 import type {
     WalletInterface,
     EventTransactionRequest,
-    HumanReadableTx,
     TransactionPreview,
     ToncenterEmulationResponse,
+    ValidationResult,
 } from '../types';
 import type {
     RawBridgeEvent,
     EventHandler,
     RawBridgeEventTransaction,
     ConnectTransactionParamContent,
-    ValidationResult,
 } from '../types/internal';
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
@@ -33,6 +33,7 @@ import type { EventEmitter } from '../core/EventEmitter';
 import { EmulationErrorUnknown } from '../types/emulation/errors';
 import { WalletManager } from '../core/WalletManager';
 import { TransactionPreviewEmulationError } from '../types/events';
+import { ReturnWithValidationResult } from '../validation/types';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -66,20 +67,6 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
 
-        const request = this.parseTonConnectTransactionRequest(event);
-        if (!request) {
-            log.error('Failed to parse transaction request', { event });
-            this.eventEmitter.emit('event:error', event);
-
-            return {
-                error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                    message: 'Failed to parse transaction request',
-                },
-                id: event.id,
-            } as SendTransactionRpcResponseError;
-        }
-
         const wallet = this.walletManager.getWallet(event.walletAddress);
         if (!wallet) {
             log.error('Wallet not found', { event });
@@ -91,6 +78,21 @@ export class TransactionHandler
                 id: event.id,
             } as SendTransactionRpcResponseError;
         }
+
+        const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
+        if (!requestValidation.result || !requestValidation?.validation?.isValid) {
+            log.error('Failed to parse transaction request', { event, requestValidation });
+            this.eventEmitter.emit('event:error', event);
+
+            return {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                    message: 'Failed to parse transaction request',
+                },
+                id: event.id,
+            } as SendTransactionRpcResponseError;
+        }
+        const request = requestValidation.result;
 
         let preview: TransactionPreview;
         try {
@@ -119,7 +121,12 @@ export class TransactionHandler
 
     private parseTonConnectTransactionRequest(
         event: RawBridgeEventTransaction,
-    ): ConnectTransactionParamContent | undefined {
+        wallet: WalletInterface,
+    ): {
+        result: ConnectTransactionParamContent | undefined;
+        validation: ValidationResult;
+    } {
+        let errors: string[] = [];
         try {
             if (event.params.length !== 1) {
                 throw new Error('Invalid transaction request');
@@ -128,29 +135,42 @@ export class TransactionHandler
 
             const validUntilValidation = this.validateValidUntil(params.valid_until);
             if (!validUntilValidation.isValid) {
-                throw new Error(`Invalid validUntil timestamp: ${validUntilValidation.errors.join(', ')}`);
+                errors = errors.concat(validUntilValidation.errors);
+            } else {
+                params.valid_until = validUntilValidation.result;
             }
 
-            const networkValidation = this.validateNetwork(params.network);
+            const networkValidation = this.validateNetwork(params.network, wallet);
             if (!networkValidation.isValid) {
-                throw new Error(`Invalid network: ${networkValidation.errors.join(', ')}`);
+                errors = errors.concat(networkValidation.errors);
+            } else {
+                params.network = networkValidation.result;
             }
 
-            const fromValidation = this.validateFrom(params.from);
+            const fromValidation = this.validateFrom(params.from, wallet);
             if (!fromValidation.isValid) {
-                throw new Error(`Invalid from address: ${fromValidation.errors.join(', ')}`);
+                errors = errors.concat(fromValidation.errors);
+            } else {
+                params.from = fromValidation.result;
             }
 
             const isTonConnect = !event.isLocal;
             const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
             if (!messagesValidation.isValid) {
-                throw new Error(`Invalid transaction messages: ${messagesValidation.errors.join(', ')}`);
+                errors = errors.concat(messagesValidation.errors);
             }
 
-            return params;
+            return {
+                result: params,
+                validation: { isValid: errors.length === 0, errors: errors },
+            };
         } catch (error) {
             log.error('Failed to parse transaction request', { error });
-            return undefined;
+            errors.push('Failed to parse transaction request');
+            return {
+                result: undefined,
+                validation: { isValid: errors.length === 0, errors: errors },
+            };
         }
     }
 
@@ -158,46 +178,71 @@ export class TransactionHandler
      * Parse network from various possible formats
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any): ValidationResult {
+    private validateNetwork(network: any, wallet: WalletInterface): ReturnWithValidationResult<CHAIN | undefined> {
+        let errors: string[] = [];
         if (typeof network === 'string') {
             if (network === '-3' || network === '-239') {
-                return { isValid: true, errors: [] };
+                const chain = network === '-3' ? CHAIN.TESTNET : CHAIN.MAINNET;
+                const walletNetwork = wallet.getNetwork();
+                if (chain !== walletNetwork) {
+                    errors.push('Invalid network not equal to wallet network');
+                } else {
+                    return { result: chain, isValid: errors.length === 0, errors: errors };
+                }
+            } else {
+                errors.push('Invalid network not a valid network');
             }
+        } else {
+            errors.push('Invalid network not a string');
         }
 
-        return { isValid: false, errors: ['Invalid network'] };
-        // if (typeof network === 'number') {
-        //     // -239 for mainnet, -3 for testnet (common convention)
-        //     return { isValid: true, errors: [] };
-        // }
-        // return { isValid: false, errors: ['Invalid network'] };
+        return { result: undefined, isValid: errors.length === 0, errors: errors };
     }
 
-    private validateFrom(from: unknown): ValidationResult {
+    private validateFrom(from: unknown, wallet: WalletInterface): ReturnWithValidationResult<string> {
+        let errors: string[] = [];
+
         if (typeof from !== 'string') {
-            return { isValid: false, errors: ['Invalid from address'] };
+            errors.push('Invalid from address not a string');
+            return { result: '', isValid: errors.length === 0, errors: errors };
         }
 
-        if (isValidAddress(from)) {
-            return { isValid: true, errors: [] };
+        if (!isValidAddress(from)) {
+            errors.push('Invalid from address');
+            return { result: '', isValid: errors.length === 0, errors: errors };
         }
 
-        return { isValid: false, errors: ['Invalid from address'] };
+        const fromAddress = Address.parse(from);
+        const walletAddress = Address.parse(wallet.getAddress());
+        if (!fromAddress.equals(walletAddress)) {
+            errors.push('Invalid from address not equal to wallet address');
+            return { result: '', isValid: errors.length === 0, errors: errors };
+        }
+
+        return { result: from, isValid: errors.length === 0, errors: errors };
     }
 
     /**
      * Parse validUntil timestamp
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateValidUntil(validUntil: any): ValidationResult {
+    private validateValidUntil(validUntil: any): ReturnWithValidationResult<number> {
+        let errors: string[] = [];
         if (typeof validUntil === 'undefined') {
-            return { isValid: true, errors: [] };
+            return { result: 0, isValid: errors.length === 0, errors: errors };
         }
-        if (typeof validUntil === 'number' && !isNaN(validUntil)) {
-            return { isValid: true, errors: [] };
+        if (typeof validUntil !== 'number' || isNaN(validUntil)) {
+            errors.push('Invalid validUntil timestamp not a number');
+            return { result: 0, isValid: errors.length === 0, errors: errors };
         }
 
-        return { isValid: false, errors: ['Invalid validUntil timestamp'] };
+        const now = Math.floor(Date.now() / 1000);
+        if (validUntil < now) {
+            errors.push('Invalid validUntil timestamp');
+            return { result: 0, isValid: errors.length === 0, errors: errors };
+        }
+
+        return { result: validUntil, isValid: errors.length === 0, errors: errors };
     }
 
     /**
@@ -208,55 +253,10 @@ export class TransactionHandler
         request: ConnectTransactionParamContent,
         wallet?: WalletInterface,
     ): Promise<TransactionPreview> {
-        // const humanReadableMessages = await Promise.all(
-        //     request.messages.map((msg, index: number) => this.parseMessageToHumanReadable(msg, index)),
-        // );
-
-        // TODO: Implement transaction emulation for fees and balance changes
         const emulationResult = await this.emulateTransaction(request, wallet);
         log.info('Emulation result', { emulationResult });
 
         return emulationResult;
-    }
-
-    /**
-     * Parse BOC message to human-readable format
-     */
-    private async parseMessageToHumanReadable(
-        message: ConnectTransactionParamContent['messages'][number],
-        index: number,
-    ): Promise<HumanReadableTx> {
-        // TODO: Implement proper BOC parsing
-        // This is a placeholder implementation
-
-        try {
-            // Mock parsing - replace with real BOC decoding
-            const parsed: HumanReadableTx = {
-                to: message.address,
-                valueTON: fromNano(message.amount).toString(),
-                // comment: 'Comment from BOC data',
-                type: 'ton',
-                extra: {
-                    // originalBoc: messageBoc,
-                    index,
-                },
-            };
-
-            return parsed;
-        } catch (error) {
-            log.warn('Failed to parse message', { index, error });
-
-            // Fallback to raw display
-            return {
-                to: 'Unknown (parsing failed)',
-                valueTON: '0',
-                type: 'raw',
-                extra: {
-                    // originalBoc: message,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                },
-            };
-        }
     }
 
     /**

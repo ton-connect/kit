@@ -10,7 +10,9 @@ import {
     createWalletV5R1,
     ConnectTransactionParamMessage,
     WalletInterface,
+    CHAIN,
 } from '../src';
+import { wrapWalletInterface } from '../src/core/Initializer';
 dotenv.config();
 
 // eslint-disable-next-line no-console
@@ -44,11 +46,14 @@ function nextWalletId(parent?: Address | string): number {
 }
 
 async function createWallet(parent?: Address | string) {
-    return createWalletV5R1(
-        createWalletInitConfigMnemonic({
-            mnemonic: mnemonic!.trim().split(' '),
-            walletId: BigInt(nextWalletId(parent)),
-        }),
+    return wrapWalletInterface(
+        await createWalletV5R1(
+            createWalletInitConfigMnemonic({
+                mnemonic: mnemonic!.trim().split(' '),
+                walletId: BigInt(nextWalletId(parent)),
+            }),
+            { tonClient },
+        ),
         tonClient,
     );
 }
@@ -78,9 +83,9 @@ async function main() {
             .reduce((acc, cnt) => acc + +cnt, 0),
     );
     if (isTestSend) {
-        const boc = await existAccount.getSignedExternal(
+        const boc = await existAccount.getSignedSendTransaction(
             {
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
                 valid_until: Math.floor(Date.now() / 1000) + 60,
                 messages: [message],
             },

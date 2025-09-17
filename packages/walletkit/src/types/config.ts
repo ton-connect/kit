@@ -1,5 +1,7 @@
 // Configuration type definitions
 
+import { CHAIN } from '@tonconnect/protocol';
+
 import type { WalletInitConfig } from './wallet';
 import type { StorageAdapter } from '../storage';
 import { EventProcessorConfig } from '../core/EventProcessor';
@@ -17,7 +19,7 @@ export interface TonWalletKitOptions {
     wallets?: Array<WalletInitConfig>;
 
     /** Network */
-    network?: 'mainnet' | 'testnet';
+    network?: CHAIN;
 
     /** Bridge settings */
     bridge?: BridgeConfig;

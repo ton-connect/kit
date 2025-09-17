@@ -6,6 +6,8 @@ export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export * from './types/internal';
 
+export { CHAIN } from '@tonconnect/protocol';
+
 // Re-export managers for advanced customization
 export { WalletManager } from './core/WalletManager';
 export { SessionManager } from './core/SessionManager';

@@ -11,6 +11,7 @@ import {
     createWalletInitConfigMnemonic,
     MnemonicToKeyPair,
     DefaultSignature,
+    CHAIN,
 } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
@@ -28,7 +29,7 @@ const walletKit = new TonWalletKit({
     deviceInfo: getTonConnectDeviceInfo(),
     walletManifest: getTonConnectWalletManifest(),
 
-    network: 'mainnet',
+    network: CHAIN.MAINNET,
     wallets: [],
     apiClient: {
         key: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
@@ -48,7 +49,7 @@ async function createWalletConfig(
             return createWalletInitConfigSigner({
                 publicKey: keyPair.publicKey,
                 version: 'v5r1',
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
                 sign: async (bytes: Uint8Array) => {
                     if (confirm('Are you sure you want to sign?')) {
                         return DefaultSignature(bytes, keyPair.secretKey);
@@ -63,7 +64,7 @@ async function createWalletConfig(
                 mnemonic,
                 version: 'v5r1',
                 mnemonicType: 'ton',
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
             });
         }
         default:

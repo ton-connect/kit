@@ -33,7 +33,7 @@ TonWalletKitOptions:
   apiKey?: string;                      // Optional TON API key
   wallets?: WalletInitConfig[];         // Optional wallets to pre-load
   storage?: StorageAdapter;             // Optional persistence adapter
-  network?: 'mainnet' | 'testnet';      // Target network (advisory)
+  network?: CHAIN.MAINNET;              // Target network
   config?: {
     bridge?: { heartbeatInterval?: number; reconnectInterval?: number; maxReconnectAttempts?: number };
     storage?: { prefix?: string; cacheTimeout?: number; maxCacheSize?: number } | StorageAdapter;
@@ -96,10 +96,10 @@ Notes:
 ### Wallet configuration types
 
 - `WalletInitConfigMnemonic`:
-  - `{ mnemonic: string[]; version?: 'v5r1' | 'unknown'; mnemonicType?: 'ton' | 'bip39'; walletId?: number; network?: 'mainnet' | 'testnet' }`
+  - `{ mnemonic: string[]; version?: 'v5r1' | 'unknown'; mnemonicType?: 'ton' | 'bip39'; walletId?: number; network?: CHAIN }`
 
 - `WalletInitConfigPrivateKey`:
-  - `{ privateKey: string; version?: 'v5r1' | 'unknown'; walletId?: number; network?: 'mainnet' | 'testnet' }`
+  - `{ privateKey: string; version?: 'v5r1' | 'unknown'; walletId?: number; network?: CHAIN }`
 
 - Union: `WalletInitConfig = WalletInterface | WalletInitConfigMnemonic | WalletInitConfigPrivateKey`
 

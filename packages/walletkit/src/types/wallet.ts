@@ -1,6 +1,7 @@
 // Wallet-related type definitions
 
 import { Address, SendMode } from '@ton/core';
+import { CHAIN } from '@tonconnect/protocol';
 
 import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
 import { JettonTransferParams } from './jettons';
@@ -17,8 +18,6 @@ import { TonProofParsedMessage } from '../utils/tonProof';
 /**
  * TON network types
  */
-export type TonNetwork = 'mainnet' | 'testnet';
-
 export type WalletVersion = 'v5r1' | 'unknown'; // | 'v4r2';
 
 export type WalletSigner = (bytes: Uint8Array) => Promise<Uint8Array>;
@@ -28,7 +27,7 @@ export interface WalletInitConfigMnemonicInterface {
     version?: WalletVersion;
     mnemonicType?: 'ton' | 'bip39';
     walletId?: bigint;
-    network?: TonNetwork;
+    network?: CHAIN;
 }
 
 export function createWalletInitConfigMnemonic(
@@ -39,7 +38,7 @@ export function createWalletInitConfigMnemonic(
         version: params.version ?? 'v5r1',
         mnemonicType: params.mnemonicType ?? 'ton',
         walletId: params.walletId,
-        network: params.network ?? 'mainnet',
+        network: params.network ?? CHAIN.MAINNET,
     };
 }
 
@@ -53,7 +52,7 @@ export interface WalletInitConfigPrivateKeyInterface {
     privateKey: string;
     version?: WalletVersion;
     walletId?: number;
-    network?: TonNetwork;
+    network?: CHAIN;
 }
 
 export function createWalletInitConfigPrivateKey(
@@ -63,7 +62,7 @@ export function createWalletInitConfigPrivateKey(
         privateKey: params.privateKey,
         version: params.version ?? 'v5r1',
         walletId: params.walletId,
-        network: params.network ?? 'mainnet',
+        network: params.network ?? CHAIN.MAINNET,
     };
 }
 
@@ -77,7 +76,7 @@ export interface WalletInitConfigSignerInterface {
     publicKey: Uint8Array;
     version?: WalletVersion;
     walletId?: bigint;
-    network?: TonNetwork;
+    network?: CHAIN;
     sign: WalletSigner;
 }
 
@@ -86,7 +85,7 @@ export function createWalletInitConfigSigner(params: WalletInitConfigSignerInter
         publicKey: params.publicKey,
         version: params.version ?? 'v5r1',
         walletId: params.walletId,
-        network: params.network ?? 'mainnet',
+        network: params.network ?? CHAIN.MAINNET,
         sign: params.sign,
     };
 }
@@ -108,6 +107,8 @@ export interface WalletInitInterface {
     version: string;
 
     client: ApiClient;
+
+    getNetwork(): CHAIN;
 
     /** Get wallet's TON address */
     getAddress(options?: { testnet?: boolean }): string;

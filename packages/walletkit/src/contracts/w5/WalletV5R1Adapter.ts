@@ -13,9 +13,8 @@ import {
 } from '@ton/core';
 import { keyPairFromSeed } from '@ton/crypto';
 import { external, internal } from '@ton/core';
-import { toHexString } from '@tonconnect/protocol';
+import { CHAIN, toHexString } from '@tonconnect/protocol';
 
-import type { TonNetwork } from '../../types';
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
@@ -58,7 +57,7 @@ export interface WalletV5R1AdapterConfig {
     /** Shared TON client instance */
     tonClient: ApiClient;
     /** Network */
-    network: TonNetwork;
+    network: CHAIN;
 }
 
 /**
@@ -104,6 +103,10 @@ export class WalletV5R1Adapter implements WalletInitInterface {
      */
     async sign(bytes: Uint8Array): Promise<Uint8Array> {
         return this.signer(bytes);
+    }
+
+    getNetwork(): CHAIN {
+        return this.config.network;
     }
 
     /**
@@ -337,7 +340,7 @@ export async function createWalletV5R1(
     return new WalletV5R1Adapter({
         publicKey: publicKey,
         signer: signer,
-        network: config.network || 'mainnet',
+        network: config.network || CHAIN.MAINNET,
         tonClient: options.tonClient,
         walletId: config.walletId,
     });

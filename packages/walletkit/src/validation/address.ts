@@ -1,5 +1,8 @@
 // TON address validation logic
 
+import { CHAIN } from '@tonconnect/protocol';
+import { Address } from '@ton/core';
+
 import type { ValidationResult, ValidationContext } from './types';
 
 /**
@@ -47,24 +50,12 @@ export function validateTonAddress(address: string, context: ValidationContext =
 export function validateRawAddress(address: string): ValidationResult {
     const errors: string[] = [];
 
-    // Raw format: workchain:account_id (e.g., "0:1234567890abcdef...")
-    const rawPattern = /^-?[0-9]+:[0-9a-fA-F]{64}$/;
-
-    if (!rawPattern.test(address)) {
+    try {
+        if (!Address.isRaw(address)) {
+            errors.push('raw address must be in format "workchain:account_id" where account_id is 64 hex chars');
+        }
+    } catch {
         errors.push('raw address must be in format "workchain:account_id" where account_id is 64 hex chars');
-    } else {
-        const [workchain, accountId] = address.split(':');
-        const workchainNum = parseInt(workchain, 10);
-
-        // Validate workchain
-        if (workchainNum < -128 || workchainNum > 127) {
-            errors.push('workchain must be between -128 and 127');
-        }
-
-        // Validate account ID
-        if (accountId.length !== 64) {
-            errors.push('account ID must be exactly 64 hexadecimal characters');
-        }
     }
 
     return {
@@ -79,14 +70,18 @@ export function validateRawAddress(address: string): ValidationResult {
 export function validateBouncableAddress(address: string): ValidationResult {
     const errors: string[] = [];
 
-    // Bounceable addresses typically start with EQ, UQ for mainnet
-    if (!address.match(/^[EU]Q[A-Za-z0-9_-]{46}$/)) {
-        errors.push('bounceable address must be 48 characters starting with EQ or UQ');
-    } else {
-        // Additional base64 validation
-        if (!isValidBase64Url(address)) {
-            errors.push('invalid base64url encoding in bounceable address');
+    try {
+        const isFriendlyAddress = Address.isFriendly(address);
+        if (!isFriendlyAddress) {
+            errors.push('Address is not friendly');
+        } else {
+            const parsed = Address.parseFriendly(address);
+            if (!parsed.isBounceable) {
+                errors.push('Address is not bounceable');
+            }
         }
+    } catch {
+        errors.push('bounceable address must be in format "EQ" or "UQ" followed by 46 base64url chars');
     }
 
     return {
@@ -101,16 +96,19 @@ export function validateBouncableAddress(address: string): ValidationResult {
 export function validateNonBouncableAddress(address: string): ValidationResult {
     const errors: string[] = [];
 
-    // Non-bounceable addresses typically start with 0Q, kQ for mainnet
-    if (!address.match(/^[0k]Q[A-Za-z0-9_-]{46}$/)) {
-        errors.push('non-bounceable address must be 48 characters starting with 0Q or kQ');
-    } else {
-        // Additional base64 validation
-        if (!isValidBase64Url(address)) {
-            errors.push('invalid base64url encoding in non-bounceable address');
+    try {
+        const isFriendlyAddress = Address.isFriendly(address);
+        if (!isFriendlyAddress) {
+            errors.push('Address is not friendly');
+        } else {
+            const parsed = Address.parseFriendly(address);
+            if (parsed.isBounceable) {
+                errors.push('Address is bounceable');
+            }
         }
+    } catch {
+        errors.push('non bounceable address must be in format "EQ" or "UQ" followed by 46 base64url chars');
     }
-
     return {
         isValid: errors.length === 0,
         errors,
@@ -130,44 +128,21 @@ export function detectAddressFormat(address: string): 'raw' | 'bounceable' | 'no
 /**
  * Check if address is for mainnet or testnet
  */
-export function detectAddressNetwork(address: string): 'mainnet' | 'testnet' | 'unknown' {
+export function detectAddressNetwork(address: string): CHAIN | 'unknown' {
     const format = detectAddressFormat(address);
 
     if (format === 'raw') {
-        const workchain = parseInt(address.split(':')[0], 10);
-        return workchain === 0 ? 'mainnet' : 'testnet';
+        return 'unknown';
     }
 
     if (format === 'bounceable' || format === 'non-bounceable') {
-        // This is simplified - real detection would need to decode the address
-        // For now, assume addresses starting with certain prefixes are mainnet
-        return address.startsWith('EQ') || address.startsWith('0Q') ? 'mainnet' : 'testnet';
+        const parsed = Address.parseFriendly(address);
+        if (parsed.isTestOnly) {
+            return CHAIN.TESTNET;
+        } else {
+            return CHAIN.MAINNET;
+        }
     }
 
     return 'unknown';
-}
-
-/**
- * Validate base64url encoding
- */
-function isValidBase64Url(str: string): boolean {
-    try {
-        // Base64url uses - and _ instead of + and /
-        const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-
-        // Add padding if needed
-        const padded = base64 + '=='.substring(0, (4 - (base64.length % 4)) % 4);
-
-        // Try to decode with atob if available (browser environment)
-        if (typeof atob !== 'undefined') {
-            atob(padded);
-            return true;
-        }
-
-        // For Node.js or other environments without atob,
-        // we'll do basic format validation only
-        return /^[A-Za-z0-9+/]*={0,2}$/.test(padded);
-    } catch {
-        return false;
-    }
 }

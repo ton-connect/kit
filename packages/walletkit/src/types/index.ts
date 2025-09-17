@@ -2,7 +2,6 @@
 
 // Wallet types
 export type {
-    TonNetwork,
     WalletInterface,
     WalletMetadata,
     WalletStatus,
@@ -32,6 +31,7 @@ export {
 
 // Transaction types (from validation module)
 export type { HumanReadableTx } from '../validation/transaction';
+export type { ValidationResult } from '../validation/types';
 
 // Event types
 export type {
@@ -54,15 +54,7 @@ export type { TonWalletKitOptions } from './config';
 export type { TonWalletKit, SessionInfo, KitStatus } from './kit';
 
 // Internal types (re-export from internal.ts)
-export type {
-    SessionData,
-    BridgeConfig,
-    EventCallback,
-    ValidationResult,
-    RawBridgeEvent,
-    EventType,
-    EventHandler,
-} from './internal';
+export type { SessionData, BridgeConfig, EventCallback, RawBridgeEvent, EventType, EventHandler } from './internal';
 
 // Durable events types
 export type { EventStatus, StoredEvent, DurableEventsConfig, EventStore, EventProcessor } from './durableEvents';
