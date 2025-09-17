@@ -106,7 +106,9 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
                             {/* From Address */}
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm text-gray-600">From:</span>
-                                <span className="text-sm font-mono text-black">{formatAddress(request.from)}</span>
+                                <span className="text-sm font-mono text-black">
+                                    {formatAddress(request.from ?? '')}
+                                </span>
                             </div>
 
                             {/* Wallet Address */}
