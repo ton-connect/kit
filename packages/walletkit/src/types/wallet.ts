@@ -99,7 +99,7 @@ export function isWalletInitConfigSigner(
 
 export interface WalletInitConfigLedgerInterface {
     /** Ledger transport instance */
-    transport: Transport; // @ledgerhq/hw-transport
+    createTransport: () => Promise<Transport>; // @ledgerhq/hw-transport
     /** Derivation path for the account */
     path: number[];
     /** Wallet version - only v4r2 supported for Ledger */
@@ -116,7 +116,7 @@ export interface WalletInitConfigLedgerInterface {
 
 export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInterface): WalletInitConfigLedgerInterface {
     return {
-        transport: params.transport,
+        createTransport: params.createTransport,
         path: params.path,
         version: params.version ?? 'v4r2',
         walletId: params.walletId ?? 698983191,
@@ -129,7 +129,7 @@ export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInter
 export function isWalletInitConfigLedger(
     config: WalletInitConfig,
 ): config is ReturnType<typeof createWalletInitConfigLedger> {
-    return 'transport' in config && 'path' in config;
+    return 'createTransport' in config && 'path' in config;
 }
 
 /**
