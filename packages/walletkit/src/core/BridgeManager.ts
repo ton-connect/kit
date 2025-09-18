@@ -10,6 +10,7 @@ import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 import { EventRouter } from './EventRouter';
 import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload, WalletInfo } from '../types/jsBridge';
+import { uuidv7 } from '../utils/uuid';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -164,6 +165,9 @@ export class BridgeManager {
                 event.isJsBridge,
                 event.messageId ?? null,
                 response,
+                {
+                    traceId: event?.traceId,
+                },
             );
         }
 
@@ -182,7 +186,9 @@ export class BridgeManager {
                 publicKey: session.publicKey,
                 secretKey: session.privateKey,
             });
-            await this.bridgeProvider.send(response, sessionCrypto, sessionId);
+            await this.bridgeProvider.send(response, sessionCrypto, sessionId, {
+                traceId: event?.traceId,
+            });
 
             log.debug('Response sent successfully', { sessionId: sessionId, requestId: event.id });
         } catch (error) {
@@ -201,6 +207,9 @@ export class BridgeManager {
         requestId: string | null,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         response: any,
+        options?: {
+            traceId?: string;
+        },
     ): Promise<void> {
         if (!this.bridgeProvider) {
             throw new Error('Bridge not initialized');
@@ -214,9 +223,8 @@ export class BridgeManager {
             messageId: requestId,
             success: true,
             payload: response,
+            traceId: options?.traceId,
         });
-
-        // await this.bridgeProvider.send(response, sessionCrypto, sessionId);
     }
 
     /**
@@ -335,7 +343,7 @@ export class BridgeManager {
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private queueBridgeEvent(event: any): void {
-        log.debug('Bridge event queued', { eventId: event?.id });
+        log.debug('Bridge event queued', { eventId: event?.id, event });
         this.eventQueue.push(event);
 
         // Trigger processing (don't wait for it to complete)
@@ -353,6 +361,10 @@ export class BridgeManager {
         // Todo validate event
         if (!event) {
             return;
+        }
+
+        if (!event.traceId) {
+            event.traceId = uuidv7();
         }
 
         if (event.method == 'connect') {
@@ -437,7 +449,12 @@ export class BridgeManager {
                 isJsBridge: event?.isJsBridge,
                 tabId: event?.tabId,
                 messageId: event?.messageId,
+                traceId: event?.traceId,
             };
+
+            if (!rawEvent.traceId) {
+                rawEvent.traceId = uuidv7();
+            }
 
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);

@@ -100,6 +100,7 @@ export interface InjectedToExtensionBridgeRequestPayload {
     method: string;
     params: Array<unknown> | Record<string, unknown>;
     from?: string;
+    traceId?: string;
 }
 
 export interface BridgeResponse {

@@ -32,6 +32,10 @@ const walletKit = new TonWalletKit({
     deviceInfo: getTonConnectDeviceInfo(),
     walletManifest: getTonConnectWalletManifest(),
 
+    bridge: {
+        bridgeUrl: 'https://walletbot.me/tonconnect-bridge/bridge',
+    },
+
     network: CHAIN.MAINNET,
     wallets: [],
     apiClient: {

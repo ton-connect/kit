@@ -55,6 +55,8 @@ export type BridgeEventBase = {
     sessionId?: string;
     isLocal?: boolean;
     messageId?: string;
+
+    traceId?: string;
 };
 
 export type EventApprovalBase = {
