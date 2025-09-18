@@ -66,6 +66,8 @@ export type EventApprovalBase = {
     walletAddress: string;
 
     messageId?: string;
+
+    traceId?: string;
 };
 
 // Bridge event types (raw from bridge)
