@@ -17,7 +17,7 @@ import { ApiClient } from '@ton/walletkit';
 
 // const log = globalLogger.createChild('WalletV4R2');
 const log = {
-    error: (message: string, data: unknown) => {
+    error: (_message: string, _data: unknown) => {
         // console.error(message, data);
     },
 };
