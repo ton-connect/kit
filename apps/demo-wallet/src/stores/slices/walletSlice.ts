@@ -39,6 +39,10 @@ const walletKit = new TonWalletKit({
     },
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
+
+    analytics: {
+        enabled: true,
+    },
 });
 
 async function createWalletConfig(params: {

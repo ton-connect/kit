@@ -10,7 +10,7 @@ export class AnalyticsApi {
     constructor(config?: AnalyticsConfig) {
         if (config?.enabled) {
             this.api = new Api({
-                baseUrl: config.endpoint,
+                baseUrl: config?.endpoint ?? 'https://analytics.ton.org',
             });
         }
     }
