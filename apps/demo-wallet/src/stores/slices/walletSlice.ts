@@ -16,6 +16,7 @@ import {
     CHAIN,
 } from '@ton/walletkit';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
+import { toast } from 'sonner';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -86,11 +87,11 @@ async function createWalletConfig(params: {
             }
 
             try {
-                const transport = await TransportWebHID.create();
+                // const transport = await TransportWebHID.create();
                 const path = createLedgerPath(false, 0, ledgerAccountNumber);
 
                 return createWalletInitConfigLedger({
-                    transport,
+                    createTransport: async () => await TransportWebHID.create(),
                     path,
                     version: 'v4r2',
                     network: CHAIN.MAINNET,
@@ -500,13 +501,21 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         try {
             // Approve the transaction request with the wallet kit
-            await walletKit.approveTransactionRequest(state.wallet.pendingTransactionRequest);
-
-            // Close the modal and clear pending request
-            set((state) => {
-                state.wallet.pendingTransactionRequest = undefined;
-                state.wallet.isTransactionModalOpen = false;
-            });
+            const approveResult = await walletKit.approveTransactionRequest(state.wallet.pendingTransactionRequest);
+            if (approveResult.success) {
+                // Close the modal and clear pending request
+                set((state) => {
+                    state.wallet.pendingTransactionRequest = undefined;
+                    state.wallet.isTransactionModalOpen = false;
+                });
+            } else {
+                log.error('Failed to approve transaction request:', approveResult);
+                if (approveResult.error?.message?.toLocaleLowerCase()?.includes('ledger')) {
+                    toast.error('Could not approve transaction request with Ledger, please unlock it and open TON App');
+                } else {
+                    toast.error('Could not approve transaction request');
+                }
+            }
         } catch (error) {
             log.error('Failed to approve transaction request:', error);
             throw error;

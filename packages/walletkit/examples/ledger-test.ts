@@ -39,9 +39,6 @@ async function createLedgerWallet(
     logInfo('🔌 Connecting to Ledger device...');
 
     try {
-        // Connect to Ledger device using Node.js HID transport
-        const transport = await TransportNodeHid.create();
-
         // Create derivation path for mainnet, workchain 0, account 0
         const path = createLedgerPath(testnet, workchain, account);
 
@@ -49,7 +46,7 @@ async function createLedgerWallet(
 
         // Create Ledger wallet configuration
         const ledgerConfig = createWalletInitConfigLedger({
-            transport,
+            createTransport: async () => await TransportNodeHid.create(),
             path,
             version: 'v4r2', // Only v4r2 is supported for Ledger
             network: CHAIN.MAINNET,
