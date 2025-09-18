@@ -31,6 +31,7 @@ import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
 import { ApiClient } from '../types/toncenter/ApiClient';
+import { AnalyticsApi } from '../analytics/sender';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -55,18 +56,20 @@ export class Initializer {
     private config: TonWalletKitOptions;
     private tonClient!: ApiClient;
     private eventEmitter: EventEmitter;
+    private analyticsApi?: AnalyticsApi;
     // private network: CHAIN;
     // private retryAttempts: number;
     // private retryDelay: number;
     // private timeoutMs: number;
 
-    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter) {
+    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
         this.config = config;
         // this.network = config.network ?? CHAIN.MAINNET;
         // this.retryAttempts = config.retryAttempts ?? 3;
         // this.retryDelay = config.retryDelay ?? 1000;
         // this.timeoutMs = config.timeoutMs ?? 10000;
         this.eventEmitter = eventEmitter;
+        this.analyticsApi = analyticsApi;
     }
 
     /**
@@ -238,6 +241,7 @@ export class Initializer {
             walletManager,
             this.tonClient,
             this.config.network === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
+            this.analyticsApi,
         );
 
         return {

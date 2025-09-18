@@ -31,6 +31,7 @@ import { WalletManager } from './WalletManager';
 import { EventConnectApproval, EventTransactionApproval } from '../types/events';
 import { asHash, Hash } from '../types/primitive';
 import { SendRequestResult } from '../types/internal';
+import { AnalyticsApi } from '../analytics/sender';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -45,6 +46,7 @@ export class RequestProcessor {
         private walletManager: WalletManager,
         private client: ApiClient,
         private network: CHAIN,
+        private analyticsApi?: AnalyticsApi,
     ) {}
 
     /**
@@ -98,6 +100,11 @@ export class RequestProcessor {
                 throw new Error('Invalid event');
             }
 
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'wallet-connect-accepted',
+                },
+            ]);
             return { success: true };
         } catch (error) {
             log.error('Failed to approve connect request', { error });
@@ -134,6 +141,12 @@ export class RequestProcessor {
                 },
             );
             await this.bridgeManager.sendResponse(event, response, newSession);
+
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'wallet-connect-rejected',
+                },
+            ]);
             return { success: true };
         } catch (error) {
             log.error('Failed to reject connect request', { error });
@@ -159,6 +172,11 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-transaction-accepted',
+                    },
+                ]);
                 return { success: true, result: { signedBoc: event.result.signedBoc } };
             } else {
                 const signedBoc = await this.signTransaction(event);
@@ -172,6 +190,11 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-transaction-accepted',
+                    },
+                ]);
                 return { success: true, result: { signedBoc } };
             }
         } catch (error) {
@@ -197,6 +220,11 @@ export class RequestProcessor {
             };
 
             await this.bridgeManager.sendResponse(event, response);
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'wallet-transaction-declined',
+                },
+            ]);
             return { success: true };
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
@@ -225,6 +253,11 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-sign-data-accepted',
+                    },
+                ]);
                 return { success: true, result: { signature: asHash(event.result.signature) } };
             } else {
                 if (!event.domain) {
@@ -261,6 +294,11 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-sign-data-accepted',
+                    },
+                ]);
                 return { success: true, result: { signature: asHash(signatureBase64) } };
             }
         } catch (error) {
@@ -281,6 +319,11 @@ export class RequestProcessor {
             };
 
             await this.bridgeManager.sendResponse(event, response);
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'wallet-sign-data-declined',
+                },
+            ]);
             return { success: true };
         } catch (error) {
             log.error('Failed to reject sign data request', { error });

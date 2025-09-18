@@ -39,6 +39,7 @@ import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { Hash } from '../types/primitive';
 import { EventRequestError } from '../types/events';
+import { AnalyticsApi } from '../analytics/sender';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -74,12 +75,17 @@ export class TonWalletKit implements ITonWalletKit {
     // State
     private isInitialized = false;
     private initializationPromise?: Promise<void>;
+    private analyticsApi?: AnalyticsApi;
 
     constructor(options: TonWalletKitOptions) {
         this.config = options;
 
+        if (options?.analytics?.enabled) {
+            this.analyticsApi = new AnalyticsApi(options?.analytics);
+        }
+
         this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer(options, this.eventEmitter);
+        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 

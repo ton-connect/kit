@@ -46,4 +46,11 @@ export interface TonWalletKitOptions {
               key?: string; // key for better RPS limits
           }
         | ApiClient;
+
+    analytics?: AnalyticsConfig;
+}
+
+export interface AnalyticsConfig {
+    enabled?: boolean;
+    endpoint?: string;
 }
