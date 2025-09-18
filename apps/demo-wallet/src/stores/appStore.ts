@@ -36,6 +36,7 @@ const migrate = (persistedState: unknown, fromVersion: number): unknown => {
                 isAuthenticated: false, // Never persist authentication
                 transactions: (state.transactions as unknown[]) || [],
                 encryptedMnemonic: state.encryptedMnemonic as string, // Migrate encrypted mnemonic
+                ledgerConfig: undefined, // Initialize ledgerConfig for new installations
                 disconnectedSessions: [], // Always initialize as empty array
             },
         };
@@ -89,6 +90,7 @@ export const useStore = create<AppState>()(
                             hasWallet: state.wallet.hasWallet,
                             transactions: state.wallet.transactions,
                             encryptedMnemonic: state.wallet.encryptedMnemonic,
+                            ledgerConfig: state.wallet.ledgerConfig,
                         },
                         // jettons: {
                         //     userJettons: state.jettons.userJettons,

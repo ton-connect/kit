@@ -35,6 +35,9 @@ export interface WalletState {
         // Encrypted mnemonic stored in state
         encryptedMnemonic?: string;
 
+        // Ledger configuration for re-initialization without device connection
+        ledgerConfig?: LedgerConfig;
+
         // Disconnect notifications
         disconnectedSessions: DisconnectNotification[];
     };
@@ -65,4 +68,14 @@ export interface DisconnectNotification {
     walletAddress: string;
     reason?: string;
     timestamp: number;
+}
+
+export interface LedgerConfig {
+    publicKey: number[]; // Store as number array for JSON serialization
+    path: number[];
+    walletId: number;
+    version: string;
+    network: string; // Store as string for JSON serialization
+    workchain: number;
+    accountIndex: number;
 }

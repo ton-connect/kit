@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
-import type { Transaction } from '../../types/wallet';
+import type { Transaction, LedgerConfig } from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
@@ -46,8 +46,9 @@ async function createWalletConfig(params: {
     mnemonic?: string[];
     useWalletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
     ledgerAccountNumber?: number;
+    storedLedgerConfig?: LedgerConfig;
 }): Promise<WalletInitConfig> {
-    const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0 } = params;
+    const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0, storedLedgerConfig } = params;
     switch (useWalletInterfaceType) {
         case 'signer': {
             if (!mnemonic) {
@@ -87,7 +88,21 @@ async function createWalletConfig(params: {
             }
 
             try {
-                // const transport = await TransportWebHID.create();
+                // If we have stored config, use it to avoid connecting to device
+                if (storedLedgerConfig) {
+                    return createWalletInitConfigLedger({
+                        createTransport: async () => await TransportWebHID.create(),
+                        path: storedLedgerConfig.path,
+                        publicKey: Uint8Array.from(storedLedgerConfig.publicKey),
+                        version: storedLedgerConfig.version as 'v4r2',
+                        network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+                        workchain: storedLedgerConfig.workchain,
+                        walletId: storedLedgerConfig.walletId,
+                        accountIndex: storedLedgerConfig.accountIndex,
+                    });
+                }
+
+                // Otherwise, create fresh connection
                 const path = createLedgerPath(false, 0, ledgerAccountNumber);
 
                 return createWalletInitConfigLedger({
@@ -126,6 +141,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         pendingSignDataRequest: undefined,
         isSignDataModalOpen: false,
         encryptedMnemonic: undefined,
+        ledgerConfig: undefined,
         disconnectedSessions: [], // Track recently disconnected sessions
     },
 
@@ -211,6 +227,18 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
 
+            // Store Ledger configuration for future use without device connection
+            const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
+            const ledgerConfig: LedgerConfig = {
+                publicKey: Array.from(wallet.publicKey),
+                path: ledgerPath,
+                walletId: 698983191, // Default wallet ID for v4r2
+                version: 'v4r2',
+                network: 'mainnet',
+                workchain: 0,
+                accountIndex: state.auth.ledgerAccountNumber || 0,
+            };
+
             // Update state - no mnemonic to encrypt for Ledger
             set((state) => {
                 state.wallet.hasWallet = true;
@@ -221,6 +249,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.encryptedMnemonic = undefined; // No mnemonic for Ledger
                 state.wallet.mnemonic = undefined;
                 state.wallet.currentWallet = wallet;
+                state.wallet.ledgerConfig = ledgerConfig; // Store Ledger config
             });
         } catch (error) {
             log.error('Error creating Ledger wallet:', error);
@@ -242,10 +271,55 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         try {
             // Handle Ledger wallet loading
             if (state.auth.useWalletInterfaceType === 'ledger') {
-                // For Ledger wallets, recreate from device
+                // Check if we have stored Ledger config
+                if (!state.wallet.ledgerConfig) {
+                    // No stored config, need to connect to device
+                    const walletConfig = await createWalletConfig({
+                        useWalletInterfaceType: 'ledger',
+                        ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                    });
+
+                    await walletKit.addWallet(walletConfig);
+                    const wallets = walletKit.getWallets();
+                    const wallet = wallets[0];
+
+                    // Get real wallet info and store config for next time
+                    const address = wallet.getAddress();
+                    const balance = await wallet.getBalance();
+                    const publicKey = Array.from(wallet.publicKey)
+                        .map((b) => b.toString(16).padStart(2, '0'))
+                        .join('');
+
+                    // Store Ledger configuration for future use
+                    const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
+                    const ledgerConfig: LedgerConfig = {
+                        publicKey: Array.from(wallet.publicKey),
+                        path: ledgerPath,
+                        walletId: 698983191, // Default wallet ID for v4r2
+                        version: 'v4r2',
+                        network: 'mainnet',
+                        workchain: 0,
+                        accountIndex: state.auth.ledgerAccountNumber || 0,
+                    };
+
+                    // Update state
+                    set((state) => {
+                        state.wallet.hasWallet = true;
+                        state.wallet.isAuthenticated = true;
+                        state.wallet.address = address;
+                        state.wallet.publicKey = publicKey;
+                        state.wallet.balance = balance.toString();
+                        state.wallet.currentWallet = wallet;
+                        state.wallet.ledgerConfig = ledgerConfig;
+                    });
+                    return;
+                }
+
+                // Use stored config to recreate wallet without connecting to device
                 const walletConfig = await createWalletConfig({
                     useWalletInterfaceType: 'ledger',
                     ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                    storedLedgerConfig: state.wallet.ledgerConfig,
                 });
 
                 await walletKit.addWallet(walletConfig);
@@ -372,6 +446,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             state.wallet.transactions = [];
             state.wallet.currentWallet = undefined;
             state.wallet.encryptedMnemonic = undefined;
+            state.wallet.ledgerConfig = undefined;
             state.wallet.pendingConnectRequest = undefined;
             state.wallet.isConnectModalOpen = false;
             state.wallet.pendingTransactionRequest = undefined;

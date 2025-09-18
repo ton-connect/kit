@@ -126,6 +126,7 @@ export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInter
         network: params.network ?? CHAIN.MAINNET,
         workchain: params.workchain ?? 0,
         accountIndex: params.accountIndex ?? 0,
+        publicKey: params.publicKey,
     };
 }
 
