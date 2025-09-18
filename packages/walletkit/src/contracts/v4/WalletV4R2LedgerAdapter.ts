@@ -139,6 +139,10 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
         try {
             transport = await this.createTransport();
             const tonTransport = new TonTransport(transport);
+            if (!(await this.verifyPublicKey(tonTransport))) {
+                throw new Error('Public key from Ledger does not match');
+            }
+
             const signedCell = await tonTransport.signTransaction(this.derivationPath, {
                 to: Address.parse(message.address),
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
@@ -290,6 +294,10 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
         try {
             transport = await this.createTransport();
             const tonTransport = new TonTransport(transport);
+            if (!(await this.verifyPublicKey(tonTransport))) {
+                throw new Error('Public key from Ledger does not match');
+            }
+
             const { signature } = await tonTransport.getAddressProof(this.derivationPath, {
                 domain: input.domain.value,
                 timestamp: input.timstamp,
@@ -302,6 +310,22 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
             }
         }
     }
+
+    async verifyPublicKey(tonTransport: TonTransport): Promise<boolean> {
+        const addressResponse = await tonTransport.getAddress(this.derivationPath, {
+            chain: this.config.workchain ?? 0,
+            bounceable: false,
+            testOnly: this.config.network === CHAIN.TESTNET,
+            walletVersion: 'v4',
+        });
+        if (!addressResponse.publicKey) {
+            return false;
+        }
+        if (!isUint8ArrayEqual(this.publicKey, addressResponse.publicKey)) {
+            return false;
+        }
+        return true;
+    }
 }
 
 /**
@@ -311,6 +335,13 @@ export function createLedgerPath(testnet: boolean = false, workchain: number = 0
     const network = testnet ? 1 : 0;
     const chain = workchain === -1 ? 255 : 0;
     return [44, 607, network, chain, account, 0];
+}
+
+function isUint8ArrayEqual(a: Uint8Array, b: Uint8Array): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+    return a.every((value, index) => value === b[index]);
 }
 
 /**
