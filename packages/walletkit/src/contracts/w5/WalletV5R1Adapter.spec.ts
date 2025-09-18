@@ -6,7 +6,7 @@ import { createWalletV5R1, WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { FullAccountState } from '../../types/toncenter/api';
 import { createWalletInitConfigMnemonic } from '../../types';
-import { uint8ArrayToBase64 } from '../../utils/base64';
+import { Uint8ArrayToBase64 } from '../../utils/base64';
 import {
     addressV5r1,
     addressV5r1Test,
@@ -47,7 +47,7 @@ describe('WalletV5R1Adapter', () => {
 
     it('should sign data using provided signer', async () => {
         const testData = new Uint8Array([1, 2, 3, 4]);
-        const signature = uint8ArrayToBase64(await wallet.sign(testData));
+        const signature = Uint8ArrayToBase64(await wallet.sign(testData));
         expect(signature).toEqual(
             'gaYAMdlcwx1KGzqAkUn8jUNeVqNfW8zex2xJK/mlRkDD78K/4U2EvwfrD/q94YVFEnPnpWkPhNhhmGsabQbzBw==',
         );
