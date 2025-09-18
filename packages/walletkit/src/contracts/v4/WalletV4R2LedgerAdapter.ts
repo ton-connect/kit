@@ -328,20 +328,26 @@ export async function createWalletV4R2Ledger(
 
     let transport: Transport | undefined;
     try {
-        transport = await config.createTransport();
-        const tonTransport = new TonTransport(transport);
-        // Get address and public key from Ledger
-        const response = await tonTransport.getAddress(config.path, {
-            chain: config.workchain ?? 0,
-            bounceable: false,
-            testOnly: config.network === CHAIN.TESTNET,
-            walletVersion: 'v4',
-        });
+        let publicKey: Uint8Array;
+        if (config.publicKey) {
+            publicKey = Uint8Array.from(config.publicKey);
+        } else {
+            transport = await config.createTransport();
+            const tonTransport = new TonTransport(transport);
+            // Get address and public key from Ledger
+            const response = await tonTransport.getAddress(config.path, {
+                chain: config.workchain ?? 0,
+                bounceable: false,
+                testOnly: config.network === CHAIN.TESTNET,
+                walletVersion: 'v4',
+            });
+            publicKey = response.publicKey;
+        }
 
         return new WalletV4R2LedgerAdapter({
             createTransport: config.createTransport,
             path: config.path,
-            publicKey: response.publicKey,
+            publicKey: publicKey,
             walletId: config.walletId,
             tonClient: options.tonClient,
             network: config.network || CHAIN.MAINNET,

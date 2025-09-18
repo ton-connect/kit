@@ -102,6 +102,9 @@ export interface WalletInitConfigLedgerInterface {
     createTransport: () => Promise<Transport>; // @ledgerhq/hw-transport
     /** Derivation path for the account */
     path: number[];
+
+    /** Public key from Ledger, we can use it to init stored wallets without re-connecting to Ledger */
+    publicKey?: Uint8Array;
     /** Wallet version - only v4r2 supported for Ledger */
     version?: 'v4r2';
     /** Wallet ID configuration */
