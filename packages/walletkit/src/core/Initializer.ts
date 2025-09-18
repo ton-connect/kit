@@ -11,7 +11,6 @@ import {
     isWalletInitConfigMnemonic,
     isWalletInitConfigPrivateKey,
     isWalletInitConfigSigner,
-    isWalletInitConfigLedger,
 } from '../types';
 import type { StorageAdapter } from '../storage';
 import { createStorageAdapter } from '../storage';
@@ -24,7 +23,7 @@ import { RequestProcessor } from './RequestProcessor';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { createWalletV5R1 } from '../contracts/w5/WalletV5R1Adapter';
-import { createWalletV4R2Ledger } from '../contracts/v4/WalletV4R2LedgerAdapter';
+// import { createWalletV4R2Ledger } from '../contracts/v4/WalletV4R2LedgerAdapter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
 import { WalletInitInterface } from '../types/wallet';
@@ -338,16 +337,17 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
         } else {
             throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
         }
-    } else if (isWalletInitConfigLedger(config)) {
-        // Handle Ledger configuration
-        if (config.version === 'v4r2') {
-            wallet = await createWalletV4R2Ledger(config, {
-                tonClient,
-            });
-        } else {
-            throw new Error(`Unsupported wallet version for Ledger: ${config.version}`);
-        }
-    } else if (isWalletInterface(config)) {
+    }
+    // else if (isWalletInitConfigLedger(config)) {
+    //     // Handle Ledger configuration
+    //     if (config.version === 'v4r2') {
+    //         wallet = await createWalletV4R2Ledger(config, {
+    //             tonClient,
+    //         });
+    //     } else {
+    //         throw new Error(`Unsupported wallet version for Ledger: ${config.version}`);
+    //     }
+    else if (isWalletInterface(config)) {
         // If it's already a WalletInterface, use it as-is
         wallet = config as WalletInitInterface;
     }

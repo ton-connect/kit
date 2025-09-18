@@ -14,43 +14,41 @@ import {
 import { CHAIN, toHexString } from '@tonconnect/protocol';
 import { TonTransport } from '@ton-community/ton-ledger';
 import Transport from '@ledgerhq/hw-transport';
+import {
+    WalletInitInterface,
+    ApiClient,
+    formatWalletAddress,
+    CallForSuccess,
+    ConnectTransactionParamContent,
+    PrepareSignDataResult,
+    Hash,
+    TonProofParsedMessage,
+    Uint8ArrayToBigInt,
+} from '@ton/walletkit';
 
 import { WalletV4R2, WalletV4R2Config } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
-import { globalLogger } from '../../core/Logger';
-import { formatWalletAddress } from '../../utils/address';
-import { CallForSuccess } from '../../utils/retry';
-import { ConnectTransactionParamContent } from '../../types/internal';
-import { WalletInitInterface, WalletInitConfigLedgerInterface, isWalletInitConfigLedger } from '../../types/wallet';
-import { ApiClient } from '../../types/toncenter/ApiClient';
-import { uint8ArrayToBigInt } from '../../utils/base64';
-import { PrepareSignDataResult } from '../../utils/signData/sign';
-import { Hash } from '../../types/primitive';
-import { TonProofParsedMessage } from '../../utils/tonProof';
+import { defaultWalletIdV4R2 } from './constants';
+import { WalletInitConfigLedgerInterface, WalletV4R2LedgerAdapterConfig } from './types';
 
-const log = globalLogger.createChild('WalletV4R2LedgerAdapter');
+const log = {
+    warn: (_message: string, _error: unknown) => {},
+};
 
-export const defaultWalletIdV4R2 = 698983191;
-
-/**
- * Configuration for creating a WalletV4R2 Ledger adapter
- */
-export interface WalletV4R2LedgerAdapterConfig {
-    /** Ledger TON transport */
-    createTransport: () => Promise<Transport>;
-    /** Derivation path for signing */
-    path: number[];
-    /** Public key from Ledger */
-    publicKey: Uint8Array;
-    /** Wallet ID configuration */
-    walletId?: number;
-    /** Shared TON client instance */
-    tonClient: ApiClient;
-    /** Network */
-    network: CHAIN;
-    /** Workchain */
-    workchain?: number;
+export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInterface): WalletInitConfigLedgerInterface {
+    return {
+        createTransport: params.createTransport,
+        path: params.path,
+        version: params.version ?? 'v4r2',
+        walletId: params.walletId ?? 698983191,
+        network: params.network ?? CHAIN.MAINNET,
+        workchain: params.workchain ?? 0,
+        accountIndex: params.accountIndex ?? 0,
+        publicKey: params.publicKey,
+    };
 }
+
+// const log = globalLogger.createChild('WalletV4R2LedgerAdapter');
 
 /**
  * WalletV4R2 Ledger adapter that implements WalletInterface for WalletV4R2 contracts
@@ -75,7 +73,7 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
         this.publicKey = Uint8Array.from(this.config.publicKey);
 
         const walletConfig: WalletV4R2Config = {
-            publicKey: uint8ArrayToBigInt(this.publicKey),
+            publicKey: Uint8ArrayToBigInt(this.publicKey),
             workchain: config.workchain ?? 0,
             seqno: 0,
             subwalletId: config.walletId ?? defaultWalletIdV4R2,
@@ -87,19 +85,6 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
             client: this.client,
         });
     }
-
-    /**
-     * Sign raw bytes with Ledger hardware wallet
-     */
-    // async sign(bytes: Uint8Array): Promise<Uint8Array> {
-    //     try {
-    //         const signature = await this.tonTransport.sign(this.derivationPath, Buffer.from(bytes));
-    //         return new Uint8Array(signature);
-    //     } catch (error) {
-    //         log.error('Failed to sign with Ledger', { error });
-    //         throw new Error(`Ledger signing failed: ${error}`);
-    //     }
-    // }
 
     getNetwork(): CHAIN {
         return this.config.network;
@@ -248,43 +233,7 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
         }
     }
 
-    /**
-     * Create transfer body for WalletV4R2 using Ledger signing
-     */
-    // private async createTransferBody(
-    //     seqno: number,
-    //     timeout: number,
-    //     messages: any[],
-    //     fakeSignature: boolean,
-    // ): Promise<Cell> {
-    //     const subwalletId = this.config.walletId ?? defaultWalletIdV4R2;
-
-    //     // Build the message body
-    //     let body = beginCell().storeUint(subwalletId, 32).storeUint(timeout, 32).storeUint(seqno, 32).storeUint(0, 8); // Simple transfer
-
-    //     for (const message of messages) {
-    //         body = body
-    //             .storeUint(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, 8)
-    //             .storeRef(beginCell().store(storeMessage(message, { forceRef: false })));
-    //     }
-
-    //     const messageCell = body.endCell();
-    //     const signingData = messageCell.hash();
-
-    //     let signature: Uint8Array;
-    //     if (fakeSignature) {
-    //         signature = FakeSignature(signingData);
-    //     } else {
-    //         signature = await this.sign(signingData);
-    //     }
-
-    //     return beginCell().storeBuffer(Buffer.from(signature)).storeSlice(messageCell.beginParse()).endCell();
-    // }
-
     async getSignedSignData(_input: PrepareSignDataResult): Promise<Hash> {
-        // const signature = await this.sign(input.hash);
-        // const signature = await this.ton
-        // return ('0x' + toHexString(signature)) as Hash;
         throw new Error('Not implemented');
     }
 
@@ -328,68 +277,9 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
     }
 }
 
-/**
- * Utility function to create Ledger derivation path
- */
-export function createLedgerPath(testnet: boolean = false, workchain: number = 0, account: number = 0): number[] {
-    const network = testnet ? 1 : 0;
-    const chain = workchain === -1 ? 255 : 0;
-    return [44, 607, network, chain, account, 0];
-}
-
 function isUint8ArrayEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) {
         return false;
     }
     return a.every((value, index) => value === b[index]);
-}
-
-/**
- * Utility function to create WalletV4R2 Ledger adapter from Ledger configuration
- */
-export async function createWalletV4R2Ledger(
-    config: WalletInitConfigLedgerInterface,
-    options: {
-        tonClient: ApiClient;
-    },
-): Promise<WalletInitInterface> {
-    if (!isWalletInitConfigLedger(config)) {
-        throw new Error('Invalid Ledger configuration');
-    }
-
-    let transport: Transport | undefined;
-    try {
-        let publicKey: Uint8Array;
-        if (config.publicKey) {
-            publicKey = Uint8Array.from(config.publicKey);
-        } else {
-            transport = await config.createTransport();
-            const tonTransport = new TonTransport(transport);
-            // Get address and public key from Ledger
-            const response = await tonTransport.getAddress(config.path, {
-                chain: config.workchain ?? 0,
-                bounceable: false,
-                testOnly: config.network === CHAIN.TESTNET,
-                walletVersion: 'v4',
-            });
-            publicKey = response.publicKey;
-        }
-
-        return new WalletV4R2LedgerAdapter({
-            createTransport: config.createTransport,
-            path: config.path,
-            publicKey: publicKey,
-            walletId: config.walletId,
-            tonClient: options.tonClient,
-            network: config.network || CHAIN.MAINNET,
-            workchain: config.workchain,
-        });
-    } catch (error) {
-        log.error('Failed to create Ledger adapter', { error });
-        throw new Error(`Failed to initialize Ledger wallet: ${error}`);
-    } finally {
-        if (transport) {
-            await transport.close();
-        }
-    }
 }

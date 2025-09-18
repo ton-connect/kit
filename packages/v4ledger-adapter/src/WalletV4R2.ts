@@ -13,11 +13,14 @@ import {
     storeMessageRelaxed,
 } from '@ton/core';
 import { Maybe } from '@ton/core/dist/utils/maybe';
+import { ApiClient } from '@ton/walletkit';
 
-import { ApiClient } from '../../types/toncenter/ApiClient';
-import { globalLogger } from '../../core/Logger';
-
-const log = globalLogger.createChild('WalletV4R2');
+// const log = globalLogger.createChild('WalletV4R2');
+const log = {
+    error: (message: string, data: unknown) => {
+        // console.error(message, data);
+    },
+};
 
 export interface WalletV4R2Config {
     publicKey: bigint;

@@ -35,7 +35,7 @@ import {
     WalletSigner,
 } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
-import { uint8ArrayToBigInt } from '../../utils/base64';
+import { Uint8ArrayToBigInt } from '../../utils/base64';
 import { PrepareSignDataResult } from '../../utils/signData/sign';
 import { Hash } from '../../types/primitive';
 import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
@@ -81,7 +81,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
         this.publicKey = Uint8Array.from(this.config.publicKey);
         this.walletContract = WalletV5.createFromConfig(
             {
-                publicKey: uint8ArrayToBigInt(this.publicKey),
+                publicKey: Uint8ArrayToBigInt(this.publicKey),
                 seqno: 0,
                 signatureAllowed: true,
                 walletId:

@@ -1,6 +1,6 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
 
-import { base64ToUint8Array, base64ToBigInt, uint8ArrayToBase64 } from '../utils/base64';
+import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64 } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
@@ -105,10 +105,10 @@ export class ApiClientToncenter implements ApiClient {
 
     async sendBoc(boc: string | Uint8Array): Promise<string> {
         if (typeof boc !== 'string') {
-            boc = uint8ArrayToBase64(boc);
+            boc = Uint8ArrayToBase64(boc);
         }
         const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
-        return base64ToBigInt(response.message_hash_norm).toString(16);
+        return Base64ToBigInt(response.message_hash_norm).toString(16);
     }
 
     async runGetMethod(
@@ -146,8 +146,8 @@ export class ApiClientToncenter implements ApiClient {
         for (const currency of raw.extra_currencies || []) {
             extraCurrencies[currency.id] = BigInt(currency.amount);
         }
-        const code = base64ToUint8Array(raw.code);
-        const data = base64ToUint8Array(raw.data);
+        const code = Base64ToUint8Array(raw.code);
+        const data = Base64ToUint8Array(raw.data);
         const out: FullAccountState = {
             status: raw.status,
             balance,
@@ -160,7 +160,7 @@ export class ApiClientToncenter implements ApiClient {
             }),
         };
         if (raw.frozen_hash) {
-            out.frozenHash = base64ToBigInt(raw.frozen_hash);
+            out.frozenHash = Base64ToBigInt(raw.frozen_hash);
         }
         return out;
     }
@@ -292,8 +292,8 @@ interface V2SendMessageResult {
 function parseInternalTransactionId(data: InternalTransactionId): TransactionId | null {
     if (data.hash !== 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=') {
         return {
-            lt: base64ToBigInt(data.lt),
-            hash: base64ToBigInt(data.hash),
+            lt: Base64ToBigInt(data.lt),
+            hash: Base64ToBigInt(data.hash),
         };
     }
     return null;

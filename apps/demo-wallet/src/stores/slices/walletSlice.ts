@@ -9,12 +9,11 @@ import {
     type WalletInitConfig,
     createWalletInitConfigSigner,
     createWalletInitConfigMnemonic,
-    createWalletInitConfigLedger,
-    createLedgerPath,
     MnemonicToKeyPair,
     DefaultSignature,
     CHAIN,
 } from '@ton/walletkit';
+import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
 
@@ -49,6 +48,9 @@ async function createWalletConfig(params: {
     storedLedgerConfig?: LedgerConfig;
 }): Promise<WalletInitConfig> {
     const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0, storedLedgerConfig } = params;
+    while (!walletKit.isReady()) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
     switch (useWalletInterfaceType) {
         case 'signer': {
             if (!mnemonic) {
@@ -90,29 +92,40 @@ async function createWalletConfig(params: {
             try {
                 // If we have stored config, use it to avoid connecting to device
                 if (storedLedgerConfig) {
-                    return createWalletInitConfigLedger({
-                        createTransport: async () => await TransportWebHID.create(),
-                        path: storedLedgerConfig.path,
-                        publicKey: Uint8Array.from(storedLedgerConfig.publicKey),
-                        version: storedLedgerConfig.version as 'v4r2',
-                        network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
-                        workchain: storedLedgerConfig.workchain,
-                        walletId: storedLedgerConfig.walletId,
-                        accountIndex: storedLedgerConfig.accountIndex,
-                    });
+                    // debugger;
+                    return createWalletV4R2Ledger(
+                        createWalletInitConfigLedger({
+                            createTransport: async () => await TransportWebHID.create(),
+                            path: storedLedgerConfig.path,
+                            publicKey: Uint8Array.from(storedLedgerConfig.publicKey),
+                            version: storedLedgerConfig.version as 'v4r2',
+                            network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+                            workchain: storedLedgerConfig.workchain,
+                            walletId: storedLedgerConfig.walletId,
+                            accountIndex: storedLedgerConfig.accountIndex,
+                        }),
+                        {
+                            tonClient: walletKit.getTonClient(),
+                        },
+                    );
                 }
 
                 // Otherwise, create fresh connection
                 const path = createLedgerPath(false, 0, ledgerAccountNumber);
 
-                return createWalletInitConfigLedger({
-                    createTransport: async () => await TransportWebHID.create(),
-                    path,
-                    version: 'v4r2',
-                    network: CHAIN.MAINNET,
-                    workchain: 0,
-                    accountIndex: ledgerAccountNumber,
-                });
+                return createWalletV4R2Ledger(
+                    createWalletInitConfigLedger({
+                        createTransport: async () => await TransportWebHID.create(),
+                        path,
+                        version: 'v4r2',
+                        network: CHAIN.MAINNET,
+                        workchain: 0,
+                        accountIndex: ledgerAccountNumber,
+                    }),
+                    {
+                        tonClient: walletKit.getTonClient(),
+                    },
+                );
             } catch (error) {
                 log.error('Failed to create Ledger transport:', error);
                 throw new Error('Failed to connect to Ledger device');
@@ -164,6 +177,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 mnemonic,
                 useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
             });
 
             await walletKit.addWallet(walletConfig);
@@ -214,6 +228,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const walletConfig = await createWalletConfig({
                 useWalletInterfaceType: 'ledger',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
             });
 
             await walletKit.addWallet(walletConfig);
@@ -277,6 +292,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                     const walletConfig = await createWalletConfig({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                        storedLedgerConfig: state.wallet.ledgerConfig,
                     });
 
                     await walletKit.addWallet(walletConfig);
@@ -367,6 +383,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 mnemonic,
                 useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
             });
 
             await walletKit.addWallet(walletConfig);

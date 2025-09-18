@@ -2,7 +2,7 @@
 
 import { Address, SendMode } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
-import Transport from '@ledgerhq/hw-transport';
+// import Transport from '@ledgerhq/hw-transport';
 
 import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal';
 import { JettonTransferParams } from './jettons';
@@ -97,45 +97,6 @@ export function isWalletInitConfigSigner(
     return 'publicKey' in config && 'sign' in config;
 }
 
-export interface WalletInitConfigLedgerInterface {
-    /** Ledger transport instance */
-    createTransport: () => Promise<Transport>; // @ledgerhq/hw-transport
-    /** Derivation path for the account */
-    path: number[];
-
-    /** Public key from Ledger, we can use it to init stored wallets without re-connecting to Ledger */
-    publicKey?: Uint8Array;
-    /** Wallet version - only v4r2 supported for Ledger */
-    version?: 'v4r2';
-    /** Wallet ID configuration */
-    walletId?: number;
-    /** Network */
-    network?: CHAIN;
-    /** Workchain */
-    workchain?: number;
-    /** Account index */
-    accountIndex?: number;
-}
-
-export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInterface): WalletInitConfigLedgerInterface {
-    return {
-        createTransport: params.createTransport,
-        path: params.path,
-        version: params.version ?? 'v4r2',
-        walletId: params.walletId ?? 698983191,
-        network: params.network ?? CHAIN.MAINNET,
-        workchain: params.workchain ?? 0,
-        accountIndex: params.accountIndex ?? 0,
-        publicKey: params.publicKey,
-    };
-}
-
-export function isWalletInitConfigLedger(
-    config: WalletInitConfig,
-): config is ReturnType<typeof createWalletInitConfigLedger> {
-    return 'createTransport' in config && 'path' in config;
-}
-
 /**
  * Core wallet interface that all wallets must implement
  */
@@ -227,8 +188,7 @@ export type WalletInitConfig =
     | WalletInitInterface
     | WalletInitConfigMnemonicInterface
     | WalletInitConfigPrivateKeyInterface
-    | WalletInitConfigSignerInterface
-    | WalletInitConfigLedgerInterface;
+    | WalletInitConfigSignerInterface;
 
 export type WalletInterface = WalletInitInterface & WalletTonInterface & WalletJettonInterface & WalletNftInterface;
 
