@@ -346,9 +346,7 @@ export const WalletDashboard: React.FC = () => {
                 {/* Development Test Section */}
                 <Card title="Development Tools">
                     <div className="space-y-4">
-                        <p className="text-sm text-gray-600">
-                            Test disconnect event functionality
-                        </p>
+                        <p className="text-sm text-gray-600">Test disconnect event functionality</p>
                         <Button variant="secondary" onClick={handleTestDisconnectAll} className="w-full">
                             Test: Disconnect All Sessions
                         </Button>
