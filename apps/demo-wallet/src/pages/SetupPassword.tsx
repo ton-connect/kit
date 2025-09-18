@@ -54,7 +54,9 @@ export const SetupPassword: React.FC = () => {
         <Layout title="Setup Password">
             <div className="space-y-6">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900">Create Password</h2>
+                    <h2 className="text-2xl font-bold text-gray-900" data-test-id="subtitle">
+                        Create Password
+                    </h2>
                     <p className="mt-2 text-sm text-gray-600">
                         Your password will be used to encrypt your wallet data locally.
                     </p>
@@ -63,6 +65,7 @@ export const SetupPassword: React.FC = () => {
                 <Card>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <Input
+                            data-test-id="password"
                             type="password"
                             label="Password"
                             value={password}
@@ -73,6 +76,7 @@ export const SetupPassword: React.FC = () => {
                         />
 
                         <Input
+                            data-test-id="password-confirm"
                             type="password"
                             label="Confirm Password"
                             value={confirmPassword}
@@ -84,6 +88,7 @@ export const SetupPassword: React.FC = () => {
                         {error && <div className="text-red-600 text-sm text-center">{error}</div>}
 
                         <Button
+                            data-test-id="password-submit"
                             type="submit"
                             isLoading={isLoading}
                             disabled={!password || !confirmPassword}

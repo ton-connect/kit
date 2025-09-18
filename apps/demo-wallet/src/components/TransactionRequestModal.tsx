@@ -72,7 +72,9 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 className="text-xl font-bold text-gray-900">Transaction Request</h2>
+                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                Transaction Request
+                            </h2>
                             <p className="text-gray-600 text-sm mt-1">
                                 A dApp wants to send a transaction from your wallet
                             </p>

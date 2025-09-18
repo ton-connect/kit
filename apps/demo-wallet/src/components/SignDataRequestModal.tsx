@@ -126,7 +126,9 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 className="text-xl font-bold text-gray-900">Sign Data Request</h2>
+                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                Sign Data Request
+                            </h2>
                             <p className="text-gray-600 text-sm mt-1">A dApp wants you to sign data with your wallet</p>
                         </div>
 
@@ -176,10 +178,17 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
+                            <Button
+                                data-test-id="sign-data-reject"
+                                variant="secondary"
+                                onClick={handleReject}
+                                disabled={isLoading}
+                                className="flex-1"
+                            >
                                 Reject
                             </Button>
                             <Button
+                                data-test-id="sign-data-approve"
                                 onClick={handleApprove}
                                 isLoading={isLoading}
                                 disabled={isLoading}

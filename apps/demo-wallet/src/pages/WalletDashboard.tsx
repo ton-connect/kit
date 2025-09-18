@@ -214,6 +214,7 @@ export const WalletDashboard: React.FC = () => {
                                 Paste TON Connect Link
                             </label>
                             <textarea
+                                data-test-id="tonconnect-url"
                                 id="tonconnect-url"
                                 rows={3}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none text-black"
@@ -223,6 +224,7 @@ export const WalletDashboard: React.FC = () => {
                             />
                         </div>
                         <Button
+                            data-test-id="tonconnect-process"
                             onClick={handleConnectDApp}
                             isLoading={isConnecting}
                             disabled={!tonConnectUrl.trim() || isConnecting}
@@ -266,7 +268,10 @@ export const WalletDashboard: React.FC = () => {
                                 <label className="text-sm font-medium text-gray-700">Remember Password</label>
                                 <p className="text-xs text-gray-500 mt-1">Keep wallet unlocked between app reloads</p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label
+                                data-test-id="password-remember"
+                                className="relative inline-flex items-center cursor-pointer"
+                            >
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"

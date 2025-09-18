@@ -32,18 +32,22 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../util
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
 
+const ENV_BRIDGE_URL = import.meta.env.VITE_BRIDGE_URL ?? 'https://walletbot.me/tonconnect-bridge/bridge';
+const ENV_TON_API_KEY =
+    import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
+
 const walletKit = new TonWalletKit({
     // bridgeUrl: 'https://bridge.tonapi.io/bridge',
     deviceInfo: createDeviceInfo(getTonConnectDeviceInfo()),
     walletManifest: createWalletManifest(getTonConnectWalletManifest()),
 
     bridge: {
-        bridgeUrl: 'https://walletbot.me/tonconnect-bridge/bridge',
+        bridgeUrl: ENV_BRIDGE_URL,
     },
 
     network: CHAIN.MAINNET,
     apiClient: {
-        key: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+        key: ENV_TON_API_KEY,
     },
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
