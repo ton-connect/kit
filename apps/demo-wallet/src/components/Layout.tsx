@@ -96,7 +96,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', 
         <div className="min-h-screen bg-gray-100">
             <header className="bg-white shadow-sm border-b border-gray-200">
                 <div className="sm:w-md md:w-lg mx-auto px-4 py-2 flex justify-between items-center">
-                    <h1 className="text-lg font-bold text-gray-900">{title}</h1>
+                    <h1 className="text-lg font-bold text-gray-900" data-test-id="title">
+                        {title}
+                    </h1>
                     {showLogout && (
                         <div className="relative" ref={dropdownRef}>
                             <button
@@ -200,7 +202,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', 
                     <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">Your Recovery Phrase</h2>
+                                <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                    Your Recovery Phrase
+                                </h2>
                                 <button
                                     onClick={handleCloseMnemonicModal}
                                     className="text-gray-400 hover:text-gray-600"

@@ -14,6 +14,7 @@ module.exports = [
     },
     {
         ignores: [
+            '**/*report/*',
             '**/dist/*',
             '**/*stryker*/*',
             '**/*coverage*/*',

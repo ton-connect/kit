@@ -57,7 +57,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 className="text-xl font-bold text-gray-900">Connect Request</h2>
+                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                Connect Request
+                            </h2>
                             <p className="text-gray-600 text-sm mt-1">A dApp wants to connect to your wallet</p>
                         </div>
 
@@ -212,6 +214,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 Reject
                             </Button>
                             <Button
+                                data-test-id="connect"
                                 onClick={handleApprove}
                                 isLoading={isLoading}
                                 disabled={!selectedWallet || isLoading}

@@ -1,0 +1,54 @@
+name: e2e
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  base:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: pnpm/action-setup@v4
+    - name: Read .nvmrc
+      run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '${{ env.NVMRC }}'
+        cache: 'pnpm'
+
+    - name: Setup dependencies
+      run: |
+        sudo apt-get install --no-install-recommends -y xvfb
+        pnpm install --frozen-lockfile
+        pnpm --filter demo-wallet e2e:deps
+
+    - name: Build
+      run: |
+        pnpm build
+        pnpm --filter demo-wallet build:extension
+      env:
+        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
+
+    - name: Start TON Connect Bridge
+      uses: ton-connect/bridge/actions/local@master
+
+    - name: Run e2e specs
+      run: xvfb-run pnpm --filter demo-wallet e2e
+      env:
+        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
+
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-artifacts
+        path: |
+          apps/demo-wallet/playwright-report/
+          apps/demo-wallet/test-results/
+        retention-days: 10
