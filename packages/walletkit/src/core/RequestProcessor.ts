@@ -291,15 +291,21 @@ export class RequestProcessor {
     /**
      * Process transaction request rejection
      */
-    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult> {
+    async rejectTransactionRequest(
+        event: EventTransactionRequest,
+        reason?: string | SendTransactionRpcResponseError,
+    ): Promise<SendRequestResult> {
         try {
-            const response: SendTransactionRpcResponseError = {
-                error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR,
-                    message: reason || 'User rejected transaction',
-                },
-                id: event.id,
-            };
+            const response: SendTransactionRpcResponseError =
+                typeof reason === 'string' || typeof reason === 'undefined'
+                    ? {
+                          error: {
+                              code: SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR,
+                              message: reason || 'User rejected transaction',
+                          },
+                          id: event.id,
+                      }
+                    : reason;
 
             await this.bridgeManager.sendResponse(event, response);
             this.analyticsApi?.sendEvents([

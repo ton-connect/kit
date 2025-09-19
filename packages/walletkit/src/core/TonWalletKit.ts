@@ -1,7 +1,13 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import { Address } from '@ton/core';
-import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
+import {
+    CHAIN,
+    ConnectEventSuccess,
+    ConnectRequest,
+    DisconnectEvent,
+    SendTransactionRpcResponseError,
+} from '@tonconnect/protocol';
 
 import type {
     TonWalletKit as ITonWalletKit,
@@ -541,7 +547,10 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.approveTransactionRequest(event);
     }
 
-    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult> {
+    async rejectTransactionRequest(
+        event: EventTransactionRequest,
+        reason?: string | SendTransactionRpcResponseError,
+    ): Promise<SendRequestResult> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
