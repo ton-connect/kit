@@ -104,6 +104,8 @@ export class RequestProcessor {
                 {
                     event_name: 'wallet-connect-accepted',
                     trace_id: event.traceId,
+                    client_environment: 'wallet',
+                    subsystem: 'wallet',
                 },
             ]);
             return { success: true };
@@ -147,6 +149,8 @@ export class RequestProcessor {
                 {
                     event_name: 'wallet-connect-rejected',
                     trace_id: event.traceId,
+                    client_environment: 'wallet',
+                    subsystem: 'wallet',
                 },
             ]);
             return { success: true };
@@ -178,6 +182,8 @@ export class RequestProcessor {
                     {
                         event_name: 'wallet-transaction-accepted',
                         trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: 'wallet',
                     },
                 ]);
                 return { success: true, result: { signedBoc: event.result.signedBoc } };
@@ -197,6 +203,8 @@ export class RequestProcessor {
                     {
                         event_name: 'wallet-transaction-accepted',
                         trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: 'wallet',
                     },
                 ]);
                 return { success: true, result: { signedBoc } };
@@ -228,6 +236,8 @@ export class RequestProcessor {
                 {
                     event_name: 'wallet-transaction-declined',
                     trace_id: event.traceId,
+                    client_environment: 'wallet',
+                    subsystem: 'wallet',
                 },
             ]);
             return { success: true };
@@ -262,6 +272,8 @@ export class RequestProcessor {
                     {
                         event_name: 'wallet-sign-data-accepted',
                         trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: 'wallet',
                     },
                 ]);
                 return { success: true, result: { signature: asHash(event.result.signature) } };
@@ -304,6 +316,8 @@ export class RequestProcessor {
                     {
                         event_name: 'wallet-sign-data-accepted',
                         trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: 'wallet',
                     },
                 ]);
                 return { success: true, result: { signature: asHash(signatureBase64) } };
@@ -330,6 +344,8 @@ export class RequestProcessor {
                 {
                     event_name: 'wallet-sign-data-declined',
                     trace_id: event.traceId,
+                    client_environment: 'wallet',
+                    subsystem: 'wallet',
                 },
             ]);
             return { success: true };
