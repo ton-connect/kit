@@ -4,7 +4,7 @@ import util from 'util';
 import * as dotenv from 'dotenv';
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
 import { ApiClientToncenter, CHAIN, ConnectTransactionParamMessage, WalletInterface } from '@ton/walletkit';
-import { wrapWalletInterface } from '@ton/walletkit/dist/cjs/core/Initializer';
+import { wrapWalletInterface } from '@ton/walletkit';
 
 import { createLedgerPath, createWalletV4R2Ledger } from '../utils';
 import { createWalletInitConfigLedger } from '../WalletV4R2LedgerAdapter';
