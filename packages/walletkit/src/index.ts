@@ -6,6 +6,9 @@ export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export * from './types/internal';
 
+// Re-export error handling system
+export * from './errors';
+
 export { CHAIN } from '@tonconnect/protocol';
 
 // Re-export managers for advanced customization
