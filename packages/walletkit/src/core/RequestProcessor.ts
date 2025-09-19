@@ -58,22 +58,34 @@ export class RequestProcessor {
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
                 if (!event.walletAddress) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
                         'Wallet is required for connect request approval',
                         undefined,
                         { eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for connect request',
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 // Create session for this connection'
@@ -93,22 +105,34 @@ export class RequestProcessor {
                 await this.bridgeManager.sendResponse(event, response.result);
             } else if ('result' in event) {
                 if (!event.walletAddress) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
                         'Wallet is required for connect approval result',
                         undefined,
                         { eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for connect approval result',
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 // If event is EventConnectApproval, we need to send response to dApp and create session
@@ -118,12 +142,18 @@ export class RequestProcessor {
                 await this.bridgeManager.sendResponse(event, event.result.response);
             } else {
                 log.error('Invalid event', { event });
-                throw new WalletKitError(
+                const error = new WalletKitError(
                     ERROR_CODES.INVALID_REQUEST_EVENT,
                     'Invalid connect request event',
                     undefined,
                     { event },
                 );
+                return {
+                    success: false,
+                    code: error.code,
+                    message: error.message,
+                    error: error,
+                };
             }
 
             this.analyticsApi?.sendEvents([
@@ -137,7 +167,10 @@ export class RequestProcessor {
             return { success: true };
         } catch (error) {
             log.error('Failed to approve connect request', { error });
-            throw error;
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
+            }
+            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
         }
     }
 
@@ -182,7 +215,9 @@ export class RequestProcessor {
             return { success: true };
         } catch (error) {
             log.error('Failed to reject connect request', { error });
-            // throw error;
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
+            }
             return { success: false, code: 500, error: error as Error };
         }
     }
@@ -237,10 +272,19 @@ export class RequestProcessor {
             }
         } catch (error) {
             log.error('Failed to approve transaction request', { error });
-            if ((error as { message: string })?.message?.includes('Ledger device')) {
-                return { success: false, code: 601, message: 'Ledger device error', error: error as Error };
+
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
             }
-            return { success: false, code: 500, error: error as Error };
+            if ((error as { message: string })?.message?.includes('Ledger device')) {
+                return {
+                    success: false,
+                    code: ERROR_CODES.LEDGER_DEVICE_ERROR,
+                    message: 'Ledger device error',
+                    error: error as Error,
+                };
+            }
+            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
         }
     }
 
@@ -269,7 +313,10 @@ export class RequestProcessor {
             return { success: true };
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
-            return { success: false, code: 500, error: error as Error };
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
+            }
+            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
         }
     }
 
@@ -305,31 +352,49 @@ export class RequestProcessor {
                 return { success: true, result: { signature: asHash(event.result.signature) } };
             } else {
                 if (!event.domain) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.SESSION_DOMAIN_REQUIRED,
                         'Domain is required for sign data request',
                         undefined,
                         { eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 if (!event.walletAddress) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
                         'Wallet address is required for sign data request',
                         undefined,
                         { eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new WalletKitError(
+                    const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for sign data request',
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
+                    return {
+                        success: false,
+                        code: error.code,
+                        message: error.message,
+                        error: error,
+                    };
                 }
                 // Sign data with wallet
                 const signData = PrepareTonConnectData({
@@ -365,7 +430,9 @@ export class RequestProcessor {
             }
         } catch (error) {
             log.error('Failed to approve sign data request', { error });
-            // throw error;
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
+            }
             return { success: false, code: 500, error: error as Error };
         }
     }
@@ -392,7 +459,10 @@ export class RequestProcessor {
             return { success: true };
         } catch (error) {
             log.error('Failed to reject sign data request', { error });
-            return { success: false, code: 500, error: error as Error };
+            if (error instanceof WalletKitError) {
+                return { success: false, code: error.code, message: error.message, error: error };
+            }
+            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
         }
     }
 
