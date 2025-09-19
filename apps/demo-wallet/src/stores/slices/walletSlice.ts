@@ -16,6 +16,7 @@ import {
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
+import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -742,8 +743,29 @@ export const setupWalletKitListeners = (
     showSignDataRequest: (request: EventSignDataRequest) => void,
     handleDisconnectEvent: (event: EventDisconnect) => void,
 ) => {
-    const onTransactionRequest = (event: EventTransactionRequest) => {
+    const onTransactionRequest = async (event: EventTransactionRequest) => {
         log.info('Transaction request received:', event);
+
+        const wallet = await walletKit.getWallet(event.walletAddress ?? '');
+        if (!wallet) {
+            log.error('Wallet not found for transaction request');
+            return;
+        }
+
+        const balance = await wallet.getBalance();
+        const minNeededBalance = event.request.messages.reduce((acc, message) => acc + BigInt(message.amount), 0n);
+        if (balance < minNeededBalance) {
+            // log.error('Insufficient balance for transaction request');
+            await walletKit.rejectTransactionRequest(event, {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                    message: 'Insufficient balance',
+                },
+                id: event.id,
+            });
+            return;
+        }
+
         showTransactionRequest(event);
     };
     walletKit.onConnectRequest((event) => {

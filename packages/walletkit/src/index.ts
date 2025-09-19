@@ -1,5 +1,8 @@
 // Main exports for TonWalletKit
 
+export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
+export { CHAIN } from '@tonconnect/protocol';
+
 export { TonWalletKit } from './core/TonWalletKit';
 
 // Re-export all types for convenience
@@ -8,8 +11,6 @@ export * from './types/internal';
 
 // Re-export error handling system
 export * from './errors';
-
-export { CHAIN } from '@tonconnect/protocol';
 
 // Re-export managers for advanced customization
 export { WalletManager } from './core/WalletManager';
