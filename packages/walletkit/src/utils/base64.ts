@@ -1,4 +1,5 @@
 import { Hash, asHash } from '../types/primitive';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 /**
  * Normalize base64 string
@@ -17,7 +18,7 @@ export function Base64Normalize(data: string): string {
  */
 export function ParseBase64(data: string): string {
     if (typeof atob === 'undefined') {
-        throw new Error('atob is not available in this environment');
+        throw new WalletKitError(ERROR_CODES.CONFIGURATION_ERROR, 'atob function is not available in this environment');
     }
     data = Base64Normalize(data);
     return atob(data);
@@ -33,7 +34,10 @@ export function Base64ToHash(data?: string | null): Hash | null {
     if (!binary) return null;
 
     if (binary.length !== 32) {
-        throw new Error('Not a valid 32-byte hash');
+        throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid hash length: expected 32 bytes', undefined, {
+            actualLength: binary.length,
+            expectedLength: 32,
+        });
     }
 
     const hex = [...binary].map((b) => b.toString(16).padStart(2, '0')).join('');

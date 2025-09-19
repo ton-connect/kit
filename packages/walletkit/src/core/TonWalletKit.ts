@@ -40,6 +40,7 @@ import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { Hash } from '../types/primitive';
 import { EventRequestError } from '../types/events';
 import { AnalyticsApi } from '../analytics/sender';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -242,7 +243,12 @@ export class TonWalletKit implements ITonWalletKit {
 
         const wallet = typeof argWallet === 'string' ? this.walletManager.getWallet(argWallet) : argWallet;
         if (!wallet) {
-            throw new Error('Wallet not found');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_NOT_FOUND,
+                'Wallet not found for sending transaction',
+                undefined,
+                { walletAddress: typeof argWallet === 'string' ? argWallet : 'Unknown' },
+            );
         }
 
         // Stop event processing for the wallet
@@ -403,13 +409,20 @@ export class TonWalletKit implements ITonWalletKit {
             // Parse and validate the TON Connect URL
             const parsedUrl = this.parseTonConnectUrl(url);
             if (!parsedUrl) {
-                throw new Error('Invalid TON Connect URL format');
+                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid TON Connect URL format', undefined, {
+                    url,
+                });
             }
 
             // Create a bridge event from the parsed URL
             const bridgeEvent = this.createConnectEventFromUrl(parsedUrl);
             if (!bridgeEvent) {
-                throw new Error('Invalid TON Connect URL format');
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Invalid TON Connect URL - unable to create bridge event',
+                    undefined,
+                    { parsedUrl },
+                );
             }
 
             await this.eventRouter.routeEvent(bridgeEvent);
@@ -550,7 +563,10 @@ export class TonWalletKit implements ITonWalletKit {
      */
     getTonClient(): ApiClient {
         if (!this.isInitialized) {
-            throw new Error('TonWalletKit not yet initialized');
+            throw new WalletKitError(
+                ERROR_CODES.INITIALIZATION_ERROR,
+                'TonWalletKit not yet initialized - call initialize() first',
+            );
         }
         return this.tonClient;
     }

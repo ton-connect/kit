@@ -7,6 +7,7 @@ import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../typ
 import { sanitizeString } from '../validation/sanitization';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('ConnectHandler');
 
@@ -124,7 +125,12 @@ export class ConnectHandler
     private async fetchManifest(manifestUrl: string): Promise<any> {
         const response = await fetch(manifestUrl);
         if (!response.ok) {
-            throw new Error(`Failed to fetch manifest: ${response.statusText}`);
+            throw new WalletKitError(
+                ERROR_CODES.API_REQUEST_FAILED,
+                `Failed to fetch manifest: ${response.statusText}`,
+                undefined,
+                { manifestUrl, status: response.status, statusText: response.statusText },
+            );
         }
         return response.json();
     }

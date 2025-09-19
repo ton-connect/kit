@@ -8,6 +8,7 @@ import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../ty
 import { BasicHandler } from './BasicHandler';
 import { globalLogger } from '../core/Logger';
 import { validateSignDataPayload } from '../validation/signData';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -21,18 +22,30 @@ export class SignDataHandler
 
     async handle(event: RawBridgeEventSignData): Promise<EventSignDataRequest> {
         if (!event.walletAddress) {
-            throw new Error('No wallet address found in event');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_REQUIRED,
+                'No wallet address found in sign data event',
+                undefined,
+                { eventId: event.id },
+            );
         }
 
         const data = this.parseDataToSign(event);
         if (!data) {
             log.error('No data to sign found in request', { event });
-            throw new Error('No data to sign found in request');
+            throw new WalletKitError(ERROR_CODES.INVALID_REQUEST_EVENT, 'No data to sign found in request', undefined, {
+                eventId: event.id,
+            });
         }
         const preview = this.createDataPreview(data, event);
         if (!preview) {
             log.error('No preview found for data', { data });
-            throw new Error('No preview found for data');
+            throw new WalletKitError(
+                ERROR_CODES.RESPONSE_CREATION_FAILED,
+                'Failed to create preview for sign data request',
+                undefined,
+                { eventId: event.id, data },
+            );
         }
 
         const signEvent: EventSignDataRequest = {

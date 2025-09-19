@@ -34,6 +34,7 @@ import { EmulationErrorUnknown } from '../types/emulation/errors';
 import { WalletManager } from '../core/WalletManager';
 import { TransactionPreviewEmulationError } from '../types/events';
 import { ReturnWithValidationResult } from '../validation/types';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -129,7 +130,12 @@ export class TransactionHandler
         let errors: string[] = [];
         try {
             if (event.params.length !== 1) {
-                throw new Error('Invalid transaction request');
+                throw new WalletKitError(
+                    ERROR_CODES.INVALID_REQUEST_EVENT,
+                    'Invalid transaction request - expected exactly 1 parameter',
+                    undefined,
+                    { paramCount: event.params.length, eventId: event.id },
+                );
             }
             const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
 

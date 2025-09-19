@@ -32,6 +32,7 @@ import { EventConnectApproval, EventTransactionApproval } from '../types/events'
 import { asHash, Hash } from '../types/primitive';
 import { SendRequestResult } from '../types/internal';
 import { AnalyticsApi } from '../analytics/sender';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -57,12 +58,22 @@ export class RequestProcessor {
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
                 if (!event.walletAddress) {
-                    throw new Error('Wallet is required');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_REQUIRED,
+                        'Wallet is required for connect request approval',
+                        undefined,
+                        { eventId: event.id },
+                    );
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new Error('Wallet not found');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_NOT_FOUND,
+                        'Wallet not found for connect request',
+                        undefined,
+                        { walletAddress: event.walletAddress, eventId: event.id },
+                    );
                 }
 
                 // Create session for this connection'
@@ -82,12 +93,22 @@ export class RequestProcessor {
                 await this.bridgeManager.sendResponse(event, response.result);
             } else if ('result' in event) {
                 if (!event.walletAddress) {
-                    throw new Error('Wallet is required');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_REQUIRED,
+                        'Wallet is required for connect approval result',
+                        undefined,
+                        { eventId: event.id },
+                    );
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new Error('Wallet not found');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_NOT_FOUND,
+                        'Wallet not found for connect approval result',
+                        undefined,
+                        { walletAddress: event.walletAddress, eventId: event.id },
+                    );
                 }
 
                 // If event is EventConnectApproval, we need to send response to dApp and create session
@@ -97,7 +118,12 @@ export class RequestProcessor {
                 await this.bridgeManager.sendResponse(event, event.result.response);
             } else {
                 log.error('Invalid event', { event });
-                throw new Error('Invalid event');
+                throw new WalletKitError(
+                    ERROR_CODES.INVALID_REQUEST_EVENT,
+                    'Invalid connect request event',
+                    undefined,
+                    { event },
+                );
             }
 
             this.analyticsApi?.sendEvents([
@@ -279,16 +305,31 @@ export class RequestProcessor {
                 return { success: true, result: { signature: asHash(event.result.signature) } };
             } else {
                 if (!event.domain) {
-                    throw new Error('Domain is required for sign data request');
+                    throw new WalletKitError(
+                        ERROR_CODES.SESSION_DOMAIN_REQUIRED,
+                        'Domain is required for sign data request',
+                        undefined,
+                        { eventId: event.id },
+                    );
                 }
 
                 if (!event.walletAddress) {
-                    throw new Error('Wallet address is required for sign data request');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_REQUIRED,
+                        'Wallet address is required for sign data request',
+                        undefined,
+                        { eventId: event.id },
+                    );
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
                 if (!wallet) {
-                    throw new Error('Wallet not found');
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_NOT_FOUND,
+                        'Wallet not found for sign data request',
+                        undefined,
+                        { walletAddress: event.walletAddress, eventId: event.id },
+                    );
                 }
                 // Sign data with wallet
                 const signData = PrepareTonConnectData({
@@ -361,11 +402,21 @@ export class RequestProcessor {
     private async createConnectApprovalResponse(event: EventConnectRequest): Promise<{ result: ConnectEventSuccess }> {
         const walletAddress = event.walletAddress;
         if (!walletAddress) {
-            throw new Error('Wallet address is required for connect approval');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_REQUIRED,
+                'Wallet address is required for connect approval response',
+                undefined,
+                { eventId: event.id },
+            );
         }
         const wallet = this.walletManager.getWallet(walletAddress);
         if (!wallet) {
-            throw new Error('Wallet not found');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_NOT_FOUND,
+                'Wallet not found for connect approval response',
+                undefined,
+                { walletAddress, eventId: event.id },
+            );
         }
 
         // Get wallet state init as base64 BOC
@@ -451,11 +502,21 @@ export class RequestProcessor {
      */
     private async signTransaction(event: EventTransactionRequest): Promise<string> {
         if (!event.walletAddress) {
-            throw new Error('Wallet address is required');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_REQUIRED,
+                'Wallet address is required for transaction signing',
+                undefined,
+                { eventId: event.id },
+            );
         }
         const wallet = this.walletManager.getWallet(event.walletAddress);
         if (!wallet) {
-            throw new Error('Wallet not found');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_NOT_FOUND,
+                'Wallet not found for transaction signing',
+                undefined,
+                { walletAddress: event.walletAddress, eventId: event.id },
+            );
         }
         const signedBoc = await wallet.getSignedSendTransaction(event.request, {
             fakeSignature: false,

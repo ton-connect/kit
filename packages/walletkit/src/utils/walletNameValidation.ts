@@ -1,5 +1,7 @@
 // Wallet name validation utilities for safe JS Bridge injection
 
+import { WalletKitError, ERROR_CODES } from '../errors';
+
 /**
  * Validates a wallet name for safe injection into window object
  * @param walletName - The wallet name to validate
@@ -8,13 +10,13 @@
 export function validateWalletName(walletName: string): void {
     // Basic type and emptiness check
     if (!walletName || typeof walletName !== 'string') {
-        throw new Error('Wallet name must be a non-empty string');
+        throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Wallet name must be a non-empty string');
     }
 
     // Trim and check again after trimming
     const trimmed = walletName.trim();
     if (!trimmed) {
-        throw new Error('Wallet name cannot be empty or only whitespace');
+        throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Wallet name cannot be empty or only whitespace');
     }
 }
 

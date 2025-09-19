@@ -32,6 +32,7 @@ import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { AnalyticsApi } from '../analytics/sender';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -339,7 +340,12 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
                 tonClient,
             });
         } else {
-            throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_CREATION_FAILED,
+                `Unsupported wallet version for mnemonic: ${config.version}`,
+                undefined,
+                { version: config.version, configType: 'mnemonic' },
+            );
         }
     }
     // else if (isWalletInitConfigLedger(config)) {
@@ -357,7 +363,12 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
     }
 
     if (!wallet) {
-        throw new Error('Unsupported wallet configuration format');
+        throw new WalletKitError(
+            ERROR_CODES.WALLET_CREATION_FAILED,
+            'Unsupported wallet configuration format',
+            undefined,
+            { config },
+        );
     }
 
     return wrapWalletInterface(wallet, tonClient);
