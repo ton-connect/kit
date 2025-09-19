@@ -293,7 +293,7 @@ export class RequestProcessor {
      */
     async rejectTransactionRequest(
         event: EventTransactionRequest,
-        reason?: string | SendTransactionRpcResponseError,
+        reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<SendRequestResult> {
         try {
             const response: SendTransactionRpcResponseError =
@@ -305,7 +305,10 @@ export class RequestProcessor {
                           },
                           id: event.id,
                       }
-                    : reason;
+                    : {
+                          error: reason,
+                          id: event.id,
+                      };
 
             await this.bridgeManager.sendResponse(event, response);
             this.analyticsApi?.sendEvents([

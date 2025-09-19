@@ -1,5 +1,7 @@
 // Main TonWalletKit interface definition
 
+import { SendTransactionRpcResponseError } from '@tonconnect/protocol';
+
 import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './wallet';
 import type {
     EventConnectRequest,
@@ -63,7 +65,10 @@ export interface TonWalletKit {
     approveTransactionRequest(event: EventTransactionRequest): Promise<SendRequestResult<{ signedBoc: string }>>;
 
     /** Reject a transaction request */
-    rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult>;
+    rejectTransactionRequest(
+        event: EventTransactionRequest,
+        reason?: string | SendTransactionRpcResponseError['error'],
+    ): Promise<SendRequestResult>;
 
     /** Approve a sign data request */
     signDataRequest(event: EventSignDataRequest): Promise<SendRequestResult<{ signature: Hash }>>;

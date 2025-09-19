@@ -757,11 +757,8 @@ export const setupWalletKitListeners = (
         if (balance < minNeededBalance) {
             // log.error('Insufficient balance for transaction request');
             await walletKit.rejectTransactionRequest(event, {
-                error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                    message: 'Insufficient balance',
-                },
-                id: event.id,
+                code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                message: 'Insufficient balance',
             });
             return;
         }
