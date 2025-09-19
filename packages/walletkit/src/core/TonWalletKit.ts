@@ -549,7 +549,7 @@ export class TonWalletKit implements ITonWalletKit {
 
     async rejectTransactionRequest(
         event: EventTransactionRequest,
-        reason?: string | SendTransactionRpcResponseError,
+        reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<SendRequestResult> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectTransactionRequest(event, reason);
