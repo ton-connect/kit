@@ -2717,6 +2717,7 @@ export class Api<
         body: events,
         type: ContentType.Json,
         ...params,
+        credentials: 'include',
       }),
   };
 }
