@@ -13,6 +13,7 @@ import type {
     SendTransactionRpcRequest,
     SignDataRpcRequest,
     WalletResponseTemplateError,
+    CHAIN,
 } from '@tonconnect/protocol';
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
@@ -140,8 +141,8 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
 
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: string;
-    valid_until?: number; // unixtime
+    network?: CHAIN;
+    validUntil?: number; // unixtime
     from?: string;
 }
 

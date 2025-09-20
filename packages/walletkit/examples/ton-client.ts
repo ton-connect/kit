@@ -52,7 +52,7 @@ async function main() {
         const boc = await existAccount.getSignedSendTransaction(
             {
                 network: CHAIN.MAINNET,
-                valid_until: Math.floor(Date.now() / 1000) + 60,
+                validUntil: Math.floor(Date.now() / 1000) + 60,
                 messages: [message],
             },
             { fakeSignature: false },

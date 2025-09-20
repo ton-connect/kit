@@ -191,11 +191,11 @@ export class TransactionHandler
             }
             const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
 
-            const validUntilValidation = this.validateValidUntil(params.valid_until);
+            const validUntilValidation = this.validateValidUntil(params.validUntil);
             if (!validUntilValidation.isValid) {
                 errors = errors.concat(validUntilValidation.errors);
             } else {
-                params.valid_until = validUntilValidation.result;
+                params.validUntil = validUntilValidation.result;
             }
 
             const networkValidation = this.validateNetwork(params.network, wallet);

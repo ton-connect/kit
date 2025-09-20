@@ -97,6 +97,10 @@ export type {
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
+export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';
+
+export { isValidAddress } from './utils/address';
+export { validateTransactionMessage } from './validation';
 export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';
 export { Signer } from './utils/Signer';
 export { ParseStack, SerializeStack } from './utils/tvmStack';

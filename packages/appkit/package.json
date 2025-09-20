@@ -1,0 +1,27 @@
+{
+  "name": "@ton/appkit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:clean && npm run build:cjs && npm run build:esm",
+    "build:clean": "rimraf dist",
+    "build:cjs": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "dev": "tsc -p tsconfig.esm.json --watch"
+  },
+  "dependencies": {
+    "@ton-community/assets-sdk": "^0.0.5",
+    "@ton/core": "^0.61.0",
+    "@ton/walletkit": "workspace:*",
+    "@tonconnect/protocol": "^2.2.6",
+    "@tonconnect/sdk": "^3.2.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.0",
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}

@@ -402,6 +402,28 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
+  packages/appkit:
+    dependencies:
+      '@ton-community/assets-sdk':
+        specifier: ^0.0.5
+        version: 0.0.5(@ton/core@0.61.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0)(@ton/ton@15.3.1(@ton/core@0.61.0(@ton/crypto@3.3.0))(@ton/crypto@3.3.0))(@types/node@24.3.0)
+      '@ton/core':
+        specifier: ^0.61.0
+        version: 0.61.0(@ton/crypto@3.3.0)
+      '@ton/walletkit':
+        specifier: workspace:*
+        version: link:../walletkit
+      '@tonconnect/protocol':
+        specifier: ^2.2.6
+        version: 2.3.0
+      '@tonconnect/sdk':
+        specifier: ^3.2.0
+        version: 3.2.0
+    devDependencies:
+      tsx:
+        specifier: ^4.20.5
+        version: 4.20.5
+
   packages/v4ledger-adapter:
     dependencies:
       '@ledgerhq/hw-transport':
