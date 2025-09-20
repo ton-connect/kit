@@ -6,6 +6,7 @@ import {
     SignDataRpcRequest,
     WalletResponseError as _WalletResponseError,
     WalletResponseTemplateError,
+    CHAIN,
 } from '@tonconnect/protocol';
 
 // import type { WalletInterface } from './wallet';
@@ -114,8 +115,8 @@ export interface ConnectTransactionParamMessage {
 }
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: string;
-    valid_until?: number; // unixtime
+    network?: CHAIN;
+    validUntil?: number; // unixtime
     from?: string;
 }
 

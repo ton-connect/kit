@@ -94,3 +94,7 @@ export { MnemonicToKeyPair } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 
 export { wrapWalletInterface } from './core/Initializer';
+export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';
+
+export { isValidAddress } from './utils/address';
+export { validateTransactionMessage } from './validation';

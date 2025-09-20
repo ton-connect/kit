@@ -133,7 +133,7 @@ interface WalletInterface {
     - `preview: TransactionPreview`
     - `wallet: WalletInterface`
   - `ConnectTransactionParamContent` (parsed payload):
-    - `{ messages: { address: string; amount: string; payload?: string; stateInit?: string; extraCurrency?: { [k: number]: string } }[]; network: string; valid_until: number; from?: string }`
+    - `{ messages: { address: string; amount: string; payload?: string; stateInit?: string; extraCurrency?: { [k: number]: string } }[]; network: string; validUntil: number; from?: string }`
   - `TransactionPreview`:
     - `{ moneyFlow: MoneyFlow }` where `MoneyFlow` is derived from toncenter emulation results.
 

@@ -172,20 +172,20 @@ export class WalletV5R1Adapter implements WalletInitInterface {
             validUntil: undefined,
         };
         // add valid untill
-        if (input.valid_until) {
+        if (input.validUntil) {
             const now = Math.floor(Date.now() / 1000);
             const maxValidUntil = now + 600;
-            if (input.valid_until < now) {
+            if (input.validUntil < now) {
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
-                    'Transaction valid_until timestamp is in the past',
+                    'Transaction validUntil timestamp is in the past',
                     undefined,
-                    { validUntil: input.valid_until, currentTime: now },
+                    { validUntil: input.validUntil, currentTime: now },
                 );
-            } else if (input.valid_until > maxValidUntil) {
+            } else if (input.validUntil > maxValidUntil) {
                 createBodyOptions.validUntil = maxValidUntil;
             } else {
-                createBodyOptions.validUntil = input.valid_until;
+                createBodyOptions.validUntil = input.validUntil;
             }
         }
 

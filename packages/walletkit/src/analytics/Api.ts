@@ -1015,7 +1015,7 @@ export interface TONConnectEvent {
   /** @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3" */
   user_id?: string;
   /** @example 1756253085 */
-  valid_until?: number;
+  validUntil?: number;
   /** @example "ok" */
   verification_result?: string;
   version?: string;
@@ -1276,7 +1276,7 @@ export interface TransactionSigningFailedEvent {
    * Timestamp for transaction expiration.
    * @example 1756253085
    */
-  valid_until?: number;
+  validUntil?: number;
   /** The version of the sending subsystem. */
   version?: string;
   /** Wallet address in raw format in lower case. */

@@ -441,7 +441,7 @@ export class TonWalletKit implements ITonWalletKit {
     async handleNewTransaction(wallet: WalletInterface, data: ConnectTransactionParamContent): Promise<void> {
         await this.ensureInitialized();
 
-        data.valid_until ??= Math.floor(Date.now() / 1000) + 300;
+        data.validUntil ??= Math.floor(Date.now() / 1000) + 300;
         data.network ??= CHAIN.MAINNET;
 
         const bridgeEvent: RawBridgeEventTransaction = {

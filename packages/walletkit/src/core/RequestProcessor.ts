@@ -605,7 +605,7 @@ export class RequestProcessor {
             id: event.id,
             messagesCount: event.request.messages.length,
             from: event.request.from,
-            validUntil: event.request.valid_until,
+            validUntil: event.request.validUntil,
         });
 
         return signedBoc;
