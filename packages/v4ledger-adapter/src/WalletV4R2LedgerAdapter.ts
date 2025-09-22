@@ -116,8 +116,8 @@ export class WalletV4R2LedgerAdapter implements WalletInitInterface {
             //
         }
 
-        const timeout = input.valid_until
-            ? Math.min(input.valid_until, Math.floor(Date.now() / 1000) + 600)
+        const timeout = input.validUntil
+            ? Math.min(input.validUntil, Math.floor(Date.now() / 1000) + 600)
             : Math.floor(Date.now() / 1000) + 60;
 
         let transport: Transport | undefined;

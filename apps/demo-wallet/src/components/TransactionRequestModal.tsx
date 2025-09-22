@@ -94,8 +94,8 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-600">Valid Until:</span>
                                 <span className="text-sm text-black">
-                                    {typeof request.request.valid_until === 'number'
-                                        ? new Date(request.request.valid_until * 1000).toLocaleString()
+                                    {typeof request.request.validUntil === 'number'
+                                        ? new Date(request.request.validUntil * 1000).toLocaleString()
                                         : '—'}
                                 </span>
                             </div>
