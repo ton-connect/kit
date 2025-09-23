@@ -1,3 +1,5 @@
+import * as allure from 'allure-js-commons';
+
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
 
@@ -11,6 +13,9 @@ const test = testWith(
 const { expect } = test;
 
 test('Sign Data', async ({ wallet, app, widget }) => {
+    await allure.feature('Sign Data');
+    await allure.story('Sign Text');
+    await allure.tags('kit', 'wallet');
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
     await wallet.connectBy(await widget.connectUrl());
     await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
