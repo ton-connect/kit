@@ -5,10 +5,11 @@ import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/a
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
-import { ApiClient } from '../types/toncenter/ApiClient';
+import { ApiClient, GetPendingTransactionsRequest, GetTransactionByHashRequest, NftItemsByOwnerRequest, NftItemsRequest, TransactionsByAddressRequest } from '../types/toncenter/ApiClient';
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
+import { ToncenterTransactionsResponse } from '../types/toncenter/emulation';
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -27,20 +28,6 @@ export interface ApiClientConfig {
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
-}
-
-export interface LimitRequest {
-    limit?: number;
-    offset?: number;
-}
-
-export interface NftItemsRequest {
-    address?: Array<Address | string>;
-}
-
-export interface NftItemsByOwnerRequest extends LimitRequest {
-    ownerAddress?: Array<Address | string>;
-    sortByLastTransactionLt?: boolean;
 }
 
 export class ApiClientToncenter implements ApiClient {
@@ -244,6 +231,36 @@ export class ApiClientToncenter implements ApiClient {
             /* empty */
         }
         return new TonClientError(`HTTP ${response.status}: ${message}`, code, detail);
+    }
+
+    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = request.address?.map(prepareAddress);
+        let offset = request.offset ?? 0;
+        let limit = request.limit ?? 10;
+        if (limit > 100) {
+            limit = 100;
+        } else if (limit < 0) {
+            limit = 0;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/accountTransactions', { account: accounts, limit, offset });
+        return response;
+    }
+
+    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
+        const msgHash = 'msgHash' in request ? request.msgHash : undefined
+        const bodyHash = 'bodyHash' in request ? request.bodyHash : undefined
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', { msg_hash: msgHash, body_hash: bodyHash });
+        return response;
+    }
+
+    async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined
+        const traceId = 'traceId' in request ? request.traceId : undefined
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', { account: accounts, trace_id: traceId });
+        return response;
     }
 }
 

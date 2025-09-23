@@ -4,7 +4,7 @@
 export interface ToncenterEmulationResponse {
     mc_block_seqno: number;
     trace: EmulationTraceNode;
-    transactions: Record<string, EmulationTransaction>;
+    transactions: Record<string, ToncenterTransaction>;
     actions: EmulationAction[];
     code_cells: Record<string, string>; // base64-encoded cells by code hash
     data_cells: Record<string, string>; // base64-encoded cells by data hash
@@ -14,6 +14,11 @@ export interface ToncenterEmulationResponse {
     is_incomplete: boolean;
 }
 
+export interface ToncenterTransactionsResponse {
+    transactions: ToncenterTransaction[];
+    address_book: Record<string, EmulationAddressBookEntry>;
+}
+
 // Trace tree
 export interface EmulationTraceNode {
     tx_hash: string;
@@ -21,8 +26,8 @@ export interface EmulationTraceNode {
     children: EmulationTraceNode[];
 }
 
-// Transactions map value
-export interface EmulationTransaction {
+// Transactions map value (for emulation endpoint)
+export interface ToncenterTransaction {
     account: string;
     hash: string;
     lt: string;
