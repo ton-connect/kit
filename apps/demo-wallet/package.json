@@ -46,6 +46,8 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "allure-js-commons": "^3.4.1",
+    "allure-playwright": "^3.4.1",
     "cross-env": "^10.0.0",
     "dotenv": "^17.2.2",
     "eslint": "^9.33.0",
