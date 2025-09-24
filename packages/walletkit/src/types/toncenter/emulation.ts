@@ -14,9 +14,42 @@ export interface ToncenterEmulationResponse {
     is_incomplete: boolean;
 }
 
+export interface ToncenterTracesResponse {
+    traces: ToncenterTraceItem[];
+    address_book: Record<string, EmulationAddressBookEntry>;
+    metadata: Record<string, EmulationAddressMetadata>;
+}
+
+
 export interface ToncenterTransactionsResponse {
     transactions: ToncenterTransaction[];
     address_book: Record<string, EmulationAddressBookEntry>;
+}
+
+export interface ToncenterTraceItem {
+    actions: EmulationAction[];
+    end_lt: string;
+    end_utime: number;
+    external_hash: string;
+    is_incomplete: boolean;
+    mc_seqno_end: string;
+    mc_seqno_start: string;
+    start_lt: string;
+    start_utime: number;
+    trace: EmulationTraceNode
+    trace_id: string
+    trace_info: TraceMeta
+    transactions: Record<string, ToncenterTransaction>;
+    transactions_order: string[];
+    warning: string
+}
+
+export interface TraceMeta {
+    classification_state: string;
+    messages: number;
+    pending_messages: number
+    trace_state: string
+    transactions: number
 }
 
 // Trace tree

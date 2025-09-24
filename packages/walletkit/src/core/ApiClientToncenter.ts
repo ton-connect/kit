@@ -7,7 +7,9 @@ import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
 import {
     ApiClient,
+    GetPendingTraceRequest,
     GetPendingTransactionsRequest,
+    GetTraceRequest,
     GetTransactionByHashRequest,
     NftItemsByOwnerRequest,
     NftItemsRequest,
@@ -16,7 +18,7 @@ import {
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
-import { ToncenterTransactionsResponse } from '../types/toncenter/emulation';
+import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -277,6 +279,21 @@ export class ApiClientToncenter implements ApiClient {
         const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', {
             account: accounts,
             trace_id: traceId,
+        });
+        return response;
+    }
+
+
+    async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
+        const response = await this.getJson<ToncenterTracesResponse>('/api/v3/trace', {
+            trace_id: request.traceId,
+        });
+        return response;
+    }
+    
+    async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
+        const response = await this.getJson<ToncenterTracesResponse>('/api/v3/pendingTrace', {
+            external_message_hash: request.externalMessageHash,
         });
         return response;
     }
