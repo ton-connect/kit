@@ -107,6 +107,7 @@ export interface WalletSlice extends WalletState {
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
     addTransaction: (transaction: Transaction) => void;
+    loadTransactions: (limit?: number) => Promise<void>;
 
     // TON Connect actions
     handleTonConnectUrl: (url: string) => Promise<void>;

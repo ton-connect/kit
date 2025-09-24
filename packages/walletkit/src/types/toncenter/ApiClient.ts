@@ -1,7 +1,7 @@
 import { Address, TupleItem } from '@ton/core';
 
 import type { ConnectTransactionParamMessage } from '../internal';
-import type { ToncenterEmulationResponse, ToncenterTransaction, ToncenterTransactionsResponse } from './emulation';
+import type { ToncenterEmulationResponse, ToncenterTransactionsResponse } from './emulation';
 import type { FullAccountState, GetResult } from './api';
 import type { NftItemsResponse } from './NftItemsResponse';
 
@@ -23,17 +23,21 @@ export interface TransactionsByAddressRequest extends LimitRequest {
     address?: Array<Address | string>;
 }
 
-export type GetTransactionByHashRequest = {
-    msgHash: string
-} | {
-    bodyHash: string
-}
+export type GetTransactionByHashRequest =
+    | {
+          msgHash: string;
+      }
+    | {
+          bodyHash: string;
+      };
 
-export type GetPendingTransactionsRequest = {
-    accounts: Array<Address | string>;
-} | {
-    traceId: Array<string>;
-}
+export type GetPendingTransactionsRequest =
+    | {
+          accounts: Array<Address | string>;
+      }
+    | {
+          traceId: Array<string>;
+      };
 
 export interface ApiClient {
     nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse>;
@@ -50,6 +54,6 @@ export interface ApiClient {
 
     getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse>;
     getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse>;
-    
+
     getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse>;
 }

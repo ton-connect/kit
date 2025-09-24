@@ -18,6 +18,7 @@ import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
 import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 
+import type { ToncenterTransaction } from '../../../../../packages/walletkit/src/types/toncenter/emulation';
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
 import type { Transaction, LedgerConfig } from '../../types/wallet';
@@ -49,6 +50,53 @@ const walletKit = new TonWalletKit({
         enabled: true,
     },
 });
+
+// Create API client for fetching transactions
+// const apiClient = new ApiClientToncenter({
+//     apiKey: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+// });
+
+// Helper function to transform Toncenter transaction to our Transaction type
+function transformToncenterTransaction(tx: ToncenterTransaction): Transaction {
+    // Determine transaction type based on messages
+    let type: 'send' | 'receive' = 'receive';
+    let amount = '0';
+    let address = '';
+
+    // Check incoming message
+    if (tx.in_msg && tx.in_msg.value) {
+        amount = tx.in_msg.value;
+        address = tx.in_msg.source || '';
+        type = 'receive';
+    }
+
+    // Check outgoing messages - if there are any, it's likely a send transaction
+    if (tx.out_msgs && tx.out_msgs.length > 0) {
+        const mainOutMsg = tx.out_msgs[0];
+        if (mainOutMsg.value) {
+            amount = mainOutMsg.value;
+            address = mainOutMsg.destination;
+            type = 'send';
+        }
+    }
+
+    // Determine status based on transaction description
+    let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
+    if (tx.description.aborted) {
+        status = 'failed';
+    } else if (!tx.description.compute_ph.success) {
+        status = 'failed';
+    }
+
+    return {
+        id: tx.hash,
+        type,
+        amount,
+        address,
+        timestamp: tx.now * 1000, // Convert to milliseconds
+        status,
+    };
+}
 
 async function createWalletConfig(params: {
     mnemonic?: string[];
@@ -508,6 +556,40 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         set((state) => {
             state.wallet.transactions = [transaction, ...state.wallet.transactions];
         });
+    },
+
+    loadTransactions: async (limit = 10) => {
+        const state = get();
+        if (!state.wallet.address) {
+            log.warn('No wallet address available to load transactions');
+            return;
+        }
+
+        try {
+            log.info('Loading transactions for address:', state.wallet.address);
+
+            // Fetch transactions from Toncenter API
+            const response = await walletKit.getTonClient().getAccountTransactions({
+                address: [state.wallet.address],
+                limit,
+                offset: 0,
+            });
+
+            // Transform transactions to our format
+            const transformedTransactions = response.transactions.map((tx: ToncenterTransaction) =>
+                transformToncenterTransaction(tx),
+            );
+
+            // Update state with new transactions
+            set((state) => {
+                state.wallet.transactions = transformedTransactions;
+            });
+
+            log.info(`Loaded ${transformedTransactions.length} transactions`);
+        } catch (error) {
+            log.error('Error loading transactions:', error);
+            throw new Error('Failed to load transactions');
+        }
     },
 
     // TON Connect URL handling
