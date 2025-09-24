@@ -3,11 +3,14 @@ import { Link } from 'react-router-dom';
 
 import { useWallet } from '../stores';
 import { Base64NormalizeUrl } from '@ton/walletkit';
+import { walletKit } from '../stores/slices/walletSlice';
+import type { PreviewTransaction } from '../types/wallet';
 
 export const RecentTransactions: React.FC = () => {
     const { transactions, loadTransactions, address } = useWallet();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
@@ -21,6 +24,62 @@ export const RecentTransactions: React.FC = () => {
 
     const formatTimestamp = (timestamp: number): string => {
         return new Date(timestamp).toLocaleString();
+    };
+
+    // Check for pending transactions
+    const checkPendingTransactions = async () => {
+        if (!address) return;
+
+        try {
+            const apiClient = walletKit.getApiClient();
+            const pendingResponse = await apiClient.getPendingTransactions({
+                accounts: [address]
+            });
+
+            if (pendingResponse.transactions && pendingResponse.transactions.length > 0) {
+                const pendingTxs: PreviewTransaction[] = pendingResponse.transactions.map((tx) => {
+                    // Determine transaction type and amount
+                    let type: 'send' | 'receive' = 'receive';
+                    let amount = '0';
+                    let targetAddress = '';
+
+                    // Check incoming message
+                    if (tx.in_msg && tx.in_msg.value) {
+                        amount = tx.in_msg.value;
+                        targetAddress = tx.in_msg.source || '';
+                        type = 'receive';
+                    }
+
+                    // Check outgoing messages - if there are any, it's likely a send transaction
+                    if (tx.out_msgs && tx.out_msgs.length > 0) {
+                        const mainOutMsg = tx.out_msgs[0];
+                        if (mainOutMsg.value) {
+                            amount = mainOutMsg.value;
+                            targetAddress = mainOutMsg.destination;
+                            type = 'send';
+                        }
+                    }
+
+                    return {
+                        id: tx.hash,
+                        messageHash: tx.in_msg?.hash || '',
+                        type,
+                        amount,
+                        address: targetAddress,
+                        timestamp: tx.now * 1000, // Convert to milliseconds
+                        status: 'pending' as const,
+                    };
+                });
+
+                setPendingTransactions(pendingTxs);
+            } else {
+                setPendingTransactions([]);
+            }
+        } catch (err) {
+            // Silently handle errors to avoid spamming the user
+            console.warn('Failed to check pending transactions:', err);
+            setPendingTransactions([]);
+        }
     };
 
     // Load transactions when component mounts or address changes
@@ -42,6 +101,22 @@ export const RecentTransactions: React.FC = () => {
         fetchTransactions();
     }, [address, loadTransactions]);
 
+    // Set up polling for pending transactions
+    useEffect(() => {
+        if (!address) return;
+
+        // Start polling immediately
+        checkPendingTransactions();
+
+        // Set up interval for polling every 500ms
+        const interval = setInterval(checkPendingTransactions, 500);
+
+        // Cleanup interval on unmount or address change
+        return () => {
+            clearInterval(interval);
+        };
+    }, [address]);
+
     const handleRefresh = async () => {
         if (!address) return;
 
@@ -59,7 +134,14 @@ export const RecentTransactions: React.FC = () => {
     return (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
+                <div className="flex items-center space-x-2">
+                    <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
+                    {pendingTransactions.length > 0 && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {pendingTransactions.length} pending
+                        </span>
+                    )}
+                </div>
                 <button
                     onClick={handleRefresh}
                     disabled={isLoading}
@@ -121,6 +203,45 @@ export const RecentTransactions: React.FC = () => {
                     </div>
                 ) : (
                     <div className="space-y-3">
+                        {/* Pending transactions at the top */}
+                        {pendingTransactions.map((tx) => (
+                            <div
+                                key={`pending-${tx.id}`}
+                                className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg animate-pulse"
+                            >
+                                <div className="flex items-center space-x-3">
+                                    <div
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                            tx.type === 'send' ? 'bg-yellow-100' : 'bg-yellow-100'
+                                        }`}
+                                    >
+                                        <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-yellow-900">
+                                            {tx.type === 'send' ? 'Sending' : 'Receiving'} (Pending)
+                                        </p>
+                                        <p className="text-xs text-yellow-700">{formatAddress(tx.address)}</p>
+                                        <p className="text-xs text-yellow-600">{formatTimestamp(tx.timestamp)}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p
+                                        className={`text-sm font-medium ${
+                                            tx.type === 'send' ? 'text-yellow-700' : 'text-yellow-700'
+                                        }`}
+                                    >
+                                        {tx.type === 'send' ? '-' : '+'}
+                                        {formatTonAmount(tx.amount)} TON
+                                    </p>
+                                    <p className="text-xs text-yellow-600">
+                                        pending
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {/* Regular confirmed transactions */}
                         {transactions.slice(0, 10).map((tx) => (
                             <Link
                                 key={tx.id}
