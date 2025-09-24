@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { EventConnectRequest, WalletInterface } from '@ton/walletkit';
 
 import { Button } from './Button';
@@ -23,8 +23,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     onApprove,
     onReject,
 }) => {
-    const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
+    // const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const selectedWallet = useMemo(() => {
+        return availableWallets[0];
+    }, [availableWallets]);
 
     const handleApprove = async () => {
         if (!selectedWallet) return;
@@ -43,9 +47,19 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         onReject('User rejected the connection');
     };
 
-    const formatAddress = (address: string): string => {
+    const formatAddress = (address: string, length: number = 16): string => {
         if (!address) return '';
-        return `${address.slice(0, 8)}...${address.slice(-8)}`;
+        let halfLength = Math.floor(length / 2);
+        if (halfLength > 24) {
+            halfLength = 24;
+        }
+        let dots = '...'
+        if (halfLength > 23) {
+            dots = ''
+        } else if (halfLength > 22) {
+            dots = '.'
+        } 
+        return `${address.slice(0, halfLength)}...${address.slice(-halfLength)}`;
     };
 
     if (!isOpen) return null;
@@ -96,9 +110,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                             {request.preview.manifest.description}
                                         </p>
                                     )}
-                                    {request.preview?.manifestUrl && (
+                                    {request.preview?.manifest?.url && (
                                         <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {new URL(request.preview.manifestUrl).hostname}
+                                            {new URL(request.preview.manifest.url).hostname}
                                         </p>
                                     )}
                                 </div>
@@ -121,6 +135,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                     <p className="text-xs text-gray-600 leading-relaxed">
                                                         {permission.description}
                                                     </p>
+                                                    {permission.name === 'ton_addr' && selectedWallet &&
+                                                        <p className="text-xs text-gray-500 mt-1 truncate">
+                                                            Your address: {formatAddress(selectedWallet.getAddress(), 20)}
+                                                        </p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -133,7 +151,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                         {availableWallets.length > 1 && (
                             <div>
                                 <h4 className="font-medium text-gray-900 mb-3">Select Wallet:</h4>
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     {availableWallets.map((wallet, index) => (
                                         <label
                                             key={index}
@@ -181,7 +199,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                             )}
                                         </label>
                                     ))}
-                                </div>
+                                </div> */}
                             </div>
                         )}
 

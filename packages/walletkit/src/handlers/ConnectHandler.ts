@@ -107,7 +107,7 @@ export class ConnectHandler
             permissions.push({
                 name: 'ton_proof',
                 title: 'TON Proof',
-                description: 'Gives dApp signature, that can be used to verify your identity',
+                description: 'Gives dApp signature, that can be used to verify your access to private key',
             });
         }
 

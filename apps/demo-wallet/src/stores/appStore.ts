@@ -90,6 +90,14 @@ export const useStore = create<AppState>()(
                             hasWallet: state.wallet.hasWallet,
                             encryptedMnemonic: state.wallet.encryptedMnemonic,
                             ledgerConfig: state.wallet.ledgerConfig,
+
+                            isSignDataModalOpen: state.wallet.isSignDataModalOpen,
+                            isTransactionModalOpen: state.wallet.isTransactionModalOpen,
+                            isConnectModalOpen: state.wallet.isConnectModalOpen,
+
+                            pendingSignDataRequest: state.wallet.pendingSignDataRequest,
+                            pendingTransactionRequest: state.wallet.pendingTransactionRequest,
+                            pendingConnectRequest: state.wallet.pendingConnectRequest,
                         },
                         // jettons: {
                         //     userJettons: state.jettons.userJettons,
