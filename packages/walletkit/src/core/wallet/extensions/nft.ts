@@ -6,9 +6,9 @@ import { WalletNftInterface } from '../../../types/wallet';
 import { validateTransactionMessage } from '../../../validation';
 import { NftTransferParamsHuman, NftTransferParamsRaw } from '../../../types/nfts';
 import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '../../../types/internal';
-import { LimitRequest } from '../../ApiClientToncenter';
 import type { NftItem } from '../../../types/toncenter/NftItem';
 import { NftItems } from '../../../types/toncenter/NftItems';
+import { LimitRequest } from '../../../types/toncenter/ApiClient';
 
 export class WalletNftClass implements WalletNftInterface {
     async getNfts(this: WalletInterface, params: LimitRequest): Promise<NftItems> {

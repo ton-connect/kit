@@ -9,7 +9,7 @@ import { JettonTransferParams } from './jettons';
 import { NftTransferParamsHuman, NftTransferParamsRaw } from './nfts';
 import { TransactionPreview } from './events';
 import { ApiClient } from './toncenter/ApiClient';
-import { LimitRequest } from '../core/ApiClientToncenter';
+import { LimitRequest } from './toncenter/ApiClient';
 import type { NftItem } from './toncenter/NftItem';
 import { NftItems } from './toncenter/NftItems';
 import { PrepareSignDataResult } from '../utils/signData/sign';

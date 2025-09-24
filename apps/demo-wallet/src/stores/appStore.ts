@@ -187,6 +187,7 @@ export const useWallet = () =>
             clearWallet: state.clearWallet,
             updateBalance: state.updateBalance,
             addTransaction: state.addTransaction,
+            loadTransactions: state.loadTransactions,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
             createLedgerWallet: state.createLedgerWallet,

@@ -5,7 +5,14 @@ import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/a
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
-import { ApiClient, GetPendingTransactionsRequest, GetTransactionByHashRequest, NftItemsByOwnerRequest, NftItemsRequest, TransactionsByAddressRequest } from '../types/toncenter/ApiClient';
+import {
+    ApiClient,
+    GetPendingTransactionsRequest,
+    GetTransactionByHashRequest,
+    NftItemsByOwnerRequest,
+    NftItemsRequest,
+    TransactionsByAddressRequest,
+} from '../types/toncenter/ApiClient';
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
@@ -245,21 +252,31 @@ export class ApiClientToncenter implements ApiClient {
         if (offset < 0) {
             offset = 0;
         }
-        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/accountTransactions', { account: accounts, limit, offset });
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactions', {
+            account: accounts,
+            limit,
+            offset,
+        });
         return response;
     }
 
     async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
-        const msgHash = 'msgHash' in request ? request.msgHash : undefined
-        const bodyHash = 'bodyHash' in request ? request.bodyHash : undefined
-        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', { msg_hash: msgHash, body_hash: bodyHash });
+        const msgHash = 'msgHash' in request ? request.msgHash : undefined;
+        const bodyHash = 'bodyHash' in request ? request.bodyHash : undefined;
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', {
+            msg_hash: msgHash,
+            body_hash: bodyHash,
+        });
         return response;
     }
 
     async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse> {
-        const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined
-        const traceId = 'traceId' in request ? request.traceId : undefined
-        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', { account: accounts, trace_id: traceId });
+        const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined;
+        const traceId = 'traceId' in request ? request.traceId : undefined;
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', {
+            account: accounts,
+            trace_id: traceId,
+        });
         return response;
     }
 }
