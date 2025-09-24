@@ -10,7 +10,7 @@ import {
 } from '@tonconnect/protocol';
 
 import type {
-    TonWalletKit as ITonWalletKit,
+    ITonWalletKit,
     TonWalletKitOptions,
     WalletInterface,
     EventConnectRequest,
@@ -570,7 +570,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Get the shared TON client instance
      */
-    getTonClient(): ApiClient {
+    getApiClient(): ApiClient {
         if (!this.isInitialized) {
             throw new WalletKitError(
                 ERROR_CODES.INITIALIZATION_ERROR,

@@ -12,7 +12,7 @@ import type {
     NftItem,
 } from '@ton/walletkit';
 
-import type { AuthState, WalletState, Transaction } from './wallet';
+import type { AuthState, WalletState, PreviewTransaction } from './wallet';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
@@ -106,7 +106,7 @@ export interface WalletSlice extends WalletState {
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
-    addTransaction: (transaction: Transaction) => void;
+    addTransaction: (transaction: PreviewTransaction) => void;
     loadTransactions: (limit?: number) => Promise<void>;
 
     // TON Connect actions

@@ -52,6 +52,7 @@ export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
 export {
     Base64Normalize,
+    Base64NormalizeUrl,
     ParseBase64,
     Base64ToHash,
     Base64ToUint8Array,
@@ -65,6 +66,7 @@ export { PrepareSignDataResult } from './utils/signData/sign';
 
 export { Hash } from './types/primitive';
 export { TonProofParsedMessage } from './utils/tonProof';
+export type { ITonWalletKit } from './types/kit';
 
 // Re-export JS Bridge components
 export type {

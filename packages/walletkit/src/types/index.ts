@@ -51,7 +51,7 @@ export type {
 export type { TonWalletKitOptions } from './config';
 
 // Main kit interface
-export type { TonWalletKit, SessionInfo, KitStatus } from './kit';
+export type { ITonWalletKit, SessionInfo, KitStatus } from './kit';
 
 // Internal types (re-export from internal.ts)
 export type { SessionData, BridgeConfig, EventCallback, RawBridgeEvent, EventType, EventHandler } from './internal';

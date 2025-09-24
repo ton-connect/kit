@@ -13,6 +13,7 @@ import type {
 import type { JettonsAPI } from './jettons';
 import { ConnectTransactionParamContent, SendRequestResult } from './internal';
 import { Hash } from './primitive';
+import { ApiClient } from './toncenter/ApiClient';
 
 /**
  * Main TonWalletKit interface
@@ -20,7 +21,12 @@ import { Hash } from './primitive';
  * This interface defines the public API for the TonWalletKit.
  * All implementations must conform to this interface.
  */
-export interface TonWalletKit {
+export interface ITonWalletKit {
+    /** Get the API client */
+    getApiClient(): ApiClient;
+
+    isReady(): boolean;
+
     // === Wallet Management ===
 
     /** Get all registered wallets */

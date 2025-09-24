@@ -261,11 +261,12 @@ export class ApiClientToncenter implements ApiClient {
     }
 
     async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
-        const msgHash = 'msgHash' in request ? request.msgHash : undefined;
-        const bodyHash = 'bodyHash' in request ? request.bodyHash : undefined;
+        const msgHash = 'msgHash' in request ? padBase64(request.msgHash) : undefined;
+        const bodyHash = 'bodyHash' in request ? padBase64(request.bodyHash) : undefined;
+
         const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', {
-            msg_hash: msgHash,
-            body_hash: bodyHash,
+            msg_hash: msgHash ? [msgHash] : undefined,
+            body_hash: bodyHash ? [bodyHash] : undefined,
         });
         return response;
     }
@@ -279,6 +280,10 @@ export class ApiClientToncenter implements ApiClient {
         });
         return response;
     }
+}
+
+const padBase64 = (data: string): string => {
+    return data.padEnd(data.length + (4 - data.length % 4), '=');
 }
 
 function prepareAddress(address: Address | string): string {

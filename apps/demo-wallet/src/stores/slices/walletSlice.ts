@@ -12,6 +12,7 @@ import {
     MnemonicToKeyPair,
     DefaultSignature,
     CHAIN,
+    type ITonWalletKit,
 } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
@@ -21,7 +22,7 @@ import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 import type { ToncenterTransaction } from '../../../../../packages/walletkit/src/types/toncenter/emulation';
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
-import type { Transaction, LedgerConfig } from '../../types/wallet';
+import type { PreviewTransaction, LedgerConfig } from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
@@ -49,7 +50,7 @@ const walletKit = new TonWalletKit({
     analytics: {
         enabled: true,
     },
-});
+}) as ITonWalletKit;
 
 // Create API client for fetching transactions
 // const apiClient = new ApiClientToncenter({
@@ -57,7 +58,7 @@ const walletKit = new TonWalletKit({
 // });
 
 // Helper function to transform Toncenter transaction to our Transaction type
-function transformToncenterTransaction(tx: ToncenterTransaction): Transaction {
+function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransaction {
     // Determine transaction type based on messages
     let type: 'send' | 'receive' = 'receive';
     let amount = '0';
@@ -90,6 +91,7 @@ function transformToncenterTransaction(tx: ToncenterTransaction): Transaction {
 
     return {
         id: tx.hash,
+        messageHash: tx.in_msg?.hash || '',
         type,
         amount,
         address,
@@ -162,7 +164,7 @@ async function createWalletConfig(params: {
                             accountIndex: storedLedgerConfig.accountIndex,
                         }),
                         {
-                            tonClient: walletKit.getTonClient(),
+                            tonClient: walletKit.getApiClient(),
                         },
                     );
                 }
@@ -180,7 +182,7 @@ async function createWalletConfig(params: {
                         accountIndex: ledgerAccountNumber,
                     }),
                     {
-                        tonClient: walletKit.getTonClient(),
+                        tonClient: walletKit.getApiClient(),
                     },
                 );
             } catch (error) {
@@ -552,7 +554,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
     },
 
-    addTransaction: (transaction: Transaction) => {
+    addTransaction: (transaction: PreviewTransaction) => {
         set((state) => {
             state.wallet.transactions = [transaction, ...state.wallet.transactions];
         });
@@ -569,7 +571,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             log.info('Loading transactions for address:', state.wallet.address);
 
             // Fetch transactions from Toncenter API
-            const response = await walletKit.getTonClient().getAccountTransactions({
+            const response = await walletKit.getApiClient().getAccountTransactions({
                 address: [state.wallet.address],
                 limit,
                 offset: 0,
