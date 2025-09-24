@@ -14,4 +14,5 @@ export { MnemonicDisplay } from './MnemonicDisplay';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
+export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';

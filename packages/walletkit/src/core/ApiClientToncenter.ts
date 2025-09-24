@@ -1,6 +1,6 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
 
-import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64 } from '../utils/base64';
+import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
@@ -19,6 +19,7 @@ import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/Nf
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
 import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
+import { CallForSuccess } from '../utils/retry';
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -283,25 +284,77 @@ export class ApiClientToncenter implements ApiClient {
         return response;
     }
 
-
     async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
-        const response = await this.getJson<ToncenterTracesResponse>('/api/v3/trace', {
-            trace_id: request.traceId,
-        });
-        return response;
+        const inTraceId = request.traceId ? request.traceId[0] : undefined;
+
+        const traceId = padBase64(Base64Normalize(inTraceId || '').replace(/=/g, ''));
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    tx_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    trace_id: traceId,
+                }),
+            );
+
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    msg_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        throw new Error('Failed to fetch trace');
     }
-    
+
     async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
-        const response = await this.getJson<ToncenterTracesResponse>('/api/v3/pendingTrace', {
-            external_message_hash: request.externalMessageHash,
-        });
-        return response;
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
+                    ext_msg_hash: request.externalMessageHash,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        throw new Error('Failed to fetch pending trace');
     }
 }
 
 const padBase64 = (data: string): string => {
-    return data.padEnd(data.length + (4 - data.length % 4), '=');
-}
+    return data.padEnd(data.length + (4 - (data.length % 4)), '=');
+};
 
 function prepareAddress(address: Address | string): string {
     if (address instanceof Address) {

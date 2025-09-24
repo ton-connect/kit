@@ -41,11 +41,11 @@ export type GetPendingTransactionsRequest =
 
 export type GetTraceRequest = {
     traceId: Array<string>;
-}
+};
 
 export type GetPendingTraceRequest = {
     externalMessageHash: Array<string>;
-}
+};
 
 export interface ApiClient {
     nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse>;
@@ -66,5 +66,5 @@ export interface ApiClient {
     getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse>;
 
     getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse>;
-    getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse   >;
+    getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse>;
 }

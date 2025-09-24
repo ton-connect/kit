@@ -9,6 +9,7 @@ import {
     SetupWallet,
     WalletDashboard,
     SendTransaction,
+    TracePage,
     TransactionDetail,
 } from '../pages';
 
@@ -64,6 +65,14 @@ export const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute requiresWallet>
                             <TransactionDetail />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/wallet/trace/:traceId"
+                    element={
+                        <ProtectedRoute requiresWallet>
+                            <TracePage />
                         </ProtectedRoute>
                     }
                 />

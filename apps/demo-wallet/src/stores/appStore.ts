@@ -88,7 +88,6 @@ export const useStore = create<AppState>()(
                         },
                         wallet: {
                             hasWallet: state.wallet.hasWallet,
-                            transactions: state.wallet.transactions,
                             encryptedMnemonic: state.wallet.encryptedMnemonic,
                             ledgerConfig: state.wallet.ledgerConfig,
                         },
@@ -130,6 +129,10 @@ export const useStore = create<AppState>()(
                             if (state.wallet.encryptedMnemonic && !state.wallet.hasWallet) {
                                 log.info('Auto-creating wallet with persisted mnemonic');
                                 state.wallet.hasWallet = true;
+                            }
+
+                            if (!state.wallet.transactions) {
+                                state.wallet.transactions = [];
                             }
                         }
                     },

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Base64Normalize } from '@ton/walletkit';
 
 import { walletKit } from '../stores/slices/walletSlice';
 import type { ToncenterTransaction } from '../../../../packages/walletkit/src/types/toncenter/emulation';
-import { Base64Normalize } from '@ton/walletkit';
 
 interface TransactionDetailData {
     hash: string;
@@ -36,7 +36,7 @@ export const TransactionDetail: React.FC = () => {
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    console.log('TransactionDetail start')
+    console.log('TransactionDetail start');
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
@@ -62,10 +62,9 @@ export const TransactionDetail: React.FC = () => {
 
     useEffect(() => {
         const fetchTransactionDetail = async () => {
-            console.log("Fetch transaction details", hash)
+            console.log('Fetch transaction details', hash);
 
             if (!hash) {
-                console.log("Transaction hash not provided");
                 setError('Transaction hash not provided');
                 setIsLoading(false);
                 return;
@@ -75,8 +74,8 @@ export const TransactionDetail: React.FC = () => {
                 setIsLoading(true);
                 setError(null);
 
-                while(walletKit.isReady() === false) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                while (walletKit.isReady() === false) {
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
                 // Use the walletKit's API client to get transaction by hash

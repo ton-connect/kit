@@ -89,6 +89,9 @@ export type {
     EmulationTokenInfo,
     EmulationTokenInfoWallets,
     EmulationTokenInfoMasters,
+    ToncenterTracesResponse,
+    ToncenterTraceItem,
+    TraceMeta,
 } from './toncenter/emulation';
 
 export type { NftItem } from './toncenter/NftItem';

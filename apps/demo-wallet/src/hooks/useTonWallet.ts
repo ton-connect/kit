@@ -130,6 +130,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
                 // Add transaction to history
                 walletStore.addTransaction({
                     id: Date.now().toString(),
+                    messageHash: '',
                     type: 'send',
                     amount,
                     address: to,

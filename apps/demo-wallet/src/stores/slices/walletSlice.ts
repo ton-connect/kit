@@ -91,12 +91,14 @@ function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransac
 
     return {
         id: tx.hash,
+        traceId: tx.trace_id || undefined,
         messageHash: tx.in_msg?.hash || '',
         type,
         amount,
         address,
         timestamp: tx.now * 1000, // Convert to milliseconds
         status,
+        externalMessageHash: tx.trace_external_hash || undefined,
     };
 }
 

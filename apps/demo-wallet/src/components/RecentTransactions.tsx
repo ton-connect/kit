@@ -1,29 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 
-import { useWallet } from '../stores';
-import { Base64NormalizeUrl } from '@ton/walletkit';
+import { useStore } from '../stores';
 import { walletKit } from '../stores/slices/walletSlice';
 import type { PreviewTransaction } from '../types/wallet';
+import { TraceRow } from './TraceRow';
+import { useShallow } from 'zustand/react/shallow';
 
-export const RecentTransactions: React.FC = () => {
-    const { transactions, loadTransactions, address } = useWallet();
+export const RecentTransactions: React.FC = memo(() => {
+    const { transactions, loadTransactions, address } = useStore(
+        useShallow((state) => ({    
+            transactions: state.wallet.transactions,
+            loadTransactions: state.loadTransactions,
+            address: state.wallet.address,
+        })),
+    );
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
 
-    const formatTonAmount = (amount: string): string => {
-        const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
-        return tonAmount.toFixed(4);
-    };
+    // Group transactions by external message hash or generate unique trace ID for completed transactions
+    const groupTransactionsByTrace = (transactions: PreviewTransaction[]) => {
+        const traceGroups = new Map<
+            string,
+            {
+                traceId: string;
+                externalHash?: string;
+                transactions: PreviewTransaction[];
+                timestamp: number;
+                isPending?: boolean;
+            }
+        >();
 
-    const formatAddress = (addr: string): string => {
-        if (!addr) return '';
-        return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
-    };
+        transactions.forEach((tx) => {
+            let groupKey: string;
 
-    const formatTimestamp = (timestamp: number): string => {
-        return new Date(timestamp).toLocaleString();
+            if (tx.status === 'pending' && tx.messageHash) {
+                // For pending transactions, use message hash as external hash
+                groupKey = `pending_${tx.messageHash}`;
+            } else if (tx.externalMessageHash) {
+                // For completed transactions, use external message hash
+                groupKey = tx.externalMessageHash;
+            } else {
+                // Fallback: use transaction hash as unique identifier
+                groupKey = `tx_${tx.traceId}`;
+            }
+
+            // debugger
+            if (!traceGroups.has(groupKey)) {
+                traceGroups.set(groupKey, {
+                    traceId: tx.id,
+                    externalHash: tx.messageHash ?? tx.externalMessageHash,
+                    transactions: [],
+                    timestamp: tx.timestamp,
+                    isPending: tx.status === 'pending',
+                });
+            }
+
+            const group = traceGroups.get(groupKey)!;
+            group.transactions.push(tx);
+            // Use the earliest timestamp for the group
+            group.timestamp = Math.min(group.timestamp, tx.timestamp);
+        });
+
+        // Convert to array and sort by timestamp (newest first)
+        return Array.from(traceGroups.values()).sort((a, b) => b.timestamp - a.timestamp);
     };
 
     // Check for pending transactions
@@ -33,7 +73,7 @@ export const RecentTransactions: React.FC = () => {
         try {
             const apiClient = walletKit.getApiClient();
             const pendingResponse = await apiClient.getPendingTransactions({
-                accounts: [address]
+                accounts: [address],
             });
 
             if (pendingResponse.transactions && pendingResponse.transactions.length > 0) {
@@ -75,9 +115,9 @@ export const RecentTransactions: React.FC = () => {
             } else {
                 setPendingTransactions([]);
             }
-        } catch (err) {
+        } catch (_err) {
             // Silently handle errors to avoid spamming the user
-            console.warn('Failed to check pending transactions:', err);
+            // Failed to check pending transactions
             setPendingTransactions([]);
         }
     };
@@ -108,8 +148,8 @@ export const RecentTransactions: React.FC = () => {
         // Start polling immediately
         checkPendingTransactions();
 
-        // Set up interval for polling every 500ms
-        const interval = setInterval(checkPendingTransactions, 500);
+        // Set up interval for polling every 5000ms
+        const interval = setInterval(checkPendingTransactions, 5000);
 
         // Cleanup interval on unmount or address change
         return () => {
@@ -130,6 +170,14 @@ export const RecentTransactions: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    const allTransactions = useMemo(() => {
+        return [...pendingTransactions, ...transactions];
+    }, [pendingTransactions, transactions]);
+
+    const traceGroups = useMemo(() => {
+        return groupTransactionsByTrace(allTransactions);
+    }, [allTransactions]);
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
@@ -203,121 +251,17 @@ export const RecentTransactions: React.FC = () => {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {/* Pending transactions at the top */}
-                        {pendingTransactions.map((tx) => (
-                            <div
-                                key={`pending-${tx.id}`}
-                                className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg animate-pulse"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                            tx.type === 'send' ? 'bg-yellow-100' : 'bg-yellow-100'
-                                        }`}
-                                    >
-                                        <div className="w-4 h-4 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"></div>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-yellow-900">
-                                            {tx.type === 'send' ? 'Sending' : 'Receiving'} (Pending)
-                                        </p>
-                                        <p className="text-xs text-yellow-700">{formatAddress(tx.address)}</p>
-                                        <p className="text-xs text-yellow-600">{formatTimestamp(tx.timestamp)}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p
-                                        className={`text-sm font-medium ${
-                                            tx.type === 'send' ? 'text-yellow-700' : 'text-yellow-700'
-                                        }`}
-                                    >
-                                        {tx.type === 'send' ? '-' : '+'}
-                                        {formatTonAmount(tx.amount)} TON
-                                    </p>
-                                    <p className="text-xs text-yellow-600">
-                                        pending
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                        
-                        {/* Regular confirmed transactions */}
-                        {transactions.slice(0, 10).map((tx) => (
-                            <Link
-                                key={tx.id}
-                                to={`/wallet/transactions/${Base64NormalizeUrl(tx.messageHash)}`}
-                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors block no-underline"
-                            >
-                                <div className="flex items-center space-x-3">
-                                    <div
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                            tx.type === 'send' ? 'bg-red-100' : 'bg-green-100'
-                                        }`}
-                                    >
-                                        {tx.type === 'send' ? (
-                                            <svg
-                                                className="w-4 h-4 text-red-600"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M7 11l5-5m0 0l5 5m-5-5v12"
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <svg
-                                                className="w-4 h-4 text-green-600"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M17 13l-5 5m0 0l-5-5m5 5V6"
-                                                />
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-900">
-                                            {tx.type === 'send' ? 'Sent' : 'Received'}
-                                        </p>
-                                        <p className="text-xs text-gray-500">{formatAddress(tx.address)}</p>
-                                        <p className="text-xs text-gray-400">{formatTimestamp(tx.timestamp)}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p
-                                        className={`text-sm font-medium ${
-                                            tx.type === 'send' ? 'text-red-600' : 'text-green-600'
-                                        }`}
-                                    >
-                                        {tx.type === 'send' ? '-' : '+'}
-                                        {formatTonAmount(tx.amount)} TON
-                                    </p>
-                                    <p
-                                        className={`text-xs ${
-                                            tx.status === 'confirmed'
-                                                ? 'text-green-500'
-                                                : tx.status === 'failed'
-                                                  ? 'text-red-500'
-                                                  : 'text-yellow-500'
-                                        }`}
-                                    >
-                                        {tx.status}
-                                    </p>
-                                </div>
-                            </Link>
+                        {traceGroups.slice(0, 10).map((group) => (
+                            <TraceRow
+                                key={group.traceId}
+                                traceId={group.traceId}
+                                externalHash={group.externalHash}
+                                isPending={group.isPending}
+                            />
                         ))}
                     </div>
                 )}
             </div>
         </div>
     );
-};
+});

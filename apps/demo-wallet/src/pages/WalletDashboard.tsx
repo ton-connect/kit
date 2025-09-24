@@ -9,9 +9,9 @@ import {
     TransactionRequestModal,
     SignDataRequestModal,
     DisconnectNotifications,
-    JettonsCard,
     NftsCard,
     RecentTransactions,
+    JettonsCard,
 } from '../components';
 import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
 import { walletKit } from '../stores/slices/walletSlice';

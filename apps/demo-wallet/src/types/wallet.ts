@@ -63,6 +63,8 @@ export interface PreviewTransaction {
     address: string;
     timestamp: number;
     status: 'pending' | 'confirmed' | 'failed';
+    traceId?: string;
+    externalMessageHash?: string;
 }
 
 export interface DisconnectNotification {

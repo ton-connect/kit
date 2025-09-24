@@ -20,14 +20,13 @@ export interface ToncenterTracesResponse {
     metadata: Record<string, EmulationAddressMetadata>;
 }
 
-
 export interface ToncenterTransactionsResponse {
     transactions: ToncenterTransaction[];
     address_book: Record<string, EmulationAddressBookEntry>;
 }
 
 export interface ToncenterTraceItem {
-    actions: EmulationAction[];
+    actions?: EmulationAction[];
     end_lt: string;
     end_utime: number;
     external_hash: string;
@@ -36,20 +35,20 @@ export interface ToncenterTraceItem {
     mc_seqno_start: string;
     start_lt: string;
     start_utime: number;
-    trace: EmulationTraceNode
-    trace_id: string
-    trace_info: TraceMeta
+    trace: EmulationTraceNode;
+    trace_id: string;
+    trace_info: TraceMeta;
     transactions: Record<string, ToncenterTransaction>;
     transactions_order: string[];
-    warning: string
+    warning: string;
 }
 
 export interface TraceMeta {
     classification_state: string;
     messages: number;
-    pending_messages: number
-    trace_state: string
-    transactions: number
+    pending_messages: number;
+    trace_state: string;
+    transactions: number;
 }
 
 // Trace tree
@@ -80,6 +79,7 @@ export interface ToncenterTransaction {
     account_state_before: EmulationAccountState;
     account_state_after: EmulationAccountState;
     emulated: boolean;
+    trace_id?: string;
 }
 
 export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit';
