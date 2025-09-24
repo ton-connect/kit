@@ -12,6 +12,18 @@ export function Base64Normalize(data: string): string {
 }
 
 /**
+ * Make base64url string
+ * @param data Base64url or base64 string
+ * @returns Normalized base64url string
+ * example: a+/ => a-_=
+ */
+export function Base64NormalizeUrl(data: string): string {
+    const normalized = Base64Normalize(data);
+    const burl = normalized.replace(/-/g, '+').replace(/\//g, '_').replace(/=/g, '');
+    return burl;
+}
+
+/**
  * Parse base64 string
  * @param data Base64 string
  * @returns utf-8 string

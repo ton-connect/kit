@@ -3,7 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { useStore, useWallet } from '../stores';
 import { ProtectedRoute } from './ProtectedRoute';
-import { SetupPassword, UnlockWallet, SetupWallet, WalletDashboard, SendTransaction } from '../pages';
+import {
+    SetupPassword,
+    UnlockWallet,
+    SetupWallet,
+    WalletDashboard,
+    SendTransaction,
+    TransactionDetail,
+} from '../pages';
 
 export const AppRouter: React.FC = () => {
     // const { isPasswordSet, isUnlocked } = useAuth();
@@ -49,6 +56,14 @@ export const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute requiresWallet>
                             <SendTransaction />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/wallet/transactions/:hash"
+                    element={
+                        <ProtectedRoute requiresWallet>
+                            <TransactionDetail />
                         </ProtectedRoute>
                     }
                 />

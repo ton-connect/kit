@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useWallet } from '../stores';
+import { Base64NormalizeUrl } from '@ton/walletkit';
 
 export const RecentTransactions: React.FC = () => {
     const { transactions, loadTransactions, address } = useWallet();
@@ -120,7 +122,11 @@ export const RecentTransactions: React.FC = () => {
                 ) : (
                     <div className="space-y-3">
                         {transactions.slice(0, 10).map((tx) => (
-                            <div key={tx.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <Link
+                                key={tx.id}
+                                to={`/wallet/transactions/${Base64NormalizeUrl(tx.messageHash)}`}
+                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors block no-underline"
+                            >
                                 <div className="flex items-center space-x-3">
                                     <div
                                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -186,7 +192,7 @@ export const RecentTransactions: React.FC = () => {
                                         {tx.status}
                                     </p>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
                 )}

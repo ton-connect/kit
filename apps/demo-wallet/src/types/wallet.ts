@@ -15,7 +15,7 @@ export interface WalletState {
         publicKey?: string;
 
         // Transaction history
-        transactions: Transaction[];
+        transactions: PreviewTransaction[];
 
         // Walletkit instance and current wallet
         currentWallet?: WalletInterface;
@@ -55,8 +55,9 @@ export interface AuthState {
     };
 }
 
-export interface Transaction {
+export interface PreviewTransaction {
     id: string;
+    messageHash: string;
     type: 'send' | 'receive';
     amount: string;
     address: string;
