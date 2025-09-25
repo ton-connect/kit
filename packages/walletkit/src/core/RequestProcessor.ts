@@ -95,6 +95,7 @@ export class RequestProcessor {
                     event.from || '',
                     event.preview.manifest?.name || '',
                     domain,
+                    event.preview.manifest?.iconUrl || '',
                     wallet,
                 );
                 // Create bridge session
@@ -138,7 +139,13 @@ export class RequestProcessor {
                 // If event is EventConnectApproval, we need to send response to dApp and create session
                 const url = new URL(event.result.dAppUrl);
                 const domain = url.hostname;
-                await this.sessionManager.createSession(event.from, event.result.dAppName, domain, wallet);
+                await this.sessionManager.createSession(
+                    event.from,
+                    event.result.dAppName,
+                    domain,
+                    event.result.dAppIconUrl,
+                    wallet,
+                );
                 await this.bridgeManager.sendResponse(event, event.result.response);
             } else {
                 log.error('Invalid event', { event });
@@ -196,6 +203,7 @@ export class RequestProcessor {
             const newSession = await this.sessionManager.createSession(
                 event.from || '',
                 event.preview.manifest?.name || '',
+                '',
                 '',
                 undefined,
                 {

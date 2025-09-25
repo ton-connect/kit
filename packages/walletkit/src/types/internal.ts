@@ -14,6 +14,7 @@ export interface SessionData {
     sessionId: string;
     dAppName: string;
     domain: string;
+    dAppIconUrl: string;
     walletAddress: string;
     createdAt: string; // date
     lastActivityAt: string; // date

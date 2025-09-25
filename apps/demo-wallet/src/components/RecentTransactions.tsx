@@ -1,14 +1,14 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { useStore } from '../stores';
 import { walletKit } from '../stores/slices/walletSlice';
 import type { PreviewTransaction } from '../types/wallet';
 import { TraceRow } from './TraceRow';
-import { useShallow } from 'zustand/react/shallow';
 
 export const RecentTransactions: React.FC = memo(() => {
     const { transactions, loadTransactions, address } = useStore(
-        useShallow((state) => ({    
+        useShallow((state) => ({
             transactions: state.wallet.transactions,
             loadTransactions: state.loadTransactions,
             address: state.wallet.address,

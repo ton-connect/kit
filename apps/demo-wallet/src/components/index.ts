@@ -2,6 +2,7 @@ export { AppRouter } from './AppRouter';
 export { Button } from './Button';
 export { Card } from './Card';
 export { ConnectRequestModal } from './ConnectRequestModal';
+export { DAppInfo } from './DAppInfo';
 export { DisconnectNotifications } from './DisconnectNotifications';
 export { ImportWallet } from './ImportWallet';
 export { Input } from './Input';

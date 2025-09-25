@@ -2,7 +2,7 @@
 
 import { SessionCrypto } from '@tonconnect/protocol';
 
-import type { WalletInterface } from '../types';
+import type { SessionInfo, WalletInterface } from '../types';
 import type { WalletManager } from '../core/WalletManager';
 import type { SessionData, StorageAdapter } from '../types/internal';
 import { globalLogger } from './Logger';
@@ -35,6 +35,7 @@ export class SessionManager {
         sessionId: string,
         dAppName: string,
         domain: string,
+        dAppIconUrl: string,
         wallet?: WalletInterface,
         { disablePersist = false }: { disablePersist?: boolean } = {},
     ): Promise<SessionData> {
@@ -50,6 +51,7 @@ export class SessionManager {
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
+            dAppIconUrl: dAppIconUrl,
         };
 
         if (disablePersist) {
@@ -72,6 +74,7 @@ export class SessionManager {
             createdAt: session.createdAt,
             lastActivityAt: session.lastActivityAt,
             domain: session.domain,
+            dAppIconUrl: session.dAppIconUrl,
         };
     }
 
@@ -92,6 +95,7 @@ export class SessionManager {
                 createdAt: session.createdAt,
                 lastActivityAt: session.lastActivityAt,
                 domain: session.domain,
+                dAppIconUrl: session.dAppIconUrl,
             };
         }
         return undefined;
@@ -218,11 +222,13 @@ export class SessionManager {
     /**
      * Get sessions as the format expected by the main API
      */
-    getSessionsForAPI(): Array<{ sessionId: string; dAppName: string; walletAddress: string }> {
+    getSessionsForAPI(): Array<SessionInfo> {
         return this.getSessions().map((session) => ({
             sessionId: session.sessionId,
             dAppName: session.dAppName,
             walletAddress: session.walletAddress,
+            dAppUrl: session.domain,
+            dAppIconUrl: session.dAppIconUrl,
         }));
     }
 
@@ -270,6 +276,7 @@ export class SessionManager {
                 lastActivityAt: session.lastActivityAt,
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
+                dAppIconUrl: session.dAppIconUrl,
             }));
 
             await this.storageAdapter.set(this.storageKey, sessionMetadata);

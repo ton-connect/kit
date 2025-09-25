@@ -316,8 +316,6 @@ export class ApiClientToncenter implements ApiClient {
             console.error(error);
         }
 
-        
-
         try {
             const response = await CallForSuccess(() =>
                 this.getJson<ToncenterTracesResponse>('/api/v3/traces', {

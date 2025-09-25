@@ -1,12 +1,14 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import type { EventTransactionRequest, JettonInfo } from '@ton/walletkit';
+import type { EventTransactionRequest, JettonInfo, SessionInfo } from '@ton/walletkit';
 import { Address } from '@ton/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
+import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-import { walletKit } from '../stores/slices/walletSlice';
+
+import { walletKit } from '@/stores';
 
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
@@ -25,6 +27,16 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [sessionFrom, setSessionFrom] = useState<SessionInfo | undefined>(undefined);
+
+    useEffect(() => {
+        async function fetchSessionFrom() {
+            const sessions = await walletKit.listSessions();
+            const session = sessions.find((session) => session.sessionId === request.from);
+            setSessionFrom(session);
+        }
+        fetchSessionFrom();
+    }, [request.from]);
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -65,6 +77,13 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                 A dApp wants to send a transaction from your wallet
                             </p>
                         </div>
+
+                        {/* dApp Information */}
+                        <DAppInfo
+                            iconUrl={sessionFrom?.dAppIconUrl}
+                            name={sessionFrom?.dAppName}
+                            url={sessionFrom?.dAppUrl}
+                        />
 
                         {/* Transaction Summary */}
                         <div className="border rounded-lg p-4 bg-gray-50">
@@ -127,18 +146,6 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                             )}
                                     </div>
                                 </div>
-                                {/* Wallet Information */}
-                                {request.preview.moneyFlow.ourAddress && (
-                                    <div className="border rounded-lg p-4 bg-blue-50">
-                                        <h4 className="font-medium text-gray-900 mb-3">Wallet Information</h4>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-600">Your Wallet:</span>
-                                            <span className="text-sm font-mono">
-                                                {formatAddress(request.preview.moneyFlow.ourAddress)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
                             </>
                         )}
 

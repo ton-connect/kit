@@ -124,10 +124,11 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 {/* Status indicator */}
                 <div className="mt-1 flex items-center space-x-2 text-xs">
                     <span
-                        className={`px-2 py-0.5 rounded-full text-xs ${tx.description.aborted || !tx.description.compute_ph?.success
+                        className={`px-2 py-0.5 rounded-full text-xs ${
+                            tx.description.aborted || !tx.description.compute_ph?.success
                                 ? 'bg-red-100 text-red-700'
                                 : 'bg-green-100 text-green-700'
-                            }`}
+                        }`}
                     >
                         {tx.description.aborted || !tx.description.compute_ph?.success ? 'Failed' : 'Success'}
                     </span>
@@ -240,7 +241,6 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                     console.error(error);
                 }
 
-
                 try {
                     if (externalHash && !response) {
                         // Fetch by trace ID for completed traces
@@ -352,7 +352,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
 
     const orderedTransactions = trace.transactions_order
         ? trace.transactions_order.map((hash) => trace.transactions[hash] as TransactionData)
-        : Object.values(trace.transactions) as TransactionData[];
+        : (Object.values(trace.transactions) as TransactionData[]);
 
     return (
         <div className="bg-gray-50 rounded-lg overflow-hidden">
@@ -363,14 +363,15 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
             >
                 <div className="flex items-center space-x-3">
                     <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${traceInfo.status === 'failed'
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            traceInfo.status === 'failed'
                                 ? 'bg-red-100'
                                 : traceInfo.type === 'send'
-                                    ? 'bg-red-100'
-                                    : traceInfo.type === 'receive'
-                                        ? 'bg-green-100'
-                                        : 'bg-blue-100'
-                            }`}
+                                  ? 'bg-red-100'
+                                  : traceInfo.type === 'receive'
+                                    ? 'bg-green-100'
+                                    : 'bg-blue-100'
+                        }`}
                     >
                         {traceInfo.status === 'failed' ? (
                             <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,10 +426,10 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                             {traceInfo.status === 'failed'
                                 ? 'Failed Transaction'
                                 : traceInfo.type === 'send'
-                                    ? 'Sent'
-                                    : traceInfo.type === 'receive'
-                                        ? 'Received'
-                                        : 'Contract Interaction'}
+                                  ? 'Sent'
+                                  : traceInfo.type === 'receive'
+                                    ? 'Received'
+                                    : 'Contract Interaction'}
                             {transactionCount > 1 && ` (${transactionCount} txs)`}
                             {actionCount > 0 && ` • ${actionCount} actions`}
                         </p>
@@ -441,14 +442,15 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 <div className="flex items-center space-x-3">
                     <div className="text-right">
                         <p
-                            className={`text-sm font-medium ${traceInfo.status === 'failed'
+                            className={`text-sm font-medium ${
+                                traceInfo.status === 'failed'
                                     ? 'text-red-600'
                                     : traceInfo.type === 'send'
-                                        ? 'text-red-600'
-                                        : traceInfo.type === 'receive'
-                                            ? 'text-green-600'
-                                            : 'text-blue-600'
-                                }`}
+                                      ? 'text-red-600'
+                                      : traceInfo.type === 'receive'
+                                        ? 'text-green-600'
+                                        : 'text-blue-600'
+                            }`}
                         >
                             {traceInfo.type === 'send' ? '-' : traceInfo.type === 'receive' ? '+' : ''}
                             {traceInfo.amount !== '0' ? `${formatTonAmount(traceInfo.amount)} TON` : 'Contract'}

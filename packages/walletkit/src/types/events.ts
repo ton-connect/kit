@@ -80,6 +80,7 @@ export interface EventConnectApproval extends EventApprovalBase {
 export interface ConnectApproval {
     dAppName: string;
     dAppUrl: string;
+    dAppIconUrl: string;
     from: string;
 
     response: ConnectEventSuccess;

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import type { EventSignDataRequest } from '@ton/walletkit';
+import React, { useEffect, useState } from 'react';
+import type { EventSignDataRequest, SessionInfo } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
+import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
+
+import { walletKit } from '@/stores';
 
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
@@ -60,15 +63,29 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
                 );
             case 'cell':
                 return (
-                    <div className="border rounded-lg p-3 bg-purple-50">
-                        <h4 className="font-medium text-purple-900 mb-2">TON Cell Data</h4>
+                    <div className="">
+                        {/* <h4 className="font-medium mb-2">TON Cell Data</h4> */}
                         <div className="space-y-2">
-                            <p className="text-sm text-purple-800">Content: {preview.content}</p>
-                            {preview.schema && <p className="text-sm text-purple-800">Schema: {preview.schema}</p>}
+                            <div>
+                                <p className="font-medium">Content</p>
+                                <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
+                                    {preview.content}
+                                </p>
+                            </div>
+                            {preview.schema && (
+                                <div>
+                                    <p className="font-medium">Schema</p>
+                                    <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
+                                        {preview.schema}
+                                    </p>
+                                </div>
+                            )}
+                            {/* <p className="text-sm overflow-x-auto whitespace-pre-wrap">Content: {preview.content}</p> */}
+                            {/* {preview.schema && <p className="text-sm">Schema: {preview.schema}</p>} */}
                             {preview.parsed && (
                                 <div>
-                                    <p className="text-sm text-purple-800 mb-1">Parsed Data:</p>
-                                    <pre className="text-xs text-purple-700 overflow-x-auto whitespace-pre-wrap">
+                                    <p className="font-medium mb-1">Parsed Data:</p>
+                                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap bg-gray-100 p-2 rounded-lg">
                                         {JSON.stringify(preview.parsed, null, 2)}
                                     </pre>
                                 </div>
@@ -79,12 +96,26 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
             default:
                 return (
                     <div className="border rounded-lg p-3 bg-gray-50">
-                        <h4 className="font-medium text-gray-900 mb-2">Data to Sign</h4>
+                        {/* <h4 className="font-medium text-gray-900 mb-2">Data to Sign</h4> */}
                         <p className="text-sm text-gray-600">Unknown data format</p>
                     </div>
                 );
         }
     };
+
+    const [sessionFrom, setSessionFrom] = useState<SessionInfo | undefined>(undefined);
+    useEffect(() => {
+        async function fetchSessionFrom() {
+            const sessions = await walletKit.listSessions();
+            const session = sessions.find((session) => session.sessionId === request.from);
+            setSessionFrom(session);
+        }
+        fetchSessionFrom();
+    }, [request.from]);
+    // const sessionFrom = useMemo(() => {
+    //     const sessions = await walletKit.listSessions()
+    //     return request.from;
+    // }, [request.from]);
 
     if (!isOpen) return null;
 
@@ -99,33 +130,21 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
                             <p className="text-gray-600 text-sm mt-1">A dApp wants you to sign data with your wallet</p>
                         </div>
 
+                        {/* dApp Information */}
+                        <DAppInfo
+                            iconUrl={sessionFrom?.dAppIconUrl}
+                            name={sessionFrom?.dAppName}
+                            url={sessionFrom?.dAppUrl}
+                        />
+
                         {/* Request Information */}
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                            <h3 className="font-semibold text-gray-900 mb-3">Request Details</h3>
 
-                            {/* From Address */}
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-gray-600">From:</span>
-                                <span className="text-sm font-mono text-black">
-                                    {formatAddress(request.from ?? '')}
-                                </span>
-                            </div>
-
-                            {/* Wallet Address */}
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-gray-600">Wallet:</span>
-                                <span className="text-sm font-mono text-black">
-                                    {formatAddress(request.walletAddress ?? '')}
-                                </span>
-                            </div>
-
-                            {/* Request ID */}
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Request ID:</span>
-                                <span className="text-sm font-mono text-black text-xs">
-                                    {request.id.slice(0, 8)}...
-                                </span>
-                            </div>
+                        {/* Wallet Address */}
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-md text-gray-600">Wallet:</span>
+                            <span className="text-md font-mono text-black">
+                                {formatAddress(request.walletAddress ?? '')}
+                            </span>
                         </div>
 
                         {/* Data Preview */}

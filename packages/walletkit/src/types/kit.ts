@@ -122,6 +122,12 @@ export interface SessionInfo {
     /** Connected dApp name */
     dAppName: string;
 
+    /** Connected dApp URL */
+    dAppUrl: string;
+
+    /** Connected dApp icon URL */
+    dAppIconUrl: string;
+
     /** Associated wallet */
     walletAddress: string;
 

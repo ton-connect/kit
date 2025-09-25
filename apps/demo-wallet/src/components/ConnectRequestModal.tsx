@@ -3,6 +3,7 @@ import type { EventConnectRequest, WalletInterface } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
+import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 
 // Create logger for connect request modal
@@ -53,13 +54,13 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         if (halfLength > 24) {
             halfLength = 24;
         }
-        let dots = '...'
+        let dots = '...';
         if (halfLength > 23) {
-            dots = ''
+            dots = '';
         } else if (halfLength > 22) {
-            dots = '.'
-        } 
-        return `${address.slice(0, halfLength)}...${address.slice(-halfLength)}`;
+            dots = '.';
+        }
+        return `${address.slice(0, halfLength)}${dots}${address.slice(-halfLength)}`;
     };
 
     if (!isOpen) return null;
@@ -76,48 +77,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                         </div>
 
                         {/* dApp Information */}
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                            <div className="flex items-center space-x-4">
-                                {/* dApp Icon */}
-                                {request.preview.manifest?.iconUrl ? (
-                                    <img
-                                        src={request.preview.manifest.iconUrl}
-                                        alt={request.preview?.manifest?.name}
-                                        className="w-12 h-12 rounded-lg object-cover border"
-                                        onError={(e) => {
-                                            // Hide image if it fails to load
-                                            e.currentTarget.style.display = 'none';
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    </div>
-                                )}
-
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 truncate">
-                                        {request.preview.manifest?.name}
-                                    </h3>
-                                    {request.preview.manifest?.description && (
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                            {request.preview.manifest.description}
-                                        </p>
-                                    )}
-                                    {request.preview?.manifest?.url && (
-                                        <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {new URL(request.preview.manifest.url).hostname}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <DAppInfo
+                            name={request.preview.manifest?.name}
+                            description={request.preview.manifest?.description}
+                            url={request.preview.manifest?.url}
+                            iconUrl={request.preview.manifest?.iconUrl}
+                        />
 
                         {/* Requested Permissions */}
                         {(request.preview.permissions || []).length > 0 && (
@@ -135,10 +100,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                     <p className="text-xs text-gray-600 leading-relaxed">
                                                         {permission.description}
                                                     </p>
-                                                    {permission.name === 'ton_addr' && selectedWallet &&
+                                                    {permission.name === 'ton_addr' && selectedWallet && (
                                                         <p className="text-xs text-gray-500 mt-1 truncate">
-                                                            Your address: {formatAddress(selectedWallet.getAddress(), 20)}
-                                                        </p>}
+                                                            Your address:{' '}
+                                                            {formatAddress(selectedWallet.getAddress(), 20)}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

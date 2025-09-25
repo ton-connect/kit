@@ -18,6 +18,7 @@ import type {
     EventSignDataRequest,
     EventDisconnect,
     WalletInitConfig,
+    SessionInfo,
 } from '../types';
 import { createWalletFromConfig, Initializer, type InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
@@ -324,7 +325,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async listSessions(): Promise<{ sessionId: string; dAppName: string; walletAddress: string }[]> {
+    async listSessions(): Promise<SessionInfo[]> {
         await this.ensureInitialized();
         return this.sessionManager.getSessionsForAPI();
     }
