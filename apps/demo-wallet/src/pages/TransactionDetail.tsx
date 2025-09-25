@@ -36,7 +36,6 @@ export const TransactionDetail: React.FC = () => {
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    console.log('TransactionDetail start');
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
@@ -62,8 +61,6 @@ export const TransactionDetail: React.FC = () => {
 
     useEffect(() => {
         const fetchTransactionDetail = async () => {
-            console.log('Fetch transaction details', hash);
-
             if (!hash) {
                 setError('Transaction hash not provided');
                 setIsLoading(false);

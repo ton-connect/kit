@@ -20,6 +20,9 @@ import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
 import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
+import { globalLogger } from './Logger';
+
+const log = globalLogger.createChild('ApiClientToncenter');
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -299,7 +302,7 @@ export class ApiClientToncenter implements ApiClient {
                 return response;
             }
         } catch (error) {
-            console.error(error);
+            log.error('Error fetching trace', { error });
         }
 
         try {
@@ -313,7 +316,7 @@ export class ApiClientToncenter implements ApiClient {
                 return response;
             }
         } catch (error) {
-            console.error(error);
+            log.error('Error fetching trace', { error });
         }
 
         try {
@@ -326,7 +329,7 @@ export class ApiClientToncenter implements ApiClient {
                 return response;
             }
         } catch (error) {
-            console.error(error);
+            log.error('Error fetching pending trace', { error });
         }
 
         throw new Error('Failed to fetch trace');
@@ -343,7 +346,7 @@ export class ApiClientToncenter implements ApiClient {
                 return response;
             }
         } catch (error) {
-            console.error(error);
+            log.error('Error fetching pending trace', { error });
         }
 
         throw new Error('Failed to fetch pending trace');

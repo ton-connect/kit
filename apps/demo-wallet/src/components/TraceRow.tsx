@@ -5,6 +5,8 @@ import type { ToncenterTraceItem } from '@ton/walletkit';
 
 import { walletKit } from '../stores/slices/walletSlice';
 
+import { log } from '@/utils/logger';
+
 // Local type definitions for transaction data
 interface TransactionMessage {
     hash: string;
@@ -228,7 +230,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                         });
                     }
                 } catch (error) {
-                    console.error(error);
+                    log.error('Error fetching trace', { error });
                 }
                 try {
                     if (externalHash && !response) {
@@ -238,7 +240,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                         });
                     }
                 } catch (error) {
-                    console.error(error);
+                    log.error('Error fetching trace', { error });
                 }
 
                 try {
@@ -249,7 +251,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                         });
                     }
                 } catch (error) {
-                    console.error(error);
+                    log.error('Error fetching trace', { error });
                 }
 
                 if (!response) {
@@ -264,7 +266,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 }
             } catch (_err) {
                 // Failed to fetch trace
-                console.error('trace fetch error', _err);
+                log.error('trace fetch error', _err);
                 setError('Failed to load trace data');
             } finally {
                 setIsLoading(false);
