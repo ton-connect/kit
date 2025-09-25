@@ -4,7 +4,6 @@ import { ConnectItem } from '@tonconnect/protocol';
 
 import type { EventConnectRequest } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
-import { sanitizeString } from '../validation/sanitization';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
 import { WalletKitError, ERROR_CODES } from '../errors';
@@ -56,7 +55,7 @@ export class ConnectHandler
             (event as any).params?.manifest?.name ||
             'Unknown dApp';
 
-        return sanitizeString(name);
+        return name?.toString()?.trim();
     }
 
     /**
@@ -65,7 +64,7 @@ export class ConnectHandler
     private extractManifestUrl(event: RawBridgeEventConnect): string {
         const url = event.params?.manifest?.url ?? event.params?.manifestUrl ?? '';
 
-        return sanitizeString(url);
+        return url.trim();
     }
 
     /**
@@ -79,10 +78,10 @@ export class ConnectHandler
         const dAppUrl = manifest?.url || manifestUrl || '';
 
         const sanitizedManifest = manifest && {
-            name: sanitizeString(manifest.name || ''),
-            description: sanitizeString(manifest.description || ''),
-            url: sanitizeString(manifest.url || ''),
-            iconUrl: sanitizeString(manifest.iconUrl || ''),
+            name: manifest.name?.toString()?.trim() || '',
+            description: manifest.description?.toString()?.trim() || '',
+            url: manifest.url?.toString()?.trim() || '',
+            iconUrl: manifest.iconUrl?.toString()?.trim() || '',
 
             dAppName: this.extractDAppName(event, manifest),
             dAppUrl: dAppUrl,
