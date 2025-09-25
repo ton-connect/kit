@@ -17,7 +17,7 @@ export const DAppInfo: React.FC<DAppInfoProps> = ({ name, description, url, icon
     let hostname;
     try {
         hostname = url ? new URL(url).hostname : undefined;
-    } catch (error) {
+    } catch (_error) {
         hostname = url;
     }
 
