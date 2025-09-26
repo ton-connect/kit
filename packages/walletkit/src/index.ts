@@ -62,6 +62,8 @@ export {
     Uint8ArrayToBigInt,
 } from './utils/base64';
 
+export type { ToncenterTransaction } from './types/toncenter/emulation';
+
 export { PrepareSignDataResult } from './utils/signData/sign';
 
 export { Hash } from './types/primitive';
@@ -88,6 +90,7 @@ export type {
     ConnectItem,
     ConnectItemReply,
     Feature,
+    InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
 
 // Re-export validation utilities

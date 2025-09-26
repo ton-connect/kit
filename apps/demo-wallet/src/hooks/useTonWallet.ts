@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { mnemonicNew } from '@ton/crypto';
+import { CreateTonMnemonic } from '@ton/walletkit';
 
 import { useWallet, useAuth } from '../stores';
 import { createComponentLogger } from '../utils/logger';
@@ -60,7 +60,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
 
         try {
             setError(null);
-            const mnemonic = await mnemonicNew();
+            const mnemonic = await CreateTonMnemonic();
 
             // Create wallet with mnemonic
             await walletStore.createWallet(mnemonic);

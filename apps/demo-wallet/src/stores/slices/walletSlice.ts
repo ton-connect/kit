@@ -15,13 +15,13 @@ import {
     type ITonWalletKit,
     createDeviceInfo,
     createWalletManifest,
+    type ToncenterTransaction,
 } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
 import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 
-import type { ToncenterTransaction } from '../../../../../packages/walletkit/src/types/toncenter/emulation';
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
 import type { PreviewTransaction, LedgerConfig } from '../../types/wallet';

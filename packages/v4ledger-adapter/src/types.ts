@@ -41,6 +41,3 @@ export interface WalletInitConfigLedgerInterface {
     /** Account index */
     accountIndex?: number;
 }
-
-// Re-export commonly used types for convenience
-// export type { WalletInitConfigLedgerInterface } from '@ton/walletkit';

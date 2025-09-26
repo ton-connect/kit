@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Base64Normalize } from '@ton/walletkit';
+import { Base64Normalize, type ToncenterTransaction } from '@ton/walletkit';
 
 import { walletKit } from '../stores/slices/walletSlice';
-import type { ToncenterTransaction } from '../../../../packages/walletkit/src/types/toncenter/emulation';
 
 interface TransactionDetailData {
     hash: string;

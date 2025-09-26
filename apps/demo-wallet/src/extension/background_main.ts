@@ -3,9 +3,8 @@
 console.log('TON Wallet Demo extension background script loaded');
 
 import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
-import type { InjectedToExtensionBridgeRequest } from '@ton/walletkit';
+import type { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 
-import type { InjectedToExtensionBridgeRequestPayload } from '../../../../packages/walletkit/dist/esm/types/jsBridge';
 import { getTonConnectWalletManifest } from '../utils/walletManifest';
 
 // Initialize WalletKit and JSBridge
