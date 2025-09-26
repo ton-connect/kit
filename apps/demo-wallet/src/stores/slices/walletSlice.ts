@@ -13,6 +13,8 @@ import {
     DefaultSignature,
     CHAIN,
     type ITonWalletKit,
+    createDeviceInfo,
+    createWalletManifest,
 } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
@@ -32,8 +34,8 @@ const log = createComponentLogger('WalletSlice');
 
 const walletKit = new TonWalletKit({
     // bridgeUrl: 'https://bridge.tonapi.io/bridge',
-    deviceInfo: getTonConnectDeviceInfo(),
-    walletManifest: getTonConnectWalletManifest(),
+    deviceInfo: createDeviceInfo(getTonConnectDeviceInfo()),
+    walletManifest: createWalletManifest(getTonConnectWalletManifest()),
 
     bridge: {
         bridgeUrl: 'https://walletbot.me/tonconnect-bridge/bridge',

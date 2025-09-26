@@ -96,3 +96,4 @@ export { MnemonicToKeyPair } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 
 export { wrapWalletInterface } from './core/Initializer';
+export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';
