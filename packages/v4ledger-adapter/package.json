@@ -34,7 +34,7 @@
     "typescript": "~5.8.3"
   },
   "scripts": {
-    "build": "npm run build:clean && npm run build:cjs && npm run build:esm",
+    "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
     "build:clean": "rimraf dist",
     "build:cjs": "tsc -p tsconfig.json",
     "build:esm": "tsc -p tsconfig.esm.json",
