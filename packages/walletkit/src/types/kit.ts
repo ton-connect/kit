@@ -137,23 +137,3 @@ export interface SessionInfo {
     /** Last activity time */
     lastActivity?: Date;
 }
-
-/**
- * Kit status information
- */
-export interface KitStatus {
-    /** Whether kit is initialized */
-    initialized: boolean;
-
-    /** Whether kit is ready for use */
-    ready: boolean;
-
-    /** Number of registered wallets */
-    walletCount: number;
-
-    /** Number of active sessions */
-    sessionCount: number;
-
-    /** Bridge connection status */
-    bridgeConnected: boolean;
-}

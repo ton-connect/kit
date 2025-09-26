@@ -205,12 +205,3 @@ export interface WalletMetadata {
     address?: string;
     lastUsed?: Date;
 }
-
-/**
- * Wallet status information
- */
-export interface WalletStatus {
-    isDeployed: boolean;
-    balance: string;
-    lastActivity?: Date;
-}
