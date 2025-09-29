@@ -6,6 +6,11 @@ dist
 .turbo
 apps/demo-wallet/dist-extension.pem
 apps/demo-wallet/dist-extension.crx
+coverage
+.stryker*
+reports
+*-results
+*-report
 
 apps/TONWalletApp/Packages/TONWalletKit/.swiftpm/xcode/xcuserdata/
 apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.mjs

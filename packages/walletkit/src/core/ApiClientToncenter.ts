@@ -1,14 +1,28 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
 
-import { base64ToUint8Array, base64ToBigInt, uint8ArrayToBase64 } from '../utils/base64';
+import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
-import { ApiClient } from '../types/toncenter/ApiClient';
+import {
+    ApiClient,
+    GetPendingTraceRequest,
+    GetPendingTransactionsRequest,
+    GetTraceRequest,
+    GetTransactionByHashRequest,
+    NftItemsByOwnerRequest,
+    NftItemsRequest,
+    TransactionsByAddressRequest,
+} from '../types/toncenter/ApiClient';
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
+import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
+import { CallForSuccess } from '../utils/retry';
+import { globalLogger } from './Logger';
+
+const log = globalLogger.createChild('ApiClientToncenter');
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -27,20 +41,6 @@ export interface ApiClientConfig {
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
-}
-
-export interface LimitRequest {
-    limit?: number;
-    offset?: number;
-}
-
-export interface NftItemsRequest {
-    address?: Array<Address | string>;
-}
-
-export interface NftItemsByOwnerRequest extends LimitRequest {
-    ownerAddress?: Array<Address | string>;
-    sortByLastTransactionLt?: boolean;
 }
 
 export class ApiClientToncenter implements ApiClient {
@@ -105,10 +105,10 @@ export class ApiClientToncenter implements ApiClient {
 
     async sendBoc(boc: string | Uint8Array): Promise<string> {
         if (typeof boc !== 'string') {
-            boc = uint8ArrayToBase64(boc);
+            boc = Uint8ArrayToBase64(boc);
         }
         const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
-        return base64ToBigInt(response.message_hash_norm).toString(16);
+        return Base64ToBigInt(response.message_hash_norm).toString(16);
     }
 
     async runGetMethod(
@@ -146,8 +146,8 @@ export class ApiClientToncenter implements ApiClient {
         for (const currency of raw.extra_currencies || []) {
             extraCurrencies[currency.id] = BigInt(currency.amount);
         }
-        const code = base64ToUint8Array(raw.code);
-        const data = base64ToUint8Array(raw.data);
+        const code = Base64ToUint8Array(raw.code);
+        const data = Base64ToUint8Array(raw.data);
         const out: FullAccountState = {
             status: raw.status,
             balance,
@@ -160,7 +160,7 @@ export class ApiClientToncenter implements ApiClient {
             }),
         };
         if (raw.frozen_hash) {
-            out.frozenHash = base64ToBigInt(raw.frozen_hash);
+            out.frozenHash = Base64ToBigInt(raw.frozen_hash);
         }
         return out;
     }
@@ -245,7 +245,117 @@ export class ApiClientToncenter implements ApiClient {
         }
         return new TonClientError(`HTTP ${response.status}: ${message}`, code, detail);
     }
+
+    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = request.address?.map(prepareAddress);
+        let offset = request.offset ?? 0;
+        let limit = request.limit ?? 10;
+        if (limit > 100) {
+            limit = 100;
+        } else if (limit < 0) {
+            limit = 0;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactions', {
+            account: accounts,
+            limit,
+            offset,
+        });
+        return response;
+    }
+
+    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
+        const msgHash = 'msgHash' in request ? padBase64(request.msgHash) : undefined;
+        const bodyHash = 'bodyHash' in request ? padBase64(request.bodyHash) : undefined;
+
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', {
+            msg_hash: msgHash ? [msgHash] : undefined,
+            body_hash: bodyHash ? [bodyHash] : undefined,
+        });
+        return response;
+    }
+
+    async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined;
+        const traceId = 'traceId' in request ? request.traceId : undefined;
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', {
+            account: accounts,
+            trace_id: traceId,
+        });
+        return response;
+    }
+
+    async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
+        const inTraceId = request.traceId ? request.traceId[0] : undefined;
+
+        const traceId = padBase64(Base64Normalize(inTraceId || '').replace(/=/g, ''));
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    tx_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching trace', { error });
+        }
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    trace_id: traceId,
+                }),
+            );
+
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching trace', { error });
+        }
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    msg_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching pending trace', { error });
+        }
+
+        throw new Error('Failed to fetch trace');
+    }
+
+    async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
+                    ext_msg_hash: request.externalMessageHash,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching pending trace', { error });
+        }
+
+        throw new Error('Failed to fetch pending trace');
+    }
 }
+
+const padBase64 = (data: string): string => {
+    return data.padEnd(data.length + (4 - (data.length % 4)), '=');
+};
 
 function prepareAddress(address: Address | string): string {
     if (address instanceof Address) {
@@ -292,8 +402,8 @@ interface V2SendMessageResult {
 function parseInternalTransactionId(data: InternalTransactionId): TransactionId | null {
     if (data.hash !== 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=') {
         return {
-            lt: base64ToBigInt(data.lt),
-            hash: base64ToBigInt(data.hash),
+            lt: Base64ToBigInt(data.lt),
+            hash: Base64ToBigInt(data.hash),
         };
     }
     return null;

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { EventConnectRequest, WalletInterface } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
+import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 
 // Create logger for connect request modal
@@ -23,8 +24,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     onApprove,
     onReject,
 }) => {
-    const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
+    // const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
+
+    const selectedWallet = useMemo(() => {
+        return availableWallets[0];
+    }, [availableWallets]);
 
     const handleApprove = async () => {
         if (!selectedWallet) return;
@@ -43,9 +48,19 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         onReject('User rejected the connection');
     };
 
-    const formatAddress = (address: string): string => {
+    const formatAddress = (address: string, length: number = 16): string => {
         if (!address) return '';
-        return `${address.slice(0, 8)}...${address.slice(-8)}`;
+        let halfLength = Math.floor(length / 2);
+        if (halfLength > 24) {
+            halfLength = 24;
+        }
+        let dots = '...';
+        if (halfLength > 23) {
+            dots = '';
+        } else if (halfLength > 22) {
+            dots = '.';
+        }
+        return `${address.slice(0, halfLength)}${dots}${address.slice(-halfLength)}`;
     };
 
     if (!isOpen) return null;
@@ -57,51 +72,19 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 className="text-xl font-bold text-gray-900">Connect Request</h2>
+                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                Connect Request
+                            </h2>
                             <p className="text-gray-600 text-sm mt-1">A dApp wants to connect to your wallet</p>
                         </div>
 
                         {/* dApp Information */}
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                            <div className="flex items-center space-x-4">
-                                {/* dApp Icon */}
-                                {request.preview.manifest?.iconUrl ? (
-                                    <img
-                                        src={request.preview.manifest.iconUrl}
-                                        alt={request.dAppName}
-                                        className="w-12 h-12 rounded-lg object-cover border"
-                                        onError={(e) => {
-                                            // Hide image if it fails to load
-                                            e.currentTarget.style.display = 'none';
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    </div>
-                                )}
-
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-gray-900 truncate">{request.dAppName}</h3>
-                                    {request.preview.manifest?.description && (
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                            {request.preview.manifest.description}
-                                        </p>
-                                    )}
-                                    {request.manifestUrl && (
-                                        <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {new URL(request.manifestUrl).hostname}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <DAppInfo
+                            name={request.preview.manifest?.name}
+                            description={request.preview.manifest?.description}
+                            url={request.preview.manifest?.url}
+                            iconUrl={request.preview.manifest?.iconUrl}
+                        />
 
                         {/* Requested Permissions */}
                         {(request.preview.permissions || []).length > 0 && (
@@ -119,6 +102,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                     <p className="text-xs text-gray-600 leading-relaxed">
                                                         {permission.description}
                                                     </p>
+                                                    {permission.name === 'ton_addr' && selectedWallet && (
+                                                        <p className="text-xs text-gray-500 mt-1 truncate">
+                                                            Your address:{' '}
+                                                            {formatAddress(selectedWallet.getAddress(), 20)}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -131,7 +120,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                         {availableWallets.length > 1 && (
                             <div>
                                 <h4 className="font-medium text-gray-900 mb-3">Select Wallet:</h4>
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     {availableWallets.map((wallet, index) => (
                                         <label
                                             key={index}
@@ -179,7 +168,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                             )}
                                         </label>
                                     ))}
-                                </div>
+                                </div> */}
                             </div>
                         )}
 
@@ -210,6 +199,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 Reject
                             </Button>
                             <Button
+                                data-test-id="connect"
                                 onClick={handleApprove}
                                 isLoading={isLoading}
                                 disabled={!selectedWallet || isLoading}

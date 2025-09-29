@@ -11,7 +11,7 @@ import { TonWalletKit } from '@ton/walletkit';
 
 const walletKit = new TonWalletKit({
     bridgeUrl: 'https://bridge.tonapi.io/bridge',
-    network: 'mainnet',
+    network: CHAIN.MAINNET,
 });
 
 // JS Bridge is automatically initialized and available

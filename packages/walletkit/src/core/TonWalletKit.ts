@@ -1,10 +1,16 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import { Address } from '@ton/core';
-import { CHAIN, ConnectEventSuccess, ConnectRequest, DisconnectEvent } from '@tonconnect/protocol';
+import {
+    CHAIN,
+    ConnectEventSuccess,
+    ConnectRequest,
+    DisconnectEvent,
+    SendTransactionRpcResponseError,
+} from '@tonconnect/protocol';
 
 import type {
-    TonWalletKit as ITonWalletKit,
+    ITonWalletKit,
     TonWalletKitOptions,
     WalletInterface,
     EventConnectRequest,
@@ -12,6 +18,7 @@ import type {
     EventSignDataRequest,
     EventDisconnect,
     WalletInitConfig,
+    SessionInfo,
 } from '../types';
 import { createWalletFromConfig, Initializer, type InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
@@ -28,6 +35,7 @@ import {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
     RawBridgeEventTransaction,
+    SendRequestResult,
 } from '../types/internal';
 import { EventEmitter } from './EventEmitter';
 import { StorageEventProcessor } from './EventProcessor';
@@ -36,6 +44,10 @@ import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } 
 import { WalletInitInterface } from '../types/wallet';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
+import { Hash } from '../types/primitive';
+import { EventRequestError } from '../types/events';
+import { AnalyticsApi } from '../analytics/sender';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -71,12 +83,17 @@ export class TonWalletKit implements ITonWalletKit {
     // State
     private isInitialized = false;
     private initializationPromise?: Promise<void>;
+    private analyticsApi?: AnalyticsApi;
 
     constructor(options: TonWalletKitOptions) {
         this.config = options;
 
+        if (options?.analytics?.enabled) {
+            this.analyticsApi = new AnalyticsApi(options?.analytics);
+        }
+
         this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer(options, this.eventEmitter);
+        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 
@@ -247,7 +264,12 @@ export class TonWalletKit implements ITonWalletKit {
 
         const wallet = typeof argWallet === 'string' ? this.walletManager.getWallet(argWallet) : argWallet;
         if (!wallet) {
-            throw new Error('Wallet not found');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_NOT_FOUND,
+                'Wallet not found for sending transaction',
+                undefined,
+                { walletAddress: typeof argWallet === 'string' ? argWallet : 'Unknown' },
+            );
         }
 
         // Stop event processing for the wallet
@@ -317,7 +339,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async listSessions(): Promise<{ sessionId: string; dAppName: string; walletAddress: string }[]> {
+    async listSessions(): Promise<SessionInfo[]> {
         await this.ensureInitialized();
         return this.sessionManager.getSessionsForAPI();
     }
@@ -381,6 +403,20 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventRouter.removeDisconnectCallback(cb);
     }
 
+    onRequestError(cb: (event: EventRequestError) => void): void {
+        if (this.eventRouter) {
+            this.eventRouter.onRequestError(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.eventRouter.onRequestError(cb);
+            });
+        }
+    }
+
+    removeErrorCallback(cb: (event: EventRequestError) => void): void {
+        this.eventRouter.removeErrorCallback(cb);
+    }
+
     // === URL Processing API ===
 
     /**
@@ -394,13 +430,20 @@ export class TonWalletKit implements ITonWalletKit {
             // Parse and validate the TON Connect URL
             const parsedUrl = this.parseTonConnectUrl(url);
             if (!parsedUrl) {
-                throw new Error('Invalid TON Connect URL format');
+                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid TON Connect URL format', undefined, {
+                    url,
+                });
             }
 
             // Create a bridge event from the parsed URL
             const bridgeEvent = this.createConnectEventFromUrl(parsedUrl);
             if (!bridgeEvent) {
-                throw new Error('Invalid TON Connect URL format');
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Invalid TON Connect URL - unable to create bridge event',
+                    undefined,
+                    { parsedUrl },
+                );
             }
 
             await this.eventRouter.routeEvent(bridgeEvent);
@@ -423,7 +466,7 @@ export class TonWalletKit implements ITonWalletKit {
             from: '',
             domain: '',
             isLocal: true,
-            wallet,
+            walletAddress: wallet.getAddress().toString(),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }
@@ -504,34 +547,37 @@ export class TonWalletKit implements ITonWalletKit {
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: EventConnectRequest): Promise<void> {
+    async approveConnectRequest(event: EventConnectRequest): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.approveConnectRequest(event);
+        return this.requestProcessor.approveConnectRequest(event);
     }
 
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
+    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectConnectRequest(event, reason);
+        return this.requestProcessor.rejectConnectRequest(event, reason);
     }
 
-    async approveTransactionRequest(event: EventTransactionRequest): Promise<{ signedBoc: string }> {
+    async approveTransactionRequest(event: EventTransactionRequest): Promise<SendRequestResult<{ signedBoc: string }>> {
         await this.ensureInitialized();
         return this.requestProcessor.approveTransactionRequest(event);
     }
 
-    async rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<void> {
+    async rejectTransactionRequest(
+        event: EventTransactionRequest,
+        reason?: string | SendTransactionRpcResponseError['error'],
+    ): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectTransactionRequest(event, reason);
+        return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async signDataRequest(event: EventSignDataRequest): Promise<{ signature: Uint8Array }> {
+    async signDataRequest(event: EventSignDataRequest): Promise<SendRequestResult<{ signature: Hash }>> {
         await this.ensureInitialized();
         return this.requestProcessor.approveSignDataRequest(event);
     }
 
-    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
+    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<SendRequestResult> {
         await this.ensureInitialized();
-        await this.requestProcessor.rejectSignDataRequest(event, reason);
+        return this.requestProcessor.rejectSignDataRequest(event, reason);
     }
 
     // === TON Client Access ===
@@ -539,9 +585,12 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Get the shared TON client instance
      */
-    getTonClient(): ApiClient {
+    getApiClient(): ApiClient {
         if (!this.isInitialized) {
-            throw new Error('TonWalletKit not yet initialized');
+            throw new WalletKitError(
+                ERROR_CODES.INITIALIZATION_ERROR,
+                'TonWalletKit not yet initialized - call initialize() first',
+            );
         }
         return this.tonClient;
     }

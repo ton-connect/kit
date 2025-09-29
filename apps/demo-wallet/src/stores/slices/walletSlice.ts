@@ -11,11 +11,20 @@ import {
     createWalletInitConfigMnemonic,
     MnemonicToKeyPair,
     DefaultSignature,
+    CHAIN,
+    type ITonWalletKit,
+    createDeviceInfo,
+    createWalletManifest,
+    type ToncenterTransaction,
 } from '@ton/walletkit';
+import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
+import TransportWebHID from '@ledgerhq/hw-transport-webhid';
+import { toast } from 'sonner';
+import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
-import type { Transaction } from '../../types/wallet';
+import type { PreviewTransaction, LedgerConfig } from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
@@ -23,32 +32,102 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../util
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
 
+const ENV_BRIDGE_URL = import.meta.env.VITE_BRIDGE_URL ?? 'https://walletbot.me/tonconnect-bridge/bridge';
+const ENV_TON_API_KEY =
+    import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
+
 const walletKit = new TonWalletKit({
     // bridgeUrl: 'https://bridge.tonapi.io/bridge',
-    deviceInfo: getTonConnectDeviceInfo(),
-    walletManifest: getTonConnectWalletManifest(),
+    deviceInfo: createDeviceInfo(getTonConnectDeviceInfo()),
+    walletManifest: createWalletManifest(getTonConnectWalletManifest()),
 
-    network: 'mainnet',
-    wallets: [],
+    bridge: {
+        bridgeUrl: ENV_BRIDGE_URL,
+    },
+
+    network: CHAIN.MAINNET,
     apiClient: {
-        key: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+        key: ENV_TON_API_KEY,
     },
     // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
     storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
-});
 
-async function createWalletConfig(
-    mnemonic: string[],
-    useWalletInterfaceType: 'signer' | 'mnemonic',
-): Promise<WalletInitConfig> {
+    analytics: {
+        enabled: true,
+    },
+}) as ITonWalletKit;
+
+// Create API client for fetching transactions
+// const apiClient = new ApiClientToncenter({
+//     apiKey: '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d',
+// });
+
+// Helper function to transform Toncenter transaction to our Transaction type
+function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransaction {
+    // Determine transaction type based on messages
+    let type: 'send' | 'receive' = 'receive';
+    let amount = '0';
+    let address = '';
+
+    // Check incoming message
+    if (tx.in_msg && tx.in_msg.value) {
+        amount = tx.in_msg.value;
+        address = tx.in_msg.source || '';
+        type = 'receive';
+    }
+
+    // Check outgoing messages - if there are any, it's likely a send transaction
+    if (tx.out_msgs && tx.out_msgs.length > 0) {
+        const mainOutMsg = tx.out_msgs[0];
+        if (mainOutMsg.value) {
+            amount = mainOutMsg.value;
+            address = mainOutMsg.destination;
+            type = 'send';
+        }
+    }
+
+    // Determine status based on transaction description
+    let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
+    if (tx.description.aborted) {
+        status = 'failed';
+    } else if (!tx.description.compute_ph.success) {
+        status = 'failed';
+    }
+
+    return {
+        id: tx.hash,
+        traceId: tx.trace_id || undefined,
+        messageHash: tx.in_msg?.hash || '',
+        type,
+        amount,
+        address,
+        timestamp: tx.now * 1000, // Convert to milliseconds
+        status,
+        externalMessageHash: tx.trace_external_hash || undefined,
+    };
+}
+
+async function createWalletConfig(params: {
+    mnemonic?: string[];
+    useWalletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
+    ledgerAccountNumber?: number;
+    storedLedgerConfig?: LedgerConfig;
+}): Promise<WalletInitConfig> {
+    const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0, storedLedgerConfig } = params;
+    while (!walletKit.isReady()) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
     switch (useWalletInterfaceType) {
         case 'signer': {
+            if (!mnemonic) {
+                throw new Error('Mnemonic required for signer wallet type');
+            }
             const keyPair = await MnemonicToKeyPair(mnemonic);
 
             return createWalletInitConfigSigner({
                 publicKey: keyPair.publicKey,
                 version: 'v5r1',
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
                 sign: async (bytes: Uint8Array) => {
                     if (confirm('Are you sure you want to sign?')) {
                         return DefaultSignature(bytes, keyPair.secretKey);
@@ -59,12 +138,64 @@ async function createWalletConfig(
             });
         }
         case 'mnemonic': {
+            if (!mnemonic) {
+                throw new Error('Mnemonic required for mnemonic wallet type');
+            }
             return createWalletInitConfigMnemonic({
                 mnemonic,
                 version: 'v5r1',
                 mnemonicType: 'ton',
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
             });
+        }
+        case 'ledger': {
+            // For Ledger, we need to request WebUSB transport
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (typeof navigator === 'undefined' || !(navigator as any).usb) {
+                throw new Error('WebUSB not supported in this environment');
+            }
+
+            try {
+                // If we have stored config, use it to avoid connecting to device
+                if (storedLedgerConfig) {
+                    // debugger;
+                    return createWalletV4R2Ledger(
+                        createWalletInitConfigLedger({
+                            createTransport: async () => await TransportWebHID.create(),
+                            path: storedLedgerConfig.path,
+                            publicKey: Uint8Array.from(storedLedgerConfig.publicKey),
+                            version: storedLedgerConfig.version as 'v4r2',
+                            network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+                            workchain: storedLedgerConfig.workchain,
+                            walletId: storedLedgerConfig.walletId,
+                            accountIndex: storedLedgerConfig.accountIndex,
+                        }),
+                        {
+                            tonClient: walletKit.getApiClient(),
+                        },
+                    );
+                }
+
+                // Otherwise, create fresh connection
+                const path = createLedgerPath(false, 0, ledgerAccountNumber);
+
+                return createWalletV4R2Ledger(
+                    createWalletInitConfigLedger({
+                        createTransport: async () => await TransportWebHID.create(),
+                        path,
+                        version: 'v4r2',
+                        network: CHAIN.MAINNET,
+                        workchain: 0,
+                        accountIndex: ledgerAccountNumber,
+                    }),
+                    {
+                        tonClient: walletKit.getApiClient(),
+                    },
+                );
+            } catch (error) {
+                log.error('Failed to create Ledger transport:', error);
+                throw new Error('Failed to connect to Ledger device');
+            }
         }
         default:
             throw new Error(`Invalid wallet interface type: ${useWalletInterfaceType}`);
@@ -89,6 +220,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         pendingSignDataRequest: undefined,
         isSignDataModalOpen: false,
         encryptedMnemonic: undefined,
+        ledgerConfig: undefined,
         disconnectedSessions: [], // Track recently disconnected sessions
     },
 
@@ -107,7 +239,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             );
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
+            const walletConfig = await createWalletConfig({
+                mnemonic,
+                useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
+            });
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
@@ -142,13 +279,155 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         return get().createWallet(mnemonic);
     },
 
+    createLedgerWallet: async () => {
+        const state = get();
+        if (!state.auth.currentPassword) {
+            throw new Error('User not authenticated');
+        }
+
+        if (state.auth.useWalletInterfaceType !== 'ledger') {
+            throw new Error('Wallet type must be set to ledger');
+        }
+
+        try {
+            // Create wallet using walletkit with Ledger configuration
+            const walletConfig = await createWalletConfig({
+                useWalletInterfaceType: 'ledger',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
+            });
+
+            await walletKit.addWallet(walletConfig);
+            const wallets = walletKit.getWallets();
+            const wallet = wallets[0];
+
+            // Get real wallet info
+            const address = wallet.getAddress();
+            const balance = await wallet.getBalance();
+            const publicKey = Array.from(wallet.publicKey)
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+
+            // Store Ledger configuration for future use without device connection
+            const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
+            const ledgerConfig: LedgerConfig = {
+                publicKey: Array.from(wallet.publicKey),
+                path: ledgerPath,
+                walletId: 698983191, // Default wallet ID for v4r2
+                version: 'v4r2',
+                network: 'mainnet',
+                workchain: 0,
+                accountIndex: state.auth.ledgerAccountNumber || 0,
+            };
+
+            // Update state - no mnemonic to encrypt for Ledger
+            set((state) => {
+                state.wallet.hasWallet = true;
+                state.wallet.isAuthenticated = true;
+                state.wallet.address = address;
+                state.wallet.publicKey = publicKey;
+                state.wallet.balance = balance.toString();
+                state.wallet.encryptedMnemonic = undefined; // No mnemonic for Ledger
+                state.wallet.mnemonic = undefined;
+                state.wallet.currentWallet = wallet;
+                state.wallet.ledgerConfig = ledgerConfig; // Store Ledger config
+            });
+        } catch (error) {
+            log.error('Error creating Ledger wallet:', error);
+            throw new Error('Failed to create Ledger wallet');
+        }
+    },
+
     loadWallet: async () => {
         const state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
         }
 
+        const wallets = await walletKit.getWallets();
+        if (wallets.length > 0) {
+            return;
+        }
+
         try {
+            // Handle Ledger wallet loading
+            if (state.auth.useWalletInterfaceType === 'ledger') {
+                // Check if we have stored Ledger config
+                if (!state.wallet.ledgerConfig) {
+                    // No stored config, need to connect to device
+                    const walletConfig = await createWalletConfig({
+                        useWalletInterfaceType: 'ledger',
+                        ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                        storedLedgerConfig: state.wallet.ledgerConfig,
+                    });
+
+                    await walletKit.addWallet(walletConfig);
+                    const wallets = walletKit.getWallets();
+                    const wallet = wallets[0];
+
+                    // Get real wallet info and store config for next time
+                    const address = wallet.getAddress();
+                    const balance = await wallet.getBalance();
+                    const publicKey = Array.from(wallet.publicKey)
+                        .map((b) => b.toString(16).padStart(2, '0'))
+                        .join('');
+
+                    // Store Ledger configuration for future use
+                    const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
+                    const ledgerConfig: LedgerConfig = {
+                        publicKey: Array.from(wallet.publicKey),
+                        path: ledgerPath,
+                        walletId: 698983191, // Default wallet ID for v4r2
+                        version: 'v4r2',
+                        network: 'mainnet',
+                        workchain: 0,
+                        accountIndex: state.auth.ledgerAccountNumber || 0,
+                    };
+
+                    // Update state
+                    set((state) => {
+                        state.wallet.hasWallet = true;
+                        state.wallet.isAuthenticated = true;
+                        state.wallet.address = address;
+                        state.wallet.publicKey = publicKey;
+                        state.wallet.balance = balance.toString();
+                        state.wallet.currentWallet = wallet;
+                        state.wallet.ledgerConfig = ledgerConfig;
+                    });
+                    return;
+                }
+
+                // Use stored config to recreate wallet without connecting to device
+                const walletConfig = await createWalletConfig({
+                    useWalletInterfaceType: 'ledger',
+                    ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                    storedLedgerConfig: state.wallet.ledgerConfig,
+                });
+
+                await walletKit.addWallet(walletConfig);
+                const wallets = walletKit.getWallets();
+                const wallet = wallets[0];
+
+                // Get real wallet info
+                const address = wallet.getAddress();
+                const balance = await wallet.getBalance();
+                const publicKey = Array.from(wallet.publicKey)
+                    .map((b) => b.toString(16).padStart(2, '0'))
+                    .join('');
+
+                // Update state
+                set((state) => {
+                    state.wallet.hasWallet = true;
+                    state.wallet.isAuthenticated = true;
+                    state.wallet.address = address;
+                    state.wallet.publicKey = publicKey;
+                    state.wallet.balance = balance.toString();
+                    state.wallet.currentWallet = wallet;
+                });
+                return;
+            }
+
+            // Handle mnemonic-based wallets
             // Check if we have an encrypted mnemonic in state
             if (!state.wallet.encryptedMnemonic) {
                 set((state) => {
@@ -166,7 +445,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const mnemonic = JSON.parse(decryptedString) as string[];
 
             // Create wallet using walletkit
-            const walletConfig = await createWalletConfig(mnemonic, state.auth.useWalletInterfaceType || 'mnemonic');
+            const walletConfig = await createWalletConfig({
+                mnemonic,
+                useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
+                ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                storedLedgerConfig: state.wallet.ledgerConfig,
+            });
 
             await walletKit.addWallet(walletConfig);
             const wallets = walletKit.getWallets();
@@ -245,6 +529,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             state.wallet.transactions = [];
             state.wallet.currentWallet = undefined;
             state.wallet.encryptedMnemonic = undefined;
+            state.wallet.ledgerConfig = undefined;
             state.wallet.pendingConnectRequest = undefined;
             state.wallet.isConnectModalOpen = false;
             state.wallet.pendingTransactionRequest = undefined;
@@ -276,10 +561,44 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
     },
 
-    addTransaction: (transaction: Transaction) => {
+    addTransaction: (transaction: PreviewTransaction) => {
         set((state) => {
             state.wallet.transactions = [transaction, ...state.wallet.transactions];
         });
+    },
+
+    loadTransactions: async (limit = 10) => {
+        const state = get();
+        if (!state.wallet.address) {
+            log.warn('No wallet address available to load transactions');
+            return;
+        }
+
+        try {
+            log.info('Loading transactions for address:', state.wallet.address);
+
+            // Fetch transactions from Toncenter API
+            const response = await walletKit.getApiClient().getAccountTransactions({
+                address: [state.wallet.address],
+                limit,
+                offset: 0,
+            });
+
+            // Transform transactions to our format
+            const transformedTransactions = response.transactions.map((tx: ToncenterTransaction) =>
+                transformToncenterTransaction(tx),
+            );
+
+            // Update state with new transactions
+            set((state) => {
+                state.wallet.transactions = transformedTransactions;
+            });
+
+            log.info(`Loaded ${transformedTransactions.length} transactions`);
+        } catch (error) {
+            log.error('Error loading transactions:', error);
+            throw new Error('Failed to load transactions');
+        }
     },
 
     // TON Connect URL handling
@@ -310,9 +629,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         try {
             // Set the wallet on the connect event as per user requirements
-            const updatedRequest = {
+            const updatedRequest: EventConnectRequest = {
                 ...state.wallet.pendingConnectRequest,
-                wallet: selectedWallet,
+                walletAddress: selectedWallet.getAddress(),
             };
 
             // Approve the connect request with the selected wallet
@@ -374,13 +693,21 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         try {
             // Approve the transaction request with the wallet kit
-            await walletKit.approveTransactionRequest(state.wallet.pendingTransactionRequest);
-
-            // Close the modal and clear pending request
-            set((state) => {
-                state.wallet.pendingTransactionRequest = undefined;
-                state.wallet.isTransactionModalOpen = false;
-            });
+            const approveResult = await walletKit.approveTransactionRequest(state.wallet.pendingTransactionRequest);
+            if (approveResult.success) {
+                // Close the modal and clear pending request
+                set((state) => {
+                    state.wallet.pendingTransactionRequest = undefined;
+                    state.wallet.isTransactionModalOpen = false;
+                });
+            } else {
+                log.error('Failed to approve transaction request:', approveResult);
+                if (approveResult.error?.message?.toLocaleLowerCase()?.includes('ledger')) {
+                    toast.error('Could not approve transaction request with Ledger, please unlock it and open TON App');
+                } else {
+                    toast.error('Could not approve transaction request');
+                }
+            }
         } catch (error) {
             log.error('Failed to approve transaction request:', error);
             throw error;
@@ -480,7 +807,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         // Add to disconnected sessions list
         set((state) => {
             state.wallet.disconnectedSessions.push({
-                walletAddress: event.wallet.getAddress(),
+                walletAddress: event.walletAddress,
                 reason: event.reason,
                 timestamp: Date.now(),
             });
@@ -507,8 +834,26 @@ export const setupWalletKitListeners = (
     showSignDataRequest: (request: EventSignDataRequest) => void,
     handleDisconnectEvent: (event: EventDisconnect) => void,
 ) => {
-    const onTransactionRequest = (event: EventTransactionRequest) => {
+    const onTransactionRequest = async (event: EventTransactionRequest) => {
         log.info('Transaction request received:', event);
+
+        const wallet = await walletKit.getWallet(event.walletAddress ?? '');
+        if (!wallet) {
+            log.error('Wallet not found for transaction request');
+            return;
+        }
+
+        const balance = await wallet.getBalance();
+        const minNeededBalance = event.request.messages.reduce((acc, message) => acc + BigInt(message.amount), 0n);
+        if (balance < minNeededBalance) {
+            // log.error('Insufficient balance for transaction request');
+            await walletKit.rejectTransactionRequest(event, {
+                code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                message: 'Insufficient balance',
+            });
+            return;
+        }
+
         showTransactionRequest(event);
     };
     walletKit.onConnectRequest((event) => {
@@ -517,9 +862,6 @@ export const setupWalletKitListeners = (
     });
 
     walletKit.onTransactionRequest(onTransactionRequest);
-    // setTimeout(() => {
-    //     walletKit.removeTransactionRequestCallback(onTransactionRequest);
-    // }, 10000);
 
     walletKit.onSignDataRequest((event) => {
         log.info('Sign data request received:', event);

@@ -2,16 +2,16 @@
 
 import { SessionCrypto } from '@tonconnect/protocol';
 
-import type { WalletInterface } from '../types';
+import type { SessionInfo, WalletInterface } from '../types';
 import type { WalletManager } from '../core/WalletManager';
-import type { SessionData, SessionStorageData, StorageAdapter } from '../types/internal';
+import type { SessionData, StorageAdapter } from '../types/internal';
 import { globalLogger } from './Logger';
 import { WalletInitInterface } from '../types/wallet';
 
 const log = globalLogger.createChild('SessionManager');
 
 export class SessionManager {
-    private sessions: Map<string, SessionStorageData> = new Map();
+    private sessions: Map<string, SessionData> = new Map();
     private storageAdapter: StorageAdapter;
     private walletManager: WalletManager;
     private storageKey = 'sessions';
@@ -35,13 +35,14 @@ export class SessionManager {
         sessionId: string,
         dAppName: string,
         domain: string,
+        dAppIconUrl: string,
         wallet?: WalletInterface,
         { disablePersist = false }: { disablePersist?: boolean } = {},
     ): Promise<SessionData> {
         const now = new Date();
         // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
         const randomKeyPair = new SessionCrypto().stringifyKeypair();
-        const sessionData: SessionStorageData = {
+        const sessionData: SessionData = {
             sessionId,
             dAppName,
             domain,
@@ -50,6 +51,7 @@ export class SessionManager {
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
+            dAppIconUrl: dAppIconUrl,
         };
 
         if (disablePersist) {
@@ -61,7 +63,7 @@ export class SessionManager {
         return (await this.getSession(sessionId))!;
     }
 
-    static toSessionData(session: SessionStorageData): SessionData {
+    static toSessionData(session: SessionData): SessionData {
         return {
             sessionId: session.sessionId,
             dAppName: session.dAppName,
@@ -69,9 +71,10 @@ export class SessionManager {
             // wallet: thiscc.walletManager.getWallet(session.walletAddress),
             privateKey: session.privateKey,
             publicKey: session.publicKey,
-            createdAt: new Date(session.createdAt),
-            lastActivityAt: new Date(session.lastActivityAt),
+            createdAt: session.createdAt,
+            lastActivityAt: session.lastActivityAt,
             domain: session.domain,
+            dAppIconUrl: session.dAppIconUrl,
         };
     }
 
@@ -87,12 +90,12 @@ export class SessionManager {
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
                 walletAddress: session.walletAddress,
-                wallet: this.walletManager.getWallet(session.walletAddress),
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
-                createdAt: new Date(session.createdAt),
-                lastActivityAt: new Date(session.lastActivityAt),
+                createdAt: session.createdAt,
+                lastActivityAt: session.lastActivityAt,
                 domain: session.domain,
+                dAppIconUrl: session.dAppIconUrl,
             };
         }
         return undefined;
@@ -114,14 +117,14 @@ export class SessionManager {
     /**
      * Get all sessions as array
      */
-    getSessions(): SessionStorageData[] {
+    getSessions(): SessionData[] {
         return Array.from(this.sessions.values());
     }
 
     /**
      * Get sessions for specific wallet
      */
-    getSessionsForWallet(wallet: WalletInitInterface): SessionStorageData[] {
+    getSessionsForWallet(wallet: WalletInitInterface): SessionData[] {
         return this.getSessions().filter((session) => session.walletAddress === wallet.getAddress());
     }
 
@@ -219,11 +222,13 @@ export class SessionManager {
     /**
      * Get sessions as the format expected by the main API
      */
-    getSessionsForAPI(): Array<{ sessionId: string; dAppName: string; walletAddress: string }> {
+    getSessionsForAPI(): Array<SessionInfo> {
         return this.getSessions().map((session) => ({
             sessionId: session.sessionId,
             dAppName: session.dAppName,
             walletAddress: session.walletAddress,
+            dAppUrl: session.domain,
+            dAppIconUrl: session.dAppIconUrl,
         }));
     }
 
@@ -232,7 +237,7 @@ export class SessionManager {
      */
     private async loadSessions(): Promise<void> {
         try {
-            const sessionData = await this.storageAdapter.get<SessionStorageData[]>(this.storageKey);
+            const sessionData = await this.storageAdapter.get<SessionData[]>(this.storageKey);
 
             if (sessionData && Array.isArray(sessionData)) {
                 // TODO: Implement session reconstruction from stored data
@@ -262,7 +267,7 @@ export class SessionManager {
     private async persistSessions(): Promise<void> {
         try {
             // Store session metadata (wallet references need special handling)
-            const sessionMetadata: SessionStorageData[] = this.getSessions().map((session) => ({
+            const sessionMetadata: SessionData[] = this.getSessions().map((session) => ({
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
                 domain: session.domain,
@@ -271,6 +276,7 @@ export class SessionManager {
                 lastActivityAt: session.lastActivityAt,
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
+                dAppIconUrl: session.dAppIconUrl,
             }));
 
             await this.storageAdapter.set(this.storageKey, sessionMetadata);

@@ -36,6 +36,7 @@ const migrate = (persistedState: unknown, fromVersion: number): unknown => {
                 isAuthenticated: false, // Never persist authentication
                 transactions: (state.transactions as unknown[]) || [],
                 encryptedMnemonic: state.encryptedMnemonic as string, // Migrate encrypted mnemonic
+                ledgerConfig: undefined, // Initialize ledgerConfig for new installations
                 disconnectedSessions: [], // Always initialize as empty array
             },
         };
@@ -78,6 +79,7 @@ export const useStore = create<AppState>()(
                             passwordHash: state.auth.passwordHash,
                             persistPassword: state.auth.persistPassword,
                             useWalletInterfaceType: state.auth.useWalletInterfaceType,
+                            ledgerAccountNumber: state.auth.ledgerAccountNumber,
                             // Conditionally persist password based on user setting
                             ...(state.auth.persistPassword && {
                                 currentPassword: state.auth.currentPassword,
@@ -86,8 +88,16 @@ export const useStore = create<AppState>()(
                         },
                         wallet: {
                             hasWallet: state.wallet.hasWallet,
-                            transactions: state.wallet.transactions,
                             encryptedMnemonic: state.wallet.encryptedMnemonic,
+                            ledgerConfig: state.wallet.ledgerConfig,
+
+                            isSignDataModalOpen: state.wallet.isSignDataModalOpen,
+                            isTransactionModalOpen: state.wallet.isTransactionModalOpen,
+                            isConnectModalOpen: state.wallet.isConnectModalOpen,
+
+                            pendingSignDataRequest: state.wallet.pendingSignDataRequest,
+                            pendingTransactionRequest: state.wallet.pendingTransactionRequest,
+                            pendingConnectRequest: state.wallet.pendingConnectRequest,
                         },
                         // jettons: {
                         //     userJettons: state.jettons.userJettons,
@@ -128,6 +138,10 @@ export const useStore = create<AppState>()(
                                 log.info('Auto-creating wallet with persisted mnemonic');
                                 state.wallet.hasWallet = true;
                             }
+
+                            if (!state.wallet.transactions) {
+                                state.wallet.transactions = [];
+                            }
                         }
                     },
                 },
@@ -156,12 +170,15 @@ export const useAuth = () =>
             isUnlocked: state.auth.isUnlocked,
             persistPassword: state.auth.persistPassword,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
+            ledgerAccountNumber: state.auth.ledgerAccountNumber,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
             reset: state.reset,
             setPersistPassword: state.setPersistPassword,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
+            setLedgerAccountNumber: state.setLedgerAccountNumber,
+            createLedgerWallet: state.createLedgerWallet,
         })),
     );
 
@@ -181,8 +198,10 @@ export const useWallet = () =>
             clearWallet: state.clearWallet,
             updateBalance: state.updateBalance,
             addTransaction: state.addTransaction,
+            loadTransactions: state.loadTransactions,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
+            createLedgerWallet: state.createLedgerWallet,
         })),
     );
 

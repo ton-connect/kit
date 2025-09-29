@@ -1,17 +1,17 @@
 import util from 'util';
 
 import { Address } from '@ton/core';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 
 import {
     defaultWalletIdV5R1,
     ApiClientToncenter,
     createWalletInitConfigMnemonic,
+    createWalletV5R1,
     ConnectTransactionParamMessage,
     WalletInterface,
-    createWalletV5R1,
+    CHAIN,
 } from '../src';
-
 import { wrapWalletInterface } from '../src/core/Initializer';
 dotenv.config();
 
@@ -46,13 +46,16 @@ function nextWalletId(parent?: Address | string): number {
 }
 
 async function createWallet(parent?: Address | string) {
-    return wrapWalletInterface(await createWalletV5R1(
-        createWalletInitConfigMnemonic({
-            mnemonic: mnemonic!.trim().split(' '),
-            walletId: BigInt(nextWalletId(parent)),
-        }),
-        { tonClient },
-    ), tonClient);
+    return wrapWalletInterface(
+        await createWalletV5R1(
+            createWalletInitConfigMnemonic({
+                mnemonic: mnemonic!.trim().split(' '),
+                walletId: BigInt(nextWalletId(parent)),
+            }),
+            { tonClient },
+        ),
+        tonClient,
+    );
 }
 
 async function logWallet(wallet: WalletInterface) {
@@ -80,9 +83,9 @@ async function main() {
             .reduce((acc, cnt) => acc + +cnt, 0),
     );
     if (isTestSend) {
-        const boc = await existAccount.getSignedExternal(
+        const boc = await existAccount.getSignedSendTransaction(
             {
-                network: 'mainnet',
+                network: CHAIN.MAINNET,
                 valid_until: Math.floor(Date.now() / 1000) + 60,
                 messages: [message],
             },

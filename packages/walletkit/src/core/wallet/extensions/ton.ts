@@ -92,7 +92,7 @@ export class WalletTonClass implements WalletTonInterface {
     ): Promise<{
         preview: TransactionPreview;
     }> {
-        const transaction = await param;
+        const _transaction = await param;
         return {
             preview: {
                 result: 'error',

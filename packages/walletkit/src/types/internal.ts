@@ -1,28 +1,23 @@
 // Internal types for TonWalletKit modules
 
-import { ConnectItem, SendTransactionRpcRequest, SignDataRpcRequest } from '@tonconnect/protocol';
+import {
+    ConnectItem,
+    SendTransactionRpcRequest,
+    SignDataRpcRequest,
+    WalletResponseError as _WalletResponseError,
+    WalletResponseTemplateError,
+} from '@tonconnect/protocol';
 
-import type { WalletInterface } from './wallet';
+// import type { WalletInterface } from './wallet';
 
 export interface SessionData {
     sessionId: string;
     dAppName: string;
     domain: string;
+    dAppIconUrl: string;
     walletAddress: string;
-    wallet?: WalletInterface;
-    createdAt: Date;
-    lastActivityAt: Date;
-    privateKey: string;
-    publicKey: string;
-}
-
-export interface SessionStorageData {
-    sessionId: string;
-    dAppName: string;
-    domain: string;
-    walletAddress: string;
-    createdAt: string;
-    lastActivityAt: string;
+    createdAt: string; // date
+    lastActivityAt: string; // date
     privateKey: string;
     publicKey: string;
 }
@@ -50,16 +45,10 @@ export interface EventCallback<T = any> {
     (event: T): void | Promise<void>;
 }
 
-export interface ValidationResult {
-    isValid: boolean;
-    errors: string[];
-}
-
 export type BridgeEventBase = {
     id?: string;
-    from: string;
+    from?: string;
     walletAddress?: string;
-    wallet?: WalletInterface;
     domain?: string;
 
     isJsBridge?: boolean;
@@ -67,6 +56,19 @@ export type BridgeEventBase = {
     sessionId?: string;
     isLocal?: boolean;
     messageId?: string;
+
+    traceId?: string;
+};
+
+export type EventApprovalBase = {
+    id: string;
+    from: string;
+    sessionId: string;
+    walletAddress: string;
+
+    messageId?: string;
+
+    traceId?: string;
 };
 
 // Bridge event types (raw from bridge)
@@ -141,9 +143,12 @@ export type RawBridgeEvent =
 // Internal event routing types
 export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface EventHandler<T = any, V extends RawBridgeEvent = RawBridgeEvent> {
+export interface EventHandler<T extends BridgeEventBase = BridgeEventBase, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;
-    handle(event: V): Promise<T>;
+    handle(event: V): Promise<T | WalletResponseTemplateError>;
     notify(event: T): Promise<void>;
 }
+
+export type SendRequestSuccess<T = undefined> = T extends undefined ? { success: true } : { success: true; result: T };
+export type SendRequestError = { success: false; code: number; message?: string; error?: Error };
+export type SendRequestResult<T = undefined> = SendRequestSuccess<T> | SendRequestError;

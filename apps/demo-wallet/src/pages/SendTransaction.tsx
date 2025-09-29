@@ -174,7 +174,9 @@ export const SendTransaction: React.FC = () => {
                         ← Back
                     </Button>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Send {getCurrentTokenName()}</h2>
+                        <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                            Send {getCurrentTokenName()}
+                        </h2>
                     </div>
                 </div>
 

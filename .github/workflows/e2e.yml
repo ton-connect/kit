@@ -1,0 +1,60 @@
+name: e2e
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  base:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: pnpm/action-setup@v4
+    - name: Read .nvmrc
+      run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '${{ env.NVMRC }}'
+        cache: 'pnpm'
+
+    - name: Setup dependencies
+      run: |
+        sudo apt-get install --no-install-recommends -y xvfb
+        pnpm install --frozen-lockfile
+        pnpm --filter demo-wallet e2e:deps
+
+    - name: Build
+      run: |
+        pnpm build
+        pnpm --filter demo-wallet build:extension
+      env:
+        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
+
+    - name: Start TON Connect Bridge
+      uses: ton-connect/bridge/actions/local@master
+
+    - name: Run e2e specs
+      run: xvfb-run pnpm --filter demo-wallet e2e
+      env:
+        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
+
+    - name: Send report
+      if: always()
+      run: |
+        wget https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -O ./allurectl
+        chmod +x ./allurectl
+        ./allurectl upload --endpoint $ALLURE_BASE_URL \
+        --token $ALLURE_API_TOKEN \
+        --project-id $ALLURE_PROJECT_ID \
+        --launch-name "CI for rev:$(git rev-parse --short "$GITHUB_SHA")" \
+        apps/demo-wallet/allure-results
+      env:
+        ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
+        ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN }}
+        ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}

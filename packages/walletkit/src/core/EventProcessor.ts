@@ -194,7 +194,7 @@ export class StorageEventProcessor implements IEventProcessor {
             try {
                 await this.eventRouter.routeEvent({
                     ...acquiredEvent.rawEvent,
-                    wallet: this.walletManager.getWallet(walletAddress),
+                    walletAddress,
                 });
 
                 // Mark as completed

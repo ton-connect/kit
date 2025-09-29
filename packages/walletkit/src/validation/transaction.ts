@@ -110,12 +110,24 @@ export function validateMessageObject(message: any): ValidationResult {
     }
 
     // Optional fields validation
-    if (message.payload && typeof message.payload !== 'string') {
-        errors.push('payload must be a string if provided');
+    if (message.payload) {
+        if (typeof message.payload !== 'string') {
+            errors.push('payload must be a string if provided');
+        } else {
+            if (!isValidBOC(message.payload)) {
+                errors.push('payload must be a valid base64 string if provided');
+            }
+        }
     }
 
-    if (message.stateInit && typeof message.stateInit !== 'string') {
-        errors.push('stateInit must be a string if provided');
+    if (message.stateInit) {
+        if (typeof message.stateInit !== 'string') {
+            errors.push('stateInit must be a string if provided');
+        } else {
+            if (!isValidBOC(message.stateInit)) {
+                errors.push('stateInit must be a valid base64 string if provided');
+            }
+        }
     }
 
     return {

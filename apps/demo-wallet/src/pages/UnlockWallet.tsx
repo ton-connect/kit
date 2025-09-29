@@ -49,7 +49,9 @@ export const UnlockWallet: React.FC = () => {
         <Layout title="Unlock Wallet">
             <div className="space-y-6">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                    <h2 className="text-2xl font-bold text-gray-900" data-test-id="subtitle">
+                        Welcome Back
+                    </h2>
                     <p className="mt-2 text-sm text-gray-600">Enter your password to unlock your wallet.</p>
                 </div>
 

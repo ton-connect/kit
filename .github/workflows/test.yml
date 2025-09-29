@@ -27,5 +27,5 @@ jobs:
     - name: Set up dependencies
       run: pnpm i --frozen-lockfile
 
-    - name: build
-      run: pnpm build
+    - name: test
+      run: pnpm quality

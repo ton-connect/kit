@@ -15,7 +15,7 @@ export interface WalletState {
         publicKey?: string;
 
         // Transaction history
-        transactions: Transaction[];
+        transactions: PreviewTransaction[];
 
         // Walletkit instance and current wallet
         currentWallet?: WalletInterface;
@@ -35,6 +35,9 @@ export interface WalletState {
         // Encrypted mnemonic stored in state
         encryptedMnemonic?: string;
 
+        // Ledger configuration for re-initialization without device connection
+        ledgerConfig?: LedgerConfig;
+
         // Disconnect notifications
         disconnectedSessions: DisconnectNotification[];
     };
@@ -47,21 +50,35 @@ export interface AuthState {
         isPasswordSet?: boolean;
         isUnlocked?: boolean;
         persistPassword?: boolean; // Setting to persist password between reloads
-        useWalletInterfaceType?: 'signer' | 'mnemonic'; // Setting for wallet interface type
+        useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger'; // Setting for wallet interface type
+        ledgerAccountNumber?: number; // Account number for Ledger derivation path
     };
 }
 
-export interface Transaction {
+export interface PreviewTransaction {
     id: string;
+    messageHash: string;
     type: 'send' | 'receive';
     amount: string;
     address: string;
     timestamp: number;
     status: 'pending' | 'confirmed' | 'failed';
+    traceId?: string;
+    externalMessageHash?: string;
 }
 
 export interface DisconnectNotification {
     walletAddress: string;
     reason?: string;
     timestamp: number;
+}
+
+export interface LedgerConfig {
+    publicKey: number[]; // Store as number array for JSON serialization
+    path: number[];
+    walletId: number;
+    version: string;
+    network: string; // Store as string for JSON serialization
+    workchain: number;
+    accountIndex: number;
 }

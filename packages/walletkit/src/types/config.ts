@@ -1,6 +1,7 @@
 // Configuration type definitions
 
-import type { WalletInitConfig } from './wallet';
+import { CHAIN } from '@tonconnect/protocol';
+
 import type { StorageAdapter } from '../storage';
 import { EventProcessorConfig } from '../core/EventProcessor';
 import { DeviceInfo, WalletInfo } from './jsBridge';
@@ -14,10 +15,8 @@ export interface TonWalletKitOptions {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
 
-    wallets?: Array<WalletInitConfig>;
-
     /** Network */
-    network?: 'mainnet' | 'testnet';
+    network?: CHAIN;
 
     /** Bridge settings */
     bridge?: BridgeConfig;
@@ -44,4 +43,11 @@ export interface TonWalletKitOptions {
               key?: string; // key for better RPS limits
           }
         | ApiClient;
+
+    analytics?: AnalyticsConfig;
+}
+
+export interface AnalyticsConfig {
+    enabled?: boolean;
+    endpoint?: string;
 }

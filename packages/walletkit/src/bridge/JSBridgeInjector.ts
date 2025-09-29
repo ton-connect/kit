@@ -15,7 +15,6 @@ let extensionId: string | undefined = undefined;
  * The extension handles all logic through WalletKit
  *
  * @param options - Configuration options for the bridge
- * @throws Error if wallet name is invalid
  */
 
 export function injectBridgeCode(window: Window, options: JSBridgeInjectOptions): void {

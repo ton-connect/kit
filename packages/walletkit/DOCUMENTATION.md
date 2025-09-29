@@ -20,10 +20,11 @@ import {
   createWalletInitConfigMnemonic,
   createWalletInitConfigPrivateKey,
   createWalletInitConfigSigner,
+  CHAIN,
 } from '@ton/walletkit';
 
 const kit = new TonWalletKit({
-  network: 'mainnet',
+  network: CHAIN.MAINNET,
   // Optional API configuration
   // apiKey: '...',
   // apiUrl: 'https://toncenter.com/api/v3',
@@ -42,14 +43,14 @@ const walletConfig = createWalletInitConfigMnemonic({
   mnemonic: ['word1', 'word2', '...'],
   version: 'v5r1',
   mnemonicType: 'ton',
-  network: 'mainnet',
+  network: CHAIN.MAINNET,
 });
 
 /* Wallet from private key:
 const walletConfig = createWalletInitConfigPrivateKey({
   privateKey: '0x...',
   version: 'v5r1',
-  network: 'mainnet',
+  network: CHAIN.MAINNET,
 });
 */
 
@@ -57,7 +58,7 @@ const walletConfig = createWalletInitConfigPrivateKey({
 const walletConfig = createWalletInitConfigSigner({
   publicKey: new Uint8Array([/* your public key bytes */]),
   version: 'v5r1',
-  network: 'mainnet',
+  network: CHAIN.MAINNET,
   // bytes -> signature bytes (Uint8Array)
   sign: async (bytes) => yourSigner(bytes),
 });

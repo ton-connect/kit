@@ -31,15 +31,3 @@ export {
 } from './transaction';
 
 export type { HumanReadableTx } from './transaction';
-
-export {
-    sanitizeString,
-    sanitizeHtml,
-    sanitizeUrl,
-    sanitizeNumber,
-    sanitizeObjectKeys,
-    sanitizeHexString,
-    sanitizeBase64,
-    sanitizeJsonString,
-    containsDangerousContent,
-} from './sanitization';

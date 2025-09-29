@@ -12,7 +12,7 @@ import type {
     NftItem,
 } from '@ton/walletkit';
 
-import type { AuthState, WalletState, Transaction } from './wallet';
+import type { AuthState, WalletState, PreviewTransaction } from './wallet';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
@@ -22,7 +22,8 @@ export interface AuthSlice extends AuthState {
     lock: () => void;
     reset: () => void;
     setPersistPassword: (persist: boolean) => void;
-    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic') => void;
+    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
+    setLedgerAccountNumber: (accountNumber: number) => void;
 }
 
 // Jettons slice interface
@@ -101,10 +102,12 @@ export interface WalletSlice extends WalletState {
     // Actions
     createWallet: (mnemonic: string[]) => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;
+    createLedgerWallet: () => Promise<void>;
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
-    addTransaction: (transaction: Transaction) => void;
+    addTransaction: (transaction: PreviewTransaction) => void;
+    loadTransactions: (limit?: number) => Promise<void>;
 
     // TON Connect actions
     handleTonConnectUrl: (url: string) => Promise<void>;

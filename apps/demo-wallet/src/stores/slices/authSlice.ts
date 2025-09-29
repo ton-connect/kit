@@ -13,6 +13,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         passwordHash: undefined,
         persistPassword: false,
         useWalletInterfaceType: 'mnemonic',
+        ledgerAccountNumber: 0,
     },
 
     // Actions
@@ -84,6 +85,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
             state.auth.passwordHash = undefined;
             state.auth.persistPassword = false;
             state.auth.useWalletInterfaceType = 'mnemonic';
+            state.auth.ledgerAccountNumber = 0;
         });
     },
 
@@ -97,9 +99,15 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic') => {
+    setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => {
         set((state) => {
             state.auth.useWalletInterfaceType = interfaceType;
+        });
+    },
+
+    setLedgerAccountNumber: (accountNumber: number) => {
+        set((state) => {
+            state.auth.ledgerAccountNumber = accountNumber;
         });
     },
 });

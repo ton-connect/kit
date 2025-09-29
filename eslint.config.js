@@ -12,5 +12,14 @@ module.exports = [
         },
         rules: {},
     },
-    { ignores: ['**/dist/*', '**/dist-extension/*', '**/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/*'] },
+    {
+        ignores: [
+            '**/*report/*',
+            '**/dist/*',
+            '**/*stryker*/*',
+            '**/*coverage*/*',
+            '**/dist-extension/*',
+            '**/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/*',
+        ],
+    },
 ];
