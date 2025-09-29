@@ -9,17 +9,21 @@ import Foundation
 import SwiftUI
 
 struct WalletView: View {
-    @ObservedObject var viewModel: WalletViewModel
+    @StateObject var viewModel: WalletViewModel
     
     var body: some View {
-        VStack(spacing: 16.0) {
-            WalletInfoView(viewModel: viewModel.info)
-                .widget()
-            
-            Spacer()
+        ScrollView {
+            VStack(spacing: 16.0) {
+                WalletInfoView(viewModel: viewModel.info)
+                    .widget()
+                
+                WalletBridgeConnectionView(viewModel: viewModel.bridgeConnection)
+                    .widget()
+            }
+            .padding(16.0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(16.0)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.backgroundColor)
+        .navigationTitle("TON Wallet")
     }
 }
