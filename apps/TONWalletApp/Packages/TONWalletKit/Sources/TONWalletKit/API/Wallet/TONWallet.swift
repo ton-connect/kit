@@ -8,10 +8,13 @@
 import Foundation
 
 public class TONWallet {
+    public let address: String?
+    
     let wallet: any JSDynamicObject
     
-    init(wallet: any JSDynamicObject) {
+    init(wallet: any JSDynamicObject, address: String?) {
         self.wallet = wallet
+        self.address = address
     }
     
     public static func add(data: TONWalletData) async throws -> TONWallet {
@@ -28,19 +31,12 @@ public class TONWallet {
             throw "No wallet was added"
         }
         
-        return TONWallet(wallet: wallet)
-    }
-    
-    public func address() async throws -> String? {
-        guard let value = wallet.getAddress() else {
-            return nil
-        }
-        return value.toString()
+        let address = await wallet.getAddress()?.toString()
+        
+        return TONWallet(wallet: wallet, address: address)
     }
     
     public func balance() async throws -> String? {
-        let value = await wallet.getBalance()?.then()
-        
-        return value?.toString()
+        await wallet.getBalance()?.then().toString()
     }
 }

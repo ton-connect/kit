@@ -13,10 +13,11 @@ import TONWalletKit
 struct SetupWalletView: View {
     @State var initialized = false
     @State var mnemonic = TONMnemonic()
-    @State var walletViewModel: WalletViewModel?
+    @State var wallet: TONWallet?
     
     @State var walletIsImporting = false
     @State var walletIsCreating = false
+    @State var walletIsPresented = false
     
     var body: some View {
         if initialized {
@@ -71,16 +72,19 @@ struct SetupWalletView: View {
                 }
             }
             .padding(.horizontal, 16.0)
-            .sheet(item: $walletViewModel) { viewModel in
-                WalletView(viewModel: viewModel)
+            .navigationDestination(isPresented: $walletIsPresented) {
+                if let wallet {
+                    WalletView(viewModel: .init(tonWallet: wallet))
+                }
             }
+
         } else {
             ProgressView()
                 .task {
                     do {
                         try await TONWalletKit.initialize(configuration: WalletKitConfig(
-                            network: .testnet, // Use testnet for demo
-                            storage: .memory,  // Use memory storage for demo
+                            network: .mainnet,
+                            storage: .memory,
                             manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-wallet/master/public/tonconnect-manifest.json"
                         ))
                         initialized = true
@@ -100,10 +104,11 @@ struct SetupWalletView: View {
                     data: TONWalletData(
                         mnemonic: mnemonic,
                         name: "Test",
-                        network: .testnet
+                        network: .mainnet
                     )
                 )
-                walletViewModel = WalletViewModel(tonWallet: wallet)
+                self.wallet = wallet
+                self.walletIsPresented = true
             } catch {
                 debugPrint(error.localizedDescription)
             }
