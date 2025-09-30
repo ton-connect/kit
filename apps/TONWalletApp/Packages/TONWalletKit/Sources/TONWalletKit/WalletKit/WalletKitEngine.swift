@@ -23,6 +23,8 @@ public class WalletKitEngine: JSEngine {
     
     public func processJS(in context: JSContext) async throws {
         let bridgePolyfill = JSWalletKitSwiftBridgePolyfill(configuration: configuration) {
+            let walletKitEvent = WalletKitEvent(bridgeEvent: $0)
+
             debugPrint("Event received: \($0)")
         }
         

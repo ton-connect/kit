@@ -13,12 +13,12 @@ class WalletViewModel: Identifiable, ObservableObject {
     let tonWallet: TONWallet
 
     let info: WalletInfoViewModel
-    let bridgeConnection: WalletBridgeConnectionViewModel
+    let dAppConnection: WalletDAppConnectionViewModel
     
     init(tonWallet: TONWallet) {
         self.tonWallet = tonWallet
         
         self.info = WalletInfoViewModel(wallet: tonWallet)
-        self.bridgeConnection = WalletBridgeConnectionViewModel(wallet: tonWallet)
+        self.dAppConnection = WalletDAppConnectionViewModel(wallet: tonWallet)
     }
 }

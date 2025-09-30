@@ -23,9 +23,13 @@ public class JSWalletKitSwiftBridgePolyfill: JSPolyfill {
     public func apply(to context: JSContext) {
         // Set up Swift bridge for JavaScript
         let sendEventCallback: @convention(block) (String, JSValue) -> Void = { eventType, eventData in
-            let eventString = eventData.toString() ?? "{}"
-            print("📨 Swift Bridge: Received event '\(eventType)': \(eventString)")
-            self.handleJavaScriptEvent(eventType: eventType, data: eventString)
+            print("📨 Swift Bridge: Received event '\(eventType)'")
+            
+            if let eventString = eventData.toData() {
+                self.handleJavaScriptEvent(eventType: eventType, data: eventString)
+            } else {
+                print("❌ Failed to parse event data")
+            }
         }
         
         // Set up the Swift bridge object that JavaScript expects
@@ -36,7 +40,7 @@ public class JSWalletKitSwiftBridgePolyfill: JSPolyfill {
                 config: {
                     network: '\(configuration.network.rawValue)',
                     storage: 'memory',
-                    manifestUrl: '\(configuration.manifestUrl)',
+                    bridgeUrl: '\(configuration.bridgeUrl)',
                     isMobile: true,
                     isNative: true
                 },
@@ -50,16 +54,11 @@ public class JSWalletKitSwiftBridgePolyfill: JSPolyfill {
         context.evaluateScript(bridgeSetupScript)
     }
     
-    private func handleJavaScriptEvent(eventType: String, data: String) {
+    private func handleJavaScriptEvent(eventType: String, data: Data) {
         print("📨 Native Engine: Received JS event: \(eventType)")
         
         guard let eventType = JSWalletKitSwiftBridgeEventType(rawValue: eventType) else {
             print("⚠️ Unknown event type: \(eventType)")
-            return
-        }
-        
-        guard let data = data.data(using: .utf8) else {
-            print("❌ Failed to parse event data")
             return
         }
         

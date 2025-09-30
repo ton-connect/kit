@@ -1,5 +1,5 @@
 //
-//  WalletBridgeConnectionView.swift
+//  WalletDAppConnectionView.swift
 //  TONWalletApp
 //
 //  Created by Nikita Rodionov on 30.09.2025.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct WalletBridgeConnectionView: View {
-    @ObservedObject var viewModel: WalletBridgeConnectionViewModel
+struct WalletDAppConnectionView: View {
+    @ObservedObject var viewModel: WalletDAppConnectionViewModel
     
     var body: some View {
         VStack(spacing: 8.0) {

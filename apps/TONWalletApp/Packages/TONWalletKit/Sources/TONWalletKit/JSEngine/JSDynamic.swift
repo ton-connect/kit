@@ -40,7 +40,7 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
         self.functionName = functionName
         self.dynamicObject = dynamicObject
     }
-
+    
     public func dynamicallyCall(withArguments args: [Any]) -> JSValue? {
         dynamicObject.invoke(functionName, arguments: args)
     }
@@ -62,7 +62,7 @@ extension JSValue: JSDynamicMember {
 }
 
 extension JSValue: JSDynamicObject {
-
+    
     @discardableResult
     public func invoke(_ functionName: String, arguments: [Any]) -> JSValue? {
         invokeMethod(functionName, withArguments: arguments)
@@ -115,12 +115,25 @@ extension JSContext: JSDynamicObject {
         let arguments = arguments.map { element in
             switch element {
             case let string as String:
-                return string
+                return "\"\(string)\""
             case let numeric as any Numeric:
                 return String(describing: numeric)
             case let bool as Bool:
                 return bool ? "true" : "false"
             default:
+                if let element = element as? Encodable {
+                    let encoder = JSONEncoder()
+                    
+                    do {
+                        let data = try encoder.encode(element)
+                        
+                        if let configString = String(data: data, encoding: .utf8) {
+                            return configString
+                        }
+                    } catch {
+                        debugPrint("Unable to encode \(type(of: element))")
+                    }
+                }
                 return String(describing: element)
             }
         }

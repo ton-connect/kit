@@ -85,7 +85,7 @@ struct SetupWalletView: View {
                         try await TONWalletKit.initialize(configuration: WalletKitConfig(
                             network: .mainnet,
                             storage: .memory,
-                            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-wallet/master/public/tonconnect-manifest.json"
+                            bridgeUrl: "https://walletbot.me/tonconnect-bridge/bridge"
                         ))
                         initialized = true
                     } catch {

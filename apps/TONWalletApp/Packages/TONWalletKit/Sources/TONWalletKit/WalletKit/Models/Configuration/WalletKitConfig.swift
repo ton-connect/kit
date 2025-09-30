@@ -10,18 +10,18 @@ public struct WalletKitConfig {
     public let apiKey: String?
     public let network: TONNetwork
     public let storage: StorageConfig
-    public let manifestUrl: String
+    public let bridgeUrl: String
     
     public init(
         apiKey: String? = nil,
         network: TONNetwork = .mainnet,
         storage: StorageConfig = .local,
-        manifestUrl: String
+        bridgeUrl: String
     ) {
         self.apiKey = apiKey
         self.network = network
         self.storage = storage
-        self.manifestUrl = manifestUrl
+        self.bridgeUrl = bridgeUrl
     }
 }
 

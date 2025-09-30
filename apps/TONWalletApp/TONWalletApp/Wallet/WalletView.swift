@@ -17,7 +17,7 @@ struct WalletView: View {
                 WalletInfoView(viewModel: viewModel.info)
                     .widget()
                 
-                WalletBridgeConnectionView(viewModel: viewModel.bridgeConnection)
+                WalletDAppConnectionView(viewModel: viewModel.dAppConnection)
                     .widget()
             }
             .padding(16.0)
