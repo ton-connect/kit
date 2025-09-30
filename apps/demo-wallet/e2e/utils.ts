@@ -186,53 +186,17 @@ export class AllureApiClient {
  * @returns Promise с объектом содержащим preconditions и expectedResult
  */
 export async function getTestCaseData(allureClient: AllureApiClient, allureId: string): Promise<{
-  preconditions: string;
+  precondition: string;
   expectedResult: string;
   isPositiveCase: boolean;
-  rawData: string;
 }> {
   try {
     const testCaseData = await allureClient.getTestCaseById(allureId);
-    
-    // Функция для извлечения JSON из markdown-блока или парсинга прямого JSON
-    const extractData = (text: string): string => {
-      if (!text) return '';
-      
-      // Пытаемся найти JSON в markdown блоке
-      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch && jsonMatch[1]) {
-        try {
-          const parsed = JSON.parse(jsonMatch[1].trim());
-          return typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2);
-        } catch (error) {
-          console.warn('Failed to parse JSON from markdown block:', error);
-          return jsonMatch[1].trim();
-        }
-      }
-
-      // Если нет markdown блока, пытаемся парсить как прямой JSON
-      try {
-        const parsed = JSON.parse(text.trim());
-        return typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2);
-      } catch (error) {
-        // Если не JSON, возвращаем как есть
-        console.warn('не распарсил JSON:', error);
-        return text;
-      }
-    };
-    
-    const extractedName = extractData(testCaseData.name);
-    const isPositiveCase = extractedName && 
-      !String(extractedName).toLowerCase().includes('error');
-
-    const preconditions = extractData(testCaseData.precondition);
-    const expectedResult = extractData(testCaseData.expectedResult);
+    const isPositiveCase = !String(testCaseData.name).toLowerCase().includes('error');
     
     return {
-      preconditions: typeof preconditions === 'string' ? preconditions : JSON.stringify(preconditions, null, 2),
-      expectedResult: typeof expectedResult === 'string' ? expectedResult : JSON.stringify(expectedResult, null, 2),
       isPositiveCase,
-      rawData: testCaseData
+      ...testCaseData
     };
     
   } catch (error) {

@@ -49,14 +49,14 @@ async function runSendTransactionTest(
   await expect(widget.connectButtonText).toHaveText('UQC8…t2Iv');
   
   // Инициализируем переменные для данных тест-кейса
-  let preconditions: string = "";
+  let precondition: string = "";
   let expectedResult: string = "";
   let isPositiveCase: boolean = true;
 
   if (allureId && allureClient) {
     try {
       const testCaseData = await getTestCaseData(allureClient, allureId);
-      preconditions = testCaseData.preconditions;
+      precondition = testCaseData.precondition;
       expectedResult = testCaseData.expectedResult;
       isPositiveCase = testCaseData.isPositiveCase;
     } catch (error) {
@@ -66,7 +66,7 @@ async function runSendTransactionTest(
     console.warn('AllureId not found in test title or client not available');
   }
 
-  await app.locator('#sendTxPrecondition').fill(preconditions);
+  await app.locator('#sendTxPrecondition').fill(precondition);
   await app.locator('#sendTxExpectedResult').fill(expectedResult);
   await app.getByRole('button', {name: 'Send Transaction'}).click();
 
@@ -89,7 +89,7 @@ test.beforeAll(async () => {
   }
 });
 
-// Тесты
+// SendTransaction validation tests
 test('[address] Error if absent @allureId(1847)', async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
@@ -227,5 +227,19 @@ test('[validUntil] Success if less then in 5 minutes @allureId(1851)', async ({ 
 });
 
 test('[validUntil] Success if more then in 5 minutes @allureId(1858)', async ({ wallet, app, widget }) => {
+    await runSendTransactionTest({ wallet, app, widget }, test.info());
+});
+
+// Merkle proof/update tests
+test('Send merkle proof @allureId(1916)', async ({ wallet, app, widget }) => {
+    await runSendTransactionTest({ wallet, app, widget }, test.info());
+});
+
+test('Send merkle update @allureId(1917)', async ({ wallet, app, widget }) => {
+    await runSendTransactionTest({ wallet, app, widget }, test.info());
+});
+
+// Jetton minting tests
+test('Minting Jetton with Deployed Contract @allureId(1899)', async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
