@@ -13,7 +13,13 @@ export default defineConfig({
     expect: {
         timeout: 10_000,
     },
-    reporter: [['html'], ['list']],
+    reporter: [
+        ['allure-playwright', {
+            detail: true,
+            outputFolder: 'allure-results',
+            suiteTitle: false
+        }]
+    ],
     use: {
         screenshot: 'on',
         trace: 'on',

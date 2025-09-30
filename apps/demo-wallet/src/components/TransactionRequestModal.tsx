@@ -175,7 +175,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
+                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1" data-test-id="send-transaction-reject">
                                 Reject
                             </Button>
                             <Button
@@ -183,6 +183,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                 isLoading={isLoading}
                                 disabled={isLoading}
                                 className="flex-1"
+                                data-test-id="send-transaction-approve"
                             >
                                 Approve & Sign
                             </Button>
