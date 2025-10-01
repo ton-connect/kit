@@ -29,7 +29,9 @@ export class DemoWallet extends WalletExtension {
         await app.locator(testSelector('mnemonic')).fill(mnemonic);
         await app.locator(testSelector('mnemonic-process')).click();
         await app.locator(testSelector('import-wallet-process')).click();
-        app.locator(testSelector('title'), { hasText: 'TON Wallet' });
+        await app.locator(testSelector('title'), { hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
+        await app.locator(testSelector('wallet-menu')).click();
+        await app.locator(testSelector('password-remember')).waitFor({ state: 'attached' });
         await app.locator(testSelector('password-remember')).click();
         await app.close();
     }

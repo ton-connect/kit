@@ -104,6 +104,7 @@ export const SettingsDropdown: React.FC = () => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="p-1 rounded-md hover:bg-gray-100 transition-colors"
                     aria-label="Wallet menu"
+                    data-test-id="wallet-menu"
                 >
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
