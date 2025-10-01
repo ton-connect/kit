@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Base64Normalize, type ToncenterTransaction } from '@ton/walletkit';
 
-import { getWalletKit } from '../stores/slices/walletSlice';
+import { useWalletKit } from '../stores';
 
 interface TransactionDetailData {
     hash: string;
@@ -30,6 +30,7 @@ interface TransactionDetailData {
 }
 
 export const TransactionDetail: React.FC = () => {
+    const walletKit = useWalletKit();
     const { hash } = useParams<{ hash: string }>();
     const navigate = useNavigate();
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
@@ -70,12 +71,18 @@ export const TransactionDetail: React.FC = () => {
                 setIsLoading(true);
                 setError(null);
 
-                while (!getWalletKit()?.isReady()) {
+                if (!walletKit) {
+                    setError('WalletKit not initialized');
+                    setIsLoading(false);
+                    return;
+                }
+
+                while (!walletKit?.isReady()) {
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
                 // Use the walletKit's API client to get transaction by hash
-                const apiClient = getWalletKit().getApiClient();
+                const apiClient = walletKit.getApiClient();
                 const base64Hash = Base64Normalize(hash);
                 const response = await apiClient.getTransactionsByHash({ msgHash: base64Hash });
 

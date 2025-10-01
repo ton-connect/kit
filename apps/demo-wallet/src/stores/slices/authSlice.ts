@@ -112,9 +112,18 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    setNetwork: (network: 'mainnet' | 'testnet') => {
+    setNetwork: async (network: 'mainnet' | 'testnet') => {
         set((state) => {
             state.auth.network = network;
         });
+
+        // Reinitialize wallet kit with new network
+        const state = get();
+        await state.initializeWalletKit(network);
+
+        // Reload wallet if authenticated
+        if (state.wallet.isAuthenticated && state.wallet.hasWallet) {
+            await state.loadWallet();
+        }
     },
 });

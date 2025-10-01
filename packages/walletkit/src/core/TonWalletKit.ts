@@ -117,7 +117,7 @@ export class TonWalletKit implements ITonWalletKit {
                         {
                             name: 'ton_addr',
                             address: Address.parse(session.walletAddress).toRawString(),
-                            network: CHAIN.MAINNET,
+                            network: this.getNetwork(),
                             walletStateInit: '',
                             publicKey: '',
                         },
@@ -207,6 +207,10 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.initializationPromise) {
             await this.initializationPromise;
         }
+    }
+
+    getNetwork(): CHAIN {
+        return this.config.network ?? CHAIN.TESTNET;
     }
 
     // === Wallet Management API (Delegated) ===

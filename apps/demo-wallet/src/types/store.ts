@@ -9,6 +9,7 @@ import type {
     JettonTransfer,
     JettonInfo,
     NftItem,
+    ITonWalletKit,
 } from '@ton/walletkit';
 
 import type { AuthState, WalletState, PreviewTransaction } from './wallet';
@@ -23,7 +24,7 @@ export interface AuthSlice extends AuthState {
     setPersistPassword: (persist: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
-    setNetwork: (network: 'mainnet' | 'testnet') => void;
+    setNetwork: (network: 'mainnet' | 'testnet') => Promise<void>;
 }
 
 // Jettons slice interface
@@ -95,6 +96,9 @@ export interface NftsSlice {
 
 // Wallet slice interface
 export interface WalletSlice extends WalletState {
+    // WalletKit initialization
+    initializeWalletKit: (network?: 'mainnet' | 'testnet') => Promise<ITonWalletKit | undefined>;
+
     // Actions
     createWallet: (mnemonic: string[]) => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;

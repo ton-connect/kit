@@ -16,11 +16,11 @@ import {
     createDeviceInfo,
     createWalletManifest,
     type ToncenterTransaction,
+    SEND_TRANSACTION_ERROR_CODES,
 } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
-import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -38,13 +38,9 @@ const ENV_TON_API_KEY_MAINNET =
 const ENV_TON_API_KEY_TESTNET =
     import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
 
-// Singleton wallet kit instance
-let walletKitInstance: ITonWalletKit | null = null;
-let currentNetwork: 'mainnet' | 'testnet' | null = null;
-
-// Initialize wallet kit singleton
-function initializeWalletKit(network: 'mainnet' | 'testnet' = 'testnet'): ITonWalletKit {
-    walletKitInstance = new TonWalletKit({
+// Initialize wallet kit instance
+function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): ITonWalletKit {
+    const walletKit = new TonWalletKit({
         deviceInfo: createDeviceInfo(getTonConnectDeviceInfo()),
         walletManifest: createWalletManifest(getTonConnectWalletManifest()),
 
@@ -64,41 +60,8 @@ function initializeWalletKit(network: 'mainnet' | 'testnet' = 'testnet'): ITonWa
         },
     }) as ITonWalletKit;
 
-    currentNetwork = network;
     log.info(`WalletKit initialized with network: ${network}`);
-    return walletKitInstance;
-}
-
-// Get singleton instance - throws error if not initialized
-function getWalletKit(): ITonWalletKit {
-    if (!walletKitInstance) {
-        throw new Error('WalletKit not initialized. Call initializeWalletKit first.');
-    }
-    return walletKitInstance;
-}
-
-// Reinitialize wallet kit with new network (destroys existing instance)
-async function reinitializeWalletKit(network: 'mainnet' | 'testnet'): Promise<ITonWalletKit> {
-    if (walletKitInstance && currentNetwork === network) {
-        log.info(`WalletKit already initialized with network: ${network}`);
-        return walletKitInstance;
-    }
-
-    // Cleanup existing instance if it exists
-    if (walletKitInstance) {
-        log.info(`Reinitializing WalletKit from ${currentNetwork} to ${network}`);
-        try {
-            // Clear existing wallets before destroying
-            const existingWallets = walletKitInstance.getWallets();
-            log.info(`Clearing ${existingWallets.length} existing wallets before reinitialization`);
-        } catch (error) {
-            log.warn('Error during cleanup:', error);
-        }
-        walletKitInstance = null;
-        currentNetwork = null;
-    }
-
-    return initializeWalletKit(network);
+    return walletKit;
 }
 
 // Initialize with default network (testnet)
@@ -160,14 +123,18 @@ async function createWalletConfig(params: {
     ledgerAccountNumber?: number;
     storedLedgerConfig?: LedgerConfig;
     network: 'mainnet' | 'testnet';
+    walletKit: ITonWalletKit;
 }): Promise<WalletInitConfig> {
-    const { mnemonic, useWalletInterfaceType, ledgerAccountNumber = 0, storedLedgerConfig, network } = params;
+    const {
+        mnemonic,
+        useWalletInterfaceType,
+        ledgerAccountNumber = 0,
+        storedLedgerConfig,
+        network,
+        walletKit,
+    } = params;
 
-    // Ensure wallet kit is initialized with correct network
-    await reinitializeWalletKit(network);
-    const kit = getWalletKit();
-
-    while (!kit.isReady()) {
+    while (!walletKit.isReady()) {
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
@@ -227,7 +194,7 @@ async function createWalletConfig(params: {
                             accountIndex: storedLedgerConfig.accountIndex,
                         }),
                         {
-                            tonClient: kit.getApiClient(),
+                            tonClient: walletKit.getApiClient(),
                         },
                     );
                 }
@@ -245,7 +212,7 @@ async function createWalletConfig(params: {
                         accountIndex: ledgerAccountNumber,
                     }),
                     {
-                        tonClient: kit.getApiClient(),
+                        tonClient: walletKit.getApiClient(),
                     },
                 );
             } catch (error) {
@@ -261,6 +228,7 @@ async function createWalletConfig(params: {
 export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     wallet: {
         // Initial state
+        walletKit: null,
         isAuthenticated: false,
         hasWallet: false,
         address: undefined,
@@ -280,11 +248,90 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         disconnectedSessions: [], // Track recently disconnected sessions
     },
 
+    initializeWalletKit: async (network: 'mainnet' | 'testnet' = 'testnet') => {
+        const state = get();
+
+        // Check if we need to reinitialize
+        if (state.wallet.walletKit) {
+            const currentNetwork = state.wallet.walletKit.getNetwork();
+            const targetNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+
+            if (currentNetwork === targetNetwork) {
+                log.info(`WalletKit already initialized with network: ${network}`);
+                return;
+            }
+
+            // Cleanup existing instance
+            log.info(`Reinitializing WalletKit to ${network}`);
+            try {
+                const existingWallets = state.wallet.walletKit.getWallets();
+                log.info(`Clearing ${existingWallets.length} existing wallets before reinitialization`);
+            } catch (error) {
+                log.warn('Error during cleanup:', error);
+            }
+        }
+
+        // Create new instance
+        const walletKit = createWalletKitInstance(network);
+
+        // Set up wallet kit event listeners
+        const onTransactionRequest = async (event: EventTransactionRequest) => {
+            log.info('Transaction request received:', event);
+
+            const wallet = await walletKit.getWallet(event.walletAddress ?? '');
+            if (!wallet) {
+                log.error('Wallet not found for transaction request');
+                return;
+            }
+
+            const balance = await wallet.getBalance();
+            const minNeededBalance = event.request.messages.reduce((acc, message) => acc + BigInt(message.amount), 0n);
+            if (balance < minNeededBalance) {
+                await walletKit.rejectTransactionRequest(event, {
+                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                    message: 'Insufficient balance',
+                });
+                return;
+            }
+
+            get().showTransactionRequest(event);
+        };
+
+        walletKit.onConnectRequest((event) => {
+            log.info('Connect request received:', event);
+            get().showConnectRequest(event);
+        });
+
+        walletKit.onTransactionRequest(onTransactionRequest);
+
+        walletKit.onSignDataRequest((event) => {
+            log.info('Sign data request received:', event);
+            get().showSignDataRequest(event);
+        });
+
+        walletKit.onDisconnect((event) => {
+            log.info('Disconnect event received:', event);
+            get().handleDisconnectEvent(event);
+        });
+
+        log.info('WalletKit listeners initialized');
+
+        set((state) => {
+            state.wallet.walletKit = walletKit;
+        });
+
+        return walletKit;
+    },
+
     // Actions
     createWallet: async (mnemonic: string[]) => {
         const state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
+        }
+
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
         }
 
         try {
@@ -302,11 +349,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: state.wallet.ledgerConfig,
                 network,
+                walletKit: state.wallet.walletKit,
             });
 
-            const kit = getWalletKit();
-            await kit.addWallet(walletConfig);
-            const wallets = kit.getWallets();
+            await state.wallet.walletKit.addWallet(walletConfig);
+            const wallets = state.wallet.walletKit.getWallets();
             const wallet = wallets[0];
 
             // Get real wallet info
@@ -348,6 +395,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             throw new Error('Wallet type must be set to ledger');
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             // Create wallet using walletkit with Ledger configuration
             const network = state.auth.network || 'testnet';
@@ -356,11 +407,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: state.wallet.ledgerConfig,
                 network,
+                walletKit: state.wallet.walletKit,
             });
 
-            const kit = getWalletKit();
-            await kit.addWallet(walletConfig);
-            const wallets = kit.getWallets();
+            await state.wallet.walletKit.addWallet(walletConfig);
+            const wallets = state.wallet.walletKit.getWallets();
             const wallet = wallets[0];
 
             // Get real wallet info
@@ -406,7 +457,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             throw new Error('User not authenticated');
         }
 
-        const wallets = await getWalletKit().getWallets();
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
+        const wallets = await state.wallet.walletKit.getWallets();
         if (wallets.length > 0) {
             return;
         }
@@ -424,11 +479,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                         ledgerAccountNumber: state.auth.ledgerAccountNumber,
                         storedLedgerConfig: state.wallet.ledgerConfig,
                         network,
+                        walletKit: state.wallet.walletKit,
                     });
 
-                    const kit = getWalletKit();
-                    await kit.addWallet(walletConfig);
-                    const wallets = kit.getWallets();
+                    await state.wallet.walletKit.addWallet(walletConfig);
+                    const wallets = state.wallet.walletKit.getWallets();
                     const wallet = wallets[0];
 
                     // Get real wallet info and store config for next time
@@ -469,11 +524,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                     ledgerAccountNumber: state.auth.ledgerAccountNumber,
                     storedLedgerConfig: state.wallet.ledgerConfig,
                     network,
+                    walletKit: state.wallet.walletKit,
                 });
 
-                const kit = getWalletKit();
-                await kit.addWallet(walletConfig);
-                const wallets = kit.getWallets();
+                await state.wallet.walletKit.addWallet(walletConfig);
+                const wallets = state.wallet.walletKit.getWallets();
                 const wallet = wallets[0];
 
                 // Get real wallet info
@@ -520,11 +575,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: state.wallet.ledgerConfig,
                 network,
+                walletKit: state.wallet.walletKit,
             });
 
-            const kit = getWalletKit();
-            await kit.addWallet(walletConfig);
-            const wallets = kit.getWallets();
+            await state.wallet.walletKit.addWallet(walletConfig);
+            const wallets = state.wallet.walletKit.getWallets();
             const wallet = wallets[0];
 
             // Get real wallet info
@@ -607,6 +662,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             state.wallet.isTransactionModalOpen = false;
             state.wallet.pendingSignDataRequest = undefined;
             state.wallet.isSignDataModalOpen = false;
+            // Note: We don't clear walletKit here as it should persist across wallet changes
         });
     },
 
@@ -645,17 +701,19 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             log.info('Loading transactions for address:', state.wallet.address);
 
             // Fetch transactions from Toncenter API
-            const response = await getWalletKit()
-                .getApiClient()
-                .getAccountTransactions({
-                    address: [state.wallet.address],
-                    limit,
-                    offset: 0,
-                });
+            const response = await state.wallet.walletKit.getApiClient().getAccountTransactions({
+                address: [state.wallet.address],
+                limit,
+                offset: 0,
+            });
 
             // Transform transactions to our format
             const transformedTransactions = response.transactions.map((tx: ToncenterTransaction) =>
@@ -676,9 +734,14 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
     // TON Connect URL handling
     handleTonConnectUrl: async (url: string) => {
+        const state = get();
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             log.info('Handling TON Connect URL:', url);
-            await getWalletKit().handleTonConnectUrl(url);
+            await state.wallet.walletKit.handleTonConnectUrl(url);
         } catch (error) {
             log.error('Failed to handle TON Connect URL:', error);
             throw new Error('Failed to process TON Connect link');
@@ -700,6 +763,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             // Set the wallet on the connect event as per user requirements
             const updatedRequest: EventConnectRequest = {
@@ -708,7 +775,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             };
 
             // Approve the connect request with the selected wallet
-            await getWalletKit().approveConnectRequest(updatedRequest);
+            await state.wallet.walletKit.approveConnectRequest(updatedRequest);
 
             // Close the modal and clear pending request
             set((state) => {
@@ -728,8 +795,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
-            await getWalletKit().rejectConnectRequest(state.wallet.pendingConnectRequest, reason);
+            await state.wallet.walletKit.rejectConnectRequest(state.wallet.pendingConnectRequest, reason);
 
             // Close the modal and clear pending request
             set((state) => {
@@ -764,9 +835,13 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             // Approve the transaction request with the wallet kit
-            const approveResult = await getWalletKit().approveTransactionRequest(
+            const approveResult = await state.wallet.walletKit.approveTransactionRequest(
                 state.wallet.pendingTransactionRequest,
             );
             if (approveResult.success) {
@@ -796,8 +871,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
-            await getWalletKit().rejectTransactionRequest(state.wallet.pendingTransactionRequest, reason);
+            await state.wallet.walletKit.rejectTransactionRequest(state.wallet.pendingTransactionRequest, reason);
 
             // Close the modal and clear pending request
             set((state) => {
@@ -832,9 +911,13 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
             // Approve the sign data request with the wallet kit
-            await getWalletKit().signDataRequest(state.wallet.pendingSignDataRequest);
+            await state.wallet.walletKit.signDataRequest(state.wallet.pendingSignDataRequest);
 
             // Close the modal and clear pending request
             set((state) => {
@@ -854,8 +937,12 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            throw new Error('WalletKit not initialized');
+        }
+
         try {
-            await getWalletKit().rejectSignDataRequest(state.wallet.pendingSignDataRequest, reason);
+            await state.wallet.walletKit.rejectSignDataRequest(state.wallet.pendingSignDataRequest, reason);
 
             // Close the modal and clear pending request
             set((state) => {
@@ -898,56 +985,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
     // Getters
     getAvailableWallets: () => {
-        return getWalletKit().getWallets();
+        const state = get();
+        if (!state.wallet.walletKit) {
+            return [];
+        }
+        return state.wallet.walletKit.getWallets();
     },
 });
-
-// Set up connect and transaction request listeners - this will be called from the appStore
-export const setupWalletKitListeners = (
-    showConnectRequest: (request: EventConnectRequest) => void,
-    showTransactionRequest: (request: EventTransactionRequest) => void,
-    showSignDataRequest: (request: EventSignDataRequest) => void,
-    handleDisconnectEvent: (event: EventDisconnect) => void,
-) => {
-    const onTransactionRequest = async (event: EventTransactionRequest) => {
-        log.info('Transaction request received:', event);
-
-        const wallet = await getWalletKit().getWallet(event.walletAddress ?? '');
-        if (!wallet) {
-            log.error('Wallet not found for transaction request');
-            return;
-        }
-
-        const balance = await wallet.getBalance();
-        const minNeededBalance = event.request.messages.reduce((acc, message) => acc + BigInt(message.amount), 0n);
-        if (balance < minNeededBalance) {
-            // log.error('Insufficient balance for transaction request');
-            await getWalletKit().rejectTransactionRequest(event, {
-                code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                message: 'Insufficient balance',
-            });
-            return;
-        }
-
-        showTransactionRequest(event);
-    };
-    getWalletKit().onConnectRequest((event) => {
-        log.info('Connect request received:', event);
-        showConnectRequest(event);
-    });
-
-    getWalletKit().onTransactionRequest(onTransactionRequest);
-
-    getWalletKit().onSignDataRequest((event) => {
-        log.info('Sign data request received:', event);
-        showSignDataRequest(event);
-    });
-
-    getWalletKit().onDisconnect((event) => {
-        log.info('Disconnect event received:', event);
-        handleDisconnectEvent(event);
-    });
-};
-
-// Export walletKit singleton and reinitialization functions
-export { getWalletKit, reinitializeWalletKit };

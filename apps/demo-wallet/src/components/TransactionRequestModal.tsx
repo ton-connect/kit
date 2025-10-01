@@ -7,7 +7,7 @@ import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-import { getWalletKit } from '../stores/slices/walletSlice';
+import { useWalletKit } from '../stores';
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
 
@@ -25,16 +25,18 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const walletKit = useWalletKit();
     const [sessionFrom, setSessionFrom] = useState<SessionInfo | undefined>(undefined);
 
     useEffect(() => {
         async function fetchSessionFrom() {
-            const sessions = await getWalletKit().listSessions();
+            if (!walletKit) return;
+            const sessions = await walletKit.listSessions();
             const session = sessions.find((session) => session.sessionId === request.from);
             setSessionFrom(session);
         }
         fetchSessionFrom();
-    }, [request.from]);
+    }, [request.from, walletKit]);
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -200,15 +202,16 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 };
 
 function useJettonInfo(jettonAddress: Address | string | null) {
+    const walletKit = useWalletKit();
     const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
     useEffect(() => {
         if (!jettonAddress) {
             setJettonInfo(null);
             return;
         }
-        const jettonInfo = getWalletKit().jettons.getJettonInfo(jettonAddress.toString());
-        setJettonInfo(jettonInfo);
-    }, [jettonAddress]);
+        const jettonInfo = walletKit?.jettons.getJettonInfo(jettonAddress.toString());
+        setJettonInfo(jettonInfo ?? null);
+    }, [jettonAddress, walletKit]);
     return jettonInfo;
 }
 

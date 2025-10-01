@@ -3,10 +3,14 @@ import type {
     EventTransactionRequest,
     EventSignDataRequest,
     WalletInterface,
+    ITonWalletKit,
 } from '@ton/walletkit';
 
 export interface WalletState {
     wallet: {
+        // WalletKit instance
+        walletKit: ITonWalletKit | null;
+
         isAuthenticated: boolean;
         hasWallet: boolean;
         address?: string;

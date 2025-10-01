@@ -18,12 +18,13 @@ import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
 
-import { getWalletKit } from '@/stores/slices/walletSlice';
+import { useWalletKit } from '@/stores';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
 
 export const WalletDashboard: React.FC = () => {
+    const walletKit = useWalletKit();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [tonConnectUrl, setTonConnectUrl] = useState('');
@@ -96,13 +97,14 @@ export const WalletDashboard: React.FC = () => {
     }, [tonConnectUrl, handleTonConnectUrl]);
 
     const handleTestDisconnectAll = useCallback(async () => {
+        if (!walletKit) return;
         try {
-            await getWalletKit().disconnect(); // Disconnect all sessions
+            await walletKit.disconnect(); // Disconnect all sessions
             log.info('All sessions disconnected');
         } catch (err) {
             log.error('Failed to disconnect sessions:', err);
         }
-    }, []);
+    }, [walletKit]);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON

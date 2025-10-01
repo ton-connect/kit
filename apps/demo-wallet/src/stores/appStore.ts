@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { immer } from 'zustand/middleware/immer';
 
 import { createAuthSlice } from './slices/authSlice';
-import { createWalletSlice, reinitializeWalletKit, setupWalletKitListeners } from './slices/walletSlice';
+import { createWalletSlice } from './slices/walletSlice';
 import { createJettonsSlice } from './slices/jettonsSlice';
 import { createNftsSlice } from './slices/nftsSlice';
 import { createComponentLogger } from '../utils/logger';
@@ -159,24 +159,19 @@ export const useStore = create<AppState>()(
     ),
 );
 
-// Initialize wallet kit listeners on first load
+// Initialize wallet kit on first load
 if (typeof window !== 'undefined') {
-    // Set up wallet kit listeners with the store's request handlers
     const store = useStore.getState();
 
-    // Reinitialize wallet kit with persisted network preference
+    // Initialize wallet kit with persisted network preference
     const persistedNetwork = store.auth.network || 'testnet';
     log.info(`Initializing WalletKit with persisted network: ${persistedNetwork}`);
 
-    reinitializeWalletKit(persistedNetwork).then(() => {
-        setupWalletKitListeners(
-            store.showConnectRequest,
-            store.showTransactionRequest,
-            store.showSignDataRequest,
-            store.handleDisconnectEvent,
-        );
-    });
+    store.initializeWalletKit(persistedNetwork);
 }
+
+// Hook for accessing WalletKit instance
+export const useWalletKit = () => useStore((state) => state.wallet.walletKit);
 
 // Helper hooks for accessing specific parts of the store
 export const useAuth = () =>

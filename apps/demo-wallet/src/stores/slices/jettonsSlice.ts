@@ -2,7 +2,6 @@ import { type AddressJetton, type JettonTransfer, type JettonInfo, JettonError }
 
 import { createComponentLogger } from '../../utils/logger';
 import type { SetState, JettonsSliceCreator } from '../../types/store';
-import { getWalletKit } from './walletSlice';
 
 // Create logger for jettons slice
 const log = createComponentLogger('JettonsSlice');
@@ -56,6 +55,11 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
             return;
         }
 
+        if (!state.wallet.walletKit) {
+            log.warn('WalletKit not initialized');
+            return;
+        }
+
         set((state) => {
             state.jettons.isLoadingJettons = true;
             state.jettons.error = null;
@@ -65,7 +69,7 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
             log.info('Loading user jettons', { address });
 
             // Use the jettons API from walletKit
-            const userJettons = await getWalletKit().jettons.getAddressJettons(address);
+            const userJettons = await state.wallet.walletKit.jettons.getAddressJettons(address);
 
             set((state) => {
                 state.jettons.userJettons = userJettons;
@@ -114,7 +118,12 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
     },
 
     validateJettonAddress: (address: string): boolean => {
-        return getWalletKit().jettons.validateJettonAddress(address);
+        const state = get();
+        if (!state.wallet.walletKit) {
+            log.warn('WalletKit not initialized');
+            return false;
+        }
+        return state.wallet.walletKit.jettons.validateJettonAddress(address);
     },
 
     clearJettons: () => {
