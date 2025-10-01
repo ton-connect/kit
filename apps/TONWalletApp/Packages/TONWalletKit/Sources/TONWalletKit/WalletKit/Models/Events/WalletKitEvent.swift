@@ -9,7 +9,7 @@ import Foundation
 
 public enum WalletKitEvent {
     case connectRequest(TONWalletConnectionRequest)
-    case transactionRequest(TransactionRequestEvent)
+    case transactionRequest(TONWalletTransactionRequest)
     case signDataRequest(SignDataRequestEvent)
     case disconnect(DisconnectEvent)
     case stateChanged
@@ -23,7 +23,8 @@ public enum WalletKitEvent {
                 let event = try decoder.decode(ConnectRequestEvent.self, from: bridgeEvent.data)
                 self = .connectRequest(TONWalletConnectionRequest(walletKit: walletKit, event: event))
             case .transactionRequest:
-                self = .transactionRequest(try decoder.decode(TransactionRequestEvent.self, from: bridgeEvent.data))
+                let event = try decoder.decode(TransactionRequestEvent.self, from: bridgeEvent.data)
+                self = .transactionRequest(TONWalletTransactionRequest(walletKit: walletKit, event: event))
             case .signDataRequest:
                 self = .signDataRequest(try decoder.decode(SignDataRequestEvent.self, from: bridgeEvent.data))
             case .disconnect:

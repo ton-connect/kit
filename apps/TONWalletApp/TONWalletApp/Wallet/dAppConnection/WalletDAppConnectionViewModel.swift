@@ -15,11 +15,40 @@ class WalletDAppConnectionViewModel: ObservableObject {
     
     @Published var link = ""
     @Published var isConnecting = false
-    @Published var approvalPresented = false
+    @Published var alertPresented = false
+    
+    
+    var approval: Approval? {
+        didSet {
+            alertPresented = approval != nil
+        }
+    }
     
     var connectionRequest: TONWalletConnectionRequest? {
         didSet {
-            approvalPresented = connectionRequest != nil
+            if connectionRequest == nil {
+                if approval == .connection {
+                    approval = nil
+                }
+            } else {
+                if approval == nil {
+                    approval = .connection
+                }
+            }
+        }
+    }
+    
+    var transactionRequest: TONWalletTransactionRequest? {
+        didSet {
+            if transactionRequest == nil {
+                if approval == .transaction {
+                    approval = nil
+                }
+            } else {
+                if approval == nil {
+                    approval = .transaction
+                }
+            }
         }
     }
     
@@ -38,6 +67,8 @@ class WalletDAppConnectionViewModel: ObservableObject {
                 switch event {
                 case .connectRequest(let event):
                     self?.connectionRequest = event
+                case .transactionRequest(let request):
+                    self?.transactionRequest = request
                 default: ()
                 }
             }
@@ -85,5 +116,43 @@ class WalletDAppConnectionViewModel: ObservableObject {
             self?.connectionRequest = nil
             self?.isConnecting = false
         }
+    }
+    
+    func approveTransaction() {
+        guard let transactionRequest else {
+            return
+        }
+        
+        Task { [weak self] in
+            do {
+                try await transactionRequest.approve()
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+            self?.transactionRequest = nil
+        }
+    }
+    
+    func rejectTransaction() {
+        guard let transactionRequest else {
+            return
+        }
+        
+        Task { [weak self] in
+            do {
+                try await transactionRequest.reject(reason: "Test transaction rejection reason")
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+            self?.transactionRequest = nil
+        }
+    }
+}
+
+extension WalletDAppConnectionViewModel {
+    
+    enum Approval {
+        case connection
+        case transaction
     }
 }

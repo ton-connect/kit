@@ -215,7 +215,6 @@ export async function main() {
             console.log('➕ Bridge: Adding wallet:', config);
 
             try {
-                config.network = 'mainnet';
                 console.log('addWallet', config);
                 const result = await walletKit.addWallet(config);
                 console.log('✅ Wallet added:', result);
@@ -329,12 +328,12 @@ export async function main() {
         },
 
         // Transaction handling
-        async approveTransactionRequest(requestId) {
+        async approveTransactionRequest(request) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving transaction request:', requestId);
+            console.log('✅ Bridge: Approving transaction request:', request);
 
             try {
-                const result = await walletKit.approveTransactionRequest(requestId);
+                const result = await walletKit.approveTransactionRequest(request);
                 console.log('✅ Transaction request approved:', result);
                 return result;
             } catch (error) {
@@ -343,12 +342,12 @@ export async function main() {
             }
         },
 
-        async rejectTransactionRequest(requestId, reason) {
+        async rejectTransactionRequest(request, reason) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting transaction request:', requestId, reason);
+            console.log('❌ Bridge: Rejecting transaction request:', request, reason);
 
             try {
-                const result = await walletKit.rejectTransactionRequest(requestId, reason);
+                const result = await walletKit.rejectTransactionRequest(request, reason);
                 console.log('✅ Transaction request rejected:', result);
                 return result;
             } catch (error) {
