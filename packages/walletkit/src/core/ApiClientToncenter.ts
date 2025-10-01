@@ -21,6 +21,8 @@ import { Pagination } from '../types/toncenter/Pagination';
 import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
+import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
+import { DnsCategory, dnsResolve, ROOT_DNS_RESOLVER } from '../types/toncenter/dnsResolve';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -37,6 +39,7 @@ export class TonClientError extends Error {
 }
 
 export interface ApiClientConfig {
+    dnsResolver?: string;
     endpoint?: string;
     apiKey?: string;
     timeout?: number;
@@ -44,12 +47,14 @@ export interface ApiClientConfig {
 }
 
 export class ApiClientToncenter implements ApiClient {
+    private readonly dnsResolver: string;
     private readonly endpoint: string;
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
 
     constructor(config: ApiClientConfig = {}) {
+        this.dnsResolver = config.dnsResolver ?? ROOT_DNS_RESOLVER;
         this.endpoint = config.endpoint ?? 'https://toncenter.com';
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
@@ -350,6 +355,31 @@ export class ApiClientToncenter implements ApiClient {
         }
 
         throw new Error('Failed to fetch pending trace');
+    }
+
+    async resolveDnsWallet(domain: string): Promise<string | null> {
+        const result = await dnsResolve(this, domain, DnsCategory.Wallet, this.dnsResolver);
+        if (result && result.value) {
+            return result.value;
+        }
+        return null;
+    }
+
+    async backResolveDnsWallet(wallet: Address | string): Promise<string | null> {
+        if (wallet instanceof Address) {
+            wallet = wallet.toString();
+        }
+        const response = toDnsRecords(
+            await this.getJson<DNSRecordsResponseV3>('/api/v3/dns/records', {
+                wallet,
+                limit: 1,
+                offset: 0,
+            }),
+        );
+        if (response.records.length > 0) {
+            return response.records[0].domain;
+        }
+        return null;
     }
 }
 

@@ -67,4 +67,7 @@ export interface ApiClient {
 
     getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse>;
     getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse>;
+
+    resolveDnsWallet(domain: string): Promise<string | null>;
+    backResolveDnsWallet(address: Address | string): Promise<string | null>;
 }
