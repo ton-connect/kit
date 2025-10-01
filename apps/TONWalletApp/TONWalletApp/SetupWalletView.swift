@@ -84,7 +84,7 @@ struct SetupWalletView: View {
                 .task {
                     do {
                         try await TONWalletKit.initialize(configuration: WalletKitConfig(
-                            network: .testnet,
+                            network: .mainnet,
                             storage: .memory,
                             bridgeUrl: "https://walletbot.me/tonconnect-bridge/bridge"
                         ), eventsHandler: TONEventsHandler.shared)
@@ -105,7 +105,7 @@ struct SetupWalletView: View {
                     data: TONWalletData(
                         mnemonic: mnemonic,
                         name: "Test",
-                        network: .testnet
+                        network: .mainnet
                     )
                 )
                 self.wallet = wallet

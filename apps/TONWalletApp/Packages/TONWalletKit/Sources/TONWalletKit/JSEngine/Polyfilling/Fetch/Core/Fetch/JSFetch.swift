@@ -332,11 +332,23 @@ extension URLRequest {
         if let cookies = cookieStorage?.cookies(for: url), requestCopy.httpShouldHandleCookies {
             requestCopy.allHTTPHeaderFields = HTTPCookie.requestHeaderFields(with: cookies)
         }
-        let onEach: @convention(block) (JSValue) -> Void = {
-            requestCopy.addValue($0.atIndex(1).toString(), forHTTPHeaderField: $0.atIndex(0).toString())
+        // Properly map JS Headers object to Swift headers
+        if let headers = request.objectForKeyedSubscript("headers"), !headers.isUndefined {
+            if let entries = headers.invokeMethod("entries", withArguments: []), entries.isObject {
+                // entries() returns an iterator, so we need to iterate manually
+                while let next = entries.invokeMethod("next", withArguments: []), 
+                      let done = next.objectForKeyedSubscript("done")?.toBool(), 
+                      !done 
+                {
+                    if let pair = next.objectForKeyedSubscript("value"), 
+                       let key = pair.atIndex(0), 
+                       let value = pair.atIndex(1) 
+                    {
+                        requestCopy.addValue(value.toString(), forHTTPHeaderField: key.toString())
+                    }
+                }
+            }
         }
-        request.objectForKeyedSubscript("headers")
-            .invokeMethod("forEach", withArguments: [unsafeBitCast(onEach, to: JSValue.self)])
         self = requestCopy
     }
 }

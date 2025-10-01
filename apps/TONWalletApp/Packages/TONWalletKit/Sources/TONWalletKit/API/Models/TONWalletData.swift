@@ -16,7 +16,7 @@ public struct TONWalletData: Codable {
     public init(
         mnemonic: TONMnemonic,
         name: String,
-        network: TONNetwork = .testnet,
+        network: TONNetwork = .mainnet,
         version: String = "v5r1"
     ) {
         self.mnemonic = mnemonic.value

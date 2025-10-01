@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MemoryStorageAdapter, TonWalletKit } from '@ton/walletkit';
+import { CHAIN, MemoryStorageAdapter, TonWalletKit } from '@ton/walletkit';
 
 declare global {
     interface Window {
@@ -46,7 +46,16 @@ export async function main() {
 
     console.log('fetch');
     try {
-        const result = await fetch('https://api.ipify.org?format=json');
+        const result = await fetch('https://api.ipify.org?format=json', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: 'Hello, world!',
+            }),
+        });
+        // const headers = result.headers.forEach()
         console.log('fetch result', result);
         const data = await result.json();
         console.log('fetch data', data);
@@ -66,6 +75,7 @@ export async function main() {
     console.log('Creating WalletKit instance');
 
     const walletKit = new TonWalletKit({
+        network: CHAIN.MAINNET,
         walletManifest: {
             name: 'Wallet',
             appName: 'Wallet',
