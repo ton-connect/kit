@@ -81,14 +81,14 @@ export function Base64ToUint8Array(data?: string | null): Uint8Array | null {
  * @returns Base64 string
  */
 export function Uint8ArrayToBase64(data: Uint8Array): string {
-    if (typeof btoa === 'undefined') {
+    if (typeof btoa === 'undefined' && typeof Buffer === 'undefined') {
         throw new Error('btoa is not available in this environment');
     }
     let binary = '';
     for (let i = 0; i < data.length; i++) {
         binary += String.fromCharCode(data[i]);
     }
-    return btoa(binary);
+    return typeof btoa === 'function' ? btoa(binary) : Buffer.from(data).toString('base64');
 }
 
 /**
