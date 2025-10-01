@@ -14,6 +14,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         persistPassword: false,
         useWalletInterfaceType: 'mnemonic',
         ledgerAccountNumber: 0,
+        network: 'testnet', // Default to testnet for development
     },
 
     // Actions
@@ -108,6 +109,12 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
     setLedgerAccountNumber: (accountNumber: number) => {
         set((state) => {
             state.auth.ledgerAccountNumber = accountNumber;
+        });
+    },
+
+    setNetwork: (network: 'mainnet' | 'testnet') => {
+        set((state) => {
+            state.auth.network = network;
         });
     },
 });

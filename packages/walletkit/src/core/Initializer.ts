@@ -57,17 +57,9 @@ export class Initializer {
     private tonClient!: ApiClient;
     private eventEmitter: EventEmitter;
     private analyticsApi?: AnalyticsApi;
-    // private network: CHAIN;
-    // private retryAttempts: number;
-    // private retryDelay: number;
-    // private timeoutMs: number;
 
     constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
         this.config = config;
-        // this.network = config.network ?? CHAIN.MAINNET;
-        // this.retryAttempts = config.retryAttempts ?? 3;
-        // this.retryDelay = config.retryDelay ?? 1000;
-        // this.timeoutMs = config.timeoutMs ?? 10000;
         this.eventEmitter = eventEmitter;
         this.analyticsApi = analyticsApi;
     }
@@ -127,12 +119,15 @@ export class Initializer {
             return options.apiClient;
         }
 
+        const defaultEndpoint =
+            options?.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
         // Use provided API URL or default to mainnet
-        const endpoint = options?.apiClient?.url || 'https://toncenter.com';
+        const endpoint = options?.apiClient?.url || defaultEndpoint;
 
         const clientConfig = {
             endpoint,
             apiKey: options?.apiClient?.key,
+            network: options?.network,
         };
 
         return new ApiClientToncenter(clientConfig);

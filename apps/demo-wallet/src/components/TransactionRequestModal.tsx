@@ -7,9 +7,7 @@ import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-
-import { walletKit } from '@/stores';
-
+import { getWalletKit } from '../stores/slices/walletSlice';
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
 
@@ -31,7 +29,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
     useEffect(() => {
         async function fetchSessionFrom() {
-            const sessions = await walletKit.listSessions();
+            const sessions = await getWalletKit().listSessions();
             const session = sessions.find((session) => session.sessionId === request.from);
             setSessionFrom(session);
         }
@@ -208,7 +206,7 @@ function useJettonInfo(jettonAddress: Address | string | null) {
             setJettonInfo(null);
             return;
         }
-        const jettonInfo = walletKit.jettons.getJettonInfo(jettonAddress.toString());
+        const jettonInfo = getWalletKit().jettons.getJettonInfo(jettonAddress.toString());
         setJettonInfo(jettonInfo);
     }, [jettonAddress]);
     return jettonInfo;

@@ -2,7 +2,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useStore } from '../stores';
-import { walletKit } from '../stores/slices/walletSlice';
+import { getWalletKit } from '../stores/slices/walletSlice';
 import type { PreviewTransaction } from '../types/wallet';
 import { TraceRow } from './TraceRow';
 
@@ -71,7 +71,7 @@ export const RecentTransactions: React.FC = memo(() => {
         if (!address) return;
 
         try {
-            const apiClient = walletKit.getApiClient();
+            const apiClient = getWalletKit().getApiClient();
             const pendingResponse = await apiClient.getPendingTransactions({
                 accounts: [address],
             });

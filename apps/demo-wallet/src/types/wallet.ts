@@ -52,6 +52,7 @@ export interface AuthState {
         persistPassword?: boolean; // Setting to persist password between reloads
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger'; // Setting for wallet interface type
         ledgerAccountNumber?: number; // Account number for Ledger derivation path
+        network?: 'mainnet' | 'testnet'; // Network selection (mainnet or testnet)
     };
 }
 

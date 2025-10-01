@@ -8,7 +8,6 @@ import type {
     AddressJetton,
     JettonTransfer,
     JettonInfo,
-    JettonBalance,
     NftItem,
 } from '@ton/walletkit';
 
@@ -24,6 +23,7 @@ export interface AuthSlice extends AuthState {
     setPersistPassword: (persist: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
+    setNetwork: (network: 'mainnet' | 'testnet') => void;
 }
 
 // Jettons slice interface
@@ -53,10 +53,6 @@ export interface JettonsSlice {
     // Actions
     loadUserJettons: (userAddress?: string) => Promise<void>;
     refreshJettons: (userAddress?: string) => Promise<void>;
-    loadJettonTransfers: (userAddress?: string, jettonAddress?: string) => Promise<void>;
-    loadPopularJettons: () => Promise<void>;
-    searchJettons: (query: string) => Promise<JettonInfo[]>;
-    getJettonBalance: (jettonWalletAddress: string) => Promise<JettonBalance>;
     validateJettonAddress: (address: string) => boolean;
     clearJettons: () => void;
 

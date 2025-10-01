@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import type { AddressJetton, TonTransferParams } from '@ton/walletkit';
 
 import { Layout, Button, Input, Card } from '../components';
-import { useWallet, useJettons, walletKit } from '../stores';
+import { useWallet, useJettons } from '../stores';
 import { createComponentLogger } from '../utils/logger';
+
+import { getWalletKit } from '@/stores/slices/walletSlice';
 
 // Create logger for send transaction
 const log = createComponentLogger('SendTransaction');
@@ -112,7 +114,7 @@ export const SendTransaction: React.FC = () => {
                 };
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
                 // display Preview result.preview in a modal
-                await walletKit.handleNewTransaction(currentWallet, result);
+                await getWalletKit().handleNewTransaction(currentWallet, result);
 
                 log.info('TON transfer completed', {
                     transaction: result,
@@ -135,7 +137,7 @@ export const SendTransaction: React.FC = () => {
                     amount: jettonAmount,
                 });
 
-                await walletKit.handleNewTransaction(currentWallet, jettonTransaction);
+                await getWalletKit().handleNewTransaction(currentWallet, jettonTransaction);
             }
 
             // Navigate back to wallet with success message

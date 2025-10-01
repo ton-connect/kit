@@ -14,10 +14,11 @@ import {
     JettonsCard,
 } from '../components';
 import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
-import { walletKit } from '../stores/slices/walletSlice';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
+
+import { getWalletKit } from '@/stores/slices/walletSlice';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
@@ -37,6 +38,8 @@ export const WalletDashboard: React.FC = () => {
         setUseWalletInterfaceType,
         ledgerAccountNumber,
         setLedgerAccountNumber,
+        network,
+        setNetwork,
     } = useAuth();
     const {
         handleTonConnectUrl,
@@ -94,7 +97,7 @@ export const WalletDashboard: React.FC = () => {
 
     const handleTestDisconnectAll = useCallback(async () => {
         try {
-            await walletKit.disconnect(); // Disconnect all sessions
+            await getWalletKit().disconnect(); // Disconnect all sessions
             log.info('All sessions disconnected');
         } catch (err) {
             log.error('Failed to disconnect sessions:', err);
@@ -306,6 +309,30 @@ export const WalletDashboard: React.FC = () => {
                                 </div>
                             </div>
                         )}
+
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Network</label>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Select the blockchain network (requires wallet reload)
+                                </p>
+                            </div>
+                            <select
+                                className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                                value={network || 'testnet'}
+                                onChange={(e) => {
+                                    const newNetwork = e.target.value as 'mainnet' | 'testnet';
+                                    setNetwork(newNetwork);
+                                    // Show warning that wallet needs to be reloaded
+                                    if (confirm('Network changed. The wallet will reload to apply changes.')) {
+                                        window.location.reload();
+                                    }
+                                }}
+                            >
+                                <option value="testnet">Testnet</option>
+                                <option value="mainnet">Mainnet</option>
+                            </select>
+                        </div>
 
                         <div className="flex items-center justify-between">
                             <div>

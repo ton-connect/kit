@@ -1,4 +1,5 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
+import { CHAIN } from '@tonconnect/protocol';
 
 import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
@@ -7,6 +8,7 @@ import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
 import {
     ApiClient,
+    GetAddressJettonsRequest,
     GetPendingTraceRequest,
     GetPendingTransactionsRequest,
     GetTraceRequest,
@@ -18,11 +20,20 @@ import {
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
-import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
+import {
+    ToncenterResponseJettonWallets,
+    ToncenterTracesResponse,
+    ToncenterTransactionsResponse,
+} from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
 import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
-import { DnsCategory, dnsResolve, ROOT_DNS_RESOLVER } from '../types/toncenter/dnsResolve';
+import {
+    DnsCategory,
+    dnsResolve,
+    ROOT_DNS_RESOLVER_MAINNET,
+    ROOT_DNS_RESOLVER_TESTNET,
+} from '../types/toncenter/dnsResolve';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -44,6 +55,7 @@ export interface ApiClientConfig {
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
+    network?: CHAIN;
 }
 
 export class ApiClientToncenter implements ApiClient {
@@ -52,10 +64,17 @@ export class ApiClientToncenter implements ApiClient {
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
+    private readonly network?: CHAIN;
 
     constructor(config: ApiClientConfig = {}) {
-        this.dnsResolver = config.dnsResolver ?? ROOT_DNS_RESOLVER;
-        this.endpoint = config.endpoint ?? 'https://toncenter.com';
+        this.network = config.network;
+
+        const dnsResolver = this.network === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
+        const defaultEndpoint =
+            this.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+
+        this.dnsResolver = config.dnsResolver ?? dnsResolver;
+        this.endpoint = config.endpoint ?? defaultEndpoint;
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
         this.fetchApi = config.fetchApi ?? fetch;
@@ -380,6 +399,14 @@ export class ApiClientToncenter implements ApiClient {
             return response.records[0].domain;
         }
         return null;
+    }
+
+    async jettonsByAddress(request: GetAddressJettonsRequest): Promise<ToncenterResponseJettonWallets> {
+        return this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
+            owner_address: request.ownerAddress,
+            offset: request.offset,
+            limit: request.limit,
+        });
     }
 }
 

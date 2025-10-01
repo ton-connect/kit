@@ -443,7 +443,7 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         data.valid_until ??= Math.floor(Date.now() / 1000) + 300;
-        data.network ??= CHAIN.MAINNET;
+        data.network ??= this.config.network ?? CHAIN.TESTNET;
 
         const bridgeEvent: RawBridgeEventTransaction = {
             id: Date.now().toString(),

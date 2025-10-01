@@ -5,8 +5,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
-
-import { walletKit } from '@/stores';
+import { getWalletKit } from '../stores/slices/walletSlice';
 
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
@@ -106,7 +105,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
     const [sessionFrom, setSessionFrom] = useState<SessionInfo | undefined>(undefined);
     useEffect(() => {
         async function fetchSessionFrom() {
-            const sessions = await walletKit.listSessions();
+            const sessions = await getWalletKit().listSessions();
             const session = sessions.find((session) => session.sessionId === request.from);
             setSessionFrom(session);
         }

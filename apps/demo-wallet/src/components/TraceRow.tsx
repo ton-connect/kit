@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Base64NormalizeUrl } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
 
-import { walletKit } from '../stores/slices/walletSlice';
+import { getWalletKit } from '../stores/slices/walletSlice';
 
 import { log } from '@/utils/logger';
 
@@ -215,11 +215,11 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 setIsLoading(true);
                 setError(null);
 
-                while (walletKit.isReady() === false) {
+                while (!getWalletKit()?.isReady()) {
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
-                const apiClient = walletKit.getApiClient();
+                const apiClient = getWalletKit().getApiClient();
                 let response;
 
                 try {
