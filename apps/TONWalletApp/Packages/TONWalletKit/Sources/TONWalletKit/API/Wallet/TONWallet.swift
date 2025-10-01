@@ -36,22 +36,4 @@ public class TONWallet {
     public func connect(url: String) async throws {
         await TONWalletKit.handleTonConnectUrl(url)
     }
-    
-    public func approve(connectionRequest: ConnectRequestEvent) async throws {
-        guard var event = connectionRequest.base else {
-            throw "No base info found"
-        }
-        
-        event.walletAddress = address
-        
-        await TONWalletKit.approveConnectRequest(event)
-    }
-    
-    public func reject(connectionRequest: ConnectRequestEvent) async throws {
-        guard var event = connectionRequest.base else {
-            throw "No base info found"
-        }
-        
-        await TONWalletKit.approveConnectRequest(event)
-    }
 }

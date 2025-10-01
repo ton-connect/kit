@@ -17,7 +17,11 @@ class WalletDAppConnectionViewModel: ObservableObject {
     @Published var isConnecting = false
     @Published var approvalPresented = false
     
-    var connectionEvent: ConnectRequestEvent?
+    var connectionRequest: TONWalletConnectionRequest? {
+        didSet {
+            approvalPresented = connectionRequest != nil
+        }
+    }
     
     private var subscribers = Set<AnyCancellable>()
     
@@ -33,8 +37,7 @@ class WalletDAppConnectionViewModel: ObservableObject {
             .sink { [weak self] event in
                 switch event {
                 case .connectRequest(let event):
-                    self?.connectionEvent = event
-                    self?.approvalPresented = true
+                    self?.connectionRequest = event
                 default: ()
                 }
             }
@@ -53,40 +56,34 @@ class WalletDAppConnectionViewModel: ObservableObject {
     }
     
     func approveConnection() {
-        approvalPresented = false
-        
-        guard let connectionEvent else {
+        guard let connectionRequest, let address = wallet.address else {
             return
         }
         
-        self.connectionEvent = nil
-        
-        Task {
+        Task { [weak self] in
             do {
-                try await wallet.approve(connectionRequest: connectionEvent)
+                try await connectionRequest.approve(walletAddress: address)
             } catch {
                 debugPrint(error.localizedDescription)
             }
-            isConnecting = false
+            self?.connectionRequest = nil
+            self?.isConnecting = false
         }
     }
     
     func rejectConnection() {
-        approvalPresented = false
-        
-        guard let connectionEvent else {
+        guard let connectionRequest else {
             return
         }
         
-        self.connectionEvent = nil
-        
-        Task {
+        Task { [weak self] in
             do {
-                try await wallet.reject(connectionRequest: connectionEvent)
+                try await connectionRequest.reject(reason: "Test reason")
             } catch {
                 debugPrint(error.localizedDescription)
             }
-            isConnecting = false
+            self?.connectionRequest = nil
+            self?.isConnecting = false
         }
     }
 }

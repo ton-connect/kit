@@ -8,19 +8,20 @@
 import Foundation
 
 public enum WalletKitEvent {
-    case connectRequest(ConnectRequestEvent)
+    case connectRequest(TONWalletConnectionRequest)
     case transactionRequest(TransactionRequestEvent)
     case signDataRequest(SignDataRequestEvent)
     case disconnect(DisconnectEvent)
     case stateChanged
     
-    init?(bridgeEvent: JSWalletKitSwiftBridgeEvent) {
+    init?(bridgeEvent: JSWalletKitSwiftBridgeEvent, walletKit: any JSDynamicObject) {
         let decoder = JSONDecoder()
         
         do {
             switch bridgeEvent.type {
             case .connectRequest:
-                self = .connectRequest(try decoder.decode(ConnectRequestEvent.self, from: bridgeEvent.data))
+                let event = try decoder.decode(ConnectRequestEvent.self, from: bridgeEvent.data)
+                self = .connectRequest(TONWalletConnectionRequest(walletKit: walletKit, event: event))
             case .transactionRequest:
                 self = .transactionRequest(try decoder.decode(TransactionRequestEvent.self, from: bridgeEvent.data))
             case .signDataRequest:

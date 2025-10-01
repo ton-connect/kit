@@ -300,13 +300,13 @@ export async function main() {
             }
         },
 
-        async approveConnectRequest(requestId, walletAddress) {
+        async approveConnectRequest(request) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving connect request:', requestId, walletAddress);
+            console.log('✅ Bridge: Approving connect request:', request, request.walletAddress);
 
             try {
-                const result = await walletKit.approveConnectRequest(requestId);
-                console.log('✅ Connect request approved for wallet:', walletAddress, result);
+                const result = await walletKit.approveConnectRequest(request);
+                console.log('✅ Connect request approved for wallet:', request.walletAddress, result);
                 return result;
             } catch (error) {
                 console.error('❌ Failed to approve connect request:', error);
@@ -314,12 +314,12 @@ export async function main() {
             }
         },
 
-        async rejectConnectRequest(requestId, reason) {
+        async rejectConnectRequest(request, reason) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting connect request:', requestId, reason || 'User rejected');
+            console.log('❌ Bridge: Rejecting connect request:', request.id, reason || 'User rejected');
 
             try {
-                const result = await walletKit.rejectConnectRequest(requestId);
+                const result = await walletKit.rejectConnectRequest(request, reason);
                 console.log('✅ Connect request rejected:', result);
                 return result;
             } catch (error) {
