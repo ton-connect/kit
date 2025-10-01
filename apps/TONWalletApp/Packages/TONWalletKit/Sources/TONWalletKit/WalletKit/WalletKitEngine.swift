@@ -10,10 +10,16 @@ import JavaScriptCore
 
 public class WalletKitEngine: JSEngine {
     private let configuration: WalletKitConfig
+    private let eventsHandler: any TONBridgeEventsHandler
+    
     private var jsContext: JSContext?
-
-    public init(configuration: WalletKitConfig) {
+    
+    public init(
+        configuration: WalletKitConfig,
+        eventsHandler: any TONBridgeEventsHandler
+    ) {
         self.configuration = configuration
+        self.eventsHandler = eventsHandler
     }
     
     public func loadJS(into context: JSContext) async throws {
@@ -22,10 +28,12 @@ public class WalletKitEngine: JSEngine {
     }
     
     public func processJS(in context: JSContext) async throws {
-        let bridgePolyfill = JSWalletKitSwiftBridgePolyfill(configuration: configuration) {
-            let walletKitEvent = WalletKitEvent(bridgeEvent: $0)
-
-            debugPrint("Event received: \($0)")
+        let bridgePolyfill = JSWalletKitSwiftBridgePolyfill(configuration: configuration) { [weak self] in
+            if let walletKitEvent = WalletKitEvent(bridgeEvent: $0) {
+                debugPrint("Event received: \($0)")
+                
+                self?.eventsHandler.handle(event: walletKitEvent)
+            }
         }
         
         context.polyfill(with: bridgePolyfill)

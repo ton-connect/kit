@@ -33,5 +33,18 @@ struct WalletDAppConnectionView: View {
             )
             .disabled(viewModel.link.isEmpty)
         }
+        .alert(isPresented: $viewModel.approvalPresented) { () -> Alert in
+            Alert(
+                title: Text("dApp wants to connect"),
+                primaryButton: .default(
+                    Text("Approve"),
+                    action: { viewModel.approveConnection() }
+                ),
+                secondaryButton: .default(
+                    Text("Reject"),
+                    action: { viewModel.rejectConnection() }
+                )
+            )
+        }
     }
 }

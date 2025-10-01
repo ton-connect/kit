@@ -11,12 +11,15 @@ import Foundation
 public struct TONWalletKit {
     static private(set) var engine: (any JSEngine)!
     
-    public static func initialize(configuration: WalletKitConfig) async throws {
+    public static func initialize(
+        configuration: WalletKitConfig,
+        eventsHandler: any TONBridgeEventsHandler
+    ) async throws {
         guard engine == nil else {
             return
         }
         
-        engine = WalletKitEngine(configuration: configuration)
+        engine = WalletKitEngine(configuration: configuration, eventsHandler: eventsHandler)
         try await engine.start()
     }
     
@@ -27,4 +30,9 @@ public struct TONWalletKit {
             fatalError("TONWalletKit no initialized")
         }
     }
+}
+
+public protocol TONBridgeEventsHandler {
+    
+    func handle(event: WalletKitEvent)
 }

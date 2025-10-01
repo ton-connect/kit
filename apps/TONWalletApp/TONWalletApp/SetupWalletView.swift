@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import SwiftUI
 import TONWalletKit
 
@@ -86,7 +87,7 @@ struct SetupWalletView: View {
                             network: .mainnet,
                             storage: .memory,
                             bridgeUrl: "https://walletbot.me/tonconnect-bridge/bridge"
-                        ))
+                        ), eventsHandler: TONEventsHandler.shared)
                         initialized = true
                     } catch {
                         debugPrint(error.localizedDescription)
@@ -119,5 +120,17 @@ struct SetupWalletView: View {
     
     private func createWallet() {
         
+    }
+}
+
+class TONEventsHandler: TONBridgeEventsHandler {
+    let events = PassthroughSubject<WalletKitEvent, Never>()
+    
+    static let shared = TONEventsHandler()
+    
+    private init() {}
+    
+    func handle(event: WalletKitEvent) {
+        events.send(event)
     }
 }
