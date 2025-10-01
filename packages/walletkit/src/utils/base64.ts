@@ -29,11 +29,11 @@ export function Base64NormalizeUrl(data: string): string {
  * @returns utf-8 string
  */
 export function ParseBase64(data: string): string {
-    if (typeof atob === 'undefined') {
+    if (typeof atob === 'undefined' && typeof Buffer === 'undefined') {
         throw new WalletKitError(ERROR_CODES.CONFIGURATION_ERROR, 'atob function is not available in this environment');
     }
     data = Base64Normalize(data);
-    return atob(data);
+    return typeof atob === 'function' ? atob(data) : Buffer.from(data, 'base64').toString('utf-8');
 }
 
 /**
