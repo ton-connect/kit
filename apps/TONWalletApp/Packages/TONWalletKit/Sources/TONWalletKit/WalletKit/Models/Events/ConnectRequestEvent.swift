@@ -33,6 +33,7 @@ public extension ConnectRequestEvent.Preview {
         public let appIconURL: URL?
         public let appURL: URL?
         public let manifestURL: URL?
+        public let url: URL?
         
         enum CodingKeys: String, CodingKey {
             case appName = "dAppName"
@@ -40,6 +41,7 @@ public extension ConnectRequestEvent.Preview {
             case appIconURL = "iconUrl"
             case appURL = "dAppUrl"
             case manifestURL = "manifestUrl"
+            case url
         }
     }
     
