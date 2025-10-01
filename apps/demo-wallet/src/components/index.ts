@@ -12,6 +12,7 @@ export { JettonsList } from './JettonsList';
 export { NftsCard } from './NftsCard';
 export { Layout } from './Layout';
 export { MnemonicDisplay } from './MnemonicDisplay';
+export { SettingsDropdown } from './SettingsDropdown';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
