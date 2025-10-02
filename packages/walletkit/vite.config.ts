@@ -19,8 +19,8 @@ export default defineConfig({
     resolve: {
         alias: [
             {
-                find: "@ton/crypto-primitives",
-                replacement: require.resolve("@ton/crypto-primitives/dist/native.js"),
+                find: '@ton/crypto-primitives',
+                replacement: require.resolve('@ton/crypto-primitives/dist/native.js'),
             },
         ],
     },
