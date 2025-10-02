@@ -371,12 +371,12 @@ export async function main() {
         },
 
         // Sign data handling
-        async approveSignDataRequest(requestId) {
+        async approveSignDataRequest(request) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving sign data request:', requestId);
+            console.log('✅ Bridge: Approving sign data request:', request);
 
             try {
-                const result = await walletKit.signDataRequest(requestId);
+                const result = await walletKit.signDataRequest(request);
                 console.log('✅ Sign data request approved:', result);
                 return result;
             } catch (error) {
@@ -385,12 +385,12 @@ export async function main() {
             }
         },
 
-        async rejectSignDataRequest(requestId, reason) {
+        async rejectSignDataRequest(request, reason) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting sign data request:', requestId, reason);
+            console.log('❌ Bridge: Rejecting sign data request:', request, reason);
 
             try {
-                const result = await walletKit.rejectSignDataRequest(requestId, reason);
+                const result = await walletKit.rejectSignDataRequest(request, reason);
                 console.log('✅ Sign data request rejected:', result);
                 return result;
             } catch (error) {

@@ -52,6 +52,20 @@ class WalletDAppConnectionViewModel: ObservableObject {
         }
     }
     
+    var signDataRequest: TONWalletSignDataRequest? {
+        didSet {
+            if signDataRequest == nil {
+                if approval == .signData {
+                    approval = nil
+                }
+            } else {
+                if approval == nil {
+                    approval = .signData
+                }
+            }
+        }
+    }
+    
     private var subscribers = Set<AnyCancellable>()
     
     init(wallet: TONWallet) {
@@ -69,6 +83,8 @@ class WalletDAppConnectionViewModel: ObservableObject {
                     self?.connectionRequest = event
                 case .transactionRequest(let request):
                     self?.transactionRequest = request
+                case .signDataRequest(let request):
+                    self?.signDataRequest = request
                 default: ()
                 }
             }
@@ -147,6 +163,36 @@ class WalletDAppConnectionViewModel: ObservableObject {
             self?.transactionRequest = nil
         }
     }
+    
+    func approveSignData() {
+        guard let signDataRequest else {
+            return
+        }
+        
+        Task { [weak self] in
+            do {
+                try await signDataRequest.approve()
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+            self?.signDataRequest = nil
+        }
+    }
+    
+    func rejectSignData() {
+        guard let signDataRequest else {
+            return
+        }
+        
+        Task { [weak self] in
+            do {
+                try await signDataRequest.reject(reason: "Test transaction rejection reason")
+            } catch {
+                debugPrint(error.localizedDescription)
+            }
+            self?.signDataRequest = nil
+        }
+    }
 }
 
 extension WalletDAppConnectionViewModel {
@@ -154,5 +200,6 @@ extension WalletDAppConnectionViewModel {
     enum Approval {
         case connection
         case transaction
+        case signData
     }
 }
