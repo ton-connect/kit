@@ -52,7 +52,10 @@ export async function dnsResolve(
     let currentResolver = resolver ?? ROOT_DNS_RESOLVER_MAINNET;
     let unresolved = domain;
 
-    while (true) {
+    let maxResolveDepth = 100;
+
+    while (maxResolveDepth > 0) {
+        maxResolveDepth--;
         const step = await dnsLookup(client, unresolved, DnsCategory.DnsNextResolver, currentResolver);
         if (step == null) {
             return null;
@@ -82,6 +85,8 @@ export async function dnsResolve(
 
         return step;
     }
+
+    return null;
 }
 
 export async function dnsLookup(
