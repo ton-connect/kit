@@ -97,6 +97,10 @@ export async function main() {
                     name: 'SendTransaction',
                     maxMessages: 1,
                 },
+                {
+                    name: 'SignData',
+                    types: ['text', 'binary', 'cell']
+                }
             ],
         },
         // apiUrl: 'https://tonapi.io',
