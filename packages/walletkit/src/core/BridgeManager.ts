@@ -83,20 +83,15 @@ export class BridgeManager {
             await this.loadLastEventId();
             await this.connectToSSEBridge();
         } catch (error) {
-            console.log('Failed to start bridge', error);
-            console.trace(error);
             log.error('Failed to start bridge', { error });
             throw error;
         }
 
-        console.log('return from bridge start');
         const requestProcessing = () => {
             this.processBridgeEvents();
             this.requestProcessingTimeoutId = setTimeout(requestProcessing, 1000) as unknown as number;
         };
-        console.log('requestProcessing');
         requestProcessing();
-        console.log('requestProcessing done');
     }
 
     /**
@@ -307,22 +302,21 @@ export class BridgeManager {
 
         try {
             // Prepare clients array for existing sessions
-            console.log('Getting clients');
             const clients = await this.getClients();
             if (clients.length === 0) {
-                console.log('No clients, adding default client');
                 clients.push({
                     clientId: '0',
                     session: new SessionCrypto(),
                 });
             }
-            console.log('Opening bridge');
+
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
                 listener: this.queueBridgeEvent.bind(this),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 errorListener: (error: any) => {
-                    console.log('Bridge error listener', error.toString());
+                    log.error('Bridge error listener', { error: error.toString() });
                 },
                 options: {
                     lastEventId: this.lastEventId,
