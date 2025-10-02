@@ -90,8 +90,7 @@ extension JSContextInstallable where Self == JSFetchInstaller {
         
         if let body = request.httpBody {
             debugPrint("Body")
-            
-            safePrettyPrintJSON(body)
+            debugPrint(String(data: body, encoding: .utf8) as? AnyObject)
         }
         
         self.request = request
@@ -100,26 +99,6 @@ extension JSContextInstallable where Self == JSFetchInstaller {
             self.state = Lock((nil, delegate))
         } else {
             self.state = Lock((nil, JSURLSessionDataDelegate(isShared: false)))
-        }
-    }
-}
-
-func safePrettyPrintJSON(_ data: Data) -> String {
-    do {
-        let jsonObject = try JSONSerialization.jsonObject(with: data)
-        let prettyData = try JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys])
-        
-        if let prettyString = String(data: prettyData, encoding: .utf8) {
-            return prettyString
-        } else {
-            return "Unable to convert JSON data to string"
-        }
-    } catch {
-        // If it's not valid JSON, try to return as plain string
-        if let string = String(data: data, encoding: .utf8) {
-            return string
-        } else {
-            return "Invalid data: \(error.localizedDescription)"
         }
     }
 }
