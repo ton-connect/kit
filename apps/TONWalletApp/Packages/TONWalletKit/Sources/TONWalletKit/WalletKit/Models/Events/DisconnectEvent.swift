@@ -7,16 +7,12 @@
 
 import Foundation
 
-public struct DisconnectEvent: Codable, Identifiable {
-    public let id: String
-    public let sessionId: String
-    public let walletAddress: String
+public struct DisconnectEvent: Codable {
+    public let id: String?
+    public let from: String?
+    public let walletAddress: String?
+    public let domain: String?
+    public let sessionId: String?
+    public let messageId: String?
     public let reason: String?
-    
-    public init(sessionId: String, walletAddress: String, reason: String? = nil) {
-        self.id = sessionId
-        self.sessionId = sessionId
-        self.walletAddress = walletAddress
-        self.reason = reason
-    }
 }

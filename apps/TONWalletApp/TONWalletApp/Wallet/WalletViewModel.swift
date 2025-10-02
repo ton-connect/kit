@@ -14,11 +14,13 @@ class WalletViewModel: Identifiable, ObservableObject {
 
     let info: WalletInfoViewModel
     let dAppConnection: WalletDAppConnectionViewModel
+    let dAppDisconnect: WalletDAppDisconnectionViewModel
     
     init(tonWallet: TONWallet) {
         self.tonWallet = tonWallet
         
         self.info = WalletInfoViewModel(wallet: tonWallet)
         self.dAppConnection = WalletDAppConnectionViewModel(wallet: tonWallet)
+        self.dAppDisconnect = WalletDAppDisconnectionViewModel(wallet: tonWallet)
     }
 }

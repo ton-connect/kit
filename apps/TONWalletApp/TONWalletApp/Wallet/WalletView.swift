@@ -19,6 +19,9 @@ struct WalletView: View {
                 
                 WalletDAppConnectionView(viewModel: viewModel.dAppConnection)
                     .widget()
+                
+                WalletDAppDisconnectionView(viewModel: viewModel.dAppDisconnect)
+                    .widget()
             }
             .padding(16.0)
             .frame(maxWidth: .infinity, maxHeight: .infinity)

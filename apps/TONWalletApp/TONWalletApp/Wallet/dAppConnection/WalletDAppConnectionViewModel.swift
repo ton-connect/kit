@@ -17,7 +17,6 @@ class WalletDAppConnectionViewModel: ObservableObject {
     @Published var isConnecting = false
     @Published var alertPresented = false
     
-    
     var approval: Approval? {
         didSet {
             alertPresented = approval != nil
