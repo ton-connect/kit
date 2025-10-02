@@ -32,6 +32,7 @@ jobs:
     - name: Build
       run: |
         pnpm build
+        pnpm --filter demo-wallet build:extension
       env:
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
 
