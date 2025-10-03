@@ -1,11 +1,12 @@
 import { mockFn } from '../../../mock.config';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { FullAccountState, GetResult } from '../../types/toncenter/api';
-import type { ToncenterEmulationResponse, WalletInitInterface } from '../../types';
+import type { ToncenterEmulationResponse, ToncenterTracesResponse, WalletInitInterface } from '../../types';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
 import { WalletId } from './WalletV5R1';
 import { createWalletV5R1 } from './WalletV5R1Adapter';
 import { createWalletInitConfigMnemonic } from '../../types';
+import { ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
 
 export const mnemonic = [
     'hospital',
@@ -69,6 +70,13 @@ export function createMockApiClient(): ApiClient {
             lastTransaction: null,
         } as unknown as FullAccountState),
         getBalance: mockFn().mockResolvedValue(BigInt(1000000000)),
+        getAccountTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
+        getPendingTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),
+        getPendingTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
+        getTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),
+        getTransactionsByHash: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
+        resolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
+        backResolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
     };
 }
 export async function createDummyWallet(walletId?: bigint): Promise<WalletInitInterface> {

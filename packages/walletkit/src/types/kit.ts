@@ -1,6 +1,6 @@
 // Main TonWalletKit interface definition
 
-import { SendTransactionRpcResponseError } from '@tonconnect/protocol';
+import { CHAIN, SendTransactionRpcResponseError } from '@tonconnect/protocol';
 
 import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './wallet';
 import type {
@@ -24,6 +24,8 @@ import { ApiClient } from './toncenter/ApiClient';
 export interface ITonWalletKit {
     /** Get the API client */
     getApiClient(): ApiClient;
+
+    getNetwork(): CHAIN;
 
     isReady(): boolean;
 

@@ -36,6 +36,7 @@ export class DisconnectHandler
         const disconnectEvent: EventDisconnect = {
             reason,
             walletAddress: event.walletAddress,
+            dAppInfo: event.dAppInfo ?? {},
         };
 
         await this.sessionManager.removeSession(event.from || '');

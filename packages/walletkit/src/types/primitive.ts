@@ -1,4 +1,4 @@
-import { Address } from '@ton/core';
+import { Address, beginCell, Cell } from '@ton/core';
 
 declare const hashBrand: unique symbol;
 
@@ -29,4 +29,21 @@ export function asAddressFriendly(data?: string | null): AddressFriendly {
         /* empty */
     }
     throw new Error(`Can not convert to AddressFriendly from "${data}"`);
+}
+
+export function limitString(data: string, limit: number): string {
+    return data.length > limit ? data.substring(0, limit) : data;
+}
+
+export function toTinyString(data: string): Cell {
+    data = limitString(data, 126);
+    return beginCell().storeUint(data.length, 8).storeStringTail(data).endCell();
+}
+
+export function toStringTail(data: string): Cell {
+    return beginCell().storeStringTail(limitString(data, 127)).endCell();
+}
+
+export function fromTinyString(data: Cell): string {
+    return data.beginParse().skip(8).loadStringTail();
 }

@@ -1,5 +1,3 @@
-// import { StrykerOptions } from '@stryker-mutator/core';
-
 import { target } from './quality.config.js';
 
 const config = {
@@ -12,7 +10,13 @@ const config = {
     coverageAnalysis: 'perTest',
     symlinkNodeModules: false,
     inPlace: false,
-    mutate: ['src/contracts/w5/WalletV5R1Adapter.ts', 'src/core/TonWalletKit.ts', 'src/utils/base64.ts'],
+    mutate: [
+        'src/contracts/w5/WalletV5R1Adapter.ts',
+        'src/core/TonWalletKit.ts',
+        'src/utils/base64.ts',
+        'src/types/toncenter/dnsResolve.ts',
+        'src/types/primitive.ts',
+    ],
     tempDirName: '.stryker-tmp',
     cleanTempDir: true,
     timeoutMS: 60000,

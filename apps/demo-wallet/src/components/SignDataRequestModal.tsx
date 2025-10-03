@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import type { EventSignDataRequest, SessionInfo } from '@ton/walletkit';
+import React, { useState } from 'react';
+import type { EventSignDataRequest } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
-
-import { walletKit } from '@/stores';
 
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
@@ -103,20 +101,6 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
         }
     };
 
-    const [sessionFrom, setSessionFrom] = useState<SessionInfo | undefined>(undefined);
-    useEffect(() => {
-        async function fetchSessionFrom() {
-            const sessions = await walletKit.listSessions();
-            const session = sessions.find((session) => session.sessionId === request.from);
-            setSessionFrom(session);
-        }
-        fetchSessionFrom();
-    }, [request.from]);
-    // const sessionFrom = useMemo(() => {
-    //     const sessions = await walletKit.listSessions()
-    //     return request.from;
-    // }, [request.from]);
-
     if (!isOpen) return null;
 
     return (
@@ -134,9 +118,10 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
 
                         {/* dApp Information */}
                         <DAppInfo
-                            iconUrl={sessionFrom?.dAppIconUrl}
-                            name={sessionFrom?.dAppName}
-                            url={sessionFrom?.dAppUrl}
+                            iconUrl={request.dAppInfo?.iconUrl}
+                            name={request.dAppInfo?.name}
+                            url={request.dAppInfo?.url}
+                            description={request.dAppInfo?.description}
                         />
 
                         {/* Request Information */}

@@ -2,7 +2,7 @@
 
 import { ConnectItem } from '@tonconnect/protocol';
 
-import type { EventConnectRequest } from '../types';
+import type { ConnectPreview, EventConnectRequest } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
@@ -32,11 +32,20 @@ export class ConnectHandler
             }
         }
 
+        const preview = this.createPreview(event, manifestUrl, manifest);
+
         const connectEvent: EventConnectRequest = {
             ...event,
             id: event.id,
+
             request: event.params?.items || [],
-            preview: this.createPreview(event, manifestUrl, manifest),
+            preview,
+            dAppInfo: {
+                name: preview?.manifest?.name,
+                description: preview?.manifest?.description,
+                url: preview?.manifest?.url,
+                iconUrl: preview?.manifest?.iconUrl,
+            },
             isJsBridge: event.isJsBridge,
             tabId: event.tabId,
         };
@@ -71,7 +80,7 @@ export class ConnectHandler
      * Create preview object for connect request
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createPreview(event: RawBridgeEventConnect, manifestUrl: string, fetchedManifest?: any): any {
+    private createPreview(event: RawBridgeEventConnect, manifestUrl: string, fetchedManifest?: any): ConnectPreview {
         const eventManifest = event.params?.manifest;
         const manifest = fetchedManifest || eventManifest;
 

@@ -125,7 +125,7 @@ export class TonWalletKit implements ITonWalletKit {
                         {
                             name: 'ton_addr',
                             address: Address.parse(session.walletAddress).toRawString(),
-                            network: CHAIN.MAINNET,
+                            network: this.getNetwork(),
                             walletStateInit: '',
                             publicKey: '',
                         },
@@ -216,6 +216,10 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.initializationPromise) {
             await this.initializationPromise;
         }
+    }
+
+    getNetwork(): CHAIN {
+        return this.config.network ?? CHAIN.TESTNET;
     }
 
     // === Wallet Management API (Delegated) ===
@@ -451,7 +455,7 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         data.valid_until ??= Math.floor(Date.now() / 1000) + 300;
-        data.network ??= CHAIN.MAINNET;
+        data.network ??= this.config.network ?? CHAIN.TESTNET;
 
         const bridgeEvent: RawBridgeEventTransaction = {
             id: Date.now().toString(),

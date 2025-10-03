@@ -110,6 +110,7 @@ export class TransactionHandler
             ...event,
             request,
             preview,
+            dAppInfo: event.dAppInfo ?? {},
             walletAddress: event.walletAddress,
         };
 

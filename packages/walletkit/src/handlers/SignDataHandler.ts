@@ -52,6 +52,7 @@ export class SignDataHandler
             ...event,
             request: data,
             preview,
+            dAppInfo: event.dAppInfo ?? {},
             walletAddress: event.walletAddress,
         };
 

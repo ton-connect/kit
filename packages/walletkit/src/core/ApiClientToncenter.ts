@@ -1,4 +1,5 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
+import { CHAIN } from '@tonconnect/protocol';
 
 import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
@@ -7,6 +8,7 @@ import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
 import {
     ApiClient,
+    GetAddressJettonsRequest,
     GetPendingTraceRequest,
     GetPendingTransactionsRequest,
     GetTraceRequest,
@@ -18,9 +20,20 @@ import {
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
-import { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../types/toncenter/emulation';
+import {
+    ToncenterResponseJettonWallets,
+    ToncenterTracesResponse,
+    ToncenterTransactionsResponse,
+} from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
+import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
+import {
+    DnsCategory,
+    dnsResolve,
+    ROOT_DNS_RESOLVER_MAINNET,
+    ROOT_DNS_RESOLVER_TESTNET,
+} from '../types/toncenter/dnsResolve';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -37,20 +50,31 @@ export class TonClientError extends Error {
 }
 
 export interface ApiClientConfig {
+    dnsResolver?: string;
     endpoint?: string;
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
+    network?: CHAIN;
 }
 
 export class ApiClientToncenter implements ApiClient {
+    private readonly dnsResolver: string;
     private readonly endpoint: string;
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
+    private readonly network?: CHAIN;
 
     constructor(config: ApiClientConfig = {}) {
-        this.endpoint = config.endpoint ?? 'https://toncenter.com';
+        this.network = config.network;
+
+        const dnsResolver = this.network === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
+        const defaultEndpoint =
+            this.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+
+        this.dnsResolver = config.dnsResolver ?? dnsResolver;
+        this.endpoint = config.endpoint ?? defaultEndpoint;
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
         this.fetchApi = config.fetchApi ?? fetch;
@@ -350,6 +374,39 @@ export class ApiClientToncenter implements ApiClient {
         }
 
         throw new Error('Failed to fetch pending trace');
+    }
+
+    async resolveDnsWallet(domain: string): Promise<string | null> {
+        const result = await dnsResolve(this, domain, DnsCategory.Wallet, this.dnsResolver);
+        if (result && result.value) {
+            return result.value;
+        }
+        return null;
+    }
+
+    async backResolveDnsWallet(wallet: Address | string): Promise<string | null> {
+        if (wallet instanceof Address) {
+            wallet = wallet.toString();
+        }
+        const response = toDnsRecords(
+            await this.getJson<DNSRecordsResponseV3>('/api/v3/dns/records', {
+                wallet,
+                limit: 1,
+                offset: 0,
+            }),
+        );
+        if (response.records.length > 0) {
+            return response.records[0].domain;
+        }
+        return null;
+    }
+
+    async jettonsByAddress(request: GetAddressJettonsRequest): Promise<ToncenterResponseJettonWallets> {
+        return this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
+            owner_address: request.ownerAddress,
+            offset: request.offset,
+            limit: request.limit,
+        });
     }
 }
 

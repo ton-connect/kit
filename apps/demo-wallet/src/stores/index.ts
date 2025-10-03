@@ -6,7 +6,7 @@ export { useStore } from './appStore';
 
 // Individual slice creators (for testing or advanced usage)
 export { createAuthSlice } from './slices/authSlice';
-export { createWalletSlice, walletKit } from './slices/walletSlice';
+export { createWalletSlice } from './slices/walletSlice';
 export { createNftsSlice } from './slices/nftsSlice';
 
 // Types

@@ -1,11 +1,20 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
 import * as allure from 'allure-js-commons';
 
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const extensionPath = path.join(__dirname, '../dist-extension');
+
 const test = testWith(
     demoWalletFixture({
-        extensionPath: 'dist-extension',
+        extensionPath: extensionPath,
         mnemonic: process.env.WALLET_MNEMONIC!,
         appUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/',
     }),

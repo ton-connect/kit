@@ -7,9 +7,10 @@
     "e2e:deps": "playwright install --with-deps chromium",
     "e2e": "playwright test --config e2e.config.ts",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm build:extension && pnpm build:website",
     "dev:extension": "cross-env VITE_APP_ENV=extension vite build --watch --config vite.extension.config.ts",
     "build:extension": "cross-env VITE_APP_ENV=extension vite build --config vite.extension.config.ts",
+    "build:website": "tsc -b && vite build",
     "copy-extension-files": "node -e \"require('fs').copyFileSync('public/manifest.json', 'dist-extension/manifest.json')\"",
     "lint": "eslint .",
     "preview": "vite preview"

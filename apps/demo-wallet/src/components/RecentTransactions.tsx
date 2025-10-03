@@ -1,8 +1,7 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { useStore } from '../stores';
-import { walletKit } from '../stores/slices/walletSlice';
+import { useStore, useWalletKit } from '../stores';
 import type { PreviewTransaction } from '../types/wallet';
 import { TraceRow } from './TraceRow';
 
@@ -14,6 +13,7 @@ export const RecentTransactions: React.FC = memo(() => {
             address: state.wallet.address,
         })),
     );
+    const walletKit = useWalletKit();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
@@ -68,7 +68,7 @@ export const RecentTransactions: React.FC = memo(() => {
 
     // Check for pending transactions
     const checkPendingTransactions = async () => {
-        if (!address) return;
+        if (!address || !walletKit) return;
 
         try {
             const apiClient = walletKit.getApiClient();

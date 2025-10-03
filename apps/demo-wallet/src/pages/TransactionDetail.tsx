@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Base64Normalize, type ToncenterTransaction } from '@ton/walletkit';
 
-import { walletKit } from '../stores/slices/walletSlice';
+import { useWalletKit } from '../stores';
 
 interface TransactionDetailData {
     hash: string;
@@ -30,6 +30,7 @@ interface TransactionDetailData {
 }
 
 export const TransactionDetail: React.FC = () => {
+    const walletKit = useWalletKit();
     const { hash } = useParams<{ hash: string }>();
     const navigate = useNavigate();
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
@@ -70,7 +71,13 @@ export const TransactionDetail: React.FC = () => {
                 setIsLoading(true);
                 setError(null);
 
-                while (walletKit.isReady() === false) {
+                if (!walletKit) {
+                    setError('WalletKit not initialized');
+                    setIsLoading(false);
+                    return;
+                }
+
+                while (!walletKit?.isReady()) {
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
