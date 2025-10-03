@@ -5,8 +5,8 @@ declare const hashBrand: unique symbol;
 export type Hash = `0x${string}` & { readonly [hashBrand]: never };
 
 export function asHash(data: string): Hash {
-    if (!/^0x[0-9a-fA-F]{64}$/.test(data)) {
-        throw new Error('Not a valid 32-byte hash');
+    if (!/^0x[0-9a-fA-F]{64}$/.test(data) && !/^0x[0-9a-fA-F]{128}$/.test(data)) {
+        throw new Error('Not a valid 32-byte or 64-byte hash');
     }
     return data as Hash;
 }
