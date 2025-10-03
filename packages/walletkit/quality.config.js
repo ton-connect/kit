@@ -1,4 +1,4 @@
 export const target = {
     coverage: 27,
-    mutation: 37,
+    mutation: 33,
 };

@@ -7,7 +7,7 @@ This document explains how to build and load the TON Wallet Demo as a Chrome bro
 To build the demo wallet as a browser extension:
 
 ```bash
-npm run build:extension
+pnpm run build:extension
 ```
 
 This will:

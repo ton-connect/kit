@@ -15,6 +15,15 @@ export default defineConfig({
         },
         sourcemap: true,
     },
+    // Only needed for native build
+    // resolve: {
+    //     alias: [
+    //         {
+    //             find: '@ton/crypto-primitives',
+    //             replacement: require.resolve('@ton/crypto-primitives/dist/native.js'),
+    //         },
+    //     ],
+    // },
     // define: {
     //     global: 'globalThis',
     // },

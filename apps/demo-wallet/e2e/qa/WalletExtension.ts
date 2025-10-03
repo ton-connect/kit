@@ -32,6 +32,4 @@ export abstract class WalletExtension {
     abstract accept(confirm?: boolean): Promise<void>;
 
     abstract signData(confirm?: boolean): Promise<void>;
-
-    abstract sendTransaction(confirm?: boolean, isPositiveCase?: boolean): Promise<void>;
 }

@@ -1,3 +1,5 @@
+import { SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
+
 import { DeviceInfo, WalletInfo } from '../types/jsBridge';
 
 /**
@@ -35,6 +37,51 @@ export function getDeviceInfoWithDefaults(options?: Partial<DeviceInfo>): Device
     };
 
     return deviceInfo;
+}
+
+export function createDeviceInfo(options?: Partial<DeviceInfo>): DeviceInfo {
+    const infoWithDefaults = getDeviceInfoWithDefaults(options);
+
+    const features = [];
+    // send transaction feature
+    if (
+        infoWithDefaults.features.some((feature) => typeof feature === 'object' && feature.name === 'SendTransaction')
+    ) {
+        const sendTransactionFeature = infoWithDefaults.features.find(
+            (feature) => typeof feature === 'object' && feature.name === 'SendTransaction',
+        ) as SendTransactionFeature;
+
+        if (sendTransactionFeature) {
+            features.push({
+                name: 'SendTransaction',
+                maxMessages: sendTransactionFeature.maxMessages ?? 1,
+            });
+            features.push('SendTransaction');
+        }
+    } else if (infoWithDefaults.features.some((feature) => feature === 'SendTransaction')) {
+        features.push('SendTransaction');
+    }
+
+    if (infoWithDefaults.features.some((feature) => typeof feature === 'object' && feature.name === 'SignData')) {
+        const signDataFeature = infoWithDefaults.features.find(
+            (feature) => typeof feature === 'object' && feature.name === 'SignData',
+        ) as SignDataFeature;
+
+        if (signDataFeature) {
+            features.push({
+                name: 'SignData',
+                types: signDataFeature.types,
+            });
+        }
+    }
+
+    return infoWithDefaults;
+}
+
+export function createWalletManifest(options?: Partial<WalletInfo>): WalletInfo {
+    const walletInfo: WalletInfo = getWalletInfoWithDefaults(options);
+
+    return walletInfo;
 }
 
 export function getWalletInfoWithDefaults(options?: Partial<WalletInfo>): WalletInfo {

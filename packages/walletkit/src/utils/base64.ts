@@ -1,4 +1,5 @@
 import { Hash, asHash } from '../types/primitive';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 /**
  * Normalize base64 string
@@ -11,16 +12,28 @@ export function Base64Normalize(data: string): string {
 }
 
 /**
+ * Make base64url string
+ * @param data Base64url or base64 string
+ * @returns Normalized base64url string
+ * example: a+/ => a-_=
+ */
+export function Base64NormalizeUrl(data: string): string {
+    const normalized = Base64Normalize(data);
+    const burl = normalized.replace(/-/g, '+').replace(/\//g, '_').replace(/=/g, '');
+    return burl;
+}
+
+/**
  * Parse base64 string
  * @param data Base64 string
  * @returns utf-8 string
  */
 export function ParseBase64(data: string): string {
-    if (typeof atob === 'undefined') {
-        throw new Error('atob is not available in this environment');
+    if (typeof atob === 'undefined' && typeof Buffer === 'undefined') {
+        throw new WalletKitError(ERROR_CODES.CONFIGURATION_ERROR, 'atob function is not available in this environment');
     }
     data = Base64Normalize(data);
-    return atob(data);
+    return typeof atob === 'function' ? atob(data) : Buffer.from(data, 'base64').toString('utf-8');
 }
 
 /**
@@ -33,7 +46,10 @@ export function Base64ToHash(data?: string | null): Hash | null {
     if (!binary) return null;
 
     if (binary.length !== 32) {
-        throw new Error('Not a valid 32-byte hash');
+        throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid hash length: expected 32 bytes', undefined, {
+            actualLength: binary.length,
+            expectedLength: 32,
+        });
     }
 
     const hex = [...binary].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -65,14 +81,14 @@ export function Base64ToUint8Array(data?: string | null): Uint8Array | null {
  * @returns Base64 string
  */
 export function Uint8ArrayToBase64(data: Uint8Array): string {
-    if (typeof btoa === 'undefined') {
+    if (typeof btoa === 'undefined' && typeof Buffer === 'undefined') {
         throw new Error('btoa is not available in this environment');
     }
     let binary = '';
     for (let i = 0; i < data.length; i++) {
         binary += String.fromCharCode(data[i]);
     }
-    return btoa(binary);
+    return typeof btoa === 'function' ? btoa(binary) : Buffer.from(data).toString('base64');
 }
 
 /**

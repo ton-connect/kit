@@ -1,14 +1,41 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
+import { CHAIN } from '@tonconnect/protocol';
 
-import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64 } from '../utils/base64';
+import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
-import { ApiClient } from '../types/toncenter/ApiClient';
+import {
+    ApiClient,
+    GetAddressJettonsRequest,
+    GetPendingTraceRequest,
+    GetPendingTransactionsRequest,
+    GetTraceRequest,
+    GetTransactionByHashRequest,
+    NftItemsByOwnerRequest,
+    NftItemsRequest,
+    TransactionsByAddressRequest,
+} from '../types/toncenter/ApiClient';
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
+import {
+    ToncenterResponseJettonWallets,
+    ToncenterTracesResponse,
+    ToncenterTransactionsResponse,
+} from '../types/toncenter/emulation';
+import { CallForSuccess } from '../utils/retry';
+import { globalLogger } from './Logger';
+import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
+import {
+    DnsCategory,
+    dnsResolve,
+    ROOT_DNS_RESOLVER_MAINNET,
+    ROOT_DNS_RESOLVER_TESTNET,
+} from '../types/toncenter/dnsResolve';
+
+const log = globalLogger.createChild('ApiClientToncenter');
 
 export class TonClientError extends Error {
     public readonly status: number;
@@ -23,34 +50,31 @@ export class TonClientError extends Error {
 }
 
 export interface ApiClientConfig {
+    dnsResolver?: string;
     endpoint?: string;
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
-}
-
-export interface LimitRequest {
-    limit?: number;
-    offset?: number;
-}
-
-export interface NftItemsRequest {
-    address?: Array<Address | string>;
-}
-
-export interface NftItemsByOwnerRequest extends LimitRequest {
-    ownerAddress?: Array<Address | string>;
-    sortByLastTransactionLt?: boolean;
+    network?: CHAIN;
 }
 
 export class ApiClientToncenter implements ApiClient {
+    private readonly dnsResolver: string;
     private readonly endpoint: string;
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
+    private readonly network?: CHAIN;
 
     constructor(config: ApiClientConfig = {}) {
-        this.endpoint = config.endpoint ?? 'https://toncenter.com';
+        this.network = config.network;
+
+        const dnsResolver = this.network === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
+        const defaultEndpoint =
+            this.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+
+        this.dnsResolver = config.dnsResolver ?? dnsResolver;
+        this.endpoint = config.endpoint ?? defaultEndpoint;
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
         this.fetchApi = config.fetchApi ?? fetch;
@@ -245,7 +269,150 @@ export class ApiClientToncenter implements ApiClient {
         }
         return new TonClientError(`HTTP ${response.status}: ${message}`, code, detail);
     }
+
+    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = request.address?.map(prepareAddress);
+        let offset = request.offset ?? 0;
+        let limit = request.limit ?? 10;
+        if (limit > 100) {
+            limit = 100;
+        } else if (limit < 0) {
+            limit = 0;
+        }
+        if (offset < 0) {
+            offset = 0;
+        }
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactions', {
+            account: accounts,
+            limit,
+            offset,
+        });
+        return response;
+    }
+
+    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
+        const msgHash = 'msgHash' in request ? padBase64(request.msgHash) : undefined;
+        const bodyHash = 'bodyHash' in request ? padBase64(request.bodyHash) : undefined;
+
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/transactionsByMessage', {
+            msg_hash: msgHash ? [msgHash] : undefined,
+            body_hash: bodyHash ? [bodyHash] : undefined,
+        });
+        return response;
+    }
+
+    async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse> {
+        const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined;
+        const traceId = 'traceId' in request ? request.traceId : undefined;
+        const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', {
+            account: accounts,
+            trace_id: traceId,
+        });
+        return response;
+    }
+
+    async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
+        const inTraceId = request.traceId ? request.traceId[0] : undefined;
+
+        const traceId = padBase64(Base64Normalize(inTraceId || '').replace(/=/g, ''));
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    tx_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching trace', { error });
+        }
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    trace_id: traceId,
+                }),
+            );
+
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching trace', { error });
+        }
+
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
+                    msg_hash: traceId,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching pending trace', { error });
+        }
+
+        throw new Error('Failed to fetch trace');
+    }
+
+    async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
+        try {
+            const response = await CallForSuccess(() =>
+                this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
+                    ext_msg_hash: request.externalMessageHash,
+                }),
+            );
+            if (response.traces.length > 0) {
+                return response;
+            }
+        } catch (error) {
+            log.error('Error fetching pending trace', { error });
+        }
+
+        throw new Error('Failed to fetch pending trace');
+    }
+
+    async resolveDnsWallet(domain: string): Promise<string | null> {
+        const result = await dnsResolve(this, domain, DnsCategory.Wallet, this.dnsResolver);
+        if (result && result.value) {
+            return result.value;
+        }
+        return null;
+    }
+
+    async backResolveDnsWallet(wallet: Address | string): Promise<string | null> {
+        if (wallet instanceof Address) {
+            wallet = wallet.toString();
+        }
+        const response = toDnsRecords(
+            await this.getJson<DNSRecordsResponseV3>('/api/v3/dns/records', {
+                wallet,
+                limit: 1,
+                offset: 0,
+            }),
+        );
+        if (response.records.length > 0) {
+            return response.records[0].domain;
+        }
+        return null;
+    }
+
+    async jettonsByAddress(request: GetAddressJettonsRequest): Promise<ToncenterResponseJettonWallets> {
+        return this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
+            owner_address: request.ownerAddress,
+            offset: request.offset,
+            limit: request.limit,
+        });
+    }
 }
+
+const padBase64 = (data: string): string => {
+    return data.padEnd(data.length + (4 - (data.length % 4)), '=');
+};
 
 function prepareAddress(address: Address | string): string {
     if (address instanceof Address) {

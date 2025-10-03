@@ -14,7 +14,6 @@ import {
 } from '../types';
 import type { StorageAdapter } from '../storage';
 import { createStorageAdapter } from '../storage';
-import { validateWallet } from '../validation';
 import { WalletManager } from './WalletManager';
 import { SessionManager } from './SessionManager';
 import { BridgeManager } from './BridgeManager';
@@ -32,6 +31,7 @@ import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { AnalyticsApi } from '../analytics/sender';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -57,17 +57,9 @@ export class Initializer {
     private tonClient!: ApiClient;
     private eventEmitter: EventEmitter;
     private analyticsApi?: AnalyticsApi;
-    // private network: CHAIN;
-    // private retryAttempts: number;
-    // private retryDelay: number;
-    // private timeoutMs: number;
 
     constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
         this.config = config;
-        // this.network = config.network ?? CHAIN.MAINNET;
-        // this.retryAttempts = config.retryAttempts ?? 3;
-        // this.retryDelay = config.retryDelay ?? 1000;
-        // this.timeoutMs = config.timeoutMs ?? 10000;
         this.eventEmitter = eventEmitter;
         this.analyticsApi = analyticsApi;
     }
@@ -127,12 +119,15 @@ export class Initializer {
             return options.apiClient;
         }
 
+        const defaultEndpoint =
+            options?.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
         // Use provided API URL or default to mainnet
-        const endpoint = options?.apiClient?.url || 'https://toncenter.com';
+        const endpoint = options?.apiClient?.url || defaultEndpoint;
 
         const clientConfig = {
             endpoint,
             apiKey: options?.apiClient?.key,
+            network: options?.network,
         };
 
         return new ApiClientToncenter(clientConfig);
@@ -177,13 +172,6 @@ export class Initializer {
         // Initialize managers
         const walletManager = new WalletManager(storageAdapter);
         await walletManager.initialize();
-        // 4. Initialize with provided wallets
-        if (options.wallets && options.wallets.length > 0) {
-            await this.initializeWallets(walletManager, {
-                ...options,
-                wallets: options.wallets,
-            });
-        }
 
         const sessionManager = new SessionManager(storageAdapter, walletManager);
         await sessionManager.initialize();
@@ -250,41 +238,6 @@ export class Initializer {
     }
 
     /**
-     * Initialize with provided wallets
-     */
-    private async initializeWallets(
-        walletManager: WalletManager,
-        options: TonWalletKitOptions & Required<Pick<TonWalletKitOptions, 'wallets'>>,
-    ): Promise<void> {
-        const results = await Promise.allSettled(
-            options.wallets.map(async (walletConfig) => {
-                try {
-                    const wallet = await createWalletFromConfig(walletConfig, this.tonClient!);
-
-                    const validation = validateWallet(wallet);
-                    if (!validation.isValid) {
-                        log.warn('Invalid wallet detected', {
-                            publicKey: wallet.publicKey,
-                            errors: validation.errors,
-                        });
-                        return;
-                    }
-
-                    await walletManager.addWallet(wallet);
-                } catch (error) {
-                    log.error('Failed to create wallet from config', { error });
-                    throw error;
-                }
-            }),
-        );
-
-        const successful = results.filter((r) => r.status === 'fulfilled').length;
-        const failed = results.filter((r) => r.status === 'rejected').length;
-
-        log.info('Wallet initialization complete', { successful, failed });
-    }
-
-    /**
      * Cleanup resources during shutdown
      */
     async cleanup(components: Partial<InitializationResult>): Promise<void> {
@@ -339,7 +292,12 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
                 tonClient,
             });
         } else {
-            throw new Error(`Unsupported wallet version for mnemonic: ${config.version}`);
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_CREATION_FAILED,
+                `Unsupported wallet version for mnemonic: ${config.version}`,
+                undefined,
+                { version: config.version, configType: 'mnemonic' },
+            );
         }
     }
     // else if (isWalletInitConfigLedger(config)) {
@@ -357,7 +315,12 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
     }
 
     if (!wallet) {
-        throw new Error('Unsupported wallet configuration format');
+        throw new WalletKitError(
+            ERROR_CODES.WALLET_CREATION_FAILED,
+            'Unsupported wallet configuration format',
+            undefined,
+            { config },
+        );
     }
 
     return wrapWalletInterface(wallet, tonClient);

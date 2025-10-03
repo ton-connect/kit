@@ -1,12 +1,16 @@
 // Main exports for TonWalletKit
 
+export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
+export { CHAIN } from '@tonconnect/protocol';
+
 export { TonWalletKit } from './core/TonWalletKit';
 
 // Re-export all types for convenience
 export * from './types';
 export * from './types/internal';
 
-export { CHAIN } from '@tonconnect/protocol';
+// Re-export error handling system
+export * from './errors';
 
 // Re-export managers for advanced customization
 export { WalletManager } from './core/WalletManager';
@@ -48,6 +52,7 @@ export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
 export {
     Base64Normalize,
+    Base64NormalizeUrl,
     ParseBase64,
     Base64ToHash,
     Base64ToUint8Array,
@@ -57,10 +62,13 @@ export {
     Uint8ArrayToBigInt,
 } from './utils/base64';
 
+export type { ToncenterTransaction } from './types/toncenter/emulation';
+
 export { PrepareSignDataResult } from './utils/signData/sign';
 
 export { Hash } from './types/primitive';
 export { TonProofParsedMessage } from './utils/tonProof';
+export type { ITonWalletKit } from './types/kit';
 
 // Re-export JS Bridge components
 export type {
@@ -82,9 +90,13 @@ export type {
     ConnectItem,
     ConnectItemReply,
     Feature,
+    InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
 
 // Re-export validation utilities
 export { validateWalletName, sanitizeWalletName, isValidWalletName } from './utils/walletNameValidation';
-export { MnemonicToKeyPair } from './utils/mnemonic';
+export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
+
+export { wrapWalletInterface } from './core/Initializer';
+export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';

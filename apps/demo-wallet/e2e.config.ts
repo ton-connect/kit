@@ -13,13 +13,7 @@ export default defineConfig({
     expect: {
         timeout: 10_000,
     },
-    reporter: [
-        ['allure-playwright', {
-            detail: true,
-            outputFolder: 'allure-results',
-            suiteTitle: false
-        }]
-    ],
+    reporter: process.env.CI ? [['list'], ['allure-playwright']] : [['list'], ['html'], ['allure-playwright']],
     use: {
         screenshot: 'on',
         trace: 'on',

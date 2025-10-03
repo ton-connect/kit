@@ -1,5 +1,7 @@
 // Main TonWalletKit interface definition
 
+import { CHAIN, SendTransactionRpcResponseError } from '@tonconnect/protocol';
+
 import type { WalletInterface, WalletInitConfig, WalletInitInterface } from './wallet';
 import type {
     EventConnectRequest,
@@ -11,6 +13,7 @@ import type {
 import type { JettonsAPI } from './jettons';
 import { ConnectTransactionParamContent, SendRequestResult } from './internal';
 import { Hash } from './primitive';
+import { ApiClient } from './toncenter/ApiClient';
 
 /**
  * Main TonWalletKit interface
@@ -18,7 +21,14 @@ import { Hash } from './primitive';
  * This interface defines the public API for the TonWalletKit.
  * All implementations must conform to this interface.
  */
-export interface TonWalletKit {
+export interface ITonWalletKit {
+    /** Get the API client */
+    getApiClient(): ApiClient;
+
+    getNetwork(): CHAIN;
+
+    isReady(): boolean;
+
     // === Wallet Management ===
 
     /** Get all registered wallets */
@@ -63,7 +73,10 @@ export interface TonWalletKit {
     approveTransactionRequest(event: EventTransactionRequest): Promise<SendRequestResult<{ signedBoc: string }>>;
 
     /** Reject a transaction request */
-    rejectTransactionRequest(event: EventTransactionRequest, reason?: string): Promise<SendRequestResult>;
+    rejectTransactionRequest(
+        event: EventTransactionRequest,
+        reason?: string | SendTransactionRpcResponseError['error'],
+    ): Promise<SendRequestResult>;
 
     /** Approve a sign data request */
     signDataRequest(event: EventSignDataRequest): Promise<SendRequestResult<{ signature: Hash }>>;
@@ -111,6 +124,12 @@ export interface SessionInfo {
     /** Connected dApp name */
     dAppName: string;
 
+    /** Connected dApp URL */
+    dAppUrl: string;
+
+    /** Connected dApp icon URL */
+    dAppIconUrl: string;
+
     /** Associated wallet */
     walletAddress: string;
 
@@ -119,24 +138,4 @@ export interface SessionInfo {
 
     /** Last activity time */
     lastActivity?: Date;
-}
-
-/**
- * Kit status information
- */
-export interface KitStatus {
-    /** Whether kit is initialized */
-    initialized: boolean;
-
-    /** Whether kit is ready for use */
-    ready: boolean;
-
-    /** Number of registered wallets */
-    walletCount: number;
-
-    /** Number of active sessions */
-    sessionCount: number;
-
-    /** Bridge connection status */
-    bridgeConnected: boolean;
 }

@@ -4,10 +4,10 @@ import { Address } from '@ton/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
+import { DAppInfo } from './DAppInfo';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-import { walletKit } from '../stores/slices/walletSlice';
-
+import { useWalletKit } from '../stores';
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
 
@@ -67,6 +67,14 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                 A dApp wants to send a transaction from your wallet
                             </p>
                         </div>
+
+                        {/* dApp Information */}
+                        <DAppInfo
+                            iconUrl={request.dAppInfo?.iconUrl}
+                            name={request.dAppInfo?.name}
+                            url={request.dAppInfo?.url}
+                            description={request.dAppInfo?.description}
+                        />
 
                         {/* Transaction Summary */}
                         <div className="border rounded-lg p-4 bg-gray-50">
@@ -129,18 +137,6 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                             )}
                                     </div>
                                 </div>
-                                {/* Wallet Information */}
-                                {request.preview.moneyFlow.ourAddress && (
-                                    <div className="border rounded-lg p-4 bg-blue-50">
-                                        <h4 className="font-medium text-gray-900 mb-3">Wallet Information</h4>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm text-gray-600">Your Wallet:</span>
-                                            <span className="text-sm font-mono">
-                                                {formatAddress(request.preview.moneyFlow.ourAddress)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
                             </>
                         )}
 
@@ -196,15 +192,16 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 };
 
 function useJettonInfo(jettonAddress: Address | string | null) {
+    const walletKit = useWalletKit();
     const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
     useEffect(() => {
         if (!jettonAddress) {
             setJettonInfo(null);
             return;
         }
-        const jettonInfo = walletKit.jettons.getJettonInfo(jettonAddress.toString());
-        setJettonInfo(jettonInfo);
-    }, [jettonAddress]);
+        const jettonInfo = walletKit?.jettons.getJettonInfo(jettonAddress.toString());
+        setJettonInfo(jettonInfo ?? null);
+    }, [jettonAddress, walletKit]);
     return jettonInfo;
 }
 

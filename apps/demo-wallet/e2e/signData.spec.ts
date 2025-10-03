@@ -1,24 +1,37 @@
-import { expect } from '@playwright/test';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+import * as allure from 'allure-js-commons';
+
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
-import { AllureApiClient, createAllureConfig, getTestCaseData } from './utils';
-import { allure } from 'allure-playwright';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const extensionPath = path.join(__dirname, '../dist-extension');
 
 const test = testWith(
     demoWalletFixture({
-        extensionPath: 'dist-extension',
+        extensionPath: extensionPath,
         mnemonic: process.env.WALLET_MNEMONIC!,
-        appUrl: 'http://localhost:5174/e2e',
-    }, 500),
+        appUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/',
+    }),
 );
 const { expect } = test;
 
 test('Sign Data', async ({ wallet, app, widget }) => {
+    await allure.feature('Sign Data');
+    await allure.story('Sign Text');
+    await allure.tags('kit', 'wallet');
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
     await wallet.connectBy(await widget.connectUrl());
-    await expect(widget.connectButtonText).toHaveText('UQC8…t2Iv');
-    await app.getByRole('button', { name: 'Sign Data' }).click();
+    await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
+    await app.getByRole('button', { name: 'Sign Text' }).click();
     await wallet.signData();
-    const signDataResultSelector = app.locator('.sign-data-result');
-    await expect(signDataResultSelector).toHaveText('✅ TEXT Verification Result');
+    const signDataResultSelector = app.locator(
+        '.sign-data-tester > div:nth-child(6) > div.find-transaction-demo__json-label',
+    );
+    await expect(signDataResultSelector).toHaveText('✅ Verification Result');
 });

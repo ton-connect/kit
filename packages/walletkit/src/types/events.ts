@@ -2,6 +2,7 @@
 
 import type {
     ConnectEventSuccess,
+    ConnectItem,
     ConnectRequest,
     SignDataPayload,
     WalletResponseTemplateError,
@@ -21,6 +22,13 @@ import { EmulationError } from './emulation/errors';
 
 // export type EventConnectRequest = ConnectRequest;
 
+export interface DAppInfo {
+    name?: string;
+    description?: string;
+    url?: string;
+    iconUrl?: string;
+}
+
 /**
  * Connect request event from dApp
  */
@@ -29,6 +37,9 @@ export interface EventConnectRequest extends BridgeEventBase {
 
     /** Preview information for UI display */
     preview: ConnectPreview;
+
+    /** dApp information */
+    dAppInfo: DAppInfo;
 }
 
 /**
@@ -40,6 +51,9 @@ export type EventTransactionRequest = RawBridgeEventTransaction & {
 
     /** Human-readable preview for UI display */
     preview: TransactionPreview;
+
+    /** dApp information */
+    dAppInfo: DAppInfo;
 
     error?: string;
 };
@@ -53,6 +67,9 @@ export interface EventSignDataRequest extends RawBridgeEventSignData {
 
     /** Human-readable preview for UI display */
     preview: SignDataPreview;
+
+    /** dApp information */
+    dAppInfo: DAppInfo;
 }
 
 /**
@@ -63,6 +80,9 @@ export interface EventDisconnect extends BridgeEventBase {
     reason?: string;
 
     walletAddress: string;
+
+    /** dApp information */
+    dAppInfo: DAppInfo;
 }
 
 export interface EventRequestError {
@@ -80,6 +100,9 @@ export interface EventConnectApproval extends EventApprovalBase {
 export interface ConnectApproval {
     dAppName: string;
     dAppUrl: string;
+    dAppIconUrl: string;
+    dAppDescription: string;
+
     from: string;
 
     response: ConnectEventSuccess;
@@ -123,7 +146,7 @@ export interface ConnectPreview {
         iconUrl?: string;
     };
 
-    requestedItems?: string[];
+    requestedItems?: ConnectItem[];
     permissions?: ConnectPermission[];
 }
 

@@ -1,10 +1,41 @@
-# TonWalletKit
+# @ton/walletkit
 
-A modular, production-ready wallet-side integration layer for TON Connect. Designed for mass adoption with clean architecture, separation of concerns, and maintainable code structure.
+A production-ready wallet-side integration layer for TON Connect. Clean architecture, TypeScript-first, designed for building TON wallets at scale.
 
-## 🏗️ Architecture
+## Overview
 
-The kit follows a modular architecture with clear separation of concerns:
+`@ton/walletkit` provides everything needed to integrate TON Connect into your wallet application:
+
+- 🔗 **TON Connect Protocol** - Handle connect/disconnect/transaction/sign-data requests
+- 💼 **Wallet Management** - Multi-wallet support with persistent storage
+- 🌉 **Bridge & JS Bridge** - HTTP bridge and browser extension support
+- 🎨 **Previews for actions** - Transaction emulation with money flow analysis
+- 🪙 **Asset Support** - TON, Jettons, NFTs with metadata
+
+For detailed SDK usage and API reference, see [DOCUMENTATION.md](./DOCUMENTATION.md).
+
+## Quick Install
+
+```bash
+pnpm add @ton/walletkit
+```
+
+## Development
+
+### Setup
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build packages
+pnpm build
+
+# Watch mode for development
+pnpm dev
+```
+
+### Project Structure
 
 ```
 src/
@@ -12,227 +43,161 @@ src/
 │   ├── TonWalletKit.ts     # Main orchestration class
 │   ├── BridgeManager.ts    # Bridge connection management
 │   ├── WalletManager.ts    # Wallet CRUD operations
-│   ├── SessionManager.ts   # Session tracking & lifecycle
-│   └── EventRouter.ts      # Event parsing & routing
+│   └── SessionManager.ts   # Session lifecycle tracking
 ├── handlers/                # Event-specific handlers
 │   ├── ConnectHandler.ts   # Connection requests
-│   ├── TransactionHandler.ts # Transaction requests  
-│   ├── SignDataHandler.ts  # Data signing requests
-│   └── DisconnectHandler.ts # Disconnect events
-├── utils/                   # Pure utility functions
-│   ├── storage.ts          # Storage adapters
-│   ├── validation.ts       # Validation helpers
-│   └── crypto.ts           # Crypto utilities
-├── types/                   # Type definitions
-│   ├── internal.ts         # Internal types
-│   └── events.ts           # Event types
-└── demo_types.ts           # Public API types
+│   ├── TransactionHandler.ts # Transaction requests
+│   └── SignDataHandler.ts  # Data signing requests
+├── contracts/               # Smart contract wrappers
+│   ├── JettonMaster.ts     # Jetton operations
+│   └── NftItem.ts          # NFT operations
+├── utils/                   # Utilities and helpers
+├── types/                   # TypeScript type definitions
+└── index.ts                # Public exports
 ```
 
-## 🚀 Quick Start
+### Testing
 
-```typescript
-import { TonWalletKit, WalletInterface } from '@ton/walletkit';
+```bash
+# Run all tests
+pnpm test
 
-// Define your wallet implementation
-const wallet: WalletInterface = {
-  publicKey: 'your-public-key',
-  version: 'v4r2',
-  sign: async (bytes) => yourSigningFunction(bytes),
-  getAddress: async () => yourAddressFunction(),
-  getBalance: async () => yourBalanceFunction(),
-};
+# Run tests with coverage
+pnpm test:coverage
 
-// Initialize the kit
-const kit = new TonWalletKit({
-  bridgeUrl: 'https://bridge.tonapi.io/bridge',
-  wallets: [wallet],
-});
+# Run mutation tests (quality check)
+pnpm test:mutation
 
-// Handle connection requests
-kit.onConnectRequest(async (event) => {
-  const approved = await showUserConfirmation(event);
-  if (approved) {
-    await kit.approveConnectRequest(event);
-  } else {
-    await kit.rejectConnectRequest(event);
-  }
-});
+# View coverage report
+# Open coverage/index.html in browser
 ```
 
-## 📦 Core Components
+### Code Quality
 
-### TonWalletKit (Main Class)
+```bash
+# Lint code
+pnpm lint
 
-The main orchestration class that coordinates all components:
+# Fix linting issues
+pnpm lint:fix
 
-- **Pure orchestration**: No business logic, only coordination
-- **Dependency injection**: All managers injected via constructor  
-- **Clean API**: Matches the original documented interface exactly
-
-### Managers (Core Business Logic)
-
-#### WalletManager
-- Wallet CRUD operations with validation
-- Persistent storage support
-- Address-based wallet lookup
-- Thread-safe operations
-
-#### SessionManager  
-- Session lifecycle management
-- Activity tracking
-- Wallet-session associations
-- Automatic cleanup of inactive sessions
-
-#### BridgeManager
-- TON Connect bridge communication
-- Connection management & reconnection
-- Session crypto handling
-- Response routing
-
-#### EventRouter
-- Event parsing & validation
-- Handler coordination
-- Type-safe event routing
-- Error handling & recovery
-
-### Handlers (Event Processing)
-
-Each handler is **pure** and **self-contained**:
-
-- **ConnectHandler**: Connection request parsing & preview generation
-- **TransactionHandler**: Transaction parsing, BOC handling, emulation
-- **SignDataHandler**: Data parsing, format detection, preview creation  
-- **DisconnectHandler**: Disconnection event processing
-
-### Utils (Pure Functions)
-
-#### Storage
-- **LocalStorageAdapter**: Web localStorage wrapper
-- **MemoryStorageAdapter**: In-memory storage for testing
-- **Pluggable interface**: Easy to add custom storage backends
-
-#### Validation
-- Wallet interface validation
-- TON address format validation
-- Transaction message validation
-- Input sanitization for XSS prevention
-
-## 🔧 Advanced Usage
-
-### Custom Storage
-
-```typescript
-import { LocalStorageAdapter } from '@ton/walletkit';
-
-const customStorage = new LocalStorageAdapter('myapp:');
-const kit = new TonWalletKit({
-  bridgeUrl: 'https://bridge.example.com',
-  storage: customStorage,
-});
+# Quality gate (coverage + checks)
+pnpm quality
 ```
 
-### Wallet Validation
+### Building
 
-```typescript
-import { validateWallet, logger } from '@ton/walletkit';
+```bash
+# Clean build artifacts
+pnpm build:clean
 
-const validation = validateWallet(wallet);
-if (!validation.isValid) {
-  logger.error('Invalid wallet', { errors: validation.errors });
-}
+# Build CommonJS
+pnpm build:cjs
+
+# Build ES Modules
+pnpm build:esm
+
+# Build both (recommended)
+pnpm build
 ```
 
-### Custom Event Handlers
+## Architecture Principles
 
-```typescript
-import { TransactionHandler } from '@ton/walletkit';
+### Modular Design
 
-class CustomTransactionHandler extends TransactionHandler {
-  async handle(event, context) {
-    // Custom transaction processing
-    const result = await super.handle(event, context);
-    // Add custom logic
-    return result;
-  }
-}
+Each component has a single responsibility and can be tested in isolation:
+
+- **TonWalletKit** - Orchestration layer that coordinates managers
+- **Managers** - Core business logic (wallets, sessions, bridge)
+- **Handlers** - Event processing (connect, transaction, sign-data)
+- **Utils** - Pure functions (validation, storage, crypto)
+
+### Type Safety
+
+- Full TypeScript coverage with strict mode
+- Runtime validation matches compile-time types
+
+### Testing Strategy
+
+- **Unit Tests** - Test individual components in isolation
+- **Integration Tests** - Test component interactions
+- **Mutation Tests** - Verify test suite quality with Stryker
+
+## Contributing
+
+### Adding Features
+
+1. **Identify the module** - Find the right place in the architecture
+2. **Write tests first** - TDD approach with unit tests
+3. **Implement the feature** - Follow existing patterns
+4. **Update types** - Ensure TypeScript types are up to date
+5. **Document** - Update DOCUMENTATION.md for public APIs
+
+### Pull Request Process
+
+1. Create a feature branch
+2. Write tests for your changes
+3. Ensure all tests pass: `pnpm test`
+4. Fix any linting issues: `pnpm lint:fix`
+5. Submit PR with clear description
+
+## Demo Wallet
+
+The `apps/demo-wallet` directory contains a reference implementation showing how to integrate walletkit:
+
+```bash
+cd apps/demo-wallet
+pnpm install
+pnpm dev
 ```
 
-## 🧪 Testing
+Key files to review:
+- `src/stores/slices/walletSlice.ts` - Kit initialization and event handlers
+- `src/components/modals/` - UI for connect/transaction approvals
+- `src/pages/SendTransaction.tsx` - Programmatic transaction creation
 
-The modular architecture makes testing straightforward:
+## Debugging
 
-```typescript
-import { WalletManager, MemoryStorageAdapter } from '@ton/walletkit';
+### Enable Debug Logging
 
-// Test wallet manager in isolation
-const storage = new MemoryStorageAdapter();
-const walletManager = new WalletManager(storage);
+Set the environment variable before running:
 
-await walletManager.addWallet(testWallet);
-expect(walletManager.getWalletCount()).toBe(1);
+```bash
+DEBUG=walletkit:* pnpm dev
 ```
 
-## 🎯 Benefits of Modular Architecture
+### Common Issues
 
-### For Development
-- **Single Responsibility**: Each module has one clear purpose
-- **Easy Testing**: Pure functions and isolated components
-- **Maintainable**: Changes isolated to specific modules
-- **Type Safety**: Full TypeScript coverage with strict types
+**Bridge Connection Fails**
+- Check `bridgeUrl` is correct
+- Verify network connectivity
+- Inspect browser console for errors
 
-### For Production
-- **Scalable**: Easy to add new features without breaking existing code
-- **Debuggable**: Clear error boundaries and logging
-- **Performant**: Only load what you need
-- **Reliable**: Validation and error handling at every layer
+**Transaction Preview Empty**
+- Ensure wallet has TON balance for fees
+- Check transaction BOC is valid
+- Look for emulation errors in preview
 
-### For Mass Adoption
-- **Extensible**: Plugin architecture for custom handlers
-- **Configurable**: Multiple storage and bridge options
-- **Backward Compatible**: Same API as original design
-- **Well-Documented**: Clear interfaces and examples
+**Wallet Not Found**
+- Verify wallet address format
+- Check wallet was added via `addWallet()`
+- Confirm storage adapter is working
 
-## 🔒 Security
+## Release Process
 
-- **Input Validation**: All user inputs validated and sanitized
-- **XSS Prevention**: String sanitization for UI display
-- **Type Safety**: Runtime validation matches TypeScript types
-- **Error Boundaries**: Graceful handling of malformed data
+1. Update version in `package.json`
+2. Run `pnpm build` to create fresh build
+3. Run `pnpm test` to verify all tests pass
+4. Run `pnpm quality` to check coverage
+5. Commit changes and tag release
+6. Publish to npm: `npm publish`
 
-## 📈 Performance
+## Resources
 
-- **Lazy Loading**: Managers initialized only when needed
-- **Memory Efficient**: Proper cleanup and garbage collection
-- **Async Operations**: Non-blocking I/O throughout
-- **Caching**: Intelligent caching of frequently accessed data
+- [DOCUMENTATION.md](./DOCUMENTATION.md) - Complete SDK usage guide
+- [Demo Wallet](../apps/demo-wallet/) - Reference implementation
+- [TON Connect Protocol](https://github.com/ton-connect/docs) - Official protocol docs
 
-## 🔄 Migration from Monolithic Version
-
-The new modular version is a **drop-in replacement**:
-
-```typescript
-// Old (monolithic)
-import { TonWalletKit } from '@ton/walletkit';
-
-// New (modular) - same API!
-import { TonWalletKit } from '@ton/walletkit';
-
-// Everything works exactly the same
-const kit = new TonWalletKit(options);
-```
-
-## 🤝 Contributing
-
-The modular architecture makes contributing easier:
-
-1. **Find the right module** for your change
-2. **Write tests** for the specific component  
-3. **Follow the pure function pattern** where possible
-4. **Update only the relevant interfaces**
-
-## 📄 License
+## License
 
 ISC License - see LICENSE file for details.
-
-

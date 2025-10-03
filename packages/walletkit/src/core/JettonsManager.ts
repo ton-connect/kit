@@ -3,66 +3,13 @@
 import { Address } from '@ton/core';
 import { LRUCache } from 'lru-cache';
 
-import type { EmulationTokenInfoMasters, ToncenterResponseJettonWallets } from '../types/toncenter/emulation';
+import type { EmulationTokenInfoMasters } from '../types/toncenter/emulation';
 import { globalLogger } from './Logger';
 import { EventEmitter } from './EventEmitter';
-import { CallForSuccess } from '../utils/retry';
-import {
-    JettonInfo,
-    AddressJetton,
-    JettonBalance,
-    JettonTransfer,
-    JettonTransaction,
-    JettonPrice,
-    JettonError,
-    JettonErrorCode,
-    JettonsAPI,
-} from '../types/jettons';
+import { JettonInfo, AddressJetton, JettonError, JettonErrorCode, JettonsAPI } from '../types/jettons';
 import { ApiClient } from '../types/toncenter/ApiClient';
 
 const log = globalLogger.createChild('JettonsManager');
-
-/**
- * TonCenter API v3 response types
- */
-interface TonCenterJettonInfo {
-    jetton_content: {
-        name: string;
-        symbol: string;
-        description: string;
-        image?: string;
-        decimals?: string;
-        uri?: string;
-    };
-    total_supply: string;
-    mintable: boolean;
-    last_transaction_lt: string;
-    code_hash: string;
-    data_hash: string;
-}
-
-interface TonCenterJettonBalance {
-    balance: string;
-    wallet_address: string;
-    jetton: {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-    };
-}
-
-interface TonCenterJettonTransfer {
-    transaction_hash: string;
-    transaction_lt: string;
-    transaction_now: number;
-    source_wallet: string;
-    destination_wallet: string;
-    jetton_master: string;
-    amount: string;
-    comment?: string;
-    successful: boolean;
-}
 
 /**
  * Legacy JettonInfo interface for backward compatibility
@@ -83,7 +30,7 @@ export interface LegacyJettonInfo {
  */
 export class JettonsManager implements JettonsAPI {
     private cache: LRUCache<string, JettonInfo>;
-    private readonly TONCENTER_V3_BASE = 'https://toncenter.com/api/v3';
+    // private readonly TONCENTER_V3_BASE = 'https://toncenter.com/api/v3';
     private readonly DEFAULT_TIMEOUT = 10000; // 10 seconds
 
     constructor(
@@ -153,12 +100,21 @@ export class JettonsManager implements JettonsAPI {
      */
     async getAddressJettons(userAddress: string, offset: number = 0, limit: number = 50): Promise<AddressJetton[]> {
         try {
+            if (!this.apiClient) {
+                throw new JettonError('Api client not initialized', JettonErrorCode.NETWORK_ERROR);
+            }
+
             const normalizedAddress = this.normalizeAddress(userAddress);
             log.debug('Getting address jettons', { userAddress: normalizedAddress, offset, limit });
 
-            const response = (await this.makeApiRequest(
-                `/jetton/wallets?offset=${offset}&limit=${limit}&owner_address=${normalizedAddress}`,
-            )) as ToncenterResponseJettonWallets;
+            const response = await this.apiClient.jettonsByAddress({
+                ownerAddress: normalizedAddress,
+                offset,
+                limit,
+            });
+            // const response = (await this.makeApiRequest(
+            //     `/jetton/wallets?offset=${offset}&limit=${limit}&owner_address=${normalizedAddress}`,
+            // )) as ToncenterResponseJettonWallets;
 
             if (!response.jetton_wallets) {
                 return [];
@@ -329,252 +285,6 @@ export class JettonsManager implements JettonsAPI {
     }
 
     /**
-     * Get user's jetton wallet address for a specific jetton
-     */
-    async getJettonWalletAddress(jettonMasterAddress: string, ownerAddress: string): Promise<string> {
-        try {
-            const normalizedJettonAddress = this.normalizeAddress(jettonMasterAddress);
-            const normalizedOwnerAddress = this.normalizeAddress(ownerAddress);
-
-            const response = (await this.makeApiRequest(
-                `/jettons/${normalizedJettonAddress}/wallets/${normalizedOwnerAddress}`,
-            )) as { address?: string };
-
-            if (!response.address) {
-                throw new JettonError('Jetton wallet address not found', JettonErrorCode.JETTON_NOT_FOUND);
-            }
-
-            return response.address;
-        } catch (error) {
-            if (error instanceof JettonError) {
-                throw error;
-            }
-            log.error('Failed to get jetton wallet address', { error, jettonMasterAddress, ownerAddress });
-            throw new JettonError(
-                `Failed to get jetton wallet address: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                JettonErrorCode.NETWORK_ERROR,
-                error,
-            );
-        }
-    }
-
-    /**
-     * Get jetton balance for a specific jetton wallet
-     */
-    async getJettonBalance(jettonWalletAddress: string): Promise<JettonBalance> {
-        try {
-            const normalizedAddress = this.normalizeAddress(jettonWalletAddress);
-
-            const response = (await this.makeApiRequest(
-                `/jettonWallets/${normalizedAddress}`,
-            )) as TonCenterJettonBalance;
-
-            const balanceInfo = response;
-
-            return {
-                balance: balanceInfo.balance,
-                jettonAddress: balanceInfo.jetton.address,
-                jettonWalletAddress: normalizedAddress,
-                lastUpdated: Date.now(),
-            };
-        } catch (error) {
-            log.error('Failed to get jetton balance', { error, jettonWalletAddress });
-            throw new JettonError(
-                `Failed to get jetton balance: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                JettonErrorCode.NETWORK_ERROR,
-                error,
-            );
-        }
-    }
-
-    /**
-     * Get jetton transfer history for an address
-     */
-    async getJettonTransfers(
-        ownerAddress: string,
-        jettonAddress?: string,
-        limit: number = 50,
-    ): Promise<JettonTransfer[]> {
-        try {
-            const normalizedOwnerAddress = this.normalizeAddress(ownerAddress);
-            let endpoint = `/accounts/${normalizedOwnerAddress}/jettons/transfers?limit=${limit}`;
-
-            if (jettonAddress) {
-                const normalizedJettonAddress = this.normalizeAddress(jettonAddress);
-                endpoint += `&jetton_master=${normalizedJettonAddress}`;
-            }
-
-            const response = (await this.makeApiRequest(endpoint)) as { transfers?: TonCenterJettonTransfer[] };
-
-            if (!response.transfers) {
-                return [];
-            }
-
-            const transfers: JettonTransfer[] = [];
-
-            for (const transfer of response.transfers) {
-                transfers.push({
-                    hash: transfer.transaction_hash,
-                    timestamp: transfer.transaction_now * 1000, // Convert to milliseconds
-                    from: transfer.source_wallet,
-                    to: transfer.destination_wallet,
-                    jettonAddress: transfer.jetton_master,
-                    amount: transfer.amount,
-                    comment: transfer.comment,
-                    successful: transfer.successful,
-                });
-            }
-
-            return transfers;
-        } catch (error) {
-            log.error('Failed to get jetton transfers', { error, ownerAddress, jettonAddress });
-            throw new JettonError(
-                `Failed to get jetton transfers: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                JettonErrorCode.NETWORK_ERROR,
-                error,
-            );
-        }
-    }
-
-    /**
-     * Get detailed transaction info for jetton operation
-     */
-    async getJettonTransaction(transactionHash: string): Promise<JettonTransaction | null> {
-        try {
-            const response = (await this.makeApiRequest(`/transactions/${transactionHash}`)) as {
-                now?: number;
-                op_code?: string;
-                success?: boolean;
-                account?: string;
-                jetton_master?: string;
-                amount?: string;
-                compute_fee?: string;
-                storage_fee?: string;
-                total_fees?: string;
-                exit_code?: number;
-            } | null;
-
-            if (!response) {
-                return null;
-            }
-
-            // This is a simplified implementation - TonCenter v3 transaction format may vary
-            return {
-                hash: transactionHash,
-                timestamp: (response.now || 0) * 1000,
-                type: response.op_code === '0xf8a7ea5' ? ('transfer' as const) : ('mint' as const),
-                successful: response.success || false,
-                participants: response.account ? [response.account] : [],
-                jettonAddress: response.jetton_master || '',
-                amount: response.amount,
-                fees: {
-                    gasFee: response.compute_fee || '0',
-                    storageFee: response.storage_fee || '0',
-                    total: response.total_fees || '0',
-                },
-                details: {
-                    opcode: response.op_code,
-                    exitCode: response.exit_code,
-                    rawData: response,
-                },
-            };
-        } catch (error) {
-            log.error('Failed to get jetton transaction', { error, transactionHash });
-            return null;
-        }
-    }
-
-    /**
-     * Search jettons by name or symbol
-     */
-    async searchJettons(query: string, limit: number = 20): Promise<JettonInfo[]> {
-        try {
-            // Note: This is a placeholder implementation as TonCenter v3 may not have search endpoint
-            // In a real implementation, you might need a different search service or index
-            log.debug('Searching jettons (placeholder)', { query, limit });
-
-            // For now, return cached jettons that match the query
-            const results: JettonInfo[] = [];
-
-            for (const [_, jettonInfo] of this.cache.entries()) {
-                if (
-                    jettonInfo.name.toLowerCase().includes(query.toLowerCase()) ||
-                    jettonInfo.symbol.toLowerCase().includes(query.toLowerCase())
-                ) {
-                    results.push(jettonInfo);
-                    if (results.length >= limit) break;
-                }
-            }
-
-            return results;
-        } catch (error) {
-            log.error('Failed to search jettons', { error, query });
-            throw new JettonError(
-                `Failed to search jettons: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                JettonErrorCode.NETWORK_ERROR,
-                error,
-            );
-        }
-    }
-
-    /**
-     * Get popular/trending jettons
-     */
-    async getPopularJettons(limit: number = 20): Promise<JettonInfo[]> {
-        try {
-            // Note: This is a placeholder implementation
-            // In a real implementation, you might call a specific popular jettons endpoint
-            log.debug('Getting popular jettons (placeholder)', { limit });
-
-            const popularAddresses = [
-                'EQD0vdSA_NedR9uvbgN9EikRX-suesDxGeFg69XQMavfLqAk', // Example USDT
-                'EQBX6K9aXVl3nXINCyPPL86C4ONVmQ8vK360u6dykFKXpHCX', // Example USDC
-                // Add more popular jetton addresses
-            ];
-
-            const results: JettonInfo[] = [];
-
-            for (const address of popularAddresses.slice(0, limit)) {
-                try {
-                    const jettonInfo = await this.getJettonInfo(address);
-                    if (jettonInfo) {
-                        results.push(jettonInfo);
-                    }
-                } catch (error) {
-                    log.warn('Failed to get popular jetton info', { address, error });
-                }
-            }
-
-            return results;
-        } catch (error) {
-            log.error('Failed to get popular jettons', { error });
-            throw new JettonError(
-                `Failed to get popular jettons: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                JettonErrorCode.NETWORK_ERROR,
-                error,
-            );
-        }
-    }
-
-    /**
-     * Get jetton price data
-     */
-    async getJettonPrice(jettonAddress: string): Promise<JettonPrice | null> {
-        try {
-            const normalizedAddress = this.normalizeAddress(jettonAddress);
-
-            // Note: TonCenter v3 may not have price endpoints
-            // This is a placeholder that returns null
-            log.debug('Getting jetton price (placeholder)', { jettonAddress: normalizedAddress });
-
-            return null;
-        } catch (error) {
-            log.error('Failed to get jetton price', { error, jettonAddress });
-            return null;
-        }
-    }
-
-    /**
      * Validate jetton address format
      */
     validateJettonAddress(address: string): boolean {
@@ -588,109 +298,6 @@ export class JettonsManager implements JettonsAPI {
             return true;
         } catch {
             return false;
-        }
-    }
-
-    /**
-     * Check if address is a valid jetton master
-     */
-    async isJettonMaster(address: string): Promise<boolean> {
-        try {
-            const normalizedAddress = this.normalizeAddress(address);
-
-            const response = await this.makeApiRequest(`/jettons/${normalizedAddress}`);
-
-            // If we get jetton info back, it's a valid jetton master
-            return !!(response as { jetton_content?: unknown }).jetton_content;
-        } catch (error) {
-            log.debug('Address is not a jetton master', { address, error });
-            return false;
-        }
-    }
-
-    /**
-     * Make API request to TonCenter v3
-     */
-    private async makeApiRequest(endpoint: string): Promise<unknown> {
-        const url = `${this.TONCENTER_V3_BASE}${endpoint}`;
-
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
-
-        // if (this.apiKey) {
-        //     headers['X-API-Key'] = this.apiKey;
-        // }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.DEFAULT_TIMEOUT);
-
-        try {
-            const response = await CallForSuccess(
-                async () => {
-                    const res = await fetch(url, {
-                        method: 'GET',
-                        headers,
-                        signal: controller.signal,
-                    });
-
-                    if (!res.ok) {
-                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                    }
-
-                    return res.json();
-                },
-                20,
-                500,
-            );
-
-            return response;
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    }
-
-    /**
-     * Enhanced getJettonInfo that tries API if not in cache
-     */
-    async getJettonInfoAsync(jettonAddress: string): Promise<JettonInfo | null> {
-        try {
-            const normalizedAddress = this.normalizeAddress(jettonAddress);
-
-            // First check cache
-            const cached = this.cache.get(normalizedAddress);
-            if (cached) {
-                return cached;
-            }
-
-            // Try to fetch from API
-            const response = (await this.makeApiRequest(`/jettons/${normalizedAddress}`)) as TonCenterJettonInfo;
-
-            if (response.jetton_content) {
-                const jettonData = response;
-                const jettonInfo: JettonInfo = {
-                    address: normalizedAddress,
-                    name: jettonData.jetton_content.name || '',
-                    symbol: jettonData.jetton_content.symbol || '',
-                    description: jettonData.jetton_content.description || '',
-                    decimals: parseInt(jettonData.jetton_content.decimals || '9', 10),
-                    totalSupply: jettonData.total_supply,
-                    image: jettonData.jetton_content.image,
-                    uri: jettonData.jetton_content.uri,
-                    verification: {
-                        verified: false,
-                        source: 'toncenter' as const,
-                    },
-                };
-
-                this.cache.set(normalizedAddress, jettonInfo);
-                return jettonInfo;
-            }
-
-            return null;
-        } catch (error) {
-            log.debug('Failed to get jetton info from API', { error, jettonAddress });
-            return null;
         }
     }
 

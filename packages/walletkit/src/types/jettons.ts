@@ -140,34 +140,7 @@ export interface JettonsAPI {
     /** Get all jettons for a user address */
     getAddressJettons(userAddress: string, offset?: number, limit?: number): Promise<AddressJetton[]>;
 
-    /** Get user's jetton wallet address for a specific jetton */
-    getJettonWalletAddress(jettonMasterAddress: string, ownerAddress: string): Promise<string>;
-
-    /** Get jetton balance for a specific jetton wallet */
-    getJettonBalance(jettonWalletAddress: string): Promise<JettonBalance>;
-
-    // === History & Tracking ===
-    /** Get jetton transfer history for an address */
-    getJettonTransfers(ownerAddress: string, jettonAddress?: string, limit?: number): Promise<JettonTransfer[]>;
-
-    /** Get detailed transaction info for jetton operation */
-    getJettonTransaction(transactionHash: string): Promise<JettonTransaction | null>;
-
-    // === Discovery & Search ===
-    /** Search jettons by name/symbol */
-    searchJettons(query: string, limit?: number): Promise<JettonInfo[]>;
-
-    /** Get popular/trending jettons */
-    getPopularJettons(limit?: number): Promise<JettonInfo[]>;
-
-    // === Price & Market Data (if available) ===
-    /** Get jetton price data */
-    getJettonPrice(jettonAddress: string): Promise<JettonPrice | null>;
-
     // === Validation ===
     /** Validate jetton address format */
     validateJettonAddress(address: string): boolean;
-
-    /** Check if address is a valid jetton master */
-    isJettonMaster(address: string): Promise<boolean>;
 }

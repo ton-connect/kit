@@ -1,5 +1,6 @@
 import { Cell, loadMessage } from '@ton/core';
 import { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 import { mockFn, clearAllMocks, mocked } from '../../../mock.config';
 import { createWalletV5R1, WalletV5R1Adapter } from './WalletV5R1Adapter';

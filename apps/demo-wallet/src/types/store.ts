@@ -8,11 +8,11 @@ import type {
     AddressJetton,
     JettonTransfer,
     JettonInfo,
-    JettonBalance,
     NftItem,
+    ITonWalletKit,
 } from '@ton/walletkit';
 
-import type { AuthState, WalletState, Transaction } from './wallet';
+import type { AuthState, WalletState, PreviewTransaction } from './wallet';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
@@ -24,6 +24,7 @@ export interface AuthSlice extends AuthState {
     setPersistPassword: (persist: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
+    setNetwork: (network: 'mainnet' | 'testnet') => Promise<void>;
 }
 
 // Jettons slice interface
@@ -53,10 +54,6 @@ export interface JettonsSlice {
     // Actions
     loadUserJettons: (userAddress?: string) => Promise<void>;
     refreshJettons: (userAddress?: string) => Promise<void>;
-    loadJettonTransfers: (userAddress?: string, jettonAddress?: string) => Promise<void>;
-    loadPopularJettons: () => Promise<void>;
-    searchJettons: (query: string) => Promise<JettonInfo[]>;
-    getJettonBalance: (jettonWalletAddress: string) => Promise<JettonBalance>;
     validateJettonAddress: (address: string) => boolean;
     clearJettons: () => void;
 
@@ -99,6 +96,9 @@ export interface NftsSlice {
 
 // Wallet slice interface
 export interface WalletSlice extends WalletState {
+    // WalletKit initialization
+    initializeWalletKit: (network?: 'mainnet' | 'testnet') => Promise<ITonWalletKit | undefined>;
+
     // Actions
     createWallet: (mnemonic: string[]) => Promise<void>;
     importWallet: (mnemonic: string[]) => Promise<void>;
@@ -106,7 +106,8 @@ export interface WalletSlice extends WalletState {
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
-    addTransaction: (transaction: Transaction) => void;
+    addTransaction: (transaction: PreviewTransaction) => void;
+    loadTransactions: (limit?: number) => Promise<void>;
 
     // TON Connect actions
     handleTonConnectUrl: (url: string) => Promise<void>;

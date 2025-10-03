@@ -18,6 +18,7 @@ import { CHAIN, toHexString } from '@tonconnect/protocol';
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
+import { WalletKitError, ERROR_CODES } from '../../errors';
 import { createWalletSigner, FakeSignature } from '../../utils/sign';
 import { formatWalletAddress } from '../../utils/address';
 import { MnemonicToKeyPair } from '../../utils/mnemonic';
@@ -142,7 +143,11 @@ export class WalletV5R1Adapter implements WalletInitInterface {
                         msg.body = Cell.fromBase64(m.payload);
                     } catch (error) {
                         log.warn('Failed to load payload', { error });
-                        throw new Error('Couldnt parse payload');
+                        throw WalletKitError.fromError(
+                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                            'Failed to parse transaction payload',
+                            error,
+                        );
                     }
                 }
 
@@ -151,7 +156,11 @@ export class WalletV5R1Adapter implements WalletInitInterface {
                         msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
                     } catch (error) {
                         log.warn('Failed to load state init', { error });
-                        throw new Error('Couldnt parse stateInit');
+                        throw WalletKitError.fromError(
+                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                            'Failed to parse state init',
+                            error,
+                        );
                     }
                 }
                 return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
@@ -167,7 +176,12 @@ export class WalletV5R1Adapter implements WalletInitInterface {
             const now = Math.floor(Date.now() / 1000);
             const maxValidUntil = now + 600;
             if (input.valid_until < now) {
-                throw new Error('Valid until is in the past');
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Transaction valid_until timestamp is in the past',
+                    undefined,
+                    { validUntil: input.valid_until, currentTime: now },
+                );
             } else if (input.valid_until > maxValidUntil) {
                 createBodyOptions.validUntil = maxValidUntil;
             } else {
@@ -327,11 +341,20 @@ export async function createWalletV5R1(
         publicKey = keyPair.publicKey;
         signer = createWalletSigner(keyPair.secretKey);
     } else if (isWalletInitConfigPrivateKey(config)) {
-        const keyPair = keyPairFromSeed(Buffer.from(config.privateKey, 'hex'));
-        publicKey = keyPair.publicKey;
-        signer = createWalletSigner(keyPair.secretKey);
+        if (typeof config.privateKey === 'string') {
+            const keyPair = keyPairFromSeed(Buffer.from(config.privateKey, 'hex'));
+            publicKey = keyPair.publicKey;
+            signer = createWalletSigner(keyPair.secretKey);
+        } else {
+            const keyPair = keyPairFromSeed(config.privateKey as Buffer);
+            publicKey = keyPair.publicKey;
+            signer = createWalletSigner(config.privateKey);
+        }
     } else if (isWalletInitConfigSigner(config)) {
-        publicKey = config.publicKey;
+        publicKey =
+            typeof config.publicKey === 'string'
+                ? Uint8Array.from(Buffer.from(config.publicKey.replace('0x', ''), 'hex'))
+                : config.publicKey;
         signer = config.sign;
     } else {
         throw new Error('Unsupported wallet configuration format');

@@ -28,6 +28,7 @@ const endpoint = 'https://toncenter.com';
 const tonClient = new ApiClientToncenter({
     endpoint,
     apiKey,
+    network: CHAIN.MAINNET,
 });
 
 function nextWalletId(parent?: Address | string): number {

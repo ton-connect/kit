@@ -2,7 +2,6 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import type { WalletInitConfig } from './wallet';
 import type { StorageAdapter } from '../storage';
 import { EventProcessorConfig } from '../core/EventProcessor';
 import { DeviceInfo, WalletInfo } from './jsBridge';
@@ -15,8 +14,6 @@ import { ApiClient } from './toncenter/ApiClient';
 export interface TonWalletKitOptions {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
-
-    wallets?: Array<WalletInitConfig>;
 
     /** Network */
     network?: CHAIN;

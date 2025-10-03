@@ -3,10 +3,14 @@ import type {
     EventTransactionRequest,
     EventSignDataRequest,
     WalletInterface,
+    ITonWalletKit,
 } from '@ton/walletkit';
 
 export interface WalletState {
     wallet: {
+        // WalletKit instance
+        walletKit: ITonWalletKit | null;
+
         isAuthenticated: boolean;
         hasWallet: boolean;
         address?: string;
@@ -15,7 +19,7 @@ export interface WalletState {
         publicKey?: string;
 
         // Transaction history
-        transactions: Transaction[];
+        transactions: PreviewTransaction[];
 
         // Walletkit instance and current wallet
         currentWallet?: WalletInterface;
@@ -52,16 +56,20 @@ export interface AuthState {
         persistPassword?: boolean; // Setting to persist password between reloads
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger'; // Setting for wallet interface type
         ledgerAccountNumber?: number; // Account number for Ledger derivation path
+        network?: 'mainnet' | 'testnet'; // Network selection (mainnet or testnet)
     };
 }
 
-export interface Transaction {
+export interface PreviewTransaction {
     id: string;
+    messageHash: string;
     type: 'send' | 'receive';
     amount: string;
     address: string;
     timestamp: number;
     status: 'pending' | 'confirmed' | 'failed';
+    traceId?: string;
+    externalMessageHash?: string;
 }
 
 export interface DisconnectNotification {

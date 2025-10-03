@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { immer } from 'zustand/middleware/immer';
 
 import { createAuthSlice } from './slices/authSlice';
-import { createWalletSlice, setupWalletKitListeners } from './slices/walletSlice';
+import { createWalletSlice } from './slices/walletSlice';
 import { createJettonsSlice } from './slices/jettonsSlice';
 import { createNftsSlice } from './slices/nftsSlice';
 import { createComponentLogger } from '../utils/logger';
@@ -80,6 +80,7 @@ export const useStore = create<AppState>()(
                             persistPassword: state.auth.persistPassword,
                             useWalletInterfaceType: state.auth.useWalletInterfaceType,
                             ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                            network: state.auth.network,
                             // Conditionally persist password based on user setting
                             ...(state.auth.persistPassword && {
                                 currentPassword: state.auth.currentPassword,
@@ -88,9 +89,16 @@ export const useStore = create<AppState>()(
                         },
                         wallet: {
                             hasWallet: state.wallet.hasWallet,
-                            transactions: state.wallet.transactions,
                             encryptedMnemonic: state.wallet.encryptedMnemonic,
                             ledgerConfig: state.wallet.ledgerConfig,
+
+                            isSignDataModalOpen: state.wallet.isSignDataModalOpen,
+                            isTransactionModalOpen: state.wallet.isTransactionModalOpen,
+                            isConnectModalOpen: state.wallet.isConnectModalOpen,
+
+                            pendingSignDataRequest: state.wallet.pendingSignDataRequest,
+                            pendingTransactionRequest: state.wallet.pendingTransactionRequest,
+                            pendingConnectRequest: state.wallet.pendingConnectRequest,
                         },
                         // jettons: {
                         //     userJettons: state.jettons.userJettons,
@@ -112,10 +120,18 @@ export const useStore = create<AppState>()(
                             log.error('Store rehydration error:', error);
                         } else if (state) {
                             log.info('Store rehydrated successfully');
+
                             // Ensure disconnectedSessions is always initialized
                             if (!state.wallet.disconnectedSessions) {
                                 state.wallet.disconnectedSessions = [];
                             }
+
+                            // Initialize network if not set (for backward compatibility)
+                            if (!state.auth.network) {
+                                state.auth.network = 'testnet';
+                                log.info('Initialized network to default: testnet');
+                            }
+
                             // Auto-unlock if password is persisted and available
                             if (
                                 state.auth.persistPassword &&
@@ -131,6 +147,10 @@ export const useStore = create<AppState>()(
                                 log.info('Auto-creating wallet with persisted mnemonic');
                                 state.wallet.hasWallet = true;
                             }
+
+                            if (!state.wallet.transactions) {
+                                state.wallet.transactions = [];
+                            }
                         }
                     },
                 },
@@ -139,17 +159,19 @@ export const useStore = create<AppState>()(
     ),
 );
 
-// Initialize wallet kit listeners on first load
+// Initialize wallet kit on first load
 if (typeof window !== 'undefined') {
-    // Set up wallet kit listeners with the store's request handlers
     const store = useStore.getState();
-    setupWalletKitListeners(
-        store.showConnectRequest,
-        store.showTransactionRequest,
-        store.showSignDataRequest,
-        store.handleDisconnectEvent,
-    );
+
+    // Initialize wallet kit with persisted network preference
+    const persistedNetwork = store.auth.network || 'testnet';
+    log.info(`Initializing WalletKit with persisted network: ${persistedNetwork}`);
+
+    store.initializeWalletKit(persistedNetwork);
 }
+
+// Hook for accessing WalletKit instance
+export const useWalletKit = () => useStore((state) => state.wallet.walletKit);
 
 // Helper hooks for accessing specific parts of the store
 export const useAuth = () =>
@@ -160,6 +182,7 @@ export const useAuth = () =>
             persistPassword: state.auth.persistPassword,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
             ledgerAccountNumber: state.auth.ledgerAccountNumber,
+            network: state.auth.network,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
@@ -167,6 +190,7 @@ export const useAuth = () =>
             setPersistPassword: state.setPersistPassword,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
             setLedgerAccountNumber: state.setLedgerAccountNumber,
+            setNetwork: state.setNetwork,
             createLedgerWallet: state.createLedgerWallet,
         })),
     );
@@ -187,6 +211,7 @@ export const useWallet = () =>
             clearWallet: state.clearWallet,
             updateBalance: state.updateBalance,
             addTransaction: state.addTransaction,
+            loadTransactions: state.loadTransactions,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
             createLedgerWallet: state.createLedgerWallet,
@@ -291,10 +316,6 @@ export const useJettons = () =>
             // Actions
             loadUserJettons: state.loadUserJettons,
             refreshJettons: state.refreshJettons,
-            loadJettonTransfers: state.loadJettonTransfers,
-            loadPopularJettons: state.loadPopularJettons,
-            searchJettons: state.searchJettons,
-            getJettonBalance: state.getJettonBalance,
             validateJettonAddress: state.validateJettonAddress,
             clearJettons: state.clearJettons,
 

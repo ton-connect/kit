@@ -4,7 +4,6 @@
 export type {
     WalletInterface,
     WalletMetadata,
-    WalletStatus,
     WalletVersion,
     WalletInitConfig,
     TonTransferParams,
@@ -51,7 +50,7 @@ export type {
 export type { TonWalletKitOptions } from './config';
 
 // Main kit interface
-export type { TonWalletKit, SessionInfo, KitStatus } from './kit';
+export type { ITonWalletKit, SessionInfo } from './kit';
 
 // Internal types (re-export from internal.ts)
 export type { SessionData, BridgeConfig, EventCallback, RawBridgeEvent, EventType, EventHandler } from './internal';
@@ -89,6 +88,9 @@ export type {
     EmulationTokenInfo,
     EmulationTokenInfoWallets,
     EmulationTokenInfoMasters,
+    ToncenterTracesResponse,
+    ToncenterTraceItem,
+    TraceMeta,
 } from './toncenter/emulation';
 
 export type { NftItem } from './toncenter/NftItem';

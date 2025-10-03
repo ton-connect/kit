@@ -4,6 +4,7 @@ import { SessionManager } from '../core/SessionManager';
 import type { EventDisconnect } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 export class DisconnectHandler
     extends BasicHandler<EventDisconnect>
@@ -22,7 +23,12 @@ export class DisconnectHandler
 
     async handle(event: RawBridgeEventDisconnect): Promise<EventDisconnect> {
         if (!event.walletAddress) {
-            throw new Error('No wallet found in event');
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_REQUIRED,
+                'No wallet address found in disconnect event',
+                undefined,
+                { eventId: event.id },
+            );
         }
 
         const reason = this.extractDisconnectReason(event);
@@ -30,6 +36,7 @@ export class DisconnectHandler
         const disconnectEvent: EventDisconnect = {
             reason,
             walletAddress: event.walletAddress,
+            dAppInfo: event.dAppInfo ?? {},
         };
 
         await this.sessionManager.removeSession(event.from || '');

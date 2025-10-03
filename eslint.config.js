@@ -19,7 +19,8 @@ module.exports = [
             '**/*stryker*/*',
             '**/*coverage*/*',
             '**/dist-extension/*',
-            '**/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/*',
+            '**/Packages/TONWalletKit/*',
+            '**/TONWalletApp/TONWalletApp/*',
         ],
     },
 ];

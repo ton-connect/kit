@@ -9,20 +9,22 @@ import {
     TransactionRequestModal,
     SignDataRequestModal,
     DisconnectNotifications,
-    JettonsCard,
     NftsCard,
     RecentTransactions,
+    JettonsCard,
 } from '../components';
-import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
-import { walletKit } from '../stores/slices/walletSlice';
+import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests } from '../stores';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
+
+import { useWalletKit } from '@/stores';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
 
 export const WalletDashboard: React.FC = () => {
+    const walletKit = useWalletKit();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [tonConnectUrl, setTonConnectUrl] = useState('');
@@ -30,14 +32,6 @@ export const WalletDashboard: React.FC = () => {
     const navigate = useNavigate();
 
     const { balance, address, getAvailableWallets, updateBalance } = useWallet();
-    const {
-        persistPassword,
-        setPersistPassword,
-        useWalletInterfaceType,
-        setUseWalletInterfaceType,
-        ledgerAccountNumber,
-        setLedgerAccountNumber,
-    } = useAuth();
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -93,13 +87,14 @@ export const WalletDashboard: React.FC = () => {
     }, [tonConnectUrl, handleTonConnectUrl]);
 
     const handleTestDisconnectAll = useCallback(async () => {
+        if (!walletKit) return;
         try {
             await walletKit.disconnect(); // Disconnect all sessions
             log.info('All sessions disconnected');
         } catch (err) {
             log.error('Failed to disconnect sessions:', err);
         }
-    }, []);
+    }, [walletKit]);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
@@ -259,94 +254,6 @@ export const WalletDashboard: React.FC = () => {
 
                 {/* Transaction History */}
                 <RecentTransactions />
-
-                {/* Settings Section */}
-                <Card title="Settings">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <label className="text-sm font-medium text-gray-700">Remember Password</label>
-                                <p className="text-xs text-gray-500 mt-1">Keep wallet unlocked between app reloads</p>
-                            </div>
-                            <label
-                                data-test-id="password-remember"
-                                className="relative inline-flex items-center cursor-pointer"
-                            >
-                                <input
-                                    type="checkbox"
-                                    className="sr-only peer"
-                                    checked={persistPassword || false}
-                                    onChange={(e) => setPersistPassword(e.target.checked)}
-                                />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                        {persistPassword && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <svg
-                                            className="h-5 w-5 text-yellow-400"
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-yellow-800">
-                                            <strong>Security Notice:</strong> Storing your password locally is not safe,
-                                            do not use this feature for anything other than development.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <label className="text-sm font-medium text-gray-700">Wallet Interface Type</label>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Choose how the wallet handles signing operations
-                                </p>
-                            </div>
-                            <select
-                                className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                                value={useWalletInterfaceType || 'mnemonic'}
-                                onChange={(e) =>
-                                    setUseWalletInterfaceType(e.target.value as 'signer' | 'mnemonic' | 'ledger')
-                                }
-                            >
-                                <option value="mnemonic">Mnemonic</option>
-                                <option value="signer">Signer</option>
-                                <option value="ledger">Ledger Hardware Wallet</option>
-                            </select>
-                        </div>
-
-                        {useWalletInterfaceType === 'ledger' && (
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700">Ledger Account Number</label>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Account number for Ledger derivation path
-                                    </p>
-                                </div>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="2147483647"
-                                    className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                                    value={ledgerAccountNumber || 0}
-                                    onChange={(e) => setLedgerAccountNumber(parseInt(e.target.value, 10) || 0)}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </Card>
 
                 {/* Development Test Section */}
                 <Card title="Development Tools">

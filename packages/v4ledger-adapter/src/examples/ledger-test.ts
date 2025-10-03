@@ -3,17 +3,11 @@ import util from 'util';
 // import { Address } from '@ton/core'; // Not used in this example
 import * as dotenv from 'dotenv';
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
+import { ApiClientToncenter, CHAIN, ConnectTransactionParamMessage, WalletInterface } from '@ton/walletkit';
+import { wrapWalletInterface } from '@ton/walletkit';
 
-import {
-    ApiClientToncenter,
-    createWalletInitConfigLedger,
-    createLedgerPath,
-    ConnectTransactionParamMessage,
-    WalletInterface,
-    CHAIN,
-} from '../src';
-import { wrapWalletInterface } from '../src/core/Initializer';
-import { createWalletV4R2Ledger } from '../src/contracts/v4/WalletV4R2LedgerAdapter';
+import { createLedgerPath, createWalletV4R2Ledger } from '../utils';
+import { createWalletInitConfigLedger } from '../WalletV4R2LedgerAdapter';
 
 dotenv.config();
 
@@ -144,7 +138,10 @@ async function testLedgerWallet() {
                 const hash = await tonClient.sendBoc(boc);
                 logInfo('📤 Transaction sent! Hash:', hash);
             } catch (signError) {
-                if (signError.message?.includes('rejected') || signError.message?.includes('denied')) {
+                if (
+                    signError instanceof Error &&
+                    (signError.message?.includes('rejected') || signError.message?.includes('denied'))
+                ) {
                     logError('❌ Transaction rejected by user on Ledger device');
                 } else {
                     logError('❌ Error signing transaction:', signError);
@@ -156,9 +153,9 @@ async function testLedgerWallet() {
             logInfo('✅ Ledger wallet test completed successfully (dry run)');
         }
     } catch (error) {
-        if (error.message?.includes('No device selected')) {
+        if (error instanceof Error && error.message?.includes('No device selected')) {
             logError('❌ No Ledger device found. Please connect your Ledger device and try again.');
-        } else if (error.message?.includes('App does not seem to be open')) {
+        } else if (error instanceof Error && error.message?.includes('App does not seem to be open')) {
             logError('❌ TON app is not open on Ledger device. Please open the TON app and try again.');
         } else {
             logError('❌ Ledger wallet test failed:', error);

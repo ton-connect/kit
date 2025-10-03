@@ -1,4 +1,6 @@
-import { mnemonicToWalletKey } from '@ton/crypto';
+import { mnemonicToWalletKey, mnemonicNew } from '@ton/crypto';
+
+import { WalletKitError, ERROR_CODES } from '../errors';
 
 export async function MnemonicToKeyPair(
     mnemonic: string | string[],
@@ -6,7 +8,12 @@ export async function MnemonicToKeyPair(
 ): Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }> {
     const mnemonicArray = Array.isArray(mnemonic) ? mnemonic : mnemonic.split(' ');
     if (mnemonicArray.length !== 24) {
-        throw new Error('Invalid mnemonic length: expected 24 words, got ' + mnemonicArray.length);
+        throw new WalletKitError(
+            ERROR_CODES.VALIDATION_ERROR,
+            `Invalid mnemonic length: expected 24 words, got ${mnemonicArray.length}`,
+            undefined,
+            { receivedLength: mnemonicArray.length, expectedLength: 24 },
+        );
     }
 
     if (mnemonicType === 'ton') {
@@ -19,5 +26,14 @@ export async function MnemonicToKeyPair(
 
     // TODO bip39 support
 
-    throw new Error('Invalid mnemonic type: expected "ton" or "bip39", got ' + mnemonicType);
+    throw new WalletKitError(
+        ERROR_CODES.VALIDATION_ERROR,
+        `Invalid mnemonic type: expected "ton" or "bip39", got "${mnemonicType}"`,
+        undefined,
+        { receivedType: mnemonicType, supportedTypes: ['ton', 'bip39'] },
+    );
+}
+
+export async function CreateTonMnemonic(): Promise<string[]> {
+    return mnemonicNew(24);
 }

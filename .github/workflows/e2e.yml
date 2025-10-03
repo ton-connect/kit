@@ -37,18 +37,55 @@ jobs:
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
 
     - name: Start TON Connect Bridge
-      uses: ton-connect/bridge/actions/local@master
+      run: |
+        echo "Starting TON Connect Bridge service with docker-compose.bridge.yml..."
+        docker compose -f docker-compose.bridge.yml up -d
+        echo "Waiting for services to be ready..."
+        sleep 2
+
+        echo "Checking if TON Connect Bridge service is accessible..."
+        max_attempts=30
+        attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt/$max_attempts: Checking http://localhost:8081/bridge"
+          if curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics; then
+            echo "✅ TON Connect Bridge service is accessible at http://localhost:8081/bridge"
+            break
+          else
+            echo "❌ TON Connect Bridge service not ready yet, waiting 5 seconds..."
+            sleep 2
+            attempt=$((attempt + 1))
+          fi
+        done
+        
+        if [ $attempt -gt $max_attempts ]; then
+          echo "❌ TON Connect Bridge service failed to start within expected time"
+          echo "Docker containers status:"
+          docker compose -f docker-compose.bridge.yml ps
+          echo "TON Connect Bridge container logs:"
+          docker compose -f docker-compose.bridge.yml logs bridge
+          exit 1
+        fi
+        
+        echo "🚀 TON Connect Bridge service is now running and accessible at http://localhost:8081/bridge"
 
     - name: Run e2e specs
       run: xvfb-run pnpm --filter demo-wallet e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
 
-    - uses: actions/upload-artifact@v4
+    - name: Send report
       if: always()
-      with:
-        name: playwright-artifacts
-        path: |
-          apps/demo-wallet/playwright-report/
-          apps/demo-wallet/test-results/
-        retention-days: 10
+      run: |
+        wget https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -O ./allurectl
+        chmod +x ./allurectl
+        ./allurectl upload --endpoint $ALLURE_BASE_URL \
+        --token $ALLURE_API_TOKEN \
+        --project-id $ALLURE_PROJECT_ID \
+        --launch-name "CI for rev:$(git rev-parse --short "$GITHUB_SHA")" \
+        apps/demo-wallet/allure-results
+      env:
+        ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
+        ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN }}
+        ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
