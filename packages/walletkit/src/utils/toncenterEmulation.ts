@@ -16,13 +16,13 @@ export interface ToncenterMessage {
 }
 
 export interface MoneyFlow {
-    outputs: bigint;
-    inputs: bigint;
+    outputs: string;
+    inputs: string;
     jettonTransfers: {
         from: Address;
         to: Address;
         jetton: Address | null;
-        amount: bigint;
+        amount: string;
     }[];
     ourAddress: Address | null;
 }
@@ -106,8 +106,8 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
 export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): MoneyFlow {
     if (!emulation || !emulation.transactions) {
         return {
-            outputs: 0n,
-            inputs: 0n,
+            outputs: '0',
+            inputs: '0',
             jettonTransfers: [],
             ourAddress: null,
         };
@@ -122,27 +122,31 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     const messagesTo = ourTxes.flatMap((t) => t.in_msg).filter((m) => m !== null);
 
     // Calculate TON outputs
-    const outputs = messagesFrom.reduce((acc, m) => {
-        if (m.value) {
-            return acc + BigInt(m.value);
-        }
-        return acc + 0n;
-    }, 0n);
+    const outputs = messagesFrom
+        .reduce((acc, m) => {
+            if (m.value) {
+                return acc + BigInt(m.value);
+            }
+            return acc + 0n;
+        }, 0n)
+        .toString();
 
     // Calculate TON inputs
-    const inputs = messagesTo.reduce((acc, m) => {
-        if (m.value) {
-            return acc + BigInt(m.value);
-        }
-        return acc + 0n;
-    }, 0n);
+    const inputs = messagesTo
+        .reduce((acc, m) => {
+            if (m.value) {
+                return acc + BigInt(m.value);
+            }
+            return acc + 0n;
+        }, 0n)
+        .toString();
 
     // Process jetton transfers
     const jettonTransfers: {
         from: Address;
         to: Address;
         jetton: Address | null;
-        amount: bigint;
+        amount: string;
     }[] = [];
 
     for (const t of Object.values(emulation.transactions)) {
@@ -182,7 +186,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
             from,
             to,
             jetton: jettonAddress,
-            amount: jettonAmount,
+            amount: jettonAmount.toString(),
         });
     }
 
