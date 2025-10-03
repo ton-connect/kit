@@ -446,10 +446,13 @@ export class RequestProcessor {
                         subsystem: 'wallet',
                     },
                 ]);
-                return { success: true, result: { signature: asHash(signatureBase64) } };
+                return { success: true, result: { signature: asHash(signature) } };
             }
-        } catch (error) {
-            log.error('Failed to approve sign data request', { error });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            log.error('Failed to approve sign data request', {
+                error: error?.message?.toString() ?? error?.toString(),
+            });
             if (error instanceof WalletKitError) {
                 return { success: false, code: error.code, message: error.message, error: error };
             }
