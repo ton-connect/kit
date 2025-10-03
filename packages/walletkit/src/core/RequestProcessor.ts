@@ -96,6 +96,7 @@ export class RequestProcessor {
                     event.preview.manifest?.name || '',
                     domain,
                     event.preview.manifest?.iconUrl || '',
+                    event.preview.manifest?.description || '',
                     wallet,
                 );
                 // Create bridge session
@@ -144,6 +145,7 @@ export class RequestProcessor {
                     event.result.dAppName,
                     domain,
                     event.result.dAppIconUrl,
+                    event.result.dAppDescription,
                     wallet,
                 );
                 await this.bridgeManager.sendResponse(event, event.result.response);
@@ -203,6 +205,7 @@ export class RequestProcessor {
             const newSession = await this.sessionManager.createSession(
                 event.from || '',
                 event.preview.manifest?.name || '',
+                '',
                 '',
                 '',
                 undefined,

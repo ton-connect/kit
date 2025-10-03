@@ -29,11 +29,11 @@ export function Base64NormalizeUrl(data: string): string {
  * @returns utf-8 string
  */
 export function ParseBase64(data: string): string {
-    if (typeof atob === 'undefined') {
+    if (typeof atob === 'undefined' && typeof Buffer === 'undefined') {
         throw new WalletKitError(ERROR_CODES.CONFIGURATION_ERROR, 'atob function is not available in this environment');
     }
     data = Base64Normalize(data);
-    return atob(data);
+    return typeof atob === 'function' ? atob(data) : Buffer.from(data, 'base64').toString('utf-8');
 }
 
 /**
@@ -81,14 +81,14 @@ export function Base64ToUint8Array(data?: string | null): Uint8Array | null {
  * @returns Base64 string
  */
 export function Uint8ArrayToBase64(data: Uint8Array): string {
-    if (typeof btoa === 'undefined') {
+    if (typeof btoa === 'undefined' && typeof Buffer === 'undefined') {
         throw new Error('btoa is not available in this environment');
     }
     let binary = '';
     for (let i = 0; i < data.length; i++) {
         binary += String.fromCharCode(data[i]);
     }
-    return btoa(binary);
+    return typeof btoa === 'function' ? btoa(binary) : Buffer.from(data).toString('base64');
 }
 
 /**

@@ -485,8 +485,17 @@ export class BridgeManager {
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);
                 rawEvent.domain = session?.domain || '';
-                if (session?.walletAddress) {
-                    rawEvent.walletAddress = session.walletAddress;
+                if (session) {
+                    if (session?.walletAddress) {
+                        rawEvent.walletAddress = session.walletAddress;
+                    }
+
+                    rawEvent.dAppInfo = {
+                        name: session.dAppName,
+                        description: session.dAppDescription,
+                        url: session.dAppIconUrl,
+                        iconUrl: session.dAppIconUrl,
+                    };
                 }
             } else if (rawEvent.domain) {
                 const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
@@ -496,6 +505,15 @@ export class BridgeManager {
 
                 if (session?.sessionId) {
                     rawEvent.from = session.sessionId;
+                }
+
+                if (session) {
+                    rawEvent.dAppInfo = {
+                        name: session.dAppName,
+                        description: session.dAppDescription,
+                        url: session.dAppIconUrl,
+                        iconUrl: session.dAppIconUrl,
+                    };
                 }
             }
 

@@ -8,18 +8,23 @@ import {
     WalletResponseTemplateError,
 } from '@tonconnect/protocol';
 
+import { DAppInfo } from './events';
+
 // import type { WalletInterface } from './wallet';
 
 export interface SessionData {
     sessionId: string;
-    dAppName: string;
-    domain: string;
-    dAppIconUrl: string;
+
     walletAddress: string;
     createdAt: string; // date
     lastActivityAt: string; // date
     privateKey: string;
     publicKey: string;
+
+    dAppName: string;
+    dAppDescription: string;
+    domain: string;
+    dAppIconUrl: string;
 }
 
 export interface BridgeConfig {
@@ -58,6 +63,9 @@ export type BridgeEventBase = {
     messageId?: string;
 
     traceId?: string;
+
+    /** dApp information */
+    dAppInfo?: DAppInfo;
 };
 
 export type EventApprovalBase = {

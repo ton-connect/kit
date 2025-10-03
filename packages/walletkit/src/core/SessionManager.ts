@@ -36,6 +36,7 @@ export class SessionManager {
         dAppName: string,
         domain: string,
         dAppIconUrl: string,
+        dAppDescription: string,
         wallet?: WalletInterface,
         { disablePersist = false }: { disablePersist?: boolean } = {},
     ): Promise<SessionData> {
@@ -52,6 +53,7 @@ export class SessionManager {
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
             dAppIconUrl: dAppIconUrl,
+            dAppDescription: dAppDescription,
         };
 
         if (disablePersist) {
@@ -75,6 +77,7 @@ export class SessionManager {
             lastActivityAt: session.lastActivityAt,
             domain: session.domain,
             dAppIconUrl: session.dAppIconUrl,
+            dAppDescription: session.dAppDescription,
         };
     }
 
@@ -96,6 +99,7 @@ export class SessionManager {
                 lastActivityAt: session.lastActivityAt,
                 domain: session.domain,
                 dAppIconUrl: session.dAppIconUrl,
+                dAppDescription: session.dAppDescription,
             };
         }
         return undefined;
@@ -277,6 +281,7 @@ export class SessionManager {
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
                 dAppIconUrl: session.dAppIconUrl,
+                dAppDescription: session.dAppDescription,
             }));
 
             await this.storageAdapter.set(this.storageKey, sessionMetadata);
