@@ -3,7 +3,7 @@ import { allure } from 'allure-playwright';
 
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
-import { AllureApiClient, createAllureConfig, getTestCaseData } from './utils';
+import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
 
 const test = testWith(
     demoWalletFixture({
@@ -16,12 +16,6 @@ const test = testWith(
 );
 
 let allureClient: AllureApiClient;
-
-// Функция для извлечения allureId из названия теста
-function extractAllureId(testTitle: string): string | null {
-    const match = testTitle.match(/@allureId\((\d+)\)/);
-    return match ? match[1] : null;
-}
 
 test.beforeAll(async () => {
     try {
@@ -46,19 +40,15 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
         await allure.owner('e.kurilenko');
     }
 
-    await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-    await wallet.connectBy(await widget.connectUrl());
-    await expect(widget.connectButtonText).toHaveText('UQC8…t2Iv');
-
     // Инициализируем переменные для данных тест-кейса
-    let preconditions: string = '';
+    let precondition: string = '';
     let expectedResult: string = '';
     let isPositiveCase: boolean = true;
 
     if (allureId && allureClient) {
         try {
             const testCaseData = await getTestCaseData(allureClient, allureId);
-            preconditions = testCaseData.preconditions;
+            precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
             isPositiveCase = testCaseData.isPositiveCase;
         } catch (error) {
@@ -68,33 +58,13 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
         console.warn('AllureId not found in test title or client not available');
     }
 
-    await app.locator('#signDataPrecondition').fill(preconditions);
-    await app.locator('#signDataExpectedResult').fill(expectedResult);
-    await app.getByRole('button', { name: 'Sign Data' }).click();
-
-    await wallet.signData(true, isPositiveCase);
+    await app.locator('#connectPrecondition').fill(precondition);
+    await app.locator('#connectExpectedResult').fill(expectedResult);
+    await wallet.connect();
 
     await app.getByText('✅ Validation Passed').waitFor({ state: 'visible' });
 }
 
-test('Sign text @allureId(1918)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
+test('Connect @allureId(1933)', async ({ wallet, app, widget }) => {
+    await runConnectTest({ wallet, app, widget }, test.info());
 });
-
-test('Sign cell @allureId(1920)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
-});
-
-test('Sign binary @allureId(1919)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
-});
-
-// test('Sign Data', async ({ wallet, app, widget }) => {
-//     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-//     await wallet.connectBy(await widget.connectUrl());
-//     await expect(widget.connectButtonText).toHaveText('UQC8…t2Iv');
-//     await app.getByRole('button', { name: 'Sign Data' }).click();
-//     await wallet.signData();
-//     const signDataResultSelector = app.locator('.sign-data-result');
-//     await expect(signDataResultSelector).toHaveText('✅ TEXT Verification Result');
-// });

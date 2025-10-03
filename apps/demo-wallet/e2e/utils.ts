@@ -180,6 +180,16 @@ export class AllureApiClient {
 }
 
 /**
+ * Извлекает allureId из названия теста
+ * @param testTitle - название теста
+ * @returns allureId или null если не найден
+ */
+export function extractAllureId(testTitle: string): string | null {
+  const match = testTitle.match(/@allureId\((\d+)\)/);
+  return match ? match[1] : null;
+}
+
+/**
  * Получает данные тест-кейса и извлекает precondition и expectedResult
  * @param allureClient - клиент Allure API
  * @param allureId - ID тест-кейса

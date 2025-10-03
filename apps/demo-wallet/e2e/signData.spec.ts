@@ -1,37 +1,83 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-import * as allure from 'allure-js-commons';
-
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const extensionPath = path.join(__dirname, '../dist-extension');
+import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
+import { allure, expect } from 'allure-playwright';
 
 const test = testWith(
     demoWalletFixture({
-        extensionPath: extensionPath,
-        mnemonic: process.env.WALLET_MNEMONIC!,
-        appUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/',
+        extensionPath: 'dist-extension',
+        mnemonic: process.env.WALLET_MNEMONIC || 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+        appUrl: process.env.DAPP_URL || 'https://allure-test-runner.vercel.app/e2e '
     }),
 );
-const { expect } = test;
 
-test('Sign Data', async ({ wallet, app, widget }) => {
-    await allure.feature('Sign Data');
-    await allure.story('Sign Text');
-    await allure.tags('kit', 'wallet');
-    await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-    await wallet.connectBy(await widget.connectUrl());
-    await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
-    await app.getByRole('button', { name: 'Sign Text' }).click();
-    await wallet.signData();
-    const signDataResultSelector = app.locator(
-        '.sign-data-tester > div:nth-child(6) > div.find-transaction-demo__json-label',
-    );
-    await expect(signDataResultSelector).toHaveText('✅ Verification Result');
+let allureClient: AllureApiClient;
+
+test.beforeAll(async () => {
+    try {
+      // Создаем конфигурацию Allure
+      const config = createAllureConfig();
+      
+      // Создаем клиент Allure
+      allureClient = new AllureApiClient(config);
+      
+    } catch (error) {
+      console.error('Error creating allure client:', error);
+      throw error;
+    }
+});
+
+async function runSignDataTest(
+  { wallet, app, widget }: { wallet: any; app: any; widget: any }, 
+  testInfo: any) {
+  // Извлекаем allureId из названия теста
+  const allureId = extractAllureId(testInfo.title);
+
+  // Устанавливаем Allure аннотации
+  if (allureId) {
+    await allure.allureId(allureId);
+    await allure.owner('e.kurilenko');
+  }
+  // Инициализируем переменные для данных тест-кейса
+  let precondition: string = "";
+  let expectedResult: string = "";
+  let isPositiveCase: boolean = true;
+
+  if (allureId && allureClient) {
+    try {
+    const testCaseData = await getTestCaseData(allureClient, allureId);
+    precondition = testCaseData.precondition;
+    expectedResult = testCaseData.expectedResult;
+    isPositiveCase = testCaseData.isPositiveCase;
+    } catch (error) {
+    console.error('Error getting test case data:', error);
+    }
+  } else {
+    console.warn('AllureId not found in test title or client not available');
+  }
+  await expect(widget.connectButtonText).toHaveText('Connect Wallet');
+  await wallet.connectBy(await widget.connectUrl());
+  await expect(widget.connectButtonText).toHaveText('UQC8…t2Iv');
+
+
+  await app.locator('#signDataPrecondition').fill(precondition);
+  await app.locator('#signDataExpectedResult').fill(expectedResult);
+  await app.locator('#sign-data-button').click();
+  //await app.getByRole('button', {name: 'Sign Data'}).click();
+
+  await wallet.signData(true, isPositiveCase);
+
+  await app.getByText('✅ Validation Passed').waitFor({ state: 'visible' });
+  }
+
+test('Sign text @allureId(1918)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info());
+});
+
+test('Sign cell @allureId(1920)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info());
+});
+
+test('Sign binary @allureId(1919)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info());
 });

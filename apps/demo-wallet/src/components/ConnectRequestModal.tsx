@@ -195,11 +195,17 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
+                            <Button 
+                                data-test-id="connect-reject"
+                                variant="secondary" 
+                                onClick={handleReject} 
+                                disabled={isLoading} 
+                                className="flex-1"
+                            >
                                 Reject
                             </Button>
                             <Button
-                                data-test-id="connect"
+                                data-test-id="connect-approve"
                                 onClick={handleApprove}
                                 isLoading={isLoading}
                                 disabled={!selectedWallet || isLoading}
