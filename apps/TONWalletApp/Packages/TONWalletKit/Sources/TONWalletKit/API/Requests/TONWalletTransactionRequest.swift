@@ -11,6 +11,8 @@ public class TONWalletTransactionRequest {
     let walletKit: any JSDynamicObject
     let event: TransactionRequestEvent
     
+    public var dAppInfo: DAppInfo? { event.dAppInfo }
+    
     init(
         walletKit: any JSDynamicObject,
         event: TransactionRequestEvent

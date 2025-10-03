@@ -21,12 +21,11 @@ struct WalletView: View {
                     .widget()
                 
                 WalletDAppDisconnectionView(viewModel: viewModel.dAppDisconnect)
-                    .widget()
             }
             .padding(16.0)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(Color.backgroundColor)
+        .background(Color.TON.gray100)
         .navigationTitle("TON Wallet")
     }
 }

@@ -15,4 +15,6 @@ public struct DisconnectEvent: Codable {
     public let sessionId: String?
     public let messageId: String?
     public let reason: String?
+    
+    public let dAppInfo: DAppInfo?
 }

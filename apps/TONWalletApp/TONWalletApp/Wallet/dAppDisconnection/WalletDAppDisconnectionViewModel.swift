@@ -26,6 +26,8 @@ class WalletDAppDisconnectionViewModel: ObservableObject {
     }
     
     func connect() {
+        subscribers.removeAll()
+        
         TONEventsHandler.shared.events
             .receive(on: DispatchQueue.main)
             .sink { [weak self] event in

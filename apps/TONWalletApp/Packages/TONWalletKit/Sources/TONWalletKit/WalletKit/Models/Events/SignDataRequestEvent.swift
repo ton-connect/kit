@@ -16,6 +16,7 @@ public struct SignDataRequestEvent: Codable {
     let messageId: String?
     
     let request: Payload?
+    let dAppInfo: DAppInfo?
     let preview: Preview?
 }
 

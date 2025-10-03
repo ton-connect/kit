@@ -19,6 +19,7 @@ struct WalletDAppDisconnectionView: View {
                 }
             }
         }
+        .background(.clear)
         .onAppear {
             viewModel.connect()
         }
@@ -33,17 +34,32 @@ private struct DisconnectEventView: View {
     var body: some View {
         
         HStack(spacing: 4.0) {
-            VStack {
-                Text("Disconnected")
-                Text(event.sessionId ?? "")
+            VStack(alignment: .leading, spacing: AppSpacing.spacing(2.0)) {
+                Text("Session Disconnected")
+                    .textSM()
+                    .foregroundColor(Color.TON.yellow800)
+                
+                Text(event.walletAddress ?? "")
+                    .textXS()
+                    .foregroundColor(Color.TON.yellow700)
             }
+            
             Spacer()
             
-            Button("Dismiss") {
-                onDismiss?()
+            VStack(alignment: .trailing) {
+                Button(action: { onDismiss?() }) {
+                    Text("Dismiss")
+                        .textSM()
+                        .foregroundColor(Color.TON.yellow800)
+                        .padding(AppSpacing.spacing(2.0))
+                        .background(Color.TON.gray200)
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.standard))
+
+                }
+                Spacer()
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(8.0)
+        .widget(style: .block(.warning))
     }
 }

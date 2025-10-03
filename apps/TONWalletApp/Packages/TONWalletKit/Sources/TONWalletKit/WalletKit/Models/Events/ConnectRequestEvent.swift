@@ -13,6 +13,7 @@ public struct ConnectRequestEvent: Codable {
     
     let preview: Preview?
     let request: [Request]?
+    let dAppInfo: DAppInfo?
     
     var walletAddress: String?
 }
@@ -20,29 +21,21 @@ public struct ConnectRequestEvent: Codable {
 public extension ConnectRequestEvent {
     
     struct Preview: Codable {
+        public let manifestURL: URL?
         public let manifest: Manifest?
         public let permissions: [ConnectPermission]
+        
+        let requestedItems: [ConnectRequestEvent.Request]
     }
 }
 
 public extension ConnectRequestEvent.Preview {
     
     struct Manifest: Codable {
-        public let appName: String?
-        public let appDescription: String?
-        public let appIconURL: URL?
-        public let appURL: URL?
-        public let manifestURL: URL?
-        public let url: URL?
-        
-        enum CodingKeys: String, CodingKey {
-            case appName = "dAppName"
-            case appDescription = "description"
-            case appIconURL = "iconUrl"
-            case appURL = "dAppUrl"
-            case manifestURL = "manifestUrl"
-            case url
-        }
+        let name: String?
+        let description: String?
+        let url: String?
+        let iconUrl: String?
     }
     
     struct ConnectPermission: Codable {

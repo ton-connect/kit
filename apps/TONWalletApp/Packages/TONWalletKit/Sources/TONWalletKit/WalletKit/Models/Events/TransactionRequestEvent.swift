@@ -15,7 +15,8 @@ public struct TransactionRequestEvent: Codable {
     let sessionId: String?
     let messageId: String?
     
-    let request: Request
+    let request: Request?
+    let dAppInfo: DAppInfo?
     let error: String?
 }
 

@@ -8,10 +8,11 @@
 import Foundation
 
 public class TONWalletConnectionRequest {
-    public var preview: ConnectRequestEvent.Preview? { event.preview }
-    
     let walletKit: any JSDynamicObject
     let event: ConnectRequestEvent
+    
+    public var dAppInfo: DAppInfo? { event.dAppInfo }
+    public var permissions: [ConnectRequestEvent.Preview.ConnectPermission] { event.preview?.permissions ?? [] }
     
     init(
         walletKit: any JSDynamicObject,
