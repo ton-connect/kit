@@ -17,119 +17,62 @@ public protocol JSDynamicMember {
 @dynamicCallable
 public protocol JSDynamicCallable {
     
-    func dynamicallyCall(withArguments args: [Any]) -> JSValue?
+    func dynamicallyCall(withArguments args: [Any]) async throws -> JSValue?
 }
 
 public protocol JSDynamicObject: JSDynamicMember {
-    func invoke(_ functionName: String, arguments: [Any]) -> JSValue?
-    func invoke(_ functionName: String) -> JSValue?
-}
+    var jsContext: JSContext? { get }
 
-extension JSDynamicObject {
-    
-    public func invoke(_ functionName: String) -> JSValue? {
-        invoke(functionName, arguments: [])
-    }
+    func function(_ name: String) throws -> JSValue?
+    func object(_ name: String) throws -> JSValue?
 }
 
 public class JSFunction: JSDynamicCallable, JSDynamicMember {
-    let functionName: String
-    let dynamicObject: any JSDynamicObject
+    let name: String
+    let target: any JSDynamicObject
     
-    init(functionName: String, dynamicObject: any JSDynamicObject) {
-        self.functionName = functionName
-        self.dynamicObject = dynamicObject
+    init(functionName: String, target: any JSDynamicObject) {
+        self.name = functionName
+        self.target = target
     }
     
-    public func dynamicallyCall(withArguments args: [Any]) -> JSValue? {
-        dynamicObject.invoke(functionName, arguments: args)
+    public func dynamicallyCall(withArguments args: [Any]) async throws -> JSValue? {
+        try await target.jsContext?.promise(
+            wrap: self,
+            args: normalize(args: args)
+        ).then()
     }
     
-    public func dynamicallyCall() -> JSValue? {
-        dynamicObject.invoke(functionName)
+    public func dynamicallyCall() async throws -> JSValue? {
+        try await target.jsContext?.promise(
+            wrap: self,
+            args: []
+        ).then()
     }
     
     public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: "\(functionName).\(member)", dynamicObject: dynamicObject)
-    }
-}
-
-extension JSValue: JSDynamicMember {
-    
-    public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: member, dynamicObject: self)
-    }
-}
-
-extension JSValue: JSDynamicObject {
-    
-    @discardableResult
-    public func invoke(_ functionName: String, arguments: [Any]) -> JSValue? {
-        invokeMethod(functionName, withArguments: arguments)
+        JSFunction(functionName: "\(name).\(member)", target: target)
     }
     
-    public func then(_ onFulfilled: @escaping (JSValue) -> Void) {
-        let onFulfilledWrapper: @convention(block) (JSValue) -> Void = { value in
-            onFulfilled(value)
-        }
-        invoke("then", arguments: [unsafeBitCast(onFulfilledWrapper, to: JSValue.self)])
-    }
-    
-    public func then() async -> JSValue {
-        return await withCheckedContinuation { continuation in
-            then { value in
-                continuation.resume(with: .success(value))
-            }
-        }
-    }
-    
-    public func catchPromise(_ onFulfilled: @escaping (JSValue) -> Void) {
-        let onFulfilledWrapper: @convention(block) (JSValue) -> Void = { value in
-            onFulfilled(value)
-        }
-        invoke("catch", arguments: [unsafeBitCast(onFulfilledWrapper, to: JSValue.self)])
-    }
-    
-    public func catchPromise() async -> JSValue {
-        return await withCheckedContinuation { continuation in
-            catchPromise { value in
-                continuation.resume(with: .success(value))
-            }
-        }
-    }
-}
-
-extension JSContext: JSDynamicMember {
-    
-    public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: member, dynamicObject: self)
-    }
-}
-
-extension JSContext: JSDynamicObject {
-    public var jsContext: JSContext? {
-        self
-    }
-    
-    public func invoke(_ functionName: String, arguments: [Any]) -> JSValue? {
-        let arguments = arguments.map { element in
+    private func normalize(args: [Any]) -> [Any] {
+        args.map { element in
             switch element {
             case let string as String:
-                return "\"\(string)\""
+                return string
             case let numeric as any Numeric:
                 return String(describing: numeric)
             case let bool as Bool:
-                return bool ? "true" : "false"
+                return bool
             default:
                 if let element = element as? Encodable {
                     let encoder = JSONEncoder()
                     
                     do {
                         let data = try encoder.encode(element)
+                        let dictionary = try JSONSerialization.jsonObject(with: data)
                         
-                        if let configString = String(data: data, encoding: .utf8) {
-                            return configString
-                        }
+                        let obj = JSValue(object: dictionary, in: target.jsContext)
+                        return obj
                     } catch {
                         debugPrint("Unable to encode \(type(of: element))")
                     }
@@ -137,10 +80,154 @@ extension JSContext: JSDynamicObject {
                 return String(describing: element)
             }
         }
-        let script = "\(functionName)(\(arguments.joined(separator: ", ")))"
+    }
+}
+
+extension JSValue: JSDynamicMember {
+    
+    public subscript(dynamicMember member: String) -> JSFunction {
+        JSFunction(functionName: member, target: self)
+    }
+}
+
+extension JSValue: JSDynamicObject {
+    public var jsContext: JSContext? { context }
+    
+    public func function(_ name: String) throws -> JSValue? {
+        try object(name)
+    }
+    
+    public func object(_ name: String) throws -> JSValue? {
+        let path = name.split(separator: ".")
         
-        return jsContext?.evaluateScript(script)
+        if path.isEmpty {
+            throw "Empty JS Function name provided"
+        }
+        
+        var object: JSValue? = self
+        
+        for part in path {
+            object = object?.objectForKeyedSubscript(part)
+            
+            guard let object, !object.isUndefined else {
+                throw "No object named \(part) found in \(name)"
+            }
+        }
+        return object
+    }
+    
+    fileprivate func then(
+        _ onResolved: @escaping (JSValue) -> Void,
+        _ onRejected: @escaping (JSValue) -> Void,
+    ) {
+        let onResolvedWrapper: @convention(block) (JSValue) -> Void = { value in
+            onResolved(value)
+        }
+        
+        let onRejectedWrapper: @convention(block) (JSValue) -> Void = { value in
+            onRejected(value)
+        }
+        invokeMethod(
+            "then",
+            withArguments: [
+                unsafeBitCast(onResolvedWrapper, to: JSValue.self),
+                unsafeBitCast(onRejectedWrapper, to: JSValue.self)
+            ]
+        )
+    }
+    
+    fileprivate func then() async throws -> JSValue {
+        try await withCheckedThrowingContinuation { continuation in
+            then(
+                { continuation.resume(returning: $0) },
+                { continuation.resume(throwing: $0.toString()) }
+            )
+        }
+    }
+}
+
+extension JSContext: JSDynamicMember {
+    
+    public subscript(dynamicMember member: String) -> JSFunction {
+        JSFunction(functionName: member, target: self)
+    }
+}
+
+extension JSContext: JSDynamicObject {
+    public var jsContext: JSContext? { self }
+    
+    public func function(_ name: String) throws -> JSValue? {
+        try object(name)
+    }
+    
+    public func object(_ name: String) throws -> JSValue? {
+        let path = name.split(separator: ".")
+        
+        if path.isEmpty {
+            throw "Empty JS Function name provided"
+        }
+        
+        let firstPath = path[0]
+        
+        guard let object = objectForKeyedSubscript(firstPath), !object.isUndefined else {
+            throw "No object named \(firstPath) found in \(name)"
+        }
+        
+        if path.count == 1 {
+            return object
+        }
+        
+        return try object.object(String(name.dropFirst(firstPath.count + 1)))
+    }
+    
+    public func function(_ name: String) async throws -> JSValue {
+        objectForKeyedSubscript(name)
     }
     
     public func then(_ onFulfilled: @escaping (JSValue) -> Void) {}
+}
+
+private extension JSContext {
+    
+    func promise(wrap function: JSFunction, args: [Any]) async throws -> JSValue {
+        let functionName = "__promiseWrapper"
+        
+        if let promiseWrapper = try? object(functionName) {
+            return try await call(function: function, args: args, on: promiseWrapper)
+        }
+        
+        let script = """
+            function \(functionName)(fn, context = null, ...args) {
+                try {
+                  const result = fn.apply(context, args);
+                  
+                  if (result instanceof Promise) {
+                    return result;
+                  } else {
+                    return Promise.resolve(result);
+                  }
+                } catch (error) {
+                    return Promise.reject(error);
+                }
+            }
+        """
+        
+        evaluateScript(script)
+        
+        guard let promiseWrapper = try? object(functionName) else {
+            throw "JSFunctionError: No promise wrapper found"
+        }
+        
+        return try await call(function: function, args: args, on: promiseWrapper)
+    }
+    
+    private func call(function: JSFunction, args: [Any], on promiseWrapper: JSValue) async throws -> JSValue {
+        guard let targetFunction = try? function.target.function(function.name) else {
+            throw "JSFunctionError: No target function found for name \(function.name)"
+        }
+        
+        let object = function.target as? JSValue
+        
+        return promiseWrapper.call(withArguments: [targetFunction as Any, object as Any] + args)
+    }
 }

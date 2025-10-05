@@ -12,7 +12,7 @@ public class WalletKitEngine: JSEngine {
     private let configuration: WalletKitConfig
     private let eventsHandler: any TONBridgeEventsHandler
     
-    private var jsContext: JSContext?
+    public private(set) var jsContext: JSContext?
     
     public init(
         configuration: WalletKitConfig,
@@ -84,13 +84,21 @@ public class WalletKitEngine: JSEngine {
 extension WalletKitEngine: JSDynamicMember {
     
     public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: member, dynamicObject: self)
+        if let walletKit = try? object("walletKit") {
+            return JSFunction(functionName: member, target: walletKit)
+        }
+        fatalError("WalletKitEngine not inited in JS")
     }
 }
 
 extension WalletKitEngine: JSDynamicObject {
+
+    public func function(_ name: String) throws -> JSValue? {
+        try jsContext?.function(name)
+    }
     
-    public func invoke(_ functionName: String, arguments: [Any]) -> JSValue? {
-        jsContext?.invoke("window.walletKit.\(functionName)", arguments: arguments)
+    public func object(_ name: String) throws -> JSValue? {
+        try jsContext?.object(name)
     }
 }
+

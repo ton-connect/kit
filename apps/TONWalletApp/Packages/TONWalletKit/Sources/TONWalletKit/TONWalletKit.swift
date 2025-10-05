@@ -24,11 +24,7 @@ public struct TONWalletKit {
     }
     
     public static subscript(dynamicMember member: String) -> JSFunction {
-        if let engine {
-            JSFunction(functionName: member, dynamicObject: engine)
-        } else {
-            fatalError("TONWalletKit no initialized")
-        }
+        engine[dynamicMember: member]
     }
 }
 
