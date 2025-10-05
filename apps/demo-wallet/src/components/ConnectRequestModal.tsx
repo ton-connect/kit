@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { EventConnectRequest, WalletInterface } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
+import { WalletPreview } from './WalletPreview';
+import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 
 // Create logger for connect request modal
@@ -12,6 +14,7 @@ const log = createComponentLogger('ConnectRequestModal');
 interface ConnectRequestModalProps {
     request: EventConnectRequest;
     availableWallets: WalletInterface[];
+    savedWallets: SavedWallet[];
     isOpen: boolean;
     onApprove: (selectedWallet: WalletInterface) => void;
     onReject: (reason?: string) => void;
@@ -20,16 +23,23 @@ interface ConnectRequestModalProps {
 export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     request,
     availableWallets,
+    savedWallets,
     isOpen,
     onApprove,
     onReject,
 }) => {
-    // const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
+    const [selectedWallet, setSelectedWallet] = useState<WalletInterface | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
+    const [showAllWallets, setShowAllWallets] = useState(false);
 
-    const selectedWallet = useMemo(() => {
-        return availableWallets[0];
-    }, [availableWallets]);
+    // Create a map of wallet addresses to SavedWallet data
+    const walletDataMap = useMemo(() => {
+        const map = new Map<string, SavedWallet>();
+        savedWallets.forEach((savedWallet) => {
+            map.set(savedWallet.address, savedWallet);
+        });
+        return map;
+    }, [savedWallets]);
 
     const handleApprove = async () => {
         if (!selectedWallet) return;
@@ -117,58 +127,91 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                         )}
 
                         {/* Wallet Selection */}
-                        {availableWallets.length > 1 && (
+                        {availableWallets.length > 0 && (
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-3">Select Wallet:</h4>
-                                {/* <div className="space-y-2">
-                                    {availableWallets.map((wallet, index) => (
-                                        <label
-                                            key={index}
-                                            className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-                                                selectedWallet === wallet
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-200 hover:border-gray-300'
-                                            }`}
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="font-medium text-gray-900">
+                                        {availableWallets.length > 1 ? 'Connecting with:' : 'Wallet:'}
+                                    </h4>
+                                    {availableWallets.length > 1 && !showAllWallets && (
+                                        <button
+                                            onClick={() => setShowAllWallets(true)}
+                                            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                                         >
-                                            <input
-                                                type="radio"
-                                                name="wallet"
-                                                value={index}
-                                                checked={selectedWallet === wallet}
-                                                onChange={() => setSelectedWallet(wallet)}
-                                                className="sr-only"
+                                            Change wallet
+                                        </button>
+                                    )}
+                                </div>
+
+                                {showAllWallets ? (
+                                    <div className="space-y-2">
+                                        {availableWallets.map((wallet, index) => {
+                                            const address = wallet.getAddress();
+                                            const savedWallet = walletDataMap.get(address);
+
+                                            return (
+                                                <label key={index} className="block cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="wallet"
+                                                        value={index}
+                                                        checked={selectedWallet === wallet}
+                                                        onChange={() => {
+                                                            setSelectedWallet(wallet);
+                                                            setShowAllWallets(false);
+                                                        }}
+                                                        className="sr-only"
+                                                    />
+                                                    <WalletPreview
+                                                        wallet={
+                                                            savedWallet || {
+                                                                id: `temp-${index}`,
+                                                                name: `Wallet ${index + 1}`,
+                                                                address,
+                                                                publicKey: '',
+                                                                walletType: 'mnemonic',
+                                                                walletInterfaceType: 'mnemonic',
+                                                                createdAt: Date.now(),
+                                                            }
+                                                        }
+                                                        isActive={selectedWallet === wallet}
+                                                        isCompact={false}
+                                                        onClick={() => {
+                                                            setSelectedWallet(wallet);
+                                                            setShowAllWallets(false);
+                                                        }}
+                                                    />
+                                                </label>
+                                            );
+                                        })}
+                                        <button
+                                            onClick={() => setShowAllWallets(false)}
+                                            className="w-full text-sm text-gray-600 hover:text-gray-700 py-2 text-center"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                ) : (
+                                    selectedWallet && (
+                                        <div>
+                                            <WalletPreview
+                                                wallet={
+                                                    walletDataMap.get(selectedWallet.getAddress()) || {
+                                                        id: 'temp-selected',
+                                                        name: 'Selected Wallet',
+                                                        address: selectedWallet.getAddress(),
+                                                        publicKey: '',
+                                                        walletType: 'mnemonic',
+                                                        walletInterfaceType: 'mnemonic',
+                                                        createdAt: Date.now(),
+                                                    }
+                                                }
+                                                isActive={true}
+                                                isCompact={true}
                                             />
-                                            <div className="flex items-center space-x-3 flex-1">
-                                                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">{index + 1}</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-900">
-                                                        Wallet {index + 1}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        {formatAddress(wallet.getAddress())}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            {selectedWallet === wallet && (
-                                                <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                                    <svg
-                                                        className="w-3 h-3 text-white"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 20 20"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </label>
-                                    ))}
-                                </div> */}
+                                        </div>
+                                    )
+                                )}
                             </div>
                         )}
 
