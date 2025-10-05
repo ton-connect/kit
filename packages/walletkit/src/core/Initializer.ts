@@ -22,7 +22,6 @@ import { RequestProcessor } from './RequestProcessor';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { createWalletV5R1 } from '../contracts/w5/WalletV5R1Adapter';
-// import { createWalletV4R2Ledger } from '../contracts/v4/WalletV4R2LedgerAdapter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
 import { WalletInitInterface } from '../types/wallet';
@@ -32,6 +31,7 @@ import { WalletNftClass } from './wallet/extensions/nft';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { createWalletV4R2 } from '../contracts/v4r2/WalletV4R2Adapter';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -291,10 +291,14 @@ export async function createWalletFromConfig(config: WalletInitConfig, tonClient
             wallet = await createWalletV5R1(config, {
                 tonClient,
             });
+        } else if (config.version === 'v4r2') {
+            wallet = await createWalletV4R2(config, {
+                tonClient,
+            });
         } else {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_CREATION_FAILED,
-                `Unsupported wallet version for mnemonic: ${config.version}`,
+                `Unsupported wallet version: ${config.version}`,
                 undefined,
                 { version: config.version, configType: 'mnemonic' },
             );

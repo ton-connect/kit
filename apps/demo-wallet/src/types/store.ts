@@ -100,13 +100,14 @@ export interface WalletSlice extends WalletState {
     initializeWalletKit: (network?: 'mainnet' | 'testnet') => Promise<ITonWalletKit | undefined>;
 
     // Multi-wallet actions
-    createWallet: (mnemonic: string[], name?: string) => Promise<string>; // Returns wallet ID
-    importWallet: (mnemonic: string[], name?: string) => Promise<string>; // Returns wallet ID
+    createWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>; // Returns wallet ID
+    importWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>; // Returns wallet ID
     createLedgerWallet: (name?: string) => Promise<string>; // Returns wallet ID
     switchWallet: (walletId: string) => Promise<void>;
     removeWallet: (walletId: string) => void;
     renameWallet: (walletId: string, newName: string) => void;
     loadAllWallets: () => Promise<void>;
+    loadSavedWalletsIntoKit: (walletKit: ITonWalletKit) => Promise<void>;
 
     // Legacy actions (for backward compatibility)
     loadWallet: () => Promise<void>;

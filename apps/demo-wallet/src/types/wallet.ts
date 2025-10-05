@@ -15,6 +15,7 @@ export interface SavedWallet {
     ledgerConfig?: LedgerConfig; // For Ledger wallets
     walletType: 'mnemonic' | 'signer' | 'ledger';
     walletInterfaceType: 'signer' | 'mnemonic' | 'ledger'; // How the wallet interfaces with signing
+    version?: 'v5r1' | 'v4r2'; // Wallet version
     createdAt: number;
 }
 

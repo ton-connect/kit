@@ -59,6 +59,8 @@ export interface WalletV5R1AdapterConfig {
     tonClient: ApiClient;
     /** Network */
     network: CHAIN;
+    /** Workchain */
+    workchain?: number;
 }
 
 /**
@@ -93,7 +95,7 @@ export class WalletV5R1Adapter implements WalletInitInterface {
             },
             {
                 code: WalletV5R1CodeCell,
-                workchain: 0,
+                workchain: config.workchain ?? 0,
                 client: this.client,
             },
         );
