@@ -12,6 +12,7 @@ import {
     NftsCard,
     RecentTransactions,
     JettonsCard,
+    WalletSwitcher,
 } from '../components';
 import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests } from '../stores';
 import { useTonWallet } from '../hooks';
@@ -31,7 +32,17 @@ export const WalletDashboard: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false);
     const navigate = useNavigate();
 
-    const { balance, address, getAvailableWallets, updateBalance } = useWallet();
+    const {
+        balance,
+        address,
+        getAvailableWallets,
+        updateBalance,
+        savedWallets,
+        activeWalletId,
+        switchWallet,
+        removeWallet,
+        renameWallet,
+    } = useWallet();
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -116,9 +127,42 @@ export const WalletDashboard: React.FC = () => {
         return () => clearInterval(interval);
     }, [updateBalance]);
 
+    const handleSwitchWallet = async (walletId: string) => {
+        try {
+            await switchWallet(walletId);
+        } catch (err) {
+            log.error('Failed to switch wallet:', err);
+        }
+    };
+
+    const handleRemoveWallet = (walletId: string) => {
+        try {
+            removeWallet(walletId);
+        } catch (err) {
+            log.error('Failed to remove wallet:', err);
+        }
+    };
+
+    const handleRenameWallet = (walletId: string, newName: string) => {
+        try {
+            renameWallet(walletId, newName);
+        } catch (err) {
+            log.error('Failed to rename wallet:', err);
+        }
+    };
+
     return (
         <Layout title="TON Wallet" showLogout>
             <div className="space-y-6">
+                {/* Wallet Switcher */}
+                <WalletSwitcher
+                    savedWallets={savedWallets}
+                    activeWalletId={activeWalletId}
+                    onSwitchWallet={handleSwitchWallet}
+                    onRemoveWallet={handleRemoveWallet}
+                    onRenameWallet={handleRenameWallet}
+                />
+
                 {/* Balance Card */}
                 <Card>
                     <div className="text-center space-y-4">

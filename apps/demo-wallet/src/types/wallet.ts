@@ -6,6 +6,18 @@ import type {
     ITonWalletKit,
 } from '@ton/walletkit';
 
+export interface SavedWallet {
+    id: string; // Unique identifier
+    name: string; // User-friendly name
+    address: string;
+    publicKey: string;
+    encryptedMnemonic?: string; // For mnemonic-based wallets
+    ledgerConfig?: LedgerConfig; // For Ledger wallets
+    walletType: 'mnemonic' | 'signer' | 'ledger';
+    walletInterfaceType: 'signer' | 'mnemonic' | 'ledger'; // How the wallet interfaces with signing
+    createdAt: number;
+}
+
 export interface WalletState {
     wallet: {
         // WalletKit instance
@@ -13,12 +25,17 @@ export interface WalletState {
 
         isAuthenticated: boolean;
         hasWallet: boolean;
+
+        // Multiple saved wallets
+        savedWallets: SavedWallet[];
+        activeWalletId?: string; // ID of currently active wallet
+
+        // Active wallet info (computed from savedWallets[activeWalletId])
         address?: string;
         balance?: string;
-        mnemonic?: string[];
         publicKey?: string;
 
-        // Transaction history
+        // Transaction history for active wallet
         transactions: PreviewTransaction[];
 
         // Walletkit instance and current wallet
@@ -35,12 +52,6 @@ export interface WalletState {
         // Sign data request state
         pendingSignDataRequest?: EventSignDataRequest;
         isSignDataModalOpen: boolean;
-
-        // Encrypted mnemonic stored in state
-        encryptedMnemonic?: string;
-
-        // Ledger configuration for re-initialization without device connection
-        ledgerConfig?: LedgerConfig;
 
         // Disconnect notifications
         disconnectedSessions: DisconnectNotification[];

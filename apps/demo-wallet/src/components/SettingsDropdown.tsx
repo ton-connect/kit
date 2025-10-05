@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useAuth, useWallet } from '../stores';
 import { MnemonicDisplay } from './MnemonicDisplay';
@@ -8,18 +9,8 @@ import { createComponentLogger } from '../utils/logger';
 const log = createComponentLogger('SettingsDropdown');
 
 export const SettingsDropdown: React.FC = () => {
-    const {
-        lock,
-        reset,
-        persistPassword,
-        setPersistPassword,
-        useWalletInterfaceType,
-        setUseWalletInterfaceType,
-        ledgerAccountNumber,
-        setLedgerAccountNumber,
-        network,
-        setNetwork,
-    } = useAuth();
+    const navigate = useNavigate();
+    const { lock, reset, persistPassword, setPersistPassword, network, setNetwork } = useAuth();
     const { getDecryptedMnemonic } = useWallet();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMnemonicModal, setShowMnemonicModal] = useState(false);
@@ -38,6 +29,11 @@ export const SettingsDropdown: React.FC = () => {
             reset();
             setIsDropdownOpen(false);
         }
+    };
+
+    const handleCreateNewWallet = () => {
+        setIsDropdownOpen(false);
+        navigate('/setup');
     };
 
     const handleViewRecoveryPhrase = async () => {
@@ -123,6 +119,20 @@ export const SettingsDropdown: React.FC = () => {
                             <div className="px-4 py-2 border-b border-gray-100">
                                 <h3 className="text-sm font-medium text-gray-700 mb-2">Wallet Actions</h3>
                                 <div className="space-y-1">
+                                    <button
+                                        onClick={handleCreateNewWallet}
+                                        className="w-full text-left px-2 py-1 text-sm text-blue-700 hover:bg-blue-50 rounded flex items-center space-x-2 font-medium"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M12 4v16m8-8H4"
+                                            />
+                                        </svg>
+                                        <span>Create New Wallet</span>
+                                    </button>
                                     <button
                                         onClick={handleViewRecoveryPhrase}
                                         disabled={isLoadingMnemonic}
@@ -256,55 +266,6 @@ export const SettingsDropdown: React.FC = () => {
                                             <option value="mainnet">Mainnet</option>
                                         </select>
                                     </div>
-
-                                    {/* Wallet Interface Type */}
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-700">
-                                                Wallet Interface Type
-                                            </label>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                Choose how the wallet handles signing operations
-                                            </p>
-                                        </div>
-                                        <select
-                                            className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                                            value={useWalletInterfaceType || 'mnemonic'}
-                                            onChange={(e) =>
-                                                setUseWalletInterfaceType(
-                                                    e.target.value as 'signer' | 'mnemonic' | 'ledger',
-                                                )
-                                            }
-                                        >
-                                            <option value="mnemonic">Mnemonic</option>
-                                            <option value="signer">Signer</option>
-                                            <option value="ledger">Ledger Hardware Wallet</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Ledger Account Number */}
-                                    {useWalletInterfaceType === 'ledger' && (
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-700">
-                                                    Ledger Account Number
-                                                </label>
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    Account number for Ledger derivation path
-                                                </p>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="2147483647"
-                                                className="px-3 py-1 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-                                                value={ledgerAccountNumber || 0}
-                                                onChange={(e) =>
-                                                    setLedgerAccountNumber(parseInt(e.target.value, 10) || 0)
-                                                }
-                                            />
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>

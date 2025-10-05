@@ -18,3 +18,4 @@ export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
 export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';
+export { WalletSwitcher } from './WalletSwitcher';
