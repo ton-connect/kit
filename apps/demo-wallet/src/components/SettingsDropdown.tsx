@@ -33,7 +33,7 @@ export const SettingsDropdown: React.FC = () => {
 
     const handleCreateNewWallet = () => {
         setIsDropdownOpen(false);
-        navigate('/setup');
+        navigate('/setup-wallet');
     };
 
     const handleViewRecoveryPhrase = async () => {

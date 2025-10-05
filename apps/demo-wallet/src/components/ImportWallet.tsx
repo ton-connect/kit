@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './Button';
 
 interface ImportWalletProps {
-    onImport: (mnemonic: string[]) => Promise<void>;
+    onImport: (mnemonic: string[], interfaceType: 'signer' | 'mnemonic') => Promise<void>;
     onBack: () => void;
     isLoading: boolean;
     error: string;
@@ -14,6 +14,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     const [activeInput, setActiveInput] = useState(0);
     const [pasteMode, setPasteMode] = useState(false);
     const [pasteText, setPasteText] = useState('');
+    const [interfaceType, setInterfaceType] = useState<'signer' | 'mnemonic'>('mnemonic');
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Initialize refs array
@@ -95,7 +96,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     const handleSubmit = () => {
         const nonEmptyWords = words.filter((word) => word.trim() !== '');
         if (nonEmptyWords.length >= 12) {
-            onImport(nonEmptyWords);
+            onImport(nonEmptyWords, interfaceType);
         }
     };
 
@@ -115,6 +116,46 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                 </h2>
                 <p className="mt-2 text-sm text-gray-600">
                     Enter your 12 or 24-word recovery phrase to restore your TON wallet.
+                </p>
+            </div>
+
+            {/* Wallet Interface Type Selector */}
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Wallet Interface Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setInterfaceType('mnemonic')}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
+                            interfaceType === 'mnemonic'
+                                ? 'bg-blue-50 text-blue-700 border-blue-500'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                        <div className="flex flex-col items-center space-y-1">
+                            <span className="font-semibold">Mnemonic</span>
+                            <span className="text-xs text-gray-500">Standard wallet</span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setInterfaceType('signer')}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
+                            interfaceType === 'signer'
+                                ? 'bg-blue-50 text-blue-700 border-blue-500'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                        <div className="flex flex-col items-center space-y-1">
+                            <span className="font-semibold">Signer</span>
+                            <span className="text-xs text-gray-500">Custom signing</span>
+                        </div>
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                    {interfaceType === 'mnemonic'
+                        ? 'Standard wallet interface that handles key derivation automatically.'
+                        : 'Custom signer interface that provides manual control over transaction signing.'}
                 </p>
             </div>
 

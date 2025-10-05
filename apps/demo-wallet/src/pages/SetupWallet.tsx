@@ -35,7 +35,7 @@ export const SetupWallet: React.FC = () => {
         }
     };
 
-    const handleImportWallet = async (mnemonicArray: string[]) => {
+    const handleImportWallet = async (mnemonicArray: string[], interfaceType: 'signer' | 'mnemonic') => {
         setError('');
         setIsLoading(true);
 
@@ -43,6 +43,9 @@ export const SetupWallet: React.FC = () => {
             if (mnemonicArray.length !== 12 && mnemonicArray.length !== 24) {
                 throw new Error('Mnemonic must be 12 or 24 words');
             }
+
+            // Set the wallet interface type before importing
+            setUseWalletInterfaceType(interfaceType);
 
             await importWallet(mnemonicArray);
             navigate('/wallet');
