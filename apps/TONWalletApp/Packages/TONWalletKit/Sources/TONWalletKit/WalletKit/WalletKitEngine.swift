@@ -93,10 +93,6 @@ extension WalletKitEngine: JSDynamicMember {
 
 extension WalletKitEngine: JSDynamicObject {
 
-    public func function(_ name: String) throws -> JSValue? {
-        try jsContext?.function(name)
-    }
-    
     public func object(_ name: String) throws -> JSValue? {
         try jsContext?.object(name)
     }

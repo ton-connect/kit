@@ -23,11 +23,10 @@ public protocol JSDynamicCallable {
 public protocol JSDynamicObject: JSDynamicMember {
     var jsContext: JSContext? { get }
 
-    func function(_ name: String) throws -> JSValue?
     func object(_ name: String) throws -> JSValue?
 }
 
-public class JSFunction: JSDynamicCallable, JSDynamicMember {
+public struct JSFunction: JSDynamicCallable, JSDynamicMember {
     let name: String
     let target: any JSDynamicObject
     
@@ -54,8 +53,8 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
         JSFunction(name: "\(name).\(member)", target: target)
     }
     
-    private func normalize(args: [Any]) -> [Any] {
-        args.map { element in
+    private func normalize(args: [Any]) throws -> [Any] {
+        try args.map { element in
             switch element {
             case let string as String:
                 return string
@@ -67,17 +66,12 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
                 if let element = element as? Encodable {
                     let encoder = JSONEncoder()
                     
-                    do {
-                        let data = try encoder.encode(element)
-                        let dictionary = try JSONSerialization.jsonObject(with: data)
-                        
-                        let obj = JSValue(object: dictionary, in: target.jsContext)
-                        return obj
-                    } catch {
-                        debugPrint("Unable to encode \(type(of: element))")
-                    }
+                    let data = try encoder.encode(element)
+                    let dictionary = try JSONSerialization.jsonObject(with: data)
+                    
+                    return JSValue(object: dictionary, in: target.jsContext)
                 }
-                return String(describing: element)
+                return element
             }
         }
     }
@@ -93,15 +87,11 @@ extension JSValue: JSDynamicMember {
 extension JSValue: JSDynamicObject {
     public var jsContext: JSContext? { context }
     
-    public func function(_ name: String) throws -> JSValue? {
-        try object(name)
-    }
-    
     public func object(_ name: String) throws -> JSValue? {
         let path = name.split(separator: ".")
         
         if path.isEmpty {
-            throw "Empty JS Function name provided"
+            throw "Empty JS Object name provided"
         }
         
         var object: JSValue? = self
@@ -156,15 +146,11 @@ extension JSContext: JSDynamicMember {
 extension JSContext: JSDynamicObject {
     public var jsContext: JSContext? { self }
     
-    public func function(_ name: String) throws -> JSValue? {
-        try object(name)
-    }
-    
     public func object(_ name: String) throws -> JSValue? {
         let path = name.split(separator: ".")
         
         if path.isEmpty {
-            throw "Empty JS Function name provided"
+            throw "Empty JS Object name provided"
         }
         
         let firstPath = path[0]
@@ -179,12 +165,6 @@ extension JSContext: JSDynamicObject {
         
         return try object.object(String(name.dropFirst(firstPath.count + 1)))
     }
-    
-    public func function(_ name: String) async throws -> JSValue {
-        objectForKeyedSubscript(name)
-    }
-    
-    public func then(_ onFulfilled: @escaping (JSValue) -> Void) {}
 }
 
 private extension JSContext {
@@ -222,7 +202,7 @@ private extension JSContext {
     }
     
     private func call(function: JSFunction, args: [Any], on promiseWrapper: JSValue) async throws -> JSValue {
-        guard let targetFunction = try? function.target.function(function.name) else {
+        guard let targetFunction = try? function.target.object(function.name) else {
             throw "JSFunctionError: No target function found for name \(function.name)"
         }
         
