@@ -119,13 +119,14 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                             jettonTransfers={request.preview.moneyFlow.jettonTransfers}
                                             ourAddress={request.preview.moneyFlow.ourAddress}
                                             tonDifference={
-                                                request.preview.moneyFlow.inputs - request.preview.moneyFlow.outputs
+                                                BigInt(request.preview.moneyFlow.inputs) -
+                                                BigInt(request.preview.moneyFlow.outputs)
                                             }
                                         />
 
                                         {/* No transfers message */}
-                                        {request.preview.moneyFlow.outputs === 0n &&
-                                            request.preview.moneyFlow.inputs === 0n &&
+                                        {request.preview.moneyFlow.outputs === '0' &&
+                                            request.preview.moneyFlow.inputs === '0' &&
                                             request.preview.moneyFlow.jettonTransfers.length === 0 && (
                                                 <div className="border rounded-lg p-3 bg-gray-50">
                                                     <p className="text-sm text-gray-600 text-center">
@@ -291,7 +292,7 @@ export const JettonFlow = memo(function JettonFlow({
     tonDifference,
     ourAddress,
 }: {
-    jettonTransfers: { from: Address; to: Address; jetton: Address | null; amount: bigint }[];
+    jettonTransfers: { from: Address; to: Address; jetton: Address | null; amount: string }[];
     ourAddress: Address | null;
     tonDifference: bigint;
 }) {
@@ -315,10 +316,10 @@ export const JettonFlow = memo(function JettonFlow({
             // Add to balance if receiving tokens (to our address)
             // Subtract from balance if sending tokens (from our address)
             if (ourAddress && transfer.to.equals(ourAddress)) {
-                acc[rawKey] += transfer.amount;
+                acc[rawKey] += BigInt(transfer.amount);
             }
             if (ourAddress && transfer.from.equals(ourAddress)) {
-                acc[rawKey] -= transfer.amount;
+                acc[rawKey] -= BigInt(transfer.amount);
             }
 
             return acc;

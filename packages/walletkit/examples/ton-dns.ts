@@ -1,4 +1,4 @@
-import { ApiClientToncenter } from '../src';
+import { ApiClientToncenter, CHAIN } from '../src';
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -10,6 +10,7 @@ const endpoint = 'https://toncenter.com';
 const tonClient = new ApiClientToncenter({
     endpoint,
     apiKey,
+    network: CHAIN.MAINNET,
 });
 
 async function main() {

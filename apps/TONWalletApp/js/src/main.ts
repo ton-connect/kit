@@ -99,8 +99,8 @@ export async function main() {
                 },
                 {
                     name: 'SignData',
-                    types: ['text', 'binary', 'cell']
-                }
+                    types: ['text', 'binary', 'cell'],
+                },
             ],
         },
         // apiUrl: 'https://tonapi.io',
