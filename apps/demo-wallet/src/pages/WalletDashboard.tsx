@@ -326,6 +326,7 @@ export const WalletDashboard: React.FC = () => {
             {pendingTransactionRequest && (
                 <TransactionRequestModal
                     request={pendingTransactionRequest}
+                    savedWallets={savedWallets}
                     isOpen={isTransactionModalOpen}
                     onApprove={approveTransactionRequest}
                     onReject={rejectTransactionRequest}
@@ -336,6 +337,7 @@ export const WalletDashboard: React.FC = () => {
             {pendingSignDataRequest && (
                 <SignDataRequestModal
                     request={pendingSignDataRequest}
+                    savedWallets={savedWallets}
                     isOpen={isSignDataModalOpen}
                     onApprove={approveSignDataRequest}
                     onReject={rejectSignDataRequest}

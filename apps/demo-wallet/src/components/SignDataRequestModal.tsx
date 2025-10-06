@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { EventSignDataRequest } from '@ton/walletkit';
 
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
+import { WalletPreview } from './WalletPreview';
+import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 
 // Create logger for sign data request modal
@@ -11,13 +13,26 @@ const log = createComponentLogger('SignDataRequestModal');
 
 interface SignDataRequestModalProps {
     request: EventSignDataRequest;
+    savedWallets: SavedWallet[];
     isOpen: boolean;
     onApprove: () => void;
     onReject: (reason?: string) => void;
 }
 
-export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
+export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
+    request,
+    savedWallets,
+    isOpen,
+    onApprove,
+    onReject,
+}) => {
     const [isLoading, setIsLoading] = useState(false);
+
+    // Find the wallet being used for this sign data request
+    const currentWallet = useMemo(() => {
+        if (!request.walletAddress) return null;
+        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+    }, [savedWallets, request.walletAddress]);
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -32,11 +47,6 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
 
     const handleReject = () => {
         onReject('User rejected the sign data request');
-    };
-
-    const formatAddress = (address: string): string => {
-        if (!address) return '';
-        return `${address.slice(0, 8)}...${address.slice(-8)}`;
     };
 
     const renderDataPreview = () => {
@@ -124,15 +134,12 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({ requ
                             description={request.dAppInfo?.description}
                         />
 
-                        {/* Request Information */}
-
-                        {/* Wallet Address */}
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-md text-gray-600">Wallet:</span>
-                            <span className="text-md font-mono text-black">
-                                {formatAddress(request.walletAddress ?? '')}
-                            </span>
-                        </div>
+                        {/* Wallet Information */}
+                        {currentWallet && (
+                            <div>
+                                <WalletPreview wallet={currentWallet} isActive={true} isCompact={true} />
+                            </div>
+                        )}
 
                         {/* Data Preview */}
                         <div>

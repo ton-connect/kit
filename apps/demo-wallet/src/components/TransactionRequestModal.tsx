@@ -5,6 +5,8 @@ import { Address } from '@ton/core';
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
+import { WalletPreview } from './WalletPreview';
+import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
 import { useWalletKit } from '../stores';
@@ -13,6 +15,7 @@ const log = createComponentLogger('TransactionRequestModal');
 
 interface TransactionRequestModalProps {
     request: EventTransactionRequest;
+    savedWallets: SavedWallet[];
     isOpen: boolean;
     onApprove: () => void;
     onReject: (reason?: string) => void;
@@ -20,11 +23,18 @@ interface TransactionRequestModalProps {
 
 export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = ({
     request,
+    savedWallets,
     isOpen,
     onApprove,
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+
+    // Find the wallet being used for this transaction
+    const currentWallet = useMemo(() => {
+        if (!request.walletAddress) return null;
+        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+    }, [savedWallets, request.walletAddress]);
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -39,16 +49,6 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
     const handleReject = () => {
         onReject('User rejected the transaction');
-    };
-
-    const formatAddress = (address: string | Address): string => {
-        try {
-            const addr = typeof address === 'string' ? address : address.toString();
-            if (!addr) return '';
-            return `${addr.slice(0, 8)}...${addr.slice(-8)}`;
-        } catch {
-            return '';
-        }
     };
 
     if (!isOpen) return null;
@@ -76,17 +76,17 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             description={request.dAppInfo?.description}
                         />
 
+                        {/* Wallet Information */}
+                        {currentWallet && (
+                            <div>
+                                {/* <h4 className="font-medium text-gray-900 mb-3">Signing with:</h4> */}
+                                <WalletPreview wallet={currentWallet} isActive={true} isCompact={true} />
+                            </div>
+                        )}
+
                         {/* Transaction Summary */}
                         <div className="border rounded-lg p-4 bg-gray-50">
                             <h3 className="font-semibold text-gray-900 mb-3">Transaction Summary</h3>
-
-                            {/* Sender */}
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-gray-600">From:</span>
-                                <span className="text-sm font-mono text-black">
-                                    {formatAddress(request.walletAddress ?? '')}
-                                </span>
-                            </div>
 
                             {/* Network */}
                             <div className="flex justify-between items-center mb-2">
