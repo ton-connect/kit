@@ -14,6 +14,7 @@ export default defineConfig({
             external: ['buffer'],
         },
         sourcemap: true,
+        minify: false,
     },
     // Only needed for native build
     // resolve: {

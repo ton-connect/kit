@@ -309,10 +309,15 @@ export class BridgeManager {
                     session: new SessionCrypto(),
                 });
             }
+
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
                 listener: this.queueBridgeEvent.bind(this),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                errorListener: (error: any) => {
+                    log.error('Bridge listener error', { error: error.toString() });
+                },
                 options: {
                     lastEventId: this.lastEventId,
                     // heartbeatReconnectIntervalMs: this.config.reconnectInterval,
@@ -322,7 +327,7 @@ export class BridgeManager {
             this.reconnectAttempts = 0;
             log.info('Bridge connected successfully');
         } catch (error) {
-            log.error('Bridge connection failed', { error });
+            log.error('Bridge connection failed', { error: error?.toString() });
             // Attempt reconnection if not at max attempts
             if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
                 this.reconnectAttempts++;

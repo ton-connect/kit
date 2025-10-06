@@ -151,8 +151,9 @@ export class TonWalletKit implements ITonWalletKit {
             await this.eventProcessor.startNoWalletProcessing();
 
             this.isInitialized = true;
-        } catch (error) {
-            log.error('TonWalletKit initialization failed', { error });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            log.error('TonWalletKit initialization failed', { error: error?.toString() });
             throw error;
         }
     }
@@ -238,7 +239,6 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
         const wallet = await createWalletFromConfig(walletConfig, this.tonClient);
         const walletAdded = await this.walletManager.addWallet(wallet);
-
         // wallet already exists
         if (!walletAdded) {
             return undefined;
