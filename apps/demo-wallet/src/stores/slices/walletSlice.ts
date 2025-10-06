@@ -445,6 +445,15 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
             // Get wallet info
             const address = wallet.getAddress();
+
+            // Check if wallet with this address already exists
+            const existingWallet = state.wallet.savedWallets.find((w) => w.address === address);
+            if (existingWallet) {
+                log.warn(`Wallet with address ${address} already exists`);
+                state.wallet.walletKit.removeWallet(wallet);
+                throw new Error('A wallet with this address already exists');
+            }
+
             const balance = await wallet.getBalance();
             const publicKey = Array.from(wallet.publicKey)
                 .map((b) => b.toString(16).padStart(2, '0'))
@@ -479,7 +488,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return walletId;
         } catch (error) {
             log.error('Error creating wallet:', error);
-            throw new Error('Failed to create wallet');
+            throw error instanceof Error ? error : new Error('Failed to create wallet');
         }
     },
 
@@ -526,6 +535,14 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
             // Get wallet info
             const address = wallet.getAddress();
+
+            // Check if wallet with this address already exists
+            const existingWallet = state.wallet.savedWallets.find((w) => w.address === address);
+            if (existingWallet) {
+                log.warn(`Wallet with address ${address} already exists`);
+                throw new Error('A wallet with this address already exists');
+            }
+
             const balance = await wallet.getBalance();
             const publicKey = Array.from(wallet.publicKey)
                 .map((b) => b.toString(16).padStart(2, '0'))
@@ -572,7 +589,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return walletId;
         } catch (error) {
             log.error('Error creating Ledger wallet:', error);
-            throw new Error('Failed to create Ledger wallet');
+            throw error instanceof Error ? error : new Error('Failed to create Ledger wallet');
         }
     },
 
