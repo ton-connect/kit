@@ -11,7 +11,7 @@ const test = testWith(
         mnemonic:
             process.env.WALLET_MNEMONIC ||
             'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-        appUrl: 'http://localhost:5173/e2e',
+        appUrl: process.env.DAPP_URL || 'https://allure-test-runner.vercel.app/e2e '
     }, 0),
 );
 
