@@ -18,22 +18,20 @@ public class TONWallet {
     }
     
     public static func add(data: TONWalletData) async throws -> TONWallet {
-        TONWalletKit.addWallet(data)
-        
-        guard let wallet = await TONWalletKit.getWallets()?.then().atIndex(0) else {
-            throw "No wallet was added"
+        guard let wallet = try await TONWalletKit.addWallet(data) else {
+            throw "No wallet added"
         }
         
-        let address = await wallet.getAddress()?.toString()
+        let address = try await wallet.getAddress()?.toString()
         
         return TONWallet(wallet: wallet, address: address)
     }
     
     public func balance() async throws -> String? {
-        await wallet.getBalance()?.then().toString()
+        try await wallet.getBalance()?.toString()
     }
     
     public func connect(url: String) async throws {
-        await TONWalletKit.handleTonConnectUrl(url)
+        try await TONWalletKit.handleTonConnectUrl(url)
     }
 }

@@ -22,10 +22,10 @@ public class TONWalletTransactionRequest {
     }
     
     public func approve() async throws {
-        await walletKit.approveTransactionRequest(event)?.then()
+        await try walletKit.approveTransactionRequest(event)
     }
     
     public func reject(reason: String? = nil) async throws {
-        await walletKit.rejectTransactionRequest(event)?.then()
+        await try walletKit.rejectTransactionRequest(event)
     }
 }
