@@ -28,8 +28,7 @@ export class WalletManager {
      * Get all wallets as array
      */
     getWallets(): WalletInterface[] {
-        const wallets = Array.from(this.wallets.values());
-        return wallets;
+        return Array.from(this.wallets.values());
     }
 
     /**

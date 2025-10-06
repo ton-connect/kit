@@ -16,14 +16,6 @@ export default defineConfig({
         sourcemap: true,
         minify: false,
     },
-    resolve: {
-        alias: [
-            {
-                find: '@ton/crypto-primitives',
-                replacement: require.resolve('@ton/crypto-primitives/dist/native.js'),
-            },
-        ],
-    },
     // Only needed for native build
     // resolve: {
     //     alias: [

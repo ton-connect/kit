@@ -316,7 +316,7 @@ export class BridgeManager {
                 listener: this.queueBridgeEvent.bind(this),
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 errorListener: (error: any) => {
-                    log.error('Bridge error listener', { error: error.toString() });
+                    log.error('Bridge listener error', { error: error.toString() });
                 },
                 options: {
                     lastEventId: this.lastEventId,

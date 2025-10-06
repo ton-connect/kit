@@ -26,9 +26,3 @@ function injectTonConnectBridge() {
 }
 
 injectTonConnectBridge();
-
-window.postMessage({
-    type: 'START_INJECTED_BRIDGE',
-    // eslint-disable-next-line no-undef
-    extensionId: chrome.runtime.id,
-});

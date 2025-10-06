@@ -97,14 +97,6 @@ export class TonWalletKit implements ITonWalletKit {
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 
-        // this.initializationPromise
-        //     .then((v) => {
-        //         console.log('initializationPromise done', v);
-        //     })
-        //     .catch((error) => {
-        //         console.log('initializationPromise error', error);
-        //     });
-
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
                 log.error('Domain is required for restore connection');
