@@ -1043,10 +1043,13 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.pendingTransactionRequest,
             );
             if (approveResult.success) {
-                set((state) => {
-                    state.wallet.pendingTransactionRequest = undefined;
-                    state.wallet.isTransactionModalOpen = false;
-                });
+                // Delay closing the modal to allow success animation to show
+                setTimeout(() => {
+                    set((state) => {
+                        state.wallet.pendingTransactionRequest = undefined;
+                        state.wallet.isTransactionModalOpen = false;
+                    });
+                }, 3000); // 3 second delay for success animation
             } else {
                 log.error('Failed to approve transaction request:', approveResult);
                 if (approveResult.error?.message?.toLocaleLowerCase()?.includes('ledger')) {
@@ -1113,10 +1116,13 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         try {
             await state.wallet.walletKit.signDataRequest(state.wallet.pendingSignDataRequest);
 
-            set((state) => {
-                state.wallet.pendingSignDataRequest = undefined;
-                state.wallet.isSignDataModalOpen = false;
-            });
+            // Delay closing the modal to allow success animation to show
+            setTimeout(() => {
+                set((state) => {
+                    state.wallet.pendingSignDataRequest = undefined;
+                    state.wallet.isSignDataModalOpen = false;
+                });
+            }, 3000); // 3 second delay for success animation
         } catch (error) {
             log.error('Failed to approve sign data request:', error);
             throw error;

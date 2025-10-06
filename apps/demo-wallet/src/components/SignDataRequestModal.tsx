@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { EventSignDataRequest } from '@ton/walletkit';
 
 import { Button } from './Button';
@@ -29,6 +29,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const { holdToSign } = useAuth();
 
     // Find the wallet being used for this sign data request
@@ -37,13 +38,28 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
         return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
     }, [savedWallets, request.walletAddress]);
 
+    // Reset success state when modal closes/opens
+    useEffect(() => {
+        if (!isOpen) {
+            setShowSuccess(false);
+            setIsLoading(false);
+        }
+    }, [isOpen]);
+
     const handleApprove = async () => {
         setIsLoading(true);
         try {
+            // First, perform the actual signing operation
             await onApprove();
+
+            // If successful, show success animation
+            setIsLoading(false);
+            setShowSuccess(true);
+
+            // The parent will handle closing the modal after it sees the request is completed
+            // But we keep showing the success state for visual feedback
         } catch (error) {
             log.error('Failed to approve sign data request:', error);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -116,6 +132,59 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
 
     if (!isOpen) return null;
 
+    // Success state view
+    if (showSuccess) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <style>{`
+                    @keyframes scale-in {
+                        from {
+                            transform: scale(0.8);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+                    .success-card {
+                        animation: scale-in 0.3s ease-out;
+                    }
+                `}</style>
+                <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-lg max-w-md w-full p-8 relative overflow-hidden success-card">
+                    {/* Success Content */}
+                    <div className="relative z-10 text-center text-white space-y-6">
+                        {/* Success Icon */}
+                        <div className="flex justify-center">
+                            <div className="bg-white rounded-full p-4">
+                                <svg
+                                    className="w-16 h-16 text-green-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={3}
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Success Message */}
+                        <div>
+                            <h2 className="text-3xl font-bold mb-2">Success!</h2>
+                            <p className="text-green-50 text-lg">Data signed successfully</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Normal request view
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
