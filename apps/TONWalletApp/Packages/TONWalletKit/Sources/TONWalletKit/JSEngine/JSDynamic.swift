@@ -31,8 +31,8 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
     let name: String
     let target: any JSDynamicObject
     
-    init(functionName: String, target: any JSDynamicObject) {
-        self.name = functionName
+    init(name: String, target: any JSDynamicObject) {
+        self.name = name
         self.target = target
     }
     
@@ -51,7 +51,7 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
     }
     
     public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: "\(name).\(member)", target: target)
+        JSFunction(name: "\(name).\(member)", target: target)
     }
     
     private func normalize(args: [Any]) -> [Any] {
@@ -86,7 +86,7 @@ public class JSFunction: JSDynamicCallable, JSDynamicMember {
 extension JSValue: JSDynamicMember {
     
     public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: member, target: self)
+        JSFunction(name: member, target: self)
     }
 }
 
@@ -149,7 +149,7 @@ extension JSValue: JSDynamicObject {
 extension JSContext: JSDynamicMember {
     
     public subscript(dynamicMember member: String) -> JSFunction {
-        JSFunction(functionName: member, target: self)
+        JSFunction(name: member, target: self)
     }
 }
 

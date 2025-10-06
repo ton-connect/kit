@@ -85,7 +85,7 @@ extension WalletKitEngine: JSDynamicMember {
     
     public subscript(dynamicMember member: String) -> JSFunction {
         if let walletKit = try? object("walletKit") {
-            return JSFunction(functionName: member, target: walletKit)
+            return JSFunction(name: member, target: walletKit)
         }
         fatalError("WalletKitEngine not inited in JS")
     }
