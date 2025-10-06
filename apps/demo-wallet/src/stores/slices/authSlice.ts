@@ -12,6 +12,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         currentPassword: undefined,
         passwordHash: undefined,
         persistPassword: false,
+        holdToSign: true, // Default to true for better security
         useWalletInterfaceType: 'mnemonic',
         ledgerAccountNumber: 0,
         network: 'testnet', // Default to testnet for development
@@ -97,6 +98,12 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
             if (!persist) {
                 state.auth.currentPassword = undefined;
             }
+        });
+    },
+
+    setHoldToSign: (enabled: boolean) => {
+        set((state) => {
+            state.auth.holdToSign = enabled;
         });
     },
 

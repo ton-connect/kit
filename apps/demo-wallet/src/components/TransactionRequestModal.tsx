@@ -6,10 +6,11 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
+import { HoldToSignButton } from './HoldToSignButton';
 import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-import { useWalletKit } from '../stores';
+import { useWalletKit, useAuth } from '../stores';
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
 
@@ -29,6 +30,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const { holdToSign } = useAuth();
 
     // Find the wallet being used for this transaction
     const currentWallet = useMemo(() => {
@@ -175,14 +177,23 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
                                 Reject
                             </Button>
-                            <Button
-                                onClick={handleApprove}
-                                isLoading={isLoading}
-                                disabled={isLoading}
-                                className="flex-1"
-                            >
-                                Approve & Sign
-                            </Button>
+                            {holdToSign ? (
+                                <HoldToSignButton
+                                    onComplete={handleApprove}
+                                    isLoading={isLoading}
+                                    disabled={isLoading}
+                                    holdDuration={3000}
+                                />
+                            ) : (
+                                <Button
+                                    onClick={handleApprove}
+                                    isLoading={isLoading}
+                                    disabled={isLoading}
+                                    className="flex-1"
+                                >
+                                    Approve & Sign
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Card>

@@ -66,6 +66,7 @@ export interface AuthState {
         isPasswordSet?: boolean;
         isUnlocked?: boolean;
         persistPassword?: boolean; // Setting to persist password between reloads
+        holdToSign?: boolean; // Setting to require holding button to sign transactions
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger'; // Setting for wallet interface type
         ledgerAccountNumber?: number; // Account number for Ledger derivation path
         network?: 'mainnet' | 'testnet'; // Network selection (mainnet or testnet)

@@ -22,6 +22,7 @@ export interface AuthSlice extends AuthState {
     lock: () => void;
     reset: () => void;
     setPersistPassword: (persist: boolean) => void;
+    setHoldToSign: (enabled: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
     setNetwork: (network: 'mainnet' | 'testnet') => Promise<void>;

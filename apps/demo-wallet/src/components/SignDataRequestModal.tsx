@@ -5,8 +5,10 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
+import { HoldToSignButton } from './HoldToSignButton';
 import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
+import { useAuth } from '../stores';
 
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
@@ -27,6 +29,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
     onReject,
 }) => {
     const [isLoading, setIsLoading] = useState(false);
+    const { holdToSign } = useAuth();
 
     // Find the wallet being used for this sign data request
     const currentWallet = useMemo(() => {
@@ -179,15 +182,24 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
                             >
                                 Reject
                             </Button>
-                            <Button
-                                data-test-id="sign-data-approve"
-                                onClick={handleApprove}
-                                isLoading={isLoading}
-                                disabled={isLoading}
-                                className="flex-1"
-                            >
-                                Sign Data
-                            </Button>
+                            {holdToSign ? (
+                                <HoldToSignButton
+                                    onComplete={handleApprove}
+                                    isLoading={isLoading}
+                                    disabled={isLoading}
+                                    holdDuration={3000}
+                                />
+                            ) : (
+                                <Button
+                                    data-test-id="sign-data-approve"
+                                    onClick={handleApprove}
+                                    isLoading={isLoading}
+                                    disabled={isLoading}
+                                    className="flex-1"
+                                >
+                                    Sign Data ('regular')
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </Card>

@@ -10,7 +10,8 @@ const log = createComponentLogger('SettingsDropdown');
 
 export const SettingsDropdown: React.FC = () => {
     const navigate = useNavigate();
-    const { lock, reset, persistPassword, setPersistPassword, network, setNetwork } = useAuth();
+    const { lock, reset, persistPassword, setPersistPassword, holdToSign, setHoldToSign, network, setNetwork } =
+        useAuth();
     const { getDecryptedMnemonic } = useWallet();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMnemonicModal, setShowMnemonicModal] = useState(false);
@@ -189,25 +190,23 @@ export const SettingsDropdown: React.FC = () => {
                             <div className="px-4 py-3">
                                 <h3 className="text-sm font-medium text-gray-700 mb-3">Settings</h3>
                                 <div className="space-y-4">
-                                    {/* Remember Password */}
+                                    {/* Auto-Lock */}
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <label className="text-sm font-medium text-gray-700">
-                                                Remember Password
-                                            </label>
+                                            <label className="text-sm font-medium text-gray-700">Auto-Lock</label>
                                             <p className="text-xs text-gray-500 mt-1">
-                                                Keep wallet unlocked between app reloads
+                                                Lock wallet on app reload (more secure)
                                             </p>
                                         </div>
                                         <label
-                                            data-test-id="password-remember"
+                                            data-test-id="auto-lock"
                                             className="relative inline-flex items-center cursor-pointer"
                                         >
                                             <input
                                                 type="checkbox"
                                                 className="sr-only peer"
-                                                checked={persistPassword || false}
-                                                onChange={(e) => setPersistPassword(e.target.checked)}
+                                                checked={!persistPassword}
+                                                onChange={(e) => setPersistPassword(!e.target.checked)}
                                             />
                                             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                                         </label>
@@ -231,9 +230,58 @@ export const SettingsDropdown: React.FC = () => {
                                                 </div>
                                                 <div className="ml-3">
                                                     <p className="text-sm text-yellow-800">
-                                                        <strong>Security Notice:</strong> Storing your password locally
-                                                        is not safe, do not use this feature for anything other than
-                                                        development.
+                                                        <strong>Security Notice:</strong> Auto-lock is disabled. Your
+                                                        password is stored locally and the wallet stays unlocked. Only
+                                                        use for development.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Hold to Sign */}
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-700">Hold to Sign</label>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Require holding button for 3 seconds to approve transactions
+                                            </p>
+                                        </div>
+                                        <label
+                                            data-test-id="hold-to-sign"
+                                            className="relative inline-flex items-center cursor-pointer"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={holdToSign ?? true}
+                                                onChange={(e) => setHoldToSign(e.target.checked)}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+
+                                    {!holdToSign && (
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                                            <div className="flex">
+                                                <div className="flex-shrink-0">
+                                                    <svg
+                                                        className="h-5 w-5 text-yellow-400"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                                            clipRule="evenodd"
+                                                        />
+                                                    </svg>
+                                                </div>
+                                                <div className="ml-3">
+                                                    <p className="text-sm text-yellow-800">
+                                                        <strong>Security Notice:</strong> Disabling hold-to-sign makes
+                                                        it easier to accidentally approve transactions. Only use for
+                                                        testing.
                                                     </p>
                                                 </div>
                                             </div>
