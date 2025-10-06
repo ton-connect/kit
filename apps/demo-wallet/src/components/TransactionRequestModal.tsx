@@ -199,7 +199,7 @@ function useJettonInfo(jettonAddress: Address | string | null) {
             setJettonInfo(null);
             return;
         }
-        const jettonInfo = walletKit?.jettons.getJettonInfo(jettonAddress.toString());
+        const jettonInfo = walletKit?.jettons?.getJettonInfo(jettonAddress.toString());
         setJettonInfo(jettonInfo ?? null);
     }, [jettonAddress, walletKit]);
     return jettonInfo;
@@ -326,7 +326,7 @@ export const JettonFlow = memo(function JettonFlow({
 
             return acc;
         }, {});
-    }, [jettonTransfers, ourAddress?.toRawString()]);
+    }, [jettonTransfers, ourAddress?.toRawString?.()]);
 
     return (
         <div className="mt-2">

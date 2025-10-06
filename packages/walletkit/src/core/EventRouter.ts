@@ -2,7 +2,13 @@
 
 import { WalletResponseTemplateError } from '@tonconnect/protocol';
 
-import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest, EventDisconnect } from '../types';
+import type {
+    EventConnectRequest,
+    EventTransactionRequest,
+    EventSignDataRequest,
+    EventDisconnect,
+    TonWalletKitOptions,
+} from '../types';
 import type { RawBridgeEvent, EventHandler, EventCallback, EventType, BridgeEventBase } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
@@ -15,6 +21,7 @@ import { SessionManager } from './SessionManager';
 import { WalletManager } from './WalletManager';
 import { EventRequestError } from '../types/events';
 import { BridgeManager } from './BridgeManager';
+import { AnalyticsApi } from '../analytics/sender';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -33,7 +40,10 @@ export class EventRouter {
         private eventEmitter: EventEmitter,
         private sessionManager: SessionManager,
         private walletManager: WalletManager,
+        private config: TonWalletKitOptions,
+        private analyticsApi?: AnalyticsApi,
     ) {
+        this.config = config;
         this.setupHandlers();
     }
 
@@ -152,13 +162,15 @@ export class EventRouter {
      */
     private setupHandlers(): void {
         this.handlers = [
-            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this)),
+            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.config, this.analyticsApi),
             new TransactionHandler(
                 this.notifyTransactionRequestCallbacks.bind(this),
                 this.eventEmitter,
+                this.config,
                 this.walletManager,
+                this.analyticsApi,
             ),
-            new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this)),
+            new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this), this.config, this.analyticsApi),
             new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this), this.sessionManager),
         ];
     }

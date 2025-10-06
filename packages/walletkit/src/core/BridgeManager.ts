@@ -12,6 +12,10 @@ import { EventRouter } from './EventRouter';
 import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload, WalletInfo } from '../types/jsBridge';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { AnalyticsApi } from '../analytics/sender';
+import { getUnixtime } from '../utils/time';
+import { TonWalletKitOptions } from '../types/config';
+import { getEventsSubsystem, getVersion } from '../utils/version';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -24,6 +28,7 @@ export class BridgeManager {
     private reconnectAttempts = 0;
     private lastEventId?: string;
     private storageKey = 'bridge_last_event_id';
+    private walletKitConfig: TonWalletKitOptions;
 
     // Event processing queue and concurrency control
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,6 +39,7 @@ export class BridgeManager {
     private eventStore: EventStore;
     private eventRouter: EventRouter;
     private eventEmitter?: EventEmitter;
+    private analyticsApi?: AnalyticsApi;
 
     private requestProcessingTimeoutId?: number;
 
@@ -44,7 +50,9 @@ export class BridgeManager {
         storageAdapter: StorageAdapter,
         eventStore: EventStore,
         eventRouter: EventRouter,
+        walletKitConfig: TonWalletKitOptions,
         eventEmitter?: EventEmitter,
+        analyticsApi?: AnalyticsApi,
     ) {
         const isManifestJsBridge = walletManifest && 'jsBridgeKey' in walletManifest ? true : false;
         const manifestJsBridgeKey =
@@ -68,6 +76,8 @@ export class BridgeManager {
         this.eventStore = eventStore;
         this.eventEmitter = eventEmitter;
         this.eventRouter = eventRouter;
+        this.analyticsApi = analyticsApi;
+        this.walletKitConfig = walletKitConfig;
     }
 
     /**
@@ -300,6 +310,7 @@ export class BridgeManager {
             return;
         }
 
+        const connectTraceId = uuidv7();
         try {
             // Prepare clients array for existing sessions
             const clients = await this.getClients();
@@ -310,6 +321,21 @@ export class BridgeManager {
                 });
             }
 
+            // Send bridge-client-connect-started event
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'bridge-connect-started',
+                    client_environment: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    bridge_url: this.config.bridgeUrl,
+                    client_timestamp: getUnixtime(),
+                    event_id: uuidv7(),
+                    network_id: this.walletKitConfig.network,
+                    trace_id: connectTraceId,
+                    version: getVersion(),
+                },
+            ]);
+
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
                 clients,
@@ -317,6 +343,23 @@ export class BridgeManager {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 errorListener: (error: any) => {
                     log.error('Bridge listener error', { error: error.toString() });
+                    // Send bridge-client-connect-error event for listener errors
+                    this.analyticsApi?.sendEvents([
+                        {
+                            event_name: 'bridge-connect-error',
+                            client_environment: 'wallet',
+                            subsystem: getEventsSubsystem(),
+                            bridge_url: this.config.bridgeUrl,
+                            error_message: error?.toString() || 'Unknown error',
+                            event_id: uuidv7(),
+                            trace_id: error?.traceId ?? connectTraceId,
+                            version: getVersion(),
+                            client_id: error?.clientId,
+                            client_timestamp: getUnixtime(),
+                            error_code: error?.errorCode,
+                            network_id: this.walletKitConfig.network,
+                        },
+                    ]);
                 },
                 options: {
                     lastEventId: this.lastEventId,
@@ -326,8 +369,43 @@ export class BridgeManager {
             this.isConnected = true;
             this.reconnectAttempts = 0;
             log.info('Bridge connected successfully');
-        } catch (error) {
+
+            // Send bridge-client-connect-established event
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'bridge-connect-established',
+                    client_environment: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    bridge_url: this.config.bridgeUrl,
+                    client_timestamp: getUnixtime(),
+                    event_id: uuidv7(),
+                    network_id: this.walletKitConfig.network,
+                    trace_id: connectTraceId,
+                    version: getVersion(),
+                },
+            ]);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
             log.error('Bridge connection failed', { error: error?.toString() });
+
+            // Send bridge-client-connect-error event
+            this.analyticsApi?.sendEvents([
+                {
+                    event_name: 'bridge-connect-error',
+                    client_environment: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    bridge_url: this.config.bridgeUrl,
+                    error_message: error?.toString() || 'Unknown error',
+                    event_id: uuidv7(),
+                    trace_id: error?.traceId ?? connectTraceId,
+                    version: getVersion(),
+                    client_id: error?.clientId,
+                    client_timestamp: getUnixtime(),
+                    error_code: error?.errorCode,
+                    network_id: this.walletKitConfig.network,
+                },
+            ]);
+
             // Attempt reconnection if not at max attempts
             if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
                 this.reconnectAttempts++;

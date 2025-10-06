@@ -177,7 +177,13 @@ export class Initializer {
         await sessionManager.initialize();
 
         const eventStore = new StorageEventStore(storageAdapter);
-        const eventRouter = new EventRouter(this.eventEmitter, sessionManager, walletManager);
+        const eventRouter = new EventRouter(
+            this.eventEmitter,
+            sessionManager,
+            walletManager,
+            this.config,
+            this.analyticsApi,
+        );
 
         const bridgeManager = new BridgeManager(
             options?.walletManifest,
@@ -186,7 +192,9 @@ export class Initializer {
             storageAdapter,
             eventStore,
             eventRouter,
+            options,
             this.eventEmitter,
+            this.analyticsApi,
         );
         eventRouter.setBridgeManager(bridgeManager);
         await bridgeManager.start();

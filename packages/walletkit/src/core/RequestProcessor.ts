@@ -10,6 +10,7 @@ import {
     SendTransactionRpcResponseError,
     SendTransactionRpcResponseSuccess,
     SignDataRpcResponseSuccess,
+    TonProofItemReplySuccess,
 } from '@tonconnect/protocol';
 
 import type {
@@ -33,6 +34,10 @@ import { asHash, Hash } from '../types/primitive';
 import { SendRequestResult } from '../types/internal';
 import { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { uuidv7 } from '../utils/uuid';
+import { getUnixtime } from '../utils/time';
+import { getEventsSubsystem, getVersion } from '../utils/version';
+import { Base64Normalize } from '../utils/base64';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -105,6 +110,47 @@ export class RequestProcessor {
                 const response = await this.createConnectApprovalResponse(event);
                 // event.from = newSession.sessionId;
                 await this.bridgeManager.sendResponse(event, response.result);
+
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-connect-accepted',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        event_id: uuidv7(),
+                        origin_url: event.dAppInfo?.url,
+                        dapp_name: event.dAppInfo?.name,
+                        client_id: event.from,
+                        is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
+                        is_ton_proof: event.request.some((item) => item.name === 'ton_proof'),
+                        manifest_json_url: event.preview.manifest?.url,
+                        proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
+                        client_timestamp: getUnixtime(),
+                        version: getVersion(),
+                    },
+                    {
+                        event_name: 'wallet-connect-response-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        client_id: event.from,
+                        client_timestamp: getUnixtime(),
+                        version: getVersion(),
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
+                        is_ton_proof: event.request.some((item) => item.name === 'ton_proof'),
+                        manifest_json_url: event.preview.manifest?.url,
+                        proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    },
+                ]);
             } else if ('result' in event) {
                 if (!event.walletAddress) {
                     const error = new WalletKitError(
@@ -149,6 +195,54 @@ export class RequestProcessor {
                     wallet,
                 );
                 await this.bridgeManager.sendResponse(event, event.result.response);
+                this.analyticsApi?.sendEvents([
+                    {
+                        event_name: 'wallet-connect-accepted',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        event_id: uuidv7(),
+                        client_id: event.from,
+                        is_ton_addr: event.result.response.payload.items.some((item) => item.name === 'ton_addr'),
+                        is_ton_proof: event.result.response.payload.items.some((item) => item.name === 'ton_proof'),
+                        manifest_json_url: event.result.dAppUrl,
+                        proof_payload_size: (
+                            event.result.response.payload.items.find(
+                                (item) => item.name === 'ton_proof',
+                            ) as TonProofItemReplySuccess
+                        )?.proof?.payload?.length,
+                        client_timestamp: getUnixtime(),
+                        version: getVersion(),
+                        dapp_name: event.result.dAppName,
+                        origin_url: event.result.dAppUrl,
+                    },
+                    {
+                        event_name: 'wallet-connect-response-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        client_id: event.from,
+                        client_timestamp: getUnixtime(),
+                        version: getVersion(),
+                        dapp_name: event.result.dAppName,
+                        origin_url: event.result.dAppUrl,
+                        is_ton_addr: event.result.response.payload.items.some((item) => item.name === 'ton_addr'),
+                        is_ton_proof: event.result.response.payload.items.some((item) => item.name === 'ton_proof'),
+                        manifest_json_url: event.result.dAppUrl,
+                        proof_payload_size: (
+                            event.result.response.payload.items.find(
+                                (item) => item.name === 'ton_proof',
+                            ) as TonProofItemReplySuccess
+                        )?.proof?.payload?.length,
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    },
+                ]);
             } else {
                 log.error('Invalid event', { event });
                 const error = new WalletKitError(
@@ -165,14 +259,6 @@ export class RequestProcessor {
                 };
             }
 
-            this.analyticsApi?.sendEvents([
-                {
-                    event_name: 'wallet-connect-accepted',
-                    trace_id: event.traceId,
-                    client_environment: 'wallet',
-                    subsystem: 'wallet',
-                },
-            ]);
             return { success: true };
         } catch (error) {
             log.error('Failed to approve connect request', { error });
@@ -220,7 +306,39 @@ export class RequestProcessor {
                     event_name: 'wallet-connect-rejected',
                     trace_id: event.traceId,
                     client_environment: 'wallet',
-                    subsystem: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    dapp_name: event.preview.manifest?.name || '',
+                    origin_url: event.preview.manifest?.url || '',
+                    manifest_json_url: event.preview.manifest?.url || '',
+                    event_id: uuidv7(),
+                    client_timestamp: getUnixtime(),
+                    version: getVersion(),
+                    network_id: this.walletKitOptions.network,
+                    wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                    wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
+                    is_ton_proof: event.request.some((item) => item.name === 'ton_proof'),
+                    proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
+                    client_id: event.from,
+                },
+                {
+                    event_name: 'wallet-connect-response-sent',
+                    trace_id: event.traceId,
+                    client_environment: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    dapp_name: event.preview.manifest?.name || '',
+                    origin_url: event.preview.manifest?.url || '',
+                    manifest_json_url: event.preview.manifest?.url || '',
+                    event_id: uuidv7(),
+                    client_timestamp: getUnixtime(),
+                    version: getVersion(),
+                    network_id: this.walletKitOptions.network,
+                    wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                    wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
+                    is_ton_proof: event.request.some((item) => item.name === 'ton_proof'),
+                    proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
+                    client_id: event.from,
                 },
             ]);
             return { success: true };
@@ -255,7 +373,21 @@ export class RequestProcessor {
                         event_name: 'wallet-transaction-accepted',
                         trace_id: event.traceId,
                         client_environment: 'wallet',
-                        subsystem: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        event_id: uuidv7(),
+                        client_timestamp: getUnixtime(),
+                        version: getVersion(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        client_id: event.from,
+                        wallet_id: Base64Normalize(event.walletAddress),
+                    },
+                    {
+                        event_name: 'wallet-transaction-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
                     },
                 ]);
                 return { success: true, result: { signedBoc: event.result.signedBoc } };
@@ -276,7 +408,34 @@ export class RequestProcessor {
                         event_name: 'wallet-transaction-accepted',
                         trace_id: event.traceId,
                         client_environment: 'wallet',
-                        subsystem: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
+                    },
+                    {
+                        event_name: 'wallet-transaction-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
+                        signed_boc: signedBoc,
+                        // error_code events todo
+                        // error_message events todo
+                        // normalized_hash events todo
                     },
                 ]);
                 return { success: true, result: { signedBoc } };
@@ -327,7 +486,17 @@ export class RequestProcessor {
                     event_name: 'wallet-transaction-declined',
                     trace_id: event.traceId,
                     client_environment: 'wallet',
-                    subsystem: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    dapp_name: event.dAppInfo?.name,
+                    origin_url: event.dAppInfo?.url,
+                    event_id: uuidv7(),
+                    network_id: this.walletKitOptions.network,
+                    wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                    wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                    version: getVersion(),
+                    client_timestamp: getUnixtime(),
+                    client_id: event.from,
                 },
             ]);
             return { success: true };
@@ -366,7 +535,29 @@ export class RequestProcessor {
                         event_name: 'wallet-sign-data-accepted',
                         trace_id: event.traceId,
                         client_environment: 'wallet',
-                        subsystem: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
+                    },
+                    {
+                        event_name: 'wallet-sign-data-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
                     },
                 ]);
                 return { success: true, result: { signature: asHash(event.result.signature) } };
@@ -443,7 +634,33 @@ export class RequestProcessor {
                         event_name: 'wallet-sign-data-accepted',
                         trace_id: event.traceId,
                         client_environment: 'wallet',
-                        subsystem: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
+                    },
+                    {
+                        event_name: 'wallet-sign-data-sent',
+                        trace_id: event.traceId,
+                        client_environment: 'wallet',
+                        subsystem: getEventsSubsystem(),
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        event_id: uuidv7(),
+                        network_id: this.walletKitOptions.network,
+                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        version: getVersion(),
+                        client_timestamp: getUnixtime(),
+                        client_id: event.from,
                     },
                 ]);
                 return { success: true, result: { signature: asHash(signature) } };
@@ -476,7 +693,17 @@ export class RequestProcessor {
                     event_name: 'wallet-sign-data-declined',
                     trace_id: event.traceId,
                     client_environment: 'wallet',
-                    subsystem: 'wallet',
+                    subsystem: getEventsSubsystem(),
+                    dapp_name: event.dAppInfo?.name,
+                    origin_url: event.dAppInfo?.url,
+                    event_id: uuidv7(),
+                    network_id: this.walletKitOptions.network,
+                    wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                    wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                    wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                    version: getVersion(),
+                    client_timestamp: getUnixtime(),
+                    client_id: event.from,
                 },
             ]);
             return { success: true };
