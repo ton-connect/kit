@@ -1,13 +1,11 @@
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.Exec
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinCompose)
-    alias(libs.plugins.spotless)
 }
 
 android {
