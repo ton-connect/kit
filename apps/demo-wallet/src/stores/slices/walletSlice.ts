@@ -540,6 +540,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             const existingWallet = state.wallet.savedWallets.find((w) => w.address === address);
             if (existingWallet) {
                 log.warn(`Wallet with address ${address} already exists`);
+                state.wallet.walletKit.removeWallet(wallet);
                 throw new Error('A wallet with this address already exists');
             }
 
