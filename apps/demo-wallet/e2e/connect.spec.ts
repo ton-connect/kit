@@ -11,8 +11,8 @@ const test = testWith(
         mnemonic:
             process.env.WALLET_MNEMONIC ||
             'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-        appUrl: process.env.DAPP_URL || 'https://allure-test-runner.vercel.app/e2e ',
-    }),
+        appUrl: 'http://localhost:5173/e2e',
+    }, 0),
 );
 
 let allureClient: AllureApiClient;
@@ -58,13 +58,34 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
         console.warn('AllureId not found in test title or client not available');
     }
 
-    await app.locator('#connectPrecondition').fill(precondition);
-    await app.locator('#connectExpectedResult').fill(expectedResult);
-    await wallet.connect();
+    await app.getByTestId('connectPrecondition').fill(precondition||'');
+    await app.getByTestId('connectExpectedResult').fill(expectedResult);
 
-    await app.getByText('✅ Validation Passed').waitFor({ state: 'visible' });
+    await expect(app.getByTestId('connect-button')).toHaveText('Connect Wallet');
+    //await app.locator('#connect-button').click();
+    await app.getByTestId('connect-button').click();
+
+    await widget.connectUrlButton.waitFor({ state: 'visible' });
+    await widget.connectUrlButton.click();
+    const handle = await widget.page.evaluateHandle(() => navigator.clipboard.readText());
+    console.log(handle);
+    //return await handle.jsonValue();
+
+    await wallet.connect(true, await handle.jsonValue());
+
+    //await wallet.connect();
+
+    await expect(app.getByTestId('connectValidation')).toHaveText('Validation Passed');
 }
 
 test('Connect @allureId(1933)', async ({ wallet, app, widget }) => {
+    await runConnectTest({ wallet, app, widget }, test.info());
+});
+
+test('Connect @allureId(1900)', async ({ wallet, app, widget }) => {
+    await runConnectTest({ wallet, app, widget }, test.info());
+});
+
+test('Connect @allureId(1902)', async ({ wallet, app, widget }) => {
     await runConnectTest({ wallet, app, widget }, test.info());
 });

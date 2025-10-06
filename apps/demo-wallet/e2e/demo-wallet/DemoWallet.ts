@@ -41,15 +41,21 @@ export class DemoWallet extends WalletExtension {
         await app.locator(testSelector('tonconnect-url')).fill(url);
         await app.locator(testSelector('tonconnect-process')).click();
         await app.locator(testSelector('request'), { hasText: 'Connect Request' }).waitFor({ state: 'visible' });
-        await app.locator(testSelector('connect')).waitFor({ state: 'attached', timeout: 10_000 });
-        await app.locator(testSelector('connect')).click();
+        await app.locator(testSelector('connect-approve')).waitFor({ state: 'attached', timeout: 10_000 });
+        await app.locator(testSelector('connect-approve')).click();
         await app.locator(testSelector('request')).waitFor({ state: 'detached', timeout: 10_000 });
         await app.close();
     }
 
-    async connect(_confirm?: boolean): Promise<void> {
-        // TODO implement DemoWallet connect
-        throw new Error('DemoWallet connect not implemented');
+    async connect(confirm: boolean = true, url: string = ''): Promise<void> {
+        const app = await this.open();
+        await app.locator(testSelector('tonconnect-url')).fill(url);
+        await app.locator(testSelector('tonconnect-process')).click();
+        await app.locator(testSelector('request'), { hasText: 'Connect Request' }).waitFor({ state: 'visible' });
+        await app.locator(testSelector('connect-approve')).waitFor({ state: 'attached', timeout: 10_000 });
+        await app.locator(testSelector(confirm? 'connect-approve':'connect-reject')).click();
+        await app.locator(testSelector('request')).waitFor({ state: 'detached', timeout: 10_000 });
+        await app.close();
     }
 
     async signData(confirm: boolean = true): Promise<void> {

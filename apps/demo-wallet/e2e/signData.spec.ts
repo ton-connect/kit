@@ -67,7 +67,7 @@ async function runSignDataTest(
 
   await wallet.signData(true, isPositiveCase);
 
-  await app.getByText('✅ Validation Passed').waitFor({ state: 'visible' });
+  await expect(app.getByTestId('signDataValidation')).toHaveText('Validation Passed');
   }
 
 test('Sign text @allureId(1918)', async ({ wallet, app, widget }) => {

@@ -56,11 +56,12 @@ async function runSendTransactionTest(
 
   await app.locator('#sendTxPrecondition').fill(precondition);
   await app.locator('#sendTxExpectedResult').fill(expectedResult);
-  await app.getByRole('button', {name: 'Send Transaction'}).click();
+  await app.locator('#send-transaction-button').click();
+  //await app.getByRole('button', {name: 'Send Transaction'}).click();
 
   await wallet.sendTransaction(true, isPositiveCase);
 
-  await app.getByText('✅ Send Transaction Validation Passed').waitFor({ state: 'visible' });
+  await expect(app.getByTestId('sendTransactionValidation')).toHaveText('Validation Passed');
 }
 
 test.beforeAll(async () => {
