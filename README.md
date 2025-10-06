@@ -14,8 +14,8 @@ pnpm kit quality # lint, test with coverage & mutation
 
 ### (optional) Run TON Connect Bridge local
 ```bash
-git clone https://github.com/ton-connect/bridge.git
-cd bridge && docker compose -f docker-compose.memory.yml up --build -d
+docker compose -f docker-compose.bridge.yml up -d
+# check
 curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics
 ```
 
@@ -23,20 +23,27 @@ curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics
 ```bash
 pnpm install --frozen-lockfile
 pnpm --filter demo-wallet e2e:deps
+# (optional) use local bridge url in extension
+export VITE_BRIDGE_URL="http://localhost:8081/bridge"
 pnpm build
+```
 
-VITE_BRIDGE_URL=https://bridge.tonapi.io/bridge pnpm --filter demo-wallet build:extension
-# or
-VITE_BRIDGE_URL=http://localhost:8081/bridge pnpm --filter demo-wallet build:extension
+### Setup `.env`
 
-if [ ! -f apps/demo-wallet/.env ]; then echo "setup WALLET_MNEMONIC=".." in file apps/demo-wallet/.env"; fi
+```dotenv
+WALLET_MNEMONIC=".."
+DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
+VITE_BRIDGE_URL="http://localhost:8081/bridge" # (optional) use local bridge url in web app
+E2E_SLOW_MO="500" # (optional) Slows down Playwright operations by the specified amount of milliseconds
+# (optional) mode extension
+E2E_WALLET_SOURCE_EXTENSION="apps/demo-wallet/dist-extension"
+# (optional) mode web
+E2E_WALLET_SOURCE="http://localhost:5173/"
 ```
 
 ### Run test specs
 ```bash
 pnpm --filter demo-wallet e2e
-# or
-WALLET_MNEMONIC=".." pnpm --filter demo-wallet e2e
 # or
 xvfb-run pnpm --filter demo-wallet e2e
 ```

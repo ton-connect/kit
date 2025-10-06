@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "e2e:deps": "playwright install --with-deps chromium",
+    "e2e:deps": "playwright install --with-deps",
     "e2e": "playwright test --config e2e.config.ts",
     "dev": "vite",
     "build": "pnpm build:extension && pnpm build:website",

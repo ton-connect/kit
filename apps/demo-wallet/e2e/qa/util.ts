@@ -11,10 +11,3 @@ export async function getExtensionId(context: BrowserContext) {
     }
     return extensionId;
 }
-
-export const testSelector = (testId: string) => {
-    if (testId.includes(' ')) {
-        throw new Error('[testSelector] test-id cannot contain spaces');
-    }
-    return `[data-test-id="${testId}"]`;
-};

@@ -92,7 +92,7 @@ export const SetupWallet: React.FC = () => {
             <Layout title="Setup Wallet">
                 <div className="space-y-6">
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-gray-900" data-test-id="subtitle">
+                        <h2 className="text-2xl font-bold text-gray-900" data-testid="subtitle">
                             Setup Your Wallet
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">Create a new wallet or import an existing one.</p>
@@ -102,7 +102,7 @@ export const SetupWallet: React.FC = () => {
                         <Card>
                             <div className="space-y-4">
                                 <Button
-                                    data-test-id="new-wallet"
+                                    data-testid="new-wallet"
                                     onClick={handleCreateWallet}
                                     isLoading={isLoading}
                                     className="w-full"
@@ -118,7 +118,7 @@ export const SetupWallet: React.FC = () => {
                         <Card>
                             <div className="space-y-4">
                                 <Button
-                                    data-test-id="import-wallet"
+                                    data-testid="import-wallet"
                                     variant="secondary"
                                     onClick={() => setMode('import')}
                                     className="w-full"
@@ -144,7 +144,7 @@ export const SetupWallet: React.FC = () => {
                             <Card>
                                 <div className="space-y-4">
                                     <Button
-                                        data-test-id="go-to-dashboard"
+                                        data-testid="go-to-dashboard"
                                         onClick={() => navigate('/wallet')}
                                         className="w-full"
                                     >
@@ -167,7 +167,7 @@ export const SetupWallet: React.FC = () => {
             <Layout title="Your Recovery Phrase">
                 <div className="space-y-6">
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-gray-900" data-test-id="subtitle">
+                        <h2 className="text-2xl font-bold text-gray-900" data-testid="subtitle">
                             Save Your Recovery Phrase
                         </h2>
                         <p className="mt-2 text-sm text-gray-600">

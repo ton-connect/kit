@@ -1,76 +1,75 @@
-import { Page } from '@playwright/test';
+import { WalletApp } from '../qa';
 
-import { testSelector, WalletExtension } from '../qa';
-
-export class DemoWallet extends WalletExtension {
+export class DemoWallet extends WalletApp {
     get onboardingPage() {
-        return 'chrome-extension://' + this.extensionId + '/index.extension.html';
-    }
-
-    async open(): Promise<Page> {
-        const app = await this.context.newPage();
-        await app.goto(this.onboardingPage, {
-            waitUntil: 'load',
-        });
-        return app;
+        if (this.isExtension) {
+            return 'chrome-extension://' + this.source + '/index.extension.html';
+        }
+        return this.source;
     }
 
     async importWallet(mnemonic: string): Promise<void> {
+        if (mnemonic === '') {
+            throw new Error('[importWallet] mnemonic is required setup WALLET_MNEMONIC');
+        }
         const app = await this.open();
-        app.locator(testSelector('title'), { hasText: 'Setup Password' });
-        app.locator(testSelector('subtitle'), { hasText: 'Create Password' });
-        await app.locator(testSelector('password')).fill(this.password);
-        await app.locator(testSelector('password-confirm')).fill(this.password);
-        await app.locator(testSelector('password-submit')).click();
-        app.locator(testSelector('subtitle'), { hasText: 'Setup Your Wallet' });
-        await app.locator(testSelector('import-wallet')).click();
-        app.locator(testSelector('subtitle'), { hasText: 'Import Wallet' });
-        await app.locator(testSelector('paste-all')).click();
-        await app.locator(testSelector('mnemonic')).fill(mnemonic);
-        await app.locator(testSelector('mnemonic-process')).click();
-        await app.locator(testSelector('import-wallet-process')).click();
-        await app.locator(testSelector('title'), { hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
-        await app.locator(testSelector('wallet-menu')).click();
-        await app.locator(testSelector('auto-lock')).waitFor({ state: 'attached' });
-        await app.locator(testSelector('auto-lock')).click();
-        await app.locator(testSelector('hold-to-sign')).waitFor({ state: 'attached' });
-        await app.locator(testSelector('hold-to-sign')).click();
-        await app.close();
+        await app.getByTestId('title').filter({ hasText: 'Setup Password', visible: true });
+        await app.getByTestId('subtitle').filter({ hasText: 'Create Password', visible: true });
+        await app.getByTestId('password').fill(this.password);
+        await app.getByTestId('password-confirm').fill(this.password);
+        await app.getByTestId('password-submit').click();
+        await app.getByTestId('subtitle').filter({ hasText: 'Setup Your Wallet', visible: true });
+        await app.getByTestId('import-wallet').click();
+        await app.getByTestId('subtitle').filter({ hasText: 'Import Wallet', visible: true });
+        await app.getByTestId('paste-all').click();
+        await app.getByTestId('mnemonic').fill(mnemonic);
+        await app.getByTestId('mnemonic-process').click();
+        await app.getByTestId('import-wallet-process').click();
+        await app.getByTestId('title').filter({ hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
+        await app.getByTestId('wallet-menu').click();
+        await app.getByTestId('auto-lock').waitFor({ state: 'attached' });
+        await app.getByTestId('auto-lock').click();
+        await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
+        await app.getByTestId('hold-to-sign').click();
+        await this.close();
     }
 
     async connectBy(url: string): Promise<void> {
         const app = await this.open();
-        await app.locator(testSelector('tonconnect-url')).fill(url);
-        await app.locator(testSelector('tonconnect-process')).click();
-        await app.locator(testSelector('request'), { hasText: 'Connect Request' }).waitFor({ state: 'visible' });
-        await app.locator(testSelector('connect')).waitFor({ state: 'attached', timeout: 10_000 });
-        await app.locator(testSelector('connect')).click();
-        await app.locator(testSelector('request')).waitFor({ state: 'detached', timeout: 10_000 });
-        await app.close();
+        await app.getByTestId('tonconnect-url').fill(url);
+        await app.getByTestId('tonconnect-process').click();
+        await this.connect();
+    }
+
+    async connect(confirm: boolean = true): Promise<void> {
+        const app = await this.open();
+        const modal = app.getByTestId('request').filter({ hasText: 'Connect Request' });
+        await modal.waitFor({ state: 'visible' });
+        const chose = app.getByTestId(confirm ? 'connect-approve' : 'connect-reject');
+        await chose.waitFor({ state: 'attached' });
+        await chose.click();
+        await this.close();
     }
 
     async signData(confirm: boolean = true): Promise<void> {
         const app = await this.open();
-        await app
-            .locator(testSelector('request'), { hasText: 'Sign Data Request' })
-            .waitFor({ state: 'visible', timeout: 10_000 });
-        if (confirm) {
-            await app.locator(testSelector('sign-data-approve')).waitFor({ state: 'attached', timeout: 10_000 });
-            await app.locator(testSelector('sign-data-approve')).click();
-        } else {
-            await app.locator(testSelector('sign-data-reject')).click();
-        }
-        await app.locator(testSelector('request')).waitFor({ state: 'detached', timeout: 10_000 });
-        await app.close();
+        const modal = app.getByTestId('request').filter({ hasText: 'Sign Data Request' });
+        await modal.waitFor({ state: 'visible' });
+        const chose = app.getByTestId(confirm ? 'sign-data-approve' : 'sign-data-reject');
+        await chose.waitFor({ state: 'attached' });
+        await chose.click();
+        await modal.waitFor({ state: 'detached' });
+        await this.close();
     }
 
-    async connect(_confirm?: boolean): Promise<void> {
-        // TODO implement DemoWallet connect
-        throw new Error('DemoWallet connect not implemented');
-    }
-
-    async accept(_confirm: boolean = true): Promise<void> {
-        // TODO implement DemoWallet accept
-        throw new Error('DemoWallet accept not implemented');
+    async accept(confirm: boolean = true): Promise<void> {
+        const app = await this.open();
+        const modal = app.getByTestId('request').filter({ hasText: 'Transaction Request' });
+        await modal.waitFor({ state: 'visible' });
+        const chose = app.getByTestId(confirm ? 'send-transaction-approve' : 'send-transaction-reject');
+        await chose.waitFor({ state: 'attached' });
+        await chose.click();
+        await modal.waitFor({ state: 'detached' });
+        await this.close();
     }
 }

@@ -101,7 +101,7 @@ export const SettingsDropdown: React.FC = () => {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="p-1 rounded-md hover:bg-gray-100 transition-colors"
                     aria-label="Wallet menu"
-                    data-test-id="wallet-menu"
+                    data-testid="wallet-menu"
                 >
                     <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -199,7 +199,7 @@ export const SettingsDropdown: React.FC = () => {
                                             </p>
                                         </div>
                                         <label
-                                            data-test-id="auto-lock"
+                                            data-testid="auto-lock"
                                             className="relative inline-flex items-center cursor-pointer"
                                         >
                                             <input
@@ -248,7 +248,7 @@ export const SettingsDropdown: React.FC = () => {
                                             </p>
                                         </div>
                                         <label
-                                            data-test-id="hold-to-sign"
+                                            data-testid="hold-to-sign"
                                             className="relative inline-flex items-center cursor-pointer"
                                         >
                                             <input
@@ -327,7 +327,7 @@ export const SettingsDropdown: React.FC = () => {
                     <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                                <h2 data-testid="request" className="text-xl font-bold text-gray-900">
                                     Your Recovery Phrase
                                 </h2>
                                 <button

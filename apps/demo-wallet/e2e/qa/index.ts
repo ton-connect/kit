@@ -2,22 +2,22 @@ import type { BrowserContext } from '@playwright/test';
 import { Page } from '@playwright/test';
 
 export { TonConnectWidget } from './TonConnectWidget';
-export { WalletExtension } from './WalletExtension';
+export { WalletApp } from './WalletApp';
 export { launchPersistentContext, testWith } from './test';
-export { getExtensionId, testSelector } from './util';
+export { getExtensionId } from './util';
 
 export interface ConfigFixture {
-    extensionPath: string;
-    mnemonic: string;
     appUrl: string;
+    walletSource?: string;
+    mnemonic?: string;
 }
 
-import { WalletExtension } from './WalletExtension';
+import { WalletApp } from './WalletApp';
 import { TonConnectWidget } from './TonConnectWidget';
 
 export type TestFixture = {
     context: BrowserContext;
-    wallet: WalletExtension;
+    wallet: WalletApp;
     widget: TonConnectWidget;
     app: Page;
 };

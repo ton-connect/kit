@@ -130,7 +130,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                            <h2 data-testid="request" className="text-xl font-bold text-gray-900">
                                 Transaction Request
                             </h2>
                             <p className="text-gray-600 text-sm mt-1">
@@ -242,7 +242,13 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
+                            <Button
+                                variant="secondary"
+                                onClick={handleReject}
+                                disabled={isLoading}
+                                className="flex-1"
+                                data-testid="send-transaction-reject"
+                            >
                                 Reject
                             </Button>
                             {holdToSign ? (
@@ -258,6 +264,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                     isLoading={isLoading}
                                     disabled={isLoading}
                                     className="flex-1"
+                                    data-testid="send-transaction-approve"
                                 >
                                     Approve & Sign
                                 </Button>

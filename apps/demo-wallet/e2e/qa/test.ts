@@ -2,14 +2,19 @@ import { chromium, type Fixtures, type TestType } from '@playwright/test';
 import { mergeTests, test as base } from '@playwright/test';
 
 export function launchPersistentContext(extensionPath: string, slowMo = 0) {
-    const browserArgs = [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`];
-    if (process.env.CI) {
-        browserArgs.push('--headless=new');
+    const args = [];
+    if (extensionPath != '') {
+        args.push(`--disable-extensions-except=${extensionPath}`);
+        args.push(`--load-extension=${extensionPath}`);
     }
+    if (process.env.CI) {
+        args.push('--headless=new');
+    }
+    slowMo = process.env.CI ? 0 : (parseInt(process.env.E2E_SLOW_MO) ?? slowMo);
     return chromium.launchPersistentContext('', {
+        args,
         headless: false,
-        args: browserArgs,
-        slowMo: process.env.CI ? 0 : slowMo,
+        slowMo,
     });
 }
 

@@ -112,7 +112,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     return (
         <div className="space-y-6">
             <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900" data-test-id="subtitle">
+                <h2 className="text-2xl font-bold text-gray-900" data-testid="subtitle">
                     Import Wallet
                 </h2>
                 <p className="mt-2 text-sm text-gray-600">
@@ -213,7 +213,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                     Individual Words
                 </button>
                 <button
-                    data-test-id="paste-all"
+                    data-testid="paste-all"
                     onClick={() => setPasteMode(true)}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         pasteMode
@@ -288,7 +288,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Recovery Phrase</label>
                         <textarea
-                            data-test-id="mnemonic"
+                            data-testid="mnemonic"
                             value={pasteText}
                             onChange={(e) => setPasteText(e.target.value)}
                             placeholder="Paste your entire recovery phrase here..."
@@ -301,7 +301,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                     </div>
 
                     <Button
-                        data-test-id="mnemonic-process"
+                        data-testid="mnemonic-process"
                         onClick={handlePasteModeSubmit}
                         disabled={!pasteText.trim()}
                         className="w-full"
@@ -320,7 +320,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                     Back
                 </Button>
                 <Button
-                    data-test-id="import-wallet-process"
+                    data-testid="import-wallet-process"
                     onClick={handleSubmit}
                     isLoading={isLoading}
                     disabled={!isValid || isLoading}

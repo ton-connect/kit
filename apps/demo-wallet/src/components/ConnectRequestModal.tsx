@@ -82,7 +82,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 data-test-id="request" className="text-xl font-bold text-gray-900">
+                            <h2 data-testid="request" className="text-xl font-bold text-gray-900">
                                 Connect Request
                             </h2>
                             <p className="text-gray-600 text-sm mt-1">A dApp wants to connect to your wallet</p>
@@ -238,11 +238,17 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
 
                         {/* Action Buttons */}
                         <div className="flex space-x-3">
-                            <Button variant="secondary" onClick={handleReject} disabled={isLoading} className="flex-1">
+                            <Button
+                                data-testid="connect-reject"
+                                variant="secondary"
+                                onClick={handleReject}
+                                disabled={isLoading}
+                                className="flex-1"
+                            >
                                 Reject
                             </Button>
                             <Button
-                                data-test-id="connect"
+                                data-testid="connect-approve"
                                 onClick={handleApprove}
                                 isLoading={isLoading}
                                 disabled={!selectedWallet || isLoading}
