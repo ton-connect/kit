@@ -31,8 +31,10 @@ export class DemoWallet extends WalletExtension {
         await app.locator(testSelector('import-wallet-process')).click();
         await app.locator(testSelector('title'), { hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
         await app.locator(testSelector('wallet-menu')).click();
-        await app.locator(testSelector('password-remember')).waitFor({ state: 'attached' });
-        await app.locator(testSelector('password-remember')).click();
+        await app.locator(testSelector('auto-lock')).waitFor({ state: 'attached' });
+        await app.locator(testSelector('auto-lock')).click();
+        await app.locator(testSelector('hold-to-sign')).waitFor({ state: 'attached' });
+        await app.locator(testSelector('hold-to-sign')).click();
         await app.close();
     }
 
