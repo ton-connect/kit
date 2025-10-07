@@ -60,6 +60,7 @@ public class WalletKitEngine: JSEngine {
         
         context?.exceptionHandler = { context, exception in
             print("❌ JavaScript Exception: \(exception?.toString() ?? "Unknown")")
+            
             if let stackTrace = exception?.objectForKeyedSubscript("stack") {
                 print("Stack trace: \(stackTrace)")
             }
