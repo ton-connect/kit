@@ -2,6 +2,9 @@ import * as allure from 'allure-js-commons';
 
 import { testWithDemoWalletFixture } from './demo-wallet';
 
+const feature = {
+    jsBridge: Boolean(process.env.E2E_JS_BRIDGE),
+};
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
@@ -11,9 +14,16 @@ test('smoke', async ({ wallet, app, widget }) => {
     await allure.story('Smoke Text');
     await allure.tags('kit', 'wallet');
 
-    await allure.feature('Connect');
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-    await wallet.connectBy(await widget.connectUrl());
+    if (feature.jsBridge && wallet.isExtension) {
+        await allure.feature('Connect JS Bridge');
+        await widget.connectWallet('Tonkeeper');
+        await wallet.connect();
+        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
+    } else {
+        await allure.feature('Connect HTTP Bridge');
+        await wallet.connectBy(await widget.connectUrl());
+    }
     await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
 
     await allure.feature('Send transaction');
@@ -43,11 +53,4 @@ test('smoke', async ({ wallet, app, widget }) => {
     await allure.feature('Disconnect');
     await widget.disconnect();
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-
-    if (wallet.isExtension) {
-        await allure.feature('JS Bridge');
-        await widget.connectWallet('Tonkeeper');
-        await wallet.connect();
-        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
-    }
 });

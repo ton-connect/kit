@@ -48,6 +48,7 @@ export class DemoWallet extends WalletApp {
         const chose = app.getByTestId(confirm ? 'connect-approve' : 'connect-reject');
         await chose.waitFor({ state: 'attached', timeout: 10_000 });
         await chose.click();
+        await modal.waitFor({ state: 'detached', timeout: 10_000 });
         await this.close();
     }
 
