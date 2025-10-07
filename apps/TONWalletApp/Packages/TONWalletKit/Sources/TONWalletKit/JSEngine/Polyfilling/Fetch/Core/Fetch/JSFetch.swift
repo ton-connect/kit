@@ -220,6 +220,8 @@ extension JSURLSessionDataDelegate: URLSessionDataDelegate {
     }
     
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        debugPrint("Response object")
+        debugPrint(String(data: data, encoding: .utf8) as? AnyObject)
         self.editState(for: dataTask.taskIdentifier) { $0.body?.resume(with: data) }
     }
     

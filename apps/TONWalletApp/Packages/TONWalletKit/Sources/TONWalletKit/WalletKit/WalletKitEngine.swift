@@ -32,23 +32,13 @@ public class WalletKitEngine: JSEngine {
             guard let self else { return }
             
             if let walletKitEvent = WalletKitEvent(bridgeEvent: $0, walletKit: self) {
-                debugPrint("Event received: \($0)")
-                
                 self.eventsHandler.handle(event: walletKitEvent)
             }
         }
         
         context.polyfill(with: bridgePolyfill)
         
-        if let exception = context.exception {
-            throw "JS setup failed: \(exception)"
-        }
-        
-        if context.objectForKeyedSubscript("walletKit") != nil {
-            print("✅ WalletKit bridge instance ready")
-        } else {
-            print("⚠️ WalletKit global not found after initialization")
-        }
+        try await context.initWalletKit()
     }
     
     public func context() -> JSContext {
@@ -57,15 +47,7 @@ public class WalletKitEngine: JSEngine {
         }
         
         let context = JSContext()
-        
-        context?.exceptionHandler = { context, exception in
-            print("❌ JavaScript Exception: \(exception?.toString() ?? "Unknown")")
-            
-            if let stackTrace = exception?.objectForKeyedSubscript("stack") {
-                print("Stack trace: \(stackTrace)")
-            }
-        }
-        
+
         context?.polyfill(with: JSConsoleLogPolyfill())
         context?.polyfill(with: JSTimerPolyfill())
         context?.polyfill(with: JSFetchPolyfill())

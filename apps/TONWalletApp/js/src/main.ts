@@ -11,66 +11,13 @@ declare global {
         };
 
         walletKit?: any;
+
+        initWalletKit: () => Promise<void>;
     }
 }
 
-export async function main() {
-    console.log('Hello, world!');
-
-    // Test crypto.getRandomValues polyfill
-    console.log('🔒 Testing crypto.getRandomValues polyfill...');
-    try {
-        // Test with Uint8Array
-        const randomBytes = new Uint8Array(16);
-        crypto.getRandomValues(randomBytes);
-        console.log(
-            '✅ crypto.getRandomValues with Uint8Array:',
-            Array.from(randomBytes)
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join(''),
-        );
-
-        // Test with Uint32Array
-        const randomInts = new Uint32Array(4);
-        crypto.getRandomValues(randomInts);
-        console.log('✅ crypto.getRandomValues with Uint32Array:', Array.from(randomInts));
-
-        // Test crypto.randomUUID
-        const uuid = crypto.randomUUID();
-        console.log('✅ crypto.randomUUID:', uuid);
-
-        console.log('🎉 All crypto polyfill tests passed!');
-    } catch (error) {
-        console.error('❌ crypto polyfill test failed:', error);
-    }
-
-    console.log('fetch');
-    try {
-        const result = await fetch('https://api.ipify.org?format=json', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: 'Hello, world!',
-            }),
-        });
-        // const headers = result.headers.forEach()
-        console.log('fetch result', result);
-        const data = await result.json();
-        console.log('fetch data', data);
-    } catch (error) {
-        console.error('fetch error', error);
-    }
-
-    console.log('setTimeout');
-    setTimeout(() => {
-        console.log('setTimeout done inside');
-    }, 1000);
-    // setInterval(() => {
-    //     console.log('setTimeout done inside');
-    // }, 1000);
-    console.log('setTimeout done');
+window.initWalletKit = async () => {
+    console.log('🚀 WalletKit iOS Bridge starting...');
 
     console.log('Creating WalletKit instance');
 
@@ -106,9 +53,7 @@ export async function main() {
         // apiUrl: 'https://tonapi.io',
         // config: {
         bridge: {
-            // enableJsBridge: true,
             bridgeUrl: 'https://bridge.tonapi.io/bridge',
-            // bridgeName: 'tonkeeper',
         },
         eventProcessor: {
             // disableEvents: true,
@@ -146,73 +91,42 @@ export async function main() {
     // Events from WalletKit will be forwarded to Swift via the bridge
 
     async function initializeWalletKit() {
-        try {
-            console.log('🔄 Initializing WalletKit Bridge with config:', bridgeConfig);
+        console.log('🔄 Initializing WalletKit Bridge with config:', bridgeConfig);
 
-            // WalletKit is already constructed with config, just set up the bridge
-            console.log('✅ WalletKit instance ready');
+        // WalletKit is already constructed with config, just set up the bridge
+        console.log('✅ WalletKit instance ready');
 
-            // Set up event listeners for wallet events
-            walletKit.onConnectRequest((event) => {
-                console.log('📨 Connect request received:', event);
-                if (window.walletKitSwiftBridge) {
-                    window.walletKitSwiftBridge.sendEvent('connectRequest', event);
-                }
-            });
-
-            walletKit.onTransactionRequest((event) => {
-                console.log('📨 Transaction request received:', event);
-                if (window.walletKitSwiftBridge) {
-                    window.walletKitSwiftBridge.sendEvent('transactionRequest', event);
-                }
-            });
-
-            walletKit.onSignDataRequest((event) => {
-                console.log('📨 Sign data request received:', event);
-                if (window.walletKitSwiftBridge) {
-                    window.walletKitSwiftBridge.sendEvent('signDataRequest', event);
-                }
-            });
-
-            walletKit.onDisconnect((event) => {
-                console.log('📨 Disconnect event received:', event);
-                if (window.walletKitSwiftBridge) {
-                    window.walletKitSwiftBridge.sendEvent('disconnect', event);
-                }
-            });
-
-            initialized = true;
-            console.log('✅ WalletKit Bridge initialized successfully');
-
-            // Update status
-            const status = document.getElementById('bridge-status');
-            if (status) {
-                status.textContent = 'WalletKit Bridge Ready';
-                status.style.background = 'rgba(0, 128, 0, 0.8)';
-            }
-
-            // Notify Swift that initialization is complete
+        // Set up event listeners for wallet events
+        walletKit.onConnectRequest((event) => {
+            console.log('📨 Connect request received:', event);
             if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('initialized', { success: true });
+                window.walletKitSwiftBridge.sendEvent('connectRequest', event);
             }
-        } catch (error) {
-            console.error('❌ WalletKit Bridge initialization failed:', error);
+        });
 
-            // Update status
-            const status = document.getElementById('bridge-status');
-            if (status) {
-                status.textContent = 'WalletKit Bridge Failed';
-                status.style.background = 'rgba(128, 0, 0, 0.8)';
-            }
-
-            // Notify Swift of failure
+        walletKit.onTransactionRequest((event) => {
+            console.log('📨 Transaction request received:', event);
             if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('initialized', {
-                    success: false,
-                    error: error.message,
-                });
+                window.walletKitSwiftBridge.sendEvent('transactionRequest', event);
             }
-        }
+        });
+
+        walletKit.onSignDataRequest((event) => {
+            console.log('📨 Sign data request received:', event);
+            if (window.walletKitSwiftBridge) {
+                window.walletKitSwiftBridge.sendEvent('signDataRequest', event);
+            }
+        });
+
+        walletKit.onDisconnect((event) => {
+            console.log('📨 Disconnect event received:', event);
+            if (window.walletKitSwiftBridge) {
+                window.walletKitSwiftBridge.sendEvent('disconnect', event);
+            }
+        });
+
+        initialized = true;
+        console.log('✅ WalletKit Bridge initialized successfully');
     }
 
     // Bridge API that Swift will call
@@ -429,19 +343,5 @@ export async function main() {
         },
     };
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeWalletKit);
-    } else {
-        initializeWalletKit();
-    }
+    initializeWalletKit();
 }
-
-console.log('🚀 WalletKit iOS Bridge starting...');
-main()
-    .then(() => {
-        console.log('🚀 WalletKit iOS Bridge started');
-    })
-    .catch((error) => {
-        console.error('❌ WalletKit iOS Bridge failed to start:', error);
-    });
