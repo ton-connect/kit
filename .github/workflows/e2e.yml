@@ -70,12 +70,13 @@ jobs:
         
         echo "🚀 TON Connect Bridge service is now running and accessible at http://localhost:8081/bridge"
       # uses: ton-connect/bridge/actions/local@master
-# FIXME http://tontech.testops.cloud/launch/4680/tree/22245/attachments?treeId=104 
+ 
     - name: Run extension e2e specs
       run: xvfb-run pnpm --filter demo-wallet e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension"
+        E2E_JS_BRIDGE: true
 
     - name: Run web e2e specs
       run: xvfb-run pnpm --filter demo-wallet e2e
