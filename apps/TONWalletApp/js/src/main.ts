@@ -43,44 +43,42 @@ window.initWalletKit = async (configuration) => {
     // Swift will call the JavaScript APIs directly for wallet operations
     // Events from WalletKit will be forwarded to Swift via the bridge
 
-    async function initializeWalletKit() {
-        console.log('🔄 Initializing WalletKit Bridge');
+    console.log('🔄 Initializing WalletKit Bridge');
 
-        // WalletKit is already constructed with config, just set up the bridge
-        console.log('✅ WalletKit instance ready');
+    // WalletKit is already constructed with config, just set up the bridge
+    console.log('✅ WalletKit instance ready');
 
-        // Set up event listeners for wallet events
-        walletKit.onConnectRequest((event) => {
-            console.log('📨 Connect request received:', event);
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('connectRequest', event);
-            }
-        });
+    // Set up event listeners for wallet events
+    walletKit.onConnectRequest((event) => {
+        console.log('📨 Connect request received:', event);
+        if (window.walletKitSwiftBridge) {
+            window.walletKitSwiftBridge.sendEvent('connectRequest', event);
+        }
+    });
 
-        walletKit.onTransactionRequest((event) => {
-            console.log('📨 Transaction request received:', event);
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('transactionRequest', event);
-            }
-        });
+    walletKit.onTransactionRequest((event) => {
+        console.log('📨 Transaction request received:', event);
+        if (window.walletKitSwiftBridge) {
+            window.walletKitSwiftBridge.sendEvent('transactionRequest', event);
+        }
+    });
 
-        walletKit.onSignDataRequest((event) => {
-            console.log('📨 Sign data request received:', event);
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('signDataRequest', event);
-            }
-        });
+    walletKit.onSignDataRequest((event) => {
+        console.log('📨 Sign data request received:', event);
+        if (window.walletKitSwiftBridge) {
+            window.walletKitSwiftBridge.sendEvent('signDataRequest', event);
+        }
+    });
 
-        walletKit.onDisconnect((event) => {
-            console.log('📨 Disconnect event received:', event);
-            if (window.walletKitSwiftBridge) {
-                window.walletKitSwiftBridge.sendEvent('disconnect', event);
-            }
-        });
+    walletKit.onDisconnect((event) => {
+        console.log('📨 Disconnect event received:', event);
+        if (window.walletKitSwiftBridge) {
+            window.walletKitSwiftBridge.sendEvent('disconnect', event);
+        }
+    });
 
-        initialized = true;
-        console.log('✅ WalletKit Bridge initialized successfully');
-    }
+    initialized = true;
+    console.log('✅ WalletKit Bridge initialized successfully');
 
     // Bridge API that Swift will call
     // Main WalletKit logic lives here in JavaScript
@@ -295,6 +293,4 @@ window.initWalletKit = async (configuration) => {
             }
         },
     };
-
-    initializeWalletKit();
 };
