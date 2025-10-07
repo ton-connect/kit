@@ -6,6 +6,7 @@ interface TonConnectSelector {
     connectButton: string;
     connectButtonText: string;
     connectUrlButton: string;
+    connectDropdown: string;
 }
 
 function createTonConnectSelector(): TonConnectSelector {
@@ -15,6 +16,7 @@ function createTonConnectSelector(): TonConnectSelector {
         connectButton: '[data-tc-button]',
         connectButtonText: '[data-tc-button] [data-tc-text]',
         connectUrlButton: '[data-tc-wallets-modal-universal-desktop] > button',
+        connectDropdown: '[data-tc-dropdown-container]',
     };
 }
 
@@ -47,6 +49,10 @@ export class TonConnectWidget {
         return this.page.locator(this.selector.connectUrlButton);
     }
 
+    get connectDropdown() {
+        return this.page.locator(this.selector.connectDropdown);
+    }
+
     private clickButton(name: string) {
         return this.page.getByRole('button', { name }).click();
     }
@@ -61,6 +67,12 @@ export class TonConnectWidget {
         await this.connectButton.waitFor({ state: 'visible' });
         await this.connectButton.click();
         await this.title.waitFor({ state: 'visible' });
+    }
+
+    async disconnect() {
+        await this.connectButton.waitFor({ state: 'visible' });
+        await this.connectButton.click();
+        await this.connectDropdown.locator('li:nth-child(2) > button').click();
     }
 
     async connectUrl() {

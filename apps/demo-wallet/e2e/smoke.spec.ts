@@ -39,4 +39,15 @@ test('smoke', async ({ wallet, app, widget }) => {
     await wallet.signData();
     const signResult = await app.getByTestId('signDataValidation');
     await expect(signResult).toHaveText('Validation Passed');
+
+    await allure.feature('Disconnect');
+    await widget.disconnect();
+    await expect(widget.connectButtonText).toHaveText('Connect Wallet');
+
+    if (wallet.isExtension) {
+        await allure.feature('JS Bridge');
+        await widget.connectWallet('Tonkeeper');
+        await wallet.connect();
+        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
+    }
 });
