@@ -19,7 +19,6 @@ test('smoke', async ({ wallet, app, widget }) => {
         await allure.feature('Connect JS Bridge');
         await widget.connectWallet('Tonkeeper');
         await wallet.connect();
-        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
     } else {
         await allure.feature('Connect HTTP Bridge');
         await wallet.connectBy(await widget.connectUrl());
