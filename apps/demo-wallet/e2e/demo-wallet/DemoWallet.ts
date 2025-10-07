@@ -44,9 +44,9 @@ export class DemoWallet extends WalletApp {
     async connect(confirm: boolean = true): Promise<void> {
         const app = await this.open();
         const modal = app.getByTestId('request').filter({ hasText: 'Connect Request' });
-        await modal.waitFor({ state: 'visible' });
+        await modal.waitFor({ state: 'visible', timeout: 10_000 });
         const chose = app.getByTestId(confirm ? 'connect-approve' : 'connect-reject');
-        await chose.waitFor({ state: 'attached' });
+        await chose.waitFor({ state: 'attached', timeout: 10_000 });
         await chose.click();
         await this.close();
     }
@@ -56,20 +56,20 @@ export class DemoWallet extends WalletApp {
         const modal = app.getByTestId('request').filter({ hasText: 'Sign Data Request' });
         await modal.waitFor({ state: 'visible' });
         const chose = app.getByTestId(confirm ? 'sign-data-approve' : 'sign-data-reject');
-        await chose.waitFor({ state: 'attached' });
+        await chose.waitFor({ state: 'attached', timeout: 10_000 });
         await chose.click();
-        await modal.waitFor({ state: 'detached' });
+        await modal.waitFor({ state: 'detached', timeout: 10_000 });
         await this.close();
     }
 
     async accept(confirm: boolean = true): Promise<void> {
         const app = await this.open();
         const modal = app.getByTestId('request').filter({ hasText: 'Transaction Request' });
-        await modal.waitFor({ state: 'visible' });
+        await modal.waitFor({ state: 'visible', timeout: 10_000 });
         const chose = app.getByTestId(confirm ? 'send-transaction-approve' : 'send-transaction-reject');
-        await chose.waitFor({ state: 'attached' });
+        await chose.waitFor({ state: 'attached', timeout: 10_000 });
         await chose.click();
-        await modal.waitFor({ state: 'detached' });
+        await modal.waitFor({ state: 'detached', timeout: 10_000 });
         await this.close();
     }
 }
