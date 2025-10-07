@@ -63,26 +63,6 @@ class UnlockWalletViewModel: ObservableObject {
         return false
     }
     
-    func proposeBiometryAuthenticationIfNeeded() async {
-        let context = LAContext()
-        var error: NSError?
-        
-        let canEvaluate = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
-        
-        if canEvaluate {
-            return
-        }
-        
-        if let error, error.code == LAError.biometryNotEnrolled.rawValue {
-            do {
-                try await context.evaluatePolicy(
-                    .deviceOwnerAuthenticationWithBiometrics,
-                    localizedReason: "This app uses Face ID to authenticate the user."
-                )
-            } catch {}
-        }
-    }
-    
     private func fillPassword() {
         do {
             password = try passwordStorage.password() ?? ""

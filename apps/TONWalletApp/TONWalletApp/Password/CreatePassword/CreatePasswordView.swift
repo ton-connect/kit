@@ -23,6 +23,7 @@ struct CreatePasswordView: View {
                 .foregroundColor(Color.TON.gray600)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppSpacing.spacing(4.0))
+                .fixedSize(horizontal: false, vertical: true)
             
             // Form Card
             VStack(spacing: AppSpacing.spacing(4.0)) {
@@ -34,12 +35,14 @@ struct CreatePasswordView: View {
                     
                     SecureField("Enter a strong password", text: $viewModel.password)
                         .textFieldStyle(TONTextFieldStyle())
-                        .textContentType(.newPassword)
+                        .textContentType(.none)
+                        .autocorrectionDisabled()
                     
                     Text("At least 8 characters with uppercase, lowercase, and numbers")
                         .textSM()
                         .foregroundColor(Color.TON.gray700)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 // Confirm Password Field
@@ -50,12 +53,15 @@ struct CreatePasswordView: View {
                     
                     SecureField("Confirm your password", text: $viewModel.confirmPassword)
                         .textFieldStyle(TONTextFieldStyle())
-                        .textContentType(.newPassword)
+                        .textContentType(.none)
+                        .autocorrectionDisabled()
                 }
                 
                 Button("Continue") {
-                    viewModel.continue() {
-                        if $0 { appStateManager.unlock() }
+                    Task {
+                        if await viewModel.continue() {
+                            appStateManager.unlock()
+                        }
                     }
                 }
                 .buttonStyle(TONButtonStyle(type: .primary))
@@ -72,15 +78,13 @@ struct CreatePasswordView: View {
                     .textSM()
                     .foregroundColor(Color.TON.gray500)
             }
+            .fixedSize(horizontal: false, vertical: true)
             
             Spacer()
         }
         .padding(.horizontal, AppSpacing.spacing(5.0))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.TON.gray100)
+        .ignoresSafeArea(.keyboard)
     }
-}
-
-#Preview {
-    CreatePasswordView()
 }

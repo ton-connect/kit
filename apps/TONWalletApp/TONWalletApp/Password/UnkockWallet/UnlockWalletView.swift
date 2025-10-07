@@ -44,9 +44,7 @@ struct UnlockWalletView: View {
                 }
                 
                 Button("Unlock Wallet") {
-                    Task {
-                        await unlock()
-                    }
+                    unlock()
                 }
                 .buttonStyle(TONButtonStyle(type: .primary))
                 .disabled(!viewModel.canUnlock)
@@ -75,19 +73,14 @@ struct UnlockWalletView: View {
         .background(Color.TON.gray100)
         .task {
             if await viewModel.tryBiometryAuthentication() {
-                await unlock()
+                unlock()
             }
         }
     }
     
-    private func unlock() async {
+    private func unlock() {
         if viewModel.checkPassword() {
-            await viewModel.proposeBiometryAuthenticationIfNeeded()
             appStateManager.unlock()
         }
     }
-}
-
-#Preview {
-    UnlockWalletView()
 }

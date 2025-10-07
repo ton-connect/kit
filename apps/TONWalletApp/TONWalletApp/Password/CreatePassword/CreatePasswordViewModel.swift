@@ -30,43 +30,36 @@ class CreatePasswordViewModel: ObservableObject {
         isPasswordValid && passwordsMatch
     }
     
-    func `continue`(_ completion: @escaping (Bool) -> ()) {
+    func `continue`() async -> Bool {
         guard canContinue else {
-            completion(false)
-            return
+            return false
         }
         
         do {
             try passwordStorage.set(password: password)
-            
-            requestBiometry {
-                completion(true)
-            }
+            await requestBiometry()
+            return true
         } catch {
             debugPrint(error.localizedDescription)
-            completion(false)
+            return false
         }
     }
     
-    private func requestBiometry(_ completion: @escaping () -> Void) {
+    private func requestBiometry() async {
         let context = LAContext()
         var error: NSError?
         
         let canEvaluate = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
         
-        if canEvaluate {
-            completion()
-        } else if let error, error.code == LAError.biometryNotEnrolled.rawValue {
-            context.evaluatePolicy(
-                .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: "This app uses Face ID to authenticate the user."
-            ) { success, _ in
-                DispatchQueue.main.async {
-                    completion()
-                }
+        if canEvaluate && context.biometryType != .none {
+            do {
+                try await context.evaluatePolicy(
+                    .deviceOwnerAuthenticationWithBiometrics,
+                    localizedReason: "This app uses Face ID to authenticate the user."
+                )
+            } catch {
+                debugPrint(error.localizedDescription)
             }
-        } else {
-            completion()
         }
     }
 }
