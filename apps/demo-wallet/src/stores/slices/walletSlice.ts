@@ -60,7 +60,7 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
         },
     }) as ITonWalletKit;
 
-    log.info(`WalletKit initialized with network: ${network}`);
+    log.info(`WalletKit initialized with network: ${network} ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;
 }
 

@@ -567,6 +567,7 @@ export class BridgeManager {
                 rawEvent.traceId = uuidv7();
             }
 
+            await this.sessionManager.initialize();
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);
                 rawEvent.domain = session?.domain || '';

@@ -670,6 +670,7 @@ export class TonWalletKit implements ITonWalletKit {
         messageInfo: BridgeEventMessageInfo,
         request: InjectedToExtensionBridgeRequestPayload,
     ): Promise<unknown> {
+        await this.ensureInitialized();
         return this.bridgeManager.queueJsBridgeEvent(messageInfo, request);
     }
 }
