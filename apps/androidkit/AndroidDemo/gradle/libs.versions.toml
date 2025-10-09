@@ -50,6 +50,7 @@ androidxTestRunner = { module = "androidx.test:runner", version.ref = "androidxT
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 androidxTestCore = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+shadowsFramework = { module = "org.robolectric:shadows-framework", version.ref = "robolectric" }
 kotlinxCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 [plugins]

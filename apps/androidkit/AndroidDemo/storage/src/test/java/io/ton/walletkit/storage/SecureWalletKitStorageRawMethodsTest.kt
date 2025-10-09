@@ -10,6 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowAndroidKeyStore
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -21,7 +22,7 @@ import kotlin.test.assertNull
  * storage for the bridge module.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [33], shadows = [ShadowAndroidKeyStore::class])
 class SecureWalletKitStorageRawMethodsTest {
 
     private lateinit var context: Context

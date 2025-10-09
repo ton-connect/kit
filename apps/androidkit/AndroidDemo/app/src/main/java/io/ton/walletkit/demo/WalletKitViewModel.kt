@@ -1368,16 +1368,6 @@ class WalletKitViewModel(
         }
     }
 
-    /**
-     * @deprecated No longer needed - bridge automatically restores wallets from persistent storage.
-     * Kept for reference only. Remove in future version.
-     */
-    @Deprecated("Bridge handles wallet restoration automatically")
-    private suspend fun restorePersistedWallets(stored: Map<String, StoredWalletRecord>) {
-        // This function is no longer used - bridge handles persistence automatically
-        Log.w(LOG_TAG, "restorePersistedWallets called but is deprecated - bridge handles this automatically")
-    }
-
     private suspend fun reinitializeForNetwork(
         target: TonNetwork,
         storedOverride: Map<String, StoredWalletRecord>? = null,

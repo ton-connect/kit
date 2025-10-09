@@ -44,6 +44,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(kotlin("test"))
     testImplementation(libs.robolectric)
+    testImplementation(libs.shadowsFramework)
     testImplementation(libs.androidxTestCore)
     testImplementation(libs.kotlinxCoroutinesTest)
 }
