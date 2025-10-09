@@ -185,8 +185,8 @@ export class AllureApiClient {
  * @returns allureId или null если не найден
  */
 export function extractAllureId(testTitle: string): string | null {
-  const match = testTitle.match(/@allureId\((\d+)\)/);
-  return match ? match[1] : null;
+    const match = testTitle.match(/@allureId\((\d+)\)/);
+    return match ? match[1] : null;
 }
 
 /**

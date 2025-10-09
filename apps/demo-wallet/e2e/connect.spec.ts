@@ -1,11 +1,9 @@
 //import * as allure from 'allure-js-commons';
 
-import { testWithDemoWalletFixture } from './demo-wallet';
-
-
 import { expect } from '@playwright/test';
 import { allure } from 'allure-playwright';
 
+import { testWithDemoWalletFixture } from './demo-wallet';
 import { testWith } from './qa';
 import { demoWalletFixture } from './demo-wallet';
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
@@ -17,8 +15,6 @@ const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
 //const { expect } = test;
-
-
 
 // const test = testWith(
 //     demoWalletFixture({
@@ -68,10 +64,10 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
         console.warn('AllureId not found in test title or client not available');
     }
 
-    await app.getByTestId('connectPrecondition').fill(precondition||'');
+    await app.getByTestId('connectPrecondition').fill(precondition || '');
     await app.getByTestId('connectExpectedResult').fill(expectedResult);
     await expect(app.getByTestId('connect-button')).toHaveText('Connect Wallet');
-    
+
     await app.getByTestId('connect-button').click();
 
     await widget.connectUrlButton.waitFor({ state: 'visible' });
