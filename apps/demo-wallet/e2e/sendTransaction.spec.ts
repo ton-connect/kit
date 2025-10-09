@@ -1,13 +1,11 @@
 import { expect } from '@playwright/test';
 import { allure } from 'allure-playwright';
+import type { TestInfo } from '@playwright/test';
 
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
 import { testWithDemoWalletFixture } from './demo-wallet';
+import type { TestFixture } from './qa';
 
-// Создаем тест с использованием demoWalletFixture
-const feature = {
-    jsBridge: Boolean(process.env.E2E_JS_BRIDGE),
-};
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
@@ -17,7 +15,10 @@ let allureClient: AllureApiClient;
 // Function for extracting allureId from the test title
 
 // universal function for executing SendTransaction test
-async function runSendTransactionTest({ wallet, app, widget }: { wallet: any; app: any; widget: any }, testInfo: any) {
+async function runSendTransactionTest(
+    { wallet, app, widget }: Pick<TestFixture, 'wallet' | 'app' | 'widget'>,
+    testInfo: TestInfo,
+) {
     const allureId = extractAllureId(testInfo.title);
 
     if (allureId) {
@@ -25,7 +26,6 @@ async function runSendTransactionTest({ wallet, app, widget }: { wallet: any; ap
         await allure.owner('e.kurilenko');
     }
 
-    // Инициализируем переменные для данных тест-кейса
     let precondition: string = '';
     let expectedResult: string = '';
     let isPositiveCase: boolean = true;
@@ -37,23 +37,21 @@ async function runSendTransactionTest({ wallet, app, widget }: { wallet: any; ap
             expectedResult = testCaseData.expectedResult;
             isPositiveCase = testCaseData.isPositiveCase;
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);
         }
     } else {
+        // eslint-disable-next-line no-console
         console.warn('AllureId not found in test title or client not available');
     }
 
-    // Подключаем кошелек
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
     await wallet.connectBy(await widget.connectUrl());
     await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
-
-    // Заполняем данные для транзакции
     await app.getByTestId('sendTxPrecondition').fill(precondition);
     await app.getByTestId('sendTxExpectedResult').fill(expectedResult);
     await app.getByTestId('send-transaction-button').click();
 
-    // Подтверждаем транзакцию
     await wallet.accept(isPositiveCase);
 
     await expect(app.getByTestId('sendTransactionValidation')).toHaveText('Validation Passed');
@@ -61,12 +59,10 @@ async function runSendTransactionTest({ wallet, app, widget }: { wallet: any; ap
 
 test.beforeAll(async () => {
     try {
-        // Создаем конфигурацию Allure
         const config = createAllureConfig();
-
-        // Создаем клиент Allure
         allureClient = new AllureApiClient(config);
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error creating allure client:', error);
         throw error;
     }

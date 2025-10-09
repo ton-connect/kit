@@ -2,15 +2,11 @@
 
 import { expect } from '@playwright/test';
 import { allure } from 'allure-playwright';
+import type { TestInfo } from '@playwright/test';
 
 import { testWithDemoWalletFixture } from './demo-wallet';
-import { testWith } from './qa';
-import { demoWalletFixture } from './demo-wallet';
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
-
-const feature = {
-    jsBridge: Boolean(process.env.E2E_JS_BRIDGE),
-};
+import type { TestFixture } from './qa';
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
@@ -33,22 +29,22 @@ test.beforeAll(async () => {
         const config = createAllureConfig();
         allureClient = new AllureApiClient(config);
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error creating allure client:', error);
         throw error;
     }
 });
 
-async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; widget: any }, testInfo: any) {
-    // Извлекаем allureId из названия теста
+async function runConnectTest(
+    { wallet, app, widget }: Pick<TestFixture, 'wallet' | 'app' | 'widget'>,
+    testInfo: TestInfo,
+) {
     const allureId = extractAllureId(testInfo.title);
-
-    // Устанавливаем Allure аннотации
     if (allureId) {
         await allure.allureId(allureId);
         await allure.owner('e.kurilenko');
     }
 
-    // Инициализируем переменные для данных тест-кейса
     let precondition: string = '';
     let expectedResult: string = '';
 
@@ -58,9 +54,11 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
         } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);
         }
     } else {
+        // eslint-disable-next-line no-console
         console.warn('AllureId not found in test title or client not available');
     }
 
@@ -72,11 +70,8 @@ async function runConnectTest({ wallet, app, widget }: { wallet: any; app: any; 
 
     await widget.connectUrlButton.waitFor({ state: 'visible' });
     await widget.connectUrlButton.click();
-    const handle = await widget.page.evaluateHandle(() => navigator.clipboard.readText());
-    console.log(handle);
-    //return await handle.jsonValue();
 
-    await wallet.connectBy(await handle.jsonValue());
+    await wallet.connectBy(await widget.connectUrl());
 
     //await wallet.connect(true, await handle.jsonValue());
 
