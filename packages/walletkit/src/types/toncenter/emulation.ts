@@ -291,6 +291,12 @@ export interface ToncenterResponseJettonWallets {
     metadata: Record<string, EmulationAddressMetadata>;
 }
 
+export interface ToncenterResponseJettonMasters {
+    jetton_masters: ToncenterJettonWallet[];
+    address_book: Record<string, EmulationAddressBookEntry>;
+    metadata: Record<string, EmulationAddressMetadata>;
+}
+
 export interface ToncenterJettonWallet {
     address: string;
     balance: string;

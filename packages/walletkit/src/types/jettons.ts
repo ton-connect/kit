@@ -135,7 +135,7 @@ export enum JettonErrorCode {
 export interface JettonsAPI {
     // === Information & Discovery ===
     /** Get jetton master info by address */
-    getJettonInfo(jettonAddress: string): JettonInfo | null;
+    getJettonInfo(jettonAddress: string): Promise<JettonInfo | null>;
 
     /** Get all jettons for a user address */
     getAddressJettons(userAddress: string, offset?: number, limit?: number): Promise<AddressJetton[]>;

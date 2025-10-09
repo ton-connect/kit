@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import type { EventTransactionRequest, JettonInfo } from '@ton/walletkit';
+import type { EventTransactionRequest, JettonInfo, MoneyFlowSelf } from '@ton/walletkit';
 import { Address } from '@ton/core';
 
 import { Button } from './Button';
@@ -154,58 +154,23 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             </div>
                         )}
 
-                        {/* Transaction Summary */}
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                            <h3 className="font-semibold text-gray-900 mb-3">Transaction Summary</h3>
-
-                            {/* Network */}
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-gray-600">Network:</span>
-                                <span className="text-sm text-black">
-                                    {request.request.network === '-3'
-                                        ? 'Testnet'
-                                        : request.request.network === '-239'
-                                          ? 'Mainnet'
-                                          : 'Unknown'}
-                                </span>
-                            </div>
-
-                            {/* Valid Until */}
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Valid Until:</span>
-                                <span className="text-sm text-black">
-                                    {typeof request.request.valid_until === 'number'
-                                        ? new Date(request.request.valid_until * 1000).toLocaleString()
-                                        : '—'}
-                                </span>
-                            </div>
-                        </div>
-
                         {request.preview.result === 'success' && (
                             <>
                                 {/* Money Flow Summary */}
                                 <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">Transaction Overview</h4>
                                     <div className="space-y-3">
-                                        <JettonFlow
-                                            jettonTransfers={request.preview.moneyFlow.jettonTransfers}
-                                            ourAddress={request.preview.moneyFlow.ourAddress}
-                                            tonDifference={
-                                                BigInt(request.preview.moneyFlow.inputs) -
-                                                BigInt(request.preview.moneyFlow.outputs)
-                                            }
-                                        />
-
                                         {/* No transfers message */}
                                         {request.preview.moneyFlow.outputs === '0' &&
-                                            request.preview.moneyFlow.inputs === '0' &&
-                                            request.preview.moneyFlow.jettonTransfers.length === 0 && (
-                                                <div className="border rounded-lg p-3 bg-gray-50">
-                                                    <p className="text-sm text-gray-600 text-center">
-                                                        This transaction doesn't involve any token transfers
-                                                    </p>
-                                                </div>
-                                            )}
+                                        request.preview.moneyFlow.inputs === '0' &&
+                                        request.preview.moneyFlow.ourTransfers.length === 0 ? (
+                                            <div className="border rounded-lg p-3 bg-gray-50">
+                                                <p className="text-sm text-gray-600 text-center">
+                                                    This transaction doesn't involve any token transfers
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <JettonFlow transfers={request.preview.moneyFlow.ourTransfers} />
+                                        )}
                                     </div>
                                 </div>
                             </>
@@ -285,8 +250,14 @@ function useJettonInfo(jettonAddress: Address | string | null) {
             setJettonInfo(null);
             return;
         }
-        const jettonInfo = walletKit?.jettons?.getJettonInfo(jettonAddress.toString());
-        setJettonInfo(jettonInfo ?? null);
+        async function updateJettonInfo() {
+            if (!jettonAddress) {
+                return;
+            }
+            const jettonInfo = await walletKit?.jettons?.getJettonInfo(jettonAddress.toString());
+            setJettonInfo(jettonInfo ?? null);
+        }
+        updateJettonInfo();
     }, [jettonAddress, walletKit]);
     return jettonInfo;
 }
@@ -360,7 +331,7 @@ const JettonFlowItem = memo(function JettonFlowItem({
     amount,
 }: {
     jettonAddress: Address | string | undefined;
-    amount: bigint;
+    amount: string;
 }) {
     return (
         <div className="flex items-center justify-between">
@@ -368,61 +339,35 @@ const JettonFlowItem = memo(function JettonFlowItem({
                 <JettonImage jettonAddress={jettonAddress} />
                 <JettonNameDisplay jettonAddress={jettonAddress} />
             </span>
-            <div className={`flex ml-2 font-medium ${amount >= 0n ? 'text-green-600' : 'text-red-600'}`}>
-                {amount >= 0n ? '+' : ''}
-                <JettonAmountDisplay amount={amount} jettonAddress={jettonAddress} />
+            <div className={`flex ml-2 font-medium ${BigInt(amount) >= 0n ? 'text-green-600' : 'text-red-600'}`}>
+                {BigInt(amount) >= 0n ? '+' : ''}
+                <JettonAmountDisplay amount={BigInt(amount)} jettonAddress={jettonAddress} />
             </div>
         </div>
     );
 });
-export const JettonFlow = memo(function JettonFlow({
-    jettonTransfers,
-    tonDifference,
-    ourAddress,
-}: {
-    jettonTransfers: { from: Address; to: Address; jetton: Address | null; amount: string }[];
-    ourAddress: Address | null;
-    tonDifference: bigint;
-}) {
-    // Group transfers by jetton and calculate net flow
-    const jettonFlows = useMemo(() => {
-        return jettonTransfers.reduce<Record<string, bigint>>((acc, transfer) => {
-            const jettonKey = transfer.jetton?.toString() || 'unknown';
-            // console.log('jettonKey', jettonKey);
-            if (jettonKey === 'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez') {
-                return acc;
-            }
-            if (jettonKey === 'EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S') {
-                return acc;
-            }
-
-            const rawKey = Address.parse(jettonKey).toRawString().toLocaleUpperCase();
-            if (!acc[rawKey]) {
-                acc[rawKey] = 0n;
-            }
-
-            // Add to balance if receiving tokens (to our address)
-            // Subtract from balance if sending tokens (from our address)
-            if (ourAddress && transfer.to.equals(ourAddress)) {
-                acc[rawKey] += BigInt(transfer.amount);
-            }
-            if (ourAddress && transfer.from.equals(ourAddress)) {
-                acc[rawKey] -= BigInt(transfer.amount);
-            }
-
-            return acc;
-        }, {});
-    }, [jettonTransfers, ourAddress?.toRawString?.()]);
-
+export const JettonFlow = memo(function JettonFlow({ transfers }: { transfers: MoneyFlowSelf[] }) {
     return (
         <div className="mt-2">
             <div className="font-semibold mb-1">Money Flow:</div>
             <div className="flex flex-col gap-2">
-                <JettonFlowItem jettonAddress={'TON'} amount={tonDifference} />
-                {Object.entries(jettonFlows).length > 0 ? (
-                    Object.entries(jettonFlows).map(([jettonAddr, amount]) => (
-                        <JettonFlowItem key={jettonAddr} jettonAddress={jettonAddr} amount={amount} />
-                    ))
+                {/* <JettonFlowItem jettonAddress={'TON'} amount={tonDifference} /> */}
+                {transfers?.length > 0 ? (
+                    transfers.map((transfer) =>
+                        transfer.type === 'jetton' ? (
+                            <JettonFlowItem
+                                key={transfer.jetton.toString()}
+                                jettonAddress={transfer.jetton}
+                                amount={transfer.amount}
+                            />
+                        ) : (
+                            <JettonFlowItem
+                                key={transfer.type.toString()}
+                                jettonAddress={transfer.type.toLocaleUpperCase()}
+                                amount={transfer.amount}
+                            />
+                        ),
+                    )
                 ) : (
                     <></>
                 )}

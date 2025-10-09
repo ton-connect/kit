@@ -15,16 +15,31 @@ export interface ToncenterMessage {
     body: string;
 }
 
+export type Asset =
+    | {
+          type: 'ton';
+      }
+    | {
+          type: 'jetton';
+          jetton: string;
+      };
+
+export type MoneyFlowRow = Asset & {
+    from: string; // address
+    to: string; // address
+    amount: string;
+};
+
+export type MoneyFlowSelf = Asset & {
+    amount: string;
+};
+
 export interface MoneyFlow {
-    outputs: string;
-    inputs: string;
-    jettonTransfers: {
-        from: Address;
-        to: Address;
-        jetton: Address | null;
-        amount: string;
-    }[];
-    ourAddress: Address | null;
+    outputs: string; // amount of TON our account lost
+    inputs: string; // amount of TON our account gained
+    allJettonTransfers: MoneyFlowRow[]; // all jetton transfers
+    ourTransfers: MoneyFlowSelf[];
+    ourAddress: string | null;
 }
 
 export type ToncenterEmulationResult =
@@ -43,6 +58,11 @@ export interface ToncenterEmulationHook {
     isCorrect: boolean;
     error: string | null;
 }
+
+const TON_PROXY_ADDRESSES = [
+    '0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C',
+    '0:671963027F7F85659AB55B821671688601CDCF1EE674FC7FBBB1A776A18D34A3',
+];
 
 /**
  * Creates a toncenter message payload for emulation
@@ -108,7 +128,8 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         return {
             outputs: '0',
             inputs: '0',
-            jettonTransfers: [],
+            allJettonTransfers: [],
+            ourTransfers: [],
             ourAddress: null,
         };
     }
@@ -142,12 +163,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         .toString();
 
     // Process jetton transfers
-    const jettonTransfers: {
-        from: Address;
-        to: Address;
-        jetton: Address | null;
-        amount: string;
-    }[] = [];
+    const jettonTransfers: MoneyFlowRow[] = [];
 
     for (const t of Object.values(emulation.transactions)) {
         if (!t.in_msg?.source) {
@@ -183,66 +199,61 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         const jettonAddress = Address.parse(tokenInfo.extra.jetton);
 
         jettonTransfers.push({
-            from,
-            to,
-            jetton: jettonAddress,
+            from: from.toRawString().toUpperCase(),
+            to: to.toRawString().toUpperCase(),
+            jetton: jettonAddress.toRawString().toUpperCase(),
             amount: jettonAmount.toString(),
+            type: 'jetton',
         });
     }
+
+    const ourAddress = Address.parse(firstTx.account);
+
+    const selfTransfers: MoneyFlowSelf[] = [];
+    const ourJettonTransfersByAddress = jettonTransfers.reduce<Record<string, bigint>>((acc, transfer) => {
+        if (transfer.type !== 'jetton') {
+            return acc;
+        }
+        const jettonKey = transfer.jetton?.toString() || 'unknown';
+
+        // TON Proxy
+        if (TON_PROXY_ADDRESSES.includes(jettonKey)) {
+            return acc;
+        }
+
+        const rawKey = Address.parse(jettonKey).toRawString().toUpperCase();
+        if (!acc[rawKey]) {
+            acc[rawKey] = 0n;
+        }
+
+        // Add to balance if receiving tokens (to our address)
+        // Subtract from balance if sending tokens (from our address)
+        if (ourAddress && transfer.to === ourAddress.toRawString().toUpperCase()) {
+            acc[rawKey] += BigInt(transfer.amount);
+        }
+        if (ourAddress && transfer.from === ourAddress.toRawString().toUpperCase()) {
+            acc[rawKey] -= BigInt(transfer.amount);
+        }
+
+        return acc;
+    }, {});
+
+    const ourJettonTransfers = Object.entries(ourJettonTransfersByAddress).map(([jettonKey, amount]) => ({
+        type: 'jetton' as const,
+        jetton: Address.parse(jettonKey).toRawString().toUpperCase(),
+        amount: amount.toString(),
+    }));
+    selfTransfers.push({
+        type: 'ton',
+        amount: (BigInt(inputs) - BigInt(outputs)).toString(),
+    });
+    selfTransfers.push(...ourJettonTransfers);
 
     return {
         outputs,
         inputs,
-        jettonTransfers,
-        ourAddress: Address.parse(firstTx.account),
+        allJettonTransfers: jettonTransfers,
+        ourTransfers: selfTransfers,
+        ourAddress: ourAddress.toRawString().toUpperCase(),
     };
-}
-
-/**
- * Validates toncenter money flow against local money flow
- */
-export function validateToncenterMoneyFlow(
-    toncenterFlow: MoneyFlow,
-    localFlow: MoneyFlow,
-): { isValid: boolean; error: string | null } {
-    if (!toncenterFlow?.ourAddress || !localFlow?.ourAddress) {
-        return { isValid: false, error: 'Missing wallet addresses' };
-    }
-
-    if (toncenterFlow.outputs !== localFlow.outputs) {
-        return { isValid: false, error: 'Wrong toncenter money flow outputs' };
-    }
-
-    if (toncenterFlow.inputs !== localFlow.inputs) {
-        return {
-            isValid: false,
-            error: `Wrong toncenter money flow inputs: ${toncenterFlow.inputs} ${localFlow.inputs}`,
-        };
-    }
-
-    if (toncenterFlow.jettonTransfers.length !== localFlow.jettonTransfers.length) {
-        return { isValid: false, error: 'Wrong toncenter money flow jetton transfers count' };
-    }
-
-    for (const t of toncenterFlow.jettonTransfers) {
-        const jettonTransfer = localFlow.jettonTransfers.find(
-            (j) => t.jetton && j.jetton?.equals(t.jetton) && j.from?.equals(t.from) && j.to?.equals(t.to),
-        );
-
-        if (!jettonTransfer) {
-            return {
-                isValid: false,
-                error: `Wrong toncenter money flow jetton transfers exist: ${t.jetton} ${t.from} ${t.to}`,
-            };
-        }
-
-        if (jettonTransfer.amount !== t.amount) {
-            return {
-                isValid: false,
-                error: `Wrong toncenter money flow jetton transfers amount: ${t.jetton} ${t.from} ${t.to} ${jettonTransfer.amount} ${t.amount}`,
-            };
-        }
-    }
-
-    return { isValid: true, error: null };
 }

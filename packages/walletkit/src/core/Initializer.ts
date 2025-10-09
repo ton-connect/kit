@@ -2,7 +2,6 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import { ApiClientToncenter } from './ApiClientToncenter';
 import {
     TonWalletKitOptions,
     WalletInterface,
@@ -45,7 +44,6 @@ export interface InitializationResult {
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
     storageAdapter: StorageAdapter;
-    tonClient: ApiClient;
     eventProcessor: StorageEventProcessor;
 }
 
@@ -67,12 +65,11 @@ export class Initializer {
     /**
      * Initialize all components
      */
-    async initialize(options: TonWalletKitOptions): Promise<InitializationResult> {
+    async initialize(options: TonWalletKitOptions, tonClient: ApiClient): Promise<InitializationResult> {
         try {
             log.info('Initializing TonWalletKit...');
 
-            // 1. Initialize TON client first (single provider for all downstream classes)
-            this.tonClient = this.initializeTonClient(options);
+            this.tonClient = tonClient;
 
             // 2. Initialize storage adapter
             const storageAdapter = this.initializeStorage(options);
@@ -93,44 +90,12 @@ export class Initializer {
                 eventRouter,
                 requestProcessor,
                 storageAdapter,
-                tonClient: this.tonClient,
                 eventProcessor,
             };
         } catch (error) {
             log.error('Failed to initialize TonWalletKit', { error });
             throw error;
         }
-    }
-
-    /**
-     * Initialize TON client (single provider for all downstream classes)
-     */
-    private initializeTonClient(options: TonWalletKitOptions): ApiClient {
-        if (
-            options.apiClient &&
-            'nftItemsByAddress' in options.apiClient &&
-            'nftItemsByOwner' in options.apiClient &&
-            'fetchEmulation' in options.apiClient &&
-            'sendBoc' in options.apiClient &&
-            'runGetMethod' in options.apiClient &&
-            'getAccountState' in options.apiClient &&
-            'getBalance' in options.apiClient
-        ) {
-            return options.apiClient;
-        }
-
-        const defaultEndpoint =
-            options?.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
-        // Use provided API URL or default to mainnet
-        const endpoint = options?.apiClient?.url || defaultEndpoint;
-
-        const clientConfig = {
-            endpoint,
-            apiKey: options?.apiClient?.key,
-            network: options?.network,
-        };
-
-        return new ApiClientToncenter(clientConfig);
     }
 
     /**
