@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
-import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
 import { allure } from 'allure-playwright';
+
+import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
 import { testWithDemoWalletFixture } from './demo-wallet';
 
 // Создаем тест с использованием demoWalletFixture
@@ -16,63 +17,59 @@ let allureClient: AllureApiClient;
 // Function for extracting allureId from the test title
 
 // universal function for executing SendTransaction test
-async function runSendTransactionTest(
-  { wallet, app, widget }: { wallet: any; app: any; widget: any }, 
-  testInfo: any
-) {
-  const allureId = extractAllureId(testInfo.title);
-  
-  if (allureId) {
-    await allure.allureId(allureId);
-    await allure.owner('e.kurilenko');
-  }
-  
-  // Инициализируем переменные для данных тест-кейса
-  let precondition: string = "";
-  let expectedResult: string = "";
-  let isPositiveCase: boolean = true;
+async function runSendTransactionTest({ wallet, app, widget }: { wallet: any; app: any; widget: any }, testInfo: any) {
+    const allureId = extractAllureId(testInfo.title);
 
-  if (allureId && allureClient) {
-    try {
-      const testCaseData = await getTestCaseData(allureClient, allureId);
-      precondition = testCaseData.precondition;
-      expectedResult = testCaseData.expectedResult;
-      isPositiveCase = testCaseData.isPositiveCase;
-    } catch (error) {
-      console.error('Error getting test case data:', error);
+    if (allureId) {
+        await allure.allureId(allureId);
+        await allure.owner('e.kurilenko');
     }
-  } else {
-    console.warn('AllureId not found in test title or client not available');
-  }
 
-  // Подключаем кошелек
-  await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-  await wallet.connectBy(await widget.connectUrl());
-  await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
+    // Инициализируем переменные для данных тест-кейса
+    let precondition: string = '';
+    let expectedResult: string = '';
+    let isPositiveCase: boolean = true;
 
-  // Заполняем данные для транзакции
-  await app.getByTestId('sendTxPrecondition').fill(precondition);
-  await app.getByTestId('sendTxExpectedResult').fill(expectedResult);
-  await app.getByTestId('send-transaction-button').click();
+    if (allureId && allureClient) {
+        try {
+            const testCaseData = await getTestCaseData(allureClient, allureId);
+            precondition = testCaseData.precondition;
+            expectedResult = testCaseData.expectedResult;
+            isPositiveCase = testCaseData.isPositiveCase;
+        } catch (error) {
+            console.error('Error getting test case data:', error);
+        }
+    } else {
+        console.warn('AllureId not found in test title or client not available');
+    }
 
-  // Подтверждаем транзакцию
-  await wallet.accept(isPositiveCase);
+    // Подключаем кошелек
+    await expect(widget.connectButtonText).toHaveText('Connect Wallet');
+    await wallet.connectBy(await widget.connectUrl());
+    await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
 
-  await expect(app.getByTestId('sendTransactionValidation')).toHaveText('Validation Passed');
+    // Заполняем данные для транзакции
+    await app.getByTestId('sendTxPrecondition').fill(precondition);
+    await app.getByTestId('sendTxExpectedResult').fill(expectedResult);
+    await app.getByTestId('send-transaction-button').click();
+
+    // Подтверждаем транзакцию
+    await wallet.accept(isPositiveCase);
+
+    await expect(app.getByTestId('sendTransactionValidation')).toHaveText('Validation Passed');
 }
 
 test.beforeAll(async () => {
-  try {
-    // Создаем конфигурацию Allure
-    const config = createAllureConfig();
-    
-    // Создаем клиент Allure
-    allureClient = new AllureApiClient(config);
-    
-  } catch (error) {
-    console.error('Error creating allure client:', error);
-    throw error;
-  } 
+    try {
+        // Создаем конфигурацию Allure
+        const config = createAllureConfig();
+
+        // Создаем клиент Allure
+        allureClient = new AllureApiClient(config);
+    } catch (error) {
+        console.error('Error creating allure client:', error);
+        throw error;
+    }
 });
 
 // SendTransaction validation tests
@@ -108,7 +105,7 @@ test('[amount] Error if insufficient balance @allureId(1871)', async ({ wallet, 
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
-test('[amount] Success if \'0\' @allureId(1980)', async ({ wallet, app, widget }) => {
+test("[amount] Success if '0' @allureId(1980)", async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
@@ -116,7 +113,11 @@ test('[amount] Success if as a string @allureId(1849)', async ({ wallet, app, wi
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
-test('[from] Error if address doesn\'t match the user\'s wallet address @allureId(1877)', async ({ wallet, app, widget }) => {
+test("[from] Error if address doesn't match the user's wallet address @allureId(1877)", async ({
+    wallet,
+    app,
+    widget,
+}) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
@@ -148,7 +149,7 @@ test('[messages] Success if contains maximum messages @allureId(1959)', async ({
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
-test('[network] Error if \'-3\' (testnet) @allureId(1876)', async ({ wallet, app, widget }) => {
+test("[network] Error if '-3' (testnet) @allureId(1876)", async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
@@ -156,7 +157,7 @@ test('[network] Error if as a number @allureId(1860)', async ({ wallet, app, wid
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
-test('[network] Success if \'-239\' (mainnet) @allureId(1875)', async ({ wallet, app, widget }) => {
+test("[network] Success if '-239' (mainnet) @allureId(1875)", async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
