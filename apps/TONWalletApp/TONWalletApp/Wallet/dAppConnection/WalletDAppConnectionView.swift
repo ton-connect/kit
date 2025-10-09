@@ -49,30 +49,6 @@ struct WalletDAppConnectionView: View {
                         action: { viewModel.rejectConnection() }
                     )
                 )
-            case .transaction:
-                Alert(
-                    title: Text("dApp wants to perform transaction"),
-                    primaryButton: .default(
-                        Text("Approve"),
-                        action: { viewModel.approveTransaction() }
-                    ),
-                    secondaryButton: .default(
-                        Text("Reject"),
-                        action: { viewModel.rejectTransaction() }
-                    )
-                )
-            case .signData:
-                Alert(
-                    title: Text("dApp wants to sign data"),
-                    primaryButton: .default(
-                        Text("Approve"),
-                        action: { viewModel.approveSignData() }
-                    ),
-                    secondaryButton: .default(
-                        Text("Reject"),
-                        action: { viewModel.rejectSignData() }
-                    )
-                )
             }
         }
         .onAppear {

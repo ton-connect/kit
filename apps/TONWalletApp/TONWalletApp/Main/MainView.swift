@@ -20,10 +20,10 @@ struct MainView: View {
                     }
             case .addWallet:
                 AddWalletView() {
-                    viewModel.show(wallet: $0)
+                    viewModel.show(wallets: [$0])
                 }
-            case .wallet(let viewModel):
-                WalletView(viewModel: viewModel)
+            case .wallets(let viewModel):
+                WalletsListView(viewModel: viewModel)
             }
         }
     }

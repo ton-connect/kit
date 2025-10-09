@@ -12,7 +12,7 @@ import TONWalletKit
 class WalletInfoViewModel: ObservableObject {
     let wallet: TONWallet
     
-    var address: String? { wallet.address }
+    var address: String { wallet.address ?? "Unknown address" }
     
     @Published private(set) var balance: String?
     
@@ -21,8 +21,10 @@ class WalletInfoViewModel: ObservableObject {
     }
     
     func load() async {
+        if balance != nil { return }
+        
         do {
-            balance = try await wallet.balance()
+            balance = try await wallet.balance() ?? "Unknown balance"
         } catch {
             debugPrint(error.localizedDescription)
         }

@@ -33,7 +33,9 @@ class WalletDAppDisconnectionViewModel: ObservableObject {
             .sink { [weak self] event in
                 switch event {
                 case .disconnect(let event):
-                    self?.events.append(event)
+                    if event.walletAddress == self?.wallet.address {
+                        self?.events.append(event)
+                    }
                 default: ()
                 }
             }

@@ -12,7 +12,6 @@ class WalletViewModel: Identifiable, ObservableObject {
     let id = UUID()
 
     let tonWallet: TONWallet
-    let onRemove: () -> Void
     
     let info: WalletInfoViewModel
     let dAppConnection: WalletDAppConnectionViewModel
@@ -20,12 +19,12 @@ class WalletViewModel: Identifiable, ObservableObject {
     
     private let storage = WalletsStorage()
     
+    var onRemove: (() -> Void)?
+    
     init(
-        tonWallet: TONWallet,
-        onRemove: @escaping () -> Void
+        tonWallet: TONWallet
     ) {
         self.tonWallet = tonWallet
-        self.onRemove = onRemove
         
         self.info = WalletInfoViewModel(wallet: tonWallet)
         self.dAppConnection = WalletDAppConnectionViewModel(wallet: tonWallet)
@@ -34,13 +33,13 @@ class WalletViewModel: Identifiable, ObservableObject {
     
     func remove() {
         do {
-            try storage.removeAllWallets()
+            try storage.remove(walletAddress: tonWallet.address)
             
             Task {
                 try await tonWallet.remove()
             }
             
-            onRemove()
+            onRemove?()
         } catch {
             debugPrint(error.localizedDescription)
         }

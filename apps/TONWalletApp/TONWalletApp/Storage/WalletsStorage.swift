@@ -21,6 +21,12 @@ class WalletsStorage {
         try keychain.save(wallets)
     }
     
+    func remove(walletAddress: String?) throws {
+        var wallets = try self.wallets()
+        wallets.removeAll { $0.address == walletAddress }
+        try keychain.save(wallets)
+    }
+    
     public func removeAllWallets() throws {
         try keychain.clear()
     }

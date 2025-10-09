@@ -32,7 +32,7 @@ struct WalletInfoView: View {
                     .buttonStyle(TONLinkButtonStyle(type: .secondary))
                 }
                 
-                Text(viewModel.address ?? "")
+                Text(viewModel.address)
                     .multilineTextAlignment(.center)
                     .font(.callout)
             }

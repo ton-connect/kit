@@ -18,25 +18,50 @@ class MainViewModel: ObservableObject {
         do {
             let wallets = try storage.wallets()
             
-            if let wallet = wallets.first {
-                let wallet = try await TONWallet.add(data: wallet.data)
-                show(wallet: wallet)
-            } else {
+            var tonWallets: [TONWallet] = []
+            
+            for wallet in wallets {
+                let tonWallet = try await TONWallet.add(data: wallet.data)
+                tonWallets.append(tonWallet)
+            }
+            
+            if tonWallets.isEmpty {
                 state = .addWallet
+            } else {
+                show(wallets: tonWallets)
             }
         } catch {
             state = .addWallet
         }
     }
     
-    func show(wallet: TONWallet) {
-        let viewModel = WalletViewModel(
-            tonWallet: wallet,
-            onRemove: { [weak self] in
+    func show(wallets: [TONWallet]) {
+        if wallets.isEmpty {
+            return
+        }
+        
+        let wallets = wallets.map { wallet in
+            WalletViewModel(tonWallet: wallet)
+        }
+        
+        let viewModel = walletsListViewModel()
+        viewModel.add(wallets: wallets)
+        
+        state = .wallets(viewModel: viewModel)
+    }
+
+    func walletsListViewModel() -> WalletsListViewModel {
+        switch state {
+        case .loading, .addWallet:
+            let viewModel = WalletsListViewModel(wallets: [])
+            
+            viewModel.onRemoveAll = { [weak self] in
                 self?.state = .addWallet
             }
-        )
-        state = .wallet(viewModel: viewModel)
+            return viewModel
+        case .wallets(let viewModel):
+            return viewModel
+        }
     }
 }
 
@@ -45,6 +70,15 @@ extension MainViewModel {
     enum State {
         case loading
         case addWallet
-        case wallet(viewModel: WalletViewModel)
+        case wallets(viewModel: WalletsListViewModel)
+        
+        var isLoading: Bool {
+            switch self {
+            case .loading:
+                return true
+            default:
+                return false
+            }
+        }
     }
 }
