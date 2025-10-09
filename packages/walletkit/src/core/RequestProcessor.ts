@@ -669,11 +669,21 @@ export class RequestProcessor {
         } catch (error: any) {
             log.error('Failed to approve sign data request', {
                 error: error?.message?.toString() ?? error?.toString(),
+                stack: error?.stack,
+                errorObject: error,
             });
+            console.error('Full error details for sign data request:', error);
             if (error instanceof WalletKitError) {
                 return { success: false, code: error.code, message: error.message, error: error };
             }
-            return { success: false, code: 500, error: error as Error };
+            // Convert error to a serializable object
+            const errorMessage = error?.message || error?.toString() || 'Unknown error';
+            const errorDetails = {
+                message: errorMessage,
+                stack: error?.stack,
+                name: error?.name,
+            };
+            return { success: false, code: 500, message: errorMessage, error: errorDetails };
         }
     }
 

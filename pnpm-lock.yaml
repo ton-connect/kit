@@ -54,12 +54,18 @@ importers:
 
   apps/androidkit:
     dependencies:
+      '@ton/core':
+        specifier: ^0.61.0
+        version: 0.61.0(@ton/crypto@3.3.0)
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../../packages/walletkit
       '@tonconnect/bridge-sdk':
         specifier: ^0.2.4
         version: 0.2.4
+      '@tonconnect/protocol':
+        specifier: ^2.3.0
+        version: 2.3.0
       buffer:
         specifier: ^6.0.3
         version: 6.0.3

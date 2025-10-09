@@ -18,34 +18,47 @@ import io.ton.walletkit.demo.ui.components.WalletCard
 import io.ton.walletkit.demo.ui.preview.PreviewData
 
 @Composable
-fun WalletsSection(wallets: List<WalletSummary>, onWalletSelected: (String) -> Unit) {
+fun WalletsSection(
+    activeWallet: WalletSummary?,
+    totalWallets: Int,
+    onWalletSelected: (String) -> Unit,
+    onSendFromWallet: (String) -> Unit = {},
+) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Wallets",
+                "Active Wallet",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                "${wallets.size}",
+                when {
+                    totalWallets == 0 -> "None"
+                    totalWallets == 1 -> "1 wallet"
+                    else -> "$totalWallets wallets"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
         }
-        if (wallets.isEmpty()) {
+        if (activeWallet == null) {
             EmptyStateCard(
                 title = "No wallets",
                 description = "Import or generate a wallet to get started.",
             )
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                wallets.forEach { wallet ->
-                    WalletCard(
-                        wallet = wallet,
-                        onDetails = { onWalletSelected(wallet.address) },
-                    )
-                }
+            WalletCard(
+                wallet = activeWallet,
+                onDetails = { onWalletSelected(activeWallet.address) },
+                onSend = { onSendFromWallet(activeWallet.address) },
+            )
+            if (totalWallets > 1) {
+                Text(
+                    text = "Use the wallet switcher to view other wallets.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -54,5 +67,10 @@ fun WalletsSection(wallets: List<WalletSummary>, onWalletSelected: (String) -> U
 @Preview(showBackground = true)
 @Composable
 private fun WalletsSectionPreview() {
-    WalletsSection(wallets = listOf(PreviewData.wallet), onWalletSelected = {})
+    WalletsSection(
+        activeWallet = PreviewData.wallet,
+        totalWallets = 3,
+        onWalletSelected = {},
+        onSendFromWallet = {},
+    )
 }

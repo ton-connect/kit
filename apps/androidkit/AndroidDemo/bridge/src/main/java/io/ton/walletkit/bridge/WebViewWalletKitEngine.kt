@@ -21,6 +21,8 @@ import io.ton.walletkit.bridge.model.WalletSession
 import io.ton.walletkit.bridge.model.WalletState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
@@ -59,6 +61,11 @@ class WebViewWalletKitEngine(
     @Volatile private var apiBaseUrl: String = "https://testnet.tonapi.io"
 
     @Volatile private var tonApiKey: String? = null
+
+    // Auto-initialization state
+    @Volatile private var isWalletKitInitialized = false
+    private val walletKitInitMutex = Mutex()
+    private var pendingInitConfig: WalletKitBridgeConfig? = null
 
     init {
         mainHandler.post {
@@ -118,7 +125,48 @@ class WebViewWalletKitEngine(
         return Closeable { listeners.remove(listener) }
     }
 
-    override suspend fun init(config: WalletKitBridgeConfig): JSONObject {
+    /**
+     * Ensures WalletKit is initialized. If not already initialized, performs initialization
+     * with the provided config or defaults. This is called automatically by all public methods
+     * that require initialization, enabling auto-init behavior.
+     *
+     * @param config Configuration to use for initialization if not already initialized
+     */
+    private suspend fun ensureWalletKitInitialized(config: WalletKitBridgeConfig = WalletKitBridgeConfig()) {
+        // Fast path: already initialized
+        if (isWalletKitInitialized) {
+            return
+        }
+
+        walletKitInitMutex.withLock {
+            // Double-check after acquiring lock
+            if (isWalletKitInitialized) {
+                return@withLock
+            }
+
+            Log.d(logTag, "Auto-initializing WalletKit with config: network=${config.network}")
+
+            // Use pending config if init was called explicitly, otherwise use provided config
+            val effectiveConfig = pendingInitConfig ?: config
+            pendingInitConfig = null
+
+            try {
+                performInitialization(effectiveConfig)
+                isWalletKitInitialized = true
+                Log.d(logTag, "WalletKit auto-initialization completed successfully")
+            } catch (err: Throwable) {
+                Log.e(logTag, "WalletKit auto-initialization failed", err)
+                throw WalletKitBridgeException(
+                    "Failed to auto-initialize WalletKit: ${err.message}",
+                )
+            }
+        }
+    }
+
+    /**
+     * Performs the actual initialization by calling the JavaScript init method.
+     */
+    private suspend fun performInitialization(config: WalletKitBridgeConfig) {
         currentNetwork = config.network
         val tonClientEndpoint =
             config.tonClientEndpoint?.ifBlank { null }
@@ -127,6 +175,7 @@ class WebViewWalletKitEngine(
         apiBaseUrl = config.tonApiUrl?.ifBlank { null }
             ?: defaultTonApiBase(config.network)
         tonApiKey = config.apiKey
+
         val payload =
             JSONObject().apply {
                 put("network", config.network)
@@ -137,7 +186,22 @@ class WebViewWalletKitEngine(
                 config.bridgeName?.let { put("bridgeName", it) }
                 config.allowMemoryStorage?.let { put("allowMemoryStorage", it) }
             }
-        return call("init", payload)
+
+        call("init", payload)
+    }
+
+    override suspend fun init(config: WalletKitBridgeConfig): JSONObject {
+        // Store config for use during auto-init if this is called before any other method
+        walletKitInitMutex.withLock {
+            if (!isWalletKitInitialized) {
+                pendingInitConfig = config
+            }
+        }
+
+        // Ensure initialization happens with this config
+        ensureWalletKitInitialized(config)
+
+        return JSONObject().apply { put("ok", true) }
     }
 
     private fun defaultTonClientEndpoint(network: String): String = if (network.equals("mainnet", ignoreCase = true)) {
@@ -157,6 +221,7 @@ class WebViewWalletKitEngine(
         version: String,
         network: String?,
     ): JSONObject {
+        ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("words", JSONArray(words))
@@ -167,6 +232,7 @@ class WebViewWalletKitEngine(
     }
 
     override suspend fun getWallets(): List<WalletAccount> {
+        ensureWalletKitInitialized()
         val result = call("getWallets")
         val items = result.optJSONArray("items") ?: JSONArray()
         return buildList(items.length()) {
@@ -185,7 +251,16 @@ class WebViewWalletKitEngine(
         }
     }
 
+    override suspend fun removeWallet(address: String): JSONObject {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply { put("address", address) }
+        val result = call("removeWallet", params)
+        Log.d(logTag, "removeWallet result: $result")
+        return result
+    }
+
     override suspend fun getWalletState(address: String): WalletState {
+        ensureWalletKitInitialized()
         val params = JSONObject().apply { put("address", address) }
         val result = call("getWalletState", params)
         return WalletState(
@@ -199,15 +274,46 @@ class WebViewWalletKitEngine(
         )
     }
 
+    override suspend fun getRecentTransactions(address: String, limit: Int): JSONArray {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", address)
+            put("limit", limit)
+        }
+        val result = call("getRecentTransactions", params)
+        return result.optJSONArray("items") ?: JSONArray()
+    }
+
     override suspend fun handleTonConnectUrl(url: String): JSONObject {
+        ensureWalletKitInitialized()
         val params = JSONObject().apply { put("url", url) }
         return call("handleTonConnectUrl", params)
+    }
+
+    override suspend fun sendTransaction(
+        walletAddress: String,
+        recipient: String,
+        amount: String,
+        comment: String?,
+    ): JSONObject {
+        ensureWalletKitInitialized()
+        val params =
+            JSONObject().apply {
+                put("walletAddress", walletAddress)
+                put("toAddress", recipient)
+                put("amount", amount)
+                if (!comment.isNullOrBlank()) {
+                    put("comment", comment)
+                }
+            }
+        return call("sendTransaction", params)
     }
 
     override suspend fun approveConnect(
         requestId: Any,
         walletAddress: String,
     ): JSONObject {
+        ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("requestId", requestId)
@@ -220,6 +326,7 @@ class WebViewWalletKitEngine(
         requestId: Any,
         reason: String?,
     ): JSONObject {
+        ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("requestId", requestId)
@@ -229,6 +336,7 @@ class WebViewWalletKitEngine(
     }
 
     override suspend fun approveTransaction(requestId: Any): JSONObject {
+        ensureWalletKitInitialized()
         val params = JSONObject().apply { put("requestId", requestId) }
         return call("approveTransactionRequest", params)
     }
@@ -237,6 +345,7 @@ class WebViewWalletKitEngine(
         requestId: Any,
         reason: String?,
     ): JSONObject {
+        ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("requestId", requestId)
@@ -246,6 +355,7 @@ class WebViewWalletKitEngine(
     }
 
     override suspend fun approveSignData(requestId: Any): JSONObject {
+        ensureWalletKitInitialized()
         val params = JSONObject().apply { put("requestId", requestId) }
         return call("approveSignDataRequest", params)
     }
@@ -254,6 +364,7 @@ class WebViewWalletKitEngine(
         requestId: Any,
         reason: String?,
     ): JSONObject {
+        ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("requestId", requestId)
@@ -263,6 +374,7 @@ class WebViewWalletKitEngine(
     }
 
     override suspend fun listSessions(): List<WalletSession> {
+        ensureWalletKitInitialized()
         val result = call("listSessions")
         val items = result.optJSONArray("items") ?: JSONArray()
         return buildList(items.length()) {
@@ -285,6 +397,7 @@ class WebViewWalletKitEngine(
     }
 
     override suspend fun disconnectSession(sessionId: String?): JSONObject {
+        ensureWalletKitInitialized()
         val params = JSONObject()
         sessionId?.let { params.put("sessionId", it) }
         return call("disconnectSession", if (params.length() == 0) null else params)
@@ -414,6 +527,11 @@ class WebViewWalletKitEngine(
                 }
             }
         }
+    }
+
+    override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
+        ensureWalletKitInitialized()
+        return call("injectSignDataRequest", requestData)
     }
 
     private data class BridgeResponse(

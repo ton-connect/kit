@@ -67,9 +67,9 @@ import kotlin.jvm.java
     message = "QuickJS is 2x slower than WebView and is no longer maintained. Use WebViewWalletKitEngine instead.",
     replaceWith = ReplaceWith(
         "WebViewWalletKitEngine(context, assetPath, httpClient)",
-        "io.ton.walletkit.bridge.WebViewWalletKitEngine"
+        "io.ton.walletkit.bridge.WebViewWalletKitEngine",
     ),
-    level = DeprecationLevel.WARNING
+    level = DeprecationLevel.WARNING,
 )
 class QuickJsWalletKitEngine(
     context: Context,
@@ -183,7 +183,7 @@ class QuickJsWalletKitEngine(
             }
 
             Log.d(logTag, "Auto-initializing WalletKit with config: network=${config.network}")
-            
+
             // Use pending config if init was called explicitly, otherwise use provided config
             val effectiveConfig = pendingInitConfig ?: config
             pendingInitConfig = null
@@ -195,7 +195,7 @@ class QuickJsWalletKitEngine(
             } catch (err: Throwable) {
                 Log.e(logTag, "WalletKit auto-initialization failed", err)
                 throw WalletKitBridgeException(
-                    "Failed to auto-initialize WalletKit: ${err.message}"
+                    "Failed to auto-initialize WalletKit: ${err.message}",
                 )
             }
         }
@@ -235,10 +235,10 @@ class QuickJsWalletKitEngine(
                 pendingInitConfig = config
             }
         }
-        
+
         // Ensure initialization happens with this config
         ensureWalletKitInitialized(config)
-        
+
         return JSONObject().apply { put("ok", true) }
     }
 
@@ -436,7 +436,7 @@ class QuickJsWalletKitEngine(
         sessionId?.let { params.put("sessionId", it) }
         return call("disconnectSession", if (params.length() == 0) null else params)
     }
-    
+
     override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
         ensureWalletKitInitialized()
         return call("injectSignDataRequest", requestData)

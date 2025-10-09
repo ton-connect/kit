@@ -1,19 +1,91 @@
 import type { WalletKitBridgeEvent, WalletKitBridgeInitConfig } from './types';
 
 const walletKitModulePromise = import('@ton/walletkit');
+const tonCoreModulePromise = import('@ton/core');
 
 let TonWalletKit: any;
 let createWalletInitConfigMnemonic: any;
+let createWalletManifest: any;
+let Address: any;
+let Cell: any;
 let currentNetwork: 'mainnet' | 'testnet' = 'testnet';
 let currentApiBase = 'https://testnet.tonapi.io';
+type TonChainEnum = { MAINNET: number; TESTNET: number };
+let tonConnectChain: TonChainEnum | null = null;
 
 async function ensureWalletKitLoaded() {
-  if (TonWalletKit && createWalletInitConfigMnemonic) {
+  if (TonWalletKit && createWalletInitConfigMnemonic && tonConnectChain && Address && Cell) {
     return;
   }
-  const module = await walletKitModulePromise;
-  TonWalletKit = (module as any).TonWalletKit;
-  createWalletInitConfigMnemonic = (module as any).createWalletInitConfigMnemonic;
+  if (!TonWalletKit || !createWalletInitConfigMnemonic) {
+    const module = await walletKitModulePromise;
+    TonWalletKit = (module as any).TonWalletKit;
+    createWalletInitConfigMnemonic = (module as any).createWalletInitConfigMnemonic;
+    createWalletManifest = (module as any).createWalletManifest ?? createWalletManifest;
+    tonConnectChain = (module as { CHAIN?: TonChainEnum }).CHAIN ?? tonConnectChain;
+  }
+  // Load Address and Cell from @ton/core
+  if (!Address || !Cell) {
+    const coreModule = await tonCoreModulePromise;
+    Address = (coreModule as any).Address;
+    Cell = (coreModule as any).Cell;
+  }
+  if (!tonConnectChain) {
+    const module = await walletKitModulePromise;
+    tonConnectChain = (module as { CHAIN?: TonChainEnum }).CHAIN ?? null;
+    if (!tonConnectChain) {
+      throw new Error('TonWalletKit did not expose CHAIN enum');
+    }
+  }
+}
+
+// Helper to convert raw address (0:hex) to user-friendly format (UQ...)
+function toUserFriendlyAddress(rawAddress: string | null): string | null {
+  if (!rawAddress || !Address) return rawAddress;
+  try {
+    const addr = Address.parse(rawAddress);
+    return addr.toString({ bounceable: false, testOnly: currentNetwork === 'testnet' });
+  } catch (e) {
+    console.warn('[walletkitBridge] Failed to parse address:', rawAddress, e);
+    return rawAddress;
+  }
+}
+
+// Helper to convert base64 hash to hex
+function base64ToHex(base64: string): string {
+  try {
+    // Decode base64 to binary string
+    const binaryString = atob(base64);
+    let hex = '';
+    for (let i = 0; i < binaryString.length; i++) {
+      const hexByte = binaryString.charCodeAt(i).toString(16).padStart(2, '0');
+      hex += hexByte;
+    }
+    return hex;
+  } catch (e) {
+    console.warn('[walletkitBridge] Failed to convert hash to hex:', base64, e);
+    return base64;
+  }
+}
+
+// Helper to extract text comment from message body
+function extractTextComment(messageBody: string | null): string | null {
+  if (!messageBody || !Cell) return null;
+  try {
+    const cell = Cell.fromBase64(messageBody);
+    const slice = cell.beginParse();
+    
+    // Check if it starts with 0x00000000 (text comment opcode)
+    const opcode = slice.loadUint(32);
+    if (opcode === 0) {
+      // Read the rest as a string
+      return slice.loadStringTail();
+    }
+    return null;
+  } catch (e) {
+    // Not a text comment or failed to parse
+    return null;
+  }
 }
 
 type WalletKitApiMethod = keyof typeof api;
@@ -53,6 +125,8 @@ declare global {
 const listeners = new Set<(event: WalletKitBridgeEvent) => void>();
 const legacyRequests = new Set<string>();
 const pendingConnectRequests = new Map<string, any>();
+const pendingTransactionRequests = new Map<string, any>();
+const pendingSignDataRequests = new Map<string, any>();
 const activeSessionHints = new Map<string, SessionHint>();
 
 type SessionHint = {
@@ -293,19 +367,49 @@ async function initTonWalletKit(config?: WalletKitBridgeInitConfig, context?: Ca
   currentApiBase = tonApiUrl;
   pendingConnectRequests.clear();
   emitCallCheckpoint(context, 'initTonWalletKit:constructing-tonwalletkit');
-  walletKit = new TonWalletKit({
-    config: {
-      bridge: {
-        enableJsBridge: true,
-        bridgeUrl: config?.bridgeUrl || 'https://bridge.tonapi.io/bridge',
-        bridgeName: config?.bridgeName || 'tonkeeper',
-      },
-      eventProcessor: { disableEvents: false },
-      storage: { allowMemory: config?.allowMemoryStorage ?? true },
-    },
-    network,
-    apiUrl: clientEndpoint,
-  });
+  const chains = tonConnectChain;
+  if (!chains) {
+    throw new Error('TON Connect chain constants unavailable');
+  }
+  const chain = network === 'mainnet' ? chains.MAINNET : chains.TESTNET;
+
+  let walletManifest = config?.walletManifest;
+  if (!walletManifest && config?.bridgeUrl && typeof createWalletManifest === 'function') {
+    walletManifest = createWalletManifest({
+      bridgeUrl: config.bridgeUrl,
+      name: config.bridgeName ?? 'Wallet',
+      appName: config.bridgeName ?? 'Wallet',
+    });
+  }
+
+  const kitOptions: Record<string, unknown> = {
+    network: chain,
+    apiClient: { url: clientEndpoint },
+  };
+
+  if (config?.deviceInfo) {
+    kitOptions.deviceInfo = config.deviceInfo;
+  }
+
+  if (walletManifest) {
+    kitOptions.walletManifest = walletManifest;
+  }
+
+  const resolvedBridgeUrl =
+    config?.bridgeUrl ?? (walletManifest && typeof walletManifest === 'object' ? walletManifest.bridgeUrl : undefined);
+  if (resolvedBridgeUrl) {
+    kitOptions.bridge = {
+      bridgeUrl: resolvedBridgeUrl,
+    };
+  }
+
+  if (config?.allowMemoryStorage) {
+    kitOptions.storage = {
+      allowMemory: true,
+    };
+  }
+
+  walletKit = new TonWalletKit(kitOptions);
 
   walletKit.onConnectRequest((event: any) => {
     if (event && typeof event === 'object' && event.id != null) {
@@ -313,8 +417,20 @@ async function initTonWalletKit(config?: WalletKitBridgeInitConfig, context?: Ca
     }
     emit('connectRequest', event);
   });
-  walletKit.onTransactionRequest((event: unknown) => emit('transactionRequest', event));
-  walletKit.onSignDataRequest((event: unknown) => emit('signDataRequest', event));
+  walletKit.onTransactionRequest((event: unknown) => {
+    const typedEvent = event as any;
+    if (typedEvent && typedEvent.id) {
+      pendingTransactionRequests.set(typedEvent.id, typedEvent);
+    }
+    emit('transactionRequest', event);
+  });
+  walletKit.onSignDataRequest((event: unknown) => {
+    const typedEvent = event as any;
+    if (typedEvent && typedEvent.id) {
+      pendingSignDataRequests.set(typedEvent.id, typedEvent);
+    }
+    emit('signDataRequest', event);
+  });
   walletKit.onDisconnect((event: unknown) => {
     console.log('[walletkitBridge] disconnect event', event);
     emit('disconnect', event);
@@ -360,11 +476,16 @@ const api = {
     emitCallCheckpoint(context, 'addWalletFromMnemonic:after-ensureWalletKitLoaded');
     requireWalletKit();
     emitCallCheckpoint(context, 'addWalletFromMnemonic:after-requireWalletKit');
+    const chains = tonConnectChain;
+    if (!chains) {
+      throw new Error('TON Connect chain constants unavailable');
+    }
+    const chain = (args.network || 'testnet') === 'mainnet' ? chains.MAINNET : chains.TESTNET;
     const config = createWalletInitConfigMnemonic({
       mnemonic: args.words,
       version: args.version,
       mnemonicType: 'ton',
-      network: args.network || 'testnet',
+      network: chain,
     });
     emitCallCheckpoint(context, 'addWalletFromMnemonic:before-walletKit.addWallet');
     await walletKit.addWallet(config);
@@ -389,6 +510,38 @@ const api = {
     }));
   },
 
+  async removeWallet(args: { address: string }, context?: CallContext) {
+    emitCallCheckpoint(context, 'removeWallet:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'removeWallet:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      return { removed: false };
+    }
+    emitCallCheckpoint(context, 'removeWallet:before-walletKit.removeWallet');
+    await walletKit.removeWallet(address);
+    emitCallCheckpoint(context, 'removeWallet:after-walletKit.removeWallet');
+
+    for (const key of Array.from(activeSessionHints.keys())) {
+      if (typeof key === 'string' && key.startsWith(`${address}::`)) {
+        activeSessionHints.delete(key);
+      }
+    }
+
+    pendingConnectRequests.forEach((event, requestId) => {
+      if (event?.walletAddress === address) {
+        pendingConnectRequests.delete(requestId);
+      }
+    });
+
+    return { removed: true };
+  },
+
   async getWalletState(args: { address: string }, context?: CallContext) {
     requireWalletKit();
     if (typeof walletKit.ensureInitialized === 'function') {
@@ -409,6 +562,131 @@ const api = {
     const transactions = wallet.getTransactions ? await wallet.getTransactions(10) : [];
     emitCallCheckpoint(context, 'getWalletState:after-wallet.getTransactions');
     return { balance: balanceStr, transactions };
+  },
+
+  async getRecentTransactions(
+    args: { address: string; limit?: number },
+    context?: CallContext,
+  ): Promise<{ items: unknown[] }> {
+    emitCallCheckpoint(context, 'getRecentTransactions:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getRecentTransactions:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    const limit = Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 10;
+    
+    console.log('[walletkitBridge] getRecentTransactions fetching transactions for address:', address);
+    emitCallCheckpoint(context, 'getRecentTransactions:before-client.getAccountTransactions');
+    
+    // Use wallet.client.getAccountTransactions - address must be an array
+    const response = await wallet.client.getAccountTransactions({
+      address: [address], // Must be an array!
+      limit,
+    });
+    
+    // Response has structure: { transactions: [...], address_book: {...} }
+    const transactions = response?.transactions || [];
+    console.log('[walletkitBridge] getRecentTransactions fetched:', transactions.length, 'transactions');
+    console.log('[walletkitBridge] Address helper available:', !!Address, 'Cell helper available:', !!Cell);
+    
+    // Log structure of first transaction
+    if (transactions.length > 0) {
+      const firstTx = transactions[0];
+      console.log('[walletkitBridge] First tx keys:', Object.keys(firstTx).join(', '));
+      if (firstTx.in_msg) {
+        console.log('[walletkitBridge] in_msg keys:', Object.keys(firstTx.in_msg).join(', '));
+        if (firstTx.in_msg.message_content) {
+          console.log('[walletkitBridge] in_msg.message_content keys:', Object.keys(firstTx.in_msg.message_content).join(', '));
+        }
+      }
+    }
+    
+    // Process transactions to add user-friendly addresses and extract comments
+    const processedTransactions = transactions.map((tx: any, idx: number) => {
+      // Convert hash from base64 to hex
+      if (tx.hash) {
+        tx.hash_hex = base64ToHex(tx.hash);
+      }
+      
+      // Convert addresses to user-friendly format
+      if (tx.in_msg?.source) {
+        const rawAddr = tx.in_msg.source;
+        const friendlyAddr = toUserFriendlyAddress(rawAddr);
+        tx.in_msg.source_friendly = friendlyAddr;
+        if (idx === 0) {
+          console.log('[walletkitBridge] Converting source address:', rawAddr, '→', friendlyAddr);
+        }
+      }
+      if (tx.in_msg?.destination) {
+        const rawAddr = tx.in_msg.destination;
+        const friendlyAddr = toUserFriendlyAddress(rawAddr);
+        tx.in_msg.destination_friendly = friendlyAddr;
+        if (idx === 0) {
+          console.log('[walletkitBridge] Converting destination address:', rawAddr, '→', friendlyAddr);
+        }
+      }
+      
+      // Process outgoing messages
+      if (tx.out_msgs && Array.isArray(tx.out_msgs)) {
+        tx.out_msgs = tx.out_msgs.map((msg: any) => {
+          const processed = { ...msg };
+          if (msg.source) {
+            processed.source_friendly = toUserFriendlyAddress(msg.source);
+          }
+          if (msg.destination) {
+            processed.destination_friendly = toUserFriendlyAddress(msg.destination);
+          }
+          // Try to extract comment from message body
+          if (msg.message_content?.body) {
+            const comment = extractTextComment(msg.message_content.body);
+            if (comment) {
+              processed.comment = comment;
+            }
+          }
+          return processed;
+        });
+      }
+      
+      // Try to extract comment from incoming message
+      if (tx.in_msg?.message_content?.body) {
+        const body = tx.in_msg.message_content.body;
+        if (idx === 0) {
+          console.log('[walletkitBridge] in_msg.message_content.body exists, type:', typeof body, 'value:', body ? body.substring(0, 100) : 'null');
+        }
+        const comment = extractTextComment(body);
+        if (comment) {
+          tx.in_msg.comment = comment;
+          if (idx === 0) {
+            console.log('[walletkitBridge] Extracted comment from in_msg:', comment);
+          }
+        } else if (idx === 0) {
+          console.log('[walletkitBridge] No comment extracted from body');
+        }
+      } else if (idx === 0) {
+        console.log('[walletkitBridge] No in_msg.message_content.body - keys:', tx.in_msg ? Object.keys(tx.in_msg) : 'no in_msg');
+      }
+      
+      return tx;
+    });
+    
+    if (processedTransactions.length > 0) {
+      console.log('[walletkitBridge] First transaction after processing - hash_hex:', processedTransactions[0].hash_hex);
+      console.log('[walletkitBridge] First transaction after processing - in_msg.source_friendly:', processedTransactions[0].in_msg?.source_friendly);
+      console.log('[walletkitBridge] First transaction after processing - in_msg.comment:', processedTransactions[0].in_msg?.comment);
+    }
+    
+    if (processedTransactions.length > 0) {
+      console.log('[walletkitBridge] First transaction sample:', JSON.stringify(processedTransactions[0]).substring(0, 800));
+    }
+    emitCallCheckpoint(context, 'getRecentTransactions:after-client.getAccountTransactions');
+    return { items: Array.isArray(processedTransactions) ? processedTransactions : [] };
   },
 
   async handleTonConnectUrl(args: unknown, context?: CallContext) {
@@ -437,12 +715,106 @@ const api = {
     }
   },
 
+  async sendTransaction(
+    args: { walletAddress: string; toAddress: string; amount: string; comment?: string },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'sendTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'sendTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'sendTransaction:after-requireWalletKit');
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
+
+    const toAddress =
+      typeof args.toAddress === 'string' ? args.toAddress.trim() : String(args.toAddress ?? '').trim();
+    if (!toAddress) {
+      throw new Error('Recipient address is required');
+    }
+
+    const amount =
+      typeof args.amount === 'string' ? args.amount.trim() : String(args.amount ?? '').trim();
+    if (!amount) {
+      throw new Error('Amount is required');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${walletAddress}`);
+    }
+
+    const transferParams: Record<string, unknown> = {
+      toAddress,
+      amount,
+    };
+
+    const comment = typeof args.comment === 'string' ? args.comment.trim() : '';
+    if (comment) {
+      transferParams.comment = comment;
+    }
+
+    emitCallCheckpoint(context, 'sendTransaction:before-wallet.createTransferTonTransaction');
+    const transaction = await wallet.createTransferTonTransaction(transferParams);
+    emitCallCheckpoint(context, 'sendTransaction:after-wallet.createTransferTonTransaction');
+
+    // Add comment to transaction messages for UI display (doesn't affect blockchain encoding)
+    if (comment && transaction.messages && Array.isArray(transaction.messages)) {
+      transaction.messages = transaction.messages.map((msg: any) => ({
+        ...msg,
+        comment: comment,
+      }));
+    }
+
+    let preview: unknown = null;
+    if (typeof wallet.getTransactionPreview === 'function') {
+      try {
+        emitCallCheckpoint(context, 'sendTransaction:before-wallet.getTransactionPreview');
+        const previewResult = await wallet.getTransactionPreview(transaction);
+        preview = previewResult?.preview ?? previewResult;
+        emitCallCheckpoint(context, 'sendTransaction:after-wallet.getTransactionPreview');
+      } catch (error) {
+        console.warn('[walletkitBridge] getTransactionPreview failed', error);
+      }
+    }
+
+    // handleNewTransaction triggers onTransactionRequest event
+    // Android app should listen to transactionRequest event to show confirmation UI with fee details
+    // User then calls approveTransactionRequest or rejectTransactionRequest
+    emitCallCheckpoint(context, 'sendTransaction:before-walletKit.handleNewTransaction');
+    await walletKit.handleNewTransaction(wallet, transaction);
+    emitCallCheckpoint(context, 'sendTransaction:after-walletKit.handleNewTransaction');
+
+    // This returns immediately after queuing the transaction request
+    // The actual transaction is sent only when approveTransactionRequest is called
+    return {
+      success: true,
+      transaction,
+      preview,
+    };
+  },
+
   async approveConnectRequest(args: { requestId: any; walletAddress: string }, context?: CallContext) {
     emitCallCheckpoint(context, 'approveConnectRequest:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'approveConnectRequest:after-ensureWalletKitLoaded');
     requireWalletKit();
     emitCallCheckpoint(context, 'approveConnectRequest:after-requireWalletKit');
+    
+    // Ensure bridge is initialized before approving connect request
+    if (typeof walletKit.ensureInitialized === 'function') {
+      console.log('ensureInitialized');
+      emitCallCheckpoint(context, 'approveConnectRequest:before-walletKit.ensureInitialized');
+      await walletKit.ensureInitialized();
+      console.log('await this.initializationPromise');
+      emitCallCheckpoint(context, 'approveConnectRequest:after-walletKit.ensureInitialized');
+      console.log('ensureInitialized done');
+    }
+    
     const event = pendingConnectRequests.get(args.requestId);
     if (!event) {
       throw new Error('Connect request not found');
@@ -451,13 +823,20 @@ const api = {
     if (!wallet) {
       throw new Error('Wallet not found');
     }
+    const resolvedAddress =
+      (typeof wallet.getAddress === 'function' ? wallet.getAddress() : wallet.address) || args.walletAddress;
     event.wallet = wallet;
+    event.walletAddress = resolvedAddress;
     emitCallCheckpoint(context, 'approveConnectRequest:before-walletKit.approveConnectRequest');
-    await walletKit.approveConnectRequest(event);
+    const result = await walletKit.approveConnectRequest(event);
+    if (!result?.success) {
+      const message = result?.message || 'Failed to approve connect request';
+      throw new Error(message);
+    }
     emitCallCheckpoint(context, 'approveConnectRequest:after-walletKit.approveConnectRequest');
     await updateSessionHintsFromWallet(event, wallet);
     pendingConnectRequests.delete(args.requestId);
-    return { ok: true };
+    return result;
   },
 
   async rejectConnectRequest(args: { requestId: any; reason?: string }, context?: CallContext) {
@@ -471,8 +850,12 @@ const api = {
       throw new Error('Connect request not found');
     }
     pendingConnectRequests.delete(args.requestId);
-    await walletKit.rejectConnectRequest(event, args.reason);
-    return { ok: true };
+    const result = await walletKit.rejectConnectRequest(event, args.reason);
+    if (!result?.success) {
+      const message = result?.message || 'Failed to reject connect request';
+      throw new Error(message);
+    }
+    return result;
   },
 
   async approveTransactionRequest(args: { requestId: any }, context?: CallContext) {
@@ -480,7 +863,15 @@ const api = {
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'approveTransactionRequest:after-ensureWalletKitLoaded');
     requireWalletKit();
-    return walletKit.approveTransactionRequest(args.requestId);
+    const event = pendingTransactionRequests.get(args.requestId);
+    if (!event) {
+      throw new Error('Transaction request not found');
+    }
+    const result = await walletKit.approveTransactionRequest(event);
+    if (result?.success) {
+      pendingTransactionRequests.delete(args.requestId);
+    }
+    return result;
   },
 
   async rejectTransactionRequest(args: { requestId: any; reason?: string }, context?: CallContext) {
@@ -488,7 +879,13 @@ const api = {
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'rejectTransactionRequest:after-ensureWalletKitLoaded');
     requireWalletKit();
-    return walletKit.rejectTransactionRequest(args.requestId, args.reason);
+    const event = pendingTransactionRequests.get(args.requestId);
+    if (!event) {
+      throw new Error('Transaction request not found');
+    }
+    const result = await walletKit.rejectTransactionRequest(event, args.reason);
+    pendingTransactionRequests.delete(args.requestId);
+    return result;
   },
 
   async approveSignDataRequest(args: { requestId: any }, context?: CallContext) {
@@ -496,7 +893,17 @@ const api = {
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'approveSignDataRequest:after-ensureWalletKitLoaded');
     requireWalletKit();
-    return walletKit.signDataRequest(args.requestId);
+    const event = pendingSignDataRequests.get(args.requestId);
+    if (!event) {
+      throw new Error('Sign data request not found');
+    }
+    console.log('[bridge] Approving sign data request with event:', JSON.stringify(event, null, 2));
+    const result = await walletKit.signDataRequest(event);
+    console.log('[bridge] Sign data result:', JSON.stringify(result, null, 2));
+    if (result?.success) {
+      pendingSignDataRequests.delete(args.requestId);
+    }
+    return result;
   },
 
   async rejectSignDataRequest(args: { requestId: any; reason?: string }, context?: CallContext) {
@@ -504,7 +911,13 @@ const api = {
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'rejectSignDataRequest:after-ensureWalletKitLoaded');
     requireWalletKit();
-    return walletKit.rejectSignDataRequest(args.requestId, args.reason);
+    const event = pendingSignDataRequests.get(args.requestId);
+    if (!event) {
+      throw new Error('Sign data request not found');
+    }
+    const result = await walletKit.rejectSignDataRequest(event, args.reason);
+    pendingSignDataRequests.delete(args.requestId);
+    return result;
   },
 
   async listSessions(_?: unknown, context?: CallContext) {
@@ -553,6 +966,106 @@ const api = {
       activeSessionHints.delete(args.sessionId);
     }
     return { ok: true };
+  },
+
+  /**
+   * Test/Demo API: Inject a sign data request for testing purposes.
+   * This simulates receiving a sign data request from a dApp.
+   */
+  async injectSignDataRequest(requestData: any, context?: CallContext) {
+    emitCallCheckpoint(context, 'injectSignDataRequest:start');
+    if (requestData && requestData.id) {
+      // Parse the SignDataPayload from params[0]
+      let rawPayload: any = null;
+      if (requestData.params && Array.isArray(requestData.params) && requestData.params[0]) {
+        try {
+          rawPayload = typeof requestData.params[0] === 'string' 
+            ? JSON.parse(requestData.params[0]) 
+            : requestData.params[0];
+        } catch (e) {
+          console.error('[bridge] Failed to parse signData params[0]:', e);
+          return { success: false, error: 'Invalid params' };
+        }
+      }
+      
+      if (!rawPayload) {
+        console.error('[bridge] No signData payload found in params');
+        return { success: false, error: 'No payload' };
+      }
+      
+      // Convert from schema_crc format to TON Connect SignDataPayload format
+      let signDataPayload: any;
+      if (rawPayload.schema_crc === 0) {
+        // Text/comment type
+        signDataPayload = { type: 'text', text: rawPayload.payload };
+      } else if (rawPayload.schema_crc === 1) {
+        // Binary type
+        signDataPayload = { type: 'binary', bytes: rawPayload.payload };
+      } else if (rawPayload.schema_crc === 2) {
+        // Cell type
+        const schema =
+          typeof rawPayload.schema === 'string'
+            ? rawPayload.schema
+            : typeof rawPayload.schemaString === 'string'
+            ? rawPayload.schemaString
+            : undefined;
+        if (!schema) {
+          console.error('[bridge] Cell payload is missing schema string');
+          return { success: false, error: 'Cell payload requires schema string' };
+        }
+        signDataPayload = { type: 'cell', cell: rawPayload.payload, schema };
+      } else {
+        // Use payload as-is if already in correct format
+        signDataPayload = rawPayload;
+      }
+      
+      // Validate the converted payload
+      console.log('[bridge] Validating signDataPayload:', JSON.stringify(signDataPayload));
+      if (!signDataPayload || !signDataPayload.type) {
+        console.error('[bridge] Invalid signDataPayload - missing type');
+        return { success: false, error: 'Invalid payload structure' };
+      }
+      
+      // Create preview based on type
+      let preview: any;
+      if (signDataPayload.type === 'text') {
+        if (!signDataPayload.text) {
+          console.error('[bridge] Text payload missing text field');
+          return { success: false, error: 'Invalid text payload' };
+        }
+        preview = { kind: 'text', content: signDataPayload.text };
+      } else if (signDataPayload.type === 'binary') {
+        if (!signDataPayload.bytes) {
+          console.error('[bridge] Binary payload missing bytes field');
+          return { success: false, error: 'Invalid binary payload' };
+        }
+        preview = { kind: 'binary', content: signDataPayload.bytes };
+      } else if (signDataPayload.type === 'cell') {
+        if (!signDataPayload.cell || !signDataPayload.schema) {
+          console.error('[bridge] Cell payload missing cell or schema field');
+          return { success: false, error: 'Invalid cell payload - cell and schema required' };
+        }
+        preview = { kind: 'cell', content: signDataPayload.cell, schema: signDataPayload.schema };
+      } else {
+        console.error('[bridge] Unknown payload type:', signDataPayload.type);
+        return { success: false, error: 'Unknown payload type' };
+      }
+      
+      // Create a proper EventSignDataRequest with request and preview fields
+      const processedEvent = {
+        ...requestData,
+        request: signDataPayload,
+        preview: preview,
+        isLocal: true,  // Mark as local so bridge response is skipped
+      };
+      
+      console.log('[bridge] Processed injected sign data request:', JSON.stringify(processedEvent, null, 2));
+      
+      pendingSignDataRequests.set(requestData.id, processedEvent);
+      emit('signDataRequest', processedEvent);
+    }
+    emitCallCheckpoint(context, 'injectSignDataRequest:complete');
+    return { success: true };
   },
 };
 

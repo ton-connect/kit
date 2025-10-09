@@ -11,9 +11,13 @@ enum class TonNetwork {
     }
 
     companion object {
-        fun fromBridge(value: String?): TonNetwork = when (value?.lowercase()) {
-            "mainnet" -> MAINNET
-            else -> TESTNET
+        fun fromBridge(value: String?, fallback: TonNetwork = MAINNET): TonNetwork {
+            val normalized = value?.trim()?.lowercase()
+            return when (normalized) {
+                "mainnet" -> MAINNET
+                "testnet" -> TESTNET
+                else -> fallback
+            }
         }
     }
 }

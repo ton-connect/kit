@@ -58,6 +58,7 @@ object PreviewData {
             TransactionMessageUi(
                 to = "0:recipient",
                 amount = "1000000000",
+                comment = null,
                 payload = "payload",
                 stateInit = null,
             ),

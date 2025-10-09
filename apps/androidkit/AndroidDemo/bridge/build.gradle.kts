@@ -136,6 +136,11 @@ dependencies {
     implementation(libs.okhttp)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinxCoroutinesTest)
+    testImplementation(libs.androidxTestCore)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidxTestExt)
     androidTestImplementation(libs.androidxTestRunner)
+    testImplementation(kotlin("test"))
 }

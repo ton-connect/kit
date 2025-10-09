@@ -12,4 +12,5 @@ data class WalletSummary(
     val balance: String?,
     val transactions: JSONArray?,
     val lastUpdated: Long?,
+    val connectedSessions: List<SessionSummary> = emptyList(), // Sessions connected to this wallet
 )

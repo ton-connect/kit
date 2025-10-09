@@ -4,14 +4,20 @@ import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +34,11 @@ import io.ton.walletkit.demo.util.abbreviated
 import kotlinx.coroutines.launch
 
 @Composable
-fun WalletCard(wallet: WalletSummary, onDetails: () -> Unit) {
+fun WalletCard(
+    wallet: WalletSummary,
+    onDetails: () -> Unit,
+    onSend: () -> Unit = {},
+) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
     ElevatedCard {
@@ -82,6 +92,23 @@ fun WalletCard(wallet: WalletSummary, onDetails: () -> Unit) {
                 )
                 Text(wallet.balance ?: "—", style = MaterialTheme.typography.headlineSmall)
             }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Button(
+                    onClick = onSend,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 4.dp),
+                    )
+                    Text("Send")
+                }
+            }
         }
     }
 }
@@ -89,5 +116,5 @@ fun WalletCard(wallet: WalletSummary, onDetails: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun WalletCardPreview() {
-    WalletCard(wallet = PreviewData.wallet, onDetails = {})
+    WalletCard(wallet = PreviewData.wallet, onDetails = {}, onSend = {})
 }

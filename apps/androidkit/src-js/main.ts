@@ -1,4 +1,4 @@
-import { TonWalletKit } from '@ton/walletkit';
+import { TonWalletKit, CHAIN, createWalletInitConfigMnemonic } from '@ton/walletkit';
 
 declare global {
   interface Window {
@@ -29,17 +29,8 @@ const api = {
     const network = cfg?.network || 'testnet';
     const apiUrl = cfg?.apiUrl || (network === 'mainnet' ? 'https://tonapi.io' : 'https://testnet.tonapi.io');
     walletKit = new TonWalletKit({
-      config: {
-        bridge: {
-          enableJsBridge: true,
-          bridgeUrl: cfg?.bridgeUrl || 'https://bridge.tonapi.io/bridge',
-          bridgeName: 'tonkeeper',
-        },
-        eventProcessor: { disableEvents: false },
-        storage: { allowMemory: true },
-      },
-      network,
-      apiUrl,
+      network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+      apiClient: { url: apiUrl },
     });
     // Wire events to Android
   // @ts-ignore
@@ -56,13 +47,11 @@ const api = {
 
   async addWalletFromMnemonic(args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: 'mainnet' | 'testnet' }) {
     if (!walletKit) throw new Error('not initialized');
-  // @ts-ignore ambient type
-  const { createWalletInitConfigMnemonic } = await import('@ton/walletkit');
     const config = createWalletInitConfigMnemonic({
       mnemonic: args.words,
       version: args.version,
       mnemonicType: 'ton',
-      network: args.network || 'testnet',
+      network: (args.network || 'testnet') === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
     });
     await walletKit.addWallet(config);
     return { ok: true };
@@ -97,6 +86,28 @@ const api = {
   async handleTonConnectUrl(args: { url: string }) {
     if (!walletKit) throw new Error('not initialized');
     return walletKit.handleTonConnectUrl(args.url);
+  },
+  async sendTransaction(args: { walletAddress: string; toAddress: string; amount: string; comment?: string }) {
+    if (!walletKit) throw new Error('not initialized');
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) throw new Error('wallet address is required');
+    const recipient =
+      typeof args.toAddress === 'string' ? args.toAddress.trim() : String(args.toAddress ?? '').trim();
+    if (!recipient) throw new Error('recipient address is required');
+    const amount =
+      typeof args.amount === 'string' ? args.amount.trim() : String(args.amount ?? '').trim();
+    if (!amount) throw new Error('amount is required');
+    const wallet = walletKit.getWallet(walletAddress);
+    if (!wallet) throw new Error('wallet not found');
+    const params: Record<string, unknown> = { toAddress: recipient, amount };
+    const comment = typeof args.comment === 'string' ? args.comment.trim() : '';
+    if (comment) {
+      params.comment = comment;
+    }
+    const transaction = await wallet.createTransferTonTransaction(params);
+    await walletKit.handleNewTransaction(wallet, transaction);
+    return { success: true, transaction };
   },
   async approveConnectRequest(args: { requestId: any; walletAddress: string }) {
     if (!walletKit) throw new Error('not initialized');

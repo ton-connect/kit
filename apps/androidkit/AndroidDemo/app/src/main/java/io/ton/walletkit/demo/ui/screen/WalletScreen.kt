@@ -41,10 +41,13 @@ import io.ton.walletkit.demo.state.SheetState
 import io.ton.walletkit.demo.state.WalletUiState
 import io.ton.walletkit.demo.ui.components.QuickActionsCard
 import io.ton.walletkit.demo.ui.components.StatusHeader
+import io.ton.walletkit.demo.ui.components.WalletSwitcher
 import io.ton.walletkit.demo.ui.dialog.UrlPromptDialog
 import io.ton.walletkit.demo.ui.preview.PreviewData
+import io.ton.walletkit.demo.ui.screen.SendTransactionScreen
 import io.ton.walletkit.demo.ui.sections.EventLogSection
 import io.ton.walletkit.demo.ui.sections.SessionsSection
+import io.ton.walletkit.demo.ui.sections.TransactionHistorySection
 import io.ton.walletkit.demo.ui.sections.WalletsSection
 import io.ton.walletkit.demo.ui.sheet.AddWalletSheet
 import io.ton.walletkit.demo.ui.sheet.ConnectRequestSheet
@@ -61,15 +64,29 @@ fun WalletScreen(
     onRefresh: () -> Unit,
     onDismissSheet: () -> Unit,
     onWalletDetails: (String) -> Unit,
+    onSendFromWallet: (String) -> Unit,
     onDisconnectSession: (String) -> Unit,
-    onImportWallet: (String, TonNetwork, List<String>) -> Unit,
-    onGenerateWallet: (String, TonNetwork) -> Unit,
+    onToggleWalletSwitcher: () -> Unit,
+    onSwitchWallet: (String) -> Unit,
+    onRemoveWallet: (String) -> Unit,
+    onRenameWallet: (String, String) -> Unit,
+    onImportWallet: (String, TonNetwork, List<String>, String) -> Unit,
+    onGenerateWallet: (String, TonNetwork, String) -> Unit,
     onApproveConnect: (ConnectRequestUi, WalletSummary) -> Unit,
     onRejectConnect: (ConnectRequestUi) -> Unit,
     onApproveTransaction: (TransactionRequestUi) -> Unit,
     onRejectTransaction: (TransactionRequestUi) -> Unit,
     onApproveSignData: (SignDataRequestUi) -> Unit,
     onRejectSignData: (SignDataRequestUi) -> Unit,
+    onTestSignDataText: (String) -> Unit,
+    onTestSignDataBinary: (String) -> Unit,
+    onTestSignDataCell: (String) -> Unit,
+    onTestSignDataWithSession: (String, String) -> Unit,
+    onTestSignDataBinaryWithSession: (String, String) -> Unit,
+    onTestSignDataCellWithSession: (String, String) -> Unit,
+    onSendTransaction: (walletAddress: String, recipient: String, amount: String, comment: String) -> Unit,
+    onRefreshTransactions: (String) -> Unit,
+    onTransactionClick: (transactionHash: String, walletAddress: String) -> Unit,
     onHandleUrl: (String) -> Unit,
     onDismissUrlPrompt: () -> Unit,
 ) {
@@ -83,6 +100,8 @@ fun WalletScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val sheet = state.sheetState
     val showSheet = sheet !is SheetState.None
+    val activeWallet = state.wallets.firstOrNull { it.address == state.activeWalletAddress }
+        ?: state.wallets.firstOrNull()
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = onDismissSheet,
@@ -118,6 +137,27 @@ fun WalletScreen(
 
                 is SheetState.WalletDetails -> WalletDetailsSheet(
                     wallet = sheet.wallet,
+                    onDismiss = onDismissSheet,
+                    onTestSignDataText = onTestSignDataText,
+                    onTestSignDataBinary = onTestSignDataBinary,
+                    onTestSignDataCell = onTestSignDataCell,
+                    onTestSignDataWithSession = onTestSignDataWithSession,
+                    onTestSignDataBinaryWithSession = onTestSignDataBinaryWithSession,
+                    onTestSignDataCellWithSession = onTestSignDataCellWithSession,
+                )
+
+                is SheetState.SendTransaction -> SendTransactionScreen(
+                    wallet = sheet.wallet,
+                    onBack = onDismissSheet,
+                    onSend = { recipient, amount, comment ->
+                        onSendTransaction(sheet.wallet.address, recipient, amount, comment)
+                    },
+                    error = state.error,
+                    isLoading = state.isSendingTransaction,
+                )
+
+                is SheetState.TransactionDetail -> io.ton.walletkit.demo.ui.sheet.TransactionDetailSheet(
+                    transaction = sheet.transaction,
                     onDismiss = onDismissSheet,
                 )
 
@@ -177,10 +217,36 @@ fun WalletScreen(
                 onRefresh = onRefresh,
             )
 
+            // Wallet Switcher (only show if multiple wallets exist)
+            if (state.wallets.size > 1) {
+                WalletSwitcher(
+                    wallets = state.wallets,
+                    activeWalletAddress = state.activeWalletAddress,
+                    isExpanded = state.isWalletSwitcherExpanded,
+                    onToggle = onToggleWalletSwitcher,
+                    onSwitchWallet = onSwitchWallet,
+                    onRemoveWallet = onRemoveWallet,
+                    onRenameWallet = onRenameWallet,
+                )
+            }
+
             WalletsSection(
-                wallets = state.wallets,
+                activeWallet = activeWallet,
+                totalWallets = state.wallets.size,
                 onWalletSelected = onWalletDetails,
+                onSendFromWallet = onSendFromWallet,
             )
+
+            // Show transaction history for the active wallet
+            activeWallet?.let { wallet ->
+                TransactionHistorySection(
+                    transactions = wallet.transactions,
+                    walletAddress = wallet.address,
+                    isRefreshing = state.isLoadingTransactions,
+                    onRefreshTransactions = { onRefreshTransactions(wallet.address) },
+                    onTransactionClick = { hash -> onTransactionClick(hash, wallet.address) },
+                )
+            }
 
             SessionsSection(
                 sessions = state.sessions,
@@ -206,15 +272,29 @@ private fun WalletScreenPreview() {
         onRefresh = {},
         onDismissSheet = {},
         onWalletDetails = {},
+        onSendFromWallet = {},
         onDisconnectSession = {},
-        onImportWallet = { _, _, _ -> },
-        onGenerateWallet = { _, _ -> },
+        onToggleWalletSwitcher = {},
+        onSwitchWallet = {},
+        onRemoveWallet = {},
+        onRenameWallet = { _, _ -> },
+        onImportWallet = { _, _, _, _ -> },
+        onGenerateWallet = { _, _, _ -> },
         onApproveConnect = { _, _ -> },
         onRejectConnect = {},
         onApproveTransaction = {},
         onRejectTransaction = {},
         onApproveSignData = {},
         onRejectSignData = {},
+        onTestSignDataText = {},
+        onTestSignDataBinary = {},
+        onTestSignDataCell = {},
+        onTestSignDataWithSession = { _, _ -> },
+        onTestSignDataBinaryWithSession = { _, _ -> },
+        onTestSignDataCellWithSession = { _, _ -> },
+        onSendTransaction = { _, _, _, _ -> },
+        onRefreshTransactions = {},
+        onTransactionClick = { _, _ -> },
         onHandleUrl = {},
         onDismissUrlPrompt = {},
     )

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WalletKit Demo</string>
+    <string name="performance_activity_name">Performance Benchmark">WalletKit Demo</string>
 </resources>
