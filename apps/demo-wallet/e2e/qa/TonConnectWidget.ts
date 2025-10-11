@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { type Page, type Locator } from '@playwright/test';
 
 interface TonConnectSelector {
     title: string;
@@ -57,15 +57,28 @@ export class TonConnectWidget {
         return this.page.getByRole('button', { name }).click();
     }
 
+    async copyConnectUrl() {
+        await this.connectUrlButton.waitFor({ state: 'visible' });
+        await this.connectUrlButton.click();
+        const handle = await this.page.evaluateHandle(() => navigator.clipboard.readText());
+        return await handle.jsonValue();
+    }
+
     async connectWallet(name: string) {
         await this.connect();
         await this.clickButton(name);
         await this.clickButton('Browser Extension');
     }
 
-    async connect() {
-        await this.connectButton.waitFor({ state: 'visible' });
-        await this.connectButton.click();
+    async connect(buttonToClick?: Locator) {
+        console.log('buttonToClick', buttonToClick);
+        if (buttonToClick) {
+            await buttonToClick.waitFor({ state: 'visible' });
+            await buttonToClick.click();   
+        } else {   
+            await this.connectButton.waitFor({ state: 'visible' });
+            await this.connectButton.click();
+        }
         await this.title.waitFor({ state: 'visible' });
     }
 
@@ -75,7 +88,14 @@ export class TonConnectWidget {
         await this.connectDropdown.locator('li:nth-child(2) > button').click();
     }
 
-    async connectUrl() {
+    async connectUrl(buttonToClick?: Locator) {
+        await this.connect(buttonToClick);
+        await this.connectUrlButton.waitFor({ state: 'visible' });
+        await this.connectUrlButton.click();
+        const handle = await this.page.evaluateHandle(() => navigator.clipboard.readText());
+        return await handle.jsonValue();
+    }
+    async connectUrlTest() {
         await this.connect();
         await this.connectUrlButton.waitFor({ state: 'visible' });
         await this.connectUrlButton.click();

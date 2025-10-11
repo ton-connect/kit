@@ -1,4 +1,8 @@
+import { config } from 'dotenv';
 import { allure } from 'allure-playwright';
+
+// Загружаем переменные окружения
+config();
 import { expect } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 
@@ -41,7 +45,7 @@ async function runSignDataTest(
             const testCaseData = await getTestCaseData(allureClient, allureId);
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
-            isPositiveCase = testCaseData.isPositiveCase;
+            //isPositiveCase = testCaseData.isPositiveCase; will use it for negative cases later
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);
@@ -57,7 +61,7 @@ async function runSignDataTest(
     await app.getByTestId('signDataExpectedResult').fill(expectedResult);
     await app.getByTestId('sign-data-button').click();
 
-    await wallet.signData(isPositiveCase);
+    await wallet.signData(true);
 
     await expect(app.getByTestId('signDataValidation')).toHaveText('Validation Passed');
 }

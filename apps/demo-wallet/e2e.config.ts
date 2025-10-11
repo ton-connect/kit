@@ -1,5 +1,8 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { defineConfig, devices } from '@playwright/test';
+
+// Загружаем переменные окружения из .env файла
+config();
 
 export default defineConfig({
     testDir: './e2e',
@@ -12,6 +15,25 @@ export default defineConfig({
         screenshot: 'on',
         trace: 'on',
         permissions: ['clipboard-read', 'clipboard-write'],
+        launchOptions: {
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-web-security',
+                '--no-first-run',
+                '--disable-extensions',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--disable-translate',
+                '--disable-notifications',
+                '--disable-popup-blocking',
+                '--disable-infobars',
+                '--disable-blink-features=AutomationControlled',
+                '--autoplay-policy=no-user-gesture-required',
+                '--use-fake-ui-for-media-stream'
+            ],
+        },
     },
     projects: process.env.E2E_WALLET_SOURCE_EXTENSION
         ? [

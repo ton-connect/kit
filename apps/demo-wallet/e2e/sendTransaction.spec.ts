@@ -1,5 +1,9 @@
+import { config } from 'dotenv';
 import { expect } from '@playwright/test';
 import { allure } from 'allure-playwright';
+
+// Загружаем переменные окружения
+config();
 import type { TestInfo } from '@playwright/test';
 
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
