@@ -48,6 +48,7 @@ import { Hash } from '../types/primitive';
 import { EventRequestError } from '../types/events';
 import { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { ApiClientToncenter } from './ApiClientToncenter';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -92,10 +93,14 @@ export class TonWalletKit implements ITonWalletKit {
             this.analyticsApi = new AnalyticsApi(options?.analytics);
         }
 
+        this.tonClient = this.initializeTonClient(options);
+
         this.eventEmitter = new EventEmitter();
         this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
+
+        this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.tonClient);
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
@@ -144,11 +149,9 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.isInitialized) return;
 
         try {
-            const components = await this.initializer.initialize(this.config);
+            const components = await this.initializer.initialize(this.config, this.tonClient);
             this.assignComponents(components);
             this.setupEventRouting();
-
-            this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.tonClient);
 
             // Start the event processor recovery loop
             this.eventProcessor.startRecoveryLoop();
@@ -172,8 +175,6 @@ export class TonWalletKit implements ITonWalletKit {
         this.sessionManager = components.sessionManager;
         this.eventRouter = components.eventRouter;
         this.requestProcessor = components.requestProcessor;
-        // this.responseHandler = components.responseHandler;
-        this.tonClient = components.tonClient;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
     }
@@ -628,7 +629,7 @@ export class TonWalletKit implements ITonWalletKit {
                 eventRouter: this.eventRouter,
                 requestProcessor: this.requestProcessor,
                 // responseHandler: this.responseHandler,
-                tonClient: this.tonClient,
+                // tonClient: this.tonClient,
                 eventProcessor: this.eventProcessor,
             });
         }
@@ -672,5 +673,36 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<unknown> {
         await this.ensureInitialized();
         return this.bridgeManager.queueJsBridgeEvent(messageInfo, request);
+    }
+
+    /**
+     * Initialize TON client (single provider for all downstream classes)
+     */
+    private initializeTonClient(options: TonWalletKitOptions): ApiClient {
+        if (
+            options.apiClient &&
+            'nftItemsByAddress' in options.apiClient &&
+            'nftItemsByOwner' in options.apiClient &&
+            'fetchEmulation' in options.apiClient &&
+            'sendBoc' in options.apiClient &&
+            'runGetMethod' in options.apiClient &&
+            'getAccountState' in options.apiClient &&
+            'getBalance' in options.apiClient
+        ) {
+            return options.apiClient;
+        }
+
+        const defaultEndpoint =
+            options?.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+        // Use provided API URL or default to mainnet
+        const endpoint = options?.apiClient?.url || defaultEndpoint;
+
+        const clientConfig = {
+            endpoint,
+            apiKey: options?.apiClient?.key,
+            network: options?.network,
+        };
+
+        return new ApiClientToncenter(clientConfig);
     }
 }

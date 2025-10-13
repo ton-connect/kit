@@ -77,7 +77,7 @@ export class JettonsManager implements JettonsAPI {
     /**
      * Get jetton information by address (sync - cache only)
      */
-    getJettonInfo(jettonAddress: string): JettonInfo | null {
+    async getJettonInfo(jettonAddress: string): Promise<JettonInfo | null> {
         try {
             const normalizedAddress = this.normalizeAddress(jettonAddress);
             const cachedInfo = this.cache.get(normalizedAddress);
@@ -88,6 +88,40 @@ export class JettonsManager implements JettonsAPI {
             }
 
             log.debug('Jetton info not found in cache', { jettonAddress: normalizedAddress });
+
+            const jettonFromApi = await this.apiClient?.jettonsByAddress({
+                address: normalizedAddress,
+                offset: 0,
+                limit: 1,
+            });
+            if (jettonFromApi && jettonFromApi?.jetton_masters?.length > 0 && jettonFromApi?.jetton_masters?.[0]) {
+                const jetton = jettonFromApi?.jetton_masters?.[0];
+                const metadata = jettonFromApi?.metadata?.[jetton.address];
+                const tokenInfo = metadata?.token_info?.find((t) => t.valid && t.type === 'jetton_masters') as
+                    | EmulationTokenInfoMasters
+                    | undefined;
+
+                let decimals: number;
+                try {
+                    decimals = parseInt(tokenInfo?.extra.decimals as string, 10);
+                } catch {
+                    decimals = 9;
+                }
+
+                const result = {
+                    address: jetton.jetton,
+                    name: tokenInfo?.name ?? '',
+                    symbol: tokenInfo?.symbol ?? '',
+                    description: tokenInfo?.description ?? '',
+                    decimals: decimals,
+                    image: tokenInfo?.image,
+                    uri: tokenInfo?.extra?.uri,
+                    totalSupply: '0', //tokenInfo?.extra.totalSupply ?? '',
+                };
+                this.cache.set(jetton.jetton, result);
+
+                return result;
+            }
             return null;
         } catch (error) {
             log.error('Error getting jetton info', { error, jettonAddress });
@@ -107,14 +141,11 @@ export class JettonsManager implements JettonsAPI {
             const normalizedAddress = this.normalizeAddress(userAddress);
             log.debug('Getting address jettons', { userAddress: normalizedAddress, offset, limit });
 
-            const response = await this.apiClient.jettonsByAddress({
+            const response = await this.apiClient.jettonsByOwnerAddress({
                 ownerAddress: normalizedAddress,
                 offset,
                 limit,
             });
-            // const response = (await this.makeApiRequest(
-            //     `/jetton/wallets?offset=${offset}&limit=${limit}&owner_address=${normalizedAddress}`,
-            // )) as ToncenterResponseJettonWallets;
 
             if (!response.jetton_wallets) {
                 return [];
@@ -271,7 +302,7 @@ export class JettonsManager implements JettonsAPI {
         }
         // For now, just trim and convert to uppercase
         // In the future, we might want to use TON address normalization
-        return Address.parse(address).toRawString().toLocaleUpperCase();
+        return Address.parse(address).toRawString().toUpperCase();
     }
 
     /**

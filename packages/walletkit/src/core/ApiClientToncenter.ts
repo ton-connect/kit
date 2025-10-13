@@ -8,7 +8,8 @@ import { ConnectTransactionParamMessage } from '../types/internal';
 import { serializeStack, parseStack, RawStackItem } from '../utils/tvmStack';
 import {
     ApiClient,
-    GetAddressJettonsRequest,
+    GetJettonsByOwnerRequest,
+    GetJettonsByAddressRequest,
     GetPendingTraceRequest,
     GetPendingTransactionsRequest,
     GetTraceRequest,
@@ -21,6 +22,7 @@ import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/Nf
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
 import { Pagination } from '../types/toncenter/Pagination';
 import {
+    ToncenterResponseJettonMasters,
     ToncenterResponseJettonWallets,
     ToncenterTracesResponse,
     ToncenterTransactionsResponse,
@@ -401,7 +403,15 @@ export class ApiClientToncenter implements ApiClient {
         return null;
     }
 
-    async jettonsByAddress(request: GetAddressJettonsRequest): Promise<ToncenterResponseJettonWallets> {
+    async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
+        return this.getJson<ToncenterResponseJettonMasters>('/api/v3/jetton/masters', {
+            address: request.address,
+            offset: request.offset,
+            limit: request.limit,
+        });
+    }
+
+    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ToncenterResponseJettonWallets> {
         return this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
             owner_address: request.ownerAddress,
             offset: request.offset,

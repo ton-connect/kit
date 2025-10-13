@@ -3,6 +3,7 @@ import { Address, TupleItem } from '@ton/core';
 import type { ConnectTransactionParamMessage } from '../internal';
 import type {
     ToncenterEmulationResponse,
+    ToncenterResponseJettonMasters,
     ToncenterResponseJettonWallets,
     ToncenterTracesResponse,
     ToncenterTransactionsResponse,
@@ -52,8 +53,14 @@ export type GetPendingTraceRequest = {
     externalMessageHash: Array<string>;
 };
 
-export interface GetAddressJettonsRequest {
+export interface GetJettonsByOwnerRequest {
     ownerAddress: Address | string;
+    offset?: number;
+    limit?: number;
+}
+
+export interface GetJettonsByAddressRequest {
+    address: Address | string;
     offset?: number;
     limit?: number;
 }
@@ -82,5 +89,6 @@ export interface ApiClient {
     resolveDnsWallet(domain: string): Promise<string | null>;
     backResolveDnsWallet(address: Address | string): Promise<string | null>;
 
-    jettonsByAddress(request: GetAddressJettonsRequest): Promise<ToncenterResponseJettonWallets>;
+    jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
+    jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ToncenterResponseJettonWallets>;
 }
