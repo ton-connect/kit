@@ -19,7 +19,7 @@ class SignDataRequest internal constructor(
     val requestId: String,
     val dAppInfo: DAppInfo?,
     val request: SignDataRequestData,
-    private val event: SignDataRequestEvent,
+    val event: SignDataRequestEvent,
     private val engine: WalletKitEngine,
 ) {
     /**

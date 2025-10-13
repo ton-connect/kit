@@ -1476,44 +1476,66 @@ class WalletKitViewModel(
                 // Request object contains all data plus approve/reject methods
                 val request = event.request
                 val dAppInfo = request.dAppInfo
-                val signRequest = request.request
 
-                // Generate preview based on schema type
-                val preview = when (signRequest.schema) {
-                    "text" -> {
-                        // For text payloads, show the text directly
-                        signRequest.payload.take(200).let {
-                            if (signRequest.payload.length > 200) "$it..." else it
+                // Use typed event data instead of legacy parsed data
+                val typedEvent = request.event
+                val eventPayload = typedEvent.request
+                val eventPreview = typedEvent.preview
+
+                // Extract payload content based on type
+                val payloadType = eventPayload?.type?.name?.lowercase() ?: "unknown"
+                val payloadContent = when (eventPayload?.type) {
+                    io.ton.walletkit.presentation.event.SignDataType.TEXT -> {
+                        eventPayload.text ?: ""
+                    }
+                    io.ton.walletkit.presentation.event.SignDataType.BINARY -> {
+                        eventPayload.bytes ?: ""
+                    }
+                    io.ton.walletkit.presentation.event.SignDataType.CELL -> {
+                        eventPayload.cell ?: ""
+                    }
+                    else -> ""
+                }
+
+                // Generate preview based on type and use event preview if available
+                val preview = eventPreview?.content ?: when (eventPayload?.type) {
+                    io.ton.walletkit.presentation.event.SignDataType.TEXT -> {
+                        // For text payloads, show the text directly (decode if base64)
+                        val text = eventPayload.text ?: ""
+                        text.take(200).let {
+                            if (text.length > 200) "$it..." else it
                         }
                     }
-                    "binary" -> {
+                    io.ton.walletkit.presentation.event.SignDataType.BINARY -> {
                         // For binary payloads, show base64 preview
-                        "Binary data (${signRequest.payload.length} chars)\n${signRequest.payload.take(100)}..."
+                        val bytes = eventPayload.bytes ?: ""
+                        "Binary data (${bytes.length} chars)\n${bytes.take(100)}..."
                     }
-                    "cell" -> {
+                    io.ton.walletkit.presentation.event.SignDataType.CELL -> {
                         // For cell payloads, show BOC preview
-                        "Cell BOC (${signRequest.payload.length} chars)\n${signRequest.payload.take(100)}..."
+                        val cell = eventPayload.cell ?: ""
+                        "Cell BOC (${cell.length} chars)\n${cell.take(100)}..."
                     }
                     else -> {
-                        // Unknown type - show payload preview
-                        signRequest.payload.take(100).let {
-                            if (signRequest.payload.length > 100) "$it..." else it
+                        // Unknown type - show what we have
+                        payloadContent.take(100).let {
+                            if (payloadContent.length > 100) "$it..." else it
                         }
                     }
                 }
 
                 val uiRequest = SignDataRequestUi(
                     id = request.requestId.toString(),
-                    walletAddress = "", // Not available in new API
-                    payloadType = signRequest.schema ?: "unknown",
-                    payloadContent = signRequest.payload,
+                    walletAddress = typedEvent.walletAddress ?: typedEvent.from ?: "",
+                    payloadType = payloadType,
+                    payloadContent = payloadContent,
                     preview = preview,
                     raw = org.json.JSONObject(),
                     iosStyleRequest = request, // Store for direct approve/reject
                 )
 
                 setSheet(SheetState.SignData(uiRequest))
-                logEvent("Sign data request ${request.requestId}")
+                logEvent("Sign data request ${request.requestId}: type=$payloadType")
             }
 
             is WalletKitEvent.DisconnectEvent -> {

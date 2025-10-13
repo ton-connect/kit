@@ -1,5 +1,6 @@
 package io.ton.walletkit.demo.ui.sheet
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.model.SignDataRequestUi
@@ -24,14 +27,22 @@ fun SignDataSheet(
     onApprove: () -> Unit,
     onReject: () -> Unit,
 ) {
+    val clipboardManager = LocalClipboardManager.current
+
     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Sign Data Request", style = MaterialTheme.typography.titleLarge)
         Text("Wallet: ${request.walletAddress.abbreviated()}", style = MaterialTheme.typography.bodyMedium)
         Text("Type: ${request.payloadType}", style = MaterialTheme.typography.bodyMedium)
 
         // Show preview if available (human-readable), otherwise show raw payload
-        Text("Data to Sign", style = MaterialTheme.typography.titleSmall)
-        CodeBlock(request.preview ?: request.payloadContent)
+        Text("Data to Sign (tap to copy)", style = MaterialTheme.typography.titleSmall)
+        Column(
+            modifier = Modifier.clickable {
+                clipboardManager.setText(AnnotatedString(request.payloadContent))
+            },
+        ) {
+            CodeBlock(request.preview ?: request.payloadContent)
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
             TextButton(onClick = onReject, modifier = Modifier.weight(1f)) { Text("Reject") }
