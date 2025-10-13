@@ -71,7 +71,6 @@ export class TonConnectWidget {
     }
 
     async connect(buttonToClick?: Locator) {
-        console.log('buttonToClick', buttonToClick);
         if (buttonToClick) {
             await buttonToClick.waitFor({ state: 'visible' });
             await buttonToClick.click();
