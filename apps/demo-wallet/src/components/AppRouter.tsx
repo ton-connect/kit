@@ -11,8 +11,8 @@ import {
     SendTransaction,
     TracePage,
     TransactionDetail,
+    DeFiExplorer,
 } from '../pages';
-import { SetupPassword, UnlockWallet, SetupWallet, WalletDashboard, SendTransaction, DeFiExplorer } from '../pages';
 
 export const AppRouter: React.FC = () => {
     // const { isPasswordSet, isUnlocked } = useAuth();

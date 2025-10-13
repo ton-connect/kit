@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
+// import { useWalletKit } from '@ton/walletkit';
 
 import { Layout, TransactionRequestModal } from '../components';
 import { EndpointsList, ActionsList, SwapInterface } from '../components/defi';
 import type { DeFiEndpoint, Action, ApiMeta, SwapQuote } from '../types';
 import { createComponentLogger } from '../utils/logger';
-import { useTransactionRequests, useWallet, walletKit } from '../stores';
+import { useTransactionRequests, useWallet, useWalletKit } from '../stores';
 
 const log = createComponentLogger('DeFiExplorer');
 
@@ -17,7 +18,7 @@ interface DeFiExplorerState {
 }
 
 export const DeFiExplorer: React.FC = () => {
-    const { address } = useWallet();
+    const { address, savedWallets } = useWallet();
 
     const { pendingTransactionRequest, isTransactionModalOpen, approveTransactionRequest, rejectTransactionRequest } =
         useTransactionRequests();
@@ -119,52 +120,60 @@ export const DeFiExplorer: React.FC = () => {
         }));
     }, []);
 
-    const handleSwapExecute = useCallback(async (swapQuote: SwapQuote) => {
-        log.info('Executing swap transaction:', swapQuote);
+    const walletKit = useWalletKit();
 
-        try {
-            // In a real implementation, this would:
-            // 1. Use TON Connect to send the transaction
-            // 2. Wait for confirmation
-            // 3. Show success/error messages
+    const handleSwapExecute = useCallback(
+        async (swapQuote: SwapQuote) => {
+            log.info('Executing swap transaction:', swapQuote);
 
-            // eslint-disable-next-line no-console
-            console.log('swapQuote', swapQuote);
-            // For now, we'll just log the transaction data
-            log.info('Transaction to execute:', {
-                messages: swapQuote.ton_connect.messages,
-                validUntil: swapQuote.ton_connect.valid_until,
-                gaslessUsed: swapQuote.gasless_used,
-            });
+            try {
+                // In a real implementation, this would:
+                // 1. Use TON Connect to send the transaction
+                // 2. Wait for confirmation
+                // 3. Show success/error messages
 
-            const wallet = await walletKit.getWallets()[0];
-            // console.lo;
-            const tx = await wallet.createTransferMultiTonTransaction({
-                messages: swapQuote.ton_connect.messages.map((m) => {
-                    return {
-                        toAddress: m.address,
-                        amount: m.amount,
-                        stateInit: m.state_init,
-                        body: m.payload,
-                    };
-                }),
-            });
-            walletKit.handleNewTransaction(wallet, tx);
-            // const tx = aw
+                // eslint-disable-next-line no-console
+                console.log('swapQuote', swapQuote);
+                // For now, we'll just log the transaction data
+                log.info('Transaction to execute:', {
+                    messages: swapQuote.ton_connect.messages,
+                    validUntil: swapQuote.ton_connect.valid_until,
+                    gaslessUsed: swapQuote.gasless_used,
+                });
 
-            // Show an alert with transaction details (for demo purposes)
-            // const messagesText = buildResponse.ton_connect.messages
-            //     .map((msg, i) => `Message ${i + 1}: ${msg.address} - ${msg.amount} nanoTON`)
-            //     .join('\n');
+                const wallet = await walletKit?.getWallets()[0];
+                if (!wallet) {
+                    throw new Error('No wallet found');
+                }
+                // console.lo;
+                const tx = await wallet?.createTransferMultiTonTransaction({
+                    messages: swapQuote.ton_connect.messages.map((m) => {
+                        return {
+                            toAddress: m.address,
+                            amount: m.amount,
+                            stateInit: m.state_init ?? undefined,
+                            body: m.payload,
+                        };
+                    }),
+                });
+                walletKit?.handleNewTransaction(wallet, tx);
+                // const tx = aw
 
-            // alert(
-            //     `Transaction ready to execute:\n\n${messagesText}\n\nIn a real wallet, this would be sent via TON Connect.`,
-            // );
-        } catch (error) {
-            log.error('Failed to execute swap:', error);
-            // alert(`Failed to execute swap: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-    }, []);
+                // Show an alert with transaction details (for demo purposes)
+                // const messagesText = buildResponse.ton_connect.messages
+                //     .map((msg, i) => `Message ${i + 1}: ${msg.address} - ${msg.amount} nanoTON`)
+                //     .join('\n');
+
+                // alert(
+                //     `Transaction ready to execute:\n\n${messagesText}\n\nIn a real wallet, this would be sent via TON Connect.`,
+                // );
+            } catch (error) {
+                log.error('Failed to execute swap:', error);
+                // alert(`Failed to execute swap: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        },
+        [walletKit],
+    );
 
     // Auto-connect to localhost endpoint if it exists and user has a wallet
     useEffect(() => {
@@ -285,6 +294,7 @@ export const DeFiExplorer: React.FC = () => {
             {pendingTransactionRequest && (
                 <TransactionRequestModal
                     request={pendingTransactionRequest}
+                    savedWallets={savedWallets}
                     isOpen={isTransactionModalOpen}
                     onApprove={approveTransactionRequest}
                     onReject={rejectTransactionRequest}
