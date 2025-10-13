@@ -252,3 +252,19 @@ dependencies {
     androidTestImplementation(libs.kotlinxCoroutinesTest)
     testImplementation(kotlin("test"))
 }
+
+// Disable all CMake tasks for webview variants (no native code needed)
+// This prevents CMake configuration errors when QuickJS sources are missing
+tasks.configureEach {
+    val taskNameLower = name.lowercase()
+    val isWebviewVariant = taskNameLower.contains("webview")
+    val isCMakeTask =
+        taskNameLower.contains("cmake") ||
+            taskNameLower.contains("nativebuild") ||
+            taskNameLower.contains("externalNative".lowercase())
+
+    if (isWebviewVariant && isCMakeTask) {
+        enabled = false
+        logger.info("Disabled CMake task for webview variant: $name")
+    }
+}

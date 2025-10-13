@@ -156,6 +156,11 @@ jobs:
         working-directory: apps/androidkit/TONWalletKit-Android
         run: ./gradlew buildWebview
 
+      - name: Copy AAR to Demo app libs
+        run: |
+          mkdir -p apps/androidkit/AndroidDemo/app/libs
+          cp apps/androidkit/TONWalletKit-Android/bridge/build/outputs/aar/bridge-webview-release.aar apps/androidkit/AndroidDemo/app/libs/bridge-release.aar
+
       - name: Grant execute permission for gradlew (Demo)
         working-directory: apps/androidkit/AndroidDemo
         run: chmod +x gradlew

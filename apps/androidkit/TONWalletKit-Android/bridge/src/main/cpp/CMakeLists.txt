@@ -8,8 +8,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(QUICKJS_NG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/quickjs-ng")
 
+# Check if QuickJS sources exist - if not, skip native build
+# This allows WebView variant to build without QuickJS sources
 if (NOT EXISTS "${QUICKJS_NG_DIR}/quickjs.h")
-    message(FATAL_ERROR "quickjs-ng sources are missing. Run ./gradlew :bridge:prepareQuickJs or consult bridge/src/main/cpp/README.md")
+    message(WARNING "quickjs-ng sources are missing. Skipping native build. Run ./gradlew :bridge:prepareQuickJs to build full variant with QuickJS support.")
+    return()
 endif()
 
 set(QUICKJS_NG_SOURCES
