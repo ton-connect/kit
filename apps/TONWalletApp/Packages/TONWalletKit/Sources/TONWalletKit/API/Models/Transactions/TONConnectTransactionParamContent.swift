@@ -34,19 +34,26 @@ public struct TONConnectTransactionParamMessage: Codable {
 
 public struct TONConnectTransactionParamContent: Codable {
     public var messages: [TONConnectTransactionParamMessage]
-    public var network: String?
-    public var validUntil: TimeInterval?
+    public var network: TONNetwork?
+    public var validUntil: Int?
     public var from: String?
     
     public init(
         messages: [TONConnectTransactionParamMessage],
-        network: String? = nil,
-        validUntil: TimeInterval? = nil,
+        network: TONNetwork? = nil,
+        validUntil: Int? = nil,
         from: String? = nil
     ) {
         self.messages = messages
         self.network = network
         self.validUntil = validUntil
         self.from = from
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case messages
+        case network
+        case validUntil = "valid_until"
+        case from
     }
 }

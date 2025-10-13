@@ -7,22 +7,6 @@
 
 import Foundation
 
-public struct TONTransferParamsBody: Codable {
-    public var body: String? // base64 boc
-    public var comment: String? { nil }
-    public init(body: String?) {
-        self.body = body
-    }
-}
-
-public struct TONTransferParamsComment: Codable {
-    public var body: String? { nil }
-    public var comment: String?
-    public init(comment: String?) {
-        self.comment = comment
-    }
-}
-
 public struct TONTransferMessage: Codable {
     public var toAddress: String
     public var amount: String
@@ -59,7 +43,4 @@ public struct TONTransferManyParams: Codable {
     }
 }
 
-// Placeholder for TONConnectExtraCurrency, should be defined according to your project
-public struct TONConnectExtraCurrency: Codable {
-    // Define fields as needed
-}
+public typealias TONConnectExtraCurrency = [Int: String]
