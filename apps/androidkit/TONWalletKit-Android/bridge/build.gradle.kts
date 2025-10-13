@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinSerialization)
+    jacoco // Enable JaCoCo for test coverage
 }
 
 android {
@@ -73,7 +74,23 @@ android {
     }
 
     testOptions {
-        unitTests.isReturnDefaultValues = true
+        unitTests {
+            isReturnDefaultValues = true
+            isIncludeAndroidResources = true
+
+            // Fix for Robolectric + JaCoCo coverage bytecode conflict
+            // https://github.com/robolectric/robolectric/issues/6593
+            all {
+                // Add JVM args to avoid bytecode verification errors with instrumented classes
+                it.jvmArgs(
+                    "-XX:+IgnoreUnrecognizedVMOptions",
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    // Disable bytecode verification for coverage-instrumented code
+                    "-noverify",
+                )
+            }
+        }
     }
 }
 
@@ -162,6 +179,54 @@ tasks.matching { it.name.contains("assemble") && !it.name.contains("Test") }.con
     dependsOn(syncWalletKitWebViewAssets, syncWalletKitQuickJsAssets)
 }
 
+// JaCoCo configuration - exclude deprecated QuickJS module from coverage
+tasks.withType<JacocoReport> {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    classDirectories.setFrom(
+        files(
+            classDirectories.files.map {
+                fileTree(it) {
+                    exclude(
+                        "**/QuickJsWalletKitEngine.class",
+                        "**/QuickJsWalletKitEngine\$*.class",
+                        "**/BuildConfig.class",
+                        // Synthetic/generated classes
+                        "**/*\$\$*.class",
+                    )
+                }
+            },
+        ),
+    )
+}
+
+// Create coverage report task
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testWebviewDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/html"))
+    }
+
+    sourceDirectories.setFrom(files("src/main/java"))
+    classDirectories.setFrom(
+        fileTree("build/tmp/kotlin-classes/webviewDebug") {
+            exclude(
+                "**/QuickJsWalletKitEngine.class",
+                "**/QuickJsWalletKitEngine\$*.class",
+                "**/BuildConfig.class",
+                "**/*\$\$*.class",
+            )
+        },
+    )
+    executionData.setFrom("build/jacoco/testWebviewDebugUnitTest.exec")
+}
+
 dependencies {
     implementation(libs.androidxCoreKtx)
     implementation(libs.androidxLifecycleRuntimeKtx)
@@ -184,5 +249,6 @@ dependencies {
     testImplementation(libs.shadowsFramework)
     androidTestImplementation(libs.androidxTestExt)
     androidTestImplementation(libs.androidxTestRunner)
+    androidTestImplementation(libs.kotlinxCoroutinesTest)
     testImplementation(kotlin("test"))
 }

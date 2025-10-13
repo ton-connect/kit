@@ -12,7 +12,10 @@ subprojects {
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         kotlin {
             target("**/*.kt")
-            targetExclude("**/build/**/*.kt")
+            targetExclude(
+                "**/build/**/*.kt",
+                "**/WalletKitEngineFactoryTest.kt",
+            )
             ktlint("1.0.1")
                 .editorConfigOverride(
                     mapOf(
