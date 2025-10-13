@@ -31,6 +31,10 @@ public class TONWallet {
         try await wallet.getBalance()?.toString()
     }
     
+    public func sateInit() async throws -> String? {
+        try await wallet.getSateInit()?.toString()
+    }
+    
     public func connect(url: String) async throws {
         try await TONWalletKit.handleTonConnectUrl(url)
     }
