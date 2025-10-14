@@ -48,14 +48,14 @@ async function runConnectTest(
     await expect(app.getByTestId('connectValidation')).toHaveText('Validation Passed', { timeout: 1 });
 }
 
-test('Connect @allureId(1933)', async ({ wallet, app, widget }) => {
+// test('Connect @allureId(1286)', async ({ wallet, app, widget }) => {
+//     await runConnectTest({ wallet, app, widget }, test.info());
+// });
+
+test('Connect @allureId(2254)', async ({ wallet, app, widget }) => {
     await runConnectTest({ wallet, app, widget }, test.info());
 });
 
-test('Connect @allureId(1900)', async ({ wallet, app, widget }) => {
-    await runConnectTest({ wallet, app, widget }, test.info());
-});
-
-test('Connect @allureId(1902)', async ({ wallet, app, widget }) => {
+test('Connect @allureId(2255)', async ({ wallet, app, widget }) => {
     await runConnectTest({ wallet, app, widget }, test.info());
 });

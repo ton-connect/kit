@@ -36,11 +36,11 @@ async function runSignDataTest(
     }
     let precondition: string = '';
     let expectedResult: string = '';
-    let isPositiveCase: boolean = true;
+    //let isPositiveCase: boolean = true; will use it for negative cases later
 
-    if (allureId && allureClient) {
+    if (testAllureId && allureClient) {
         try {
-            const testCaseData = await getTestCaseData(allureClient, allureId);
+            const testCaseData = await getTestCaseData(allureClient, testAllureId);
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
             //isPositiveCase = testCaseData.isPositiveCase; will use it for negative cases later
@@ -52,6 +52,7 @@ async function runSignDataTest(
         // eslint-disable-next-line no-console
         console.warn('AllureId not found in test title or client not available');
     }
+
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
     await wallet.connectBy(await widget.connectUrl());
     await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
@@ -60,18 +61,17 @@ async function runSignDataTest(
     await app.getByTestId('sign-data-button').click();
 
     await wallet.signData(true);
-
     await expect(app.getByTestId('signDataValidation')).toHaveText('Validation Passed');
 }
 
-test('Sign text @allureId(1918)', async ({ wallet, app, widget }) => {
+test('Sign text @allureId(2258)', async ({ wallet, app, widget }) => {
     await runSignDataTest({ wallet, app, widget }, test.info());
 });
 
-test('Sign cell @allureId(1920)', async ({ wallet, app, widget }) => {
+test('Sign cell @allureId(2260)', async ({ wallet, app, widget }) => {
     await runSignDataTest({ wallet, app, widget }, test.info());
 });
 
-test('Sign binary @allureId(1919)', async ({ wallet, app, widget }) => {
+test('Sign binary @allureId(2259)', async ({ wallet, app, widget }) => {
     await runSignDataTest({ wallet, app, widget }, test.info());
 });
