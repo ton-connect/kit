@@ -1,19 +1,14 @@
-import { config } from 'dotenv';
 import type { TestInfo } from '@playwright/test';
-import { expect } from '@playwright/test';
 import { allureId, owner } from 'allure-js-commons';
 
 import { testWithDemoWalletFixture } from './demo-wallet';
 import type { TestFixture } from './qa';
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
-config();
 
-// const feature = {
-//     jsBridge: Boolean(process.env.E2E_JS_BRIDGE),
-// };
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
+const { expect } = test;
 
 let allureClient: AllureApiClient;
 

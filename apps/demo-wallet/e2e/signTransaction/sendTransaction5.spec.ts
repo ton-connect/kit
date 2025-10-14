@@ -1,16 +1,14 @@
-import { config } from 'dotenv';
-import { expect } from '@playwright/test';
 import { allureId, owner } from 'allure-js-commons';
 import type { TestInfo } from '@playwright/test';
 
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from '../utils';
 import { testWithDemoWalletFixture } from '../demo-wallet';
 import type { TestFixture } from '../qa';
-config();
 
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
+const { expect } = test;
 // Global variable for storing the Allure client
 let allureClient: AllureApiClient;
 

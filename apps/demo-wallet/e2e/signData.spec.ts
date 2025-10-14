@@ -1,7 +1,4 @@
-import { config } from 'dotenv';
 import { allureId, owner } from 'allure-js-commons';
-config();
-import { expect } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
@@ -11,6 +8,7 @@ import type { TestFixture } from './qa';
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
+const { expect } = test;
 
 let allureClient: AllureApiClient;
 
@@ -36,14 +34,12 @@ async function runSignDataTest(
     }
     let precondition: string = '';
     let expectedResult: string = '';
-    // let isPositiveCase: boolean = true;
 
     if (testAllureId && allureClient) {
         try {
             const testCaseData = await getTestCaseData(allureClient, testAllureId);
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
-            //isPositiveCase = testCaseData.isPositiveCase; will use it for negative cases later
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);

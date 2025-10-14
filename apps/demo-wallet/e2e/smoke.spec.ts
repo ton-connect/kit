@@ -1,9 +1,4 @@
-import { config } from 'dotenv';
-//import * as allure from 'allure-js-commons';
-import { allure } from 'allure-playwright';
-
-// Загружаем переменные окружения
-config();
+import * as allure from 'allure-js-commons';
 
 import { testWithDemoWalletFixture } from './demo-wallet';
 
