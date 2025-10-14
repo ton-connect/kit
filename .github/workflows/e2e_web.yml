@@ -95,10 +95,10 @@ jobs:
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
 
-    - name: Upload Playwright Report
+    - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: playwright-report-extension
-        path: apps/demo-wallet/playwright-report/
+        name: allure-results-web
+        path: apps/demo-wallet/allure-results/
         retention-days: 1
