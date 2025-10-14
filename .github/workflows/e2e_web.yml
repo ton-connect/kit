@@ -80,7 +80,7 @@ jobs:
       run: |
         pnpm build
         cd apps/demo-wallet
-        xvfb-run pnpm playwright test --config e2e.config.ts --retries=3 -g "2258"
+        xvfb-run pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
