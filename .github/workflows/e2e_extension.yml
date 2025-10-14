@@ -42,14 +42,9 @@ jobs:
         pnpm install --frozen-lockfile
         pnpm --filter demo-wallet e2e:deps
 
-    - name: Build
-      run: |
-        pnpm build
-      env:
-        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
-
     - name: Run extension e2e specs
       run: |
+        pnpm build
         cd apps/demo-wallet
         xvfb-run pnpm playwright test --config e2e.config.ts --retries=3 -g "2258"
       env:
@@ -61,6 +56,8 @@ jobs:
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
         VITE_DISABLE_HTTP_BRIDGE: true
+        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
+
     
     - name: Upload Allure Results
       if: always()
