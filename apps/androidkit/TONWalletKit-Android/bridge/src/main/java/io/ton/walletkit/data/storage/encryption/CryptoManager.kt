@@ -3,6 +3,7 @@ package io.ton.walletkit.data.storage.encryption
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Log
+import io.ton.walletkit.domain.constants.CryptoConstants
 import java.nio.ByteBuffer
 import java.security.KeyStore
 import java.util.Arrays
@@ -49,8 +50,8 @@ class CryptoManager(
         Arrays.fill(plaintextBytes, 0.toByte())
         result
     } catch (e: Exception) {
-        Log.e(TAG, "Encryption failed", e)
-        throw SecurityException("Failed to encrypt data", e)
+        Log.e(TAG, ERROR_ENCRYPTION_FAILED, e)
+        throw SecurityException(ERROR_FAILED_ENCRYPT_DATA, e)
     }
 
     /**
@@ -66,9 +67,9 @@ class CryptoManager(
 
             // Let AndroidKeyStore generate a fresh IV to satisfy randomized encryption requirement
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-            val iv = cipher.iv ?: throw IllegalStateException("Cipher did not provide an IV")
-            if (iv.size != GCM_IV_SIZE) {
-                throw IllegalStateException("Unexpected IV size: ${iv.size}")
+            val iv = cipher.iv ?: throw IllegalStateException(ERROR_CIPHER_NO_IV)
+            if (iv.size != CryptoConstants.GCM_IV_SIZE) {
+                throw IllegalStateException(ERROR_UNEXPECTED_IV_SIZE + iv.size)
             }
 
             // Encrypt the data
@@ -80,8 +81,8 @@ class CryptoManager(
                 .put(ciphertext)
                 .array()
         } catch (e: Exception) {
-            Log.e(TAG, "Encryption failed", e)
-            throw SecurityException("Failed to encrypt data", e)
+            Log.e(TAG, ERROR_ENCRYPTION_FAILED, e)
+            throw SecurityException(ERROR_FAILED_ENCRYPT_DATA, e)
         }
     }
 
@@ -99,8 +100,8 @@ class CryptoManager(
         Arrays.fill(plaintextBytes, 0.toByte())
         result
     } catch (e: Exception) {
-        Log.e(TAG, "Decryption failed", e)
-        throw SecurityException("Failed to decrypt data", e)
+        Log.e(TAG, ERROR_DECRYPTION_FAILED, e)
+        throw SecurityException(ERROR_FAILED_DECRYPT_DATA, e)
     }
 
     /**
@@ -112,7 +113,7 @@ class CryptoManager(
     fun decryptToBytes(encryptedData: ByteArray): ByteArray {
         try {
             if (encryptedData.size < GCM_IV_SIZE) {
-                throw IllegalArgumentException("Encrypted data too short")
+                throw IllegalArgumentException(ERROR_ENCRYPTED_DATA_TOO_SHORT)
             }
 
             val cipher = getCipher()
@@ -132,8 +133,8 @@ class CryptoManager(
             // Decrypt the data
             return cipher.doFinal(ciphertext)
         } catch (e: Exception) {
-            Log.e(TAG, "Decryption failed", e)
-            throw SecurityException("Failed to decrypt data", e)
+            Log.e(TAG, ERROR_DECRYPTION_FAILED, e)
+            throw SecurityException(ERROR_FAILED_DECRYPT_DATA, e)
         }
     }
 
@@ -144,9 +145,9 @@ class CryptoManager(
     fun deleteKey() {
         try {
             keyStore.deleteEntry(keystoreAlias)
-            Log.d(TAG, "Encryption key deleted from keystore")
+            Log.d(TAG, ERROR_ENCRYPTION_KEY_DELETED)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete encryption key", e)
+            Log.e(TAG, ERROR_FAILED_DELETE_ENCRYPTION_KEY, e)
         }
     }
 
@@ -192,10 +193,10 @@ class CryptoManager(
                     keyGenerator.init(strongBoxBuilder.build())
                     keyGenerator.generateKey()
                     strongBoxSuccess = true
-                    Log.d(TAG, "Generated StrongBox-backed encryption key")
+                    Log.d(TAG, ERROR_GENERATED_STRONGBOX_KEY)
                 } catch (e: Exception) {
                     // StrongBox not available, fall back to regular keystore
-                    Log.d(TAG, "StrongBox not available, using regular keystore", e)
+                    Log.d(TAG, ERROR_STRONGBOX_NOT_AVAILABLE, e)
                 }
             }
 
@@ -203,18 +204,18 @@ class CryptoManager(
             if (!strongBoxSuccess) {
                 keyGenerator.init(builder.build()) // Use original builder without StrongBox
                 keyGenerator.generateKey()
-                Log.d(TAG, "Generated encryption key in Android Keystore")
+                Log.d(TAG, ERROR_GENERATED_ENCRYPTION_KEY)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to generate encryption key", e)
-            throw SecurityException("Failed to generate encryption key", e)
+            Log.e(TAG, ERROR_FAILED_GENERATE_ENCRYPTION_KEY, e)
+            throw SecurityException(ERROR_FAILED_GENERATE_ENCRYPTION_KEY, e)
         }
     }
 
     private fun getSecretKey(): SecretKey {
         val entry = keyStore.getEntry(keystoreAlias, null)
         if (entry !is KeyStore.SecretKeyEntry) {
-            throw IllegalStateException("KeyStore entry is not a SecretKeyEntry")
+            throw IllegalStateException(ERROR_KEYSTORE_NOT_SECRET_KEY_ENTRY)
         }
         return entry.secretKey
     }
@@ -222,12 +223,12 @@ class CryptoManager(
     private fun getCipher(): Cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
 
     companion object {
-        private const val TAG = "CryptoManager"
-        private const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        private const val DEFAULT_KEYSTORE_ALIAS = "walletkit_master_key"
-        private const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
-        private const val AES_KEY_SIZE = 256
-        private const val GCM_IV_SIZE = 12 // 96 bits recommended for GCM
+        private const val TAG = CryptoConstants.TAG_CRYPTO_MANAGER
+        private const val ANDROID_KEYSTORE = CryptoConstants.ANDROID_KEYSTORE
+        private const val DEFAULT_KEYSTORE_ALIAS = CryptoConstants.DEFAULT_KEYSTORE_ALIAS
+        private const val CIPHER_TRANSFORMATION = CryptoConstants.CIPHER_TRANSFORMATION
+        private const val AES_KEY_SIZE = CryptoConstants.AES_KEY_SIZE
+        private const val GCM_IV_SIZE = CryptoConstants.GCM_IV_SIZE // 96 bits recommended for GCM
         private const val GCM_TAG_SIZE = 128 // 128 bits authentication tag
 
         /**
@@ -247,5 +248,21 @@ class CryptoManager(
             secureClear(chars)
             return chars
         }
+
+        // Encryption/Decryption Errors
+        const val ERROR_ENCRYPTION_FAILED = "Encryption failed"
+        const val ERROR_FAILED_ENCRYPT_DATA = "Failed to encrypt data"
+        const val ERROR_DECRYPTION_FAILED = "Decryption failed"
+        const val ERROR_FAILED_DECRYPT_DATA = "Failed to decrypt data"
+        const val ERROR_CIPHER_NO_IV = "Cipher did not provide an IV"
+        const val ERROR_UNEXPECTED_IV_SIZE = "Unexpected IV size: "
+        const val ERROR_ENCRYPTED_DATA_TOO_SHORT = "Encrypted data too short"
+        const val ERROR_ENCRYPTION_KEY_DELETED = "Encryption key deleted from keystore"
+        const val ERROR_FAILED_DELETE_ENCRYPTION_KEY = "Failed to delete encryption key"
+        const val ERROR_GENERATED_STRONGBOX_KEY = "Generated StrongBox-backed encryption key"
+        const val ERROR_STRONGBOX_NOT_AVAILABLE = "StrongBox not available, using regular keystore"
+        const val ERROR_GENERATED_ENCRYPTION_KEY = "Generated encryption key in Android Keystore"
+        const val ERROR_FAILED_GENERATE_ENCRYPTION_KEY = "Failed to generate encryption key"
+        const val ERROR_KEYSTORE_NOT_SECRET_KEY_ENTRY = "KeyStore entry is not a SecretKeyEntry"
     }
 }

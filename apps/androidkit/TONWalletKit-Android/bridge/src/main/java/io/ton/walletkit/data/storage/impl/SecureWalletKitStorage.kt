@@ -11,10 +11,14 @@ import io.ton.walletkit.data.model.StoredUserPreferences
 import io.ton.walletkit.data.model.StoredWalletRecord
 import io.ton.walletkit.data.storage.WalletKitStorage
 import io.ton.walletkit.data.storage.encryption.CryptoManager
+import io.ton.walletkit.domain.constants.JsonConstants
+import io.ton.walletkit.domain.constants.LogConstants
+import io.ton.walletkit.domain.constants.MiscConstants
+import io.ton.walletkit.domain.constants.ResponseConstants
+import io.ton.walletkit.domain.constants.StorageConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.security.GeneralSecurityException
 
 /**
  * Secure implementation of WalletKitStorage using Android Keystore and EncryptedSharedPreferences.
@@ -36,7 +40,7 @@ import java.security.GeneralSecurityException
  */
 class SecureWalletKitStorage(
     context: Context,
-    sharedPrefsName: String = "walletkit_secure_storage",
+    sharedPrefsName: String = StorageConstants.DEFAULT_SECURE_STORAGE_NAME,
 ) : WalletKitStorage {
     private val appContext = context.applicationContext
 
@@ -46,9 +50,9 @@ class SecureWalletKitStorage(
             MasterKey.Builder(appContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
-        } catch (e: GeneralSecurityException) {
-            Log.e(TAG, "Failed to create MasterKey", e)
-            throw SecurityException("Failed to initialize secure storage", e)
+        } catch (e: Exception) {
+            Log.e(TAG, ERROR_FAILED_CREATE_MASTER_KEY, e)
+            throw SecurityException(ERROR_FAILED_INIT_SECURE_STORAGE, e)
         }
     }
 
@@ -62,18 +66,18 @@ class SecureWalletKitStorage(
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
-        } catch (e: GeneralSecurityException) {
-            Log.e(TAG, "Failed to create EncryptedSharedPreferences", e)
-            throw SecurityException("Failed to initialize secure storage", e)
+        } catch (e: Exception) {
+            Log.e(TAG, ERROR_FAILED_CREATE_ENCRYPTED_PREFS, e)
+            throw SecurityException(ERROR_FAILED_INIT_SECURE_STORAGE, e)
         }
     }
 
     // Additional encryption layer for mnemonics using Android Keystore directly
     private val cryptoManager by lazy {
-        CryptoManager("walletkit_mnemonic_key")
+        CryptoManager(StorageConstants.MNEMONIC_KEYSTORE_KEY)
     }
 
-    private fun walletKey(accountId: String) = "wallet:$accountId"
+    private fun walletKey(accountId: String) = StorageConstants.KEY_PREFIX_WALLET + accountId
 
     override suspend fun saveWallet(
         accountId: String,
@@ -87,19 +91,19 @@ class SecureWalletKitStorage(
                 // Create a record with encrypted mnemonic
                 val secureRecord =
                     JSONObject().apply {
-                        put("mnemonic", encryptedMnemonic) // Base64 of encrypted bytes
-                        record.name?.let { put("name", it) }
-                        record.network?.let { put("network", it) }
-                        record.version?.let { put("version", it) }
+                        put(JsonConstants.KEY_MNEMONIC, encryptedMnemonic) // Base64 of encrypted bytes
+                        record.name?.let { put(JsonConstants.KEY_NAME, it) }
+                        record.network?.let { put(JsonConstants.KEY_NETWORK, it) }
+                        record.version?.let { put(JsonConstants.KEY_VERSION, it) }
                     }
 
                 // Store in EncryptedSharedPreferences (second layer of encryption)
                 encryptedPrefs.edit().putString(walletKey(accountId), secureRecord.toString()).apply()
 
-                Log.d(TAG, "Wallet saved securely: $accountId")
+                Log.d(TAG, ERROR_WALLET_SAVED_SECURELY + accountId)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save wallet: $accountId", e)
-                throw SecurityException("Failed to save wallet securely", e)
+                Log.e(TAG, ERROR_FAILED_SAVE_WALLET + accountId, e)
+                throw SecurityException(ERROR_FAILED_SAVE_WALLET_SECURELY, e)
             }
         }
     }
@@ -115,9 +119,9 @@ class SecureWalletKitStorage(
                 val json = JSONObject(encrypted)
 
                 // Decrypt the mnemonic
-                val encryptedMnemonic = json.optString("mnemonic")
+                val encryptedMnemonic = json.optString(JsonConstants.KEY_MNEMONIC)
                 if (encryptedMnemonic.isBlank()) {
-                    Log.e(TAG, "Missing mnemonic in stored wallet: $accountId")
+                    Log.e(TAG, ERROR_MISSING_MNEMONIC + accountId)
                     return@withContext null
                 }
 
@@ -125,12 +129,12 @@ class SecureWalletKitStorage(
 
                 StoredWalletRecord(
                     mnemonic = mnemonic,
-                    name = json.optString("name").takeIf { it.isNotBlank() },
-                    network = json.optString("network").takeIf { it.isNotBlank() },
-                    version = json.optString("version").takeIf { it.isNotBlank() },
+                    name = json.optString(JsonConstants.KEY_NAME).takeIf { it.isNotBlank() },
+                    network = json.optString(JsonConstants.KEY_NETWORK).takeIf { it.isNotBlank() },
+                    version = json.optString(JsonConstants.KEY_VERSION).takeIf { it.isNotBlank() },
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load wallet: $accountId", e)
+                Log.e(TAG, ERROR_FAILED_LOAD_WALLET + accountId, e)
                 null
             }
         }
@@ -141,14 +145,14 @@ class SecureWalletKitStorage(
             try {
                 encryptedPrefs.all
                     .mapNotNull { (key, _) ->
-                        if (!key.startsWith("wallet:")) return@mapNotNull null
-                        val accountId = key.removePrefix("wallet:")
+                        if (!key.startsWith(StorageConstants.KEY_PREFIX_WALLET)) return@mapNotNull null
+                        val accountId = key.removePrefix(StorageConstants.KEY_PREFIX_WALLET)
                         val record = loadWallet(accountId)
                         if (record != null) accountId to record else null
                     }
                     .toMap()
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to load all wallets", e)
+                Log.e(TAG, ERROR_FAILED_LOAD_ALL_WALLETS, e)
                 emptyMap()
             }
         }
@@ -162,16 +166,16 @@ class SecureWalletKitStorage(
                     remove(accountId) // Remove legacy key if exists
                     apply()
                 }
-                Log.d(TAG, "Wallet cleared: $accountId")
+                Log.d(TAG, ERROR_WALLET_CLEARED + accountId)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear wallet: $accountId", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_WALLET + accountId, e)
             }
         }
     }
 
     // ===== Session Data Methods (with private keys) =====
 
-    private fun sessionKey(sessionId: String) = "session:$sessionId"
+    private fun sessionKey(sessionId: String) = StorageConstants.KEY_PREFIX_SESSION + sessionId
 
     override suspend fun saveSessionData(
         sessionId: String,
@@ -185,16 +189,16 @@ class SecureWalletKitStorage(
                 // Create JSON with encrypted private key
                 val sessionJson =
                     JSONObject().apply {
-                        put("sessionId", session.sessionId)
-                        put("walletAddress", session.walletAddress)
-                        put("createdAt", session.createdAt)
-                        put("lastActivityAt", session.lastActivityAt)
-                        put("privateKey", encryptedPrivateKey) // Encrypted
-                        put("publicKey", session.publicKey)
-                        put("dAppName", session.dAppName)
-                        put("dAppDescription", session.dAppDescription)
-                        put("domain", sanitizeUrl(session.domain))
-                        put("dAppIconUrl", sanitizeUrl(session.dAppIconUrl))
+                        put(ResponseConstants.KEY_SESSION_ID, session.sessionId)
+                        put(ResponseConstants.KEY_WALLET_ADDRESS, session.walletAddress)
+                        put(ResponseConstants.KEY_CREATED_AT, session.createdAt)
+                        put(ResponseConstants.KEY_LAST_ACTIVITY_AT, session.lastActivityAt)
+                        put(ResponseConstants.KEY_PRIVATE_KEY, encryptedPrivateKey) // Encrypted
+                        put(ResponseConstants.KEY_PUBLIC_KEY, session.publicKey)
+                        put(ResponseConstants.KEY_DAPP_NAME, session.dAppName)
+                        put(ResponseConstants.KEY_DAPP_DESCRIPTION, session.dAppDescription)
+                        put(ResponseConstants.KEY_DOMAIN, sanitizeUrl(session.domain))
+                        put(ResponseConstants.KEY_DAPP_ICON_URL, sanitizeUrl(session.dAppIconUrl))
                     }
 
                 // Store in EncryptedSharedPreferences
@@ -202,10 +206,10 @@ class SecureWalletKitStorage(
 
                 Log.d(
                     TAG,
-                    "Session data saved: $sessionId for domain: ${sanitizeUrl(session.domain)}",
+                    ERROR_SESSION_DATA_SAVED + sessionId + ERROR_SESSION_FOR_DOMAIN + sanitizeUrl(session.domain),
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save session data: $sessionId", e)
+                Log.e(TAG, ERROR_FAILED_SAVE_SESSION_DATA + sessionId, e)
                 throw e
             }
         }
@@ -216,26 +220,26 @@ class SecureWalletKitStorage(
             val jsonString = encryptedPrefs.getString(sessionKey(sessionId), null)
             if (jsonString != null) {
                 val json = JSONObject(jsonString)
-                val encryptedPrivateKey = json.getString("privateKey")
+                val encryptedPrivateKey = json.getString(ResponseConstants.KEY_PRIVATE_KEY)
                 val decryptedPrivateKey = decryptSessionPrivateKey(encryptedPrivateKey)
 
                 StoredSessionData(
-                    sessionId = json.getString("sessionId"),
-                    walletAddress = json.getString("walletAddress"),
-                    createdAt = json.getString("createdAt"),
-                    lastActivityAt = json.getString("lastActivityAt"),
+                    sessionId = json.getString(ResponseConstants.KEY_SESSION_ID),
+                    walletAddress = json.getString(ResponseConstants.KEY_WALLET_ADDRESS),
+                    createdAt = json.getString(ResponseConstants.KEY_CREATED_AT),
+                    lastActivityAt = json.getString(ResponseConstants.KEY_LAST_ACTIVITY_AT),
                     privateKey = decryptedPrivateKey,
-                    publicKey = json.getString("publicKey"),
-                    dAppName = json.getString("dAppName"),
-                    dAppDescription = json.getString("dAppDescription"),
-                    domain = json.getString("domain"),
-                    dAppIconUrl = json.getString("dAppIconUrl"),
+                    publicKey = json.getString(ResponseConstants.KEY_PUBLIC_KEY),
+                    dAppName = json.getString(ResponseConstants.KEY_DAPP_NAME),
+                    dAppDescription = json.getString(ResponseConstants.KEY_DAPP_DESCRIPTION),
+                    domain = json.getString(ResponseConstants.KEY_DOMAIN),
+                    dAppIconUrl = json.getString(ResponseConstants.KEY_DAPP_ICON_URL),
                 )
             } else {
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load session data: $sessionId", e)
+            Log.e(TAG, ERROR_FAILED_LOAD_SESSION_DATA + sessionId, e)
             null
         }
     }
@@ -244,28 +248,28 @@ class SecureWalletKitStorage(
         try {
             encryptedPrefs.all
                 .mapNotNull { (key, value) ->
-                    if (!key.startsWith("session:")) return@mapNotNull null
-                    val sessionId = key.removePrefix("session:")
+                    if (!key.startsWith(StorageConstants.KEY_PREFIX_SESSION)) return@mapNotNull null
+                    val sessionId = key.removePrefix(StorageConstants.KEY_PREFIX_SESSION)
                     val sessionData = (value as? String)?.let { jsonString ->
                         try {
                             val json = JSONObject(jsonString)
-                            val encryptedPrivateKey = json.getString("privateKey")
+                            val encryptedPrivateKey = json.getString(ResponseConstants.KEY_PRIVATE_KEY)
                             val decryptedPrivateKey = decryptSessionPrivateKey(encryptedPrivateKey)
 
                             StoredSessionData(
-                                sessionId = json.getString("sessionId"),
-                                walletAddress = json.getString("walletAddress"),
-                                createdAt = json.getString("createdAt"),
-                                lastActivityAt = json.getString("lastActivityAt"),
+                                sessionId = json.getString(ResponseConstants.KEY_SESSION_ID),
+                                walletAddress = json.getString(ResponseConstants.KEY_WALLET_ADDRESS),
+                                createdAt = json.getString(ResponseConstants.KEY_CREATED_AT),
+                                lastActivityAt = json.getString(ResponseConstants.KEY_LAST_ACTIVITY_AT),
                                 privateKey = decryptedPrivateKey,
-                                publicKey = json.getString("publicKey"),
-                                dAppName = json.getString("dAppName"),
-                                dAppDescription = json.getString("dAppDescription"),
-                                domain = json.getString("domain"),
-                                dAppIconUrl = json.getString("dAppIconUrl"),
+                                publicKey = json.getString(ResponseConstants.KEY_PUBLIC_KEY),
+                                dAppName = json.getString(ResponseConstants.KEY_DAPP_NAME),
+                                dAppDescription = json.getString(ResponseConstants.KEY_DAPP_DESCRIPTION),
+                                domain = json.getString(ResponseConstants.KEY_DOMAIN),
+                                dAppIconUrl = json.getString(ResponseConstants.KEY_DAPP_ICON_URL),
                             )
                         } catch (e: Exception) {
-                            Log.e(TAG, "Failed to parse session data: $sessionId", e)
+                            Log.e(TAG, ERROR_FAILED_PARSE_SESSION_DATA + sessionId, e)
                             null
                         }
                     }
@@ -273,7 +277,7 @@ class SecureWalletKitStorage(
                 }
                 .toMap()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load all session data", e)
+            Log.e(TAG, ERROR_FAILED_LOAD_ALL_SESSION_DATA, e)
             emptyMap()
         }
     }
@@ -282,9 +286,9 @@ class SecureWalletKitStorage(
         withContext(Dispatchers.IO) {
             try {
                 encryptedPrefs.edit().remove(sessionKey(sessionId)).apply()
-                Log.d(TAG, "Session data cleared: $sessionId")
+                Log.d(TAG, ERROR_SESSION_DATA_CLEARED + sessionId)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear session data: $sessionId", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_SESSION_DATA + sessionId, e)
             }
         }
     }
@@ -301,19 +305,19 @@ class SecureWalletKitStorage(
                     // Update lastActivityAt
                     val updatedSession = session.copy(lastActivityAt = timestamp)
                     saveSessionData(sessionId, updatedSession)
-                    Log.d(TAG, "Session activity updated: $sessionId")
+                    Log.d(TAG, ERROR_SESSION_ACTIVITY_UPDATED + sessionId)
                 } else {
-                    Log.w(TAG, "Cannot update activity for non-existent session: $sessionId")
+                    Log.w(TAG, ERROR_CANNOT_UPDATE_NON_EXISTENT_SESSION + sessionId)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to update session activity: $sessionId", e)
+                Log.e(TAG, ERROR_FAILED_UPDATE_SESSION_ACTIVITY + sessionId, e)
             }
         }
     }
 
     // ===== Bridge Configuration Methods =====
 
-    private val bridgeConfigKey = "bridge_config"
+    private val bridgeConfigKey = StorageConstants.BRIDGE_CONFIG_KEY
 
     override suspend fun saveBridgeConfig(config: StoredBridgeConfig) {
         withContext(Dispatchers.IO) {
@@ -323,18 +327,18 @@ class SecureWalletKitStorage(
 
                 val configJson =
                     JSONObject().apply {
-                        put("network", config.network)
-                        config.tonClientEndpoint?.let { put("tonClientEndpoint", sanitizeUrl(it)) }
-                        config.tonApiUrl?.let { put("tonApiUrl", sanitizeUrl(it)) }
-                        encryptedApiKey?.let { put("apiKey", it) }
-                        config.bridgeUrl?.let { put("bridgeUrl", sanitizeUrl(it)) }
-                        config.bridgeName?.let { put("bridgeName", it) }
+                        put(JsonConstants.KEY_NETWORK, config.network)
+                        config.tonClientEndpoint?.let { put(ResponseConstants.KEY_TON_CLIENT_ENDPOINT, sanitizeUrl(it)) }
+                        config.tonApiUrl?.let { put(JsonConstants.KEY_TON_API_URL, sanitizeUrl(it)) }
+                        encryptedApiKey?.let { put(ResponseConstants.KEY_API_KEY, it) }
+                        config.bridgeUrl?.let { put(JsonConstants.KEY_BRIDGE_URL, sanitizeUrl(it)) }
+                        config.bridgeName?.let { put(JsonConstants.KEY_BRIDGE_NAME, it) }
                     }
 
                 encryptedPrefs.edit().putString(bridgeConfigKey, configJson.toString()).apply()
-                Log.d(TAG, "Bridge config saved for network: ${config.network}")
+                Log.d(TAG, ERROR_BRIDGE_CONFIG_SAVED + config.network)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save bridge config", e)
+                Log.e(TAG, ERROR_FAILED_SAVE_BRIDGE_CONFIG, e)
                 throw e
             }
         }
@@ -345,22 +349,22 @@ class SecureWalletKitStorage(
             val jsonString = encryptedPrefs.getString(bridgeConfigKey, null)
             if (jsonString != null) {
                 val json = JSONObject(jsonString)
-                val encryptedApiKey = json.optString("apiKey", null)
+                val encryptedApiKey = json.optString(ResponseConstants.KEY_API_KEY, null)
                 val decryptedApiKey = encryptedApiKey?.let { decryptApiKey(it) }
 
                 StoredBridgeConfig(
-                    network = json.getString("network"),
-                    tonClientEndpoint = json.optString("tonClientEndpoint", null),
-                    tonApiUrl = json.optString("tonApiUrl", null),
+                    network = json.getString(JsonConstants.KEY_NETWORK),
+                    tonClientEndpoint = json.optString(ResponseConstants.KEY_TON_CLIENT_ENDPOINT, null),
+                    tonApiUrl = json.optString(JsonConstants.KEY_TON_API_URL, null),
                     apiKey = decryptedApiKey,
-                    bridgeUrl = json.optString("bridgeUrl", null),
-                    bridgeName = json.optString("bridgeName", null),
+                    bridgeUrl = json.optString(JsonConstants.KEY_BRIDGE_URL, null),
+                    bridgeName = json.optString(JsonConstants.KEY_BRIDGE_NAME, null),
                 )
             } else {
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load bridge config", e)
+            Log.e(TAG, ERROR_FAILED_LOAD_BRIDGE_CONFIG, e)
             null
         }
     }
@@ -369,30 +373,30 @@ class SecureWalletKitStorage(
         withContext(Dispatchers.IO) {
             try {
                 encryptedPrefs.edit().remove(bridgeConfigKey).apply()
-                Log.d(TAG, "Bridge config cleared")
+                Log.d(TAG, ERROR_BRIDGE_CONFIG_CLEARED)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear bridge config", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_BRIDGE_CONFIG, e)
             }
         }
     }
 
     // ===== User Preferences Methods =====
 
-    private val userPreferencesKey = "user_preferences"
+    private val userPreferencesKey = StorageConstants.USER_PREFERENCES_KEY
 
     override suspend fun saveUserPreferences(prefs: StoredUserPreferences) {
         withContext(Dispatchers.IO) {
             try {
                 val prefsJson =
                     JSONObject().apply {
-                        prefs.activeWalletAddress?.let { put("activeWalletAddress", it) }
-                        prefs.lastSelectedNetwork?.let { put("lastSelectedNetwork", it) }
+                        prefs.activeWalletAddress?.let { put(ResponseConstants.KEY_ACTIVE_WALLET_ADDRESS, it) }
+                        prefs.lastSelectedNetwork?.let { put(ResponseConstants.KEY_LAST_SELECTED_NETWORK, it) }
                     }
 
                 encryptedPrefs.edit().putString(userPreferencesKey, prefsJson.toString()).apply()
-                Log.d(TAG, "User preferences saved")
+                Log.d(TAG, ERROR_USER_PREFERENCES_SAVED)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save user preferences", e)
+                Log.e(TAG, ERROR_FAILED_SAVE_USER_PREFERENCES, e)
                 throw e
             }
         }
@@ -404,14 +408,14 @@ class SecureWalletKitStorage(
             if (jsonString != null) {
                 val json = JSONObject(jsonString)
                 StoredUserPreferences(
-                    activeWalletAddress = json.optString("activeWalletAddress", null),
-                    lastSelectedNetwork = json.optString("lastSelectedNetwork", null),
+                    activeWalletAddress = json.optString(ResponseConstants.KEY_ACTIVE_WALLET_ADDRESS, null),
+                    lastSelectedNetwork = json.optString(ResponseConstants.KEY_LAST_SELECTED_NETWORK, null),
                 )
             } else {
                 null
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load user preferences", e)
+            Log.e(TAG, ERROR_FAILED_LOAD_USER_PREFERENCES, e)
             null
         }
     }
@@ -420,9 +424,9 @@ class SecureWalletKitStorage(
         withContext(Dispatchers.IO) {
             try {
                 encryptedPrefs.edit().remove(userPreferencesKey).apply()
-                Log.d(TAG, "User preferences cleared")
+                Log.d(TAG, ERROR_USER_PREFERENCES_CLEARED)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear user preferences", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_USER_PREFERENCES, e)
             }
         }
     }
@@ -434,9 +438,9 @@ class SecureWalletKitStorage(
         withContext(Dispatchers.IO) {
             try {
                 encryptedPrefs.edit().clear().apply()
-                Log.d(TAG, "All data cleared")
+                Log.d(TAG, ERROR_ALL_DATA_CLEARED)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear all data", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_ALL_DATA, e)
             }
         }
     }
@@ -448,7 +452,7 @@ class SecureWalletKitStorage(
     private fun encryptMnemonic(mnemonic: List<String>): String {
         try {
             // Join mnemonic words with space
-            val mnemonicString = mnemonic.joinToString(" ")
+            val mnemonicString = mnemonic.joinToString(MiscConstants.SPACE_DELIMITER)
 
             // Encrypt using CryptoManager
             val encryptedBytes = cryptoManager.encrypt(mnemonicString)
@@ -456,8 +460,8 @@ class SecureWalletKitStorage(
             // Encode to Base64 for storage
             return Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to encrypt mnemonic", e)
-            throw SecurityException("Failed to encrypt mnemonic", e)
+            Log.e(TAG, ERROR_FAILED_ENCRYPT_MNEMONIC, e)
+            throw SecurityException(ERROR_FAILED_ENCRYPT_MNEMONIC, e)
         }
     }
 
@@ -474,17 +478,17 @@ class SecureWalletKitStorage(
             val mnemonicString = cryptoManager.decrypt(encryptedBytes)
 
             // Split into words
-            val words = mnemonicString.split(" ").filter { it.isNotBlank() }
+            val words = mnemonicString.split(MiscConstants.SPACE_DELIMITER).filter { it.isNotBlank() }
 
             // Validate mnemonic word count (typically 12 or 24 words)
             if (words.size !in VALID_MNEMONIC_SIZES) {
-                Log.w(TAG, "Unusual mnemonic word count: ${words.size}")
+                Log.w(TAG, ERROR_UNUSUAL_MNEMONIC_WORD_COUNT + words.size)
             }
 
             return words
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to decrypt mnemonic", e)
-            throw SecurityException("Failed to decrypt mnemonic", e)
+            Log.e(TAG, ERROR_FAILED_DECRYPT_MNEMONIC, e)
+            throw SecurityException(ERROR_FAILED_DECRYPT_MNEMONIC, e)
         }
     }
 
@@ -495,11 +499,11 @@ class SecureWalletKitStorage(
     private fun sanitizeUrl(url: String): String {
         val trimmed = url.trim()
         return when {
-            trimmed.startsWith("https://", ignoreCase = true) ||
-                trimmed.startsWith("http://", ignoreCase = true) -> trimmed
+            trimmed.startsWith(MiscConstants.SCHEME_HTTPS, ignoreCase = true) ||
+                trimmed.startsWith(MiscConstants.SCHEME_HTTP, ignoreCase = true) -> trimmed
             else -> {
-                Log.w(TAG, "Invalid URL scheme, rejecting: $trimmed")
-                ""
+                Log.w(TAG, ERROR_INVALID_URL_SCHEME_REJECTING + trimmed)
+                MiscConstants.EMPTY_STRING
             }
         }
     }
@@ -510,12 +514,12 @@ class SecureWalletKitStorage(
      */
     private fun encryptSessionPrivateKey(privateKey: String): String {
         try {
-            val sessionCryptoManager = CryptoManager("walletkit_session_key")
+            val sessionCryptoManager = CryptoManager(StorageConstants.SESSION_KEYSTORE_KEY)
             val encryptedBytes = sessionCryptoManager.encrypt(privateKey)
             return Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to encrypt session private key", e)
-            throw SecurityException("Failed to encrypt session private key", e)
+            Log.e(TAG, ERROR_FAILED_ENCRYPT_SESSION_PRIVATE_KEY, e)
+            throw SecurityException(ERROR_FAILED_ENCRYPT_SESSION_PRIVATE_KEY, e)
         }
     }
 
@@ -525,12 +529,12 @@ class SecureWalletKitStorage(
      */
     private fun decryptSessionPrivateKey(encryptedBase64: String): String {
         try {
-            val sessionCryptoManager = CryptoManager("walletkit_session_key")
+            val sessionCryptoManager = CryptoManager(StorageConstants.SESSION_KEYSTORE_KEY)
             val encryptedBytes = Base64.decode(encryptedBase64, Base64.NO_WRAP)
             return sessionCryptoManager.decrypt(encryptedBytes)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to decrypt session private key", e)
-            throw SecurityException("Failed to decrypt session private key", e)
+            Log.e(TAG, ERROR_FAILED_DECRYPT_SESSION_PRIVATE_KEY, e)
+            throw SecurityException(ERROR_FAILED_DECRYPT_SESSION_PRIVATE_KEY, e)
         }
     }
 
@@ -540,12 +544,12 @@ class SecureWalletKitStorage(
      */
     private fun encryptApiKey(apiKey: String): String {
         try {
-            val apiKeyCryptoManager = CryptoManager("walletkit_apikey")
+            val apiKeyCryptoManager = CryptoManager(StorageConstants.API_KEY_KEYSTORE_KEY)
             val encryptedBytes = apiKeyCryptoManager.encrypt(apiKey)
             return Base64.encodeToString(encryptedBytes, Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to encrypt API key", e)
-            throw SecurityException("Failed to encrypt API key", e)
+            Log.e(TAG, ERROR_FAILED_ENCRYPT_API_KEY, e)
+            throw SecurityException(ERROR_FAILED_ENCRYPT_API_KEY, e)
         }
     }
 
@@ -555,12 +559,12 @@ class SecureWalletKitStorage(
      */
     private fun decryptApiKey(encryptedBase64: String): String {
         try {
-            val apiKeyCryptoManager = CryptoManager("walletkit_apikey")
+            val apiKeyCryptoManager = CryptoManager(StorageConstants.API_KEY_KEYSTORE_KEY)
             val encryptedBytes = Base64.decode(encryptedBase64, Base64.NO_WRAP)
             return apiKeyCryptoManager.decrypt(encryptedBytes)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to decrypt API key", e)
-            throw SecurityException("Failed to decrypt API key", e)
+            Log.e(TAG, ERROR_FAILED_DECRYPT_API_KEY, e)
+            throw SecurityException(ERROR_FAILED_DECRYPT_API_KEY, e)
         }
     }
 
@@ -575,7 +579,7 @@ class SecureWalletKitStorage(
         try {
             encryptedPrefs.getString(key, null)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get raw value: $key", e)
+            Log.e(TAG, ERROR_FAILED_GET_RAW_VALUE + key, e)
             null
         }
     }
@@ -593,7 +597,7 @@ class SecureWalletKitStorage(
             try {
                 encryptedPrefs.edit().putString(key, value).apply()
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to set raw value: $key", e)
+                Log.e(TAG, ERROR_FAILED_SET_RAW_VALUE + key, e)
                 throw e
             }
         }
@@ -608,7 +612,7 @@ class SecureWalletKitStorage(
             try {
                 encryptedPrefs.edit().remove(key).apply()
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to remove raw value: $key", e)
+                Log.e(TAG, ERROR_FAILED_REMOVE_RAW_VALUE + key, e)
             }
         }
     }
@@ -619,21 +623,84 @@ class SecureWalletKitStorage(
     suspend fun clearBridgeData() {
         withContext(Dispatchers.IO) {
             try {
-                val bridgeKeys = encryptedPrefs.all.keys.filter { it.startsWith("bridge:") }
+                val bridgeKeys = encryptedPrefs.all.keys.filter { it.startsWith(StorageConstants.KEY_PREFIX_BRIDGE) }
                 encryptedPrefs.edit().apply {
                     bridgeKeys.forEach { remove(it) }
                     apply()
                 }
-                Log.d(TAG, "Cleared ${bridgeKeys.size} bridge storage keys")
+                Log.d(TAG, ERROR_CLEARED_BRIDGE_STORAGE_KEYS + bridgeKeys.size + MiscConstants.BRIDGE_STORAGE_KEYS_COUNT_SUFFIX)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear bridge data", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_BRIDGE_DATA, e)
             }
         }
     }
 
     companion object {
-        private const val TAG = "SecureWalletKitStorage"
+        private const val TAG = LogConstants.TAG_SECURE_STORAGE
         private const val MAX_URL_LENGTH = 2048 // Prevent DoS via huge URLs
         private val VALID_MNEMONIC_SIZES = setOf(12, 15, 18, 21, 24) // BIP39 standard
+
+        // Security / Initialization Errors
+        const val ERROR_FAILED_INIT_SECURE_STORAGE = "Failed to initialize secure storage"
+        const val ERROR_FAILED_CREATE_MASTER_KEY = "Failed to create MasterKey"
+        const val ERROR_FAILED_CREATE_ENCRYPTED_PREFS = "Failed to create EncryptedSharedPreferences"
+
+        // Wallet Operation Errors
+        const val ERROR_FAILED_SAVE_WALLET_SECURELY = "Failed to save wallet securely"
+        const val ERROR_FAILED_SAVE_WALLET = "Failed to save wallet: "
+        const val ERROR_WALLET_SAVED_SECURELY = "Wallet saved securely: "
+        const val ERROR_MISSING_MNEMONIC = "Missing mnemonic in stored wallet: "
+        const val ERROR_FAILED_LOAD_WALLET = "Failed to load wallet: "
+        const val ERROR_FAILED_LOAD_ALL_WALLETS = "Failed to load all wallets"
+        const val ERROR_WALLET_CLEARED = "Wallet cleared: "
+        const val ERROR_FAILED_CLEAR_WALLET = "Failed to clear wallet: "
+
+        // Session Operation Errors
+        const val ERROR_SESSION_DATA_SAVED = "Session data saved: "
+        const val ERROR_FAILED_SAVE_SESSION_DATA = "Failed to save session data: "
+        const val ERROR_FAILED_LOAD_SESSION_DATA = "Failed to load session data: "
+        const val ERROR_FAILED_PARSE_SESSION_DATA = "Failed to parse session data: "
+        const val ERROR_FAILED_LOAD_ALL_SESSION_DATA = "Failed to load all session data"
+        const val ERROR_SESSION_DATA_CLEARED = "Session data cleared: "
+        const val ERROR_FAILED_CLEAR_SESSION_DATA = "Failed to clear session data: "
+        const val ERROR_SESSION_ACTIVITY_UPDATED = "Session activity updated: "
+        const val ERROR_CANNOT_UPDATE_NON_EXISTENT_SESSION = "Cannot update activity for non-existent session: "
+        const val ERROR_FAILED_UPDATE_SESSION_ACTIVITY = "Failed to update session activity: "
+
+        // Config Operation Errors
+        const val ERROR_BRIDGE_CONFIG_SAVED = "Bridge config saved for network: "
+        const val ERROR_FAILED_SAVE_BRIDGE_CONFIG = "Failed to save bridge config"
+        const val ERROR_FAILED_LOAD_BRIDGE_CONFIG = "Failed to load bridge config"
+        const val ERROR_BRIDGE_CONFIG_CLEARED = "Bridge config cleared"
+        const val ERROR_FAILED_CLEAR_BRIDGE_CONFIG = "Failed to clear bridge config"
+
+        // User Preferences Errors
+        const val ERROR_USER_PREFERENCES_SAVED = "User preferences saved"
+        const val ERROR_FAILED_SAVE_USER_PREFERENCES = "Failed to save user preferences"
+        const val ERROR_FAILED_LOAD_USER_PREFERENCES = "Failed to load user preferences"
+        const val ERROR_USER_PREFERENCES_CLEARED = "User preferences cleared"
+        const val ERROR_FAILED_CLEAR_USER_PREFERENCES = "Failed to clear user preferences"
+
+        // General Storage Errors
+        const val ERROR_ALL_DATA_CLEARED = "All data cleared"
+        const val ERROR_FAILED_CLEAR_ALL_DATA = "Failed to clear all data"
+        const val ERROR_CLEARED_BRIDGE_STORAGE_KEYS = "Cleared "
+        const val ERROR_FAILED_CLEAR_BRIDGE_DATA = "Failed to clear bridge data"
+        const val ERROR_FAILED_GET_RAW_VALUE = "Failed to get raw value: "
+        const val ERROR_FAILED_SET_RAW_VALUE = "Failed to set raw value: "
+        const val ERROR_FAILED_REMOVE_RAW_VALUE = "Failed to remove raw value: "
+
+        // Encryption/Decryption Errors
+        const val ERROR_FAILED_ENCRYPT_MNEMONIC = "Failed to encrypt mnemonic"
+        const val ERROR_UNUSUAL_MNEMONIC_WORD_COUNT = "Unusual mnemonic word count: "
+        const val ERROR_FAILED_DECRYPT_MNEMONIC = "Failed to decrypt mnemonic"
+        const val ERROR_FAILED_ENCRYPT_SESSION_PRIVATE_KEY = "Failed to encrypt session private key"
+        const val ERROR_FAILED_DECRYPT_SESSION_PRIVATE_KEY = "Failed to decrypt session private key"
+        const val ERROR_FAILED_ENCRYPT_API_KEY = "Failed to encrypt API key"
+        const val ERROR_FAILED_DECRYPT_API_KEY = "Failed to decrypt API key"
+
+        // URL Validation Errors
+        const val ERROR_INVALID_URL_SCHEME_REJECTING = "Invalid URL scheme, rejecting: "
+        const val ERROR_SESSION_FOR_DOMAIN = " for domain: "
     }
 }

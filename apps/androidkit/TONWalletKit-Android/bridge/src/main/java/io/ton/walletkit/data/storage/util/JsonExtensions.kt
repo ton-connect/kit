@@ -2,18 +2,19 @@ package io.ton.walletkit.data.storage.util
 
 import io.ton.walletkit.data.model.StoredSessionHint
 import io.ton.walletkit.data.model.StoredWalletRecord
+import io.ton.walletkit.domain.constants.JsonConstants
 import org.json.JSONArray
 import org.json.JSONObject
 
 fun String.toStoredWalletRecord(): StoredWalletRecord? = runCatching {
     val json = JSONObject(this)
-    val wordsArray = json.optJSONArray("words") ?: return null
+    val wordsArray = json.optJSONArray(JsonConstants.KEY_WORDS) ?: return null
     val words = List(wordsArray.length()) { index -> wordsArray.optString(index) }
     StoredWalletRecord(
         mnemonic = words,
-        name = json.stringOrNull("name"),
-        network = json.stringOrNull("network"),
-        version = json.stringOrNull("version"),
+        name = json.stringOrNull(JsonConstants.KEY_NAME),
+        network = json.stringOrNull(JsonConstants.KEY_NETWORK),
+        version = json.stringOrNull(JsonConstants.KEY_VERSION),
     )
 }.getOrNull()
 
@@ -23,14 +24,14 @@ fun JSONObject.stringOrNull(key: String): String? {
 }
 
 fun StoredWalletRecord.toJson(): JSONObject = JSONObject().apply {
-    put("words", JSONArray(mnemonic))
-    name?.let { put("name", it) }
-    network?.let { put("network", it) }
-    version?.let { put("version", it) }
+    put(JsonConstants.KEY_WORDS, JSONArray(mnemonic))
+    name?.let { put(JsonConstants.KEY_NAME, it) }
+    network?.let { put(JsonConstants.KEY_NETWORK, it) }
+    version?.let { put(JsonConstants.KEY_VERSION, it) }
 }
 
 fun StoredSessionHint.toJson(): JSONObject = JSONObject().apply {
-    manifestUrl?.let { put("manifestUrl", it) }
-    dAppUrl?.let { put("dAppUrl", it) }
-    iconUrl?.let { put("iconUrl", it) }
+    manifestUrl?.let { put(JsonConstants.KEY_MANIFEST_URL, it) }
+    dAppUrl?.let { put(JsonConstants.KEY_DAPP_URL, it) }
+    iconUrl?.let { put(JsonConstants.KEY_ICON_URL, it) }
 }

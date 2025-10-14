@@ -14,6 +14,14 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
+import io.ton.walletkit.domain.constants.BridgeMethodConstants
+import io.ton.walletkit.domain.constants.EventTypeConstants
+import io.ton.walletkit.domain.constants.JsonConstants
+import io.ton.walletkit.domain.constants.LogConstants
+import io.ton.walletkit.domain.constants.MiscConstants
+import io.ton.walletkit.domain.constants.NetworkConstants
+import io.ton.walletkit.domain.constants.ResponseConstants
+import io.ton.walletkit.domain.constants.WebViewConstants
 import io.ton.walletkit.domain.model.DAppInfo
 import io.ton.walletkit.domain.model.SignDataRequest
 import io.ton.walletkit.domain.model.SignDataResult
@@ -61,11 +69,11 @@ import java.util.concurrent.CopyOnWriteArraySet
  */
 class WebViewWalletKitEngine(
     context: Context,
-    private val assetPath: String = "walletkit/index.html",
+    private val assetPath: String = WebViewConstants.DEFAULT_ASSET_PATH,
 ) : WalletKitEngine {
     override val kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW
 
-    private val logTag = "WebViewWalletKitEngine"
+    private val logTag = WebViewConstants.LOG_TAG_WEBVIEW
     private val appContext = context.applicationContext
 
     // Json instance configured to ignore unknown keys (bridge may send extra fields)
@@ -83,8 +91,8 @@ class WebViewWalletKitEngine(
     private val assetLoader =
         WebViewAssetLoader
             .Builder()
-            .setDomain(ASSET_LOADER_DOMAIN)
-            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(appContext))
+            .setDomain(WebViewConstants.ASSET_LOADER_DOMAIN)
+            .addPathHandler(WebViewConstants.ASSET_LOADER_PATH, WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
     private val mainHandler = Handler(Looper.getMainLooper())
     private val webView: WebView = WebView(appContext)
@@ -92,9 +100,9 @@ class WebViewWalletKitEngine(
     private val pending = ConcurrentHashMap<String, CompletableDeferred<BridgeResponse>>()
     private val eventHandlers = CopyOnWriteArraySet<WalletKitEventHandler>()
 
-    @Volatile private var currentNetwork: String = "testnet"
+    @Volatile private var currentNetwork: String = NetworkConstants.DEFAULT_NETWORK
 
-    @Volatile private var apiBaseUrl: String = "https://testnet.tonapi.io"
+    @Volatile private var apiBaseUrl: String = NetworkConstants.DEFAULT_TESTNET_API_URL
 
     @Volatile private var tonApiKey: String? = null
 
@@ -110,7 +118,7 @@ class WebViewWalletKitEngine(
             webView.settings.domStorageEnabled = true
             webView.settings.cacheMode = WebSettings.LOAD_NO_CACHE
             webView.settings.allowFileAccess = true
-            webView.addJavascriptInterface(JsBinding(), "WalletKitNative")
+            webView.addJavascriptInterface(JsBinding(), WebViewConstants.JS_INTERFACE_NAME)
             webView.webViewClient =
                 object : WebViewClient() {
                     override fun onReceivedError(
@@ -119,13 +127,13 @@ class WebViewWalletKitEngine(
                         error: WebResourceError?,
                     ) {
                         super.onReceivedError(view, request, error)
-                        val description = error?.description?.toString() ?: "unknown"
+                        val description = error?.description?.toString() ?: ResponseConstants.VALUE_UNKNOWN
                         val failingUrl = request?.url?.toString()
-                        Log.e(logTag, "WebView load failed: $description url=$failingUrl")
+                        Log.e(logTag, "${WebViewConstants.ERROR_WEBVIEW_LOAD_PREFIX}$description url=$failingUrl")
                         if (request?.isForMainFrame == true && !ready.isCompleted) {
                             ready.completeExceptionally(
                                 WalletKitBridgeException(
-                                    "Failed to load WalletKit bundle ($description). Run `pnpm -w --filter androidkit build` and recompile.",
+                                    "${WebViewConstants.ERROR_BUNDLE_LOAD_FAILED} ($description). ${WebViewConstants.BUILD_INSTRUCTION}",
                                 ),
                             )
                         }
@@ -141,8 +149,8 @@ class WebViewWalletKitEngine(
                     }
                 }
             val safeAssetPath = assetPath.trimStart('/')
-            webView.loadUrl("https://$ASSET_LOADER_DOMAIN/assets/$safeAssetPath")
-            Log.d(logTag, "WebView bridge loading asset: $assetPath")
+            webView.loadUrl(WebViewConstants.URL_PREFIX_HTTPS + WebViewConstants.ASSET_LOADER_DOMAIN + WebViewConstants.ASSET_LOADER_PATH + safeAssetPath)
+            Log.d(logTag, ERROR_WEBVIEW_LOADING_ASSET + assetPath)
         }
     }
 
@@ -180,7 +188,7 @@ class WebViewWalletKitEngine(
                 return@withLock
             }
 
-            Log.d(logTag, "Auto-initializing WalletKit with config: network=${config.network}")
+            Log.d(logTag, ERROR_AUTO_INITIALIZING_WALLETKIT + config.network)
 
             // Use pending config if init was called explicitly, otherwise use provided config
             val effectiveConfig = pendingInitConfig ?: config
@@ -189,11 +197,11 @@ class WebViewWalletKitEngine(
             try {
                 performInitialization(effectiveConfig)
                 isWalletKitInitialized = true
-                Log.d(logTag, "WalletKit auto-initialization completed successfully")
+                Log.d(logTag, ERROR_WALLETKIT_AUTO_INIT_SUCCESS)
             } catch (err: Throwable) {
-                Log.e(logTag, "WalletKit auto-initialization failed", err)
+                Log.e(logTag, ERROR_WALLETKIT_AUTO_INIT_FAILED, err)
                 throw WalletKitBridgeException(
-                    "Failed to auto-initialize WalletKit: ${err.message}",
+                    ERROR_FAILED_AUTO_INIT_WALLETKIT + err.message,
                 )
             }
         }
@@ -215,10 +223,10 @@ class WebViewWalletKitEngine(
         // Get app version from PackageManager
         val appVersion = config.appVersion ?: try {
             val packageInfo = appContext.packageManager.getPackageInfo(appContext.packageName, 0)
-            packageInfo.versionName ?: "1.0.0"
+            packageInfo.versionName ?: NetworkConstants.DEFAULT_APP_VERSION
         } catch (e: Exception) {
-            Log.w(logTag, "Failed to get app version, using default", e)
-            "1.0.0"
+            Log.w(logTag, ERROR_FAILED_GET_APP_VERSION, e)
+            NetworkConstants.DEFAULT_APP_VERSION
         }
 
         // Get app name from config or use application label
@@ -231,32 +239,32 @@ class WebViewWalletKitEngine(
                 appContext.getString(stringId)
             }
         } catch (e: Exception) {
-            Log.w(logTag, "Failed to get app name, using package name", e)
+            Log.w(logTag, ERROR_FAILED_GET_APP_NAME, e)
             appContext.packageName
         }
 
         val payload =
             JSONObject().apply {
-                put("network", config.network)
+                put(JsonConstants.KEY_NETWORK, config.network)
                 // Only include URLs if explicitly provided; JS will use defaults otherwise
-                tonClientEndpoint?.let { put("apiUrl", it) }
-                config.tonApiUrl?.let { put("tonApiUrl", it) }
-                config.bridgeUrl?.let { put("bridgeUrl", it) }
-                config.bridgeName?.let { put("bridgeName", it) }
+                tonClientEndpoint?.let { put(JsonConstants.KEY_API_URL, it) }
+                config.tonApiUrl?.let { put(JsonConstants.KEY_TON_API_URL, it) }
+                config.bridgeUrl?.let { put(JsonConstants.KEY_BRIDGE_URL, it) }
+                config.bridgeName?.let { put(JsonConstants.KEY_BRIDGE_NAME, it) }
 
                 // Add walletManifest so dApp can recognize the wallet
                 put(
-                    "walletManifest",
+                    JsonConstants.KEY_WALLET_MANIFEST,
                     JSONObject().apply {
-                        put("name", appName)
-                        put("appName", appName)
-                        put("imageUrl", config.walletImageUrl ?: "https://wallet.ton.org/assets/ui/qr-logo.png")
-                        put("aboutUrl", config.walletAboutUrl ?: "https://wallet.ton.org")
-                        config.walletUniversalUrl?.let { put("universalUrl", it) }
+                        put(JsonConstants.KEY_NAME, appName)
+                        put(JsonConstants.KEY_APP_NAME, appName)
+                        put(JsonConstants.KEY_IMAGE_URL, config.walletImageUrl ?: NetworkConstants.DEFAULT_WALLET_IMAGE_URL)
+                        put(JsonConstants.KEY_ABOUT_URL, config.walletAboutUrl ?: NetworkConstants.DEFAULT_WALLET_ABOUT_URL)
+                        config.walletUniversalUrl?.let { put(JsonConstants.KEY_UNIVERSAL_URL, it) }
                         put(
-                            "platforms",
+                            JsonConstants.KEY_PLATFORMS,
                             JSONArray().apply {
-                                put("android")
+                                put(WebViewConstants.PLATFORM_ANDROID)
                             },
                         )
                     },
@@ -264,27 +272,27 @@ class WebViewWalletKitEngine(
 
                 // Add deviceInfo with SendTransaction and SignData features
                 put(
-                    "deviceInfo",
+                    JsonConstants.KEY_DEVICE_INFO,
                     JSONObject().apply {
-                        put("platform", "android")
-                        put("appName", appName)
-                        put("appVersion", appVersion)
-                        put("maxProtocolVersion", 2)
+                        put(JsonConstants.KEY_PLATFORM, WebViewConstants.PLATFORM_ANDROID)
+                        put(JsonConstants.KEY_APP_NAME, appName)
+                        put(JsonConstants.KEY_APP_VERSION, appVersion)
+                        put(JsonConstants.KEY_MAX_PROTOCOL_VERSION, NetworkConstants.MAX_PROTOCOL_VERSION)
                         put(
-                            "features",
+                            JsonConstants.KEY_FEATURES,
                             JSONArray().apply {
                                 // Add SendTransaction feature (detailed form matching iOS)
                                 put(
                                     JSONObject().apply {
-                                        put("name", "SendTransaction")
-                                        put("maxMessages", config.maxMessages)
+                                        put(JsonConstants.KEY_NAME, JsonConstants.FEATURE_SEND_TRANSACTION)
+                                        put(JsonConstants.KEY_MAX_MESSAGES, config.maxMessages)
                                     },
                                 )
                                 // Add SignData feature with supported types
                                 put(
                                     JSONObject().apply {
-                                        put("name", "SignData")
-                                        put("types", JSONArray(config.signDataTypes))
+                                        put(JsonConstants.KEY_NAME, JsonConstants.FEATURE_SIGN_DATA)
+                                        put(JsonConstants.KEY_TYPES, JSONArray(config.signDataTypes))
                                     },
                                 )
                             },
@@ -296,8 +304,8 @@ class WebViewWalletKitEngine(
                 // When disabled, storage operations return immediately without persisting
             }
 
-        Log.d(logTag, "Initializing WalletKit with persistent storage: $persistentStorageEnabled, app: $appName v$appVersion")
-        call("init", payload)
+        Log.d(logTag, ERROR_INITIALIZING_WALLETKIT + persistentStorageEnabled + ", app: " + appName + " v" + appVersion)
+        call(BridgeMethodConstants.METHOD_INIT, payload)
     }
 
     override suspend fun init(config: WalletKitBridgeConfig) {
@@ -321,39 +329,39 @@ class WebViewWalletKitEngine(
         ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
-                put("words", JSONArray(words))
-                put("version", version)
-                network?.let { put("network", it) }
-                name?.let { put("name", it) }
+                put(JsonConstants.KEY_WORDS, JSONArray(words))
+                put(JsonConstants.KEY_VERSION, version)
+                network?.let { put(JsonConstants.KEY_NETWORK, it) }
+                name?.let { put(JsonConstants.KEY_NAME, it) }
             }
-        val result = call("addWalletFromMnemonic", params)
+        val result = call(BridgeMethodConstants.METHOD_ADD_WALLET_FROM_MNEMONIC, params)
 
         // Parse the result into WalletAccount
         return WalletAccount(
-            address = result.optString("address"),
-            publicKey = result.optNullableString("publicKey"),
-            name = result.optNullableString("name") ?: name,
-            version = result.optString("version", version),
-            network = result.optString("network", network ?: currentNetwork),
-            index = result.optInt("index", 0),
+            address = result.optString(ResponseConstants.KEY_ADDRESS),
+            publicKey = result.optNullableString(ResponseConstants.KEY_PUBLIC_KEY),
+            name = result.optNullableString(JsonConstants.KEY_NAME) ?: name,
+            version = result.optString(JsonConstants.KEY_VERSION, version),
+            network = result.optString(JsonConstants.KEY_NETWORK, network ?: currentNetwork),
+            index = result.optInt(ResponseConstants.KEY_INDEX, 0),
         )
     }
 
     override suspend fun getWallets(): List<WalletAccount> {
         ensureWalletKitInitialized()
-        val result = call("getWallets")
-        val items = result.optJSONArray("items") ?: JSONArray()
+        val result = call(BridgeMethodConstants.METHOD_GET_WALLETS)
+        val items = result.optJSONArray(ResponseConstants.KEY_ITEMS) ?: JSONArray()
         return buildList(items.length()) {
             for (index in 0 until items.length()) {
                 val entry = items.optJSONObject(index) ?: continue
                 add(
                     WalletAccount(
-                        address = entry.optString("address"),
-                        publicKey = entry.optNullableString("publicKey"),
-                        name = entry.optNullableString("name"),
-                        version = entry.optString("version", "unknown"),
-                        network = entry.optString("network", currentNetwork),
-                        index = entry.optInt("index", index),
+                        address = entry.optString(ResponseConstants.KEY_ADDRESS),
+                        publicKey = entry.optNullableString(ResponseConstants.KEY_PUBLIC_KEY),
+                        name = entry.optNullableString(JsonConstants.KEY_NAME),
+                        version = entry.optString(JsonConstants.KEY_VERSION, ResponseConstants.VALUE_UNKNOWN),
+                        network = entry.optString(JsonConstants.KEY_NETWORK, currentNetwork),
+                        index = entry.optInt(ResponseConstants.KEY_INDEX, index),
                     ),
                 )
             }
@@ -362,46 +370,46 @@ class WebViewWalletKitEngine(
 
     override suspend fun removeWallet(address: String) {
         ensureWalletKitInitialized()
-        val params = JSONObject().apply { put("address", address) }
-        val result = call("removeWallet", params)
-        Log.d(logTag, "removeWallet result: $result")
+        val params = JSONObject().apply { put(ResponseConstants.KEY_ADDRESS, address) }
+        val result = call(BridgeMethodConstants.METHOD_REMOVE_WALLET, params)
+        Log.d(logTag, ERROR_REMOVE_WALLET_RESULT + result)
 
         // Check if removal was successful
         val removed = when {
-            result.has("removed") -> result.optBoolean("removed", false)
-            result.has("ok") -> result.optBoolean("ok", true)
-            result.has("value") -> result.optBoolean("value", true)
+            result.has(ResponseConstants.KEY_REMOVED) -> result.optBoolean(ResponseConstants.KEY_REMOVED, false)
+            result.has(ResponseConstants.KEY_OK) -> result.optBoolean(ResponseConstants.KEY_OK, true)
+            result.has(ResponseConstants.KEY_VALUE) -> result.optBoolean(ResponseConstants.KEY_VALUE, true)
             else -> true
         }
 
         if (!removed) {
-            throw WalletKitBridgeException("Failed to remove wallet: $address")
+            throw WalletKitBridgeException(ERROR_FAILED_REMOVE_WALLET + address)
         }
     }
 
     override suspend fun getWalletState(address: String): WalletState {
         ensureWalletKitInitialized()
-        val params = JSONObject().apply { put("address", address) }
-        val result = call("getWalletState", params)
+        val params = JSONObject().apply { put(ResponseConstants.KEY_ADDRESS, address) }
+        val result = call(BridgeMethodConstants.METHOD_GET_WALLET_STATE, params)
         return WalletState(
             balance =
             when {
-                result.has("balance") -> result.optString("balance")
-                result.has("value") -> result.optString("value")
+                result.has(ResponseConstants.KEY_BALANCE) -> result.optString(ResponseConstants.KEY_BALANCE)
+                result.has(ResponseConstants.KEY_VALUE) -> result.optString(ResponseConstants.KEY_VALUE)
                 else -> null
             },
-            transactions = parseTransactions(result.optJSONArray("transactions")),
+            transactions = parseTransactions(result.optJSONArray(ResponseConstants.KEY_TRANSACTIONS)),
         )
     }
 
     override suspend fun getRecentTransactions(address: String, limit: Int): List<Transaction> {
         ensureWalletKitInitialized()
         val params = JSONObject().apply {
-            put("address", address)
-            put("limit", limit)
+            put(ResponseConstants.KEY_ADDRESS, address)
+            put(ResponseConstants.KEY_LIMIT, limit)
         }
-        val result = call("getRecentTransactions", params)
-        return parseTransactions(result.optJSONArray("items"))
+        val result = call(BridgeMethodConstants.METHOD_GET_RECENT_TRANSACTIONS, params)
+        return parseTransactions(result.optJSONArray(ResponseConstants.KEY_ITEMS))
     }
 
     /**
@@ -416,8 +424,8 @@ class WebViewWalletKitEngine(
                 val txJson = jsonArray.optJSONObject(i) ?: continue
 
                 // Get messages
-                val inMsg = txJson.optJSONObject("in_msg")
-                val outMsgs = txJson.optJSONArray("out_msgs")
+                val inMsg = txJson.optJSONObject(ResponseConstants.KEY_IN_MSG)
+                val outMsgs = txJson.optJSONArray(ResponseConstants.KEY_OUT_MSGS)
 
                 // Filter out jetton/token transactions
                 // Jetton transactions have op_code in their messages (like 0xf8a7ea5 for transfer)
@@ -425,11 +433,11 @@ class WebViewWalletKitEngine(
                 val isJettonOrTokenTx = when {
                     // Check incoming message for jetton markers
                     inMsg != null -> {
-                        val opCode = inMsg.optString("op_code")?.takeIf { it.isNotEmpty() }
-                        val body = inMsg.optString("body")?.takeIf { it.isNotEmpty() }
-                        val message = inMsg.optString("message")?.takeIf { it.isNotEmpty() }
+                        val opCode = inMsg.optString(ResponseConstants.KEY_OP_CODE)?.takeIf { it.isNotEmpty() }
+                        val body = inMsg.optString(ResponseConstants.KEY_BODY)?.takeIf { it.isNotEmpty() }
+                        val message = inMsg.optString(ResponseConstants.KEY_MESSAGE)?.takeIf { it.isNotEmpty() }
                         // Has op_code or has complex body (not just a comment)
-                        opCode != null || (body != null && body != "te6ccgEBAQEAAgAAAA==") ||
+                        opCode != null || (body != null && body != ResponseConstants.VALUE_EMPTY_CELL_BODY) ||
                             (message != null && message.length > 200)
                     }
                     // Check outgoing messages for jetton markers
@@ -437,10 +445,10 @@ class WebViewWalletKitEngine(
                         var hasJettonMarkers = false
                         for (j in 0 until outMsgs.length()) {
                             val msg = outMsgs.optJSONObject(j) ?: continue
-                            val opCode = msg.optString("op_code")?.takeIf { it.isNotEmpty() }
-                            val body = msg.optString("body")?.takeIf { it.isNotEmpty() }
-                            val message = msg.optString("message")?.takeIf { it.isNotEmpty() }
-                            if (opCode != null || (body != null && body != "te6ccgEBAQEAAgAAAA==") ||
+                            val opCode = msg.optString(ResponseConstants.KEY_OP_CODE)?.takeIf { it.isNotEmpty() }
+                            val body = msg.optString(ResponseConstants.KEY_BODY)?.takeIf { it.isNotEmpty() }
+                            val message = msg.optString(ResponseConstants.KEY_MESSAGE)?.takeIf { it.isNotEmpty() }
+                            if (opCode != null || (body != null && body != ResponseConstants.VALUE_EMPTY_CELL_BODY) ||
                                 (message != null && message.length > 200)
                             ) {
                                 hasJettonMarkers = true
@@ -454,13 +462,13 @@ class WebViewWalletKitEngine(
 
                 // Skip non-TON transactions
                 if (isJettonOrTokenTx) {
-                    Log.d(logTag, "Skipping jetton/token transaction: ${txJson.optString("hash_hex", "unknown")}")
+                    Log.d(logTag, ERROR_SKIPPING_JETTON_TRANSACTION + txJson.optString(ResponseConstants.KEY_HASH_HEX, ResponseConstants.VALUE_UNKNOWN))
                     continue
                 }
 
                 // Determine transaction type based on incoming/outgoing value
                 // Check if incoming message has value (meaning we received funds)
-                val incomingValue = inMsg?.optString("value")?.toLongOrNull() ?: 0L
+                val incomingValue = inMsg?.optString(ResponseConstants.KEY_VALUE)?.toLongOrNull() ?: 0L
                 val hasIncomingValue = incomingValue > 0
 
                 // Check if we have outgoing messages with value
@@ -468,7 +476,7 @@ class WebViewWalletKitEngine(
                 if (outMsgs != null) {
                     for (j in 0 until outMsgs.length()) {
                         val msg = outMsgs.optJSONObject(j)
-                        val value = msg?.optString("value")?.toLongOrNull() ?: 0L
+                        val value = msg?.optString(ResponseConstants.KEY_VALUE)?.toLongOrNull() ?: 0L
                         outgoingValue += value
                     }
                 }
@@ -490,19 +498,19 @@ class WebViewWalletKitEngine(
                 }
 
                 // Get fee from total_fees field
-                val fee = txJson.optString("total_fees")?.takeIf { it.isNotEmpty() }
+                val fee = txJson.optString(ResponseConstants.KEY_TOTAL_FEES)?.takeIf { it.isNotEmpty() }
 
                 // Get comment from messages
                 val comment = when (type) {
-                    TransactionType.INCOMING -> inMsg?.optString("comment")?.takeIf { it.isNotEmpty() }
-                    TransactionType.OUTGOING -> outMsgs?.optJSONObject(0)?.optString("comment")?.takeIf { it.isNotEmpty() }
+                    TransactionType.INCOMING -> inMsg?.optString(ResponseConstants.KEY_COMMENT)?.takeIf { it.isNotEmpty() }
+                    TransactionType.OUTGOING -> outMsgs?.optJSONObject(0)?.optString(ResponseConstants.KEY_COMMENT)?.takeIf { it.isNotEmpty() }
                     else -> null
                 }
 
                 // Get sender - prefer friendly address
                 val sender = if (type == TransactionType.INCOMING) {
-                    inMsg?.optString("source_friendly")?.takeIf { it.isNotEmpty() }
-                        ?: inMsg?.optString("source")
+                    inMsg?.optString(ResponseConstants.KEY_SOURCE_FRIENDLY)?.takeIf { it.isNotEmpty() }
+                        ?: inMsg?.optString(ResponseConstants.KEY_SOURCE)
                 } else {
                     null
                 }
@@ -510,23 +518,23 @@ class WebViewWalletKitEngine(
                 // Get recipient - prefer friendly address
                 val recipient = if (type == TransactionType.OUTGOING) {
                     outMsgs?.optJSONObject(0)?.let { msg ->
-                        msg.optString("destination_friendly")?.takeIf { it.isNotEmpty() }
-                            ?: msg.optString("destination")
+                        msg.optString(ResponseConstants.KEY_DESTINATION_FRIENDLY)?.takeIf { it.isNotEmpty() }
+                            ?: msg.optString(ResponseConstants.KEY_DESTINATION)
                     }
                 } else {
                     null
                 }
 
                 // Get hash - prefer hex format
-                val hash = txJson.optString("hash_hex")?.takeIf { it.isNotEmpty() }
-                    ?: txJson.optString("hash", "")
+                val hash = txJson.optString(ResponseConstants.KEY_HASH_HEX)?.takeIf { it.isNotEmpty() }
+                    ?: txJson.optString(JsonConstants.KEY_HASH, MiscConstants.EMPTY_STRING)
 
                 // Get timestamp - use 'now' field and convert to milliseconds
-                val timestamp = txJson.optLong("now", 0L) * 1000
+                val timestamp = txJson.optLong(ResponseConstants.KEY_NOW, 0L) * 1000
 
                 // Get logical time and block sequence number
-                val lt = txJson.optString("lt")?.takeIf { it.isNotEmpty() }
-                val blockSeqno = txJson.optInt("mc_block_seqno", -1).takeIf { it >= 0 }
+                val lt = txJson.optString(JsonConstants.KEY_LT)?.takeIf { it.isNotEmpty() }
+                val blockSeqno = txJson.optInt(ResponseConstants.KEY_MC_BLOCK_SEQNO, -1).takeIf { it >= 0 }
 
                 add(
                     Transaction(
@@ -548,8 +556,8 @@ class WebViewWalletKitEngine(
 
     override suspend fun handleTonConnectUrl(url: String) {
         ensureWalletKitInitialized()
-        val params = JSONObject().apply { put("url", url) }
-        call("handleTonConnectUrl", params)
+        val params = JSONObject().apply { put(ResponseConstants.KEY_URL, url) }
+        call(BridgeMethodConstants.METHOD_HANDLE_TON_CONNECT_URL, params)
     }
 
     override suspend fun sendTransaction(
@@ -561,14 +569,14 @@ class WebViewWalletKitEngine(
         ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
-                put("walletAddress", walletAddress)
-                put("toAddress", recipient)
-                put("amount", amount)
+                put(ResponseConstants.KEY_WALLET_ADDRESS, walletAddress)
+                put(ResponseConstants.KEY_TO_ADDRESS, recipient)
+                put(ResponseConstants.KEY_AMOUNT, amount)
                 if (!comment.isNullOrBlank()) {
-                    put("comment", comment)
+                    put(ResponseConstants.KEY_COMMENT, comment)
                 }
             }
-        call("sendTransaction", params)
+        call(BridgeMethodConstants.METHOD_SEND_TRANSACTION, params)
     }
 
     override suspend fun approveConnect(event: ConnectRequestEvent) {
@@ -576,10 +584,10 @@ class WebViewWalletKitEngine(
         val eventJson = JSONObject(json.encodeToString(event))
         val params =
             JSONObject().apply {
-                put("event", eventJson)
-                put("walletAddress", event.walletAddress ?: throw WalletKitBridgeException("walletAddress is required for connect approval"))
+                put(ResponseConstants.KEY_EVENT, eventJson)
+                put(ResponseConstants.KEY_WALLET_ADDRESS, event.walletAddress ?: throw WalletKitBridgeException(ERROR_WALLET_ADDRESS_REQUIRED))
             }
-        call("approveConnectRequest", params)
+        call(BridgeMethodConstants.METHOD_APPROVE_CONNECT_REQUEST, params)
     }
 
     override suspend fun rejectConnect(
@@ -590,17 +598,17 @@ class WebViewWalletKitEngine(
         val eventJson = JSONObject(json.encodeToString(event))
         val params =
             JSONObject().apply {
-                put("event", eventJson)
-                reason?.let { put("reason", it) }
+                put(ResponseConstants.KEY_EVENT, eventJson)
+                reason?.let { put(ResponseConstants.KEY_REASON, it) }
             }
-        call("rejectConnectRequest", params)
+        call(BridgeMethodConstants.METHOD_REJECT_CONNECT_REQUEST, params)
     }
 
     override suspend fun approveTransaction(event: TransactionRequestEvent) {
         ensureWalletKitInitialized()
         val eventJson = JSONObject(json.encodeToString(event))
-        val params = JSONObject().apply { put("event", eventJson) }
-        call("approveTransactionRequest", params)
+        val params = JSONObject().apply { put(ResponseConstants.KEY_EVENT, eventJson) }
+        call(BridgeMethodConstants.METHOD_APPROVE_TRANSACTION_REQUEST, params)
     }
 
     override suspend fun rejectTransaction(
@@ -611,28 +619,28 @@ class WebViewWalletKitEngine(
         val eventJson = JSONObject(json.encodeToString(event))
         val params =
             JSONObject().apply {
-                put("event", eventJson)
-                reason?.let { put("reason", it) }
+                put(ResponseConstants.KEY_EVENT, eventJson)
+                reason?.let { put(ResponseConstants.KEY_REASON, it) }
             }
-        call("rejectTransactionRequest", params)
+        call(BridgeMethodConstants.METHOD_REJECT_TRANSACTION_REQUEST, params)
     }
 
     override suspend fun approveSignData(event: SignDataRequestEvent): SignDataResult {
         ensureWalletKitInitialized()
         val eventJson = JSONObject(json.encodeToString(event))
-        val params = JSONObject().apply { put("event", eventJson) }
-        val result = call("approveSignDataRequest", params)
+        val params = JSONObject().apply { put(ResponseConstants.KEY_EVENT, eventJson) }
+        val result = call(BridgeMethodConstants.METHOD_APPROVE_SIGN_DATA_REQUEST, params)
 
-        Log.d(logTag, "approveSignData raw result: $result")
+        Log.d(logTag, ERROR_APPROVE_SIGN_DATA_RAW_RESULT + result)
 
         // Extract signature from the response
         // The result might be nested in a 'result' object or directly accessible
-        val signature = result.optNullableString("signature")
-            ?: result.optJSONObject("result")?.optNullableString("signature")
-            ?: result.optJSONObject("data")?.optNullableString("signature")
+        val signature = result.optNullableString(ResponseConstants.KEY_SIGNATURE)
+            ?: result.optJSONObject(ResponseConstants.KEY_RESULT)?.optNullableString(ResponseConstants.KEY_SIGNATURE)
+            ?: result.optJSONObject(ResponseConstants.KEY_DATA)?.optNullableString(ResponseConstants.KEY_SIGNATURE)
 
         if (signature.isNullOrEmpty()) {
-            throw WalletKitBridgeException("No signature in approveSignData response: $result")
+            throw WalletKitBridgeException(ERROR_NO_SIGNATURE_IN_RESPONSE + result)
         }
 
         return SignDataResult(signature = signature)
@@ -646,29 +654,29 @@ class WebViewWalletKitEngine(
         val eventJson = JSONObject(json.encodeToString(event))
         val params =
             JSONObject().apply {
-                put("event", eventJson)
-                reason?.let { put("reason", it) }
+                put(ResponseConstants.KEY_EVENT, eventJson)
+                reason?.let { put(ResponseConstants.KEY_REASON, it) }
             }
-        call("rejectSignDataRequest", params)
+        call(BridgeMethodConstants.METHOD_REJECT_SIGN_DATA_REQUEST, params)
     }
 
     override suspend fun listSessions(): List<WalletSession> {
         ensureWalletKitInitialized()
-        val result = call("listSessions")
-        val items = result.optJSONArray("items") ?: JSONArray()
+        val result = call(BridgeMethodConstants.METHOD_LIST_SESSIONS)
+        val items = result.optJSONArray(ResponseConstants.KEY_ITEMS) ?: JSONArray()
         return buildList(items.length()) {
             for (index in 0 until items.length()) {
                 val entry = items.optJSONObject(index) ?: continue
                 add(
                     WalletSession(
-                        sessionId = entry.optString("sessionId"),
-                        dAppName = entry.optString("dAppName"),
-                        walletAddress = entry.optString("walletAddress"),
-                        dAppUrl = entry.optNullableString("dAppUrl"),
-                        manifestUrl = entry.optNullableString("manifestUrl"),
-                        iconUrl = entry.optNullableString("iconUrl"),
-                        createdAtIso = entry.optNullableString("createdAt"),
-                        lastActivityIso = entry.optNullableString("lastActivity"),
+                        sessionId = entry.optString(ResponseConstants.KEY_SESSION_ID),
+                        dAppName = entry.optString(ResponseConstants.KEY_DAPP_NAME),
+                        walletAddress = entry.optString(ResponseConstants.KEY_WALLET_ADDRESS),
+                        dAppUrl = entry.optNullableString(JsonConstants.KEY_DAPP_URL),
+                        manifestUrl = entry.optNullableString(JsonConstants.KEY_MANIFEST_URL),
+                        iconUrl = entry.optNullableString(JsonConstants.KEY_ICON_URL),
+                        createdAtIso = entry.optNullableString(ResponseConstants.KEY_CREATED_AT),
+                        lastActivityIso = entry.optNullableString(ResponseConstants.KEY_LAST_ACTIVITY),
                     ),
                 )
             }
@@ -678,14 +686,14 @@ class WebViewWalletKitEngine(
     override suspend fun disconnectSession(sessionId: String?) {
         ensureWalletKitInitialized()
         val params = JSONObject()
-        sessionId?.let { params.put("sessionId", it) }
-        call("disconnectSession", if (params.length() == 0) null else params)
+        sessionId?.let { params.put(ResponseConstants.KEY_SESSION_ID, it) }
+        call(BridgeMethodConstants.METHOD_DISCONNECT_SESSION, if (params.length() == 0) null else params)
     }
 
     override suspend fun destroy() {
         withContext(Dispatchers.Main) {
             (webView.parent as? ViewGroup)?.removeView(webView)
-            webView.removeJavascriptInterface("WalletKitNative")
+            webView.removeJavascriptInterface(WebViewConstants.JS_INTERFACE_NAME)
             webView.stopLoading()
             webView.destroy()
         }
@@ -705,11 +713,11 @@ class WebViewWalletKitEngine(
         val methodLiteral = JSONObject.quote(method)
         val script =
             if (payload == null) {
-                "window.__walletkitCall($idLiteral,$methodLiteral,null)"
+                WebViewConstants.JS_FUNCTION_WALLETKIT_CALL + "(" + idLiteral + "," + methodLiteral + "," + WebViewConstants.JS_NULL + ")"
             } else {
                 val payloadBase64 = Base64.encodeToString(payload.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
                 val payloadLiteral = JSONObject.quote(payloadBase64)
-                "window.__walletkitCall($idLiteral,$methodLiteral, atob($payloadLiteral))"
+                WebViewConstants.JS_FUNCTION_WALLETKIT_CALL + "(" + idLiteral + "," + methodLiteral + ", " + WebViewConstants.JS_FUNCTION_ATOB + "(" + payloadLiteral + "))"
             }
 
         withContext(Dispatchers.Main) {
@@ -717,7 +725,7 @@ class WebViewWalletKitEngine(
         }
 
         val response = deferred.await()
-        Log.d(logTag, "call[$method] completed")
+        Log.d(logTag, ERROR_CALL_COMPLETED + method + ERROR_COMPLETED_SUFFIX)
         return response.result
     }
 
@@ -726,28 +734,28 @@ class WebViewWalletKitEngine(
         response: JSONObject,
     ) {
         val deferred = pending.remove(id) ?: return
-        val error = response.optJSONObject("error")
+        val error = response.optJSONObject(ResponseConstants.KEY_ERROR)
         if (error != null) {
-            val message = error.optString("message", "WalletKit bridge error")
-            Log.e(logTag, "call[$id] failed: $message")
+            val message = error.optString(ResponseConstants.KEY_MESSAGE, ResponseConstants.ERROR_MESSAGE_DEFAULT)
+            Log.e(logTag, ERROR_CALL_FAILED + id + ERROR_FAILED_SUFFIX + message)
             deferred.completeExceptionally(WalletKitBridgeException(message))
             return
         }
-        val result = response.opt("result")
+        val result = response.opt(ResponseConstants.KEY_RESULT)
         val payload =
             when (result) {
                 is JSONObject -> result
-                is JSONArray -> JSONObject().put("items", result)
+                is JSONArray -> JSONObject().put(ResponseConstants.KEY_ITEMS, result)
                 null -> JSONObject()
-                else -> JSONObject().put("value", result)
+                else -> JSONObject().put(ResponseConstants.KEY_VALUE, result)
             }
         deferred.complete(BridgeResponse(payload))
     }
 
     private fun handleEvent(event: JSONObject) {
-        val type = event.optString("type", "unknown")
-        val data = event.optJSONObject("data") ?: JSONObject()
-        Log.d(logTag, "event[$type]")
+        val type = event.optString(JsonConstants.KEY_TYPE, EventTypeConstants.EVENT_TYPE_UNKNOWN)
+        val data = event.optJSONObject(ResponseConstants.KEY_DATA) ?: JSONObject()
+        Log.d(logTag, ERROR_EVENT_PREFIX + type + ERROR_BRACKET_SUFFIX)
 
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data, event)
@@ -760,7 +768,7 @@ class WebViewWalletKitEngine(
 
     private fun parseTypedEvent(type: String, data: JSONObject, raw: JSONObject): WalletKitEvent? {
         return when (type) {
-            "connectRequest" -> {
+            EventTypeConstants.EVENT_CONNECT_REQUEST -> {
                 try {
                     // Deserialize JSON into typed event
                     val event = json.decodeFromString<ConnectRequestEvent>(data.toString())
@@ -776,12 +784,12 @@ class WebViewWalletKitEngine(
                     )
                     WalletKitEvent.ConnectRequestEvent(request)
                 } catch (e: Exception) {
-                    Log.e(logTag, "Failed to parse ConnectRequestEvent", e)
+                    Log.e(logTag, ERROR_FAILED_PARSE_CONNECT_REQUEST, e)
                     null
                 }
             }
 
-            "transactionRequest" -> {
+            EventTypeConstants.EVENT_TRANSACTION_REQUEST -> {
                 try {
                     // Deserialize JSON into typed event
                     val event = json.decodeFromString<TransactionRequestEvent>(data.toString())
@@ -790,7 +798,7 @@ class WebViewWalletKitEngine(
                     val txRequest = parseTransactionRequest(data) // Keep existing parser for now
 
                     // Extract preview data if available
-                    val preview = data.optJSONObject("preview")?.toString()
+                    val preview = data.optJSONObject(ResponseConstants.KEY_PREVIEW)?.toString()
 
                     val request = io.ton.walletkit.presentation.request.TransactionRequest(
                         requestId = requestId,
@@ -802,12 +810,12 @@ class WebViewWalletKitEngine(
                     )
                     WalletKitEvent.TransactionRequestEvent(request)
                 } catch (e: Exception) {
-                    Log.e(logTag, "Failed to parse TransactionRequestEvent", e)
+                    Log.e(logTag, ERROR_FAILED_PARSE_TRANSACTION_REQUEST, e)
                     null
                 }
             }
 
-            "signDataRequest" -> {
+            EventTypeConstants.EVENT_SIGN_DATA_REQUEST -> {
                 try {
                     // Deserialize JSON into typed event
                     val event = json.decodeFromString<SignDataRequestEvent>(data.toString())
@@ -823,26 +831,26 @@ class WebViewWalletKitEngine(
                     )
                     WalletKitEvent.SignDataRequestEvent(request)
                 } catch (e: Exception) {
-                    Log.e(logTag, "Failed to parse SignDataRequestEvent", e)
+                    Log.e(logTag, ERROR_FAILED_PARSE_SIGN_DATA_REQUEST, e)
                     null
                 }
             }
 
-            "disconnect" -> {
-                val sessionId = data.optNullableString("sessionId")
-                    ?: data.optNullableString("id")
+            EventTypeConstants.EVENT_DISCONNECT -> {
+                val sessionId = data.optNullableString(ResponseConstants.KEY_SESSION_ID)
+                    ?: data.optNullableString(JsonConstants.KEY_ID)
                     ?: return null
                 WalletKitEvent.DisconnectEvent(sessionId)
             }
 
-            "stateChanged", "walletStateChanged" -> {
-                val address = data.optNullableString("address")
-                    ?: data.optJSONObject("wallet")?.optNullableString("address")
+            EventTypeConstants.EVENT_STATE_CHANGED, EventTypeConstants.EVENT_WALLET_STATE_CHANGED -> {
+                val address = data.optNullableString(ResponseConstants.KEY_ADDRESS)
+                    ?: data.optJSONObject(ResponseConstants.KEY_WALLET)?.optNullableString(ResponseConstants.KEY_ADDRESS)
                     ?: return null
                 WalletKitEvent.StateChangedEvent(address)
             }
 
-            "sessionsChanged" -> {
+            EventTypeConstants.EVENT_SESSIONS_CHANGED -> {
                 WalletKitEvent.SessionsChangedEvent
             }
 
@@ -852,23 +860,23 @@ class WebViewWalletKitEngine(
 
     private fun parseDAppInfo(data: JSONObject): DAppInfo? {
         // Try to get dApp name from multiple sources
-        val dAppName = data.optNullableString("dAppName")
-            ?: data.optJSONObject("manifest")?.optNullableString("name")
-            ?: data.optJSONObject("preview")?.optJSONObject("manifest")?.optNullableString("name")
+        val dAppName = data.optNullableString(ResponseConstants.KEY_DAPP_NAME)
+            ?: data.optJSONObject(ResponseConstants.KEY_MANIFEST)?.optNullableString(JsonConstants.KEY_NAME)
+            ?: data.optJSONObject(ResponseConstants.KEY_PREVIEW)?.optJSONObject(ResponseConstants.KEY_MANIFEST)?.optNullableString(JsonConstants.KEY_NAME)
 
         // Try to get URLs from multiple sources
-        val manifest = data.optJSONObject("preview")?.optJSONObject("manifest")
-            ?: data.optJSONObject("manifest")
+        val manifest = data.optJSONObject(ResponseConstants.KEY_PREVIEW)?.optJSONObject(ResponseConstants.KEY_MANIFEST)
+            ?: data.optJSONObject(ResponseConstants.KEY_MANIFEST)
 
-        val dAppUrl = data.optNullableString("dAppUrl")
-            ?: manifest?.optNullableString("url")
+        val dAppUrl = data.optNullableString(ResponseConstants.KEY_DAPP_URL_ALT)
+            ?: manifest?.optNullableString(ResponseConstants.KEY_URL)
             ?: ""
 
-        val iconUrl = data.optNullableString("dAppIconUrl")
-            ?: manifest?.optNullableString("iconUrl")
+        val iconUrl = data.optNullableString(ResponseConstants.KEY_DAPP_ICON_URL)
+            ?: manifest?.optNullableString(ResponseConstants.KEY_ICON_URL_ALT)
 
-        val manifestUrl = data.optNullableString("manifestUrl")
-            ?: manifest?.optNullableString("url")
+        val manifestUrl = data.optNullableString(ResponseConstants.KEY_MANIFEST_URL_ALT)
+            ?: manifest?.optNullableString(ResponseConstants.KEY_URL)
 
         // Only return null if we have absolutely no dApp information
         if (dAppName == null && dAppUrl.isEmpty()) {
@@ -876,7 +884,7 @@ class WebViewWalletKitEngine(
         }
 
         return DAppInfo(
-            name = dAppName ?: dAppUrl.takeIf { it.isNotEmpty() } ?: "Unknown dApp",
+            name = dAppName ?: dAppUrl.takeIf { it.isNotEmpty() } ?: ResponseConstants.VALUE_UNKNOWN_DAPP,
             url = dAppUrl,
             iconUrl = iconUrl,
             manifestUrl = manifestUrl,
@@ -884,7 +892,7 @@ class WebViewWalletKitEngine(
     }
 
     private fun parsePermissions(data: JSONObject): List<String> {
-        val permissions = data.optJSONArray("permissions") ?: return emptyList()
+        val permissions = data.optJSONArray(ResponseConstants.KEY_PERMISSIONS) ?: return emptyList()
         return List(permissions.length()) { i ->
             permissions.optString(i)
         }
@@ -892,60 +900,60 @@ class WebViewWalletKitEngine(
 
     private fun parseTransactionRequest(data: JSONObject): TransactionRequest {
         // Check if data is nested under "request" field
-        val requestData = data.optJSONObject("request") ?: data
+        val requestData = data.optJSONObject(ResponseConstants.KEY_REQUEST) ?: data
 
         // Try to parse from messages array first (TON Connect format)
-        val messages = requestData.optJSONArray("messages")
+        val messages = requestData.optJSONArray(ResponseConstants.KEY_MESSAGES)
         if (messages != null && messages.length() > 0) {
             val firstMessage = messages.optJSONObject(0)
             if (firstMessage != null) {
                 return TransactionRequest(
-                    recipient = firstMessage.optNullableString("address")
-                        ?: firstMessage.optNullableString("to")
+                    recipient = firstMessage.optNullableString(ResponseConstants.KEY_ADDRESS)
+                        ?: firstMessage.optNullableString(ResponseConstants.KEY_TO)
                         ?: "",
-                    amount = firstMessage.optNullableString("amount")
-                        ?: firstMessage.optNullableString("value")
+                    amount = firstMessage.optNullableString(ResponseConstants.KEY_AMOUNT)
+                        ?: firstMessage.optNullableString(ResponseConstants.KEY_VALUE)
                         ?: "0",
-                    comment = firstMessage.optNullableString("comment")
-                        ?: firstMessage.optNullableString("text"),
-                    payload = firstMessage.optNullableString("payload"),
+                    comment = firstMessage.optNullableString(ResponseConstants.KEY_COMMENT)
+                        ?: firstMessage.optNullableString(ResponseConstants.KEY_TEXT),
+                    payload = firstMessage.optNullableString(ResponseConstants.KEY_PAYLOAD),
                 )
             }
         }
 
         // Fallback to direct fields (legacy format or direct send)
         return TransactionRequest(
-            recipient = requestData.optNullableString("to") ?: requestData.optNullableString("recipient") ?: "",
-            amount = requestData.optNullableString("amount") ?: requestData.optNullableString("value") ?: "0",
-            comment = requestData.optNullableString("comment") ?: requestData.optNullableString("text"),
-            payload = requestData.optNullableString("payload"),
+            recipient = requestData.optNullableString(ResponseConstants.KEY_TO) ?: requestData.optNullableString(ResponseConstants.KEY_RECIPIENT) ?: "",
+            amount = requestData.optNullableString(ResponseConstants.KEY_AMOUNT) ?: requestData.optNullableString(ResponseConstants.KEY_VALUE) ?: "0",
+            comment = requestData.optNullableString(ResponseConstants.KEY_COMMENT) ?: requestData.optNullableString(ResponseConstants.KEY_TEXT),
+            payload = requestData.optNullableString(ResponseConstants.KEY_PAYLOAD),
         )
     }
 
     private fun parseSignDataRequest(data: JSONObject): SignDataRequest {
         // Parse params array - params[0] contains stringified JSON with schema_crc and payload
-        var payload = data.optNullableString("payload") ?: data.optNullableString("data") ?: ""
-        var schema: String? = data.optNullableString("schema")
+        var payload = data.optNullableString(ResponseConstants.KEY_PAYLOAD) ?: data.optNullableString(ResponseConstants.KEY_DATA) ?: ""
+        var schema: String? = data.optNullableString(ResponseConstants.KEY_SCHEMA)
 
         // Check if params array exists (newer format from bridge)
-        val paramsArray = data.optJSONArray("params")
+        val paramsArray = data.optJSONArray(ResponseConstants.KEY_PARAMS)
         if (paramsArray != null && paramsArray.length() > 0) {
             val paramsString = paramsArray.optString(0)
             if (paramsString.isNotEmpty()) {
                 try {
                     val paramsObj = JSONObject(paramsString)
-                    payload = paramsObj.optNullableString("payload") ?: payload
+                    payload = paramsObj.optNullableString(ResponseConstants.KEY_PAYLOAD) ?: payload
 
                     // Convert schema_crc to human-readable schema type
-                    val schemaCrc = paramsObj.optInt("schema_crc", -1)
+                    val schemaCrc = paramsObj.optInt(ResponseConstants.KEY_SCHEMA_CRC, -1)
                     schema = when (schemaCrc) {
-                        0 -> "text"
-                        1 -> "binary"
-                        2 -> "cell"
+                        0 -> ResponseConstants.VALUE_SCHEMA_TEXT
+                        1 -> ResponseConstants.VALUE_SCHEMA_BINARY
+                        2 -> ResponseConstants.VALUE_SCHEMA_CELL
                         else -> schema
                     }
                 } catch (e: Exception) {
-                    Log.e(logTag, "Failed to parse params for sign data", e)
+                    Log.e(logTag, ERROR_FAILED_PARSE_SIGN_DATA_PARAMS, e)
                 }
             }
         }
@@ -957,17 +965,17 @@ class WebViewWalletKitEngine(
     }
 
     private fun handleReady(payload: JSONObject) {
-        payload.optNullableString("network")?.let { currentNetwork = it }
-        payload.optNullableString("tonApiUrl")?.let { apiBaseUrl = it }
+        payload.optNullableString(ResponseConstants.KEY_NETWORK)?.let { currentNetwork = it }
+        payload.optNullableString(ResponseConstants.KEY_TON_API_URL)?.let { apiBaseUrl = it }
         if (!ready.isCompleted) {
-            Log.d(logTag, "bridge ready")
+            Log.d(logTag, LogConstants.MSG_BRIDGE_READY)
             ready.complete(Unit)
         }
         val data = JSONObject()
         val keys = payload.keys()
         while (keys.hasNext()) {
             val key = keys.next()
-            if (key == "kind") continue
+            if (key == ResponseConstants.KEY_KIND) continue
             if (payload.isNull(key)) {
                 data.put(key, JSONObject.NULL)
             } else {
@@ -975,8 +983,8 @@ class WebViewWalletKitEngine(
             }
         }
         val readyEvent = JSONObject().apply {
-            put("type", "ready")
-            put("data", data)
+            put(ResponseConstants.KEY_TYPE, ResponseConstants.VALUE_KIND_READY)
+            put(ResponseConstants.KEY_DATA, data)
         }
         handleEvent(readyEvent)
     }
@@ -994,16 +1002,16 @@ class WebViewWalletKitEngine(
         fun postMessage(json: String) {
             try {
                 val payload = JSONObject(json)
-                when (payload.optString("kind")) {
-                    "ready" -> handleReady(payload)
-                    "event" -> payload.optJSONObject("event")?.let { handleEvent(it) }
-                    "response" -> handleResponse(payload.optString("id"), payload)
+                when (payload.optString(ResponseConstants.KEY_KIND)) {
+                    ResponseConstants.VALUE_KIND_READY -> handleReady(payload)
+                    ResponseConstants.VALUE_KIND_EVENT -> payload.optJSONObject(ResponseConstants.KEY_EVENT)?.let { handleEvent(it) }
+                    ResponseConstants.VALUE_KIND_RESPONSE -> handleResponse(payload.optString(ResponseConstants.KEY_ID), payload)
                 }
             } catch (err: JSONException) {
-                Log.e(logTag, "Malformed payload from JS", err)
+                Log.e(logTag, LogConstants.MSG_MALFORMED_PAYLOAD, err)
                 pending.values.forEach { deferred ->
                     if (!deferred.isCompleted) {
-                        deferred.completeExceptionally(WalletKitBridgeException("Malformed payload: ${err.message}"))
+                        deferred.completeExceptionally(WalletKitBridgeException("${LogConstants.ERROR_MALFORMED_PAYLOAD_PREFIX}${err.message}"))
                     }
                 }
             }
@@ -1029,7 +1037,7 @@ class WebViewWalletKitEngine(
                     storageAdapter.get(key)
                 }
             } catch (e: Exception) {
-                Log.e(logTag, "Storage get failed for key: $key", e)
+                Log.e(logTag, "${LogConstants.MSG_STORAGE_GET_FAILED}$key", e)
                 null
             }
         }
@@ -1048,7 +1056,7 @@ class WebViewWalletKitEngine(
                     storageAdapter.set(key, value)
                 }
             } catch (e: Exception) {
-                Log.e(logTag, "Storage set failed for key: $key", e)
+                Log.e(logTag, "${LogConstants.MSG_STORAGE_SET_FAILED}$key", e)
             }
         }
 
@@ -1063,7 +1071,7 @@ class WebViewWalletKitEngine(
                     storageAdapter.remove(key)
                 }
             } catch (e: Exception) {
-                Log.e(logTag, "Storage remove failed for key: $key", e)
+                Log.e(logTag, "${LogConstants.MSG_STORAGE_REMOVE_FAILED}$key", e)
             }
         }
 
@@ -1078,22 +1086,56 @@ class WebViewWalletKitEngine(
                     storageAdapter.clear()
                 }
             } catch (e: Exception) {
-                Log.e(logTag, "Storage clear failed", e)
+                Log.e(logTag, LogConstants.MSG_STORAGE_CLEAR_FAILED, e)
             }
         }
     }
 
     override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
         ensureWalletKitInitialized()
-        return call("injectSignDataRequest", requestData)
+        return call(BridgeMethodConstants.METHOD_INJECT_SIGN_DATA_REQUEST, requestData)
     }
 
     private data class BridgeResponse(
         val result: JSONObject,
     )
 
-    private companion object {
-        private const val ASSET_LOADER_DOMAIN = "appassets.androidplatform.net"
+    companion object {
+        // WebView and Initialization Errors
+        const val ERROR_WEBVIEW_LOADING_ASSET = "WebView bridge loading asset: "
+        const val ERROR_AUTO_INITIALIZING_WALLETKIT = "Auto-initializing WalletKit with config: network="
+        const val ERROR_WALLETKIT_AUTO_INIT_SUCCESS = "WalletKit auto-initialization completed successfully"
+        const val ERROR_WALLETKIT_AUTO_INIT_FAILED = "WalletKit auto-initialization failed"
+        const val ERROR_FAILED_AUTO_INIT_WALLETKIT = "Failed to auto-initialize WalletKit: "
+        const val ERROR_FAILED_GET_APP_VERSION = "Failed to get app version, using default"
+        const val ERROR_FAILED_GET_APP_NAME = "Failed to get app name, using package name"
+        const val ERROR_INITIALIZING_WALLETKIT = "Initializing WalletKit with persistent storage: "
+
+        // Wallet Operation Errors
+        const val ERROR_REMOVE_WALLET_RESULT = "removeWallet result: "
+        const val ERROR_FAILED_REMOVE_WALLET = "Failed to remove wallet: "
+        const val ERROR_WALLET_ADDRESS_REQUIRED = "walletAddress is required for connect approval"
+
+        // Transaction Errors
+        const val ERROR_SKIPPING_JETTON_TRANSACTION = "Skipping jetton/token transaction: "
+
+        // Sign Data Errors
+        const val ERROR_APPROVE_SIGN_DATA_RAW_RESULT = "approveSignData raw result: "
+        const val ERROR_NO_SIGNATURE_IN_RESPONSE = "No signature in approveSignData response: "
+
+        // Event Parsing Errors
+        const val ERROR_FAILED_PARSE_CONNECT_REQUEST = "Failed to parse ConnectRequestEvent"
+        const val ERROR_FAILED_PARSE_TRANSACTION_REQUEST = "Failed to parse TransactionRequestEvent"
+        const val ERROR_FAILED_PARSE_SIGN_DATA_REQUEST = "Failed to parse SignDataRequestEvent"
+        const val ERROR_FAILED_PARSE_SIGN_DATA_PARAMS = "Failed to parse params for sign data"
+
+        // Bridge Call Errors
+        const val ERROR_CALL_COMPLETED = "call["
+        const val ERROR_CALL_FAILED = "call["
+        const val ERROR_EVENT_PREFIX = "event["
+        const val ERROR_BRACKET_SUFFIX = "] "
+        const val ERROR_COMPLETED_SUFFIX = "] completed"
+        const val ERROR_FAILED_SUFFIX = "] failed: "
     }
 }
 

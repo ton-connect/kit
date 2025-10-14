@@ -1,5 +1,8 @@
 package io.ton.walletkit.presentation.config
 
+import io.ton.walletkit.domain.constants.JsonConstants
+import io.ton.walletkit.domain.constants.NetworkConstants
+
 /**
  * Configuration for WalletKit bridge initialization.
  *
@@ -26,7 +29,7 @@ package io.ton.walletkit.presentation.config
  * @property walletUniversalUrl Universal link URL for deep linking (optional, recommended for production)
  */
 data class WalletKitBridgeConfig(
-    val network: String = "testnet",
+    val network: String = NetworkConstants.DEFAULT_NETWORK,
     val apiUrl: String? = null,
     val bridgeUrl: String? = null,
     val bridgeName: String? = null,
@@ -37,7 +40,11 @@ data class WalletKitBridgeConfig(
     val appName: String? = null,
     val appVersion: String? = null,
     val maxMessages: Int = 4,
-    val signDataTypes: List<String> = listOf("text", "binary", "cell"),
+    val signDataTypes: List<String> = listOf(
+        JsonConstants.VALUE_SIGN_DATA_TEXT,
+        JsonConstants.VALUE_SIGN_DATA_BINARY,
+        JsonConstants.VALUE_SIGN_DATA_CELL,
+    ),
     val walletImageUrl: String? = null,
     val walletAboutUrl: String? = null,
     val walletUniversalUrl: String? = null,

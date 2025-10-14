@@ -3,6 +3,8 @@ package io.ton.walletkit.presentation.storage.bridge
 import android.content.Context
 import android.util.Log
 import io.ton.walletkit.data.storage.impl.SecureWalletKitStorage
+import io.ton.walletkit.domain.constants.LogConstants
+import io.ton.walletkit.domain.constants.StorageConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -23,13 +25,13 @@ class SecureBridgeStorageAdapter(
     context: Context,
 ) : BridgeStorageAdapter {
     private val appContext = context.applicationContext
-    private val secureStorage = SecureWalletKitStorage(appContext, "walletkit_bridge_storage")
+    private val secureStorage = SecureWalletKitStorage(appContext, StorageConstants.BRIDGE_STORAGE_NAME)
 
     override suspend fun get(key: String): String? = withContext(Dispatchers.IO) {
         try {
             secureStorage.getRawValue(bridgeKey(key))
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to get value for key: $key", e)
+            Log.e(TAG, ERROR_FAILED_GET_RAW_VALUE + key, e)
             null
         }
     }
@@ -42,7 +44,7 @@ class SecureBridgeStorageAdapter(
             try {
                 secureStorage.setRawValue(bridgeKey(key), value)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to set value for key: $key", e)
+                Log.e(TAG, ERROR_FAILED_SET_RAW_VALUE + key, e)
                 throw e
             }
         }
@@ -53,7 +55,7 @@ class SecureBridgeStorageAdapter(
             try {
                 secureStorage.removeRawValue(bridgeKey(key))
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to remove key: $key", e)
+                Log.e(TAG, ERROR_FAILED_REMOVE_RAW_VALUE + key, e)
             }
         }
     }
@@ -63,14 +65,20 @@ class SecureBridgeStorageAdapter(
             try {
                 secureStorage.clearBridgeData()
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear bridge storage", e)
+                Log.e(TAG, ERROR_FAILED_CLEAR_BRIDGE_DATA, e)
             }
         }
     }
 
-    private fun bridgeKey(key: String) = "bridge:$key"
+    private fun bridgeKey(key: String) = StorageConstants.KEY_PREFIX_BRIDGE + key
 
-    private companion object {
-        private const val TAG = "SecureBridgeStorageAdapter"
+    companion object {
+        private const val TAG = LogConstants.TAG_BRIDGE_STORAGE
+
+        // Storage Errors
+        const val ERROR_FAILED_GET_RAW_VALUE = "Failed to get raw value: "
+        const val ERROR_FAILED_SET_RAW_VALUE = "Failed to set raw value: "
+        const val ERROR_FAILED_REMOVE_RAW_VALUE = "Failed to remove raw value: "
+        const val ERROR_FAILED_CLEAR_BRIDGE_DATA = "Failed to clear bridge data"
     }
 }
