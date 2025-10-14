@@ -75,7 +75,6 @@ jobs:
         fi
         
         echo "🚀 TON Connect Bridge service is now running and accessible at http://localhost:8081/bridge"
-      # uses: ton-connect/bridge/actions/local@master
 
     - name: Run web e2e specs
       run: |
