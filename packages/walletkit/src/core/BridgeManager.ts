@@ -91,8 +91,11 @@ export class BridgeManager {
 
         try {
             await this.loadLastEventId();
-            if (!this.config.disableHttpConnection) {
+            if (!this.config?.disableHttpConnection) {
                 await this.connectToSSEBridge();
+            } else {
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
             }
         } catch (error) {
             log.error('Failed to start bridge', { error });
@@ -164,15 +167,9 @@ export class BridgeManager {
         response: any,
         _session?: SessionData,
     ): Promise<void> {
-        if (!this.bridgeProvider) {
-            throw new WalletKitError(ERROR_CODES.BRIDGE_NOT_INITIALIZED, 'Bridge not initialized for sending response');
-        }
-
         if (event.isLocal) {
             return;
         }
-
-        // const sessionId = event.from;
 
         if (event.isJsBridge) {
             return this.sendJsBridgeResponse(
@@ -184,6 +181,10 @@ export class BridgeManager {
                     traceId: event?.traceId,
                 },
             );
+        }
+
+        if (!this.bridgeProvider) {
+            throw new WalletKitError(ERROR_CODES.BRIDGE_NOT_INITIALIZED, 'Bridge not initialized for sending response');
         }
 
         const sessionId = event.from || event.sessionId;
@@ -239,13 +240,6 @@ export class BridgeManager {
             traceId?: string;
         },
     ): Promise<void> {
-        if (!this.bridgeProvider) {
-            throw new WalletKitError(
-                ERROR_CODES.BRIDGE_NOT_INITIALIZED,
-                'Bridge not initialized for JS bridge response',
-            );
-        }
-
         const source = this.config.jsBridgeKey + '-tonconnect';
         // eslint-disable-next-line no-undef
         chrome.tabs.sendMessage(parseInt(sessionId), {
