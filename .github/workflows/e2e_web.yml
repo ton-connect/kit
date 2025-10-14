@@ -89,7 +89,6 @@ jobs:
         ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
-        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
 
     - name: Upload Allure Results
       if: always()
