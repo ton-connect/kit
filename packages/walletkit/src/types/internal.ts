@@ -31,6 +31,7 @@ export interface BridgeConfig {
     bridgeUrl?: string; // defaults to WalletInfo.bridgeUrl if exists
     enableJsBridge?: boolean; // default to true if WalletInfo.jsBridgeKey exists
     jsBridgeKey?: string; // defaults to WalletInfo.jsBridgeKey
+    disableHttpConnection?: boolean; // default to false
 
     // settings for bridge-sdk
     heartbeatInterval?: number;
