@@ -60,11 +60,11 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
             isBridgeRequest(message);
             // Handle TonConnect bridge requests through WalletKit
             handleBridgeRequest(message.messageId, message.payload, sender, sendResponse);
-            if (message.payload.method === 'connect' || message.payload.method === 'send') {
-                await chrome.action.openPopup().catch((e) => {
-                    console.log('popup not opened', e);
-                });
-            }
+            // if (message.payload.method === 'connect' || message.payload.method === 'send') {
+            //     await chrome.action.openPopup().catch((e) => {
+            //         console.log('popup not opened', e);
+            //     });
+            // }
             break;
         case 'WALLET_REQUEST':
             // Forward wallet requests to popup or handle them
