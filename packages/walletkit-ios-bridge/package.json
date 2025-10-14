@@ -14,10 +14,6 @@
   },
   "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
   "main": "js/src/main.ts",
-  "files": [
-    "src/walletkit/",
-    "README_NATIVE.md"
-  ],
   "keywords": [
     "ton",
     "blockchain",

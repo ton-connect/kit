@@ -20,3 +20,5 @@ apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/wallet
 apps/TONWalletApp/TONWalletApp.xcodeproj/project.xcworkspace/xcuserdata/
 apps/TONWalletApp/TONWalletApp.xcodeproj/xcuserdata/
 apps/TONWalletApp/TONWalletApp.xcodeproj/xcuserdata/
+
+packages/walletkit-ios-bridge/build/*
