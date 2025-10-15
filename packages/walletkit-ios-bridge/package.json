@@ -12,19 +12,14 @@
     "url-polyfill": "^1.1.13",
     "whatwg-url": "^14.2.0"
   },
-  "description": "Native iOS app with TonWalletKit Swift wrapper",
-  "main": "src/walletkit/WalletKitSwift.swift",
-  "files": [
-    "src/walletkit/",
-    "README_NATIVE.md"
-  ],
+  "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
+  "main": "js/src/main.ts",
   "keywords": [
     "ton",
     "blockchain",
     "wallet",
     "ios",
     "swift",
-    "swiftui",
     "tonconnect"
   ],
   "devDependencies": {

@@ -12,7 +12,7 @@ export default defineConfig({
             name: 'index',
         },
         assetsDir: '',
-        outDir: 'Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS',
+        outDir: 'build',
         assetsInlineLimit: () => true,
         rollupOptions: {
             output: {

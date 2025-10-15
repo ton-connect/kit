@@ -12,11 +12,4 @@ reports
 *-results
 *-report
 
-apps/TONWalletApp/Packages/TONWalletKit/.swiftpm/xcode/xcuserdata/
-apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.mjs
-apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.mjs.map
-apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.umd.js
-apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.umd.js.map
-apps/TONWalletApp/TONWalletApp.xcodeproj/project.xcworkspace/xcuserdata/
-apps/TONWalletApp/TONWalletApp.xcodeproj/xcuserdata/
-apps/TONWalletApp/TONWalletApp.xcodeproj/xcuserdata/
+packages/walletkit-ios-bridge/build/*
