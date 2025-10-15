@@ -3,7 +3,7 @@ name: e2e extension
 on:
   push:
     branches:
-      - 'dev/tim/test-fix-actions'
+      - main
   pull_request:
     branches:
       - main
