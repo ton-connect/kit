@@ -5,6 +5,8 @@ import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId }
 import { testWithDemoWalletFixture } from '../demo-wallet';
 import type { TestFixture } from '../qa';
 
+const isExtension = process.env.E2E_JS_BRIDGE === 'true';
+
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
@@ -55,7 +57,13 @@ async function runSendTransactionTest(
     }
 
     await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-    await wallet.connectBy(await widget.connectUrl());
+    if (isExtension) {
+        await widget.connectWallet('Tonkeeper');
+        await wallet.connect(true);
+    } else {
+        await wallet.connectBy(await widget.connectUrl());
+        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
+    }
     await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
     await app.getByTestId('sendTxPrecondition').fill(precondition);
     await app.getByTestId('sendTxExpectedResult').fill(expectedResult);
