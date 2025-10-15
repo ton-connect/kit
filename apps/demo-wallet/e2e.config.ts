@@ -13,6 +13,7 @@ export default defineConfig({
     reporter: process.env.CI
         ? [['list'], ['html'], ['allure-playwright']]
         : [['list'], ['html'], ['allure-playwright']],
+    workers: process.env.CI ? 2 : undefined,
     use: {
         screenshot: 'on',
         trace: 'on',
@@ -29,6 +30,7 @@ export default defineConfig({
                 '--disable-permissions-api',
             ],
         },
+        // headless: false,
     },
     projects: process.env.E2E_WALLET_SOURCE_EXTENSION
         ? [

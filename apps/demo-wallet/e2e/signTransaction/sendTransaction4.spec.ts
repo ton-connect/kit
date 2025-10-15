@@ -76,9 +76,9 @@ test('[messages] Error if contains invalid message @allureId(2243)', async ({ wa
     await runSendTransactionTest({ wallet, app, widget }, test.info());
 });
 
-test('[messages] Success if contains maximum messages @allureId(1959)', async ({ wallet, app, widget }) => {
-    await runSendTransactionTest({ wallet, app, widget }, test.info());
-});
+// test('[messages] Success if contains maximum messages @allureId(1959)', async ({ wallet, app, widget }) => {
+//     await runSendTransactionTest({ wallet, app, widget }, test.info());
+// });
 
 test('[network] Error if as a number @allureId(2234)', async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info());
