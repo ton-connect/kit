@@ -91,7 +91,12 @@ export class BridgeManager {
 
         try {
             await this.loadLastEventId();
-            await this.connectToSSEBridge();
+            if (!this.config?.disableHttpConnection) {
+                await this.connectToSSEBridge();
+            } else {
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+            }
         } catch (error) {
             log.error('Failed to start bridge', { error });
             throw error;
@@ -162,15 +167,9 @@ export class BridgeManager {
         response: any,
         _session?: SessionData,
     ): Promise<void> {
-        if (!this.bridgeProvider) {
-            throw new WalletKitError(ERROR_CODES.BRIDGE_NOT_INITIALIZED, 'Bridge not initialized for sending response');
-        }
-
         if (event.isLocal) {
             return;
         }
-
-        // const sessionId = event.from;
 
         if (event.isJsBridge) {
             return this.sendJsBridgeResponse(
@@ -182,6 +181,10 @@ export class BridgeManager {
                     traceId: event?.traceId,
                 },
             );
+        }
+
+        if (!this.bridgeProvider) {
+            throw new WalletKitError(ERROR_CODES.BRIDGE_NOT_INITIALIZED, 'Bridge not initialized for sending response');
         }
 
         const sessionId = event.from || event.sessionId;
@@ -237,13 +240,6 @@ export class BridgeManager {
             traceId?: string;
         },
     ): Promise<void> {
-        if (!this.bridgeProvider) {
-            throw new WalletKitError(
-                ERROR_CODES.BRIDGE_NOT_INITIALIZED,
-                'Bridge not initialized for JS bridge response',
-            );
-        }
-
         const source = this.config.jsBridgeKey + '-tonconnect';
         // eslint-disable-next-line no-undef
         chrome.tabs.sendMessage(parseInt(sessionId), {
@@ -406,13 +402,15 @@ export class BridgeManager {
                 },
             ]);
 
-            // Attempt reconnection if not at max attempts
-            if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
-                this.reconnectAttempts++;
-                log.info('Bridge reconnection attempt', { attempt: this.reconnectAttempts });
-                setTimeout(() => {
-                    this.connectToSSEBridge().catch((error) => log.error('Bridge reconnection failed', { error }));
-                }, this.config.reconnectInterval);
+            if (!this.config.disableHttpConnection) {
+                // Attempt reconnection if not at max attempts
+                if (this.reconnectAttempts < (this.config.maxReconnectAttempts || 5)) {
+                    this.reconnectAttempts++;
+                    log.info('Bridge reconnection attempt', { attempt: this.reconnectAttempts });
+                    setTimeout(() => {
+                        this.connectToSSEBridge().catch((error) => log.error('Bridge reconnection failed', { error }));
+                    }, this.config.reconnectInterval);
+                }
             }
             throw WalletKitError.fromError(ERROR_CODES.BRIDGE_CONNECTION_FAILED, 'Failed to connect to bridge', error, {
                 reconnectAttempts: this.reconnectAttempts,

@@ -39,6 +39,7 @@ const ENV_TON_API_KEY_TESTNET =
     import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
 
 const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
+const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
 
 // Initialize wallet kit instance
 function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): ITonWalletKit {
@@ -48,6 +49,7 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
 
         bridge: {
             bridgeUrl: ENV_BRIDGE_URL,
+            disableHttpConnection: DISABLE_HTTP_BRIDGE,
         },
 
         network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,

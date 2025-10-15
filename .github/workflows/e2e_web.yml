@@ -23,18 +23,24 @@ jobs:
         node-version: '${{ env.NVMRC }}'
         cache: 'pnpm'
 
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(pnpm list @playwright/test --json | jq -r '.[0].devDependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+
     - name: Setup dependencies
       run: |
         sudo apt-get install --no-install-recommends -y xvfb
         pnpm install --frozen-lockfile
         pnpm --filter demo-wallet e2e:deps
-
-    - name: Build
-      run: |
-        pnpm build
-        pnpm --filter demo-wallet build:extension
-      env:
-        VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
 
     - name: Start TON Connect Bridge
       run: |
@@ -69,10 +75,12 @@ jobs:
         fi
         
         echo "🚀 TON Connect Bridge service is now running and accessible at http://localhost:8081/bridge"
-      # uses: ton-connect/bridge/actions/local@master
 
     - name: Run web e2e specs
-      run: xvfb-run pnpm --filter demo-wallet e2e
+      run: |
+        pnpm build
+        cd apps/demo-wallet
+        xvfb-run pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
@@ -81,17 +89,18 @@ jobs:
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
 
-    # - name: Send report
-    #   if: always()
-    #   run: |
-    #     wget https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -O ./allurectl
-    #     chmod +x ./allurectl
-    #     ./allurectl upload --endpoint $ALLURE_BASE_URL \
-    #     --token $ALLURE_API_TOKEN \
-    #     --project-id $ALLURE_PROJECT_ID \
-    #     --launch-name "CI for rev:$(git rev-parse --short "$GITHUB_SHA")" \
-    #     apps/demo-wallet/allure-results
-    #   env:
-    #     ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
-    #     ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN }}
-    #     ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+    - name: Upload Allure Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results-web
+        path: apps/demo-wallet/allure-results/
+        retention-days: 1
+
+    - name: Upload Playwright Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report-web
+        path: apps/demo-wallet/test-results/
+        retention-days: 1
