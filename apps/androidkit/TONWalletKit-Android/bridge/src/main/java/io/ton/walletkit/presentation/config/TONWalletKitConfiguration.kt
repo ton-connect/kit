@@ -1,5 +1,6 @@
 package io.ton.walletkit.presentation.config
 
+import io.ton.walletkit.domain.constants.JsonConstants
 import io.ton.walletkit.domain.model.TONNetwork
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -124,14 +125,14 @@ data class TONWalletKitConfiguration(
 @Serializable
 enum class SignDataType {
     /** Plain text data */
-    @SerialName("text")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_TEXT)
     TEXT,
 
     /** Binary data */
-    @SerialName("binary")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_BINARY)
     BINARY,
 
     /** TON Cell data */
-    @SerialName("cell")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_CELL)
     CELL,
 }

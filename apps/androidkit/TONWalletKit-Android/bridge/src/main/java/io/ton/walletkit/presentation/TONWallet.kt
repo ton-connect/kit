@@ -32,6 +32,8 @@ class TONWallet private constructor(
     private val account: WalletAccount?,
 ) {
     companion object {
+        private const val ERROR_WALLETKIT_NOT_INITIALIZED = "TONWalletKit not initialized. Call TONWalletKit.initialize() first."
+
         /**
          * Add a new wallet from mnemonic data.
          *
@@ -44,7 +46,7 @@ class TONWallet private constructor(
          */
         suspend fun add(data: TONWalletData): TONWallet {
             val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException("TONWalletKit not initialized. Call TONWalletKit.initialize() first.")
+                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
 
             val account = engine.addWalletFromMnemonic(
                 words = data.mnemonic,
@@ -72,7 +74,7 @@ class TONWallet private constructor(
          */
         suspend fun wallets(): List<TONWallet> {
             val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException("TONWalletKit not initialized. Call TONWalletKit.initialize() first.")
+                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
 
             val accounts = engine.getWallets()
             return accounts.map { account ->

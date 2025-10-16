@@ -19,6 +19,11 @@ enum class TONNetwork(val value: String) {
     ;
 
     companion object {
+        private const val CHAIN_ID_MAINNET = "-239"
+        private const val CHAIN_ID_TESTNET = "-3"
+        private const val NAME_MAINNET = "mainnet"
+        private const val NAME_TESTNET = "testnet"
+
         /**
          * Parse network from string value.
          * Accepts both chain IDs ("-239", "-3") and names ("mainnet", "testnet").
@@ -27,8 +32,8 @@ enum class TONNetwork(val value: String) {
          * @return TONNetwork enum or null if invalid
          */
         fun fromString(value: String): TONNetwork? = when (value.lowercase()) {
-            "-239", "mainnet" -> MAINNET
-            "-3", "testnet" -> TESTNET
+            CHAIN_ID_MAINNET, NAME_MAINNET -> MAINNET
+            CHAIN_ID_TESTNET, NAME_TESTNET -> TESTNET
             else -> null
         }
     }

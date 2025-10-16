@@ -147,7 +147,7 @@ internal class WebViewWalletKitEngine(
 
     private fun initializeWebView() {
         try {
-            Log.d(TAG, "Initializing WebView on thread: ${Thread.currentThread().name}")
+            Log.d(TAG, MSG_INITIALIZING_WEBVIEW_THREAD + Thread.currentThread().name)
             webView = WebView(appContext)
             WebView.setWebContentsDebuggingEnabled(true)
             webView.settings.javaScriptEnabled = true
@@ -165,24 +165,23 @@ internal class WebViewWalletKitEngine(
                         super.onReceivedError(view, request, error)
                         val description = error?.description?.toString() ?: ResponseConstants.VALUE_UNKNOWN
                         val failingUrl = request?.url?.toString()
-                        Log.e(TAG, "${WebViewConstants.ERROR_WEBVIEW_LOAD_PREFIX}$description url=$failingUrl")
+                        Log.e(TAG, WebViewConstants.ERROR_WEBVIEW_LOAD_PREFIX + description + MSG_URL_SEPARATOR + (failingUrl ?: ResponseConstants.VALUE_UNKNOWN))
                         if (request?.isForMainFrame == true) {
-                            val exception =
-                                WalletKitBridgeException(
-                                    "${WebViewConstants.ERROR_BUNDLE_LOAD_FAILED} ($description). ${WebViewConstants.BUILD_INSTRUCTION}",
-                                )
+                            val exception = WalletKitBridgeException(
+                                WebViewConstants.ERROR_BUNDLE_LOAD_FAILED + MSG_OPEN_PAREN + description + MSG_CLOSE_PAREN_PERIOD_SPACE + WebViewConstants.BUILD_INSTRUCTION,
+                            )
                             failBridgeFutures(exception)
                         }
                     }
 
                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                         super.onPageStarted(view, url, favicon)
-                        Log.d(TAG, "WebView page started loading: $url")
+                        Log.d(TAG, MSG_WEBVIEW_PAGE_STARTED + url)
                     }
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        Log.d(TAG, "WebView page finished loading: $url")
+                        Log.d(TAG, MSG_WEBVIEW_PAGE_FINISHED + url)
                         if (!bridgeLoaded.isCompleted) {
                             bridgeLoaded.complete(Unit)
                         }
@@ -194,19 +193,19 @@ internal class WebViewWalletKitEngine(
                         request: WebResourceRequest?,
                     ): WebResourceResponse? {
                         val url = request?.url ?: return super.shouldInterceptRequest(view, request)
-                        Log.d(TAG, "WebView intercepting request: $url")
+                        Log.d(TAG, MSG_WEBVIEW_INTERCEPT_REQUEST + url)
                         return assetLoader.shouldInterceptRequest(url)
                             ?: super.shouldInterceptRequest(view, request)
                     }
                 }
             val safeAssetPath = assetPath.trimStart('/')
             val fullUrl = WebViewConstants.URL_PREFIX_HTTPS + WebViewConstants.ASSET_LOADER_DOMAIN + WebViewConstants.ASSET_LOADER_PATH + safeAssetPath
-            Log.d(TAG, "Loading WebView URL: $fullUrl")
+            Log.d(TAG, MSG_LOADING_WEBVIEW_URL + fullUrl)
             webView.loadUrl(fullUrl)
-            Log.d(TAG, "WebView initialization completed, webViewInitialized completing")
+            Log.d(TAG, MSG_WEBVIEW_INITIALIZED)
             webViewInitialized.complete(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize WebView", e)
+            Log.e(TAG, MSG_FAILED_INITIALIZE_WEBVIEW, e)
             webViewInitialized.completeExceptionally(e)
             bridgeLoaded.completeExceptionally(e)
             jsBridgeReady.completeExceptionally(e)
@@ -374,7 +373,14 @@ internal class WebViewWalletKitEngine(
 
         Log.d(
             TAG,
-            "$ERROR_INITIALIZING_WALLETKIT$persistentStorageEnabled, app: $appName v$appVersion",
+            buildString {
+                append(ERROR_INITIALIZING_WALLETKIT)
+                append(persistentStorageEnabled)
+                append(MSG_APP_INFO_PREFIX)
+                append(appName)
+                append(MSG_VERSION_PREFIX)
+                append(appVersion)
+            },
         )
         call(BridgeMethodConstants.METHOD_INIT, payload)
     }
@@ -565,7 +571,7 @@ internal class WebViewWalletKitEngine(
                 val amount = when (type) {
                     TransactionType.INCOMING -> incomingValue.toString()
                     TransactionType.OUTGOING -> outgoingValue.toString()
-                    else -> "0"
+                    else -> ResponseConstants.VALUE_ZERO
                 }
 
                 // Get fee from total_fees field
@@ -801,7 +807,7 @@ internal class WebViewWalletKitEngine(
         }
         try {
             webView.evaluateJavascript(WebViewConstants.JS_BRIDGE_READY_CHECK) { result ->
-                val normalized = result?.trim()?.trim('"') ?: ""
+                val normalized = result?.trim()?.trim('"') ?: MiscConstants.EMPTY_STRING
                 if (normalized.equals(WebViewConstants.JS_BOOLEAN_TRUE, ignoreCase = true)) {
                     markJsBridgeReady()
                 } else {
@@ -809,10 +815,11 @@ internal class WebViewWalletKitEngine(
                 }
             }
         } catch (err: Throwable) {
-            Log.e(TAG, "Failed to evaluate JS bridge readiness", err)
+            Log.e(TAG, MSG_FAILED_EVALUATE_JS_BRIDGE, err)
+            val safeMessage = err.message ?: ResponseConstants.VALUE_UNKNOWN
             val exception =
                 WalletKitBridgeException(
-                    "${WebViewConstants.ERROR_BUNDLE_LOAD_FAILED} (${err.message ?: ResponseConstants.VALUE_UNKNOWN}). ${WebViewConstants.BUILD_INSTRUCTION}",
+                    WebViewConstants.ERROR_BUNDLE_LOAD_FAILED + MSG_OPEN_PAREN + safeMessage + MSG_CLOSE_PAREN_PERIOD_SPACE + WebViewConstants.BUILD_INSTRUCTION,
                 )
             failBridgeFutures(exception)
         }
@@ -838,11 +845,33 @@ internal class WebViewWalletKitEngine(
         val methodLiteral = JSONObject.quote(method)
         val script =
             if (payload == null) {
-                WebViewConstants.JS_FUNCTION_WALLETKIT_CALL + "(" + idLiteral + "," + methodLiteral + "," + WebViewConstants.JS_NULL + ")"
+                buildString {
+                    append(WebViewConstants.JS_FUNCTION_WALLETKIT_CALL)
+                    append(JS_OPEN_PAREN)
+                    append(idLiteral)
+                    append(JS_PARAMETER_SEPARATOR)
+                    append(methodLiteral)
+                    append(JS_PARAMETER_SEPARATOR)
+                    append(WebViewConstants.JS_NULL)
+                    append(JS_CLOSE_PAREN)
+                }
             } else {
                 val payloadBase64 = Base64.encodeToString(payload.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
                 val payloadLiteral = JSONObject.quote(payloadBase64)
-                WebViewConstants.JS_FUNCTION_WALLETKIT_CALL + "(" + idLiteral + "," + methodLiteral + ", " + WebViewConstants.JS_FUNCTION_ATOB + "(" + payloadLiteral + "))"
+                buildString {
+                    append(WebViewConstants.JS_FUNCTION_WALLETKIT_CALL)
+                    append(JS_OPEN_PAREN)
+                    append(idLiteral)
+                    append(JS_PARAMETER_SEPARATOR)
+                    append(methodLiteral)
+                    append(JS_PARAMETER_SEPARATOR)
+                    append(MiscConstants.SPACE_DELIMITER)
+                    append(WebViewConstants.JS_FUNCTION_ATOB)
+                    append(JS_OPEN_PAREN)
+                    append(payloadLiteral)
+                    append(JS_CLOSE_PAREN)
+                    append(JS_CLOSE_PAREN)
+                }
             }
 
         withContext(Dispatchers.Main) {
@@ -882,15 +911,15 @@ internal class WebViewWalletKitEngine(
         val data = event.optJSONObject(ResponseConstants.KEY_DATA) ?: JSONObject()
         val eventId = event.optString(JsonConstants.KEY_ID, UUID.randomUUID().toString())
 
-        Log.d(TAG, "=== handleEvent called ===")
-        Log.d(TAG, "Event type: $type")
-        Log.d(TAG, "Event ID: $eventId")
-        Log.d(TAG, "Event data keys: ${data.keys().asSequence().toList()}")
+        Log.d(TAG, MSG_HANDLE_EVENT_CALLED)
+        Log.d(TAG, MSG_EVENT_TYPE_PREFIX + type)
+        Log.d(TAG, MSG_EVENT_ID_PREFIX + eventId)
+        Log.d(TAG, MSG_EVENT_DATA_KEYS_PREFIX + data.keys().asSequence().toList())
         Log.d(TAG, ERROR_EVENT_PREFIX + type + ERROR_BRACKET_SUFFIX)
 
         // Check if we have any handlers
         if (eventHandlers.isEmpty()) {
-            Log.w(TAG, "No event handlers registered, saving event for later")
+            Log.w(TAG, MSG_NO_EVENT_HANDLERS)
             if (persistentStorageEnabled) {
                 saveEventForRetry(eventId, type, data.toString())
             }
@@ -899,10 +928,10 @@ internal class WebViewWalletKitEngine(
 
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data, event)
-        Log.d(TAG, "Parsed typed event: ${typedEvent?.javaClass?.simpleName}")
+        Log.d(TAG, MSG_PARSED_TYPED_EVENT_PREFIX + (typedEvent?.javaClass?.simpleName ?: ResponseConstants.VALUE_UNKNOWN))
 
         if (typedEvent != null) {
-            Log.d(TAG, "Notifying ${eventHandlers.size} event handlers")
+            Log.d(TAG, MSG_NOTIFYING_EVENT_HANDLERS_PREFIX + eventHandlers.size + MSG_EVENT_HANDLERS_SUFFIX)
             var anyHandlerFailed = false
 
             eventHandlers.forEach { handler ->
@@ -916,7 +945,7 @@ internal class WebViewWalletKitEngine(
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Handler threw exception for event $eventId", e)
+                        Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
                         anyHandlerFailed = true
                         // Save for retry
                         if (persistentStorageEnabled) {
@@ -926,7 +955,7 @@ internal class WebViewWalletKitEngine(
                 }
             }
         } else {
-            Log.w(TAG, "Failed to parse typed event for type: $type")
+            Log.w(TAG, MSG_FAILED_PARSE_TYPED_EVENT_PREFIX + type)
         }
     }
 
@@ -1022,7 +1051,7 @@ internal class WebViewWalletKitEngine(
 
         val dAppUrl = data.optNullableString(ResponseConstants.KEY_DAPP_URL_ALT)
             ?: manifest?.optNullableString(ResponseConstants.KEY_URL)
-            ?: ""
+            ?: MiscConstants.EMPTY_STRING
 
         val iconUrl = data.optNullableString(ResponseConstants.KEY_DAPP_ICON_URL)
             ?: manifest?.optNullableString(ResponseConstants.KEY_ICON_URL_ALT)
@@ -1051,7 +1080,7 @@ internal class WebViewWalletKitEngine(
     }
 
     private fun parseTransactionRequest(data: JSONObject): TransactionRequest {
-        // Check if data is nested under "request" field
+        // Check if data is nested under request field
         val requestData = data.optJSONObject(ResponseConstants.KEY_REQUEST) ?: data
 
         // Try to parse from messages array first (TON Connect format)
@@ -1062,10 +1091,10 @@ internal class WebViewWalletKitEngine(
                 return TransactionRequest(
                     recipient = firstMessage.optNullableString(ResponseConstants.KEY_ADDRESS)
                         ?: firstMessage.optNullableString(ResponseConstants.KEY_TO)
-                        ?: "",
+                        ?: MiscConstants.EMPTY_STRING,
                     amount = firstMessage.optNullableString(ResponseConstants.KEY_AMOUNT)
                         ?: firstMessage.optNullableString(ResponseConstants.KEY_VALUE)
-                        ?: "0",
+                        ?: ResponseConstants.VALUE_ZERO,
                     comment = firstMessage.optNullableString(ResponseConstants.KEY_COMMENT)
                         ?: firstMessage.optNullableString(ResponseConstants.KEY_TEXT),
                     payload = firstMessage.optNullableString(ResponseConstants.KEY_PAYLOAD),
@@ -1075,8 +1104,8 @@ internal class WebViewWalletKitEngine(
 
         // Fallback to direct fields (legacy format or direct send)
         return TransactionRequest(
-            recipient = requestData.optNullableString(ResponseConstants.KEY_TO) ?: requestData.optNullableString(ResponseConstants.KEY_RECIPIENT) ?: "",
-            amount = requestData.optNullableString(ResponseConstants.KEY_AMOUNT) ?: requestData.optNullableString(ResponseConstants.KEY_VALUE) ?: "0",
+            recipient = requestData.optNullableString(ResponseConstants.KEY_TO) ?: requestData.optNullableString(ResponseConstants.KEY_RECIPIENT) ?: MiscConstants.EMPTY_STRING,
+            amount = requestData.optNullableString(ResponseConstants.KEY_AMOUNT) ?: requestData.optNullableString(ResponseConstants.KEY_VALUE) ?: ResponseConstants.VALUE_ZERO,
             comment = requestData.optNullableString(ResponseConstants.KEY_COMMENT) ?: requestData.optNullableString(ResponseConstants.KEY_TEXT),
             payload = requestData.optNullableString(ResponseConstants.KEY_PAYLOAD),
         )
@@ -1084,7 +1113,7 @@ internal class WebViewWalletKitEngine(
 
     private fun parseSignDataRequest(data: JSONObject): SignDataRequest {
         // Parse params array - params[0] contains stringified JSON with schema_crc and payload
-        var payload = data.optNullableString(ResponseConstants.KEY_PAYLOAD) ?: data.optNullableString(ResponseConstants.KEY_DATA) ?: ""
+        var payload = data.optNullableString(ResponseConstants.KEY_PAYLOAD) ?: data.optNullableString(ResponseConstants.KEY_DATA) ?: MiscConstants.EMPTY_STRING
         var schema: String? = data.optNullableString(ResponseConstants.KEY_SCHEMA)
 
         // Check if params array exists (newer format from bridge)
@@ -1167,7 +1196,7 @@ internal class WebViewWalletKitEngine(
                 Log.e(TAG, LogConstants.MSG_MALFORMED_PAYLOAD, err)
                 pending.values.forEach { deferred ->
                     if (!deferred.isCompleted) {
-                        deferred.completeExceptionally(WalletKitBridgeException("${LogConstants.ERROR_MALFORMED_PAYLOAD_PREFIX}${err.message}"))
+                        deferred.completeExceptionally(WalletKitBridgeException(LogConstants.ERROR_MALFORMED_PAYLOAD_PREFIX + err.message))
                     }
                 }
             }
@@ -1193,7 +1222,7 @@ internal class WebViewWalletKitEngine(
                     storageAdapter.get(key)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "${LogConstants.MSG_STORAGE_GET_FAILED}$key", e)
+                Log.e(TAG, LogConstants.MSG_STORAGE_GET_FAILED + key, e)
                 null
             }
         }
@@ -1212,7 +1241,7 @@ internal class WebViewWalletKitEngine(
                     storageAdapter.set(key, value)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "${LogConstants.MSG_STORAGE_SET_FAILED}$key", e)
+                Log.e(TAG, LogConstants.MSG_STORAGE_SET_FAILED + key, e)
             }
         }
 
@@ -1227,7 +1256,7 @@ internal class WebViewWalletKitEngine(
                     storageAdapter.remove(key)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "${LogConstants.MSG_STORAGE_REMOVE_FAILED}$key", e)
+                Log.e(TAG, LogConstants.MSG_STORAGE_REMOVE_FAILED + key, e)
             }
         }
 
@@ -1263,13 +1292,13 @@ internal class WebViewWalletKitEngine(
                     id = eventId,
                     type = type,
                     data = dataJson,
-                    timestamp = java.time.Instant.now().toString(),
+                    timestamp = System.currentTimeMillis().toString(),
                     retryCount = 0,
                 )
                 eventStorage.savePendingEvent(event)
-                Log.d(TAG, "Saved event for retry: $eventId (type: $type)")
+                Log.d(TAG, MSG_SAVED_EVENT_FOR_RETRY_PREFIX + eventId + MSG_EVENT_TYPE_LABEL + type + MSG_CLOSING_PAREN)
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to save event for retry: $eventId", e)
+                Log.e(TAG, MSG_FAILED_SAVE_EVENT_FOR_RETRY_PREFIX + eventId, e)
             }
         }
     }
@@ -1282,11 +1311,11 @@ internal class WebViewWalletKitEngine(
         try {
             val pendingEvents = eventStorage.loadAllPendingEvents()
             if (pendingEvents.isEmpty()) {
-                Log.d(TAG, "No pending events to replay")
+                Log.d(TAG, MSG_NO_PENDING_EVENTS)
                 return
             }
 
-            Log.d(TAG, "Replaying ${pendingEvents.size} pending events")
+            Log.d(TAG, MSG_REPLAYING_PENDING_EVENTS_PREFIX + pendingEvents.size + MSG_PENDING_EVENTS_SUFFIX)
 
             pendingEvents.forEach { pendingEvent ->
                 try {
@@ -1302,16 +1331,16 @@ internal class WebViewWalletKitEngine(
                         handleEvent(eventJson)
                     }
 
-                    Log.d(TAG, "Replayed pending event: ${pendingEvent.id}")
+                    Log.d(TAG, MSG_REPLAYED_PENDING_EVENT_PREFIX + pendingEvent.id)
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to replay pending event: ${pendingEvent.id}", e)
+                    Log.e(TAG, MSG_FAILED_REPLAY_PENDING_EVENT_PREFIX + pendingEvent.id, e)
                     // Increment retry count
                     val updated = pendingEvent.copy(retryCount = pendingEvent.retryCount + 1)
                     eventStorage.savePendingEvent(updated)
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to replay pending events", e)
+            Log.e(TAG, MSG_FAILED_REPLAY_PENDING_EVENTS, e)
         }
     }
 
@@ -1320,7 +1349,43 @@ internal class WebViewWalletKitEngine(
     )
 
     companion object {
-        private const val TAG = "WebViewWalletKitEngine"
+        private const val TAG = LogConstants.TAG_WEBVIEW_ENGINE
+        private const val MSG_INITIALIZING_WEBVIEW_THREAD = "Initializing WebView on thread: "
+        private const val MSG_WEBVIEW_PAGE_STARTED = "WebView page started loading: "
+        private const val MSG_WEBVIEW_PAGE_FINISHED = "WebView page finished loading: "
+        private const val MSG_WEBVIEW_INTERCEPT_REQUEST = "WebView intercepting request: "
+        private const val MSG_LOADING_WEBVIEW_URL = "Loading WebView URL: "
+        private const val MSG_WEBVIEW_INITIALIZED = "WebView initialization completed, webViewInitialized completing"
+        private const val MSG_FAILED_INITIALIZE_WEBVIEW = "Failed to initialize WebView"
+        private const val MSG_FAILED_EVALUATE_JS_BRIDGE = "Failed to evaluate JS bridge readiness"
+        private const val MSG_HANDLE_EVENT_CALLED = "=== handleEvent called ==="
+        private const val MSG_EVENT_TYPE_PREFIX = "Event type: "
+        private const val MSG_EVENT_ID_PREFIX = "Event ID: "
+        private const val MSG_EVENT_DATA_KEYS_PREFIX = "Event data keys: "
+        private const val MSG_NO_EVENT_HANDLERS = "No event handlers registered, saving event for later"
+        private const val MSG_PARSED_TYPED_EVENT_PREFIX = "Parsed typed event: "
+        private const val MSG_NOTIFYING_EVENT_HANDLERS_PREFIX = "Notifying "
+        private const val MSG_EVENT_HANDLERS_SUFFIX = " event handlers"
+        private const val MSG_HANDLER_EXCEPTION_PREFIX = "Handler threw exception for event "
+        private const val MSG_FAILED_PARSE_TYPED_EVENT_PREFIX = "Failed to parse typed event for type: "
+        private const val MSG_SAVED_EVENT_FOR_RETRY_PREFIX = "Saved event for retry: "
+        private const val MSG_EVENT_TYPE_LABEL = " (type: "
+        private const val MSG_FAILED_SAVE_EVENT_FOR_RETRY_PREFIX = "Failed to save event for retry: "
+        private const val MSG_NO_PENDING_EVENTS = "No pending events to replay"
+        private const val MSG_REPLAYING_PENDING_EVENTS_PREFIX = "Replaying "
+        private const val MSG_PENDING_EVENTS_SUFFIX = " pending events"
+        private const val MSG_REPLAYED_PENDING_EVENT_PREFIX = "Replayed pending event: "
+        private const val MSG_FAILED_REPLAY_PENDING_EVENT_PREFIX = "Failed to replay pending event: "
+        private const val MSG_FAILED_REPLAY_PENDING_EVENTS = "Failed to replay pending events"
+        private const val MSG_CLOSING_PAREN = ")"
+        private const val MSG_URL_SEPARATOR = " url="
+        private const val MSG_OPEN_PAREN = " ("
+        private const val MSG_CLOSE_PAREN_PERIOD_SPACE = "). "
+        private const val MSG_APP_INFO_PREFIX = ", app: "
+        private const val MSG_VERSION_PREFIX = " v"
+        private const val JS_OPEN_PAREN = "("
+        private const val JS_CLOSE_PAREN = ")"
+        private const val JS_PARAMETER_SEPARATOR = ","
 
         // WebView and Initialization Errors
         const val ERROR_WEBVIEW_LOADING_ASSET = "WebView bridge loading asset: "

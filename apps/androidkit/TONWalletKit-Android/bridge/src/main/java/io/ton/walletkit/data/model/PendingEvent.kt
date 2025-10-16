@@ -23,8 +23,4 @@ data class PendingEvent(
     val data: String,
     val timestamp: String,
     val retryCount: Int = 0,
-) : Serializable {
-    companion object {
-        private const val serialVersionUID = 1L
-    }
-}
+) : Serializable

@@ -404,6 +404,11 @@ internal object ResponseConstants {
     const val VALUE_UNKNOWN_DAPP = "Unknown dApp"
 
     /**
+     * Default numeric string value representing zero.
+     */
+    const val VALUE_ZERO = "0"
+
+    /**
      * Default value for unknown strings.
      */
     const val VALUE_UNKNOWN = "unknown"

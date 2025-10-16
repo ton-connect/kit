@@ -1,5 +1,7 @@
 package io.ton.walletkit.presentation.request
 
+import io.ton.walletkit.domain.constants.MiscConstants
+import io.ton.walletkit.domain.constants.ResponseConstants
 import io.ton.walletkit.domain.model.DAppInfo
 import io.ton.walletkit.presentation.WalletKitEngine
 import io.ton.walletkit.presentation.event.TransactionRequestEvent
@@ -28,8 +30,8 @@ class TONWalletTransactionRequest internal constructor(
     val messages: List<TransactionMessage>
         get() = event.request?.messages?.map { msg ->
             TransactionMessage(
-                address = msg.address ?: "",
-                amount = msg.amount ?: "0",
+                address = msg.address ?: MiscConstants.EMPTY_STRING,
+                amount = msg.amount ?: ResponseConstants.VALUE_ZERO,
                 payload = msg.payload,
                 stateInit = msg.stateInit,
             )

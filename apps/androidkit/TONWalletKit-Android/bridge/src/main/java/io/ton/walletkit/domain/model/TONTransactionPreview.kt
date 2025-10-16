@@ -1,5 +1,6 @@
 package io.ton.walletkit.domain.model
 
+import io.ton.walletkit.domain.constants.JsonConstants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,7 +17,7 @@ sealed class TONTransactionPreview {
      * @property emulationError The emulation error details
      */
     @Serializable
-    @SerialName("error")
+    @SerialName(JsonConstants.VALUE_PREVIEW_ERROR)
     data class Error(
         val emulationError: TONTransactionPreviewEmulationError,
     ) : TONTransactionPreview()
@@ -27,7 +28,7 @@ sealed class TONTransactionPreview {
      * @property emulationResult The emulation result with money flow
      */
     @Serializable
-    @SerialName("success")
+    @SerialName(JsonConstants.VALUE_PREVIEW_SUCCESS)
     data class Success(
         val emulationResult: TONTransactionPreviewEmulationResult,
     ) : TONTransactionPreview()

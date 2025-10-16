@@ -640,7 +640,7 @@ internal class SecureWalletKitStorage(
     }
 
     /**
-     * Clear all bridge-related data from storage (keys starting with "bridge:").
+     * Clear all bridge-related data from storage (keys starting with bridge: prefix).
      */
     suspend fun clearBridgeData() {
         withContext(Dispatchers.IO) {
@@ -653,6 +653,113 @@ internal class SecureWalletKitStorage(
             } catch (e: Exception) {
                 Log.e(TAG, ERROR_FAILED_CLEAR_BRIDGE_DATA, e)
             }
+        }
+    }
+
+    // ========================================
+    // Pending Events (Automatic Retry)
+    // ========================================
+
+    override suspend fun savePendingEvent(event: PendingEvent): Unit = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put(JsonConstants.KEY_ID, event.id)
+                put(JsonConstants.KEY_TYPE, event.type)
+                put(JsonConstants.KEY_DATA, event.data)
+                put(JsonConstants.KEY_TIMESTAMP, event.timestamp)
+                put(JsonConstants.KEY_RETRY_COUNT, event.retryCount)
+            }
+
+            val key = StorageConstants.KEY_PREFIX_PENDING_EVENT + event.id
+            encryptedPrefs.edit {
+                putString(key, json.toString())
+            }
+            Log.d(TAG, LOG_PENDING_EVENT_SAVED_PREFIX + event.id + MSG_PENDING_EVENT_TYPE_PREFIX + event.type + MSG_PENDING_EVENT_SUFFIX)
+        } catch (e: Exception) {
+            Log.e(TAG, LOG_PENDING_EVENT_SAVE_FAILED_PREFIX + event.id, e)
+        }
+    }
+
+    override suspend fun loadPendingEvent(eventId: String): PendingEvent? = withContext(Dispatchers.IO) {
+        try {
+            val key = StorageConstants.KEY_PREFIX_PENDING_EVENT + eventId
+            val jsonString = encryptedPrefs.getString(key, null) ?: return@withContext null
+
+            val json = JSONObject(jsonString)
+            PendingEvent(
+                id = json.getString(JsonConstants.KEY_ID),
+                type = json.getString(JsonConstants.KEY_TYPE),
+                data = json.getString(JsonConstants.KEY_DATA),
+                timestamp = json.getString(JsonConstants.KEY_TIMESTAMP),
+                retryCount = json.optInt(JsonConstants.KEY_RETRY_COUNT, 0),
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, LOG_PENDING_EVENT_LOAD_FAILED_PREFIX + eventId, e)
+            null
+        }
+    }
+
+    override suspend fun loadAllPendingEvents(): List<PendingEvent> = withContext(Dispatchers.IO) {
+        try {
+            val events = mutableListOf<PendingEvent>()
+            val allKeys = encryptedPrefs.all.keys
+
+            allKeys.forEach { key ->
+                if (key.startsWith(StorageConstants.KEY_PREFIX_PENDING_EVENT)) {
+                    val jsonString = encryptedPrefs.getString(key, null)
+                    if (jsonString != null) {
+                        try {
+                            val json = JSONObject(jsonString)
+                            events.add(
+                                PendingEvent(
+                                    id = json.getString(JsonConstants.KEY_ID),
+                                    type = json.getString(JsonConstants.KEY_TYPE),
+                                    data = json.getString(JsonConstants.KEY_DATA),
+                                    timestamp = json.getString(JsonConstants.KEY_TIMESTAMP),
+                                    retryCount = json.optInt(JsonConstants.KEY_RETRY_COUNT, 0),
+                                ),
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, LOG_PENDING_EVENT_PARSE_FAILED_PREFIX + key, e)
+                        }
+                    }
+                }
+            }
+
+            // Sort by timestamp (oldest first)
+            events.sortedBy { it.timestamp }
+        } catch (e: Exception) {
+            Log.e(TAG, LOG_PENDING_EVENT_LOAD_ALL_FAILED, e)
+            emptyList()
+        }
+    }
+
+    override suspend fun deletePendingEvent(eventId: String): Unit = withContext(Dispatchers.IO) {
+        try {
+            val key = StorageConstants.KEY_PREFIX_PENDING_EVENT + eventId
+            encryptedPrefs.edit {
+                remove(key)
+            }
+            Log.d(TAG, LOG_PENDING_EVENT_DELETED_PREFIX + eventId)
+        } catch (e: Exception) {
+            Log.e(TAG, LOG_PENDING_EVENT_DELETE_FAILED_PREFIX + eventId, e)
+        }
+    }
+
+    override suspend fun clearAllPendingEvents(): Unit = withContext(Dispatchers.IO) {
+        try {
+            val keysToRemove = encryptedPrefs.all.keys.filter {
+                it.startsWith(StorageConstants.KEY_PREFIX_PENDING_EVENT)
+            }
+
+            encryptedPrefs.edit {
+                keysToRemove.forEach { key ->
+                    remove(key)
+                }
+            }
+            Log.d(TAG, ERROR_CLEARED_BRIDGE_STORAGE_KEYS + keysToRemove.size + MSG_PENDING_EVENTS_SUFFIX)
+        } catch (e: Exception) {
+            Log.e(TAG, LOG_PENDING_EVENT_CLEAR_FAILED, e)
         }
     }
 
@@ -722,112 +829,16 @@ internal class SecureWalletKitStorage(
         // URL Validation Errors
         const val ERROR_INVALID_URL_SCHEME_REJECTING = "Invalid URL scheme, rejecting: "
         const val ERROR_SESSION_FOR_DOMAIN = " for domain: "
-    }
-
-    // ========================================
-    // Pending Events (Automatic Retry)
-    // ========================================
-
-    override suspend fun savePendingEvent(event: PendingEvent): Unit = withContext(Dispatchers.IO) {
-        try {
-            val json = JSONObject().apply {
-                put(JsonConstants.KEY_ID, event.id)
-                put(JsonConstants.KEY_TYPE, event.type)
-                put(JsonConstants.KEY_DATA, event.data)
-                put(JsonConstants.KEY_TIMESTAMP, event.timestamp)
-                put(JsonConstants.KEY_RETRY_COUNT, event.retryCount)
-            }
-
-            val key = "${StorageConstants.KEY_PREFIX_PENDING_EVENT}${event.id}"
-            encryptedPrefs.edit {
-                putString(key, json.toString())
-            }
-            Log.d(TAG, "Saved pending event: ${event.id} (type: ${event.type})")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to save pending event: ${event.id}", e)
-        }
-    }
-
-    override suspend fun loadPendingEvent(eventId: String): PendingEvent? = withContext(Dispatchers.IO) {
-        try {
-            val key = "${StorageConstants.KEY_PREFIX_PENDING_EVENT}$eventId"
-            val jsonString = encryptedPrefs.getString(key, null) ?: return@withContext null
-
-            val json = JSONObject(jsonString)
-            PendingEvent(
-                id = json.getString(JsonConstants.KEY_ID),
-                type = json.getString(JsonConstants.KEY_TYPE),
-                data = json.getString(JsonConstants.KEY_DATA),
-                timestamp = json.getString(JsonConstants.KEY_TIMESTAMP),
-                retryCount = json.optInt(JsonConstants.KEY_RETRY_COUNT, 0),
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load pending event: $eventId", e)
-            null
-        }
-    }
-
-    override suspend fun loadAllPendingEvents(): List<PendingEvent> = withContext(Dispatchers.IO) {
-        try {
-            val events = mutableListOf<PendingEvent>()
-            val allKeys = encryptedPrefs.all.keys
-
-            allKeys.forEach { key ->
-                if (key.startsWith(StorageConstants.KEY_PREFIX_PENDING_EVENT)) {
-                    val jsonString = encryptedPrefs.getString(key, null)
-                    if (jsonString != null) {
-                        try {
-                            val json = JSONObject(jsonString)
-                            events.add(
-                                PendingEvent(
-                                    id = json.getString(JsonConstants.KEY_ID),
-                                    type = json.getString(JsonConstants.KEY_TYPE),
-                                    data = json.getString(JsonConstants.KEY_DATA),
-                                    timestamp = json.getString(JsonConstants.KEY_TIMESTAMP),
-                                    retryCount = json.optInt(JsonConstants.KEY_RETRY_COUNT, 0),
-                                ),
-                            )
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to parse pending event from key: $key", e)
-                        }
-                    }
-                }
-            }
-
-            // Sort by timestamp (oldest first)
-            events.sortedBy { it.timestamp }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load all pending events", e)
-            emptyList()
-        }
-    }
-
-    override suspend fun deletePendingEvent(eventId: String): Unit = withContext(Dispatchers.IO) {
-        try {
-            val key = "${StorageConstants.KEY_PREFIX_PENDING_EVENT}$eventId"
-            encryptedPrefs.edit {
-                remove(key)
-            }
-            Log.d(TAG, "Deleted pending event: $eventId")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete pending event: $eventId", e)
-        }
-    }
-
-    override suspend fun clearAllPendingEvents(): Unit = withContext(Dispatchers.IO) {
-        try {
-            val keysToRemove = encryptedPrefs.all.keys.filter {
-                it.startsWith(StorageConstants.KEY_PREFIX_PENDING_EVENT)
-            }
-
-            encryptedPrefs.edit {
-                keysToRemove.forEach { key ->
-                    remove(key)
-                }
-            }
-            Log.d(TAG, "Cleared ${keysToRemove.size} pending events")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to clear all pending events", e)
-        }
+        private const val MSG_PENDING_EVENT_TYPE_PREFIX = " (type: "
+        private const val MSG_PENDING_EVENT_SUFFIX = ")"
+        const val LOG_PENDING_EVENT_SAVED_PREFIX = "Saved pending event: "
+        const val LOG_PENDING_EVENT_SAVE_FAILED_PREFIX = "Failed to save pending event: "
+        const val LOG_PENDING_EVENT_LOAD_FAILED_PREFIX = "Failed to load pending event: "
+        const val LOG_PENDING_EVENT_PARSE_FAILED_PREFIX = "Failed to parse pending event from key: "
+        const val LOG_PENDING_EVENT_LOAD_ALL_FAILED = "Failed to load all pending events"
+        const val LOG_PENDING_EVENT_DELETED_PREFIX = "Deleted pending event: "
+        const val LOG_PENDING_EVENT_DELETE_FAILED_PREFIX = "Failed to delete pending event: "
+        const val LOG_PENDING_EVENT_CLEAR_FAILED = "Failed to clear all pending events"
+        const val MSG_PENDING_EVENTS_SUFFIX = " pending events"
     }
 }

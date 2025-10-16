@@ -166,6 +166,18 @@ internal object JsonConstants {
      */
     const val VALUE_SIGN_DATA_CELL = "cell"
 
+    /** JSON value for native TON asset type. */
+    const val VALUE_ASSET_TON = "ton"
+
+    /** JSON value for jetton asset type. */
+    const val VALUE_ASSET_JETTON = "jetton"
+
+    /** JSON value for transaction preview error type. */
+    const val VALUE_PREVIEW_ERROR = "error"
+
+    /** JSON value for transaction preview success type. */
+    const val VALUE_PREVIEW_SUCCESS = "success"
+
     // Transaction feature name
     /**
      * Feature name for SendTransaction capability.

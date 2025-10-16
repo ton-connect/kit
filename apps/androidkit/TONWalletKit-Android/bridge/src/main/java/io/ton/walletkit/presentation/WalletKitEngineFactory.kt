@@ -3,6 +3,7 @@ package io.ton.walletkit.presentation
 import android.content.Context
 import io.ton.walletkit.domain.constants.ReflectionConstants
 import io.ton.walletkit.domain.constants.WebViewConstants
+import io.ton.walletkit.presentation.impl.WebViewWalletKitEngine
 
 /**
  * Internal factory for creating WalletKitEngine instances.
@@ -62,7 +63,7 @@ internal object WalletKitEngineFactory {
 
     private fun createWebViewEngine(context: Context): WalletKitEngine {
         // Direct instantiation - WebViewWalletKitEngine is in the same module
-        return io.ton.walletkit.presentation.impl.WebViewWalletKitEngine(context)
+        return WebViewWalletKitEngine(context)
     }
 
     private fun createQuickJsEngine(context: Context): WalletKitEngine {
@@ -80,7 +81,7 @@ internal object WalletKitEngineFactory {
                 val okHttpClientConstructor = okHttpClientClass.getConstructor()
                 val defaultHttpClient = okHttpClientConstructor.newInstance()
                 return constructor.newInstance(context, defaultAssetPath, defaultHttpClient) as WalletKitEngine
-            } catch (e: NoSuchMethodException) {
+            } catch (_: NoSuchMethodException) {
                 // Fallback: try single-arg constructor if it exists
                 val constructor = clazz.getConstructor(Context::class.java)
                 return constructor.newInstance(context) as WalletKitEngine
