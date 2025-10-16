@@ -17,54 +17,57 @@ pnpm add @ton/walletkit
 ```ts
 import { 
   TonWalletKit,
-  createWalletInitConfigMnemonic,
-  createWalletInitConfigPrivateKey,
-  createWalletInitConfigSigner,
+  Signer,
+  WalletV5R1Adapter,
+  WalletV4R2Adapter,
   CHAIN,
 } from '@ton/walletkit';
 
 const kit = new TonWalletKit({
   network: CHAIN.MAINNET,
   // Optional API configuration
-  // apiKey: '...',
-  // apiUrl: 'https://toncenter.com/api/v3',
-  config: {
-    bridge: {
-      bridgeUrl: 'https://bridge.tonapi.io/bridge',
-      // Optional JS bridge support (for extensions/injected providers)
-      enableJsBridge: true,
-      bridgeName: 'tonkeeper',
-    },
+  apiClient: {
+    key: 'your-api-key',  // Optional API key for Toncenter
+    // url: 'https://toncenter.com',  // Optional custom API URL
+  },
+  bridge: {
+    bridgeUrl: 'https://bridge.tonapi.io/bridge',
   },
 });
 
-// Optionally preload a wallet (mnemonic/private key/signer)
-const walletConfig = createWalletInitConfigMnemonic({
-  mnemonic: ['word1', 'word2', '...'],
-  version: 'v5r1',
-  mnemonicType: 'ton',
+// Wait for initialization to complete
+await kit.waitForReady();
+
+// Add a wallet from mnemonic
+const signer = await Signer.fromMnemonic(['word1', 'word2', '...'], { type: 'ton' });
+const walletAdapter = await WalletV5R1Adapter.create(signer, {
+  client: kit.getApiClient(),
   network: CHAIN.MAINNET,
 });
 
-/* Wallet from private key:
-const walletConfig = createWalletInitConfigPrivateKey({
-  privateKey: '0x...',
-  version: 'v5r1',
+await kit.addWallet(walletAdapter);
+```
+
+**Alternative: Wallet from private key:**
+
+```ts
+const signer = await Signer.fromPrivateKey('0x...');
+const walletAdapter = await WalletV5R1Adapter.create(signer, {
+  client: kit.getApiClient(),
   network: CHAIN.MAINNET,
 });
-*/
+await kit.addWallet(walletAdapter);
+```
 
-/* Wallet with your own signer:
-const walletConfig = createWalletInitConfigSigner({
-  publicKey: new Uint8Array([/* your public key bytes */]),
-  version: 'v5r1',
+**Alternative: Wallet V4R2:**
+
+```ts
+const signer = await Signer.fromMnemonic(['word1', 'word2', '...']);
+const walletAdapter = await WalletV4R2Adapter.create(signer, {
+  client: kit.getApiClient(),
   network: CHAIN.MAINNET,
-  // bytes -> signature bytes (Uint8Array)
-  sign: async (bytes) => yourSigner(bytes),
 });
-*/
-
-await kit.addWallet(walletConfig);
+await kit.addWallet(walletAdapter);
 ```
 
 ### 2) Listen for requests from dApps
@@ -74,14 +77,12 @@ Register simple callbacks that show UI and then approve or reject via kit method
 ```ts
 // Connect requests
 kit.onConnectRequest(async (req) => {
-  const selected = getSelectedWalletAddress();
-  const wallet = kit.getWallet(selected);
-  if (!wallet) return;
-
   // Minimal confirmation flow using preview
-  const name = req.preview.manifest?.name ?? req.dAppName;
+  const name = req.dAppInfo?.name;
   if (confirm(`Connect to ${name}?`)) {
-    await kit.approveConnectRequest({ ...req, wallet });
+    // Set wallet address on the request before approving
+    req.walletAddress = getSelectedWalletAddress();
+    await kit.approveConnectRequest(req);
   } else {
     await kit.rejectConnectRequest(req, 'User rejected');
   }
@@ -109,7 +110,7 @@ kit.onSignDataRequest(async (sd) => {
 
 // Disconnect events
 kit.onDisconnect((evt) => {
-  cleanupAfterDisconnect(evt.wallet.getAddress());
+  cleanupAfterDisconnect(evt.walletAddress);
 });
 ```
 
@@ -150,7 +151,7 @@ Render Connect preview:
 
 ```ts
 function renderConnectPreview(req: EventConnectRequest) {
-  const name = req.preview.manifest?.name ?? req.dAppName;
+  const name = req.preview.manifest?.name ?? req.dAppInfo?.name;
   const description = req.preview.manifest?.description;
   const iconUrl = req.preview.manifest?.iconUrl;
   const permissions = req.preview.permissions ?? [];
@@ -295,7 +296,6 @@ const nftTransfer: NftTransferParamsHuman = {
 };
 
 const tx = await wallet.createTransferNftTransaction(nftTransfer);
-const { preview } = await wallet.getTransactionPreview(tx);
 await kit.handleNewTransaction(wallet, tx);
 ```
 
@@ -329,7 +329,9 @@ async function approveConnect() {
   const address = getSelectedWalletAddress();
   const wallet = kit.getWallet(address);
   if (!wallet) return;
-  await kit.approveConnectRequest({ ...state.connectModal.request, wallet });
+  // Set wallet address on the request
+  state.connectModal.request.walletAddress = wallet.getAddress();
+  await kit.approveConnectRequest(state.connectModal.request);
   state.connectModal = undefined;
 }
 
