@@ -567,7 +567,7 @@ class WalletKitViewModel(
     fun approveTransaction(request: TransactionRequestUi) {
         viewModelScope.launch {
             val result = runCatching {
-                request.iosStyleRequest?.approve()
+                request.transactionRequest?.approve()
                     ?: error("Request object not available")
             }
 
@@ -585,7 +585,7 @@ class WalletKitViewModel(
     fun rejectTransaction(request: TransactionRequestUi, reason: String = "User rejected") {
         viewModelScope.launch {
             val result = runCatching {
-                request.iosStyleRequest?.reject(reason)
+                request.transactionRequest?.reject(reason)
                     ?: error("Request object not available")
             }
 
@@ -1496,7 +1496,7 @@ class WalletKitViewModel(
         // Extract wallet address from active wallet
         val walletAddress = state.value.activeWalletAddress ?: ""
         val dAppInfo = request.dAppInfo
-        
+
         Log.d(LOG_TAG, "Transaction request - walletAddress: $walletAddress, dAppName: ${dAppInfo?.name}")
 
         // Map actual transaction messages from request
@@ -1529,7 +1529,7 @@ class WalletKitViewModel(
             messages = messages,
             preview = null,
             raw = org.json.JSONObject(),
-            iosStyleRequest = request,
+            transactionRequest = request,
         )
 
         Log.d(LOG_TAG, "Setting sheet to Transaction state with ${messages.size} messages")

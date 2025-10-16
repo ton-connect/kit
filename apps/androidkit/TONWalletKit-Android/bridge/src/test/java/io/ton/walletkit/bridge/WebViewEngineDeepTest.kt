@@ -70,7 +70,7 @@ class WebViewEngineDeepTest {
                 imageUrl = "https://example.com/icon.png",
                 aboutUrl = "https://example.com",
                 universalLink = "https://example.com/app",
-                bridgeUrl = "https://bridge.tonapi.io/bridge"
+                bridgeUrl = "https://bridge.tonapi.io/bridge",
             ),
             bridge = TONWalletKitConfiguration.Bridge(
                 bridgeUrl = "https://bridge.tonapi.io/bridge",
@@ -169,9 +169,12 @@ class WebViewEngineDeepTest {
         // Create a disconnect event (simplest one in public API)
         val event = JSONObject().apply {
             put("type", "disconnect")
-            put("data", JSONObject().apply {
-                put("sessionId", "test-session-123")
-            })
+            put(
+                "data",
+                JSONObject().apply {
+                    put("sessionId", "test-session-123")
+                },
+            )
         }
 
         val handleEventMethod = getPrivateMethod(engine, "handleEvent", JSONObject::class.java)
@@ -329,9 +332,12 @@ class WebViewEngineDeepTest {
         // Trigger event (disconnect is simplest in public API)
         val event = JSONObject().apply {
             put("type", "disconnect")
-            put("data", JSONObject().apply {
-                put("sessionId", "test-session-456")
-            })
+            put(
+                "data",
+                JSONObject().apply {
+                    put("sessionId", "test-session-456")
+                },
+            )
         }
 
         val handleEventMethod = getPrivateMethod(engine, "handleEvent", JSONObject::class.java)

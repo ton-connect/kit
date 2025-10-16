@@ -14,8 +14,11 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
+import io.ton.walletkit.data.model.PendingEvent
+import io.ton.walletkit.data.storage.WalletKitStorage
 import io.ton.walletkit.data.storage.bridge.BridgeStorageAdapter
 import io.ton.walletkit.data.storage.bridge.SecureBridgeStorageAdapter
+import io.ton.walletkit.data.storage.impl.SecureWalletKitStorage
 import io.ton.walletkit.domain.constants.BridgeMethodConstants
 import io.ton.walletkit.domain.constants.EventTypeConstants
 import io.ton.walletkit.domain.constants.JsonConstants
@@ -27,10 +30,10 @@ import io.ton.walletkit.domain.constants.WebViewConstants
 import io.ton.walletkit.domain.model.DAppInfo
 import io.ton.walletkit.domain.model.SignDataRequest
 import io.ton.walletkit.domain.model.SignDataResult
+import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.domain.model.Transaction
 import io.ton.walletkit.domain.model.TransactionRequest
 import io.ton.walletkit.domain.model.TransactionType
-import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.domain.model.WalletAccount
 import io.ton.walletkit.domain.model.WalletSession
 import io.ton.walletkit.domain.model.WalletState
@@ -41,14 +44,16 @@ import io.ton.walletkit.presentation.config.SignDataType
 import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
 import io.ton.walletkit.presentation.event.ConnectRequestEvent
 import io.ton.walletkit.presentation.event.SignDataRequestEvent
-import io.ton.walletkit.presentation.event.TransactionRequestEvent
 import io.ton.walletkit.presentation.event.TONWalletKitEvent
+import io.ton.walletkit.presentation.event.TransactionRequestEvent
 import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
 import io.ton.walletkit.presentation.request.TONWalletConnectionRequest
-import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 import io.ton.walletkit.presentation.request.TONWalletSignDataRequest
+import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -89,6 +94,9 @@ internal class WebViewWalletKitEngine(
     // Secure storage adapter for the bridge (conditionally enabled based on config)
     private val storageAdapter: BridgeStorageAdapter = SecureBridgeStorageAdapter(appContext)
 
+    // Secure storage for pending events (automatic retry mechanism)
+    private val eventStorage: WalletKitStorage = SecureWalletKitStorage(appContext)
+
     // Whether persistent storage is enabled (set during init)
     @Volatile private var persistentStorageEnabled: Boolean = true
 
@@ -99,9 +107,16 @@ internal class WebViewWalletKitEngine(
             .addPathHandler(WebViewConstants.ASSET_LOADER_PATH, WebViewAssetLoader.AssetsPathHandler(appContext))
             .build()
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val webView: WebView = WebView(appContext)
+
+    // WebView must be created on main thread - using lateinit to defer creation
+    private lateinit var webView: WebView
+
+    // Signals that WebView has been created and configured
+    private val webViewInitialized = CompletableDeferred<Unit>()
+
     // Signals that the WebView bundle finished loading and can accept bridge calls.
     private val bridgeLoaded = CompletableDeferred<Unit>()
+
     // Signals that the JS bridge is installed (window.__walletkitCall is defined).
     private val jsBridgeReady = CompletableDeferred<Unit>()
     private val ready = CompletableDeferred<Unit>()
@@ -120,7 +135,20 @@ internal class WebViewWalletKitEngine(
     private var pendingInitConfig: TONWalletKitConfiguration? = null
 
     init {
-        mainHandler.post {
+        // Initialize WebView synchronously if already on main thread, otherwise post to main thread
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            initializeWebView()
+        } else {
+            mainHandler.post {
+                initializeWebView()
+            }
+        }
+    }
+
+    private fun initializeWebView() {
+        try {
+            Log.d(TAG, "Initializing WebView on thread: ${Thread.currentThread().name}")
+            webView = WebView(appContext)
             WebView.setWebContentsDebuggingEnabled(true)
             webView.settings.javaScriptEnabled = true
             webView.settings.domStorageEnabled = true
@@ -147,8 +175,14 @@ internal class WebViewWalletKitEngine(
                         }
                     }
 
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                        Log.d(TAG, "WebView page started loading: $url")
+                    }
+
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
+                        Log.d(TAG, "WebView page finished loading: $url")
                         if (!bridgeLoaded.isCompleted) {
                             bridgeLoaded.complete(Unit)
                         }
@@ -160,13 +194,23 @@ internal class WebViewWalletKitEngine(
                         request: WebResourceRequest?,
                     ): WebResourceResponse? {
                         val url = request?.url ?: return super.shouldInterceptRequest(view, request)
+                        Log.d(TAG, "WebView intercepting request: $url")
                         return assetLoader.shouldInterceptRequest(url)
                             ?: super.shouldInterceptRequest(view, request)
                     }
                 }
             val safeAssetPath = assetPath.trimStart('/')
-            webView.loadUrl(WebViewConstants.URL_PREFIX_HTTPS + WebViewConstants.ASSET_LOADER_DOMAIN + WebViewConstants.ASSET_LOADER_PATH + safeAssetPath)
-            Log.d(TAG, ERROR_WEBVIEW_LOADING_ASSET + assetPath)
+            val fullUrl = WebViewConstants.URL_PREFIX_HTTPS + WebViewConstants.ASSET_LOADER_DOMAIN + WebViewConstants.ASSET_LOADER_PATH + safeAssetPath
+            Log.d(TAG, "Loading WebView URL: $fullUrl")
+            webView.loadUrl(fullUrl)
+            Log.d(TAG, "WebView initialization completed, webViewInitialized completing")
+            webViewInitialized.complete(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize WebView", e)
+            webViewInitialized.completeExceptionally(e)
+            bridgeLoaded.completeExceptionally(e)
+            jsBridgeReady.completeExceptionally(e)
+            ready.completeExceptionally(e)
         }
     }
 
@@ -189,6 +233,14 @@ internal class WebViewWalletKitEngine(
 
     override fun addEventHandler(handler: TONBridgeEventsHandler): Closeable {
         eventHandlers.add(handler)
+
+        // Replay any pending events when a handler is registered (async, non-blocking)
+        if (persistentStorageEnabled) {
+            CoroutineScope(Dispatchers.IO).launch {
+                replayPendingEvents()
+            }
+        }
+
         return Closeable { eventHandlers.remove(handler) }
     }
 
@@ -770,6 +822,7 @@ internal class WebViewWalletKitEngine(
         method: String,
         params: JSONObject? = null,
     ): JSONObject {
+        webViewInitialized.await()
         bridgeLoaded.await()
         jsBridgeReady.await()
         // init must run before the WalletKit ready event fires, subsequent calls wait for it.
@@ -827,18 +880,50 @@ internal class WebViewWalletKitEngine(
     private fun handleEvent(event: JSONObject) {
         val type = event.optString(JsonConstants.KEY_TYPE, EventTypeConstants.EVENT_TYPE_UNKNOWN)
         val data = event.optJSONObject(ResponseConstants.KEY_DATA) ?: JSONObject()
+        val eventId = event.optString(JsonConstants.KEY_ID, UUID.randomUUID().toString())
+
         Log.d(TAG, "=== handleEvent called ===")
         Log.d(TAG, "Event type: $type")
+        Log.d(TAG, "Event ID: $eventId")
         Log.d(TAG, "Event data keys: ${data.keys().asSequence().toList()}")
         Log.d(TAG, ERROR_EVENT_PREFIX + type + ERROR_BRACKET_SUFFIX)
+
+        // Check if we have any handlers
+        if (eventHandlers.isEmpty()) {
+            Log.w(TAG, "No event handlers registered, saving event for later")
+            if (persistentStorageEnabled) {
+                saveEventForRetry(eventId, type, data.toString())
+            }
+            return
+        }
 
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data, event)
         Log.d(TAG, "Parsed typed event: ${typedEvent?.javaClass?.simpleName}")
+
         if (typedEvent != null) {
             Log.d(TAG, "Notifying ${eventHandlers.size} event handlers")
+            var anyHandlerFailed = false
+
             eventHandlers.forEach { handler ->
-                mainHandler.post { handler.handle(typedEvent) }
+                mainHandler.post {
+                    try {
+                        handler.handle(typedEvent)
+                        // Successfully handled, clear from storage if it was pending
+                        if (persistentStorageEnabled) {
+                            runBlocking {
+                                eventStorage.deletePendingEvent(eventId)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Handler threw exception for event $eventId", e)
+                        anyHandlerFailed = true
+                        // Save for retry
+                        if (persistentStorageEnabled) {
+                            saveEventForRetry(eventId, type, data.toString())
+                        }
+                    }
+                }
             }
         } else {
             Log.w(TAG, "Failed to parse typed event for type: $type")
@@ -907,7 +992,7 @@ internal class WebViewWalletKitEngine(
                     ?: data.optNullableString(JsonConstants.KEY_ID)
                     ?: return null
                 TONWalletKitEvent.Disconnect(
-                    io.ton.walletkit.presentation.event.DisconnectEvent(sessionId)
+                    io.ton.walletkit.presentation.event.DisconnectEvent(sessionId),
                 )
             }
 
@@ -1165,6 +1250,69 @@ internal class WebViewWalletKitEngine(
     override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
         ensureWalletKitInitialized()
         return call(BridgeMethodConstants.METHOD_INJECT_SIGN_DATA_REQUEST, requestData)
+    }
+
+    /**
+     * Save an event to storage for later retry.
+     * Called when no handlers are registered or when a handler throws.
+     */
+    private fun saveEventForRetry(eventId: String, type: String, dataJson: String) {
+        runBlocking {
+            try {
+                val event = PendingEvent(
+                    id = eventId,
+                    type = type,
+                    data = dataJson,
+                    timestamp = java.time.Instant.now().toString(),
+                    retryCount = 0,
+                )
+                eventStorage.savePendingEvent(event)
+                Log.d(TAG, "Saved event for retry: $eventId (type: $type)")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save event for retry: $eventId", e)
+            }
+        }
+    }
+
+    /**
+     * Replay all pending events from storage.
+     * Called when a new event handler is registered.
+     */
+    private suspend fun replayPendingEvents() {
+        try {
+            val pendingEvents = eventStorage.loadAllPendingEvents()
+            if (pendingEvents.isEmpty()) {
+                Log.d(TAG, "No pending events to replay")
+                return
+            }
+
+            Log.d(TAG, "Replaying ${pendingEvents.size} pending events")
+
+            pendingEvents.forEach { pendingEvent ->
+                try {
+                    // Reconstruct the event JSON
+                    val eventJson = JSONObject().apply {
+                        put(JsonConstants.KEY_ID, pendingEvent.id)
+                        put(JsonConstants.KEY_TYPE, pendingEvent.type)
+                        put(ResponseConstants.KEY_DATA, JSONObject(pendingEvent.data))
+                    }
+
+                    // Re-dispatch the event
+                    mainHandler.post {
+                        handleEvent(eventJson)
+                    }
+
+                    Log.d(TAG, "Replayed pending event: ${pendingEvent.id}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to replay pending event: ${pendingEvent.id}", e)
+                    // Increment retry count
+                    val updated = pendingEvent.copy(retryCount = pendingEvent.retryCount + 1)
+                    eventStorage.savePendingEvent(updated)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to replay pending events", e)
+        }
     }
 
     private data class BridgeResponse(

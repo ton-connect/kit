@@ -38,9 +38,9 @@ import io.ton.walletkit.presentation.event.TONWalletKitEvent
 interface TONBridgeEventsHandler {
     /**
      * Handle a wallet kit event.
-     * 
+     *
      * Use when() expression for exhaustive handling of all event types.
-     * 
+     *
      * @param event The event to handle
      */
     fun handle(event: TONWalletKitEvent)

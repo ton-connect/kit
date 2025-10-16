@@ -19,7 +19,7 @@ data class TONMoneyFlowRow(
     val jetton: String? = null,
     val from: String? = null,
     val to: String? = null,
-    val amount: String? = null
+    val amount: String? = null,
 )
 
 /**
@@ -35,7 +35,7 @@ data class TONMoneyFlowRow(
 data class TONMoneyFlowSelf(
     val type: TONAssetType,
     val jetton: String? = null,
-    val amount: String
+    val amount: String,
 )
 
 /**
@@ -55,5 +55,5 @@ data class TONMoneyFlow(
     val inputs: String? = null,
     val allJettonTransfers: List<TONMoneyFlowRow>? = null,
     val ourTransfers: List<TONMoneyFlowSelf>? = null,
-    val ourAddress: String? = null
+    val ourAddress: String? = null,
 )

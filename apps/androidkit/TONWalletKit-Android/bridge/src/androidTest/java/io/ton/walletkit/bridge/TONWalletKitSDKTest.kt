@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 
 /**
  * High-level SDK tests that demonstrate the canonical TON Wallet Kit API usage.
- * 
+ *
  * These tests show how applications should use the SDK:
  * 1. Initialize with TONWalletKit.initialize()
  * 2. Create wallets with TONWallet.add()
@@ -156,11 +156,15 @@ class TONWalletKitSDKTest {
                     storage = TONWalletKitConfiguration.Storage(persistent = false),
                 )
 
-                TONWalletKit.initialize(context, config, object : TONBridgeEventsHandler {
-                    override fun handle(event: TONWalletKitEvent) {
-                        events.add(event)
-                    }
-                })
+                TONWalletKit.initialize(
+                    context,
+                    config,
+                    object : TONBridgeEventsHandler {
+                        override fun handle(event: TONWalletKitEvent) {
+                            events.add(event)
+                        }
+                    },
+                )
 
                 // Create wallet with mainnet network
                 val mnemonic = listOf(
@@ -210,11 +214,15 @@ class TONWalletKitSDKTest {
                     storage = TONWalletKitConfiguration.Storage(persistent = false),
                 )
 
-                TONWalletKit.initialize(context, config, object : TONBridgeEventsHandler {
-                    override fun handle(event: TONWalletKitEvent) {
-                        events.add(event)
-                    }
-                })
+                TONWalletKit.initialize(
+                    context,
+                    config,
+                    object : TONBridgeEventsHandler {
+                        override fun handle(event: TONWalletKitEvent) {
+                            events.add(event)
+                        }
+                    },
+                )
 
                 // Create wallet with testnet network
                 val mnemonic = listOf(
@@ -261,9 +269,13 @@ class TONWalletKitSDKTest {
                     storage = TONWalletKitConfiguration.Storage(persistent = false),
                 )
 
-                TONWalletKit.initialize(context, config, object : TONBridgeEventsHandler {
-                    override fun handle(event: TONWalletKitEvent) {}
-                })
+                TONWalletKit.initialize(
+                    context,
+                    config,
+                    object : TONBridgeEventsHandler {
+                        override fun handle(event: TONWalletKitEvent) {}
+                    },
+                )
 
                 val wallets = TONWallet.wallets()
 

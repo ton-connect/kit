@@ -23,11 +23,11 @@ data class TONWalletKitConfiguration(
     val bridge: Bridge,
     val apiClient: APIClient? = null,
     val features: List<Feature>,
-    val storage: Storage = Storage()
+    val storage: Storage = Storage(),
 ) {
     /**
      * Wallet manifest for TON Connect.
-     * 
+     *
      * @property name Wallet display name
      * @property appName Application name
      * @property imageUrl Wallet icon URL
@@ -46,12 +46,12 @@ data class TONWalletKitConfiguration(
         val aboutUrl: String,
         val universalLink: String,
         val deepLink: String? = null,
-        val bridgeUrl: String
+        val bridgeUrl: String,
     )
-    
+
     /**
      * Bridge connection configuration.
-     * 
+     *
      * @property bridgeUrl Bridge server URL
      * @property heartbeatInterval Heartbeat interval in milliseconds
      * @property reconnectInterval Reconnection interval in milliseconds
@@ -62,57 +62,57 @@ data class TONWalletKitConfiguration(
         val bridgeUrl: String,
         val heartbeatInterval: Long? = null,
         val reconnectInterval: Long? = null,
-        val maxReconnectAttempts: Int? = null
+        val maxReconnectAttempts: Int? = null,
     )
-    
+
     /**
      * API client configuration.
-     * 
+     *
      * @property url API endpoint URL (optional, uses default if not provided)
      * @property key API key for authentication
      */
     @Serializable
     data class APIClient(
         val url: String? = null,
-        val key: String
+        val key: String,
     )
-    
+
     /**
      * Storage configuration.
-     * 
+     *
      * @property persistent Enable persistent storage (true) or memory-only (false)
      */
     @Serializable
     data class Storage(
-        val persistent: Boolean = true
+        val persistent: Boolean = true,
     )
-    
+
     /**
      * Base interface for wallet features.
      * Implement this to define supported wallet capabilities.
      */
     interface Feature
-    
+
     /**
      * Send transaction feature configuration.
-     * 
+     *
      * @property maxMessages Maximum messages per transaction
      * @property extraCurrencySupported Support for extra currencies beyond TON
      */
     @Serializable
     data class SendTransactionFeature(
         val maxMessages: Int? = null,
-        val extraCurrencySupported: Boolean? = null
+        val extraCurrencySupported: Boolean? = null,
     ) : Feature
-    
+
     /**
      * Sign data feature configuration.
-     * 
+     *
      * @property types Supported sign data types (text, binary, cell)
      */
     @Serializable
     data class SignDataFeature(
-        val types: List<SignDataType>
+        val types: List<SignDataType>,
     ) : Feature
 }
 
@@ -126,12 +126,12 @@ enum class SignDataType {
     /** Plain text data */
     @SerialName("text")
     TEXT,
-    
+
     /** Binary data */
     @SerialName("binary")
     BINARY,
-    
+
     /** TON Cell data */
     @SerialName("cell")
-    CELL
+    CELL,
 }

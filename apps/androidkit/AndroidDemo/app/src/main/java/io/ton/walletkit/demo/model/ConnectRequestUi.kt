@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.model
 
-import io.ton.walletkit.presentation.request.ConnectRequest
+import io.ton.walletkit.presentation.request.TONWalletConnectionRequest
 import org.json.JSONObject
 
 data class ConnectRequestUi(
@@ -12,5 +12,5 @@ data class ConnectRequestUi(
     val permissions: List<ConnectPermissionUi>,
     val requestedItems: List<String>,
     val raw: JSONObject,
-    val connectRequest: ConnectRequest? = null, // Request object with approve/reject helpers
+    val connectRequest: TONWalletConnectionRequest? = null, // Request object with approve/reject helpers
 )

@@ -13,8 +13,8 @@ enum class TONAssetType {
     /** Native TON currency */
     @SerialName("ton")
     TON,
-    
+
     /** Jetton token */
     @SerialName("jetton")
-    JETTON
+    JETTON,
 }

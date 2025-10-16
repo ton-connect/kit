@@ -1,5 +1,6 @@
 package io.ton.walletkit.data.storage
 
+import io.ton.walletkit.data.model.PendingEvent
 import io.ton.walletkit.data.model.StoredBridgeConfig
 import io.ton.walletkit.data.model.StoredSessionData
 import io.ton.walletkit.data.model.StoredUserPreferences
@@ -44,4 +45,15 @@ internal interface WalletKitStorage {
     suspend fun loadUserPreferences(): StoredUserPreferences?
 
     suspend fun clearUserPreferences()
+
+    // Pending events (for automatic retry)
+    suspend fun savePendingEvent(event: PendingEvent)
+
+    suspend fun loadPendingEvent(eventId: String): PendingEvent?
+
+    suspend fun loadAllPendingEvents(): List<PendingEvent>
+
+    suspend fun deletePendingEvent(eventId: String)
+
+    suspend fun clearAllPendingEvents()
 }

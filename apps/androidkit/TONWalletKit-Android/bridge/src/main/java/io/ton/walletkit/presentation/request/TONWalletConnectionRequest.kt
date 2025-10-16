@@ -19,11 +19,11 @@ class TONWalletConnectionRequest internal constructor(
     val dAppInfo: DAppInfo?,
     val permissions: List<ConnectRequestEvent.ConnectPermission>,
     private val event: ConnectRequestEvent,
-    private val engine: WalletKitEngine
+    private val engine: WalletKitEngine,
 ) {
     /**
      * Approve this connection request with the specified wallet.
-     * 
+     *
      * @param walletAddress Address of the wallet to connect with
      * @throws io.ton.walletkit.presentation.WalletKitBridgeException if approval fails
      */
@@ -31,10 +31,10 @@ class TONWalletConnectionRequest internal constructor(
         val eventWithWallet = event.copy(walletAddress = walletAddress)
         engine.approveConnect(eventWithWallet)
     }
-    
+
     /**
      * Reject this connection request.
-     * 
+     *
      * @param reason Optional reason for rejection
      * @throws io.ton.walletkit.presentation.WalletKitBridgeException if rejection fails
      */
@@ -42,15 +42,3 @@ class TONWalletConnectionRequest internal constructor(
         engine.rejectConnect(event, reason)
     }
 }
-
-/**
- * Legacy alias maintained for migration.
- *
- * @deprecated Use [TONWalletConnectionRequest] instead for consistent naming
- */
-@Deprecated(
-    message = "Use TONWalletConnectionRequest instead for consistent naming",
-    replaceWith = ReplaceWith("TONWalletConnectionRequest"),
-    level = DeprecationLevel.WARNING
-)
-typealias ConnectRequest = TONWalletConnectionRequest

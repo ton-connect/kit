@@ -127,7 +127,7 @@ class WebViewEngineAutoInitTest {
                 imageUrl = "https://example.com/icon.png",
                 aboutUrl = "https://example.com",
                 universalLink = "https://example.com/app",
-                bridgeUrl = "https://bridge.tonapi.io/bridge"
+                bridgeUrl = "https://bridge.tonapi.io/bridge",
             ),
             bridge = TONWalletKitConfiguration.Bridge(
                 bridgeUrl = "https://bridge.tonapi.io/bridge",

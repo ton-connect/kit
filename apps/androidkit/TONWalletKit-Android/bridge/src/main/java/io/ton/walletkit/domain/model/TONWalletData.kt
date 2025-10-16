@@ -17,5 +17,5 @@ data class TONWalletData(
     val mnemonic: List<String>,
     val name: String,
     val network: TONNetwork = TONNetwork.MAINNET,
-    val version: String = "v5r1"
+    val version: String = "v5r1",
 )

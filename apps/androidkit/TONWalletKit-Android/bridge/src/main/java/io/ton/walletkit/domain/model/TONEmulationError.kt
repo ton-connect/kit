@@ -15,5 +15,5 @@ import kotlinx.serialization.Serializable
 data class TONEmulationError(
     val name: String,
     val message: String? = null,
-    val cause: String? = null
+    val cause: String? = null,
 )

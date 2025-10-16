@@ -26,7 +26,7 @@ import java.io.Closeable
  *
  * **Event Handling:**
  * Supports [addEventHandler] with [WalletKitEventHandler] for type-safe sealed events.
- * 
+ *
  * @suppress Internal engine abstraction. Use TONWalletKit and TONWallet public API instead.
  */
 internal interface WalletKitEngine {

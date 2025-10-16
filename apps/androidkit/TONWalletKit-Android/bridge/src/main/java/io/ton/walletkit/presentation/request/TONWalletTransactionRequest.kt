@@ -20,7 +20,7 @@ import io.ton.walletkit.presentation.event.TransactionRequestEvent
 class TONWalletTransactionRequest internal constructor(
     val dAppInfo: DAppInfo?,
     private val event: TransactionRequestEvent,
-    private val engine: WalletKitEngine
+    private val engine: WalletKitEngine,
 ) {
     /**
      * List of messages to be sent in this transaction
@@ -31,7 +31,7 @@ class TONWalletTransactionRequest internal constructor(
                 address = msg.address ?: "",
                 amount = msg.amount ?: "0",
                 payload = msg.payload,
-                stateInit = msg.stateInit
+                stateInit = msg.stateInit,
             )
         } ?: emptyList()
 
@@ -49,16 +49,16 @@ class TONWalletTransactionRequest internal constructor(
 
     /**
      * Approve this transaction request.
-     * 
+     *
      * @throws io.ton.walletkit.presentation.WalletKitBridgeException if approval fails
      */
     suspend fun approve() {
         engine.approveTransaction(event)
     }
-    
+
     /**
      * Reject this transaction request.
-     * 
+     *
      * @param reason Optional reason for rejection
      * @throws io.ton.walletkit.presentation.WalletKitBridgeException if rejection fails
      */
@@ -81,15 +81,3 @@ data class TransactionMessage(
     val payload: String? = null,
     val stateInit: String? = null,
 )
-
-/**
- * Legacy alias maintained for migration.
- *
- * @deprecated Use [TONWalletTransactionRequest] instead for consistent naming
- */
-@Deprecated(
-    message = "Use TONWalletTransactionRequest instead for consistent naming",
-    replaceWith = ReplaceWith("TONWalletTransactionRequest"),
-    level = DeprecationLevel.WARNING
-)
-typealias TransactionRequest = TONWalletTransactionRequest

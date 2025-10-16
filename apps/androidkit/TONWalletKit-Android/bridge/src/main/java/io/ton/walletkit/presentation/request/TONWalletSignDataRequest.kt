@@ -23,7 +23,7 @@ class TONWalletSignDataRequest internal constructor(
     val dAppInfo: DAppInfo?,
     val walletAddress: String?,
     private val event: SignDataRequestEvent,
-    private val engine: WalletKitEngine
+    private val engine: WalletKitEngine,
 ) {
     /**
      * Type of data to sign
@@ -47,7 +47,7 @@ class TONWalletSignDataRequest internal constructor(
      */
     val preview: String?
         get() = event.preview?.content
-    
+
     /**
      * Approve and sign this data signing request.
      *
@@ -59,10 +59,10 @@ class TONWalletSignDataRequest internal constructor(
     suspend fun approve() {
         engine.approveSignData(event)
     }
-    
+
     /**
      * Reject this data signing request.
-     * 
+     *
      * @param reason Optional reason for rejection
      * @throws io.ton.walletkit.presentation.WalletKitBridgeException if rejection fails
      */
@@ -70,15 +70,3 @@ class TONWalletSignDataRequest internal constructor(
         engine.rejectSignData(event, reason)
     }
 }
-
-/**
- * Legacy alias maintained for migration.
- *
- * @deprecated Use [TONWalletSignDataRequest] instead for consistent naming
- */
-@Deprecated(
-    message = "Use TONWalletSignDataRequest instead for consistent naming",
-    replaceWith = ReplaceWith("TONWalletSignDataRequest"),
-    level = DeprecationLevel.WARNING
-)
-typealias SignDataRequest = TONWalletSignDataRequest

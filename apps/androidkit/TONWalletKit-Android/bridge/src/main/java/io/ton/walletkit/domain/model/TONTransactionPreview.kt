@@ -12,24 +12,24 @@ import kotlinx.serialization.Serializable
 sealed class TONTransactionPreview {
     /**
      * Emulation failed with an error.
-     * 
+     *
      * @property emulationError The emulation error details
      */
     @Serializable
     @SerialName("error")
     data class Error(
-        val emulationError: TONTransactionPreviewEmulationError
+        val emulationError: TONTransactionPreviewEmulationError,
     ) : TONTransactionPreview()
-    
+
     /**
      * Emulation succeeded.
-     * 
+     *
      * @property emulationResult The emulation result with money flow
      */
     @Serializable
     @SerialName("success")
     data class Success(
-        val emulationResult: TONTransactionPreviewEmulationResult
+        val emulationResult: TONTransactionPreviewEmulationResult,
     ) : TONTransactionPreview()
 }
 
@@ -42,7 +42,7 @@ sealed class TONTransactionPreview {
  */
 @Serializable
 data class TONTransactionPreviewEmulationError(
-    val emulationError: TONEmulationError
+    val emulationError: TONEmulationError,
 )
 
 /**
@@ -56,7 +56,7 @@ data class TONTransactionPreviewEmulationError(
 @Serializable
 data class TONTransactionPreviewEmulationResult(
     val moneyFlow: TONMoneyFlow,
-    val emulationResult: TONCenterEmulationResponse
+    val emulationResult: TONCenterEmulationResponse,
 )
 
 /**
@@ -76,7 +76,7 @@ data class TONCenterEmulationResponse(
     val addressBook: Map<String, TONEmulationAddressBookEntry>? = null,
     val metadata: Map<String, TONEmulationAddressMetadata>? = null,
     val randSeed: String? = null,
-    val isIncomplete: Boolean? = null
+    val isIncomplete: Boolean? = null,
 )
 
 /**
@@ -86,7 +86,7 @@ data class TONCenterEmulationResponse(
 data class TONEmulationTraceNode(
     val txHash: String? = null,
     val inMsgHash: String? = null,
-    val children: List<TONEmulationTraceNode>? = null
+    val children: List<TONEmulationTraceNode>? = null,
 )
 
 /**
@@ -113,7 +113,7 @@ data class TONCenterTransaction(
     val accountStateBefore: TONEmulationAccountState? = null,
     val accountStateAfter: TONEmulationAccountState? = null,
     val emulated: Boolean? = null,
-    val traceId: String? = null
+    val traceId: String? = null,
 )
 
 /**
@@ -125,7 +125,7 @@ data class TONEmulationAction(
     val status: String? = null,
     val tonTransfer: TONEmulationTonTransfer? = null,
     val jettonTransfer: TONEmulationJettonTransfer? = null,
-    val nftItemTransfer: TONEmulationNftTransfer? = null
+    val nftItemTransfer: TONEmulationNftTransfer? = null,
 )
 
 /**
@@ -133,7 +133,7 @@ data class TONEmulationAction(
  */
 @Serializable
 data class TONEmulationAddressBookEntry(
-    val userFriendly: String? = null
+    val userFriendly: String? = null,
 )
 
 /**
@@ -143,7 +143,7 @@ data class TONEmulationAddressBookEntry(
 data class TONEmulationAddressMetadata(
     val name: String? = null,
     val image: String? = null,
-    val description: String? = null
+    val description: String? = null,
 )
 
 /**
@@ -154,7 +154,7 @@ data class TONEmulationTransactionDescription(
     val type: String? = null,
     val computePhase: TONEmulationComputePhase? = null,
     val actionPhase: TONEmulationActionPhase? = null,
-    val storagePhase: TONEmulationStoragePhase? = null
+    val storagePhase: TONEmulationStoragePhase? = null,
 )
 
 /**
@@ -164,7 +164,7 @@ data class TONEmulationTransactionDescription(
 data class TONEmulationBlockRef(
     val workchain: Int? = null,
     val shard: String? = null,
-    val seqno: Int? = null
+    val seqno: Int? = null,
 )
 
 /**
@@ -188,7 +188,7 @@ data class TONEmulationMessage(
     val init: TONEmulationMessageInit? = null,
     val hash: String? = null,
     val body: String? = null,
-    val bodyHash: String? = null
+    val bodyHash: String? = null,
 )
 
 /**
@@ -201,7 +201,7 @@ data class TONEmulationAccountState(
     val accountStatus: String? = null,
     val frozenHash: String? = null,
     val dataHash: String? = null,
-    val codeHash: String? = null
+    val codeHash: String? = null,
 )
 
 /**
@@ -212,7 +212,7 @@ data class TONEmulationTonTransfer(
     val sender: String? = null,
     val recipient: String? = null,
     val amount: String? = null,
-    val comment: String? = null
+    val comment: String? = null,
 )
 
 /**
@@ -226,7 +226,7 @@ data class TONEmulationJettonTransfer(
     val recipientsWallet: String? = null,
     val amount: String? = null,
     val comment: String? = null,
-    val jetton: String? = null
+    val jetton: String? = null,
 )
 
 /**
@@ -237,7 +237,7 @@ data class TONEmulationNftTransfer(
     val sender: String? = null,
     val recipient: String? = null,
     val nft: String? = null,
-    val comment: String? = null
+    val comment: String? = null,
 )
 
 /**
@@ -250,7 +250,7 @@ data class TONEmulationComputePhase(
     val gasFees: String? = null,
     val gasUsed: String? = null,
     val vmSteps: Int? = null,
-    val exitCode: Int? = null
+    val exitCode: Int? = null,
 )
 
 /**
@@ -263,7 +263,7 @@ data class TONEmulationActionPhase(
     val skippedActions: Int? = null,
     val fwdFees: String? = null,
     val totalFees: String? = null,
-    val resultCode: Int? = null
+    val resultCode: Int? = null,
 )
 
 /**
@@ -273,7 +273,7 @@ data class TONEmulationActionPhase(
 data class TONEmulationStoragePhase(
     val storageFeesCollected: String? = null,
     val storageFeesDue: String? = null,
-    val statusChange: String? = null
+    val statusChange: String? = null,
 )
 
 /**
@@ -282,5 +282,5 @@ data class TONEmulationStoragePhase(
 @Serializable
 data class TONEmulationMessageInit(
     val splitDepth: Int? = null,
-    val special: Boolean? = null
+    val special: Boolean? = null,
 )

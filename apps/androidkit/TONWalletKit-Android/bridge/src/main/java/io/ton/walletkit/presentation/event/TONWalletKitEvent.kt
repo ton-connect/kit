@@ -14,57 +14,57 @@ import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 sealed class TONWalletKitEvent {
     /**
      * A dApp is requesting to connect to a wallet.
-     * 
+     *
      * Handle by calling [TONWalletConnectionRequest.approve] with a wallet address
      * or [TONWalletConnectionRequest.reject] to deny.
-     * 
+     *
      * @property request Connection request with approve/reject methods
      */
     data class ConnectRequest(
-        val request: TONWalletConnectionRequest
+        val request: TONWalletConnectionRequest,
     ) : TONWalletKitEvent()
-    
+
     /**
      * A dApp is requesting to execute a transaction.
-     * 
+     *
      * Handle by calling [TONWalletTransactionRequest.approve] to execute
      * or [TONWalletTransactionRequest.reject] to deny.
-     * 
+     *
      * @property request Transaction request with approve/reject methods
      */
     data class TransactionRequest(
-        val request: TONWalletTransactionRequest
+        val request: TONWalletTransactionRequest,
     ) : TONWalletKitEvent()
-    
+
     /**
      * A dApp is requesting to sign arbitrary data.
-     * 
+     *
      * Handle by calling [TONWalletSignDataRequest.approve] to sign
      * or [TONWalletSignDataRequest.reject] to deny.
-     * 
+     *
      * @property request Sign data request with approve/reject methods
      */
     data class SignDataRequest(
-        val request: TONWalletSignDataRequest
+        val request: TONWalletSignDataRequest,
     ) : TONWalletKitEvent()
-    
+
     /**
      * A session has been disconnected.
-     * 
+     *
      * This is informational - no action required.
-     * 
+     *
      * @property event Disconnect event details
      */
     data class Disconnect(
-        val event: DisconnectEvent
+        val event: DisconnectEvent,
     ) : TONWalletKitEvent()
 }
 
 /**
  * Disconnect event details.
- * 
+ *
  * @property sessionId ID of the disconnected session
  */
 data class DisconnectEvent(
-    val sessionId: String
+    val sessionId: String,
 )

@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.model
 
-import io.ton.walletkit.presentation.request.TransactionRequest
+import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 import org.json.JSONObject
 
 data class TransactionRequestUi(
@@ -11,5 +11,5 @@ data class TransactionRequestUi(
     val messages: List<TransactionMessageUi>,
     val preview: String?,
     val raw: JSONObject,
-    val iosStyleRequest: TransactionRequest? = null, // Request object with approve/reject helpers
+    val transactionRequest: TONWalletTransactionRequest? = null, // Request object with approve/reject helpers
 )

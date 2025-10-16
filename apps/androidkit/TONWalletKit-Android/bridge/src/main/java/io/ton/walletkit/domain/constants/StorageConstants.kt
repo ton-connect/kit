@@ -45,6 +45,13 @@ internal object StorageConstants {
     const val KEY_PREFIX_PREFERENCES = "preferences:"
 
     /**
+     * Prefix for pending events storage keys (automatic retry mechanism).
+     *
+     * Format: "pending_event:{eventId}"
+     */
+    const val KEY_PREFIX_PENDING_EVENT = "pending_event:"
+
+    /**
      * Default name for secure storage SharedPreferences file.
      */
     const val DEFAULT_SECURE_STORAGE_NAME = "walletkit_secure_storage"

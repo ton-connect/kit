@@ -7,7 +7,7 @@ import io.ton.walletkit.domain.constants.WebViewConstants
 /**
  * Internal factory for creating WalletKitEngine instances.
  * SDK always uses WebView engine.
- * 
+ *
  * @suppress
  */
 internal object WalletKitEngineFactory {

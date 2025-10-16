@@ -196,4 +196,20 @@ internal object JsonConstants {
      * JSON key for logical time.
      */
     const val KEY_LT = "lt"
+
+    // Pending event keys (for automatic retry)
+    /**
+     * JSON key for event data payload.
+     */
+    const val KEY_DATA = "data"
+
+    /**
+     * JSON key for event timestamp.
+     */
+    const val KEY_TIMESTAMP = "timestamp"
+
+    /**
+     * JSON key for retry count.
+     */
+    const val KEY_RETRY_COUNT = "retryCount"
 }

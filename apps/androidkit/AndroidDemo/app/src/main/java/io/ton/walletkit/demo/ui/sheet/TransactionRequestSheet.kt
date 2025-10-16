@@ -46,11 +46,11 @@ fun TransactionRequestSheet(
             Text("Requested by: ${request.dAppName}", style = MaterialTheme.typography.bodyMedium)
         }
 
-        request.validUntil?.let { 
+        request.validUntil?.let {
             Text(
-                "Valid until: ${formatUnixTimestamp(it)}", 
-                style = MaterialTheme.typography.bodyMedium
-            ) 
+                "Valid until: ${formatUnixTimestamp(it)}",
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         if (request.messages.isNotEmpty()) {
