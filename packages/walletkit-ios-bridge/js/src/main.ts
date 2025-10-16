@@ -225,13 +225,18 @@ window.initWalletKit = async (configuration, storage) => {
         },
             
         // Wallet management
-        async addWallet(wallet) {
+        async addWallet(walletAdapter) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('➕ Bridge: Adding wallet:');
 
             try {
-                await walletKit.addWallet(wallet);
-                console.log('✅ Wallet added:', wallet.getAddress());
+                const wallet = await walletKit.addWallet(walletAdapter);
+                if (wallet) {
+                    console.log('✅ Wallet added:', wallet.getAddress());
+                } else {
+                    console.log('✅ Wallet added: undefined');
+                }
+                return wallet;
             } catch (error) {
                 throw error;
             }
