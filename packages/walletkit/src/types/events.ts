@@ -19,6 +19,7 @@ import {
 import { MoneyFlow } from '../utils/toncenterEmulation';
 import { ToncenterEmulationResponse } from './toncenter/emulation';
 import { EmulationError } from './emulation/errors';
+import { Hash } from './primitive';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -58,6 +59,10 @@ export type EventTransactionRequest = RawBridgeEventTransaction & {
     error?: string;
 };
 
+export interface EventTransactionResponse {
+    signedBoc: string;
+}
+
 /**
  * Sign data request event from dApp
  */
@@ -70,6 +75,10 @@ export interface EventSignDataRequest extends RawBridgeEventSignData {
 
     /** dApp information */
     dAppInfo: DAppInfo;
+}
+
+export interface EventSignDataResponse {
+    signature: Hash;
 }
 
 /**

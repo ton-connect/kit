@@ -32,7 +32,6 @@ import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
 import { EventConnectApproval, EventTransactionApproval } from '../types/events';
 import { asHash, Hash } from '../types/primitive';
-import { SendRequestResult } from '../types/internal';
 import { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { uuidv7 } from '../utils/uuid';
@@ -59,7 +58,7 @@ export class RequestProcessor {
     /**
      * Process connect request approval
      */
-    async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<SendRequestResult> {
+    async approveConnectRequest(event: EventConnectRequest | EventConnectApproval): Promise<void> {
         try {
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
@@ -70,12 +69,7 @@ export class RequestProcessor {
                         undefined,
                         { eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
@@ -86,12 +80,7 @@ export class RequestProcessor {
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 // Create session for this connection'
@@ -160,12 +149,7 @@ export class RequestProcessor {
                         undefined,
                         { eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
@@ -176,12 +160,7 @@ export class RequestProcessor {
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 // If event is EventConnectApproval, we need to send response to dApp and create session
@@ -252,28 +231,20 @@ export class RequestProcessor {
                     undefined,
                     { event },
                 );
-                return {
-                    success: false,
-                    code: error.code,
-                    message: error.message,
-                    error: error,
-                };
+                throw error;
             }
 
-            return { success: true };
+            return;
         } catch (error) {
             log.error('Failed to approve connect request', { error });
-            if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
-            }
-            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
+            throw error;
         }
     }
 
     /**
      * Process connect request rejection
      */
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<SendRequestResult> {
+    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
         try {
             log.info('Connect request rejected', {
                 id: event.id,
@@ -342,13 +313,10 @@ export class RequestProcessor {
                     client_id: event.from,
                 },
             ]);
-            return { success: true };
+            return;
         } catch (error) {
             log.error('Failed to reject connect request', { error });
-            if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
-            }
-            return { success: false, code: 500, error: error as Error };
+            throw error;
         }
     }
 
@@ -357,7 +325,7 @@ export class RequestProcessor {
      */
     async approveTransactionRequest(
         event: EventTransactionRequest | EventTransactionApproval,
-    ): Promise<SendRequestResult<{ signedBoc: string }>> {
+    ): Promise<{ signedBoc: string }> {
         try {
             if ('result' in event) {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
@@ -393,7 +361,7 @@ export class RequestProcessor {
                         subsystem: getEventsSubsystem(),
                     },
                 ]);
-                return { success: true, result: { signedBoc: event.result.signedBoc } };
+                return { signedBoc: event.result.signedBoc };
             } else {
                 const signedBoc = await this.signTransaction(event);
 
@@ -443,23 +411,18 @@ export class RequestProcessor {
                         // normalized_hash events todo
                     },
                 ]);
-                return { success: true, result: { signedBoc } };
+                return { signedBoc };
             }
         } catch (error) {
             log.error('Failed to approve transaction request', { error });
 
             if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
+                throw error;
             }
             if ((error as { message: string })?.message?.includes('Ledger device')) {
-                return {
-                    success: false,
-                    code: ERROR_CODES.LEDGER_DEVICE_ERROR,
-                    message: 'Ledger device error',
-                    error: error as Error,
-                };
+                throw new WalletKitError(ERROR_CODES.LEDGER_DEVICE_ERROR, 'Ledger device error', error as Error);
             }
-            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
+            throw error;
         }
     }
 
@@ -469,7 +432,7 @@ export class RequestProcessor {
     async rejectTransactionRequest(
         event: EventTransactionRequest,
         reason?: string | SendTransactionRpcResponseError['error'],
-    ): Promise<SendRequestResult> {
+    ): Promise<void> {
         try {
             const response: SendTransactionRpcResponseError =
                 typeof reason === 'string' || typeof reason === 'undefined'
@@ -504,22 +467,17 @@ export class RequestProcessor {
                     client_id: event.from,
                 },
             ]);
-            return { success: true };
+            return;
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
-            if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
-            }
-            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
+            throw error;
         }
     }
 
     /**
      * Process sign data request approval
      */
-    async approveSignDataRequest(
-        event: EventSignDataRequest | EventSignDataApproval,
-    ): Promise<SendRequestResult<{ signature: Hash }>> {
+    async approveSignDataRequest(event: EventSignDataRequest | EventSignDataApproval): Promise<{ signature: Hash }> {
         try {
             if ('result' in event) {
                 // Send approval response
@@ -565,7 +523,7 @@ export class RequestProcessor {
                         client_id: event.from,
                     },
                 ]);
-                return { success: true, result: { signature: asHash(event.result.signature) } };
+                return { signature: asHash(event.result.signature) };
             } else {
                 if (!event.domain) {
                     const error = new WalletKitError(
@@ -574,12 +532,7 @@ export class RequestProcessor {
                         undefined,
                         { eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 if (!event.walletAddress) {
@@ -589,12 +542,7 @@ export class RequestProcessor {
                         undefined,
                         { eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
 
                 const wallet = this.walletManager.getWallet(event.walletAddress);
@@ -605,12 +553,7 @@ export class RequestProcessor {
                         undefined,
                         { walletAddress: event.walletAddress, eventId: event.id },
                     );
-                    return {
-                        success: false,
-                        code: error.code,
-                        message: error.message,
-                        error: error,
-                    };
+                    throw error;
                 }
                 // Sign data with wallet
                 const signData = PrepareTonConnectData({
@@ -668,7 +611,7 @@ export class RequestProcessor {
                         client_id: event.from,
                     },
                 ]);
-                return { success: true, result: { signature: asHash(signature) } };
+                return { signature: asHash(signature) };
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -676,16 +619,16 @@ export class RequestProcessor {
                 error: error?.message?.toString() ?? error?.toString(),
             });
             if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
+                throw error;
             }
-            return { success: false, code: 500, error: error as Error };
+            throw error;
         }
     }
 
     /**
      * Process sign data request rejection
      */
-    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<SendRequestResult> {
+    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
         try {
             const response = {
                 error: 'USER_REJECTED',
@@ -711,13 +654,10 @@ export class RequestProcessor {
                     client_id: event.from,
                 },
             ]);
-            return { success: true };
+            return;
         } catch (error) {
             log.error('Failed to reject sign data request', { error });
-            if (error instanceof WalletKitError) {
-                return { success: false, code: error.code, message: error.message, error: error };
-            }
-            return { success: false, code: ERROR_CODES.REQUEST_PROCESSING_FAILED, error: error as Error };
+            throw error;
         }
     }
 

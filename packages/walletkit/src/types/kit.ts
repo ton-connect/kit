@@ -9,10 +9,11 @@ import type {
     EventSignDataRequest,
     EventDisconnect,
     EventRequestError,
+    EventSignDataResponse,
+    EventTransactionResponse,
 } from './events';
 import type { JettonsAPI } from './jettons';
-import { ConnectTransactionParamContent, SendRequestResult } from './internal';
-import { Hash } from './primitive';
+import { ConnectTransactionParamContent } from './internal';
 import { ApiClient } from './toncenter/ApiClient';
 
 /**
@@ -65,24 +66,24 @@ export interface ITonWalletKit {
     // === Request Processing ===
 
     /** Approve a connect request */
-    approveConnectRequest(event: EventConnectRequest): Promise<SendRequestResult>;
+    approveConnectRequest(event: EventConnectRequest): Promise<void>;
     /** Reject a connect request */
-    rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<SendRequestResult>;
+    rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void>;
 
     /** Approve a transaction request */
-    approveTransactionRequest(event: EventTransactionRequest): Promise<SendRequestResult<{ signedBoc: string }>>;
+    approveTransactionRequest(event: EventTransactionRequest): Promise<EventTransactionResponse>;
 
     /** Reject a transaction request */
     rejectTransactionRequest(
         event: EventTransactionRequest,
         reason?: string | SendTransactionRpcResponseError['error'],
-    ): Promise<SendRequestResult>;
+    ): Promise<void>;
 
     /** Approve a sign data request */
-    signDataRequest(event: EventSignDataRequest): Promise<SendRequestResult<{ signature: Hash }>>;
+    signDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse>;
 
     /** Reject a sign data request */
-    rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<SendRequestResult>;
+    rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void>;
 
     // === Event Handlers ===
 

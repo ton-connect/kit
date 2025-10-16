@@ -1067,23 +1067,27 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
 
         try {
-            const approveResult = await state.wallet.walletKit.approveTransactionRequest(
-                state.wallet.pendingTransactionRequest,
-            );
-            if (approveResult.success) {
-                // Delay closing the modal to allow success animation to show
+            try {
+                await state.wallet.walletKit.approveTransactionRequest(state.wallet.pendingTransactionRequest);
                 setTimeout(() => {
                     set((state) => {
                         state.wallet.pendingTransactionRequest = undefined;
                         state.wallet.isTransactionModalOpen = false;
                     });
                 }, 3000); // 3 second delay for success animation
-            } else {
-                log.error('Failed to approve transaction request:', approveResult);
-                if (approveResult.error?.message?.toLocaleLowerCase()?.includes('ledger')) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } catch (error: any) {
+                log.error('Failed to approve transaction request:', state.wallet.pendingTransactionRequest);
+                if (error?.message?.toLocaleLowerCase()?.includes('ledger')) {
                     toast.error('Could not approve transaction request with Ledger, please unlock it and open TON App');
                 } else {
                     toast.error('Could not approve transaction request');
+                    setTimeout(() => {
+                        set((state) => {
+                            state.wallet.pendingTransactionRequest = undefined;
+                            state.wallet.isTransactionModalOpen = false;
+                        });
+                    }, 3000);
                 }
             }
         } catch (error) {
