@@ -207,14 +207,4 @@ internal interface WalletKitEngine {
      * Destroy the engine and release all resources.
      */
     suspend fun destroy()
-
-    /**
-     * Test API: Inject a sign data request for testing purposes.
-     * This simulates receiving a sign data request from a dApp and will trigger
-     * the normal sign data flow including actual cryptographic signing.
-     *
-     * @param requestData Request data as JSONObject (test API, not yet typed)
-     * @return JSONObject response (test API, not yet typed)
-     */
-    suspend fun injectSignDataRequest(requestData: org.json.JSONObject): org.json.JSONObject
 }

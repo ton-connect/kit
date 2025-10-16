@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="io.ton.walletkit.demo.WalletKitDemoApp"
+        android:name="io.ton.walletkit.demo.core.WalletKitDemoApp"
         android:allowBackup="true"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="tiramisu"
@@ -16,7 +16,7 @@
         android:theme="@style/Theme.WalletKitDemo"
         android:usesCleartextTraffic="false">
         <activity
-            android:name="io.ton.walletkit.demo.ui.MainActivity"
+            android:name="io.ton.walletkit.demo.presentation.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

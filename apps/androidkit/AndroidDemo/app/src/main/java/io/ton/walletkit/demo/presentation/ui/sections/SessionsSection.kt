@@ -1,0 +1,65 @@
+package io.ton.walletkit.demo.presentation.ui.sections
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import io.ton.walletkit.demo.presentation.model.SessionSummary
+import io.ton.walletkit.demo.presentation.ui.components.EmptyStateCard
+import io.ton.walletkit.demo.presentation.ui.components.SessionCard
+import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
+
+@Composable
+fun SessionsSection(sessions: List<SessionSummary>, onDisconnect: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(SESSIONS_SECTION_SPACING)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                ACTIVE_SESSIONS_TITLE,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.width(SESSIONS_TITLE_SPACING))
+            Text(
+                "${sessions.size}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        if (sessions.isEmpty()) {
+            EmptyStateCard(
+                title = NO_SESSIONS_TITLE,
+                description = NO_SESSIONS_DESCRIPTION,
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(SESSIONS_LIST_SPACING)) {
+                sessions.forEach { session ->
+                    SessionCard(
+                        session = session,
+                        onDisconnect = { onDisconnect(session.sessionId) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+private const val ACTIVE_SESSIONS_TITLE = "Active Sessions"
+private const val NO_SESSIONS_TITLE = "No active sessions"
+private const val NO_SESSIONS_DESCRIPTION = "Use TON Connect to pair with a dApp."
+private val SESSIONS_SECTION_SPACING = 12.dp
+private val SESSIONS_TITLE_SPACING = 8.dp
+private val SESSIONS_LIST_SPACING = 12.dp
+
+@Preview(showBackground = true)
+@Composable
+private fun SessionsSectionPreview() {
+    SessionsSection(sessions = listOf(PreviewData.session), onDisconnect = {})
+}

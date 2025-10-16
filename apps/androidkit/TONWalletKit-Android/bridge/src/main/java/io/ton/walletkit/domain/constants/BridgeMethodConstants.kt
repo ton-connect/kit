@@ -89,9 +89,4 @@ internal object BridgeMethodConstants {
      * Method name for disconnecting a session.
      */
     const val METHOD_DISCONNECT_SESSION = "disconnectSession"
-
-    /**
-     * Method name for injecting a sign data request (testing/development).
-     */
-    const val METHOD_INJECT_SIGN_DATA_REQUEST = "injectSignDataRequest"
 }

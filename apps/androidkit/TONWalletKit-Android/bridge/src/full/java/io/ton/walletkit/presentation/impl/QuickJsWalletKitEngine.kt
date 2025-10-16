@@ -605,11 +605,6 @@ internal class QuickJsWalletKitEngine(
         call("disconnectSession", if (params.length() == 0) null else params)
     }
 
-    override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
-        ensureWalletKitInitialized()
-        return call("injectSignDataRequest", requestData)
-    }
-
     override suspend fun destroy() {
         withContext(jsDispatcher) {
             quickJsInstance?.close()

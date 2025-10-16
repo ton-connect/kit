@@ -1276,11 +1276,6 @@ internal class WebViewWalletKitEngine(
         }
     }
 
-    override suspend fun injectSignDataRequest(requestData: JSONObject): JSONObject {
-        ensureWalletKitInitialized()
-        return call(BridgeMethodConstants.METHOD_INJECT_SIGN_DATA_REQUEST, requestData)
-    }
-
     /**
      * Save an event to storage for later retry.
      * Called when no handlers are registered or when a handler throws.
