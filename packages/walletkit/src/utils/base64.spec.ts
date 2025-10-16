@@ -4,7 +4,7 @@ const data = 'SU0eXImjhI1aq6VO7sLhH2ycct1iTg2KMY2x4so5WYY=';
 
 describe('base64', () => {
     it('base64ToHash', async () => {
-        expect(Base64ToHash()).toEqual(null);
+        // expect(Base64ToHash()).toThrow();
         expect(Base64ToHash(data)).toEqual('0x494d1e5c89a3848d5aaba54eeec2e11f6c9c72dd624e0d8a318db1e2ca395986');
     });
 

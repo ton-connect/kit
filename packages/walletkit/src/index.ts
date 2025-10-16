@@ -67,6 +67,10 @@ export {
     Base64ToBigInt,
     BigIntToBase64,
     Uint8ArrayToBigInt,
+    HashToBigInt,
+    HashToBase64,
+    Uint8ArrayToHash,
+    HashToUint8Array,
 } from './utils/base64';
 
 export type { ToncenterTransaction } from './types/toncenter/emulation';

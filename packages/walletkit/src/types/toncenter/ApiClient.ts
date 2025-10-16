@@ -74,9 +74,9 @@ export interface ApiClient {
         seqno?: number,
     ): Promise<ToncenterEmulationResponse>;
     sendBoc(boc: string | Uint8Array): Promise<string>;
-    runGetMethod(address: Address | string, method: string, stack?: TupleItem[], seqno?: number): Promise<GetResult>;
+    runGetMethod(address: Address | string, method: string, stack?: TupleItem[], seqno?: number): Promise<GetResult>; // TODO - Make serializable
     getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState>;
-    getBalance(address: Address | string, seqno?: number): Promise<bigint>;
+    getBalance(address: Address | string, seqno?: number): Promise<string>;
 
     getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse>;
     getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse>;

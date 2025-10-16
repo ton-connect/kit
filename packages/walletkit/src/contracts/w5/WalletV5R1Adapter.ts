@@ -12,7 +12,7 @@ import {
     storeStateInit,
 } from '@ton/core';
 import { external, internal } from '@ton/core';
-import { CHAIN, toHexString } from '@tonconnect/protocol';
+import { CHAIN } from '@tonconnect/protocol';
 
 import { WalletV5, WalletId } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
@@ -25,7 +25,7 @@ import { ConnectTransactionParamContent } from '../../types/internal';
 import { ActionSendMsg, packActionsList } from './actions';
 import { IWalletAdapter, WalletSigner } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
-import { Uint8ArrayToBigInt } from '../../utils/base64';
+import { HashToBigInt, HashToUint8Array } from '../../utils/base64';
 import { PrepareSignDataResult } from '../../utils/signData/sign';
 import { Hash } from '../../types/primitive';
 import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
@@ -41,7 +41,7 @@ export interface WalletV5R1AdapterConfig {
     /** Signer function */
     signer: WalletSigner;
     /** Public key */
-    publicKey: Uint8Array;
+    publicKey: Hash;
     /** Wallet ID configuration */
     walletId?: number | bigint;
     /** Shared TON client instance */
@@ -62,7 +62,7 @@ export class WalletV5R1Adapter implements IWalletAdapter {
 
     readonly walletContract: WalletV5;
     readonly client: ApiClient;
-    public readonly publicKey: Uint8Array;
+    public readonly publicKey: Hash;
     public readonly version = 'v5r1';
 
     /**
@@ -94,10 +94,10 @@ export class WalletV5R1Adapter implements IWalletAdapter {
         this.client = config.tonClient;
         this.signer = config.signer;
 
-        this.publicKey = Uint8Array.from(this.config.publicKey);
+        this.publicKey = this.config.publicKey;
         this.walletContract = WalletV5.createFromConfig(
             {
-                publicKey: Uint8ArrayToBigInt(this.publicKey),
+                publicKey: HashToBigInt(this.publicKey),
                 seqno: 0,
                 signatureAllowed: true,
                 walletId:
@@ -117,8 +117,8 @@ export class WalletV5R1Adapter implements IWalletAdapter {
     /**
      * Sign raw bytes with wallet's private key
      */
-    async sign(bytes: Uint8Array): Promise<Uint8Array> {
-        return this.signer.sign(bytes);
+    async sign(bytes: Iterable<number>): Promise<Hash> {
+        return await this.signer.sign(bytes);
     }
 
     getNetwork(): CHAIN {
@@ -228,7 +228,7 @@ export class WalletV5R1Adapter implements IWalletAdapter {
     /**
      * Get wallet's current balance in nanotons
      */
-    async getBalance(): Promise<bigint> {
+    async getBalance(): Promise<string> {
         try {
             const balance = await CallForSuccess(
                 async () => this.client.getBalance(this.walletContract.address),
@@ -324,18 +324,21 @@ export class WalletV5R1Adapter implements IWalletAdapter {
 
         const signingData = payload.hash();
         const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
-        return beginCell().storeSlice(payload.beginParse()).storeBuffer(Buffer.from(signature)).endCell();
+        return beginCell()
+            .storeSlice(payload.beginParse())
+            .storeBuffer(Buffer.from(HashToUint8Array(signature)))
+            .endCell();
     }
 
     async getSignedSignData(input: PrepareSignDataResult): Promise<Hash> {
         const signature = await this.sign(input.hash);
-        return ('0x' + toHexString(signature)) as Hash;
+        return signature;
     }
 
     async getSignedTonProof(input: TonProofParsedMessage): Promise<Hash> {
         const message = await CreateTonProofMessageBytes(input);
         const signature = await this.sign(message);
 
-        return ('0x' + toHexString(signature)) as Hash;
+        return signature;
     }
 }

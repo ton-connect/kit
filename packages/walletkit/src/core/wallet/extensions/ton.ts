@@ -108,7 +108,7 @@ export class WalletTonClass implements WalletTonInterface {
         };
     }
 
-    async getBalance(this: IWallet): Promise<bigint> {
-        return await CallForSuccess(() => this.client.getBalance(Address.parse(this.getAddress())));
+    async getBalance(this: IWallet): Promise<string> {
+        return await CallForSuccess(async () => this.client.getBalance(Address.parse(this.getAddress())));
     }
 }

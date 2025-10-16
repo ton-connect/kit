@@ -71,7 +71,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         };
     }
 
-    async getJettonBalance(this: IWallet, jettonAddress: string): Promise<bigint> {
+    async getJettonBalance(this: IWallet, jettonAddress: string): Promise<string> {
         // Get jetton wallet address for this user
         const jettonWalletAddress = await this.getJettonWalletAddress(jettonAddress);
 
@@ -81,10 +81,10 @@ export class WalletJettonClass implements WalletJettonInterface {
 
             // The balance is the first return value from get_wallet_data
             const balance = result.stack.readBigNumber();
-            return balance;
+            return balance.toString();
         } catch (_error) {
             // Failed to get jetton balance, return 0
-            return 0n;
+            return '0';
         }
     }
 

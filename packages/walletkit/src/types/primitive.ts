@@ -3,6 +3,7 @@ import { Address, beginCell, Cell } from '@ton/core';
 declare const hashBrand: unique symbol;
 
 export type Hash = `0x${string}` & { readonly [hashBrand]: never };
+// export type Base64String = string;
 
 export function asHash(data: string): Hash {
     if (!/^0x[0-9a-fA-F]{64}$/.test(data) && !/^0x[0-9a-fA-F]{128}$/.test(data)) {

@@ -23,7 +23,9 @@ import {
     PrepareSignDataResult,
     Hash,
     TonProofParsedMessage,
-    Uint8ArrayToBigInt,
+    HashToBigInt,
+    Uint8ArrayToHash,
+    HashToUint8Array,
 } from '@ton/walletkit';
 
 import { WalletV4R2, WalletV4R2Config } from './WalletV4R2';
@@ -61,7 +63,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
 
     readonly walletContract: WalletV4R2;
     readonly client: ApiClient;
-    public readonly publicKey: Uint8Array;
+    public readonly publicKey: Hash;
     public readonly version = 'v4r2';
 
     constructor(config: WalletV4R2LedgerAdapterConfig) {
@@ -70,10 +72,10 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         this.createTransport = config.createTransport;
         this.derivationPath = config.path;
 
-        this.publicKey = Uint8Array.from(this.config.publicKey);
+        this.publicKey = Uint8ArrayToHash(this.config.publicKey);
 
         const walletConfig: WalletV4R2Config = {
-            publicKey: Uint8ArrayToBigInt(this.publicKey),
+            publicKey: HashToBigInt(this.publicKey),
             workchain: config.workchain ?? 0,
             seqno: 0,
             subwalletId: config.walletId ?? defaultWalletIdV4R2,
@@ -161,7 +163,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
     /**
      * Get wallet's current balance in nanotons
      */
-    async getBalance(): Promise<bigint> {
+    async getBalance(): Promise<string> {
         try {
             const balance = await CallForSuccess(
                 async () => this.client.getBalance(this.walletContract.address),
@@ -270,7 +272,8 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         if (!addressResponse.publicKey) {
             return false;
         }
-        if (!isUint8ArrayEqual(this.publicKey, addressResponse.publicKey)) {
+        const publicKey = HashToUint8Array(this.publicKey);
+        if (!isUint8ArrayEqual(publicKey, addressResponse.publicKey)) {
             return false;
         }
         return true;

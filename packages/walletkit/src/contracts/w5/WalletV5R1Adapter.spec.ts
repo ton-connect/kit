@@ -1,13 +1,14 @@
 import { Cell, loadMessage } from '@ton/core';
 import { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
+import { CHAIN } from '@tonconnect/protocol';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { mockFn, clearAllMocks, mocked } from '../../../mock.config';
-import { createWalletV5R1, WalletV5R1Adapter } from './WalletV5R1Adapter';
+import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { FullAccountState } from '../../types/toncenter/api';
-import { createWalletInitConfigMnemonic } from '../../types';
-import { Uint8ArrayToBase64 } from '../../utils/base64';
+import { HashToBase64, Uint8ArrayToHash } from '../../utils/base64';
+import { Signer } from '../../utils/Signer';
 import {
     addressV5r1,
     addressV5r1Test,
@@ -25,16 +26,15 @@ describe('WalletV5R1Adapter', () => {
     beforeEach(async () => {
         clearAllMocks();
         tonClient = createMockApiClient();
-        wallet = (await createWalletV5R1(
-            createWalletInitConfigMnemonic({
-                mnemonic,
-            }),
-            { tonClient },
-        )) as WalletV5R1Adapter;
+        const signer = await Signer.fromMnemonic(mnemonic);
+        wallet = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: CHAIN.MAINNET,
+        });
     });
 
     it('should create wallet with correct properties', async () => {
-        expect(wallet.publicKey).toEqual(publicKey);
+        expect(wallet.publicKey).toEqual(Uint8ArrayToHash(publicKey));
         expect(wallet.version).toEqual('v5r1');
         expect(wallet.getAddress()).toEqual(addressV5r1.bounceableNot);
         expect(wallet.getAddress({ testnet: true })).toEqual(addressV5r1Test.bounceableNot);
@@ -48,7 +48,7 @@ describe('WalletV5R1Adapter', () => {
 
     it('should sign data using provided signer', async () => {
         const testData = new Uint8Array([1, 2, 3, 4]);
-        const signature = Uint8ArrayToBase64(await wallet.sign(testData));
+        const signature = HashToBase64(await wallet.sign(testData));
         expect(signature).toEqual(
             'gaYAMdlcwx1KGzqAkUn8jUNeVqNfW8zex2xJK/mlRkDD78K/4U2EvwfrD/q94YVFEnPnpWkPhNhhmGsabQbzBw==',
         );
@@ -56,7 +56,7 @@ describe('WalletV5R1Adapter', () => {
 
     it('should return wallet balance', async () => {
         const balance = await wallet.getBalance();
-        expect(balance).toEqual(BigInt(1000000000));
+        expect(balance).toEqual('1000000000');
         expect(tonClient.getBalance as unknown as ReturnType<typeof mockFn.fn>).toHaveBeenCalledWith(
             wallet.walletContract.address,
         );
@@ -64,27 +64,23 @@ describe('WalletV5R1Adapter', () => {
 
     it('should handle balance retrieval errors', async () => {
         const error = new Error('Balance fetch failed');
-        const errorWallet = (await createWalletV5R1(
-            createWalletInitConfigMnemonic({
-                mnemonic,
-            }),
-            {
-                tonClient: {
-                    ...tonClient,
-                    getBalance: mockFn().mockRejectedValue(error),
-                },
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const errorWallet = await WalletV5R1Adapter.create(signer, {
+            client: {
+                ...tonClient,
+                getBalance: mockFn().mockRejectedValue(error),
             },
-        )) as WalletV5R1Adapter;
+            network: CHAIN.MAINNET,
+        });
         await expect(errorWallet.getBalance()).rejects.toThrow('Balance fetch failed');
     }, 10000);
 
     it('should throw error if wallet contract not initialized', async () => {
-        const walletWithoutInit = (await createWalletV5R1(
-            createWalletInitConfigMnemonic({
-                mnemonic,
-            }),
-            { tonClient },
-        )) as WalletV5R1Adapter;
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const walletWithoutInit = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: CHAIN.MAINNET,
+        });
         Object.defineProperty(walletWithoutInit, 'walletContract', {
             value: { ...walletWithoutInit.walletContract, init: undefined },
             writable: true,
@@ -129,7 +125,7 @@ describe('WalletV5R1Adapter', () => {
         expect(tonClient.getAccountState).toHaveBeenCalledWith(wallet.walletContract.address);
         mocked(tonClient.getAccountState).mockResolvedValueOnce({
             status: 'uninitialized',
-            balance: BigInt(0),
+            balance: '0',
             last: null,
             frozen: null,
             state: { type: 'uninitialized' },

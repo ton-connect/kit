@@ -92,7 +92,7 @@ export interface DisconnectNotification {
 }
 
 export interface LedgerConfig {
-    publicKey: number[]; // Store as number array for JSON serialization
+    publicKey: string; // Store as number array for JSON serialization
     path: number[];
     walletId: number;
     version: string;

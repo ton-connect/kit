@@ -20,11 +20,11 @@ import { TonProofParsedMessage } from '../utils/tonProof';
  */
 export type WalletVersion = 'v5r1' | 'v4r2' | 'unknown';
 
-export type ISigner = (bytes: Uint8Array) => Promise<Uint8Array>;
+export type ISigner = (bytes: Iterable<number>) => Promise<Hash>;
 
 export type WalletSigner = {
     sign: ISigner;
-    publicKey: Uint8Array;
+    publicKey: Hash;
 };
 
 /**
@@ -32,7 +32,7 @@ export type WalletSigner = {
  */
 export interface IWalletAdapter {
     /** Unique identifier for this wallet (typically public key) */
-    publicKey: Uint8Array;
+    publicKey: Hash;
 
     /** Wallet contract version (e.g., 'v4r2', 'v5r1') */
     version: string;
@@ -98,12 +98,12 @@ export interface WalletTonInterface {
         preview: TransactionPreview;
     }>;
 
-    getBalance(): Promise<bigint>;
+    getBalance(): Promise<string>;
 }
 
 export interface WalletJettonInterface {
     createTransferJettonTransaction(params: JettonTransferParams): Promise<ConnectTransactionParamContent>;
-    getJettonBalance(jettonAddress: string): Promise<bigint>;
+    getJettonBalance(jettonAddress: string): Promise<string>;
     getJettonWalletAddress(jettonAddress: string): Promise<string>;
 }
 

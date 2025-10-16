@@ -1,16 +1,25 @@
-import { type NftTransferMessage } from '@ton-community/assets-sdk';
+import { Address, Cell } from '@ton/core';
 
 export type NftTransferParamsHuman = {
     nftAddress: string;
-    transferAmount: bigint;
+    transferAmount: bigint | string;
     toAddress: string;
 
     comment?: string;
 };
 
+export type NftTransferMessageDTO = {
+    queryId: bigint | string;
+    newOwner: Address | string;
+    responseDestination: Address | null | string;
+    customPayload: Cell | null | string;
+    forwardAmount: bigint | string;
+    forwardPayload: Cell | null | string;
+};
+
 export type NftTransferParamsRaw = {
     nftAddress: string;
-    transferAmount: bigint;
+    transferAmount: bigint | string;
 
-    transferMessage: NftTransferMessage;
+    transferMessage: NftTransferMessageDTO;
 };

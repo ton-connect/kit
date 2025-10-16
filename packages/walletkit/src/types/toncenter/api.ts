@@ -1,18 +1,20 @@
 import { AccountStatus, ExtraCurrency, TupleReader } from '@ton/core';
 
+import { Hash } from '../primitive';
+
 export interface TransactionId {
-    lt: bigint;
-    hash: bigint;
+    lt: string;
+    hash: Hash;
 }
 
 export interface FullAccountState {
     status: AccountStatus;
-    balance: bigint;
+    balance: string;
     extraCurrencies: ExtraCurrency;
-    code: Uint8Array | null;
-    data: Uint8Array | null;
+    code: string | null; // base64 encoded
+    data: string | null; // base64 encoded
     lastTransaction: TransactionId | null;
-    frozenHash?: bigint;
+    frozenHash?: Hash;
 }
 
 export interface GetResult {

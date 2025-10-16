@@ -1,18 +1,20 @@
 import { keyPairFromSeed, sign } from '@ton/crypto';
 
 import { ISigner } from '../types/wallet';
+import { Uint8ArrayToHash } from './base64';
+import { Hash } from '../types/primitive';
 
-export function DefaultSignature(data: Uint8Array, privateKey: Uint8Array): Uint8Array {
-    return new Uint8Array(sign(Buffer.from(data), Buffer.from(privateKey)));
+export function DefaultSignature(data: Iterable<number>, privateKey: Uint8Array): Hash {
+    return Uint8ArrayToHash(sign(Buffer.from(Uint8Array.from(data)), Buffer.from(privateKey)));
 }
 
 export function createWalletSigner(privateKey: Uint8Array): ISigner {
-    return async (data: Uint8Array) => {
-        return DefaultSignature(data, privateKey);
+    return async (data: Iterable<number>) => {
+        return DefaultSignature(Uint8Array.from(data), privateKey);
     };
 }
 
 const fakeKeyPair = keyPairFromSeed(Buffer.alloc(32, 0));
-export function FakeSignature(data: Uint8Array): Uint8Array {
-    return new Uint8Array(sign(Buffer.from(data), fakeKeyPair.secretKey));
+export function FakeSignature(data: Iterable<number>): Hash {
+    return Uint8ArrayToHash([...sign(Buffer.from(Uint8Array.from(data)), Buffer.from(fakeKeyPair.secretKey))]);
 }

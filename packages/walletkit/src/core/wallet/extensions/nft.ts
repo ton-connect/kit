@@ -1,5 +1,5 @@
-import { storeNftTransferMessage } from '@ton-community/assets-sdk';
-import { Address, beginCell, SendMode } from '@ton/core';
+import { NftTransferMessage, storeNftTransferMessage } from '@ton-community/assets-sdk';
+import { Address, beginCell, Cell, SendMode } from '@ton/core';
 
 import { IWallet } from '../../../types';
 import { WalletNftInterface } from '../../../types/wallet';
@@ -75,7 +75,30 @@ export class WalletNftClass implements WalletNftInterface {
         this: IWallet,
         params: NftTransferParamsRaw,
     ): Promise<ConnectTransactionParamContent> {
-        const nftPayload = beginCell().store(storeNftTransferMessage(params.transferMessage)).endCell();
+        const transferMessage: NftTransferMessage = {
+            queryId: BigInt(params.transferMessage.queryId),
+            newOwner:
+                typeof params.transferMessage.newOwner === 'string'
+                    ? Address.parse(params.transferMessage.newOwner)
+                    : params.transferMessage.newOwner,
+            responseDestination: params.transferMessage.responseDestination
+                ? typeof params.transferMessage.responseDestination === 'string'
+                    ? Address.parse(params.transferMessage.responseDestination)
+                    : params.transferMessage.responseDestination
+                : null,
+            customPayload: params.transferMessage.customPayload
+                ? typeof params.transferMessage.customPayload === 'string'
+                    ? Cell.fromBase64(params.transferMessage.customPayload)
+                    : params.transferMessage.customPayload
+                : null,
+            forwardAmount: BigInt(params.transferMessage.forwardAmount),
+            forwardPayload: params.transferMessage.forwardPayload
+                ? typeof params.transferMessage.forwardPayload === 'string'
+                    ? Cell.fromBase64(params.transferMessage.forwardPayload)
+                    : params.transferMessage.forwardPayload
+                : null,
+        };
+        const nftPayload = beginCell().store(storeNftTransferMessage(transferMessage)).endCell();
         const message: ConnectTransactionParamMessage = {
             address: params.nftAddress,
             amount: params.transferAmount.toString(),

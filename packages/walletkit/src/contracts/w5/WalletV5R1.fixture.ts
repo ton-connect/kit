@@ -1,12 +1,15 @@
+import { CHAIN } from '@tonconnect/protocol';
+
 import { mockFn } from '../../../mock.config';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { FullAccountState, GetResult } from '../../types/toncenter/api';
-import type { ToncenterEmulationResponse, ToncenterTracesResponse, WalletInitInterface } from '../../types';
+import type { ToncenterEmulationResponse, ToncenterResponseJettonWallets, ToncenterTracesResponse } from '../../types';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
 import { WalletId } from './WalletV5R1';
-import { createWalletV5R1 } from './WalletV5R1Adapter';
-import { createWalletInitConfigMnemonic } from '../../types';
-import { ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
+import { WalletV5R1Adapter } from './WalletV5R1Adapter';
+import { ToncenterResponseJettonMasters, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
+import { Signer } from '../../utils/Signer';
+import { Uint8ArrayToHash } from '../../utils/base64';
 
 export const mnemonic = [
     'hospital',
@@ -60,8 +63,11 @@ export function createMockApiClient(): ApiClient {
         runGetMethod: mockFn().mockResolvedValue({} as GetResult),
         getAccountState: mockFn().mockResolvedValue({
             status: 'active',
-            balance: BigInt(1000000000),
-            last: { lt: '123', hash: 'abc' },
+            balance: '1000000000',
+            last: {
+                lt: '123',
+                hash: Uint8ArrayToHash(new Uint8Array(32).fill(1)),
+            },
             frozen: null,
             state: { type: 'active', code: 'mock-code', data: 'mock-data' },
             extraCurrencies: [],
@@ -69,7 +75,7 @@ export function createMockApiClient(): ApiClient {
             data: 'mock-data',
             lastTransaction: null,
         } as unknown as FullAccountState),
-        getBalance: mockFn().mockResolvedValue(BigInt(1000000000)),
+        getBalance: mockFn().mockResolvedValue('1000000000'),
         getAccountTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
         getPendingTrace: mockFn().mockResolvedValue({} as ToncenterTracesResponse),
         getPendingTransactions: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
@@ -77,14 +83,15 @@ export function createMockApiClient(): ApiClient {
         getTransactionsByHash: mockFn().mockResolvedValue({} as ToncenterTransactionsResponse),
         resolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
         backResolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
+        jettonsByAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonMasters),
+        jettonsByOwnerAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonWallets),
     };
 }
-export async function createDummyWallet(walletId?: bigint): Promise<WalletInitInterface> {
-    return createWalletV5R1(
-        createWalletInitConfigMnemonic({
-            mnemonic,
-            walletId,
-        }),
-        { tonClient: createMockApiClient() },
-    );
+export async function createDummyWallet(walletId?: bigint): Promise<WalletV5R1Adapter> {
+    const signer = await Signer.fromMnemonic(mnemonic);
+    return WalletV5R1Adapter.create(signer, {
+        client: createMockApiClient(),
+        network: CHAIN.MAINNET,
+        walletId,
+    });
 }

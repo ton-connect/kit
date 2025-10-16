@@ -1,7 +1,7 @@
 import { Address, ExtraCurrency, AccountStatus, TupleItem } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 
-import { Base64ToUint8Array, Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize } from '../utils/base64';
+import { Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize, Base64ToHash } from '../utils/base64';
 import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import { ToncenterEmulationResponse } from '../types';
 import { ConnectTransactionParamMessage } from '../types/internal';
@@ -172,27 +172,27 @@ export class ApiClientToncenter implements ApiClient {
         for (const currency of raw.extra_currencies || []) {
             extraCurrencies[currency.id] = BigInt(currency.amount);
         }
-        const code = Base64ToUint8Array(raw.code);
-        const data = Base64ToUint8Array(raw.data);
+        // const code = Base64ToUint8Array(raw.code);
+        // const data = Base64ToUint8Array(raw.data);
         const out: FullAccountState = {
             status: raw.status,
-            balance,
+            balance: balance.toString(),
             extraCurrencies,
-            code,
-            data,
+            code: raw.code,
+            data: raw.data,
             lastTransaction: parseInternalTransactionId({
                 hash: raw.last_transaction_hash,
                 lt: raw.last_transaction_lt,
             }),
         };
         if (raw.frozen_hash) {
-            out.frozenHash = Base64ToBigInt(raw.frozen_hash);
+            out.frozenHash = Base64ToHash(raw.frozen_hash) ?? undefined;
         }
         return out;
     }
 
-    async getBalance(address: Address | string, seqno?: number): Promise<bigint> {
-        return this.getAccountState(address, seqno).then((state) => state.balance);
+    async getBalance(address: Address | string, seqno?: number): Promise<string> {
+        return (await this.getAccountState(address, seqno)).balance;
     }
 
     private async doRequest(url: URL, init: globalThis.RequestInit = {}): Promise<globalThis.Response> {
@@ -469,8 +469,8 @@ interface V2SendMessageResult {
 function parseInternalTransactionId(data: InternalTransactionId): TransactionId | null {
     if (data.hash !== 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=') {
         return {
-            lt: Base64ToBigInt(data.lt),
-            hash: Base64ToBigInt(data.hash),
+            lt: data.lt,
+            hash: Base64ToHash(data.hash),
         };
     }
     return null;

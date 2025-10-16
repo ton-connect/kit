@@ -1,7 +1,6 @@
 import type { NFTCollectionV3 } from './NFTCollectionV3';
 import type { NftItem } from '../NftItem';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../primitive';
-import { Base64ToHash } from '../../../utils/base64';
+import { asAddressFriendly, asHash, asMaybeAddressFriendly } from '../../primitive';
 import { toNftCollection } from './NFTCollectionV3';
 
 export interface NftItemV3 {
@@ -25,8 +24,8 @@ export function toNftItem(data: NftItemV3): NftItem {
     const out: NftItem = {
         address: asAddressFriendly(data.address),
         auctionContractAddress: asMaybeAddressFriendly(data.auction_contract_address),
-        codeHash: Base64ToHash(data.code_hash),
-        dataHash: Base64ToHash(data.data_hash),
+        codeHash: data.code_hash ? asHash(data.code_hash) : null,
+        dataHash: data.data_hash ? asHash(data.data_hash) : null,
         collection: toNftCollection(data.collection),
         collectionAddress: asMaybeAddressFriendly(data.collection_address),
         index: BigInt(data.index),
