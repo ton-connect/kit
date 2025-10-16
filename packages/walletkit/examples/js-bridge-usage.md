@@ -10,7 +10,7 @@ This document demonstrates how to use the TonConnect JS Bridge functionality in 
 import { TonWalletKit } from '@ton/walletkit';
 
 const walletKit = new TonWalletKit({
-    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    bridgeUrl: 'https://connect.ton.org/bridge',
     network: CHAIN.MAINNET,
 });
 
