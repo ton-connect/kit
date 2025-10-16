@@ -30,11 +30,11 @@ export class EventRouter {
     private bridgeManager!: BridgeManager;
 
     // Event callbacks
-    private connectRequestCallbacks: EventCallback<EventConnectRequest>[] = [];
-    private transactionRequestCallbacks: EventCallback<EventTransactionRequest>[] = [];
-    private signDataRequestCallbacks: EventCallback<EventSignDataRequest>[] = [];
-    private disconnectCallbacks: EventCallback<EventDisconnect>[] = [];
-    private errorCallbacks: EventCallback<EventRequestError>[] = [];
+    private connectRequestCallback: EventCallback<EventConnectRequest> | undefined = undefined;
+    private transactionRequestCallback: EventCallback<EventTransactionRequest> | undefined = undefined;
+    private signDataRequestCallback: EventCallback<EventSignDataRequest> | undefined = undefined;
+    private disconnectCallback: EventCallback<EventDisconnect> | undefined = undefined;
+    private errorCallback: EventCallback<EventRequestError> | undefined = undefined;
 
     constructor(
         private eventEmitter: EventEmitter,
@@ -68,7 +68,7 @@ export class EventRouter {
                 if (handler.canHandle(event)) {
                     const result = await handler.handle(event);
                     if ('error' in result) {
-                        this.notifyErrorCallbacks({ incomingEvent: event, result: result });
+                        this.notifyErrorCallback({ incomingEvent: event, result: result });
                         try {
                             await this.bridgeManager.sendResponse(event, result);
                         } catch (error) {
@@ -89,72 +89,57 @@ export class EventRouter {
      * Register event callbacks
      */
     onConnectRequest(callback: EventCallback<EventConnectRequest>): void {
-        this.connectRequestCallbacks.push(callback);
+        this.connectRequestCallback = callback;
     }
 
     onTransactionRequest(callback: EventCallback<EventTransactionRequest>): void {
-        this.transactionRequestCallbacks.push(callback);
+        this.transactionRequestCallback = callback;
     }
 
     onSignDataRequest(callback: EventCallback<EventSignDataRequest>): void {
-        this.signDataRequestCallbacks.push(callback);
+        this.signDataRequestCallback = callback;
     }
 
     onDisconnect(callback: EventCallback<EventDisconnect>): void {
-        this.disconnectCallbacks.push(callback);
+        this.disconnectCallback = callback;
     }
 
     onRequestError(callback: EventCallback<EventRequestError>): void {
-        this.errorCallbacks.push(callback);
+        this.errorCallback = callback;
     }
 
     /**
      * Remove specific callback
      */
-    removeConnectRequestCallback(callback: EventCallback<EventConnectRequest>): void {
-        const index = this.connectRequestCallbacks.indexOf(callback);
-        if (index >= 0) {
-            this.connectRequestCallbacks.splice(index, 1);
-        }
+    removeConnectRequestCallback(): void {
+        this.connectRequestCallback = undefined;
     }
 
-    removeTransactionRequestCallback(callback: EventCallback<EventTransactionRequest>): void {
-        const index = this.transactionRequestCallbacks.indexOf(callback);
-        if (index >= 0) {
-            this.transactionRequestCallbacks.splice(index, 1);
-        }
+    removeTransactionRequestCallback(): void {
+        this.transactionRequestCallback = undefined;
     }
 
-    removeSignDataRequestCallback(callback: EventCallback<EventSignDataRequest>): void {
-        const index = this.signDataRequestCallbacks.indexOf(callback);
-        if (index >= 0) {
-            this.signDataRequestCallbacks.splice(index, 1);
-        }
+    removeSignDataRequestCallback(): void {
+        this.signDataRequestCallback = undefined;
     }
 
-    removeDisconnectCallback(callback: EventCallback<EventDisconnect>): void {
-        const index = this.disconnectCallbacks.indexOf(callback);
-        if (index >= 0) {
-            this.disconnectCallbacks.splice(index, 1);
-        }
+    removeDisconnectCallback(): void {
+        this.disconnectCallback = undefined;
     }
 
-    removeErrorCallback(callback: EventCallback<EventRequestError>): void {
-        const index = this.errorCallbacks.indexOf(callback);
-        if (index >= 0) {
-            this.errorCallbacks.splice(index, 1);
-        }
+    removeErrorCallback(): void {
+        this.errorCallback = undefined;
     }
 
     /**
      * Clear all callbacks
      */
     clearCallbacks(): void {
-        this.connectRequestCallbacks = [];
-        this.transactionRequestCallbacks = [];
-        this.signDataRequestCallbacks = [];
-        this.disconnectCallbacks = [];
-        this.errorCallbacks = [];
+        this.connectRequestCallback = undefined;
+        this.transactionRequestCallback = undefined;
+        this.signDataRequestCallback = undefined;
+        this.disconnectCallback = undefined;
+        this.errorCallback = undefined;
     }
 
     /**
@@ -182,85 +167,53 @@ export class EventRouter {
         if ('error' in event) {
             return;
         }
-        this.connectRequestCallbacks.forEach((callback) => {
-            try {
-                callback(event);
-            } catch (error) {
-                log.error('Error in connect request callback', { error });
-            }
-        });
+        this.connectRequestCallback?.(event);
     }
 
     /**
      * Notify transaction request callbacks
      */
-    private notifyTransactionRequestCallbacks(event: EventTransactionRequest): void {
-        this.transactionRequestCallbacks.forEach((callback) => {
-            try {
-                callback(event);
-            } catch (error) {
-                log.error('Error in transaction request callback', { error });
-            }
-        });
+    private async notifyTransactionRequestCallbacks(event: EventTransactionRequest): Promise<void> {
+        this.transactionRequestCallback?.(event);
     }
 
     /**
      * Notify sign data request callbacks
      */
     private notifySignDataRequestCallbacks(event: EventSignDataRequest): void {
-        this.signDataRequestCallbacks.forEach((callback) => {
-            try {
-                callback(event);
-            } catch (error) {
-                log.error('Error in sign data request callback', { error });
-            }
-        });
+        this.signDataRequestCallback?.(event);
     }
 
     /**
      * Notify disconnect callbacks
      */
     private notifyDisconnectCallbacks(event: EventDisconnect): void {
-        this.disconnectCallbacks.forEach((callback) => {
-            try {
-                callback(event);
-            } catch (error) {
-                log.error('Error in disconnect callback', { error });
-            }
-        });
+        this.disconnectCallback?.(event);
     }
 
     /**
      * Notify error callbacks
      */
-    private notifyErrorCallbacks(event: EventRequestError): void {
-        this.errorCallbacks.forEach((callback) => {
-            try {
-                callback(event);
-            } catch (error) {
-                log.error('Error in error callback', { error });
-            }
-        });
+    private notifyErrorCallback(event: EventRequestError): void {
+        this.errorCallback?.(event);
     }
 
     /**
      * Get enabled event types based on registered callbacks
-     * Used by durable event processor to filter events
-     * TODO - on change, trigger wallet processing restart
      */
     getEnabledEventTypes(): EventType[] {
         const enabledTypes: EventType[] = [];
 
-        if (this.connectRequestCallbacks.length > 0) {
+        if (this.connectRequestCallback) {
             enabledTypes.push('connect');
         }
-        if (this.transactionRequestCallbacks.length > 0) {
+        if (this.transactionRequestCallback) {
             enabledTypes.push('sendTransaction');
         }
-        if (this.signDataRequestCallbacks.length > 0) {
+        if (this.signDataRequestCallback) {
             enabledTypes.push('signData');
         }
-        if (this.disconnectCallbacks.length > 0) {
+        if (this.disconnectCallback) {
             enabledTypes.push('disconnect');
         }
 

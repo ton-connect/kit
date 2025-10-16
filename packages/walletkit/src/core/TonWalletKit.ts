@@ -295,7 +295,6 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         const removeSession = async (sessionId: string) => {
-            // TODO FIX REMOVE SESSION
             await this.bridgeManager.sendResponse(
                 {
                     sessionId: sessionId,
@@ -308,11 +307,6 @@ export class TonWalletKit implements ITonWalletKit {
                     payload: {},
                 } as DisconnectEvent,
             );
-            // await this.bridgeManager.sendResponse(sessionId, false, null, {
-            //     event: 'disconnect',
-            //     id: Date.now(),
-            //     payload: {},
-            // } as DisconnectEvent);
             await this.sessionManager.removeSession(sessionId);
         };
         if (sessionId) {
@@ -383,20 +377,20 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    removeConnectRequestCallback(cb: (event: EventConnectRequest) => void): void {
-        this.eventRouter.removeConnectRequestCallback(cb);
+    removeConnectRequestCallback(): void {
+        this.eventRouter.removeConnectRequestCallback();
     }
 
-    removeTransactionRequestCallback(cb: (event: EventTransactionRequest) => void): void {
-        this.eventRouter.removeTransactionRequestCallback(cb);
+    removeTransactionRequestCallback(): void {
+        this.eventRouter.removeTransactionRequestCallback();
     }
 
-    removeSignDataRequestCallback(cb: (event: EventSignDataRequest) => void): void {
-        this.eventRouter.removeSignDataRequestCallback(cb);
+    removeSignDataRequestCallback(): void {
+        this.eventRouter.removeSignDataRequestCallback();
     }
 
-    removeDisconnectCallback(cb: (event: EventDisconnect) => void): void {
-        this.eventRouter.removeDisconnectCallback(cb);
+    removeDisconnectCallback(): void {
+        this.eventRouter.removeDisconnectCallback();
     }
 
     onRequestError(cb: (event: EventRequestError) => void): void {
@@ -409,8 +403,8 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    removeErrorCallback(cb: (event: EventRequestError) => void): void {
-        this.eventRouter.removeErrorCallback(cb);
+    removeErrorCallback(): void {
+        this.eventRouter.removeErrorCallback();
     }
 
     // === URL Processing API ===
