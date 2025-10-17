@@ -1,6 +1,7 @@
 package io.ton.walletkit.demo.presentation.state
 
 import io.ton.walletkit.demo.presentation.model.SessionSummary
+import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 
 data class WalletUiState(
@@ -20,4 +21,5 @@ data class WalletUiState(
     val events: List<String> = emptyList(),
     val lastUpdated: Long? = null,
     val clipboardContent: String? = null,
+    val pendingSignerConfirmation: SignDataRequestUi? = null, // Request awaiting signer confirmation
 )

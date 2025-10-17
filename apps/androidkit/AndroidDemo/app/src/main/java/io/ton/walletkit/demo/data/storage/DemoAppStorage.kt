@@ -52,6 +52,8 @@ data class WalletRecord(
     val name: String,
     val network: String,
     val version: String,
+    val createdAt: Long = System.currentTimeMillis(), // Unix timestamp in milliseconds
+    val interfaceType: String = "mnemonic", // "mnemonic" or "signer"
 )
 
 /**

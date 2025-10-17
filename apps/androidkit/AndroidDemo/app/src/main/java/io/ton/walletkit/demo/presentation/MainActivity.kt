@@ -45,6 +45,8 @@ class MainActivity : ComponentActivity() {
                         onRejectTransaction = viewModel::rejectTransaction,
                         onApproveSignData = viewModel::approveSignData,
                         onRejectSignData = viewModel::rejectSignData,
+                        onConfirmSignerApproval = viewModel::confirmSignerApproval,
+                        onCancelSignerApproval = viewModel::cancelSignerApproval,
                         onSendTransaction = viewModel::sendTransaction,
                         onRefreshTransactions = viewModel::refreshTransactions,
                         onTransactionClick = viewModel::showTransactionDetail,

@@ -10,6 +10,7 @@ import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.UserPreferences
 import io.ton.walletkit.demo.data.storage.WalletRecord
 import io.ton.walletkit.demo.domain.model.PendingWalletRecord
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.domain.model.WalletMetadata
 import io.ton.walletkit.demo.domain.model.toBridgeValue
 import io.ton.walletkit.demo.domain.model.toTonNetwork
@@ -385,7 +386,13 @@ class WalletKitViewModel(
         _state.update { it.copy(isUrlPromptVisible = false) }
     }
 
-    fun importWallet(name: String, network: TONNetwork, words: List<String>, version: String = DEFAULT_WALLET_VERSION) {
+    fun importWallet(
+        name: String,
+        network: TONNetwork,
+        words: List<String>,
+        version: String = DEFAULT_WALLET_VERSION,
+        interfaceType: WalletInterfaceType = WalletInterfaceType.MNEMONIC,
+    ) {
         val cleaned = words.map { it.trim().lowercase() }.filter { it.isNotBlank() }
         if (cleaned.size != 24) {
             _state.update { it.copy(error = "Recovery phrase must contain 24 words") }
@@ -426,6 +433,7 @@ class WalletKitViewModel(
                         name = pending.metadata.name,
                         network = network.toBridgeValue(),
                         version = version,
+                        interfaceType = interfaceType.value,
                     )
                     runCatching { storage.saveWallet(address, record) }
                 }
@@ -440,7 +448,7 @@ class WalletKitViewModel(
                     Log.d(LOG_TAG, "Auto-switched to newly imported wallet: $address")
                 }
 
-                logEvent("Imported wallet '${pending.metadata.name}' (version: $version)")
+                logEvent("Imported wallet '${pending.metadata.name}' (version: $version, type: ${interfaceType.value})")
             } else {
                 pendingWallets.removeLastOrNull()
                 _state.update { it.copy(error = result.exceptionOrNull()?.message ?: "Failed to import wallet") }
@@ -448,7 +456,12 @@ class WalletKitViewModel(
         }
     }
 
-    fun generateWallet(name: String, network: TONNetwork, version: String = DEFAULT_WALLET_VERSION) {
+    fun generateWallet(
+        name: String,
+        network: TONNetwork,
+        version: String = DEFAULT_WALLET_VERSION,
+        interfaceType: WalletInterfaceType = WalletInterfaceType.MNEMONIC,
+    ) {
         val words = generateMnemonic()
         val pending = PendingWalletRecord(
             metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
@@ -483,6 +496,7 @@ class WalletKitViewModel(
                         name = pending.metadata.name,
                         network = network.toBridgeValue(),
                         version = version,
+                        interfaceType = interfaceType.value,
                     )
                     runCatching { storage.saveWallet(address, record) }
                 }
@@ -497,7 +511,7 @@ class WalletKitViewModel(
                     Log.d(LOG_TAG, "Auto-switched to newly generated wallet: $address")
                 }
 
-                logEvent("Generated wallet '${pending.metadata.name}' (version: $version)")
+                logEvent("Generated wallet '${pending.metadata.name}' (version: $version, type: ${interfaceType.value})")
             } else {
                 pendingWallets.removeLastOrNull()
                 _state.update { it.copy(error = result.exceptionOrNull()?.message ?: "Failed to generate wallet") }
@@ -599,6 +613,16 @@ class WalletKitViewModel(
         viewModelScope.launch {
             Log.d(LOG_TAG, "Approving sign data request ID: ${request.id}")
 
+            // Check if this wallet uses Signer interface type
+            val wallet = state.value.wallets.firstOrNull { it.address == request.walletAddress }
+            if (wallet?.interfaceType == WalletInterfaceType.SIGNER) {
+                // For Signer wallets, show confirmation dialog first
+                Log.d(LOG_TAG, "Wallet is SIGNER type, requesting confirmation")
+                _state.update { it.copy(pendingSignerConfirmation = request) }
+                return@launch
+            }
+
+            // For MNEMONIC wallets, approve immediately
             val result = runCatching {
                 request.signDataRequest?.approve()
                     ?: error("Request object not available")
@@ -670,6 +694,97 @@ class WalletKitViewModel(
                 }
             }.onFailure { error ->
                 _state.update { it.copy(error = error.message ?: "Failed to reject sign request") }
+            }
+        }
+    }
+
+    fun confirmSignerApproval() {
+        viewModelScope.launch {
+            val request = state.value.pendingSignerConfirmation
+            if (request == null) {
+                Log.w(LOG_TAG, "No pending signer confirmation to approve")
+                return@launch
+            }
+
+            Log.d(LOG_TAG, "User confirmed signer approval for request ID: ${request.id}")
+            
+            // Clear the confirmation dialog
+            _state.update { it.copy(pendingSignerConfirmation = null) }
+
+            // Now actually approve the request
+            val result = runCatching {
+                request.signDataRequest?.approve()
+                    ?: error("Request object not available")
+            }
+
+            result.onSuccess {
+                dismissSheet()
+
+                // Log approval
+                Log.d(LOG_TAG, "========================================")
+                Log.d(LOG_TAG, "✅ SIGN DATA APPROVED (via SIGNER confirmation)")
+                Log.d(LOG_TAG, "========================================")
+                Log.d(LOG_TAG, "Request ID: ${request.id}")
+                Log.d(LOG_TAG, "Payload Type: ${request.payloadType}")
+                Log.d(LOG_TAG, "========================================")
+
+                logEvent("✅ Sign data approved (via Signer confirmation)")
+
+                // Update transaction details after signing
+                launch {
+                    delay(200)
+                    request.walletAddress?.let { address ->
+                        if (state.value.activeWalletAddress == address) {
+                            refreshTransactions(address)
+                        }
+                    }
+                }
+            }.onFailure { error ->
+                Log.e(LOG_TAG, "❌ Sign data approval failed", error)
+                logEvent("❌ Sign data approval failed: ${error.message}")
+                _state.update { it.copy(error = error.message ?: "Failed to approve sign request") }
+            }
+        }
+    }
+
+    fun cancelSignerApproval() {
+        viewModelScope.launch {
+            val request = state.value.pendingSignerConfirmation
+            if (request == null) {
+                Log.w(LOG_TAG, "No pending signer confirmation to cancel")
+                return@launch
+            }
+
+            Log.d(LOG_TAG, "User cancelled signer approval for request ID: ${request.id}")
+
+            // Clear the confirmation dialog
+            _state.update { it.copy(pendingSignerConfirmation = null) }
+
+            // Reject the request
+            val result = runCatching {
+                request.signDataRequest?.reject("User cancelled signer confirmation")
+                    ?: error("Request object not available")
+            }
+
+            result.onSuccess {
+                dismissSheet()
+                Log.d(LOG_TAG, "❌ Rejected sign request ${request.id}: User cancelled signer confirmation")
+                logEvent("❌ Sign request cancelled")
+                _state.update { it.copy(status = "Sign data request cancelled") }
+
+                // Auto-hide cancellation message
+                launch {
+                    delay(10000)
+                    _state.update { currentState ->
+                        if (currentState.status == "Sign data request cancelled") {
+                            currentState.copy(status = "WalletKit ready")
+                        } else {
+                            currentState
+                        }
+                    }
+                }
+            }.onFailure { error ->
+                _state.update { it.copy(error = error.message ?: "Failed to cancel sign request") }
             }
         }
     }
@@ -995,6 +1110,12 @@ class WalletKitViewModel(
                 session.walletAddress == address
             }
 
+            // Get creation date from stored record
+            val storedRecord = storage.loadWallet(address)
+            val createdAt = storedRecord?.createdAt
+            val interfaceType = storedRecord?.interfaceType?.let { WalletInterfaceType.fromValue(it) }
+                ?: WalletInterfaceType.MNEMONIC
+
             val summary = WalletSummary(
                 address = address,
                 name = metadata.name,
@@ -1006,6 +1127,8 @@ class WalletKitViewModel(
                 transactions = cachedTransactions,
                 lastUpdated = System.currentTimeMillis(),
                 connectedSessions = walletSessions,
+                createdAt = createdAt,
+                interfaceType = interfaceType,
             )
             result.add(summary)
             

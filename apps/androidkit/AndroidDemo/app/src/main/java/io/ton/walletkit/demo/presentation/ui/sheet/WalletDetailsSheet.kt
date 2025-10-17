@@ -42,9 +42,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.ui.components.NetworkBadge
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -125,6 +129,20 @@ fun WalletDetailsSheet(
                     DetailRow(
                         label = stringResource(R.string.wallet_details_version_label),
                         value = wallet.version,
+                    )
+
+                    wallet.createdAt?.let { timestamp ->
+                        HorizontalDivider()
+                        DetailRow(
+                            label = stringResource(R.string.wallet_details_created_at_label),
+                            value = formatCreatedDate(timestamp),
+                        )
+                    }
+
+                    HorizontalDivider()
+                    DetailRow(
+                        label = stringResource(R.string.wallet_details_interface_type_label),
+                        value = formatInterfaceType(wallet.interfaceType),
                     )
 
                     wallet.publicKey?.let { pubKey ->
@@ -283,6 +301,19 @@ private fun DetailRow(
             style = MaterialTheme.typography.bodyMedium,
             fontFamily = if (isMonospace) FontFamily.Monospace else FontFamily.Default,
         )
+    }
+}
+
+private fun formatCreatedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val formatter = SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", Locale.getDefault())
+    return formatter.format(date)
+}
+
+private fun formatInterfaceType(type: WalletInterfaceType): String {
+    return when (type) {
+        WalletInterfaceType.MNEMONIC -> "Mnemonic (Standard)"
+        WalletInterfaceType.SIGNER -> "Signer (Custom Confirmation)"
     }
 }
 
