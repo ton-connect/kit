@@ -1,12 +1,21 @@
 # TonConnect Kit
 
+## Documentation
+
+- **[WalletKit Integration Guide](packages/walletkit/DOCUMENTATION.md)** - Getting started with `@ton/walletkit` - setup, handling requests, and basic operations
+- **[Browser Extension Build](apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
+- **[JS Bridge Usage](packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+
 ## Testing
 
-The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness, expected coverage and quality parameters are stored in a [quality.config.js](quality.config.js), `jest` is also used for better IDE compatibility.
+The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](packages/walletkit/quality.config.js). `jest` is also used for better IDE compatibility.
 
 ```bash
-pnpm kit check   # lint and test
-pnpm kit quality # lint, test with coverage & mutation
+pnpm lint        # lint all packages
+pnpm lint:fix    # lint and auto-fix issues
+pnpm kit test    # run tests for walletkit
+pnpm kit quality # run tests with coverage for walletkit
+pnpm quality     # lint, build, and run quality checks for all packages
 ```
 
 
