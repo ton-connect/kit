@@ -1,6 +1,7 @@
 package io.ton.walletkit.demo.presentation.ui.screen
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -196,8 +197,11 @@ fun WalletScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            if (state.isLoadingWallets || state.isLoadingSessions) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            // Always reserve space for progress indicator to prevent content shift
+            Box(modifier = Modifier.fillMaxWidth().height(4.dp)) {
+                if (state.isLoadingWallets || state.isLoadingSessions) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
             }
             StatusHeader(state)
 
