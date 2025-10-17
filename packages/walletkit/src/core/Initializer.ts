@@ -3,7 +3,7 @@
 import { CHAIN } from '@tonconnect/protocol';
 
 import { TonWalletKitOptions, IWallet, DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
-import type { StorageAdapter } from '../storage';
+import type { StorageAdapter, StorageConfig } from '../storage';
 import { createStorageAdapter } from '../storage';
 import { WalletManager } from './WalletManager';
 import { SessionManager } from './SessionManager';
@@ -105,9 +105,13 @@ export class Initializer {
             return options.storage;
         }
 
-        return createStorageAdapter({
-            prefix: 'tonwalletkit:',
-        });
+        const createStorageOptions = {
+            prefix: (options?.storage as StorageConfig)?.prefix ?? 'tonwalletkit:',
+            maxRetries: (options?.storage as StorageConfig)?.maxRetries,
+            retryDelay: (options?.storage as StorageConfig)?.retryDelay,
+            allowMemory: (options?.storage as StorageConfig)?.allowMemory,
+        };
+        return createStorageAdapter(createStorageOptions);
     }
 
     /**

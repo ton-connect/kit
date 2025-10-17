@@ -2,7 +2,7 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import type { StorageAdapter } from '../storage';
+import type { StorageAdapter, StorageConfig } from '../storage';
 import { EventProcessorConfig } from '../core/EventProcessor';
 import { DeviceInfo, WalletInfo } from './jsBridge';
 import { BridgeConfig } from './internal';
@@ -21,14 +21,7 @@ export interface TonWalletKitOptions {
     /** Bridge settings */
     bridge?: BridgeConfig;
     /** Storage settings */
-    storage?:
-        | {
-              prefix?: string;
-              cacheTimeout?: number;
-              maxCacheSize?: number;
-              allowMemory?: boolean;
-          }
-        | StorageAdapter;
+    storage?: StorageConfig | StorageAdapter;
     /** Validation settings */
     validation?: {
         strictMode?: boolean;

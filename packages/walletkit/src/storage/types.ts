@@ -15,7 +15,6 @@ export interface StorageAdapter {
  */
 export interface StorageConfig {
     prefix?: string;
-    namespace?: string;
     maxRetries?: number;
     retryDelay?: number;
     allowMemory?: boolean;

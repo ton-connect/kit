@@ -1,10 +1,10 @@
-import { allureId, label, owner, subSuite, suite, tags } from 'allure-js-commons';
+import { allureId, label, suite, tags } from 'allure-js-commons';
 import type { TestInfo } from '@playwright/test';
+import { config } from 'dotenv';
 
 import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
 import { testWithDemoWalletFixture } from './demo-wallet';
 import type { TestFixture } from './qa';
-import { config } from 'dotenv';
 // Загружаем переменные окружения
 config();
 

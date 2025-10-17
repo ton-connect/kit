@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
 import type { TestInfo } from '@playwright/test';
-import { allureId, owner, suite, subSuite, tags, label } from 'allure-js-commons';
+import { allureId, suite, tags, label } from 'allure-js-commons';
 
 // Загружаем переменные окружения
 config();
@@ -37,11 +37,8 @@ async function runConnectTest(
 
     if (testAllureId && allureClient) {
         const testCaseData = await getTestCaseData(allureClient, testAllureId);
-        console.log('testCaseData', testCaseData);
         precondition = testCaseData.precondition;
-        console.log('precondition', precondition);
         expectedResult = testCaseData.expectedResult;
-        console.log('expectedResult', expectedResult);
     }
 
     await app.getByTestId('connectPrecondition').fill(precondition || '');
