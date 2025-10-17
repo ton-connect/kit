@@ -138,7 +138,12 @@ class WalletKitViewModel(
 
         _state.update { it.copy(initialized = true, status = "Ready", error = null) }
 
-        refreshAll()
+        // Load wallets first, then fetch transactions for active wallet
+        refreshWallets()
+        refreshSessions()
+
+        // Add delay after wallet loading to avoid rate limiting
+        delay(1000)
 
         // Restore saved active wallet after wallets are loaded
         if (savedActiveWallet != null) {
@@ -265,36 +270,34 @@ class WalletKitViewModel(
         }
     }
 
-    fun refreshWallets() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoadingWallets = true) }
-            val summaries = runCatching { loadWalletSummaries() }
-            summaries.onSuccess { wallets ->
-                val now = System.currentTimeMillis()
+    suspend fun refreshWallets() {
+        _state.update { it.copy(isLoadingWallets = true) }
+        val summaries = runCatching { loadWalletSummaries() }
+        summaries.onSuccess { wallets ->
+            val now = System.currentTimeMillis()
 
-                // Set active wallet based on saved preference or default to first
-                val activeAddress = state.value.activeWalletAddress
-                val newActiveAddress = when {
-                    wallets.isEmpty() -> null
-                    // Keep current active wallet if it still exists
-                    activeAddress != null && wallets.any { it.address == activeAddress } -> activeAddress
-                    // Otherwise use first wallet
-                    else -> wallets.firstOrNull()?.address
-                }
-
-                _state.update {
-                    it.copy(
-                        wallets = wallets,
-                        activeWalletAddress = newActiveAddress,
-                        lastUpdated = now,
-                        error = null,
-                    )
-                }
-            }.onFailure { error ->
-                _state.update { it.copy(error = error.message ?: "Failed to load wallets") }
+            // Set active wallet based on saved preference or default to first
+            val activeAddress = state.value.activeWalletAddress
+            val newActiveAddress = when {
+                wallets.isEmpty() -> null
+                // Keep current active wallet if it still exists
+                activeAddress != null && wallets.any { it.address == activeAddress } -> activeAddress
+                // Otherwise use first wallet
+                else -> wallets.firstOrNull()?.address
             }
-            _state.update { it.copy(isLoadingWallets = false) }
+
+            _state.update {
+                it.copy(
+                    wallets = wallets,
+                    activeWalletAddress = newActiveAddress,
+                    lastUpdated = now,
+                    error = null,
+                )
+            }
+        }.onFailure { error ->
+            _state.update { it.copy(error = error.message ?: "Failed to load wallets") }
         }
+        _state.update { it.copy(isLoadingWallets = false) }
     }
 
     fun refreshSessions() {
@@ -733,9 +736,12 @@ class WalletKitViewModel(
             // Save active wallet preference
             saveActiveWalletPreference(address)
 
-            // Refresh wallet state to get latest balance and transactions
+            // Refresh wallet state to get latest balance, then transactions
             refreshWallets()
             logEvent("Switched to wallet: ${wallet.name}")
+            
+            // Add delay before fetching transactions to avoid rate limiting
+            delay(1000)
             refreshTransactions(address)
         }
     }
@@ -980,23 +986,9 @@ class WalletKitViewModel(
             Log.d(LOG_TAG, "loadWalletSummaries: balance for $address = $balance")
             val formatted = balance?.let(::formatTon)
 
-            // Try to get transactions from cache first
+            // Use cached transactions only - don't fetch on every balance refresh
+            // Transactions will be fetched explicitly via refreshTransactions()
             val cachedTransactions = transactionCache.get(address)
-
-            // Fetch fresh transactions from network
-            val transactions = runCatching {
-                wallet.transactions()
-            }.onFailure {
-                Log.w(LOG_TAG, "loadWalletSummaries: transactions failed for $address", it)
-            }.getOrNull()
-
-            // Update cache and use merged result
-            val finalTransactions = if (transactions != null) {
-                transactionCache.update(address, transactions)
-            } else {
-                // If fetch failed, use cached transactions
-                cachedTransactions
-            }
 
             // Get sessions connected to this wallet
             val walletSessions = _state.value.sessions.filter { session ->
@@ -1011,11 +1003,17 @@ class WalletKitViewModel(
                 publicKey = publicKey,
                 balanceNano = balance,
                 balance = formatted,
-                transactions = finalTransactions,
+                transactions = cachedTransactions,
                 lastUpdated = System.currentTimeMillis(),
                 connectedSessions = walletSessions,
             )
             result.add(summary)
+            
+            // Add small delay between wallets to avoid rate limiting (429 errors)
+            // Only delay if there are more wallets to process
+            if (wallet != wallets.last()) {
+                delay(300) // 300ms delay between wallet API calls
+            }
         }
         return result
     }
