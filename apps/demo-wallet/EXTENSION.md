@@ -11,10 +11,12 @@ pnpm run build:extension
 ```
 
 This will:
-1. Compile TypeScript files
-2. Build the extension using the special Vite configuration
-3. Copy the manifest.json to the output directory
-4. Create a `dist-extension` folder with all necessary files
+1. Use the `vite.extension.config.ts` configuration with `vite-plugin-web-extension`
+2. Build the extension popup UI from `index.extension.html`
+3. Compile the background service worker (`src/extension/background.ts`)
+4. Compile the content script (`src/extension/content.ts`)
+5. Generate and copy `manifest.json` to the output directory
+6. Create a `dist-extension` folder with all necessary files
 
 ## Loading in Chrome
 
@@ -28,38 +30,52 @@ This will:
 
 The extension consists of:
 
-- **Popup**: The main wallet interface (same as the web app)
-- **Background Script**: Handles extension lifecycle and message passing
-- **Content Script**: Injects TON wallet provider into web pages
-- **Manifest**: Defines extension permissions and structure
+- **Popup** (`index.extension.html`): The main wallet interface shown when clicking the extension icon
+- **Background Service Worker** (`src/extension/background.ts`): Manifest V3 service worker handling extension lifecycle and message passing
+- **Content Script** (`src/extension/content.ts`): Injects TonConnect bridge into web pages using `@ton/walletkit/bridge`
+- **Manifest** (`public/manifest.json`): Manifest V3 configuration defining permissions and structure
 
-## Web Integration
+## TonConnect Integration
 
-When loaded as an extension, the wallet will inject a `window.tonWallet` object into all web pages, allowing dApps to interact with the wallet.
+When loaded as an extension, the content script injects the TonConnect bridge into all web pages, allowing dApps to connect to the wallet using the standard TonConnect protocol.
 
-### Available Methods
+### How It Works
+
+1. The content script (`content.ts`) runs on all web pages
+2. It calls `injectBridgeCode()` from `@ton/walletkit/bridge` to inject the TonConnect bridge
+3. dApps can then use the standard TonConnect SDK to interact with the wallet
+4. Messages are passed between the page and the extension via the bridge
+
+### For dApp Developers
+
+Use the standard TonConnect SDK to connect to this wallet:
 
 ```javascript
-// Connect to wallet
-await window.tonWallet.connect();
+import TonConnect from '@tonconnect/sdk';
 
-// Send transaction
-await window.tonWallet.sendTransaction(transaction);
-
-// Sign data
-await window.tonWallet.signData(data);
-
-// Disconnect
-await window.tonWallet.disconnect();
+const tonConnect = new TonConnect();
+await tonConnect.connectWallet();
 ```
+
+The wallet will appear as an available option when TonConnect detects the injected bridge.
 
 ## Development
 
-For development, you can:
+For development:
 
-1. Build the extension with `npm run build:extension`
-2. Load it in Chrome as described above
-3. Make changes to the source code
-4. Rebuild and reload the extension in Chrome
+1. **Build the extension**: `pnpm run build:extension`
+2. **Load it in Chrome** as described above
+3. **Make changes** to the source code
+4. **Rebuild**: `pnpm run build:extension`
+5. **Reload the extension** in Chrome:
+   - Go to `chrome://extensions/`
+   - Click the reload icon on the extension card
+   - Or use the keyboard shortcut: `Ctrl+R` while on the extensions page
 
-The extension will use the same wallet functionality as the web version, but packaged for browser extension use.
+For continuous development, you can use the watch mode:
+
+```bash
+pnpm run dev:extension
+```
+
+This will rebuild the extension automatically when you make changes. You'll still need to manually reload the extension in Chrome to see the updates. But you need to cautios, because not all changes will be auto reloaded, you still sometimes need to manually restart build.

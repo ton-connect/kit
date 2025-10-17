@@ -1,164 +1,320 @@
-# TonConnect JS Bridge Usage Examples
+# TonConnect JS Bridge for Browser Extensions
 
-This document demonstrates how to use the TonConnect JS Bridge functionality in the WalletKit.
+This guide shows how to build a browser extension wallet using WalletKit's JS Bridge functionality. The JS Bridge allows your extension to provide a `window.ton.tonconnect` API that dApps can use to connect and interact with your wallet.
 
-## Basic Usage
+**Live Example**: See the [demo-wallet extension](../../../apps/demo-wallet/) for a complete working implementation.
 
-### 1. Initialize WalletKit with JS Bridge
+## Architecture Overview
 
-```typescript
-import { TonWalletKit } from '@ton/walletkit';
+The JS Bridge uses a three-layer architecture to securely connect dApps with your wallet extension:
 
-const walletKit = new TonWalletKit({
-    bridgeUrl: 'https://bridge.tonapi.io/bridge',
-    network: CHAIN.MAINNET,
-});
-
-// JS Bridge is automatically initialized and available
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Web Page (dApp)                                            │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  window.ton.tonconnect                         │  │
+│  │  - connect()                                         │  │
+│  │  - send()                                            │  │
+│  │  - restoreConnection()                               │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                         ↕ chrome.runtime.sendMessage
+┌─────────────────────────────────────────────────────────────┐
+│  Extension Background Script                                 │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  TonWalletKit                                        │  │
+│  │  - processInjectedBridgeRequest()                    │  │
+│  │  - onConnectRequest()                                │  │
+│  │  - onTransactionRequest()                            │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 2. Generate Injection Code
+**Flow:**
+1. **Injected Code** runs in the page context and provides the `window.ton.tonconnect` API to dApps
+2. **Background Script** receives requests via `chrome.runtime.onMessageExternal` and processes them through WalletKit
+3. **Responses** are sent back through the same message channel
 
-```typescript
-// Generate injection code for a specific wallet
-const injectCode = walletKit.getInjectCode({
-    walletName: 'tonkeeper',
-    deviceInfo: {
-        platform: 'web',
-        appName: 'My Wallet',
-        appVersion: '1.0.0',
-        maxProtocolVersion: 2,
-        features: ['SendTransaction', 'SignData'],
-    },
-});
+## Step 1: Extension Manifest Setup
 
-// In extension content script:
-const script = document.createElement('script');
-script.textContent = injectCode;
-document.head.appendChild(script);
-script.remove();
+Create a `manifest.json` with the required permissions:
 
-// Now window.tonkeeper.tonconnect is available to dApps
+```json
+{
+  "manifest_version": 3,
+  "name": "My TON Wallet",
+  "version": "1.0.0",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "externally_connectable": {
+    "matches": ["<all_urls>"]
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
 ```
 
-### 3. Handle Bridge Requests (Extension Content Script)
+**Key permissions:**
+- `storage` - Store wallet data and sessions
+- `scripting` - Inject content scripts dynamically
+- `tabs` - Monitor page loads for injection
+- `externally_connectable` - Allow web pages to send messages to your extension
+
+## Step 2: Background Script - Initialize WalletKit
+
+Create `background.js` to handle the wallet logic:
 
 ```typescript
-// Listen for bridge requests from injected code
-window.addEventListener('message', async (event) => {
-    if (event.source !== window || event.data.source !== 'tonkeeper-tonconnect') {
+import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
+import type { 
+    InjectedToExtensionBridgeRequest, 
+    InjectedToExtensionBridgeRequestPayload 
+} from '@ton/walletkit';
+
+let walletKit: TonWalletKit | null = null;
+
+// Initialize WalletKit with extension storage
+async function initializeWalletKit() {
+    try {
+        walletKit = new TonWalletKit({
+            deviceInfo: {
+                platform: 'browser',
+                appName: 'My TON Wallet',
+                appVersion: '1.0.0',
+                maxProtocolVersion: 2,
+                features: [
+                    'SendTransaction',
+                    { name: 'SendTransaction', maxMessages: 4 },
+                    { name: 'SignData', types: ['text', 'binary', 'cell'] }
+                ]
+            },
+            walletManifest: {
+                name: 'mywallet',
+                appName: 'My TON Wallet',
+                aboutUrl: 'https://example.com/about',
+                imageUrl: 'https://example.com/icon.png',
+                platforms: ['chrome', 'firefox'],
+                jsBridgeKey: 'mywallet',  // window.mywallet.tonconnect
+                injected: true,
+                embedded: false,
+                bridgeUrl: 'https://connect.ton.org/bridge',
+                features: [
+                    'SendTransaction',
+                    { name: 'SendTransaction', maxMessages: 4 }
+                ]
+            },
+            storage: new ExtensionStorageAdapter({}, chrome.storage.local)
+        });
+
+        await walletKit.waitForReady();
+        console.log('WalletKit initialized');
+    } catch (error) {
+        console.error('Failed to initialize WalletKit:', error);
+    }
+}
+
+// Initialize on extension install/startup
+chrome.runtime.onInstalled.addListener(() => {
+    initializeWalletKit();
+});
+initializeWalletKit();
+```
+
+## Step 3: Background Script - Handle Bridge Requests
+
+Listen for requests from the injected bridge and process them through WalletKit:
+
+```typescript
+// Type guard for bridge requests
+function isBridgeRequest(message: unknown): asserts message is InjectedToExtensionBridgeRequest {
+    if (
+        typeof message !== 'object' ||
+        message === null ||
+        !('type' in message) ||
+        message.type !== 'TONCONNECT_BRIDGE_REQUEST'
+    ) {
+        throw new Error('Invalid bridge request');
+    }
+}
+
+// Listen for messages from injected bridge
+chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
+    if (message.type !== 'TONCONNECT_BRIDGE_REQUEST') {
         return;
     }
+
+    isBridgeRequest(message);
     
-    if (event.data.type === 'TONCONNECT_BRIDGE_REQUEST') {
-        try {
-            // Process request through WalletKit
-            const result = await walletKit.processBridgeRequest(event.data);
-            
-            // Send response back to injected bridge
-            window.postMessage({
-                type: 'TONCONNECT_BRIDGE_RESPONSE',
-                source: 'tonkeeper-tonconnect',
-                messageId: event.data.messageId,
-                success: true,
-                result,
-            }, '*');
-        } catch (error) {
-            // Send error response
-            window.postMessage({
-                type: 'TONCONNECT_BRIDGE_RESPONSE',
-                source: 'tonkeeper-tonconnect',
-                messageId: event.data.messageId,
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error',
-            }, '*');
-        }
+    try {
+        // Extract request metadata
+        const messageInfo = {
+            messageId: message.messageId,
+            tabId: sender.tab?.id?.toString(),
+            domain: sender.tab?.url ? new URL(sender.tab.url).hostname : undefined
+        };
+
+        // Process through WalletKit
+        const result = await walletKit?.processInjectedBridgeRequest(
+            messageInfo,
+            message.payload
+        );
+
+        sendResponse({ success: true, result });
+    } catch (error) {
+        console.error('Bridge request failed:', error);
+        sendResponse({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 });
 ```
 
-## Advanced Usage
 
-### 1. Custom JS Bridge Manager
+
+## Step 4: Content Script - Inject the Bridge
+
+Create `content.js` to inject the bridge into web pages:
 
 ```typescript
-import { JSBridgeManager } from '@ton/walletkit';
+import { Buffer } from 'buffer';
+import { injectBridgeCode } from '@ton/walletkit/bridge';
 
-const jsBridgeManager = walletKit.getJSBridgeManager();
+// Polyfill Buffer for web context
+window.Buffer = Buffer;
+if (globalThis && !globalThis.Buffer) {
+    globalThis.Buffer = Buffer;
+}
 
-if (jsBridgeManager) {
-    // Update configuration
-    jsBridgeManager.updateConfiguration({
-        defaultWalletName: 'myWallet',
-        deviceInfo: {
-            appName: 'Custom Wallet App',
-            appVersion: '2.0.0',
-        },
-    });
-    
-    // Create a pre-configured injector
-    const injector = jsBridgeManager.createInjector('myWallet');
-    const code = injector();
+// Inject the TonConnect bridge
+function injectTonConnectBridge() {
+    try {
+        injectBridgeCode(window, {
+            deviceInfo: {
+                platform: 'browser',
+                appName: 'My TON Wallet',
+                appVersion: '1.0.0',
+                maxProtocolVersion: 2,
+                features: ['SendTransaction', 'SignData']
+            },
+            walletInfo: {
+                name: 'mywallet',
+                appName: 'My TON Wallet',
+                jsBridgeKey: 'mywallet',
+                injected: true,
+                embedded: false
+            }
+        });
+
+        console.log('TonConnect bridge injected - window.ton.tonconnect is available');
+    } catch (error) {
+        console.error('Failed to inject TonConnect bridge:', error);
+    }
+}
+
+injectTonConnectBridge();
+```
+
+## Step 5: Dynamic Content Script Injection
+
+Instead of declaring content scripts in the manifest, inject them dynamically when pages load:
+
+```typescript
+// In background.js
+
+// Inject content script into all pages on load
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'loading' && tab.url) {
+        await injectContentScript(tabId);
+    }
+});
+
+async function injectContentScript(tabId: number) {
+    try {
+        const tab = await chrome.tabs.get(tabId);
+        
+        // Skip restricted pages
+        if (tab.url?.startsWith('chrome://') || tab.url?.startsWith('chrome-extension://')) {
+            return;
+        }
+
+        // Inject content script into main world (page context)
+        await chrome.scripting.executeScript({
+            target: { tabId, allFrames: true },
+            files: ['content.js'],
+            world: 'MAIN' as any  // Access to window object
+        });
+
+        // Inject extension ID so bridge can communicate
+        await chrome.scripting.executeScript({
+            target: { tabId, allFrames: true },
+            args: [chrome.runtime.id],
+            func: (extensionId) => {
+                window.postMessage({
+                    type: 'INJECT_EXTENSION_ID',
+                    extensionId
+                }, '*');
+            }
+        });
+    } catch (error) {
+        console.error('Error injecting script:', error);
+    }
 }
 ```
 
-### 2. Wallet Name Validation
+## How dApps Use Your Wallet
 
-```typescript
-import { validateWalletName, isValidWalletName } from '@ton/walletkit';
-
-// Validate wallet name before injection
-try {
-    validateWalletName('tonkeeper'); // ✅ Valid
-    validateWalletName('eval'); // ❌ Throws error - reserved word
-} catch (error) {
-    console.error('Invalid wallet name:', error.message);
-}
-
-// Or use non-throwing version
-if (isValidWalletName('tonkeeper')) {
-    const injectCode = walletKit.getInjectCode({ walletName: 'tonkeeper' });
-}
-```
-
-### 3. dApp Integration (How dApps Use the Bridge)
+Once injected, dApps can detect and use your wallet:
 
 ```javascript
-// dApp side - using the injected bridge
-if (window.tonkeeper && window.tonkeeper.tonconnect) {
-    const bridge = window.tonkeeper.tonconnect;
+// dApp code - check if wallet is available
+if (window.ton && window.ton.tonconnect) {
+    const bridge = window.ton.tonconnect;
     
     // Connect to wallet
-    try {
-        const connectResult = await bridge.connect(2, {
-            manifestUrl: 'https://mydapp.com/tonconnect-manifest.json',
-            items: [
-                { name: 'ton_addr' },
-                { name: 'ton_proof', payload: 'my-proof-payload' }
-            ]
-        });
-        
-        console.log('Connected:', connectResult);
-        
-        // Send transaction
-        const txResult = await bridge.send({
-            method: 'sendTransaction',
-            params: [{
-                validUntil: Math.floor(Date.now() / 1000) + 600,
-                messages: [{
-                    address: 'EQD...',
-                    amount: '1000000000', // 1 TON in nanotons
-                    payload: ''
-                }]
-            }],
-            id: Date.now().toString()
-        });
-        
-        console.log('Transaction sent:', txResult);
-        
-    } catch (error) {
-        console.error('Bridge error:', error);
-    }
+    const result = await bridge.connect(2, {
+        manifestUrl: 'https://mydapp.com/tonconnect-manifest.json',
+        items: [
+            { name: 'ton_addr' },
+            { name: 'ton_proof', payload: 'proof-payload' }
+        ]
+    });
+    
+    console.log('Connected:', result);
+    
+    // Send transaction
+    const txResult = await bridge.send({
+        method: 'sendTransaction',
+        params: [{
+            validUntil: Math.floor(Date.now() / 1000) + 600,
+            messages: [{
+                address: 'EQD...',
+                amount: '1000000000',  // 1 TON
+                payload: ''
+            }]
+        }],
+        id: '1'
+    });
+    
+    // Listen for events
+    bridge.listen((event) => {
+        console.log('Wallet event:', event);
+    });
 }
 ```
 
@@ -166,76 +322,152 @@ if (window.tonkeeper && window.tonkeeper.tonconnect) {
 
 ### 1. Collision Detection
 
-The bridge automatically checks if `window[walletName].tonconnect` already exists and skips injection if found:
+The bridge automatically checks if `window.ton.tonconnect` already exists and skips injection:
 
-```javascript
-// In injected code
-if (window.tonkeeper && window.tonkeeper.tonconnect) {
-    console.log('tonkeeper.tonconnect already exists, skipping injection');
+```typescript
+if (window.ton && window.ton.tonconnect) {
+    console.log('ton.tonconnect already exists, skipping injection');
     return;
 }
 ```
 
-### 2. Wallet Name Validation
+### 2. Secure Message Protocol
 
-Comprehensive validation prevents dangerous wallet names:
-
-- Must be valid JavaScript identifier
-- Cannot be reserved words (eval, function, etc.)
-- Cannot contain dangerous patterns
-- Length limits (2-50 characters)
-- No double underscore prefix
-
-### 3. Secure Message Protocol
-
-All communication uses structured message protocol with:
+All communication uses Chrome's message passing with:
 - Message type validation
-- Source verification
-- Timeout handling
-- Error boundaries
+- Source verification (sender.tab)
+- Request/response matching via messageId
+- Built-in timeouts (30s for connect, 10s for restore, 60s for send)
 
-## Error Handling
+### 3. Extension ID Injection
 
-### Common Errors and Solutions
+The extension ID is securely passed to the injected code so it knows where to send messages:
 
-1. **"Wallet name is a reserved word"**
-   ```typescript
-   // ❌ Bad
-   walletKit.getInjectCode({ walletName: 'eval' });
-   
-   // ✅ Good
-   walletKit.getInjectCode({ walletName: 'myWallet' });
-   ```
+```typescript
+// Background injects the extension ID
+window.postMessage({
+    type: 'INJECT_EXTENSION_ID',
+    extensionId: chrome.runtime.id
+}, '*');
 
-2. **"JS Bridge Manager is not available"**
-   ```typescript
-   // Check if JS Bridge is available
-   const jsBridge = walletKit.getJSBridgeManager();
-   if (jsBridge && jsBridge.isAvailable()) {
-       // Safe to use
-   }
-   ```
-
-3. **"Connection timeout"**
-   ```javascript
-   // Bridge has built-in timeouts:
-   // - Connect: 30 seconds
-   // - Restore: 10 seconds  
-   // - Send: 60 seconds
-   ```
-
-## Browser Extension Manifest
-
-For browser extensions, ensure proper permissions:
-
-```json
-{
-  "manifest_version": 3,
-  "permissions": ["activeTab"],
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["content.js"],
-    "run_at": "document_start"
-  }]
+// Injected bridge receives and stores it
+if (data.type === 'INJECT_EXTENSION_ID') {
+    extensionId = data.extensionId;
 }
 ```
+
+## Troubleshooting
+
+### Extension ID not available
+
+**Problem:** Injected code can't send messages because `extensionId` is undefined.
+
+**Solution:** Ensure the extension ID is injected before any dApp tries to use the bridge:
+
+```typescript
+// Wait for extension ID
+let extensionId: string | undefined;
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'INJECT_EXTENSION_ID') {
+        extensionId = event.data.extensionId;
+    }
+});
+```
+
+### Content script not injecting
+
+**Problem:** Bridge not available on some pages.
+
+**Solution:** 
+1. Check `host_permissions` in manifest includes `<all_urls>`
+2. Verify `externally_connectable` is configured
+3. Make sure `world: 'MAIN'` is set for script injection
+4. Check browser console for injection errors
+
+### chrome:// pages restriction
+
+**Problem:** Can't inject into chrome:// or extension pages.
+
+**Solution:** Filter these out before injection:
+
+```typescript
+if (tab.url?.startsWith('chrome://') || 
+    tab.url?.startsWith('chrome-extension://')) {
+    return;  // Skip injection
+}
+```
+
+### Message not reaching background script
+
+**Problem:** `chrome.runtime.sendMessage` fails silently.
+
+**Solution:**
+1. Ensure `externally_connectable.matches` includes the page's URL
+2. Check that background script is running (service worker may sleep)
+3. Verify `chrome.runtime.onMessageExternal` listener is registered
+
+### Request timeouts
+
+**Problem:** Requests timeout before user responds.
+
+**Built-in timeouts:**
+- Connect: 30 seconds
+- Restore connection: 10 seconds
+- Send transaction: 60 seconds
+
+These are handled automatically by the injected bridge, but consider showing UI to users before timeout expires.
+
+## Advanced: Customizing Device & Wallet Info
+
+You can customize how your wallet appears to dApps:
+
+```typescript
+// Custom device info
+const deviceInfo = {
+    platform: 'browser',
+    appName: 'My Custom Wallet',
+    appVersion: '2.0.0',
+    maxProtocolVersion: 2,
+    features: [
+        'SendTransaction',
+        {
+            name: 'SendTransaction',
+            maxMessages: 4  // Support up to 4 messages per transaction
+        },
+        {
+            name: 'SignData',
+            types: ['text', 'binary', 'cell']  // Supported data types
+        }
+    ]
+};
+
+// Custom wallet manifest
+const walletInfo = {
+    name: 'mycustomwallet',  // Unique identifier
+    appName: 'My Custom Wallet',
+    aboutUrl: 'https://mycustomwallet.com',
+    imageUrl: 'https://mycustomwallet.com/icon.png',
+    platforms: ['chrome', 'firefox', 'safari'],
+    jsBridgeKey: 'mycustomwallet',  // window.mycustomwallet.tonconnect
+    injected: true,
+    embedded: false,
+    tondns: 'mycustomwallet.ton',
+    bridgeUrl: 'https://bridge.tonapi.io/bridge',
+    universalLink: 'https://mycustomwallet.com/ton-connect',
+    features: [/* same as deviceInfo.features */]
+};
+```
+
+## Complete Example
+
+See the full working implementation in the [demo-wallet](../../../apps/demo-wallet/src/extension/) directory:
+
+- [`background_main.ts`](../../../apps/demo-wallet/src/extension/background_main.ts) - Background script with WalletKit integration
+- [`content.ts`](../../../apps/demo-wallet/src/extension/content.ts) - Content script injection
+- [`manifest.json`](../../../apps/demo-wallet/public/manifest.json) - Extension manifest
+
+## Resources
+
+- [TonConnect Documentation](https://docs.ton.org/develop/dapps/ton-connect)
+- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/mv3/)
+- [WalletKit Main Documentation](../DOCUMENTATION.md)
