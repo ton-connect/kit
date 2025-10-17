@@ -31,7 +31,6 @@ import {
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
-import { EmulationErrorUnknown } from '../types/emulation/errors';
 import { WalletManager } from '../core/WalletManager';
 import { TransactionPreviewEmulationError } from '../types/events';
 import { ReturnWithValidationResult } from '../validation/types';
@@ -113,7 +112,10 @@ export class TransactionHandler
         } catch (error) {
             log.error('Failed to create transaction preview', { error });
             preview = {
-                emulationError: new EmulationErrorUnknown('Unknown emulation error', error),
+                emulationError: {
+                    code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                    message: 'Unknown emulation error',
+                },
                 result: 'error',
             } as TransactionPreviewEmulationError;
         }
@@ -319,10 +321,13 @@ export class TransactionHandler
             } else {
                 return emulatedResult;
             }
-        } catch (error) {
+        } catch (_error) {
             return {
                 result: 'error',
-                emulationError: new EmulationErrorUnknown('Unknown emulation error', error),
+                emulationError: {
+                    code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                    message: 'Unknown emulation error',
+                },
             };
         }
 

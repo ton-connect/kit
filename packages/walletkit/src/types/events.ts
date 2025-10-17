@@ -18,8 +18,8 @@ import {
 } from './internal';
 import { MoneyFlow } from '../utils/toncenterEmulation';
 import { ToncenterEmulationResponse } from './toncenter/emulation';
-import { EmulationError } from './emulation/errors';
 import { Hex } from './primitive';
+import { ErrorInfo } from '../errors';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -166,7 +166,7 @@ export type TransactionPreview = TransactionPreviewEmulationError | TransactionP
 
 export interface TransactionPreviewEmulationError {
     result: 'error';
-    emulationError: EmulationError;
+    emulationError: ErrorInfo;
 }
 
 export interface TransactionPreviewEmulationResult {

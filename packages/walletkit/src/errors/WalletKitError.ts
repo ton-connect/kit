@@ -1,5 +1,11 @@
 import { ERROR_CODES, type ErrorCode, getErrorCodeName } from './codes';
 
+export interface ErrorInfo {
+    code?: number;
+    message?: string;
+    data?: Record<string, unknown>;
+}
+
 /**
  * Generic error class for WalletKit that wraps standard Error with error codes
  */

@@ -3,7 +3,8 @@ import { parseInternal } from '@truecarry/tlb-abi';
 
 import { ConnectTransactionParamContent } from '../types/internal';
 import { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
-import { EmulationError, EmulationErrorTransactionAccountNotFound } from '../types/emulation/errors';
+import { ErrorInfo } from '../errors/WalletKitError';
+import { ERROR_CODES } from '../errors/codes';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -49,7 +50,7 @@ export type ToncenterEmulationResult =
       }
     | {
           result: 'error';
-          emulationError: EmulationError;
+          emulationError: ErrorInfo;
       };
 
 export interface ToncenterEmulationHook {
@@ -108,7 +109,10 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
             if (errorMessage.error === 'Failed to fetch account state: Account not found in accounts_dict') {
                 return {
                     result: 'error',
-                    emulationError: new EmulationErrorTransactionAccountNotFound('Account not found'),
+                    emulationError: {
+                        code: ERROR_CODES.ACCOUNT_NOT_FOUND,
+                        message: 'Account not found',
+                    },
                 };
             }
         } catch (_) {

@@ -6,8 +6,9 @@ import { WalletTonInterface, TonTransferParams, TonTransferManyParams } from '..
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
-import { EmulationErrorUnknown } from '../../../types/emulation/errors';
 import { ApiClient } from '../../../types/toncenter/ApiClient';
+import { ERROR_CODES } from '../../../errors/codes';
+import { createErrorInfo } from '../../../errors/wrapper';
 
 export class WalletTonClass implements WalletTonInterface {
     client: ApiClient;
@@ -103,7 +104,7 @@ export class WalletTonClass implements WalletTonInterface {
         return {
             preview: {
                 result: 'error',
-                emulationError: new EmulationErrorUnknown('Unknown emulation error'),
+                emulationError: createErrorInfo(ERROR_CODES.UNKNOWN_EMULATION_ERROR),
             },
         };
     }
