@@ -54,9 +54,43 @@ object TONWalletKit {
      * This method must be called before using any other SDK functionality.
      * Calling it multiple times will have no effect (first call wins).
      *
+     * **Event Handler:**
+     * The provided event handler will receive all wallet events (connection requests,
+     * transaction requests, sign data requests, disconnects). Implement the
+     * [TONBridgeEventsHandler] interface to handle these events.
+     *
+     * **Usage Example:**
+     * ```kotlin
+     * TONWalletKit.initialize(
+     *     context = context,
+     *     configuration = config,
+     *     eventsHandler = object : TONBridgeEventsHandler {
+     *         override fun handle(event: TONWalletKitEvent) {
+     *             when (event) {
+     *                 is TONWalletKitEvent.ConnectRequest -> {
+     *                     // Handle connection request
+     *                     event.request.approve(walletAddress)
+     *                 }
+     *                 is TONWalletKitEvent.TransactionRequest -> {
+     *                     // Handle transaction request
+     *                     event.request.approve()
+     *                 }
+     *                 is TONWalletKitEvent.SignDataRequest -> {
+     *                     // Handle sign data request
+     *                     event.request.approve()
+     *                 }
+     *                 is TONWalletKitEvent.Disconnect -> {
+     *                     // Handle disconnect
+     *                 }
+     *             }
+     *         }
+     *     }
+     * )
+     * ```
+     *
      * @param context Android context (required for storage and WebView initialization)
-     * @param configuration SDK configuration
-     * @param eventsHandler Handler for SDK events (connections, transactions, etc.)
+     * @param configuration SDK configuration (network, manifest, bridge, features, storage)
+     * @param eventsHandler Handler for SDK events (connections, transactions, sign data, disconnects)
      * @throws WalletKitBridgeException if initialization fails
      */
     suspend fun initialize(
@@ -68,22 +102,13 @@ object TONWalletKit {
             return // Already initialized
         }
 
-        // Create engine
+        // Create engine with configuration and events handler using the WebView implementation
         val newEngine = WalletKitEngineFactory.create(
             kind = WalletKitEngineKind.WEBVIEW,
             context = context,
+            configuration = configuration,
+            eventsHandler = eventsHandler,
         )
-
-        // Add event handler that forwards events to registered handlers
-        newEngine.addEventHandler(object : TONBridgeEventsHandler {
-            override fun handle(event: io.ton.walletkit.presentation.event.TONWalletKitEvent) {
-                // Engine now returns public TONWalletKitEvent types, forward directly
-                eventsHandler.handle(event)
-            }
-        })
-
-        // Initialize engine
-        newEngine.init(configuration)
 
         engine = newEngine
     }

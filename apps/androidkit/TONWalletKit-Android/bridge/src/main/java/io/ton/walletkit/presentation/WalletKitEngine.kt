@@ -9,8 +9,6 @@ import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
 import io.ton.walletkit.presentation.event.ConnectRequestEvent
 import io.ton.walletkit.presentation.event.SignDataRequestEvent
 import io.ton.walletkit.presentation.event.TransactionRequestEvent
-import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
-import java.io.Closeable
 
 /**
  * Abstraction over a runtime that can execute the WalletKit JavaScript bundle and expose
@@ -25,21 +23,12 @@ import java.io.Closeable
  * If you need custom configuration, call [init] with your config before other methods.
  *
  * **Event Handling:**
- * Supports [addEventHandler] with [WalletKitEventHandler] for type-safe sealed events.
+ * Events are handled via the eventsHandler passed during engine creation.
  *
  * @suppress Internal engine abstraction. Use TONWalletKit and TONWallet public API instead.
  */
 internal interface WalletKitEngine {
     val kind: WalletKitEngineKind
-
-    /**
-     * Add an event handler for type-safe event handling.
-     * Use this for exhaustive when() expressions with the sealed TONWalletKitEvent class.
-     *
-     * @param handler Event handler that receives typed TONWalletKitEvent sealed class instances
-     * @return Closeable to remove the handler
-     */
-    fun addEventHandler(handler: TONBridgeEventsHandler): Closeable
 
     /**
      * Initialize WalletKit with custom configuration. This must be called before any other method;

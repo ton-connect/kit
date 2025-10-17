@@ -14,11 +14,8 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
-import io.ton.walletkit.data.model.PendingEvent
-import io.ton.walletkit.data.storage.WalletKitStorage
 import io.ton.walletkit.data.storage.bridge.BridgeStorageAdapter
 import io.ton.walletkit.data.storage.bridge.SecureBridgeStorageAdapter
-import io.ton.walletkit.data.storage.impl.SecureWalletKitStorage
 import io.ton.walletkit.domain.constants.BridgeMethodConstants
 import io.ton.walletkit.domain.constants.EventTypeConstants
 import io.ton.walletkit.domain.constants.JsonConstants
@@ -51,9 +48,7 @@ import io.ton.walletkit.presentation.request.TONWalletConnectionRequest
 import io.ton.walletkit.presentation.request.TONWalletSignDataRequest
 import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -62,10 +57,8 @@ import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.Closeable
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * WebView-backed WalletKit engine. Hosts the WalletKit bundle inside a hidden WebView and uses the
@@ -79,6 +72,8 @@ import java.util.concurrent.CopyOnWriteArraySet
  */
 internal class WebViewWalletKitEngine(
     context: Context,
+    private val configuration: TONWalletKitConfiguration,
+    private val eventsHandler: TONBridgeEventsHandler,
     private val assetPath: String = WebViewConstants.DEFAULT_ASSET_PATH,
 ) : WalletKitEngine {
     override val kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW
@@ -93,9 +88,6 @@ internal class WebViewWalletKitEngine(
 
     // Secure storage adapter for the bridge (conditionally enabled based on config)
     private val storageAdapter: BridgeStorageAdapter = SecureBridgeStorageAdapter(appContext)
-
-    // Secure storage for pending events (automatic retry mechanism)
-    private val eventStorage: WalletKitStorage = SecureWalletKitStorage(appContext)
 
     // Whether persistent storage is enabled (set during init)
     @Volatile private var persistentStorageEnabled: Boolean = true
@@ -121,7 +113,6 @@ internal class WebViewWalletKitEngine(
     private val jsBridgeReady = CompletableDeferred<Unit>()
     private val ready = CompletableDeferred<Unit>()
     private val pending = ConcurrentHashMap<String, CompletableDeferred<BridgeResponse>>()
-    private val eventHandlers = CopyOnWriteArraySet<TONBridgeEventsHandler>()
 
     @Volatile private var currentNetwork: String = NetworkConstants.DEFAULT_NETWORK
 
@@ -133,6 +124,10 @@ internal class WebViewWalletKitEngine(
     @Volatile private var isWalletKitInitialized = false
     private val walletKitInitMutex = Mutex()
     private var pendingInitConfig: TONWalletKitConfiguration? = null
+
+    // Event listeners state (set up on-demand when first needed)
+    @Volatile private var areEventListenersSetUp = false
+    private val eventListenersSetupMutex = Mutex()
 
     init {
         // Initialize WebView synchronously if already on main thread, otherwise post to main thread
@@ -229,19 +224,6 @@ internal class WebViewWalletKitEngine(
      * @suppress Internal debugging method. Not part of public API.
      */
     internal fun asView(): WebView = webView
-
-    override fun addEventHandler(handler: TONBridgeEventsHandler): Closeable {
-        eventHandlers.add(handler)
-
-        // Replay any pending events when a handler is registered (async, non-blocking)
-        if (persistentStorageEnabled) {
-            CoroutineScope(Dispatchers.IO).launch {
-                replayPendingEvents()
-            }
-        }
-
-        return Closeable { eventHandlers.remove(handler) }
-    }
 
     /**
      * Ensures WalletKit is initialized. If not already initialized, performs initialization
@@ -383,6 +365,11 @@ internal class WebViewWalletKitEngine(
             },
         )
         call(BridgeMethodConstants.METHOD_INIT, payload)
+
+        // Event listeners are NOT set up automatically during init
+        // They will be set up on-demand when needed (e.g., when handleTonConnectUrl is called)
+        // This matches commit 9b36a4a: "Setup event listeners on demand"
+        Log.d(TAG, "WalletKit initialized. Event listeners will be set up on-demand.")
     }
 
     override suspend fun init(configuration: TONWalletKitConfiguration) {
@@ -395,6 +382,35 @@ internal class WebViewWalletKitEngine(
 
         // Ensure initialization happens with this config
         ensureWalletKitInitialized(configuration)
+    }
+
+    /**
+     * Ensures event listeners are set up in the JavaScript bridge. This is called on-demand
+     * when an operation needs events (e.g., handleTonConnectUrl). This matches the bridge behavior
+     * where event listeners are set up when first needed, not during initialization.
+     */
+    private suspend fun ensureEventListenersSetUp() {
+        // Fast path: already set up
+        if (areEventListenersSetUp) {
+            return
+        }
+
+        eventListenersSetupMutex.withLock {
+            // Double-check after acquiring lock
+            if (areEventListenersSetUp) {
+                return@withLock
+            }
+
+            try {
+                // Call JavaScript setEventsListeners() to start forwarding events
+                call(BridgeMethodConstants.METHOD_SET_EVENTS_LISTENERS, JSONObject())
+                areEventListenersSetUp = true
+                Log.d(TAG, "Event listeners set up successfully (on-demand)")
+            } catch (err: Throwable) {
+                Log.e(TAG, "Failed to set up event listeners", err)
+                throw WalletKitBridgeException("Failed to set up event listeners: ${err.message}")
+            }
+        }
     }
 
     override suspend fun addWalletFromMnemonic(
@@ -633,6 +649,7 @@ internal class WebViewWalletKitEngine(
 
     override suspend fun handleTonConnectUrl(url: String) {
         ensureWalletKitInitialized()
+        ensureEventListenersSetUp()
         val params = JSONObject().apply { put(ResponseConstants.KEY_URL, url) }
         call(BridgeMethodConstants.METHOD_HANDLE_TON_CONNECT_URL, params)
     }
@@ -769,6 +786,16 @@ internal class WebViewWalletKitEngine(
 
     override suspend fun destroy() {
         withContext(Dispatchers.Main) {
+            // Remove event listeners before destroying
+            try {
+                if (isWalletKitInitialized) {
+                    Log.d(TAG, "Removing event listeners before destroy...")
+                    call(BridgeMethodConstants.METHOD_REMOVE_EVENT_LISTENERS, JSONObject())
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to remove event listeners during destroy", e)
+            }
+
             (webView.parent as? ViewGroup)?.removeView(webView)
             webView.removeJavascriptInterface(WebViewConstants.JS_INTERFACE_NAME)
             webView.stopLoading()
@@ -917,41 +944,18 @@ internal class WebViewWalletKitEngine(
         Log.d(TAG, MSG_EVENT_DATA_KEYS_PREFIX + data.keys().asSequence().toList())
         Log.d(TAG, ERROR_EVENT_PREFIX + type + ERROR_BRACKET_SUFFIX)
 
-        // Check if we have any handlers
-        if (eventHandlers.isEmpty()) {
-            Log.w(TAG, MSG_NO_EVENT_HANDLERS)
-            if (persistentStorageEnabled) {
-                saveEventForRetry(eventId, type, data.toString())
-            }
-            return
-        }
-
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data, event)
         Log.d(TAG, MSG_PARSED_TYPED_EVENT_PREFIX + (typedEvent?.javaClass?.simpleName ?: ResponseConstants.VALUE_UNKNOWN))
 
         if (typedEvent != null) {
-            Log.d(TAG, MSG_NOTIFYING_EVENT_HANDLERS_PREFIX + eventHandlers.size + MSG_EVENT_HANDLERS_SUFFIX)
-            var anyHandlerFailed = false
+            Log.d(TAG, MSG_NOTIFYING_EVENT_HANDLER)
 
-            eventHandlers.forEach { handler ->
-                mainHandler.post {
-                    try {
-                        handler.handle(typedEvent)
-                        // Successfully handled, clear from storage if it was pending
-                        if (persistentStorageEnabled) {
-                            runBlocking {
-                                eventStorage.deletePendingEvent(eventId)
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
-                        anyHandlerFailed = true
-                        // Save for retry
-                        if (persistentStorageEnabled) {
-                            saveEventForRetry(eventId, type, data.toString())
-                        }
-                    }
+            mainHandler.post {
+                try {
+                    eventsHandler.handle(typedEvent)
+                } catch (e: Exception) {
+                    Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
                 }
             }
         } else {
@@ -1276,69 +1280,6 @@ internal class WebViewWalletKitEngine(
         }
     }
 
-    /**
-     * Save an event to storage for later retry.
-     * Called when no handlers are registered or when a handler throws.
-     */
-    private fun saveEventForRetry(eventId: String, type: String, dataJson: String) {
-        runBlocking {
-            try {
-                val event = PendingEvent(
-                    id = eventId,
-                    type = type,
-                    data = dataJson,
-                    timestamp = System.currentTimeMillis().toString(),
-                    retryCount = 0,
-                )
-                eventStorage.savePendingEvent(event)
-                Log.d(TAG, MSG_SAVED_EVENT_FOR_RETRY_PREFIX + eventId + MSG_EVENT_TYPE_LABEL + type + MSG_CLOSING_PAREN)
-            } catch (e: Exception) {
-                Log.e(TAG, MSG_FAILED_SAVE_EVENT_FOR_RETRY_PREFIX + eventId, e)
-            }
-        }
-    }
-
-    /**
-     * Replay all pending events from storage.
-     * Called when a new event handler is registered.
-     */
-    private suspend fun replayPendingEvents() {
-        try {
-            val pendingEvents = eventStorage.loadAllPendingEvents()
-            if (pendingEvents.isEmpty()) {
-                Log.d(TAG, MSG_NO_PENDING_EVENTS)
-                return
-            }
-
-            Log.d(TAG, MSG_REPLAYING_PENDING_EVENTS_PREFIX + pendingEvents.size + MSG_PENDING_EVENTS_SUFFIX)
-
-            pendingEvents.forEach { pendingEvent ->
-                try {
-                    // Reconstruct the event JSON
-                    val eventJson = JSONObject().apply {
-                        put(JsonConstants.KEY_ID, pendingEvent.id)
-                        put(JsonConstants.KEY_TYPE, pendingEvent.type)
-                        put(ResponseConstants.KEY_DATA, JSONObject(pendingEvent.data))
-                    }
-
-                    // Re-dispatch the event
-                    mainHandler.post {
-                        handleEvent(eventJson)
-                    }
-
-                    Log.d(TAG, MSG_REPLAYED_PENDING_EVENT_PREFIX + pendingEvent.id)
-                } catch (e: Exception) {
-                    Log.e(TAG, MSG_FAILED_REPLAY_PENDING_EVENT_PREFIX + pendingEvent.id, e)
-                    // Increment retry count
-                    val updated = pendingEvent.copy(retryCount = pendingEvent.retryCount + 1)
-                    eventStorage.savePendingEvent(updated)
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, MSG_FAILED_REPLAY_PENDING_EVENTS, e)
-        }
-    }
-
     private data class BridgeResponse(
         val result: JSONObject,
     )
@@ -1357,22 +1298,10 @@ internal class WebViewWalletKitEngine(
         private const val MSG_EVENT_TYPE_PREFIX = "Event type: "
         private const val MSG_EVENT_ID_PREFIX = "Event ID: "
         private const val MSG_EVENT_DATA_KEYS_PREFIX = "Event data keys: "
-        private const val MSG_NO_EVENT_HANDLERS = "No event handlers registered, saving event for later"
         private const val MSG_PARSED_TYPED_EVENT_PREFIX = "Parsed typed event: "
-        private const val MSG_NOTIFYING_EVENT_HANDLERS_PREFIX = "Notifying "
-        private const val MSG_EVENT_HANDLERS_SUFFIX = " event handlers"
+        private const val MSG_NOTIFYING_EVENT_HANDLER = "Notifying event handler"
         private const val MSG_HANDLER_EXCEPTION_PREFIX = "Handler threw exception for event "
         private const val MSG_FAILED_PARSE_TYPED_EVENT_PREFIX = "Failed to parse typed event for type: "
-        private const val MSG_SAVED_EVENT_FOR_RETRY_PREFIX = "Saved event for retry: "
-        private const val MSG_EVENT_TYPE_LABEL = " (type: "
-        private const val MSG_FAILED_SAVE_EVENT_FOR_RETRY_PREFIX = "Failed to save event for retry: "
-        private const val MSG_NO_PENDING_EVENTS = "No pending events to replay"
-        private const val MSG_REPLAYING_PENDING_EVENTS_PREFIX = "Replaying "
-        private const val MSG_PENDING_EVENTS_SUFFIX = " pending events"
-        private const val MSG_REPLAYED_PENDING_EVENT_PREFIX = "Replayed pending event: "
-        private const val MSG_FAILED_REPLAY_PENDING_EVENT_PREFIX = "Failed to replay pending event: "
-        private const val MSG_FAILED_REPLAY_PENDING_EVENTS = "Failed to replay pending events"
-        private const val MSG_CLOSING_PAREN = ")"
         private const val MSG_URL_SEPARATOR = " url="
         private const val MSG_OPEN_PAREN = " ("
         private const val MSG_CLOSE_PAREN_PERIOD_SPACE = "). "

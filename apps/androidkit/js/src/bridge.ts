@@ -304,7 +304,7 @@ async function handleCall(id: string, method: WalletKitApiMethod, params?: unkno
     if (typeof fn !== 'function') throw new Error(`Unknown method ${String(method)}`);
     const context: CallContext = { id, method };
     console.log(`[walletkitBridge] about to call fn for ${method}`);
-    const value = await (fn as (args: unknown, context?: CallContext) => Promise<unknown> | unknown)(params as never, context);
+    const value = await (fn as (args: unknown, context?: CallContext) => Promise<unknown> | unknown).call(api, params as never, context);
     console.log(`[walletkitBridge] fn returned for ${method}`);
     emitCallDiagnostic(id, method, 'success');
     respond(id, value);
@@ -428,13 +428,13 @@ function requireWalletKit() {
   }
 }
 
-// Event listener references for dynamic subscription
-let onConnectListener: ((event: any) => void) | null = null;
-let onTransactionListener: ((event: any) => void) | null = null;
-let onSignDataListener: ((event: any) => void) | null = null;
-let onDisconnectListener: ((event: any) => void) | null = null;
-
 const api = {
+  // Event listener references stored on the API object (like iOS stores on window.walletKit)
+  onConnectListener: null as ((event: any) => void) | null,
+  onTransactionListener: null as ((event: any) => void) | null,
+  onSignDataListener: null as ((event: any) => void) | null,
+  onDisconnectListener: null as ((event: any) => void) | null,
+
   async init(config?: WalletKitBridgeInitConfig, context?: CallContext) {
     emitCallCheckpoint(context, 'init:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
@@ -454,53 +454,53 @@ const api = {
       emit(type as any, event);
     });
 
-    // Remove old listeners if they exist
-    if (onConnectListener && typeof walletKit.removeConnectRequestCallback === 'function') {
-      walletKit.removeConnectRequestCallback(onConnectListener);
+    // Remove old listener if it exists
+    if (this.onConnectListener) {
+      walletKit.removeConnectRequestCallback(this.onConnectListener);
     }
     
-    onConnectListener = (event: any) => {
+    this.onConnectListener = (event: any) => {
       console.log('[walletkitBridge] 📨 Connect request received');
       callback('connectRequest', event);
     };
     
-    walletKit.onConnectRequest(onConnectListener);
+    walletKit.onConnectRequest(this.onConnectListener);
 
-    // Transaction listener
-    if (onTransactionListener && typeof walletKit.removeTransactionRequestCallback === 'function') {
-      walletKit.removeTransactionRequestCallback(onTransactionListener);
+    // Remove old listener if it exists
+    if (this.onTransactionListener) {
+      walletKit.removeTransactionRequestCallback(this.onTransactionListener);
     }
     
-    onTransactionListener = (event: any) => {
+    this.onTransactionListener = (event: any) => {
       console.log('[walletkitBridge] 📨 Transaction request received');
       callback('transactionRequest', event);
     };
     
-    walletKit.onTransactionRequest(onTransactionListener);
+    walletKit.onTransactionRequest(this.onTransactionListener);
 
-    // Sign data listener
-    if (onSignDataListener && typeof walletKit.removeSignDataRequestCallback === 'function') {
-      walletKit.removeSignDataRequestCallback(onSignDataListener);
+    // Remove old listener if it exists
+    if (this.onSignDataListener) {
+      walletKit.removeSignDataRequestCallback(this.onSignDataListener);
     }
     
-    onSignDataListener = (event: any) => {
+    this.onSignDataListener = (event: any) => {
       console.log('[walletkitBridge] 📨 Sign data request received');
       callback('signDataRequest', event);
     };
     
-    walletKit.onSignDataRequest(onSignDataListener);
+    walletKit.onSignDataRequest(this.onSignDataListener);
 
-    // Disconnect listener
-    if (onDisconnectListener && typeof walletKit.removeDisconnectCallback === 'function') {
-      walletKit.removeDisconnectCallback(onDisconnectListener);
+    // Remove old listener if it exists
+    if (this.onDisconnectListener) {
+      walletKit.removeDisconnectCallback(this.onDisconnectListener);
     }
     
-    onDisconnectListener = (event: any) => {
+    this.onDisconnectListener = (event: any) => {
       console.log('[walletkitBridge] 📨 Disconnect event received');
       callback('disconnect', event);
     };
     
-    walletKit.onDisconnect(onDisconnectListener);
+    walletKit.onDisconnect(this.onDisconnectListener);
     
     console.log('[walletkitBridge] ✅ Event listeners set up successfully');
     return { ok: true };
@@ -510,24 +510,24 @@ const api = {
     requireWalletKit();
     console.log('[walletkitBridge] 🗑️ Removing all event listeners');
     
-    if (onConnectListener && typeof walletKit.removeConnectRequestCallback === 'function') {
-      walletKit.removeConnectRequestCallback(onConnectListener);
-      onConnectListener = null;
+    if (this.onConnectListener) {
+      walletKit.removeConnectRequestCallback(this.onConnectListener);
+      this.onConnectListener = null;
     }
     
-    if (onTransactionListener && typeof walletKit.removeTransactionRequestCallback === 'function') {
-      walletKit.removeTransactionRequestCallback(onTransactionListener);
-      onTransactionListener = null;
+    if (this.onTransactionListener) {
+      walletKit.removeTransactionRequestCallback(this.onTransactionListener);
+      this.onTransactionListener = null;
     }
     
-    if (onSignDataListener && typeof walletKit.removeSignDataRequestCallback === 'function') {
-      walletKit.removeSignDataRequestCallback(onSignDataListener);
-      onSignDataListener = null;
+    if (this.onSignDataListener) {
+      walletKit.removeSignDataRequestCallback(this.onSignDataListener);
+      this.onSignDataListener = null;
     }
     
-    if (onDisconnectListener && typeof walletKit.removeDisconnectCallback === 'function') {
-      walletKit.removeDisconnectCallback(onDisconnectListener);
-      onDisconnectListener = null;
+    if (this.onDisconnectListener) {
+      walletKit.removeDisconnectCallback(this.onDisconnectListener);
+      this.onDisconnectListener = null;
     }
     
     console.log('[walletkitBridge] ✅ All event listeners removed');

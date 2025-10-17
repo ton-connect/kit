@@ -16,6 +16,16 @@ internal object BridgeMethodConstants {
     const val METHOD_INIT = "init"
 
     /**
+     * Method name for setting up event listeners.
+     */
+    const val METHOD_SET_EVENTS_LISTENERS = "setEventsListeners"
+
+    /**
+     * Method name for removing event listeners.
+     */
+    const val METHOD_REMOVE_EVENT_LISTENERS = "removeEventListeners"
+
+    /**
      * Method name for adding a wallet from mnemonic phrase.
      */
     const val METHOD_ADD_WALLET_FROM_MNEMONIC = "addWalletFromMnemonic"

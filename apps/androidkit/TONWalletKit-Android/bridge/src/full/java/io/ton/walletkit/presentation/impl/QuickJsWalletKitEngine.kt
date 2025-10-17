@@ -55,14 +55,12 @@ import okio.BufferedSource
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.Closeable
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
@@ -103,6 +101,8 @@ import kotlin.jvm.java
  */
 internal class QuickJsWalletKitEngine(
     context: Context,
+    private val configuration: TONWalletKitConfiguration,
+    private val eventsHandler: TONBridgeEventsHandler,
     private val assetPath: String = DEFAULT_BUNDLE_ASSET,
     private val httpClient: OkHttpClient = defaultHttpClient(),
 ) : WalletKitEngine {
@@ -112,7 +112,6 @@ internal class QuickJsWalletKitEngine(
     private val appContext = context.applicationContext
     internal val applicationContext: Context get() = appContext
     private val assetManager = appContext.assets
-    private val eventHandlers = CopyOnWriteArraySet<TONBridgeEventsHandler>()
     private val ready = CompletableDeferred<Unit>()
     private val pending = ConcurrentHashMap<String, CompletableDeferred<BridgeResponse>>()
     internal val timerIdGenerator = AtomicInteger(1)
@@ -190,11 +189,6 @@ internal class QuickJsWalletKitEngine(
                 }
             }
         }
-    }
-
-    override fun addEventHandler(handler: TONBridgeEventsHandler): Closeable {
-        eventHandlers.add(handler)
-        return Closeable { eventHandlers.remove(handler) }
     }
 
     /**
@@ -832,9 +826,7 @@ internal class QuickJsWalletKitEngine(
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data)
         if (typedEvent != null) {
-            eventHandlers.forEach { handler ->
-                mainScope.launch { handler.handle(typedEvent) }
-            }
+            mainScope.launch { eventsHandler.handle(typedEvent) }
         }
     }
 
