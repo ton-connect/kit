@@ -44,12 +44,26 @@
     <string name="label_wallet_version">Wallet Version</string>
     <string name="label_wallet_name">Wallet name</string>
     <string name="label_network">Network</string>
+    <string name="label_wallet_interface_type">Wallet Interface Type</string>
+
+    <!-- Wallet Interface Types -->
+    <string name="interface_type_mnemonic">Mnemonic</string>
+    <string name="interface_type_mnemonic_desc">Standard wallet</string>
+    <string name="interface_type_signer">Signer</string>
+    <string name="interface_type_signer_desc">Custom signing</string>
+
+    <!-- Signer Confirmation Dialog -->
+    <string name="signer_confirm_title">Confirm Signing</string>
+    <string name="signer_confirm_message">Are you sure you want to sign this request? This wallet requires manual confirmation before signing.</string>
+    <string name="signer_confirm_button">Sign</string>
 
     <!-- Wallet card -->
     <string name="wallet_balance_placeholder">—</string>
     <string name="wallet_details_address_label">Wallet Address</string>
     <string name="wallet_details_version_label">Wallet Version</string>
     <string name="wallet_details_public_key_label">Public Key</string>
+    <string name="wallet_details_created_at_label">Created</string>
+    <string name="wallet_details_interface_type_label">Interface Type</string>
     <string name="wallet_details_transactions_title">Transactions</string>
     <string name="wallet_details_transactions_total">%1$d total</string>
     <string name="wallet_details_connected_apps">Connected dApps</string>

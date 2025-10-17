@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
@@ -45,6 +46,7 @@ import io.ton.walletkit.demo.presentation.ui.components.QuickActionsCard
 import io.ton.walletkit.demo.presentation.ui.components.StatusHeader
 import io.ton.walletkit.demo.presentation.ui.components.WalletSwitcher
 import io.ton.walletkit.demo.presentation.ui.dialog.UrlPromptDialog
+import io.ton.walletkit.demo.presentation.ui.dialog.SignerConfirmationDialog
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
 import io.ton.walletkit.demo.presentation.ui.screen.SendTransactionScreen
 import io.ton.walletkit.demo.presentation.ui.sections.EventLogSection
@@ -73,14 +75,16 @@ fun WalletScreen(
     onSwitchWallet: (String) -> Unit,
     onRemoveWallet: (String) -> Unit,
     onRenameWallet: (String, String) -> Unit,
-    onImportWallet: (String, TONNetwork, List<String>, String) -> Unit,
-    onGenerateWallet: (String, TONNetwork, String) -> Unit,
+    onImportWallet: (String, TONNetwork, List<String>, String, WalletInterfaceType) -> Unit,
+    onGenerateWallet: (String, TONNetwork, String, WalletInterfaceType) -> Unit,
     onApproveConnect: (ConnectRequestUi, WalletSummary) -> Unit,
     onRejectConnect: (ConnectRequestUi) -> Unit,
     onApproveTransaction: (TransactionRequestUi) -> Unit,
     onRejectTransaction: (TransactionRequestUi) -> Unit,
     onApproveSignData: (SignDataRequestUi) -> Unit,
     onRejectSignData: (SignDataRequestUi) -> Unit,
+    onConfirmSignerApproval: () -> Unit,
+    onCancelSignerApproval: () -> Unit,
     onSendTransaction: (walletAddress: String, recipient: String, amount: String, comment: String) -> Unit,
     onRefreshTransactions: (String) -> Unit,
     onTransactionClick: (transactionHash: String, walletAddress: String) -> Unit,
@@ -161,6 +165,15 @@ fun WalletScreen(
         UrlPromptDialog(
             onDismiss = onDismissUrlPrompt,
             onConfirm = onHandleUrl,
+        )
+    }
+
+    // Show confirmation dialog for Signer wallets
+    state.pendingSignerConfirmation?.let { request ->
+        SignerConfirmationDialog(
+            request = request,
+            onConfirm = onConfirmSignerApproval,
+            onCancel = onCancelSignerApproval,
         )
     }
 
@@ -272,14 +285,16 @@ private fun WalletScreenPreview() {
         onSwitchWallet = {},
         onRemoveWallet = {},
         onRenameWallet = { _, _ -> },
-        onImportWallet = { _, _, _, _ -> },
-        onGenerateWallet = { _, _, _ -> },
+        onImportWallet = { _, _, _, _, _ -> },
+        onGenerateWallet = { _, _, _, _ -> },
         onApproveConnect = { _, _ -> },
         onRejectConnect = {},
         onApproveTransaction = {},
         onRejectTransaction = {},
         onApproveSignData = {},
         onRejectSignData = {},
+        onConfirmSignerApproval = {},
+        onCancelSignerApproval = {},
         onSendTransaction = { _, _, _, _ -> },
         onRefreshTransactions = {},
         onTransactionClick = { _, _ -> },

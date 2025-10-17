@@ -44,20 +44,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.domain.model.TONNetwork
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AddWalletSheet(
     onDismiss: () -> Unit,
-    onImportWallet: (String, TONNetwork, List<String>, String) -> Unit,
-    onGenerateWallet: (String, TONNetwork, String) -> Unit,
+    onImportWallet: (String, TONNetwork, List<String>, String, WalletInterfaceType) -> Unit,
+    onGenerateWallet: (String, TONNetwork, String, WalletInterfaceType) -> Unit,
     walletCount: Int,
 ) {
     var selectedTab by remember { mutableStateOf(AddWalletTab.Import) }
     var walletName by rememberSaveable { mutableStateOf("Wallet ${walletCount + 1}") }
     var network by rememberSaveable { mutableStateOf(TONNetwork.MAINNET) }
     var walletVersion by rememberSaveable { mutableStateOf("v4r2") }
+    var interfaceType by rememberSaveable { mutableStateOf(WalletInterfaceType.MNEMONIC) }
     val mnemonicWords = remember { mutableStateListOf(*Array(24) { "" }) }
     var pasteField by rememberSaveable { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
@@ -149,6 +151,34 @@ fun AddWalletSheet(
             }
         }
 
+        Text(stringResource(R.string.label_wallet_interface_type), style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            WalletInterfaceType.entries.forEach { type ->
+                FilterChip(
+                    selected = interfaceType == type,
+                    onClick = { interfaceType = type },
+                    label = {
+                        Column {
+                            Text(
+                                when (type) {
+                                    WalletInterfaceType.MNEMONIC -> stringResource(R.string.interface_type_mnemonic)
+                                    WalletInterfaceType.SIGNER -> stringResource(R.string.interface_type_signer)
+                                },
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                when (type) {
+                                    WalletInterfaceType.MNEMONIC -> stringResource(R.string.interface_type_mnemonic_desc)
+                                    WalletInterfaceType.SIGNER -> stringResource(R.string.interface_type_signer_desc)
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
+                    },
+                )
+            }
+        }
+
         when (selectedTab) {
             AddWalletTab.Import -> {
                 Text(
@@ -215,7 +245,7 @@ fun AddWalletSheet(
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
-                    onClick = { onImportWallet(walletName, network, mnemonicWords.toList(), walletVersion) },
+                    onClick = { onImportWallet(walletName, network, mnemonicWords.toList(), walletVersion, interfaceType) },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.action_import_wallet)) }
             }
@@ -228,7 +258,7 @@ fun AddWalletSheet(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(
-                        onClick = { onGenerateWallet(walletName, network, walletVersion) },
+                        onClick = { onGenerateWallet(walletName, network, walletVersion, interfaceType) },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.action_generate_wallet)) }
                 }
@@ -251,8 +281,8 @@ private const val MNEMONIC_WORD_COUNT = 24
 private fun AddWalletSheetPreview() {
     AddWalletSheet(
         onDismiss = {},
-        onImportWallet = { _, _, _, _ -> },
-        onGenerateWallet = { _, _, _ -> },
+        onImportWallet = { _, _, _, _, _ -> },
+        onGenerateWallet = { _, _, _, _ -> },
         walletCount = 1,
     )
 }
