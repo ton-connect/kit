@@ -26,4 +26,5 @@ apps/TONWalletApp/TONWalletApp.xcodeproj/xcuserdata/
 apps/androidkit/AndroidDemo/bridge/.cxx/
 apps/androidkit/dist-android-quickjs/
 node.log
+
 packages/walletkit-ios-bridge/build/*

@@ -1,5 +1,6 @@
 package io.ton.walletkit.presentation.event
 
+import io.ton.walletkit.domain.constants.JsonConstants
 import io.ton.walletkit.domain.model.DAppInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -41,12 +42,12 @@ data class SignDataRequestEvent(
 
 @Serializable
 enum class SignDataType {
-    @SerialName("text")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_TEXT)
     TEXT,
 
-    @SerialName("binary")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_BINARY)
     BINARY,
 
-    @SerialName("cell")
+    @SerialName(JsonConstants.VALUE_SIGN_DATA_CELL)
     CELL,
 }

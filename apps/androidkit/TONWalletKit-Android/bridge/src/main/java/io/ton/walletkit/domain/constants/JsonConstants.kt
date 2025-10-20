@@ -166,6 +166,18 @@ internal object JsonConstants {
      */
     const val VALUE_SIGN_DATA_CELL = "cell"
 
+    /** JSON value for native TON asset type. */
+    const val VALUE_ASSET_TON = "ton"
+
+    /** JSON value for jetton asset type. */
+    const val VALUE_ASSET_JETTON = "jetton"
+
+    /** JSON value for transaction preview error type. */
+    const val VALUE_PREVIEW_ERROR = "error"
+
+    /** JSON value for transaction preview success type. */
+    const val VALUE_PREVIEW_SUCCESS = "success"
+
     // Transaction feature name
     /**
      * Feature name for SendTransaction capability.
@@ -196,4 +208,25 @@ internal object JsonConstants {
      * JSON key for logical time.
      */
     const val KEY_LT = "lt"
+
+    // Pending event keys (for automatic retry)
+    /**
+     * JSON key for event data payload.
+     */
+    const val KEY_DATA = "data"
+
+    /**
+     * JSON key for event timestamp.
+     */
+    const val KEY_TIMESTAMP = "timestamp"
+
+    /**
+     * JSON key for retry count.
+     */
+    const val KEY_RETRY_COUNT = "retryCount"
+
+    /**
+     * JSON key for a numeric count parameter (used by createTonMnemonic)
+     */
+    const val KEY_COUNT = "count"
 }

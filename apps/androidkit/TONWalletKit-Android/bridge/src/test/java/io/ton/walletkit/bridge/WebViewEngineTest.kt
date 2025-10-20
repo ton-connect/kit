@@ -4,9 +4,11 @@ import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.presentation.WalletKitEngineKind
-import io.ton.walletkit.presentation.event.WalletKitEvent
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
+import io.ton.walletkit.presentation.event.TONWalletKitEvent
 import io.ton.walletkit.presentation.impl.WebViewWalletKitEngine
-import io.ton.walletkit.presentation.listener.WalletKitEventHandler
+import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
+import org.json.JSONObject
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,22 +27,24 @@ import kotlin.test.assertTrue
 @Config(sdk = [34], manifest = Config.NONE)
 class WebViewEngineTest {
     private lateinit var context: Context
+    private lateinit var configuration: TONWalletKitConfiguration
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        configuration = testWalletKitConfiguration()
     }
 
     @Test
     fun `engine can be instantiated`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         assertNotNull(engine)
         flushMainThread()
     }
 
     @Test
     fun `engine has correct kind`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         assertEquals(WalletKitEngineKind.WEBVIEW, engine.kind)
         flushMainThread()
     }
@@ -48,14 +52,14 @@ class WebViewEngineTest {
     @Test
     fun `engine supports custom asset path`() {
         val customPath = "custom/path/index.html"
-        val engine = WebViewWalletKitEngine(context, assetPath = customPath)
+        val engine = createEngine(assetPath = customPath)
         assertNotNull(engine)
         flushMainThread()
     }
 
     @Test
     fun `engine exposes WebView for debugging`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread() // Let WebView initialize on main thread
         val webView = engine.asView()
         assertNotNull(webView)
@@ -63,72 +67,37 @@ class WebViewEngineTest {
     }
 
     @Test
-    fun `event handler can be registered`() {
-        val engine = WebViewWalletKitEngine(context)
-        var eventCount = 0
+    fun `event handler receives disconnect events`() {
+        val recordingHandler = RecordingEventsHandler()
+        val engine = createEngine(recordingHandler)
 
-        val handler = object : WalletKitEventHandler {
-            override fun handleEvent(event: WalletKitEvent) {
-                eventCount++
-            }
-        }
-
-        val closeable = engine.addEventHandler(handler)
-        assertNotNull(closeable)
-
+        invokeHandleEvent(engine, disconnectEvent("session-1"))
         flushMainThread()
 
-        // Clean up
-        closeable.close()
+        assertEquals(1, recordingHandler.events.size)
+        assertTrue(recordingHandler.events.first() is TONWalletKitEvent.Disconnect)
     }
 
     @Test
     fun `multiple event handlers can be registered`() {
-        val engine = WebViewWalletKitEngine(context)
+        val handler1 = RecordingEventsHandler()
+        val handler2 = RecordingEventsHandler()
+        val handler3 = RecordingEventsHandler()
 
-        val handler1 = object : WalletKitEventHandler {
-            override fun handleEvent(event: WalletKitEvent) {}
-        }
-        val handler2 = object : WalletKitEventHandler {
-            override fun handleEvent(event: WalletKitEvent) {}
-        }
-        val handler3 = object : WalletKitEventHandler {
-            override fun handleEvent(event: WalletKitEvent) {}
-        }
+        val composite = compositeEventsHandler(handler1, handler2, handler3)
+        val engine = createEngine(composite)
 
-        val c1 = engine.addEventHandler(handler1)
-        val c2 = engine.addEventHandler(handler2)
-        val c3 = engine.addEventHandler(handler3)
-
-        assertNotNull(c1)
-        assertNotNull(c2)
-        assertNotNull(c3)
-
+        invokeHandleEvent(engine, disconnectEvent("session-2"))
         flushMainThread()
 
-        // Clean up
-        c1.close()
-        c2.close()
-        c3.close()
-    }
-
-    @Test
-    fun `event handler can be unregistered`() {
-        val engine = WebViewWalletKitEngine(context)
-
-        val handler = object : WalletKitEventHandler {
-            override fun handleEvent(event: WalletKitEvent) {}
-        }
-
-        val closeable = engine.addEventHandler(handler)
-        closeable.close() // Should not throw
-
-        flushMainThread()
+        assertTrue(handler1.events.isNotEmpty())
+        assertTrue(handler2.events.isNotEmpty())
+        assertTrue(handler3.events.isNotEmpty())
     }
 
     @Test
     fun `engine can be destroyed`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
 
         flushMainThread()
 
@@ -140,7 +109,7 @@ class WebViewEngineTest {
 
     @Test
     fun `WebView has correct settings`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread() // Let WebView initialize on main thread
         val webView = engine.asView()
 
@@ -150,7 +119,7 @@ class WebViewEngineTest {
 
     @Test
     fun `WebView has JavaScript interface`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         val webView = engine.asView()
 
         // The interface "WalletKitNative" should be injected
@@ -162,7 +131,7 @@ class WebViewEngineTest {
 
     @Test
     fun `engine supports default asset path`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         // Default path is "walletkit/index.html"
         assertNotNull(engine)
         flushMainThread()
@@ -171,7 +140,7 @@ class WebViewEngineTest {
     @Test
     fun `engine uses application context`() {
         val activityContext = ApplicationProvider.getApplicationContext<Context>()
-        val engine = WebViewWalletKitEngine(activityContext)
+        val engine = WebViewWalletKitEngine(activityContext, configuration, NoopEventsHandler)
 
         // Engine should work with application context
         assertNotNull(engine)
@@ -180,7 +149,32 @@ class WebViewEngineTest {
         flushMainThread()
     }
 
+    private fun createEngine(
+        eventsHandler: TONBridgeEventsHandler = NoopEventsHandler,
+        assetPath: String = "walletkit/index.html",
+    ): WebViewWalletKitEngine {
+        return WebViewWalletKitEngine(context, configuration, eventsHandler, assetPath)
+    }
+
     private fun flushMainThread() {
         Shadows.shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    private fun invokeHandleEvent(engine: WebViewWalletKitEngine, event: JSONObject) {
+        val method = engine.javaClass.getDeclaredMethod("handleEvent", JSONObject::class.java)
+        method.isAccessible = true
+        method.invoke(engine, event)
+    }
+
+    private fun disconnectEvent(sessionId: String): JSONObject {
+        return JSONObject().apply {
+            put("type", "disconnect")
+            put(
+                "data",
+                JSONObject().apply {
+                    put("sessionId", sessionId)
+                },
+            )
+        }
     }
 }

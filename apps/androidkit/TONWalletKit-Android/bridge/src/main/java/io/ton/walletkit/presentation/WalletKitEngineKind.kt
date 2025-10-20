@@ -3,14 +3,11 @@ package io.ton.walletkit.presentation
 /**
  * Identifies which JavaScript runtime engine implementation is being used by the SDK.
  *
- * The engine kind determines how the WalletKit JavaScript bundle is executed.
- * Different engines have different performance characteristics and availability
- * across SDK variants.
+ * Internal implementation detail. SDK always uses WebView engine.
  *
- * @see io.ton.walletkit.presentation.WalletKitEngine
- * @see io.ton.walletkit.presentation.WalletKitEngineFactory
+ * @suppress
  */
-enum class WalletKitEngineKind {
+internal enum class WalletKitEngineKind {
     /**
      * WebView-based JavaScript engine (recommended for all use cases).
      *

@@ -47,6 +47,16 @@ internal object ResponseConstants {
     const val KEY_EVENT = "event"
 
     /**
+     * JSON key for signer identifier.
+     */
+    const val KEY_SIGNER_ID = "signerId"
+
+    /**
+     * JSON key for request identifier.
+     */
+    const val KEY_REQUEST_ID = "requestId"
+
+    /**
      * JSON key for reason string.
      */
     const val KEY_REASON = "reason"
@@ -360,6 +370,16 @@ internal object ResponseConstants {
      */
     const val KEY_ID = "id"
 
+    /**
+     * JSON key for method name (used by diagnostic-call messages)
+     */
+    const val KEY_METHOD = "method"
+
+    /**
+     * JSON key for diagnostic stage (start/checkpoint/success/error)
+     */
+    const val KEY_STAGE = "stage"
+
     // Kind/Type values
     /**
      * Value for 'ready' message kind/type.
@@ -375,6 +395,11 @@ internal object ResponseConstants {
      * Value for 'response' message kind.
      */
     const val VALUE_KIND_RESPONSE = "response"
+
+    /**
+     * Value for diagnostic call messages emitted from JS bridge.
+     */
+    const val VALUE_KIND_DIAGNOSTIC_CALL = "diagnostic-call"
 
     /**
      * Schema type value for text data.
@@ -402,6 +427,11 @@ internal object ResponseConstants {
      * Default value for unknown/missing dApp names.
      */
     const val VALUE_UNKNOWN_DAPP = "Unknown dApp"
+
+    /**
+     * Default numeric string value representing zero.
+     */
+    const val VALUE_ZERO = "0"
 
     /**
      * Default value for unknown strings.

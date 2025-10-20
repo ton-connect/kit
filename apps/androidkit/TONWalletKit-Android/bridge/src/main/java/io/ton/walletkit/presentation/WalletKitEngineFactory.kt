@@ -3,37 +3,48 @@ package io.ton.walletkit.presentation
 import android.content.Context
 import io.ton.walletkit.domain.constants.ReflectionConstants
 import io.ton.walletkit.domain.constants.WebViewConstants
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
+import io.ton.walletkit.presentation.impl.WebViewWalletKitEngine
+import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
 
 /**
- * Factory for creating WalletKitEngine instances without directly referencing implementation classes.
- * This allows demo apps and partners to work with any SDK variant (webview-only or full)
- * without compile-time dependencies on unavailable engine implementations.
+ * Internal factory for creating WalletKitEngine instances.
+ * SDK always uses WebView engine.
+ *
+ * @suppress
  */
-object WalletKitEngineFactory {
+internal object WalletKitEngineFactory {
     /**
      * Create a WalletKitEngine instance for the specified kind.
      *
      * @param context Android application context
      * @param kind The engine kind to create (WEBVIEW or QUICKJS)
+     * @param configuration SDK configuration
+     * @param eventsHandler Handler for SDK events
      * @return WalletKitEngine instance
      * @throws IllegalStateException if the requested engine is not available in this SDK variant
      *
      * @sample
      * ```kotlin
      * // Works with both webview-only and full SDK variants
-     * val engine = WalletKitEngineFactory.create(context, WalletKitEngineKind.WEBVIEW)
+     * val engine = WalletKitEngineFactory.create(context, WalletKitEngineKind.WEBVIEW, config, handler)
      * ```
      */
     @Suppress("DEPRECATION") // QuickJS still supported in full variant
-    fun create(context: Context, kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW): WalletKitEngine {
+    suspend fun create(
+        context: Context,
+        kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW,
+        configuration: TONWalletKitConfiguration,
+        eventsHandler: TONBridgeEventsHandler,
+    ): WalletKitEngine {
         return when (kind) {
             WalletKitEngineKind.WEBVIEW -> {
                 // WebViewWalletKitEngine is always available in all variants
-                createWebViewEngine(context)
+                createWebViewEngine(context, configuration, eventsHandler)
             }
             WalletKitEngineKind.QUICKJS -> {
                 // QuickJsWalletKitEngine is only available in full variant
-                createQuickJsEngine(context)
+                createQuickJsEngine(context, configuration, eventsHandler)
             }
         }
     }
@@ -52,38 +63,61 @@ object WalletKitEngineFactory {
                     // Check if QuickJS class exists (only in full variant)
                     Class.forName(ReflectionConstants.CLASS_QUICKJS_ENGINE)
                     true
-                } catch (e: ClassNotFoundException) {
+                } catch (_: ClassNotFoundException) {
                     false
                 }
             }
         }
     }
 
-    private fun createWebViewEngine(context: Context): WalletKitEngine {
+    private suspend fun createWebViewEngine(
+        context: Context,
+        configuration: TONWalletKitConfiguration,
+        eventsHandler: TONBridgeEventsHandler,
+    ): WalletKitEngine {
         // Direct instantiation - WebViewWalletKitEngine is in the same module
-        return io.ton.walletkit.presentation.impl.WebViewWalletKitEngine(context)
+        val engine = WebViewWalletKitEngine(context, configuration, eventsHandler)
+        // Initialize engine (starts WebView, loads bridge)
+        engine.init(configuration)
+        return engine
     }
 
-    private fun createQuickJsEngine(context: Context): WalletKitEngine {
+    private suspend fun createQuickJsEngine(
+        context: Context,
+        configuration: TONWalletKitConfiguration,
+        eventsHandler: TONBridgeEventsHandler,
+    ): WalletKitEngine {
         try {
             // Use reflection only for QuickJS to avoid compile-time dependency in webview variant
             val clazz = Class.forName(ReflectionConstants.CLASS_QUICKJS_ENGINE)
-            // QuickJsWalletKitEngine has additional constructor parameters with defaults
-            // Try the primary constructor: (Context, String, OkHttpClient)
-            try {
-                val okHttpClientClass = Class.forName(ReflectionConstants.CLASS_OKHTTP_CLIENT)
-                val constructor = clazz.getConstructor(Context::class.java, String::class.java, okHttpClientClass)
-                // Use null for optional parameters to use defaults (Kotlin handles this via synthetic methods)
-                // Actually, we need to invoke with actual default values
-                val defaultAssetPath = WebViewConstants.DEFAULT_QUICKJS_ASSET_DIR
-                val okHttpClientConstructor = okHttpClientClass.getConstructor()
-                val defaultHttpClient = okHttpClientConstructor.newInstance()
-                return constructor.newInstance(context, defaultAssetPath, defaultHttpClient) as WalletKitEngine
-            } catch (e: NoSuchMethodException) {
-                // Fallback: try single-arg constructor if it exists
-                val constructor = clazz.getConstructor(Context::class.java)
-                return constructor.newInstance(context) as WalletKitEngine
-            }
+            val configClass = Class.forName(ReflectionConstants.CLASS_TON_WALLET_KIT_CONFIGURATION)
+            val eventsHandlerClass = Class.forName(ReflectionConstants.CLASS_TON_BRIDGE_EVENTS_HANDLER)
+            val okHttpClientClass = Class.forName(ReflectionConstants.CLASS_OKHTTP_CLIENT)
+
+            // QuickJsWalletKitEngine constructor: (Context, TONWalletKitConfiguration, TONBridgeEventsHandler, String, OkHttpClient)
+            val constructor = clazz.getConstructor(
+                Context::class.java,
+                configClass,
+                eventsHandlerClass,
+                String::class.java,
+                okHttpClientClass,
+            )
+
+            val defaultAssetPath = WebViewConstants.DEFAULT_QUICKJS_ASSET_DIR
+            val okHttpClientConstructor = okHttpClientClass.getConstructor()
+            val defaultHttpClient = okHttpClientConstructor.newInstance()
+
+            val engine = constructor.newInstance(
+                context,
+                configuration,
+                eventsHandler,
+                defaultAssetPath,
+                defaultHttpClient,
+            ) as WalletKitEngine
+
+            // Initialize engine
+            engine.init(configuration)
+            return engine
         } catch (e: ClassNotFoundException) {
             throw IllegalStateException(
                 ReflectionConstants.ERROR_QUICKJS_NOT_AVAILABLE,

@@ -16,6 +16,16 @@ internal object BridgeMethodConstants {
     const val METHOD_INIT = "init"
 
     /**
+     * Method name for setting up event listeners.
+     */
+    const val METHOD_SET_EVENTS_LISTENERS = "setEventsListeners"
+
+    /**
+     * Method name for removing event listeners.
+     */
+    const val METHOD_REMOVE_EVENT_LISTENERS = "removeEventListeners"
+
+    /**
      * Method name for adding a wallet from mnemonic phrase.
      */
     const val METHOD_ADD_WALLET_FROM_MNEMONIC = "addWalletFromMnemonic"
@@ -46,9 +56,9 @@ internal object BridgeMethodConstants {
     const val METHOD_HANDLE_TON_CONNECT_URL = "handleTonConnectUrl"
 
     /**
-     * Method name for sending a transaction.
+     * Method name for sending a local transaction.
      */
-    const val METHOD_SEND_TRANSACTION = "sendTransaction"
+    const val METHOD_SEND_LOCAL_TRANSACTION = "sendLocalTransaction"
 
     /**
      * Method name for approving a connect request.
@@ -91,7 +101,22 @@ internal object BridgeMethodConstants {
     const val METHOD_DISCONNECT_SESSION = "disconnectSession"
 
     /**
-     * Method name for injecting a sign data request (testing/development).
+     * Method name for deriving public key from mnemonic.
      */
-    const val METHOD_INJECT_SIGN_DATA_REQUEST = "injectSignDataRequest"
+    const val METHOD_DERIVE_PUBLIC_KEY_FROM_MNEMONIC = "derivePublicKeyFromMnemonic"
+
+    /**
+     * Method name for adding a wallet backed by an external signer.
+     */
+    const val METHOD_ADD_WALLET_WITH_SIGNER = "addWalletWithSigner"
+
+    /**
+     * Method name for responding to a sign request.
+     */
+    const val METHOD_RESPOND_TO_SIGN_REQUEST = "respondToSignRequest"
+
+    /**
+     * Method name for generating a new TON mnemonic via the JS bundle.
+     */
+    const val METHOD_CREATE_TON_MNEMONIC = "createTonMnemonic"
 }

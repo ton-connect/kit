@@ -26,11 +26,6 @@ internal object LogConstants {
 
     // Log messages
     /**
-     * Log message for bridge ready state.
-     */
-    const val MSG_BRIDGE_READY = "bridge ready"
-
-    /**
      * Log message prefix for malformed payload from JavaScript.
      */
     const val MSG_MALFORMED_PAYLOAD = "Malformed payload from JS"

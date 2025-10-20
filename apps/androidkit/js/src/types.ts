@@ -10,6 +10,7 @@ export type WalletKitBridgeEvent = {
     | 'transactionRequest'
     | 'signDataRequest'
     | 'disconnect'
+    | 'signerSignRequest'
     | string;
   data?: any;
 };
@@ -39,11 +40,11 @@ export interface WalletKitNativeBridgeType {
 
 export interface WalletKitBridgeApi {
   init: (config?: WalletKitBridgeInitConfig) => Promise<unknown>;
-  addWalletFromMnemonic: (args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: 'mainnet' | 'testnet' }) => Promise<unknown>;
+  addWalletFromMnemonic: (args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: 'mainnet' | 'testnet' | '-239' | '-3' }) => Promise<unknown>;
   getWallets: () => Promise<unknown>;
   getWalletState: (args: { address: string }) => Promise<unknown>;
   handleTonConnectUrl: (args: { url: string }) => Promise<unknown>;
-  sendTransaction: (args: { walletAddress: string; toAddress: string; amount: string; comment?: string }) => Promise<unknown>;
+  sendLocalTransaction: (args: { walletAddress: string; toAddress: string; amount: string; comment?: string }) => Promise<unknown>;
   approveConnectRequest: (args: { requestId: any; walletAddress: string }) => Promise<unknown>;
   rejectConnectRequest: (args: { requestId: any; reason?: string }) => Promise<unknown>;
   approveTransactionRequest: (args: { requestId: any }) => Promise<unknown>;

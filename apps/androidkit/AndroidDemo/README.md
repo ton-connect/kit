@@ -20,19 +20,10 @@ Then open this project in Android Studio and run.
 - Transaction signing
 - Balance display and auto-refresh
 
-## Engine Selection
-
-Edit `WalletKitDemoApp.kt`:
-
-```kotlin
-val defaultEngineKind = WalletKitEngineKind.WEBVIEW  // Recommended
-```
-
-For QuickJS: use full variant and uncomment OkHttp in `app/build.gradle.kts`.
-
 ## Structure
 
-- `ui/` - Compose screens
-- `viewmodel/` - State management  
-- `storage/` - Secure wallet storage
+- `core/` - Application bootstrap and dependency wiring
+- `data/` - Local storage, caches, and data sources
+- `domain/` - Core models shared across layers
+- `presentation/` - Compose UI, view models, UI state, and presentation models
 - `libs/bridge-release.aar` - SDK (copied by build task)

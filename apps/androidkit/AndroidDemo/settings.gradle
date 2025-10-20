@@ -16,5 +16,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "AndroidWalletKitDemo"
 include(":app")
-include(":bridge")
-include(":storage")

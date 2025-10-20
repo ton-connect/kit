@@ -4,11 +4,12 @@ import android.content.Context
 import android.webkit.WebView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.presentation.WalletKitEngineKind
-import io.ton.walletkit.presentation.config.WalletKitBridgeConfig
-import io.ton.walletkit.presentation.event.WalletKitEvent
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
+import io.ton.walletkit.presentation.event.TONWalletKitEvent
 import io.ton.walletkit.presentation.impl.WebViewWalletKitEngine
-import io.ton.walletkit.presentation.listener.WalletKitEventHandler
+import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -59,7 +60,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(10_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
                 }
                 // If init() completes without throwing, the test passes
             } finally {
@@ -73,9 +74,9 @@ class WebViewEngineInstrumentedTest {
         withContext(Dispatchers.Main) {
             val engine = WebViewWalletKitEngine(context)
             try {
-                val config = WalletKitBridgeConfig(
-                    network = "testnet",
-                    enablePersistentStorage = false,
+                val config = createConfiguration(
+                    network = TONNetwork.TESTNET,
+                    persistent = false,
                 )
 
                 withTimeout(10_000) {
@@ -93,10 +94,11 @@ class WebViewEngineInstrumentedTest {
         withContext(Dispatchers.Main) {
             val engine = WebViewWalletKitEngine(context)
             try {
+                val config = createConfiguration()
                 withTimeout(10_000) {
-                    engine.init()
-                    engine.init() // Second call should not fail
-                    engine.init() // Third call should not fail
+                    engine.init(config)
+                    engine.init(config) // Second call should not fail
+                    engine.init(config) // Third call should not fail
                 }
             } finally {
                 engine.destroy()
@@ -110,7 +112,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(10_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
                 }
 
                 // Access WebView on main thread (we're already on it)
@@ -134,7 +136,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     val wallets = engine.getWallets()
 
@@ -153,7 +155,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     // Generate a valid 24-word mnemonic (these are valid BIP39 words)
                     val mnemonic = listOf(
@@ -189,7 +191,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     // Just test that getWallets can be called
                     val wallets = engine.getWallets()
@@ -212,13 +214,13 @@ class WebViewEngineInstrumentedTest {
                 withTimeout(15_000) {
                     val eventCount = AtomicInteger(0)
 
-                    val handler = object : WalletKitEventHandler {
-                        override fun handleEvent(event: WalletKitEvent) {
+                    val handler = object : TONBridgeEventsHandler {
+                        override fun handle(event: TONWalletKitEvent) {
                             eventCount.incrementAndGet()
                         }
                     }
 
-                    engine.init()
+                    engine.init(createConfiguration())
                     val closeable = engine.addEventHandler(handler)
 
                     assertNotNull("Closeable should not be null", closeable)
@@ -237,13 +239,13 @@ class WebViewEngineInstrumentedTest {
                 withTimeout(15_000) {
                     val eventCount = AtomicInteger(0)
 
-                    val handler = object : WalletKitEventHandler {
-                        override fun handleEvent(event: WalletKitEvent) {
+                    val handler = object : TONBridgeEventsHandler {
+                        override fun handle(event: TONWalletKitEvent) {
                             eventCount.incrementAndGet()
                         }
                     }
 
-                    engine.init()
+                    engine.init(createConfiguration())
                     val closeable = engine.addEventHandler(handler)
 
                     // Remove handler by closing
@@ -266,7 +268,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     val sessions = engine.listSessions()
 
@@ -285,7 +287,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     // Should not throw even when there are no sessions
                     engine.disconnectSession()
@@ -304,9 +306,9 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    val config = WalletKitBridgeConfig(
-                        network = "testnet",
-                        enablePersistentStorage = false,
+                    val config = createConfiguration(
+                        network = TONNetwork.TESTNET,
+                        persistent = false,
                     )
 
                     engine.init(config)
@@ -325,9 +327,9 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    val config = WalletKitBridgeConfig(
-                        network = "mainnet",
-                        enablePersistentStorage = false,
+                    val config = createConfiguration(
+                        network = TONNetwork.MAINNET,
+                        persistent = false,
                     )
 
                     engine.init(config)
@@ -346,9 +348,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(15_000) {
-                    val config = WalletKitBridgeConfig(
-                        enablePersistentStorage = false,
-                    )
+                    val config = createConfiguration(persistent = false)
 
                     engine.init(config)
 
@@ -367,7 +367,7 @@ class WebViewEngineInstrumentedTest {
         withContext(Dispatchers.Main) {
             val engine = WebViewWalletKitEngine(context)
             withTimeout(10_000) {
-                engine.init()
+                engine.init(createConfiguration())
                 engine.destroy()
             }
             // Should not throw exception
@@ -393,10 +393,11 @@ class WebViewEngineInstrumentedTest {
         withContext(Dispatchers.Main) {
             val engine = WebViewWalletKitEngine(context)
             try {
+                val config = createConfiguration()
                 withTimeout(20_000) {
-                    engine.init()
-                    engine.init()
-                    engine.init()
+                    engine.init(config)
+                    engine.init(config)
+                    engine.init(config)
 
                     // Multiple init calls should be handled gracefully
                     val wallets = engine.getWallets()
@@ -414,7 +415,7 @@ class WebViewEngineInstrumentedTest {
             val engine = WebViewWalletKitEngine(context)
             try {
                 withTimeout(20_000) {
-                    engine.init()
+                    engine.init(createConfiguration())
 
                     // Perform rapid consecutive operations
                     repeat(5) { i ->
@@ -429,4 +430,27 @@ class WebViewEngineInstrumentedTest {
             }
         }
     }
+}
+
+private fun createConfiguration(
+    network: TONNetwork = TONNetwork.TESTNET,
+    persistent: Boolean = true,
+): TONWalletKitConfiguration {
+    return TONWalletKitConfiguration(
+        network = network,
+        walletManifest = TONWalletKitConfiguration.Manifest(
+            name = "Test Wallet",
+            appName = "Wallet",
+            imageUrl = "https://example.com/icon.png",
+            aboutUrl = "https://example.com",
+            universalLink = "https://example.com/app",
+            bridgeUrl = "https://bridge.tonapi.io/bridge",
+        ),
+        bridge = TONWalletKitConfiguration.Bridge(
+            bridgeUrl = "https://bridge.tonapi.io/bridge",
+        ),
+        apiClient = null,
+        features = emptyList<TONWalletKitConfiguration.Feature>(),
+        storage = TONWalletKitConfiguration.Storage(persistent = persistent),
+    )
 }

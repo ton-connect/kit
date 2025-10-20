@@ -105,13 +105,13 @@ kotlin {
 val walletKitDistDir: File =
     rootProject.rootDir
         .toPath()
-        .resolve("../../dist-android")
+        .resolve("../dist-android")
         .normalize()
         .toFile()
 val walletKitQuickJsDistDir: File =
     rootProject.rootDir
         .toPath()
-        .resolve("../../dist-android-quickjs")
+        .resolve("../dist-android-quickjs")
         .normalize()
         .toFile()
 val walletKitAssetsDir: File = layout.projectDirectory.dir("src/main/assets/walletkit").asFile

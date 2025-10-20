@@ -3,6 +3,7 @@ package io.ton.walletkit.bridge
 import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
 import io.ton.walletkit.presentation.impl.WebViewWalletKitEngine
 import org.junit.Before
 import org.junit.Test
@@ -21,12 +22,14 @@ import kotlin.test.assertTrue
 @Config(sdk = [34], manifest = Config.NONE)
 class WebViewEngineApiTest {
     private lateinit var context: Context
+    private lateinit var configuration: TONWalletKitConfiguration
     private lateinit var engine: WebViewWalletKitEngine
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        engine = WebViewWalletKitEngine(context)
+        configuration = testWalletKitConfiguration()
+        engine = WebViewWalletKitEngine(context, configuration, NoopEventsHandler)
         flushMainThread()
     }
 
@@ -66,8 +69,8 @@ class WebViewEngineApiTest {
     }
 
     @Test
-    fun `engine implements sendTransaction method`() {
-        assertNotNull(engine::sendTransaction)
+    fun `engine implements sendLocalTransaction method`() {
+        assertNotNull(engine::sendLocalTransaction)
     }
 
     @Test
@@ -113,11 +116,6 @@ class WebViewEngineApiTest {
     @Test
     fun `engine implements destroy method`() {
         assertNotNull(engine::destroy)
-    }
-
-    @Test
-    fun `engine implements addEventHandler method`() {
-        assertNotNull(engine::addEventHandler)
     }
 
     @Test

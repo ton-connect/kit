@@ -5,12 +5,10 @@ import io.ton.walletkit.domain.model.Transaction
 import io.ton.walletkit.domain.model.WalletAccount
 import io.ton.walletkit.domain.model.WalletSession
 import io.ton.walletkit.domain.model.WalletState
-import io.ton.walletkit.presentation.config.WalletKitBridgeConfig
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
 import io.ton.walletkit.presentation.event.ConnectRequestEvent
 import io.ton.walletkit.presentation.event.SignDataRequestEvent
 import io.ton.walletkit.presentation.event.TransactionRequestEvent
-import io.ton.walletkit.presentation.listener.WalletKitEventHandler
-import java.io.Closeable
 
 /**
  * Abstraction over a runtime that can execute the WalletKit JavaScript bundle and expose
@@ -25,28 +23,21 @@ import java.io.Closeable
  * If you need custom configuration, call [init] with your config before other methods.
  *
  * **Event Handling:**
- * Supports [addEventHandler] with [WalletKitEventHandler] for type-safe sealed events.
+ * Events are handled via the eventsHandler passed during engine creation.
+ *
+ * @suppress Internal engine abstraction. Use TONWalletKit and TONWallet public API instead.
  */
-interface WalletKitEngine {
+internal interface WalletKitEngine {
     val kind: WalletKitEngineKind
 
     /**
-     * Add an event handler for type-safe event handling.
-     * Use this for exhaustive when() expressions with the sealed WalletKitEvent class.
+     * Initialize WalletKit with custom configuration. This must be called before any other method;
+     * subsequent calls are ignored once initialization succeeds.
      *
-     * @param handler Event handler that receives typed WalletKitEvent sealed class instances
-     * @return Closeable to remove the handler
-     */
-    fun addEventHandler(handler: WalletKitEventHandler): Closeable
-
-    /**
-     * Initialize WalletKit with custom configuration. This method is optional - if not called,
-     * initialization will happen automatically on first use with default settings.
-     *
-     * @param config Configuration for the WalletKit SDK
+     * @param configuration Configuration for the WalletKit SDK
      * @throws WalletKitBridgeException if initialization fails
      */
-    suspend fun init(config: WalletKitBridgeConfig = WalletKitBridgeConfig())
+    suspend fun init(configuration: TONWalletKitConfiguration)
 
     /**
      * Add a new wallet from mnemonic phrase.
@@ -64,6 +55,64 @@ interface WalletKitEngine {
         version: String,
         network: String? = null,
     ): WalletAccount
+
+    /**
+     * Derive public key from a mnemonic phrase without creating a wallet.
+     *
+     * This is useful for creating external signers (hardware wallets, watch-only wallets)
+     * where you need the public key but don't want to store the mnemonic in the SDK.
+     *
+     * @param words Mnemonic phrase as a list of words
+     * @return The hex-encoded public key
+     * @throws WalletKitBridgeException if derivation fails
+     */
+    suspend fun derivePublicKeyFromMnemonic(words: List<String>): String
+
+    /**
+     * Generate a new mnemonic phrase using the WalletKit JS utilities.
+     *
+     * @param wordCount Number of words to generate (12 or 24). Defaults to 24.
+     * @return List of mnemonic words
+     * @throws WalletKitBridgeException if generation fails
+     */
+    suspend fun createTonMnemonic(wordCount: Int = 24): List<String>
+
+    /**
+     * Add a new wallet using an external signer.
+     *
+     * This allows creating wallets where the private key is managed externally
+     * (e.g., hardware wallet, watch-only wallet, separate secure module).
+     *
+     * @param signer The external signer that will handle signing operations
+     * @param version Wallet version (e.g., "v5r1", "v4r2")
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly added wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun addWalletWithSigner(
+        signer: io.ton.walletkit.domain.model.WalletSigner,
+        version: String,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
+     * Respond to a sign request from an external signer wallet.
+     *
+     * When a wallet created with [addWalletWithSigner] needs to sign data,
+     * it will emit a signerSignRequest event. The app should call this method
+     * to provide the signature or error.
+     *
+     * @param signerId The signer ID from the sign request event
+     * @param requestId The request ID from the sign request event
+     * @param signature The signature bytes, or null if error
+     * @param error Error message if signing failed, or null if successful
+     */
+    suspend fun respondToSignRequest(
+        signerId: String,
+        requestId: String,
+        signature: ByteArray? = null,
+        error: String? = null,
+    )
 
     /**
      * Get all wallets managed by this engine.
@@ -109,7 +158,7 @@ interface WalletKitEngine {
     suspend fun handleTonConnectUrl(url: String)
 
     /**
-     * Create a new transaction request.
+     * Create a new locally-initiated transaction request.
      * This will trigger a transaction request event that needs to be approved via [approveTransaction].
      *
      * @param walletAddress Source wallet address
@@ -118,7 +167,7 @@ interface WalletKitEngine {
      * @param comment Optional comment/message
      * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun sendTransaction(
+    suspend fun sendLocalTransaction(
         walletAddress: String,
         recipient: String,
         amount: String,
@@ -205,14 +254,4 @@ interface WalletKitEngine {
      * Destroy the engine and release all resources.
      */
     suspend fun destroy()
-
-    /**
-     * Test API: Inject a sign data request for testing purposes.
-     * This simulates receiving a sign data request from a dApp and will trigger
-     * the normal sign data flow including actual cryptographic signing.
-     *
-     * @param requestData Request data as JSONObject (test API, not yet typed)
-     * @return JSONObject response (test API, not yet typed)
-     */
-    suspend fun injectSignDataRequest(requestData: org.json.JSONObject): org.json.JSONObject
 }

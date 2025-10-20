@@ -50,11 +50,6 @@ internal object WebViewConstants {
     const val LOG_TAG_WEBVIEW = "WebViewWalletKitEngine"
 
     /**
-     * Log tag for QuickJS engine.
-     */
-    const val LOG_TAG_QUICKJS = "QuickJsWalletKitEngine"
-
-    /**
      * Error message for bundle loading failure.
      */
     const val ERROR_BUNDLE_LOAD_FAILED = "Failed to load WalletKit bundle"
@@ -88,4 +83,19 @@ internal object WebViewConstants {
      * URL prefix for loading assets.
      */
     const val URL_PREFIX_HTTPS = "https://"
+
+    /**
+     * JavaScript snippet that checks whether the WalletKit bridge call function is installed.
+     */
+    const val JS_BRIDGE_READY_CHECK = "(typeof window.__walletkitCall === 'function')"
+
+    /**
+     * Serialized boolean true returned by evaluateJavascript.
+     */
+    const val JS_BOOLEAN_TRUE = "true"
+
+    /**
+     * Delay between bridge readiness polling attempts (in ms).
+     */
+    const val JS_BRIDGE_POLL_DELAY_MS = 32L
 }

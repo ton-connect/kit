@@ -25,6 +25,20 @@ internal object ReflectionConstants {
     const val CLASS_OKHTTP_CLIENT = "okhttp3.OkHttpClient"
 
     /**
+     * Fully qualified class name for TONWalletKitConfiguration.
+     *
+     * Used for reflection-based constructor parameter type matching.
+     */
+    const val CLASS_TON_WALLET_KIT_CONFIGURATION = "io.ton.walletkit.presentation.config.TONWalletKitConfiguration"
+
+    /**
+     * Fully qualified class name for TONBridgeEventsHandler.
+     *
+     * Used for reflection-based constructor parameter type matching.
+     */
+    const val CLASS_TON_BRIDGE_EVENTS_HANDLER = "io.ton.walletkit.presentation.listener.TONBridgeEventsHandler"
+
+    /**
      * Error message when QuickJS engine is not available.
      */
     const val ERROR_QUICKJS_NOT_AVAILABLE =
