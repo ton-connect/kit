@@ -17,6 +17,7 @@ data class WalletUiState(
     val isLoadingSessions: Boolean = false,
     val isLoadingTransactions: Boolean = false,
     val isSendingTransaction: Boolean = false,
+    val isGeneratingMnemonic: Boolean = false,
     val error: String? = null,
     val events: List<String> = emptyList(),
     val lastUpdated: Long? = null,

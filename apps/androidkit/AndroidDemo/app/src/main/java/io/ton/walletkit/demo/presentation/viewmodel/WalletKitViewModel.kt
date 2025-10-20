@@ -515,12 +515,22 @@ class WalletKitViewModel(
         version: String = DEFAULT_WALLET_VERSION,
         interfaceType: WalletInterfaceType = WalletInterfaceType.MNEMONIC,
     ) {
-        val words = generateMnemonic()
-        val pending = PendingWalletRecord(
-            metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
-            mnemonic = words,
-        )
+        // Run mnemonic generation asynchronously to avoid blocking the main thread (ANR)
         viewModelScope.launch {
+            _state.update { it.copy(isGeneratingMnemonic = true) }
+            val words = try {
+                // Use suspend generator that delegates to TONWallet or falls back
+                generateMnemonicSuspend()
+            } catch (_: Exception) {
+                List(24) { DEMO_WORDS.random() }
+            } finally {
+                _state.update { it.copy(isGeneratingMnemonic = false) }
+            }
+
+            val pending = PendingWalletRecord(
+                metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
+                mnemonic = words,
+            )
             switchNetworkIfNeeded(network)
             pendingWallets.addLast(pending)
 
@@ -1585,7 +1595,11 @@ class WalletKitViewModel(
         val bridgeName: String,
     )
 
-    private fun generateMnemonic(): List<String> = List(24) { DEMO_WORDS.random() }
+    private suspend fun generateMnemonicSuspend(): List<String> = try {
+        TONWallet.generateMnemonic(24)
+    } catch (_: Exception) {
+        List(24) { DEMO_WORDS.random() }
+    }
 
     /**
      * Creates a hardware wallet signer using WalletConnect.

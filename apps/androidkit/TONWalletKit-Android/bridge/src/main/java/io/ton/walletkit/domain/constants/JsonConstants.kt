@@ -224,4 +224,9 @@ internal object JsonConstants {
      * JSON key for retry count.
      */
     const val KEY_RETRY_COUNT = "retryCount"
+
+    /**
+     * JSON key for a numeric count parameter (used by createTonMnemonic)
+     */
+    const val KEY_COUNT = "count"
 }

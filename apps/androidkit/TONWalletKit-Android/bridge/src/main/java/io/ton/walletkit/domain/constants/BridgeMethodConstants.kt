@@ -114,4 +114,9 @@ internal object BridgeMethodConstants {
      * Method name for responding to a sign request.
      */
     const val METHOD_RESPOND_TO_SIGN_REQUEST = "respondToSignRequest"
+
+    /**
+     * Method name for generating a new TON mnemonic via the JS bundle.
+     */
+    const val METHOD_CREATE_TON_MNEMONIC = "createTonMnemonic"
 }

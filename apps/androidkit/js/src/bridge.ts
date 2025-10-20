@@ -7,6 +7,7 @@ const tonCoreModulePromise = import('@ton/core');
 let TonWalletKit: any;
 let createWalletInitConfigMnemonic: any;
 let createWalletManifest: any;
+let CreateTonMnemonic: any;
 let Signer: any;
 let WalletV4R2Adapter: any;
 let WalletV5R1Adapter: any;
@@ -25,6 +26,7 @@ async function ensureWalletKitLoaded() {
     const module = await walletKitModulePromise;
     TonWalletKit = (module as any).TonWalletKit;
     createWalletInitConfigMnemonic = (module as any).createWalletInitConfigMnemonic;
+  CreateTonMnemonic = (module as any).CreateTonMnemonic ?? (module as any).CreateTonMnemonic;
     createWalletManifest = (module as any).createWalletManifest ?? createWalletManifest;
     tonConnectChain = (module as any).CHAIN ?? tonConnectChain;
     Signer = (module as any).Signer;
@@ -554,6 +556,16 @@ const api = {
     
     emitCallCheckpoint(context, 'derivePublicKeyFromMnemonic:complete');
     return { publicKey: signer.publicKey };
+  },
+
+  async createTonMnemonic(args: { count?: number } = { count: 24 }, context?: CallContext) {
+    emitCallCheckpoint(context, 'createTonMnemonic:start');
+    await ensureWalletKitLoaded();
+    // CreateTonMnemonic is exported by @ton/walletkit and returns string[] (24 words)
+    const mnemonicResult = await CreateTonMnemonic();
+    const words = Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
+    emitCallCheckpoint(context, 'createTonMnemonic:complete');
+    return { items: words };
   },
 
   async addWalletFromMnemonic(

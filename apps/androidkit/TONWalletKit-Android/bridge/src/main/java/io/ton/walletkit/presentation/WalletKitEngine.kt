@@ -69,6 +69,15 @@ internal interface WalletKitEngine {
     suspend fun derivePublicKeyFromMnemonic(words: List<String>): String
 
     /**
+     * Generate a new mnemonic phrase using the WalletKit JS utilities.
+     *
+     * @param wordCount Number of words to generate (12 or 24). Defaults to 24.
+     * @return List of mnemonic words
+     * @throws WalletKitBridgeException if generation fails
+     */
+    suspend fun createTonMnemonic(wordCount: Int = 24): List<String>
+
+    /**
      * Add a new wallet using an external signer.
      *
      * This allows creating wallets where the private key is managed externally

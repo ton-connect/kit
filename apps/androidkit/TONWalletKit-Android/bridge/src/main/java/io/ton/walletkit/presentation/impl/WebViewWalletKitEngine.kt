@@ -470,6 +470,15 @@ internal class WebViewWalletKitEngine(
         return result.getString(ResponseConstants.KEY_PUBLIC_KEY)
     }
 
+    override suspend fun createTonMnemonic(wordCount: Int): List<String> {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply { put(JsonConstants.KEY_COUNT, wordCount) }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TON_MNEMONIC, params)
+        val items = result.optJSONArray(ResponseConstants.KEY_ITEMS)
+        if (items == null) return emptyList()
+        return List(items.length()) { i -> items.optString(i) }
+    }
+
     override suspend fun addWalletWithSigner(
         signer: WalletSigner,
         version: String,

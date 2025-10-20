@@ -103,6 +103,17 @@ class TONWallet private constructor(
         }
 
         /**
+         * Generate a new TON mnemonic phrase using the SDK's JS utilities.
+         * Defaults to 24 words.
+         */
+        suspend fun generateMnemonic(wordCount: Int = 24): List<String> {
+            val engine = TONWalletKit.engine
+                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
+
+            return engine.createTonMnemonic(wordCount)
+        }
+
+        /**
          * Add a new wallet using an external signer.
          *
          * Use this method to create wallets where the private key is managed externally,
