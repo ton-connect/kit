@@ -5,18 +5,21 @@ import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.presentation.WalletKitEngine
 import io.ton.walletkit.presentation.WalletKitEngineFactory
 import io.ton.walletkit.presentation.WalletKitEngineKind
+import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
+import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Tests for [WalletKitEngineFactory] to increase coverage for io.ton.walletkit.presentation package.
+ * Structural tests for [WalletKitEngineFactory]. These tests avoid invoking the suspend
+ * [WalletKitEngineFactory.create] implementation because it depends on a fully functional JS bridge
+ * which is outside the scope of unit tests.
  */
 @RunWith(RobolectricTestRunner::class)
 class WalletKitEngineFactoryTest {
@@ -28,65 +31,31 @@ class WalletKitEngineFactoryTest {
     }
 
     @Test
-    fun `create with default kind returns WebView engine`() {
-        val engine = WalletKitEngineFactory.create(context)
-        assertNotNull(engine)
-        assertEquals(WalletKitEngineKind.WEBVIEW, engine.kind)
-    }
-
-    @Test
-    fun `create with explicit WEBVIEW kind returns WebView engine`() {
-        val engine = WalletKitEngineFactory.create(context, WalletKitEngineKind.WEBVIEW)
-        assertNotNull(engine)
-        assertEquals(WalletKitEngineKind.WEBVIEW, engine.kind)
-    }
-
-    @Test
-    fun `create with QUICKJS kind throws in webview variant`() {
-        try {
-            @Suppress("DEPRECATION")
-            WalletKitEngineFactory.create(context, WalletKitEngineKind.QUICKJS)
-        } catch (e: IllegalStateException) {
-            assertTrue(e.message?.contains("QuickJS engine is not available") == true)
-        }
-    }
-
-    @Test
-    fun `create multiple engines returns separate instances`() {
-        val engine1 = WalletKitEngineFactory.create(context)
-        val engine2 = WalletKitEngineFactory.create(context)
-        assertTrue(engine1 !== engine2)
-    }
-
-    @Test
-    fun `isAvailable returns true for WEBVIEW`() {
-        val available = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.WEBVIEW)
-        assertTrue(available)
-    }
-
-    @Test
-    fun `isAvailable checks QUICKJS availability`() {
-        @Suppress("DEPRECATION")
-        val available = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.QUICKJS)
-        if (!available) {
-            assertFalse(available)
-        }
-    }
-
-    @Test
-    fun `isAvailable checks all enum values`() {
-        for (kind in WalletKitEngineKind.entries) {
-            val available = WalletKitEngineFactory.isAvailable(kind)
-            when (kind) {
-                WalletKitEngineKind.WEBVIEW -> assertTrue(available)
-                @Suppress("DEPRECATION")
-                WalletKitEngineKind.QUICKJS -> assertNotNull(available)
+    fun `create method exposes expected signature`() {
+        val method =
+            WalletKitEngineFactory::class.java.declaredMethods.first {
+                it.name == "create" && it.parameterTypes.size == 5
             }
-        }
+
+        assertNotNull(method)
+        assertEquals(WalletKitEngineKind::class.java, method.parameterTypes[1])
+        assertEquals(TONWalletKitConfiguration::class.java, method.parameterTypes[2])
+        assertEquals(TONBridgeEventsHandler::class.java, method.parameterTypes[3])
     }
 
     @Test
-    fun `WalletKitEngineKind enum values are accessible`() {
+    fun `isAvailable returns true for WebView engine`() {
+        assertTrue(WalletKitEngineFactory.isAvailable(WalletKitEngineKind.WEBVIEW))
+    }
+
+    @Test
+    fun `isAvailable returns false for QuickJS when class absent`() {
+        @Suppress("DEPRECATION")
+        assertFalse(WalletKitEngineFactory.isAvailable(WalletKitEngineKind.QUICKJS))
+    }
+
+    @Test
+    fun `WalletKitEngineKind exposes both enum values`() {
         val values = WalletKitEngineKind.entries.toTypedArray()
         assertEquals(2, values.size)
         assertTrue(values.contains(WalletKitEngineKind.WEBVIEW))
@@ -95,99 +64,19 @@ class WalletKitEngineFactoryTest {
     }
 
     @Test
-    fun `WalletKitEngineKind valueOf works correctly`() {
-        assertEquals(WalletKitEngineKind.WEBVIEW, WalletKitEngineKind.valueOf("WEBVIEW"))
-        @Suppress("DEPRECATION")
-        assertEquals(WalletKitEngineKind.QUICKJS, WalletKitEngineKind.valueOf("QUICKJS"))
-    }
-
-    @Test
-    fun `WalletKitEngineKind name property works`() {
-        assertEquals("WEBVIEW", WalletKitEngineKind.WEBVIEW.name)
-        @Suppress("DEPRECATION")
-        assertEquals("QUICKJS", WalletKitEngineKind.QUICKJS.name)
-    }
-
-    @Test
-    fun `WalletKitEngineKind ordinal property works`() {
-        assertEquals(0, WalletKitEngineKind.WEBVIEW.ordinal)
-        @Suppress("DEPRECATION")
-        assertEquals(1, WalletKitEngineKind.QUICKJS.ordinal)
-    }
-
-    @Test
-    fun `created engine has correct kind property`() {
-        val engine = WalletKitEngineFactory.create(context, WalletKitEngineKind.WEBVIEW)
-        val kind: WalletKitEngineKind = engine.kind
-        assertEquals(WalletKitEngineKind.WEBVIEW, kind)
-    }
-
-    @Test
-    fun `created engine implements WalletKitEngine interface`() {
-        val engine = WalletKitEngineFactory.create(context)
-        assertTrue(engine is WalletKitEngine)
-    }
-
-    @Test
-    fun `createQuickJsEngine reflection handles ClassNotFoundException`() {
-        @Suppress("DEPRECATION")
-        val isAvailable = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.QUICKJS)
-        if (!isAvailable) {
-            try {
-                @Suppress("DEPRECATION")
-                WalletKitEngineFactory.create(context, WalletKitEngineKind.QUICKJS)
-                fail("Should throw IllegalStateException")
-            } catch (e: IllegalStateException) {
-                assertNotNull(e.message)
-                assertTrue(e.message?.contains("QuickJS engine is not available") == true)
-            }
-        }
-    }
-
-    @Test
-    fun `create covers all when branches for engine kinds`() {
-        val webViewEngine = WalletKitEngineFactory.create(context, WalletKitEngineKind.WEBVIEW)
-        assertEquals(WalletKitEngineKind.WEBVIEW, webViewEngine.kind)
-
-        @Suppress("DEPRECATION")
-        val quickJsAvailable = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.QUICKJS)
-        if (quickJsAvailable) {
-            @Suppress("DEPRECATION")
-            val quickJsEngine = WalletKitEngineFactory.create(context, WalletKitEngineKind.QUICKJS)
-            @Suppress("DEPRECATION")
-            assertEquals(WalletKitEngineKind.QUICKJS, quickJsEngine.kind)
-        }
-    }
-
-    @Test
-    fun `isAvailable covers all when branches`() {
-        val webViewAvailable = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.WEBVIEW)
-        assertTrue(webViewAvailable)
-
-        @Suppress("DEPRECATION")
-        val quickJsAvailable = WalletKitEngineFactory.isAvailable(WalletKitEngineKind.QUICKJS)
-        assertNotNull(quickJsAvailable)
-    }
-
-    @Test
-    fun `engine interface methods with default parameters exist`() {
-        val engine = WalletKitEngineFactory.create(context)
-        val interfaceMethods = WalletKitEngine::class.java.methods
-
-        val methodsWithDefaults = listOf(
-            "init",
-            "addWalletFromMnemonic",
-            "getRecentTransactions",
-            "sendLocalTransaction",
-            "rejectConnect",
-            "rejectTransaction",
-            "rejectSignData",
-            "disconnectSession",
-        )
-
-        for (methodName in methodsWithDefaults) {
-            val hasMethod = interfaceMethods.any { it.name == methodName }
-            assertTrue("Engine should have $methodName method", hasMethod)
-        }
+    fun `WalletKitEngine interface exposes key API methods`() {
+        val methodNames = WalletKitEngine::class.java.methods.map { it.name }.toSet()
+        val required =
+            setOf(
+                "init",
+                "addWalletFromMnemonic",
+                "getRecentTransactions",
+                "sendLocalTransaction",
+                "rejectConnect",
+                "rejectTransaction",
+                "rejectSignData",
+                "disconnectSession",
+            )
+        assertTrue(methodNames.containsAll(required))
     }
 }

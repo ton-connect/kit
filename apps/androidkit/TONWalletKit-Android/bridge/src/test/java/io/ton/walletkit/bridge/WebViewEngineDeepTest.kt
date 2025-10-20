@@ -45,11 +45,13 @@ import kotlin.test.assertTrue
 class WebViewEngineDeepTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var context: Context
+    private lateinit var defaultConfiguration: TONWalletKitConfiguration
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         context = ApplicationProvider.getApplicationContext()
+        defaultConfiguration = createConfiguration()
     }
 
     @After
@@ -83,7 +85,7 @@ class WebViewEngineDeepTest {
 
     @Test
     fun `handleResponse processes successful result`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread()
 
         // Create a mock response
@@ -118,7 +120,7 @@ class WebViewEngineDeepTest {
 
     @Test
     fun `handleResponse processes error response`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread()
 
         val response = JSONObject().apply {
@@ -154,17 +156,9 @@ class WebViewEngineDeepTest {
 
     @Test
     fun `handleEvent dispatches to event handlers`() = runTest {
-        val engine = WebViewWalletKitEngine(context)
+        val recordingHandler = RecordingEventsHandler()
+        val engine = createEngine(eventsHandler = recordingHandler)
         flushMainThread()
-
-        var eventReceived: TONWalletKitEvent? = null
-        val handler = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {
-                eventReceived = event
-            }
-        }
-
-        engine.addEventHandler(handler)
 
         // Create a disconnect event (simplest one in public API)
         val event = JSONObject().apply {
@@ -183,13 +177,13 @@ class WebViewEngineDeepTest {
         flushMainThread() // Let the event dispatch on main thread
 
         // Verify event was dispatched
-        assertNotNull(eventReceived)
-        assertTrue(eventReceived is TONWalletKitEvent.Disconnect)
+        assertTrue(recordingHandler.events.isNotEmpty())
+        assertTrue(recordingHandler.events.first() is TONWalletKitEvent.Disconnect)
     }
 
     @Test
     fun `config validation stores network setting`() = runTest {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread()
 
         val config = createConfiguration(
@@ -270,64 +264,41 @@ class WebViewEngineDeepTest {
     }
 
     @Test
-    fun `event handler registration and removal works`() {
-        val engine = WebViewWalletKitEngine(context)
+    fun `event handler forwarding can be controlled externally`() {
+        val recordingHandler = RecordingEventsHandler()
+        var forwardEvents = true
+        val configurableHandler =
+            object : TONBridgeEventsHandler {
+                override fun handle(event: TONWalletKitEvent) {
+                    if (forwardEvents) {
+                        recordingHandler.handle(event)
+                    }
+                }
+            }
+
+        val engine = createEngine(eventsHandler = configurableHandler)
         flushMainThread()
 
-        val handler1 = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {}
-        }
-        val handler2 = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {}
-        }
+        val handleEventMethod = getPrivateMethod(engine, "handleEvent", JSONObject::class.java)
+        val event = disconnectEvent("session-789")
+        handleEventMethod.invoke(engine, event)
+        flushMainThread()
+        assertEquals(1, recordingHandler.events.size)
 
-        val closeable1 = engine.addEventHandler(handler1)
-        val closeable2 = engine.addEventHandler(handler2)
-
-        // Verify handlers are registered
-        val handlersField = getPrivateField(engine, "eventHandlers")
-
-        @Suppress("UNCHECKED_CAST")
-        val handlers = handlersField.get(engine) as java.util.concurrent.CopyOnWriteArraySet<*>
-        assertEquals(2, handlers.size)
-
-        // Remove handler1
-        closeable1.close()
-        assertEquals(1, handlers.size)
-
-        // Remove handler2
-        closeable2.close()
-        assertEquals(0, handlers.size)
+        forwardEvents = false
+        handleEventMethod.invoke(engine, event)
+        flushMainThread()
+        assertEquals(1, recordingHandler.events.size)
     }
 
     @Test
     fun `multiple event handlers all receive events`() {
-        val engine = WebViewWalletKitEngine(context)
+        val handler1 = RecordingEventsHandler()
+        val handler2 = RecordingEventsHandler()
+        val handler3 = RecordingEventsHandler()
+
+        val engine = createEngine(eventsHandler = compositeEventsHandler(handler1, handler2, handler3))
         flushMainThread()
-
-        var handler1Called = false
-        var handler2Called = false
-        var handler3Called = false
-
-        val handler1 = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {
-                handler1Called = true
-            }
-        }
-        val handler2 = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {
-                handler2Called = true
-            }
-        }
-        val handler3 = object : TONBridgeEventsHandler {
-            override fun handle(event: TONWalletKitEvent) {
-                handler3Called = true
-            }
-        }
-
-        engine.addEventHandler(handler1)
-        engine.addEventHandler(handler2)
-        engine.addEventHandler(handler3)
 
         // Trigger event (disconnect is simplest in public API)
         val event = JSONObject().apply {
@@ -345,14 +316,14 @@ class WebViewEngineDeepTest {
 
         flushMainThread() // Let events dispatch on main thread
 
-        assertTrue(handler1Called)
-        assertTrue(handler2Called)
-        assertTrue(handler3Called)
+        assertTrue(handler1.events.isNotEmpty())
+        assertTrue(handler2.events.isNotEmpty())
+        assertTrue(handler3.events.isNotEmpty())
     }
 
     @Test
     fun `WebView settings are configured correctly`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread()
 
         val webView = engine.asView()
@@ -365,7 +336,7 @@ class WebViewEngineDeepTest {
 
     @Test
     fun `storage adapter methods are called for persistence`() {
-        val engine = WebViewWalletKitEngine(context)
+        val engine = createEngine()
         flushMainThread()
 
         // Access storage adapter
@@ -381,13 +352,32 @@ class WebViewEngineDeepTest {
 
     @Test
     fun `config with disabled storage sets flag correctly`() {
-        val engine = WebViewWalletKitEngine(context)
-        flushMainThread()
-
         val config = createConfiguration(persistent = false)
+        val engine = createEngine(configuration = config)
+        flushMainThread()
+        assertNotNull(engine)
 
         // Verify config structure
         assertTrue(!config.storage.persistent)
+    }
+
+    private fun createEngine(
+        configuration: TONWalletKitConfiguration = defaultConfiguration,
+        eventsHandler: TONBridgeEventsHandler = NoopEventsHandler,
+    ): WebViewWalletKitEngine {
+        return WebViewWalletKitEngine(context, configuration, eventsHandler)
+    }
+
+    private fun disconnectEvent(sessionId: String): JSONObject {
+        return JSONObject().apply {
+            put("type", "disconnect")
+            put(
+                "data",
+                JSONObject().apply {
+                    put("sessionId", sessionId)
+                },
+            )
+        }
     }
 
     private fun flushMainThread() {
