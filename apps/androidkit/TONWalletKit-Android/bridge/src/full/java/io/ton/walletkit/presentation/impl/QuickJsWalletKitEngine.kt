@@ -321,6 +321,10 @@ internal class QuickJsWalletKitEngine(
         return result.getString("publicKey")
     }
 
+    override suspend fun createTonMnemonic(wordCount: Int): List<String> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun addWalletWithSigner(
         signer: io.ton.walletkit.domain.model.WalletSigner,
         version: String,
