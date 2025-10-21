@@ -32,6 +32,8 @@ import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.domain.model.TONWalletData
 import io.ton.walletkit.domain.model.Transaction
 import io.ton.walletkit.domain.model.TransactionType
+import io.ton.walletkit.domain.model.WalletSession
+import io.ton.walletkit.domain.model.WalletSigner
 import io.ton.walletkit.presentation.TONWallet
 import io.ton.walletkit.presentation.event.TONWalletKitEvent
 import io.ton.walletkit.presentation.extensions.disconnect
@@ -39,6 +41,8 @@ import io.ton.walletkit.presentation.request.TONWalletConnectionRequest
 import io.ton.walletkit.presentation.request.TONWalletSignDataRequest
 import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -150,10 +154,7 @@ class WalletKitViewModel(
             return
         }
 
-        // Migrate legacy wallets if needed (this will add them to SDK)
-        migrateLegacyWallets()
-
-        // Reload wallets after potential migration
+        // Reload wallets from SDK (after any external changes)
         val walletsAfterMigration = TONWallet.wallets()
         tonWallets.clear()
         walletsAfterMigration.forEach { wallet ->
@@ -165,12 +166,13 @@ class WalletKitViewModel(
 
         _state.update { it.copy(initialized = true, status = uiString(R.string.wallet_status_ready), error = null) }
 
-        // Load wallets first, then fetch transactions for active wallet
-        refreshWallets()
-        refreshSessions()
-
-        // Add delay after wallet loading to avoid rate limiting
-        delay(1000)
+        // Load wallets and sessions concurrently and wait for both to complete
+        coroutineScope {
+            val walletsJob = async { refreshWallets() }
+            val sessionsJob = async { refreshSessions() }
+            walletsJob.await()
+            sessionsJob.await()
+        }
 
         // Restore saved active wallet after wallets are loaded
         // Only restore if the saved wallet actually exists in the loaded wallets
@@ -218,73 +220,6 @@ class WalletKitViewModel(
                 Log.d(LOG_TAG, "Session disconnected: ${event.event.sessionId}")
                 viewModelScope.launch { refreshSessions() }
             }
-        }
-    }
-
-    /**
-     * Restore wallet metadata from demo storage.
-     * If SDK has no wallets, migrate them from legacy storage.
-     */
-    private suspend fun migrateLegacyWallets() {
-        try {
-            val storedWallets = storage.loadAllWallets()
-
-            if (storedWallets.isEmpty()) {
-                Log.d(LOG_TAG, "No legacy wallets to migrate")
-                return
-            }
-
-            Log.d(LOG_TAG, "Loading metadata for ${storedWallets.size} wallets from demo storage")
-
-            // Check if we need to migrate wallets to SDK
-            val sdkWallets = TONWallet.wallets()
-            val needsMigration = sdkWallets.isEmpty() && storedWallets.isNotEmpty()
-
-            if (needsMigration) {
-                Log.d(LOG_TAG, "Migrating ${storedWallets.size} wallets from legacy storage to SDK")
-            }
-
-            storedWallets.forEach { (address, record) ->
-                try {
-                    val network = record.network.toTonNetwork(currentNetwork)
-                    val version = record.version ?: DEFAULT_WALLET_VERSION
-                    val displayName = record.name ?: defaultWalletName(walletMetadata.size)
-
-                    // Store metadata for UI
-                    walletMetadata[address] = WalletMetadata(
-                        name = displayName,
-                        network = network,
-                        version = version,
-                    )
-
-                    // Migrate wallet to SDK if needed
-                    if (needsMigration && record.mnemonic != null) {
-                        Log.d(LOG_TAG, "Migrating wallet to SDK: $address ($displayName)")
-                        try {
-                            val wallet = TONWallet.add(
-                                TONWalletData(
-                                    mnemonic = record.mnemonic,
-                                    name = displayName,
-                                    version = version,
-                                    network = network,
-                                ),
-                            )
-                            wallet.address?.let { tonWallets[it] = wallet }
-                            Log.d(LOG_TAG, "Successfully migrated wallet: $address")
-                        } catch (e: Exception) {
-                            Log.e(LOG_TAG, "Failed to migrate wallet to SDK: $address", e)
-                        }
-                    }
-
-                    Log.d(LOG_TAG, "Loaded metadata for wallet: $address ($displayName)")
-                } catch (e: Exception) {
-                    Log.e(LOG_TAG, "Failed to load metadata for wallet: $address", e)
-                }
-            }
-
-            Log.d(LOG_TAG, "Metadata loaded for ${walletMetadata.size} wallets")
-        } catch (e: Exception) {
-            Log.e(LOG_TAG, "Migration failed", e)
         }
     }
 
@@ -336,68 +271,66 @@ class WalletKitViewModel(
         _state.update { it.copy(isLoadingWallets = false) }
     }
 
-    fun refreshSessions() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoadingSessions = true) }
+    private suspend fun refreshSessions() {
+        _state.update { it.copy(isLoadingSessions = true) }
 
-            // Aggregate sessions from all wallets
-            val allSessions = mutableListOf<io.ton.walletkit.domain.model.WalletSession>()
-            tonWallets.values.forEach { wallet ->
-                runCatching {
-                    val walletSessions = wallet.sessions()
-                    allSessions.addAll(walletSessions)
-                }.onFailure {
-                    Log.w(LOG_TAG, "Failed to get sessions for wallet ${wallet.address}", it)
-                }
+        // Aggregate sessions from all wallets
+        val allSessions = mutableListOf<WalletSession>()
+        tonWallets.values.forEach { wallet ->
+            runCatching {
+                val walletSessions = wallet.sessions()
+                allSessions.addAll(walletSessions)
+            }.onFailure {
+                Log.w(LOG_TAG, "Failed to get sessions for wallet ${wallet.address}", it)
             }
-
-            Log.d(LOG_TAG, "Loaded ${allSessions.size} sessions from ${tonWallets.size} wallets")
-            allSessions.forEach { session ->
-                Log.d(
-                    LOG_TAG,
-                    "Session: id=${session.sessionId}, dApp=${session.dAppName}, " +
-                        "wallet=${session.walletAddress}, url=${session.dAppUrl}",
-                )
-            }
-
-            val mapped = allSessions.mapNotNull { session ->
-                val sessionUrl = sanitizeUrl(session.dAppUrl)
-                val sessionManifest = sanitizeUrl(session.manifestUrl)
-                val sessionIcon = sanitizeUrl(session.iconUrl)
-
-                // Skip sessions with no metadata (appears disconnected)
-                val appearsDisconnected = sessionUrl == null && sessionManifest == null
-                if (appearsDisconnected && session.sessionId.isNotBlank()) {
-                    Log.d(
-                        LOG_TAG,
-                        "Empty metadata for session ${session.sessionId}",
-                    )
-                    return@mapNotNull null
-                }
-
-                val displayName = session.dAppName.ifBlank { uiString(R.string.wallet_event_unknown_dapp) }
-
-                SessionSummary(
-                    sessionId = session.sessionId,
-                    dAppName = displayName,
-                    walletAddress = session.walletAddress,
-                    dAppUrl = sessionUrl,
-                    manifestUrl = sessionManifest,
-                    iconUrl = sessionIcon,
-                    createdAt = parseTimestamp(session.createdAtIso),
-                    lastActivity = parseTimestamp(session.lastActivityIso),
-                )
-            }
-            val finalSessions = mapped
-            finalSessions.forEach { summary ->
-                Log.d(
-                    LOG_TAG,
-                    "Mapped session summary: id=${summary.sessionId}, dApp=${summary.dAppName}, " +
-                        "url=${summary.dAppUrl}, icon=${summary.iconUrl}",
-                )
-            }
-            _state.update { it.copy(sessions = finalSessions, error = null, isLoadingSessions = false) }
         }
+
+        Log.d(LOG_TAG, "Loaded ${allSessions.size} sessions from ${tonWallets.size} wallets")
+        allSessions.forEach { session ->
+            Log.d(
+                LOG_TAG,
+                "Session: id=${session.sessionId}, dApp=${session.dAppName}, " +
+                    "wallet=${session.walletAddress}, url=${session.dAppUrl}",
+            )
+        }
+
+        val mapped = allSessions.mapNotNull { session ->
+            val sessionUrl = sanitizeUrl(session.dAppUrl)
+            val sessionManifest = sanitizeUrl(session.manifestUrl)
+            val sessionIcon = sanitizeUrl(session.iconUrl)
+
+            // Skip sessions with no metadata (appears disconnected)
+            val appearsDisconnected = sessionUrl == null && sessionManifest == null
+            if (appearsDisconnected && session.sessionId.isNotBlank()) {
+                Log.d(
+                    LOG_TAG,
+                    "Empty metadata for session ${session.sessionId}",
+                )
+                return@mapNotNull null
+            }
+
+            val displayName = session.dAppName.ifBlank { uiString(R.string.wallet_event_unknown_dapp) }
+
+            SessionSummary(
+                sessionId = session.sessionId,
+                dAppName = displayName,
+                walletAddress = session.walletAddress,
+                dAppUrl = sessionUrl,
+                manifestUrl = sessionManifest,
+                iconUrl = sessionIcon,
+                createdAt = parseTimestamp(session.createdAtIso),
+                lastActivity = parseTimestamp(session.lastActivityIso),
+            )
+        }
+        val finalSessions = mapped
+        finalSessions.forEach { summary ->
+            Log.d(
+                LOG_TAG,
+                "Mapped session summary: id=${summary.sessionId}, dApp=${summary.dAppName}, " +
+                    "url=${summary.dAppUrl}, icon=${summary.iconUrl}",
+            )
+        }
+        _state.update { it.copy(sessions = finalSessions, error = null, isLoadingSessions = false) }
     }
 
     fun openAddWalletSheet() {
@@ -519,10 +452,11 @@ class WalletKitViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGeneratingMnemonic = true) }
             val words = try {
-                // Use suspend generator that delegates to TONWallet or falls back
-                generateMnemonicSuspend()
-            } catch (_: Exception) {
-                List(24) { DEMO_WORDS.random() }
+                TONWallet.generateMnemonic(24)
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Mnemonic generation failed", e)
+                _state.update { it.copy(isGeneratingMnemonic = false, error = uiString(R.string.wallet_error_generate_failed)) }
+                return@launch
             } finally {
                 _state.update { it.copy(isGeneratingMnemonic = false) }
             }
@@ -734,7 +668,7 @@ class WalletKitViewModel(
 
                 // Auto-hide success message after 10 seconds
                 launch {
-                    delay(10000)
+                    delay(HIDE_MESSAGE_MS)
                     _state.update { currentState ->
                         // Only clear if the status is still the success message
                         val successStatus = uiString(R.string.wallet_status_signed_success)
@@ -770,7 +704,7 @@ class WalletKitViewModel(
 
                 // Auto-hide rejection message after 10 seconds
                 launch {
-                    delay(10000)
+                    delay(HIDE_MESSAGE_MS)
                     _state.update { currentState ->
                         val rejectedStatus = uiString(R.string.wallet_status_sign_rejected)
                         if (currentState.status == rejectedStatus) {
@@ -821,7 +755,6 @@ class WalletKitViewModel(
 
                 // Update transaction details after signing
                 launch {
-                    delay(200)
                     request.walletAddress?.let { address ->
                         if (state.value.activeWalletAddress == address) {
                             refreshTransactions(address)
@@ -865,7 +798,7 @@ class WalletKitViewModel(
 
                 // Auto-hide cancellation message
                 launch {
-                    delay(10000)
+                    delay(HIDE_MESSAGE_MS)
                     _state.update { currentState ->
                         val cancelledStatus = uiString(R.string.wallet_status_sign_cancelled)
                         if (currentState.status == cancelledStatus) {
@@ -997,8 +930,7 @@ class WalletKitViewModel(
             refreshWallets()
             logEvent(R.string.wallet_event_switched_wallet, wallet.name)
 
-            // Add delay before fetching transactions to avoid rate limiting
-            delay(1000)
+            // Immediately fetch transactions after wallets refresh completes
             refreshTransactions(address)
         }
     }
@@ -1126,7 +1058,7 @@ class WalletKitViewModel(
         val value = nanoTon.toLongOrNull() ?: 0L
         val ton = value.toDouble() / 1_000_000_000.0
         String.format(Locale.US, "%.4f", ton)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         DEFAULT_TON_FORMAT
     }
 
@@ -1279,12 +1211,6 @@ class WalletKitViewModel(
                 interfaceType = interfaceType,
             )
             result.add(summary)
-
-            // Add small delay between wallets to avoid rate limiting (429 errors)
-            // Only delay if there are more wallets to process
-            if (wallet != wallets.last()) {
-                delay(300) // 300ms delay between wallet API calls
-            }
         }
         return result
     }
@@ -1504,9 +1430,6 @@ class WalletKitViewModel(
         logEvent(R.string.wallet_event_sign_data_request, eventDAppName)
     }
 
-    // Old bridge event handler - no longer used with public API
-    // Event handling now happens via handleSdkEvent() which processes TONWalletKitEvent
-
     private fun logEvent(message: String) {
         _state.update {
             val events = listOf(message) + it.events
@@ -1595,12 +1518,6 @@ class WalletKitViewModel(
         val bridgeName: String,
     )
 
-    private suspend fun generateMnemonicSuspend(): List<String> = try {
-        TONWallet.generateMnemonic(24)
-    } catch (_: Exception) {
-        List(24) { DEMO_WORDS.random() }
-    }
-
     /**
      * Creates a hardware wallet signer using WalletConnect.
      *
@@ -1617,7 +1534,7 @@ class WalletKitViewModel(
      * In production, this would connect to a real hardware wallet like Ledger or SafePal.
      * For the demo, it derives the public key from mnemonic but requires explicit user confirmation via UI.
      */
-    private suspend fun createDemoSigner(mnemonic: List<String>, walletName: String): io.ton.walletkit.domain.model.WalletSigner {
+    private suspend fun createDemoSigner(mnemonic: List<String>, walletName: String): WalletSigner {
         Log.d(LOG_TAG, "Creating custom signer for wallet: $walletName")
 
         // In production, you would:
@@ -1636,7 +1553,7 @@ class WalletKitViewModel(
         // Create and return custom signer
         // The SDK's WalletSigner interface will handle the actual signing
         // and our UI confirmation flow will trigger before each signature
-        return object : io.ton.walletkit.domain.model.WalletSigner {
+        return object : WalletSigner {
             override val publicKey: String = publicKey
 
             override suspend fun sign(data: ByteArray): ByteArray {
@@ -1663,6 +1580,7 @@ class WalletKitViewModel(
             "yyyy-MM-dd'T'HH:mm:ss'Z'",
         )
         private const val BALANCE_REFRESH_MS = 20_000L
+        private const val HIDE_MESSAGE_MS = 10_000L
         private const val MAX_EVENT_LOG = 12
         private const val DEFAULT_WALLET_VERSION = "v4r2"
         private const val TRANSACTION_FETCH_LIMIT = 20
@@ -1712,7 +1630,6 @@ class WalletKitViewModel(
 
                 // Wait for SDK to initialize and wallets to load
                 sdkInitialized.first { it }
-                delay(500) // Give time for wallets to load
 
                 // If no wallets exist, automatically open add wallet sheet
                 if (_state.value.wallets.isEmpty()) {
@@ -1733,8 +1650,6 @@ class WalletKitViewModel(
         // If no wallets exist, automatically open add wallet sheet
         viewModelScope.launch {
             sdkInitialized.first { it }
-            delay(500) // Give time for wallets to load
-
             if (_state.value.wallets.isEmpty()) {
                 _state.update { it.copy(sheetState = SheetState.AddWallet) }
             }

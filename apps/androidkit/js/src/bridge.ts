@@ -13,7 +13,8 @@ let WalletV4R2Adapter: any;
 let WalletV5R1Adapter: any;
 let Address: any;
 let Cell: any;
-let currentNetwork: 'mainnet' | 'testnet' = 'testnet';
+// Bridge uses numeric chain ids only: '-239' = mainnet, '-3' = testnet
+let currentNetwork: '-239' | '-3' = '-3';
 let currentApiBase = 'https://testnet.tonapi.io';
 type TonChainEnum = { MAINNET: number; TESTNET: number };
 let tonConnectChain: TonChainEnum | null = null;
@@ -48,12 +49,25 @@ async function ensureWalletKitLoaded() {
   }
 }
 
+// Normalize network input (accept legacy names but bridge stores numeric ids)
+function normalizeNetworkValue(n?: string | null): '-239' | '-3' {
+  if (!n) return '-3';
+  if (n === '-239' || n === '-3') return n as '-239' | '-3';
+  if (typeof n === 'string') {
+    const lowered = n.toLowerCase();
+    if (lowered === 'mainnet') return '-239';
+    if (lowered === 'testnet') return '-3';
+  }
+  // default to testnet
+  return '-3';
+}
+
 // Helper to convert raw address (0:hex) to user-friendly format (UQ...)
 function toUserFriendlyAddress(rawAddress: string | null): string | null {
   if (!rawAddress || !Address) return rawAddress;
   try {
     const addr = Address.parse(rawAddress);
-    return addr.toString({ bounceable: false, testOnly: currentNetwork === 'testnet' });
+    return addr.toString({ bounceable: false, testOnly: currentNetwork === '-3' });
   } catch (e) {
     console.warn('[walletkitBridge] Failed to parse address:', rawAddress, e);
     return rawAddress;
@@ -346,17 +360,19 @@ async function initTonWalletKit(config?: WalletKitBridgeInitConfig, context?: Ca
     return { ok: true };
   }
   emitCallCheckpoint(context, 'initTonWalletKit:begin');
-  const network = config?.network || 'testnet';
-  const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl || (network === 'mainnet' ? 'https://tonapi.io' : 'https://testnet.tonapi.io');
-  const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl || (network === 'mainnet' ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC');
+  // Normalize network to numeric chain id
+  const networkRaw = (config?.network as string | undefined) ?? 'testnet';
+  const network = normalizeNetworkValue(networkRaw);
   currentNetwork = network;
+  const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl || (network === '-239' ? 'https://tonapi.io' : 'https://testnet.tonapi.io');
+  const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl || (network === '-239' ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC');
   currentApiBase = tonApiUrl;
   emitCallCheckpoint(context, 'initTonWalletKit:constructing-tonwalletkit');
   const chains = tonConnectChain;
   if (!chains) {
     throw new Error('TON Connect chain constants unavailable');
   }
-  const chain = network === 'mainnet' ? chains.MAINNET : chains.TESTNET;
+  const chain = network === '-239' ? chains.MAINNET : chains.TESTNET;
 
   console.log('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
   
@@ -395,7 +411,21 @@ async function initTonWalletKit(config?: WalletKitBridgeInitConfig, context?: Ca
   }
 
   // Use Android native storage if available, otherwise fall back to memory
-  if (typeof (window as any).Android !== 'undefined' && typeof (window as any).Android.storageGet === 'function') {
+  const nativeStorageBridge =
+    (window as any).WalletKitNativeStorage ??
+    ((window as any).WalletKitNative && typeof (window as any).WalletKitNative.storageGet === 'function'
+      ? (window as any).WalletKitNative
+      : undefined) ??
+    (window as any).Android;
+
+  const hasStorageMethods =
+    nativeStorageBridge &&
+    (typeof nativeStorageBridge.storageGet === 'function' ||
+      typeof nativeStorageBridge.getItem === 'function') &&
+    (typeof nativeStorageBridge.storageSet === 'function' ||
+      typeof nativeStorageBridge.setItem === 'function');
+
+  if (hasStorageMethods) {
     console.log('[walletkitBridge] Using Android native storage adapter');
     kitOptions.storage = new AndroidStorageAdapter();
   } else if (config?.allowMemoryStorage) {
@@ -464,7 +494,7 @@ const api = {
 
     // Remove old listener if it exists
     if (this.onConnectListener) {
-      walletKit.removeConnectRequestCallback(this.onConnectListener);
+      walletKit.removeConnectRequestCallback();
     }
     
     this.onConnectListener = (event: any) => {
@@ -477,7 +507,7 @@ const api = {
 
     // Remove old listener if it exists
     if (this.onTransactionListener) {
-      walletKit.removeTransactionRequestCallback(this.onTransactionListener);
+      walletKit.removeTransactionRequestCallback();
     }
     
     this.onTransactionListener = (event: any) => {
@@ -491,7 +521,7 @@ const api = {
 
     // Remove old listener if it exists
     if (this.onSignDataListener) {
-      walletKit.removeSignDataRequestCallback(this.onSignDataListener);
+      walletKit.removeSignDataRequestCallback();
     }
     
     this.onSignDataListener = (event: any) => {
@@ -505,7 +535,7 @@ const api = {
 
     // Remove old listener if it exists
     if (this.onDisconnectListener) {
-      walletKit.removeDisconnectCallback(this.onDisconnectListener);
+      walletKit.removeDisconnectCallback();
     }
     
     this.onDisconnectListener = (event: any) => {
@@ -525,22 +555,22 @@ const api = {
     console.log('[walletkitBridge] 🗑️ Removing all event listeners');
     
     if (this.onConnectListener) {
-      walletKit.removeConnectRequestCallback(this.onConnectListener);
+      walletKit.removeConnectRequestCallback();
       this.onConnectListener = null;
     }
     
     if (this.onTransactionListener) {
-      walletKit.removeTransactionRequestCallback(this.onTransactionListener);
+      walletKit.removeTransactionRequestCallback();
       this.onTransactionListener = null;
     }
     
     if (this.onSignDataListener) {
-      walletKit.removeSignDataRequestCallback(this.onSignDataListener);
+      walletKit.removeSignDataRequestCallback();
       this.onSignDataListener = null;
     }
     
     if (this.onDisconnectListener) {
-      walletKit.removeDisconnectCallback(this.onDisconnectListener);
+      walletKit.removeDisconnectCallback();
       this.onDisconnectListener = null;
     }
     
@@ -569,7 +599,7 @@ const api = {
   },
 
   async addWalletFromMnemonic(
-    args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: 'mainnet' | 'testnet' | '-239' | '-3' },
+  args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: string },
     context?: CallContext,
   ) {
     emitCallCheckpoint(context, 'addWalletFromMnemonic:before-ensureWalletKitLoaded');
@@ -582,8 +612,9 @@ const api = {
       throw new Error('TON Connect chain constants unavailable');
     }
     // Support both network names (mainnet/testnet) and chain IDs (-239/-3)
-    const networkValue = args.network || '-3'; // Default to testnet
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  // Normalize network input (accept legacy names but convert to numeric ids)
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     
     // Create wallet adapter based on version
     let walletAdapter: any;
@@ -616,7 +647,7 @@ const api = {
     args: { 
       publicKey: string; 
       version: 'v5r1' | 'v4r2'; 
-      network?: 'mainnet' | 'testnet' | '-239' | '-3';
+      network?: string;
       signerId: string; // Unique ID for this signer, will be included in sign events
     },
     context?: CallContext,
@@ -632,8 +663,8 @@ const api = {
       throw new Error('TON Connect chain constants unavailable');
     }
     
-    const networkValue = args.network || '-3';
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     
     // Store pending sign requests
     const pendingSignRequests = new Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>();
@@ -731,7 +762,7 @@ const api = {
   },
 
   async createV4R2WalletUsingMnemonic(
-    args: { mnemonic: string[]; network?: 'mainnet' | 'testnet' | '-239' | '-3' },
+  args: { mnemonic: string[]; network?: string },
     context?: CallContext,
   ) {
     emitCallCheckpoint(context, 'createV4R2WalletUsingMnemonic:before-ensureWalletKitLoaded');
@@ -745,8 +776,8 @@ const api = {
     if (!chains) {
       throw new Error('TON Connect chain constants unavailable');
     }
-    const networkValue = args.network || '-3';
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
     return await WalletV4R2Adapter.create(signer, {
       client: walletKit.getApiClient(),
@@ -755,7 +786,7 @@ const api = {
   },
 
   async createV4R2WalletUsingSecretKey(
-    args: { secretKey: string; network?: 'mainnet' | 'testnet' | '-239' | '-3' },
+  args: { secretKey: string; network?: string },
     context?: CallContext,
   ) {
     emitCallCheckpoint(context, 'createV4R2WalletUsingSecretKey:before-ensureWalletKitLoaded');
@@ -769,8 +800,8 @@ const api = {
     if (!chains) {
       throw new Error('TON Connect chain constants unavailable');
     }
-    const networkValue = args.network || '-3';
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromPrivateKey(args.secretKey);
     return await WalletV4R2Adapter.create(signer, {
       client: walletKit.getApiClient(),
@@ -779,7 +810,7 @@ const api = {
   },
 
   async createV5R1WalletUsingMnemonic(
-    args: { mnemonic: string[]; network?: 'mainnet' | 'testnet' | '-239' | '-3' },
+  args: { mnemonic: string[]; network?: string },
     context?: CallContext,
   ) {
     emitCallCheckpoint(context, 'createV5R1WalletUsingMnemonic:before-ensureWalletKitLoaded');
@@ -793,8 +824,8 @@ const api = {
     if (!chains) {
       throw new Error('TON Connect chain constants unavailable');
     }
-    const networkValue = args.network || '-3';
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
     return await WalletV5R1Adapter.create(signer, {
       client: walletKit.getApiClient(),
@@ -803,7 +834,7 @@ const api = {
   },
 
   async createV5R1WalletUsingSecretKey(
-    args: { secretKey: string; network?: 'mainnet' | 'testnet' | '-239' | '-3' },
+  args: { secretKey: string; network?: string },
     context?: CallContext,
   ) {
     emitCallCheckpoint(context, 'createV5R1WalletUsingSecretKey:before-ensureWalletKitLoaded');
@@ -817,8 +848,8 @@ const api = {
     if (!chains) {
       throw new Error('TON Connect chain constants unavailable');
     }
-    const networkValue = args.network || '-3';
-    const chain = (networkValue === 'mainnet' || networkValue === '-239') ? chains.MAINNET : chains.TESTNET;
+  const networkValue = normalizeNetworkValue(args.network as string | undefined);
+  const chain = networkValue === '-239' ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromPrivateKey(args.secretKey);
     return await WalletV5R1Adapter.create(signer, {
       client: walletKit.getApiClient(),

@@ -106,16 +106,58 @@ function overrideLocalStorage(target: AnyGlobal) {
     }
   };
 
-  // Override localStorage with our secure implementation
+  // Do NOT override the global localStorage (other libraries expect it).
+  // Instead expose a namespaced storage object `WalletKitNativeStorage` which
+  // delegates to the native bridge. Consumers of the SDK should use the
+  // WalletKit storage adapter (or call window.WalletKitNativeStorage) when
+  // they require secure/native persistence.
   try {
-    Object.defineProperty(target, 'localStorage', {
-      value: secureStorage,
-      writable: false,
-      configurable: true
-    });
-    console.log('[walletkitBridge] ✅ localStorage successfully overridden with native secure storage');
+    const namespaced: any = {
+      getItem(key: string) {
+        try {
+          const value = bridge.storageGet(key);
+          return value === undefined || value === null ? null : String(value);
+        } catch (err) {
+          console.error('[walletkitBridge] Error in WalletKitNativeStorage.getItem:', err);
+          return null;
+        }
+      },
+      setItem(key: string, value: string) {
+        try {
+          bridge.storageSet(key, String(value));
+        } catch (err) {
+          console.error('[walletkitBridge] Error in WalletKitNativeStorage.setItem:', err);
+        }
+      },
+      removeItem(key: string) {
+        try {
+          bridge.storageRemove(key);
+        } catch (err) {
+          console.error('[walletkitBridge] Error in WalletKitNativeStorage.removeItem:', err);
+        }
+      },
+      clear() {
+        try {
+          bridge.storageClear();
+        } catch (err) {
+          console.error('[walletkitBridge] Error in WalletKitNativeStorage.clear:', err);
+        }
+      }
+    };
+
+    // Attach without clobbering existing properties
+    if (typeof (target as any).WalletKitNativeStorage === 'undefined') {
+      Object.defineProperty(target, 'WalletKitNativeStorage', {
+        value: namespaced,
+        writable: false,
+        configurable: true
+      });
+      console.log('[walletkitBridge] ✅ WalletKitNativeStorage exposed for secure native storage');
+    } else {
+      console.warn('[walletkitBridge] WalletKitNativeStorage already present, not overriding');
+    }
   } catch (err) {
-    console.error('[walletkitBridge] Failed to override localStorage:', err);
+    console.error('[walletkitBridge] Failed to expose WalletKitNativeStorage:', err);
   }
 }
 

@@ -8,9 +8,13 @@ export class AndroidStorageAdapter implements StorageAdapter {
     private androidBridge: any;
 
     constructor() {
-        // Check if we're running in Android WebView with storage interface
-        if (typeof (window as any).Android !== 'undefined') {
-            this.androidBridge = (window as any).Android;
+        // Prefer namespaced WalletKitNativeStorage if injected by polyfills
+        const anyWin = window as any;
+        if (typeof anyWin.WalletKitNativeStorage !== 'undefined') {
+            this.androidBridge = anyWin.WalletKitNativeStorage;
+        } else if (typeof anyWin.Android !== 'undefined') {
+            // Fallback to legacy Android bridge
+            this.androidBridge = anyWin.Android;
         } else {
             console.warn('[AndroidStorageAdapter] Android bridge not available, storage will not persist');
         }

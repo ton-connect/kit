@@ -2,8 +2,8 @@ package io.ton.walletkit.demo.domain.model
 
 import io.ton.walletkit.domain.model.TONNetwork
 
-private const val BRIDGE_MAINNET = "mainnet"
-private const val BRIDGE_TESTNET = "testnet"
+private const val BRIDGE_MAINNET = "-239"
+private const val BRIDGE_TESTNET = "-3"
 
 /**
  * Convert SDK network enum to the string value we persist in demo storage.
