@@ -44,9 +44,9 @@ jobs:
     - name: Setup dependencies
       run: |
         if [ "$(id -u)" -ne 0 ]; then
-          sudo apt-get install --no-install-recommends -y xvfb
+          sudo apt-get update && sudo apt-get install --no-install-recommends -y xvfb
         else
-          apt-get install --no-install-recommends -y xvfb
+          apt-get update && apt-get install --no-install-recommends -y xvfb
         fi
         pnpm install --frozen-lockfile
         pnpm --filter demo-wallet e2e:deps
