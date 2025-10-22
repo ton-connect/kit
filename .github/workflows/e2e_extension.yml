@@ -14,7 +14,7 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, k8s, linux]
     container:
-      image: node:22-slim
+      image: node:22
       options: --user root
 
     steps:
