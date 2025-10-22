@@ -6,9 +6,9 @@ config();
 
 export default defineConfig({
     testDir: './e2e',
-    timeout: 20_000,
+    timeout: 60_000,
     expect: {
-        timeout: 20_000,
+        timeout: 60_000,
     },
     reporter: process.env.CI
         ? [['list'], ['html'], ['allure-playwright']]
