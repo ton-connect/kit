@@ -70,6 +70,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4
@@ -104,6 +106,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4
@@ -157,6 +161,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4
