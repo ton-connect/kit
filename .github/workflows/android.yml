@@ -57,7 +57,7 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, k8s, linux]
     container:
-      image: node:22
+      image: cimg/android:2025.10-node
       options: --user root
     needs: build-js
     steps:
@@ -70,8 +70,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # - name: Setup Android SDK
+      #   uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4
@@ -93,7 +93,7 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, k8s, linux]
     container:
-      image: node:22
+      image: cimg/android:2025.10-node
       options: --user root
     needs: build-js
     steps:
@@ -106,8 +106,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # - name: Setup Android SDK
+      #   uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4
@@ -148,7 +148,7 @@ jobs:
     # runs-on: ubuntu-latest
     runs-on: [self-hosted, k8s, linux]
     container:
-      image: node:22
+      image: cimg/android:2025.10-node
       options: --user root
     needs: build-js
     steps:
@@ -161,8 +161,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # - name: Setup Android SDK
+      #   uses: android-actions/setup-android@v3
 
       - name: Download JS bundles
         uses: actions/download-artifact@v4

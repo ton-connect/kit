@@ -55,7 +55,7 @@ jobs:
       run: |
         pnpm build
         cd apps/demo-wallet
-        xvfb-run pnpm e2e
+        pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension"
