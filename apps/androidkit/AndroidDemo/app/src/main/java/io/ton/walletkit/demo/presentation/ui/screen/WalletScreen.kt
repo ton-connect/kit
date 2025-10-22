@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
+import io.ton.walletkit.demo.presentation.DAppBrowserActivity.Companion.DEFAULT_DAPP_URL
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
@@ -66,6 +68,7 @@ fun WalletScreen(
     state: WalletUiState,
     onAddWalletClick: () -> Unit,
     onUrlPromptClick: () -> Unit,
+    onOpenBrowser: (String) -> Unit,
     onRefresh: () -> Unit,
     onDismissSheet: () -> Unit,
     onWalletDetails: (String) -> Unit,
@@ -195,6 +198,9 @@ fun WalletScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = { onOpenBrowser(DEFAULT_DAPP_URL) }) {
+                        Icon(Icons.Default.Language, contentDescription = "Open dApp Browser")
+                    }
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_refresh))
                     }
@@ -283,6 +289,7 @@ private fun WalletScreenPreview() {
         state = PreviewData.uiState,
         onAddWalletClick = {},
         onUrlPromptClick = {},
+        onOpenBrowser = {},
         onRefresh = {},
         onDismissSheet = {},
         onWalletDetails = {},

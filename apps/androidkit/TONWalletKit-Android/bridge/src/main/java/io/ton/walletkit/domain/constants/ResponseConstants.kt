@@ -196,6 +196,16 @@ internal object ResponseConstants {
      */
     const val KEY_URL = "url"
 
+    /**
+     * JSON key for message ID (used in internal browser requests).
+     */
+    const val KEY_MESSAGE_ID = "messageId"
+
+    /**
+     * JSON key for error code.
+     */
+    const val KEY_CODE = "code"
+
     // Session keys
     /**
      * JSON key for session ID.

@@ -119,4 +119,9 @@ internal object BridgeMethodConstants {
      * Method name for generating a new TON mnemonic via the JS bundle.
      */
     const val METHOD_CREATE_TON_MNEMONIC = "createTonMnemonic"
+
+    /**
+     * Method name for processing an internal browser TonConnect request.
+     */
+    const val METHOD_PROCESS_INTERNAL_BROWSER_REQUEST = "processInternalBrowserRequest"
 }

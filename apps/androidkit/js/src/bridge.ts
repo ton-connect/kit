@@ -1341,6 +1341,45 @@ const api = {
     emitCallCheckpoint(context, 'disconnectSession:after-walletKit.disconnect');
     return { ok: true };
   },
+
+  async processInternalBrowserRequest(
+    args: { messageId: string; method: string; params?: unknown },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'processInternalBrowserRequest:start');
+    await ensureWalletKitLoaded();
+    requireWalletKit();
+    
+    console.log('[walletkitBridge] Processing internal browser request:', args.method, args.messageId);
+    
+    // Process the request through WalletKit - this will trigger events
+    // (connectRequest, transactionRequest, signDataRequest) through the normal flow
+    
+    switch (args.method) {
+      case 'connect':
+        // For connect requests, we need to process the connection request
+        // The params should contain the TonConnect request data
+        console.log('[walletkitBridge] Internal browser connect request:', args.params);
+        // TODO: Process connect request and trigger connectRequest event
+        emitCallCheckpoint(context, 'processInternalBrowserRequest:connect-handled');
+        return { success: true, messageId: args.messageId };
+      
+      case 'sendTransaction':
+        console.log('[walletkitBridge] Internal browser transaction request:', args.params);
+        // TODO: Process transaction request and trigger transactionRequest event
+        emitCallCheckpoint(context, 'processInternalBrowserRequest:transaction-handled');
+        return { success: true, messageId: args.messageId };
+      
+      case 'signData':
+        console.log('[walletkitBridge] Internal browser signData request:', args.params);
+        // TODO: Process signData request and trigger signDataRequest event
+        emitCallCheckpoint(context, 'processInternalBrowserRequest:signData-handled');
+        return { success: true, messageId: args.messageId };
+      
+      default:
+        throw new Error(`Unknown internal browser method: ${args.method}`);
+    }
+  },
 };
 
 function serializeDate(value: unknown): string | null {

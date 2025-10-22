@@ -158,6 +158,25 @@ internal interface WalletKitEngine {
     suspend fun handleTonConnectUrl(url: String)
 
     /**
+     * Handle a TonConnect request from an internal browser.
+     * This is called automatically by TONInternalBrowser when a dApp sends a request.
+     *
+     * The engine will process the request and invoke the responseCallback with the result.
+     * Events (connect, transaction, sign data) will be delivered to the eventsHandler as usual.
+     *
+     * @param messageId Unique message ID from the dApp
+     * @param method Request method (e.g., "connect", "sendTransaction", "signData")
+     * @param params Request parameters as JSON
+     * @param responseCallback Callback to send response back to dApp
+     */
+    suspend fun handleTonConnectRequest(
+        messageId: String,
+        method: String,
+        params: org.json.JSONObject?,
+        responseCallback: (org.json.JSONObject) -> Unit,
+    )
+
+    /**
      * Create a new locally-initiated transaction request.
      * This will trigger a transaction request event that needs to be approved via [approveTransaction].
      *

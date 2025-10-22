@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WalletKitDemo"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
         <activity
             android:name="io.ton.walletkit.demo.presentation.MainActivity"
             android:exported="true">
@@ -23,5 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name="io.ton.walletkit.demo.presentation.DAppBrowserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WalletKitDemo" />
     </application>
 </manifest>

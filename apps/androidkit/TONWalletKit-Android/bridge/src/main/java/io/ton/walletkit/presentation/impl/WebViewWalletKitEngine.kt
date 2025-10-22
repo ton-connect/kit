@@ -759,6 +759,49 @@ internal class WebViewWalletKitEngine(
         call(BridgeMethodConstants.METHOD_HANDLE_TON_CONNECT_URL, params)
     }
 
+    override suspend fun handleTonConnectRequest(
+        messageId: String,
+        method: String,
+        params: JSONObject?,
+        responseCallback: (JSONObject) -> Unit,
+    ) {
+        try {
+            ensureWalletKitInitialized()
+            ensureEventListenersSetUp()
+
+            Log.d(TAG, "Processing internal browser request: $method (messageId: $messageId)")
+
+            // Build params for the bridge call
+            val requestParams = JSONObject().apply {
+                put(ResponseConstants.KEY_MESSAGE_ID, messageId)
+                put(ResponseConstants.KEY_METHOD, method)
+                if (params != null) {
+                    put(ResponseConstants.KEY_PARAMS, params)
+                }
+            }
+
+            // Call the bridge method just like all other methods
+            val result = call(BridgeMethodConstants.METHOD_PROCESS_INTERNAL_BROWSER_REQUEST, requestParams)
+
+            // Call the response callback with the result
+            responseCallback(result)
+
+            Log.d(TAG, "Internal browser request processed: $method")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to process internal browser request", e)
+            val errorResponse = JSONObject().apply {
+                put(
+                    ResponseConstants.KEY_ERROR,
+                    JSONObject().apply {
+                        put(ResponseConstants.KEY_MESSAGE, e.message ?: "Failed to process request")
+                        put(ResponseConstants.KEY_CODE, 500)
+                    },
+                )
+            }
+            responseCallback(errorResponse)
+        }
+    }
+
     override suspend fun sendLocalTransaction(
         walletAddress: String,
         recipient: String,

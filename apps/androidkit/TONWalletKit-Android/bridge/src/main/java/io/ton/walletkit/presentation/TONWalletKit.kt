@@ -1,7 +1,9 @@
 package io.ton.walletkit.presentation
 
 import android.content.Context
+import io.ton.walletkit.presentation.browser.TONInternalBrowser
 import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
+import io.ton.walletkit.presentation.event.BrowserEvent
 import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
 
 /**
@@ -126,5 +128,59 @@ object TONWalletKit {
         } finally {
             engine = null
         }
+    }
+
+    /**
+     * Open a dApp in the internal browser with TonConnect support.
+     *
+     * The internal browser automatically injects TonConnect bridge, allowing dApps to:
+     * - Request wallet connections
+     * - Send transaction requests
+     * - Request data signing
+     *
+     * All requests will be delivered through the [TONBridgeEventsHandler] provided during initialization.
+     *
+     * **Usage Example:**
+     * ```kotlin
+     * // Open a dApp
+     * val browser = TONWalletKit.openDApp(
+     *     context = context,
+     *     url = "https://app.ston.fi",
+     *     eventListener = { event ->
+     *         when (event) {
+     *             is BrowserEvent.PageStarted -> showLoading()
+     *             is BrowserEvent.PageFinished -> hideLoading()
+     *             is BrowserEvent.Error -> showError(event.message)
+     *         }
+     *     }
+     * )
+     *
+     * // Embed the browser in your UI
+     * val webView = browser.getView()
+     * containerLayout.addView(webView)
+     *
+     * // Later, close the browser
+     * browser.close()
+     * ```
+     *
+     * @param context Android context
+     * @param url dApp URL to open
+     * @param eventListener Optional listener for browser events (page loads, errors, etc.)
+     * @return Internal browser instance
+     * @throws WalletKitBridgeException if SDK not initialized
+     */
+    fun openDApp(
+        context: Context,
+        url: String,
+        eventListener: ((BrowserEvent) -> Unit)? = null,
+    ): TONInternalBrowser {
+        if (engine == null) {
+            throw WalletKitBridgeException("TONWalletKit not initialized. Call TONWalletKit.initialize() first.")
+        }
+
+        // Pass engine to browser so it can automatically forward requests
+        val browser = TONInternalBrowser(context, engine, eventListener)
+        browser.open(url)
+        return browser
     }
 }
