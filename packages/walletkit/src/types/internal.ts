@@ -9,6 +9,7 @@ import {
 } from '@tonconnect/protocol';
 
 import { DAppInfo } from './events';
+import { JSBridgeTransportFunction } from './jsBridge';
 
 // import type { WalletInterface } from './wallet';
 
@@ -32,6 +33,9 @@ export interface BridgeConfig {
     enableJsBridge?: boolean; // default to true if WalletInfo.jsBridgeKey exists
     jsBridgeKey?: string; // defaults to WalletInfo.jsBridgeKey
     disableHttpConnection?: boolean; // default to false
+
+    // Custom transport function for JS Bridge responses
+    jsBridgeTransport?: JSBridgeTransportFunction;
 
     // settings for bridge-sdk
     heartbeatInterval?: number;

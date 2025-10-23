@@ -84,6 +84,7 @@ export type { ITonWalletKit } from './types/kit';
 // Re-export JS Bridge components
 export type {
     JSBridgeInjectOptions,
+    JSBridgeTransportFunction,
     TonConnectBridge,
     DeviceInfo,
     WalletInfo,

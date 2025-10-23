@@ -84,6 +84,8 @@ export interface JSBridgeInjectOptions {
     deviceInfo?: Partial<DeviceInfo>;
     walletInfo?: WalletInfo;
     jsBridgeKey?: string;
+    injectTonKey?: boolean;
+    isWalletBrowser?: boolean;
 }
 
 /**
@@ -124,3 +126,20 @@ export interface BridgeEventMessageInfo {
     tabId?: string;
     domain?: string;
 }
+
+/**
+ * Custom transport function for JS Bridge responses
+ * Allows custom implementation of message delivery to injected bridge
+ *
+ * @param sessionId - Session/tab identifier
+ * @param message - Bridge response message to send
+ *
+ * @example
+ * ```typescript
+ * const customTransport: JSBridgeTransportFunction = async (sessionId, message) => {
+ *   // Custom implementation, e.g., WebSocket, postMessage, etc.
+ *   await myCustomChannel.send(sessionId, message);
+ * };
+ * ```
+ */
+export type JSBridgeTransportFunction = (sessionId: string, message: unknown) => Promise<void> | void;

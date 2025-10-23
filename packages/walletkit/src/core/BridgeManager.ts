@@ -9,7 +9,12 @@ import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import { SessionManager } from './SessionManager';
 import { EventRouter } from './EventRouter';
-import { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload, WalletInfo } from '../types/jsBridge';
+import {
+    BridgeEventMessageInfo,
+    InjectedToExtensionBridgeRequestPayload,
+    JSBridgeTransportFunction,
+    WalletInfo,
+} from '../types/jsBridge';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { AnalyticsApi } from '../analytics/sender';
@@ -29,6 +34,7 @@ export class BridgeManager {
     private lastEventId?: string;
     private storageKey = 'bridge_last_event_id';
     private walletKitConfig: TonWalletKitOptions;
+    private jsBridgeTransport?: JSBridgeTransportFunction;
 
     // Event processing queue and concurrency control
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,6 +84,12 @@ export class BridgeManager {
         this.eventRouter = eventRouter;
         this.analyticsApi = analyticsApi;
         this.walletKitConfig = walletKitConfig;
+        this.jsBridgeTransport =
+            config?.jsBridgeTransport ??
+            (async (sessionId: string, message: unknown) => {
+                // eslint-disable-next-line no-undef
+                await chrome.tabs.sendMessage(parseInt(sessionId), message);
+            });
     }
 
     /**
@@ -241,15 +253,23 @@ export class BridgeManager {
         },
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
-        // eslint-disable-next-line no-undef
-        chrome.tabs.sendMessage(parseInt(sessionId), {
+        const message = {
             type: 'TONCONNECT_BRIDGE_RESPONSE',
             source: source,
             messageId: requestId,
             success: true,
             payload: response,
             traceId: options?.traceId,
-        });
+        };
+
+        // Use custom transport if provided, otherwise use default chrome.tabs.sendMessage
+        if (this.jsBridgeTransport) {
+            await this.jsBridgeTransport(sessionId, message);
+        } else {
+            // Default: use chrome extension messaging
+            // eslint-disable-next-line no-undef
+            await chrome.tabs.sendMessage(parseInt(sessionId), message);
+        }
     }
 
     /**
