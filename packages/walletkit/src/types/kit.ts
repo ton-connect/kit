@@ -1,6 +1,6 @@
 // Main TonWalletKit interface definition
 
-import { CHAIN, SendTransactionRpcResponseError } from '@tonconnect/protocol';
+import { CHAIN, CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
 
 import type { IWallet, IWalletAdapter } from './wallet';
 import type {
@@ -68,7 +68,11 @@ export interface ITonWalletKit {
     /** Approve a connect request */
     approveConnectRequest(event: EventConnectRequest): Promise<void>;
     /** Reject a connect request */
-    rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void>;
+    rejectConnectRequest(
+        event: EventConnectRequest,
+        reason?: string,
+        errorCode?: CONNECT_EVENT_ERROR_CODES,
+    ): Promise<void>;
 
     /** Approve a transaction request */
     approveTransactionRequest(event: EventTransactionRequest): Promise<EventTransactionResponse>;

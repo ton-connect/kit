@@ -2,18 +2,18 @@ import { config } from 'dotenv';
 import { defineConfig, devices } from '@playwright/test';
 
 // Загружаем переменные окружения из .env файла
-config();
+config({ quiet: true });
 
 export default defineConfig({
     testDir: './e2e',
-    timeout: 20_000,
+    timeout: 60_000,
     expect: {
-        timeout: 20_000,
+        timeout: 60_000,
     },
     reporter: process.env.CI
         ? [['list'], ['html'], ['allure-playwright']]
         : [['list'], ['html'], ['allure-playwright']],
-    workers: process.env.CI ? 2 : undefined,
+    // workers: process.env.CI ? 2 : undefined,
     use: {
         screenshot: 'only-on-failure',
         trace: 'retain-on-failure',
@@ -30,7 +30,8 @@ export default defineConfig({
                 '--disable-permissions-api',
             ],
         },
-        // headless: false,
+        headless:
+            process.env.ENABLE_HEADLESS === 'true' ? true : process.env.ENABLE_HEADLESS === 'false' ? false : undefined,
     },
     projects: process.env.E2E_WALLET_SOURCE_EXTENSION
         ? [

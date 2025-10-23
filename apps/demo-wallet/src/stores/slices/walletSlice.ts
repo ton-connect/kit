@@ -406,6 +406,22 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         walletKit.onConnectRequest((event) => {
             log.info('Connect request received:', event);
+            if (event?.preview?.manifestFetchErrorCode) {
+                log.error(
+                    'Connect request received with manifest fetch error:',
+                    event?.preview?.manifestFetchErrorCode,
+                );
+                walletKit.rejectConnectRequest(
+                    event,
+                    event?.preview?.manifestFetchErrorCode == 2
+                        ? 'App manifest not found'
+                        : event?.preview?.manifestFetchErrorCode == 3
+                          ? 'App manifest content error'
+                          : undefined,
+                    event.preview.manifestFetchErrorCode,
+                );
+                return;
+            }
             get().showConnectRequest(event);
         });
 
@@ -478,15 +494,15 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             // Get wallet info
             const address = wallet.getAddress();
 
-            // Check if wallet with this address already exists
-            const existingWallet = state.wallet.savedWallets.find((w) => w.address === address);
-            if (existingWallet) {
-                log.warn(`Wallet with address ${address} already exists`);
-                state.wallet.walletKit.removeWallet(wallet);
-                throw new Error('A wallet with this address already exists');
-            }
+            // // Check if wallet with this address already exists
+            // const existingWallet = state.wallet.savedWallets.find((w) => w.address === address);
+            // if (existingWallet) {
+            //     log.warn(`Wallet with address ${address} already exists`);
+            //     state.wallet.walletKit.removeWallet(wallet);
+            //     throw new Error('A wallet with this address already exists');
+            // }
 
-            const balance = await wallet.getBalance();
+            // const balance = await wallet.getBalance();
             const publicKey = wallet.publicKey;
 
             // Create saved wallet entry
@@ -510,7 +526,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.activeWalletId = walletId;
                 state.wallet.address = address;
                 state.wallet.publicKey = publicKey;
-                state.wallet.balance = balance.toString();
+                state.wallet.balance = '0';
+                // balance.toString();
                 state.wallet.currentWallet = wallet;
             });
 

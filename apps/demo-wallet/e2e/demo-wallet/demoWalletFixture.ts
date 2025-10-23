@@ -37,24 +37,38 @@ export function demoWalletFixture(config: ConfigFixture, slowMo = 0) {
             await context.close();
         },
         app: async ({ context }, use) => {
-            const pages = context.pages();
-            let app = pages[pages.length - 1]; // return last tab
+            // @ts-expect-error - custom property on context
+            let app = context._app;
             if (!app) {
                 app = await context.newPage();
+                // @ts-expect-error - custom property on context
+                context._app = app;
+                app.onReady = app.goto(config.appUrl, {
+                    waitUntil: 'load',
+                });
             }
-            await app.goto(config.appUrl, {
-                waitUntil: 'load',
-            });
+            // const pages = context.pages();
+            // context.get
+
+            // let app; // = pages[pages.length - 1]; // return last tab
+            // if (!app) {
+            //     app = await context.newPage();
+            // }
+
             await use(app);
         },
         widget: async ({ app }, use) => {
             const widget = new TonConnectWidget(app);
             await use(widget);
         },
-        wallet: async ({ context }, use) => {
+        wallet: async ({ context, app: _app }, use) => {
             const source = isExtension ? await getExtensionId(context) : walletSource;
             const app = new DemoWallet(context, source);
-            await app.importWallet(mnemonic ?? '');
+
+            const importPromise = app.importWallet(mnemonic ?? '');
+            // @ts-expect-error - custom property on context
+            await _app.onReady;
+            await importPromise;
             await use(app);
         },
     });

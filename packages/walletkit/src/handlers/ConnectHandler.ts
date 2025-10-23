@@ -1,12 +1,11 @@
 // Connect request handler
 
-import { ConnectItem } from '@tonconnect/protocol';
+import { CONNECT_EVENT_ERROR_CODES, ConnectItem } from '@tonconnect/protocol';
 
 import type { ConnectPreview, EventConnectRequest, TonWalletKitOptions } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
-import { WalletKitError, ERROR_CODES } from '../errors';
 import { AnalyticsApi } from '../analytics/sender';
 import { getUnixtime } from '../utils/time';
 import { uuidv7 } from '../utils/uuid';
@@ -39,17 +38,20 @@ export class ConnectHandler
         // Extract manifest information
         const manifestUrl = this.extractManifestUrl(event);
         let manifest = null;
+        let manifestFetchErrorCode = undefined;
 
         // Try to fetch manifest if URL is available
         if (manifestUrl) {
             try {
-                manifest = await this.fetchManifest(manifestUrl);
+                const result = await this.fetchManifest(manifestUrl);
+                manifest = result.manifest;
+                manifestFetchErrorCode = result.manifestFetchErrorCode;
             } catch (error) {
                 log.warn('Failed to fetch manifest', { error });
             }
         }
 
-        const preview = this.createPreview(event, manifestUrl, manifest);
+        const preview = this.createPreview(event, manifestUrl, manifest, manifestFetchErrorCode);
 
         const connectEvent: EventConnectRequest = {
             ...event,
@@ -120,12 +122,20 @@ export class ConnectHandler
     /**
      * Create preview object for connect request
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private createPreview(event: RawBridgeEventConnect, manifestUrl: string, fetchedManifest?: any): ConnectPreview {
+
+    private createPreview(
+        event: RawBridgeEventConnect,
+        manifestUrl: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        fetchedManifest?: any,
+        manifestFetchErrorCode?:
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
+    ): ConnectPreview {
         const eventManifest = event.params?.manifest;
         const manifest = fetchedManifest || eventManifest;
 
-        const dAppUrl = manifest?.url || manifestUrl || '';
+        const dAppUrl = manifest?.url || '';
 
         const sanitizedManifest = manifest && {
             name: manifest.name?.toString()?.trim() || '',
@@ -164,23 +174,54 @@ export class ConnectHandler
             manifest: sanitizedManifest,
             requestedItems: event.params?.items || [],
             permissions: permissions,
+            manifestFetchErrorCode: manifestFetchErrorCode ?? undefined,
         };
     }
 
     /**
      * Fetch manifest from URL
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private async fetchManifest(manifestUrl: string): Promise<any> {
-        const response = await fetch(manifestUrl);
-        if (!response.ok) {
-            throw new WalletKitError(
-                ERROR_CODES.API_REQUEST_FAILED,
-                `Failed to fetch manifest: ${response.statusText}`,
-                undefined,
-                { manifestUrl, status: response.status, statusText: response.statusText },
-            );
+
+    private async fetchManifest(manifestUrl: string): Promise<{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        manifest: any;
+        manifestFetchErrorCode?:
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
+    }> {
+        try {
+            // try to parse url
+            new URL(manifestUrl);
+        } catch (_) {
+            return {
+                manifest: null,
+                manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR,
+            };
         }
-        return response.json();
+        try {
+            const response = await fetch(manifestUrl);
+            if (!response.ok) {
+                return {
+                    manifest: null,
+                    manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
+                };
+                // throw new WalletKitError(
+                //     ERROR_CODES.API_REQUEST_FAILED,
+                //     `Failed to fetch manifest: ${response.statusText}`,
+                //     undefined,
+                //     { manifestUrl, status: response.status, statusText: response.statusText },
+                // );
+            }
+            const result = await response.json();
+            return {
+                manifest: result,
+                manifestFetchErrorCode: undefined,
+            };
+        } catch (_) {
+            return {
+                manifest: null,
+                manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR,
+            };
+        }
     }
 }

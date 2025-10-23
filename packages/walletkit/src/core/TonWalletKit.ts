@@ -3,6 +3,7 @@
 import { Address } from '@ton/core';
 import {
     CHAIN,
+    CONNECT_EVENT_ERROR_CODES,
     ConnectEventSuccess,
     ConnectRequest,
     DisconnectEvent,
@@ -539,9 +540,13 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.approveConnectRequest(event);
     }
 
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
+    async rejectConnectRequest(
+        event: EventConnectRequest,
+        reason?: string,
+        errorCode?: CONNECT_EVENT_ERROR_CODES,
+    ): Promise<void> {
         await this.ensureInitialized();
-        return this.requestProcessor.rejectConnectRequest(event, reason);
+        return this.requestProcessor.rejectConnectRequest(event, reason, errorCode);
     }
 
     async approveTransactionRequest(event: EventTransactionRequest): Promise<EventTransactionResponse> {

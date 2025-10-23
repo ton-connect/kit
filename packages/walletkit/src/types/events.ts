@@ -1,6 +1,7 @@
 // Event type definitions for TON Connect protocol
 
 import type {
+    CONNECT_EVENT_ERROR_CODES,
     ConnectEventSuccess,
     ConnectItem,
     ConnectRequest,
@@ -155,6 +156,9 @@ export interface ConnectPreview {
 
     requestedItems?: ConnectItem[];
     permissions?: ConnectPermission[];
+    manifestFetchErrorCode?:
+        | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+        | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
 }
 
 /**

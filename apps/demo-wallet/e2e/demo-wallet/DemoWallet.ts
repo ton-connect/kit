@@ -34,7 +34,7 @@ export class DemoWallet extends WalletApp {
         await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
         await app.getByTestId('hold-to-sign').click();
         await app.getByTestId('network-select').selectOption('mainnet');
-        await this.close();
+        // await this.close();
     }
 
     async connectBy(url: string): Promise<void> {
@@ -44,15 +44,20 @@ export class DemoWallet extends WalletApp {
         await this.connect();
     }
 
-    async connect(confirm: boolean = true): Promise<void> {
+    async connect(confirm: boolean = true, skipConnect: boolean = false): Promise<void> {
         const app = await this.open();
+        if (skipConnect) {
+            return;
+        }
+
         const modal = app.getByTestId('request').filter({ hasText: 'Connect Request' });
         await modal.waitFor({ state: 'visible', timeout });
         const chose = app.getByTestId(confirm ? 'connect-approve' : 'connect-reject');
+
         await chose.waitFor({ state: 'attached', timeout });
         await chose.click();
         await modal.waitFor({ state: 'detached', timeout });
-        await this.close();
+        // await this.close();
     }
 
     async signData(confirm: boolean = true): Promise<void> {

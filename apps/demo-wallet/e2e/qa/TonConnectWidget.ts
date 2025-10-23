@@ -64,8 +64,10 @@ export class TonConnectWidget {
         return await handle.jsonValue();
     }
 
-    async connectWallet(name: string) {
-        await this.connect();
+    async connectWallet(name: string, skipConnect: boolean = false) {
+        if (!skipConnect) {
+            await this.connect();
+        }
         await this.clickButton(name);
         await this.clickButton('Browser Extension');
     }

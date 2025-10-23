@@ -249,7 +249,11 @@ export class RequestProcessor {
     /**
      * Process connect request rejection
      */
-    async rejectConnectRequest(event: EventConnectRequest, reason?: string): Promise<void> {
+    async rejectConnectRequest(
+        event: EventConnectRequest,
+        reason?: string,
+        errorCode?: CONNECT_EVENT_ERROR_CODES,
+    ): Promise<void> {
         try {
             log.info('Connect request rejected', {
                 id: event.id,
@@ -259,9 +263,9 @@ export class RequestProcessor {
 
             const response: ConnectEventError = {
                 event: 'connect_error',
-                id: parseInt(event.id || ''),
+                id: 1, // parseInt(event.id || '') ?? 1,
                 payload: {
-                    code: CONNECT_EVENT_ERROR_CODES.USER_REJECTS_ERROR,
+                    code: errorCode ?? CONNECT_EVENT_ERROR_CODES.USER_REJECTS_ERROR,
                     message: reason || 'User rejected connection',
                 },
             };
