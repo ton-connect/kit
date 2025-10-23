@@ -315,6 +315,9 @@ importers:
 
   packages/walletkit-ios-bridge:
     dependencies:
+      '@ton/crypto':
+        specifier: ^3.3.0
+        version: 3.3.0
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../walletkit

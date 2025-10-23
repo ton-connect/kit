@@ -6,6 +6,7 @@
     "build": "node build.js"
   },
   "dependencies": {
+    "@ton/crypto": "^3.3.0",
     "@ton/walletkit": "workspace:*",
     "buffer": "^6.0.3",
     "url-polyfill": "^1.1.13",
