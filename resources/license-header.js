@@ -5,8 +5,3 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-
-export interface AddressBookRowV3 {
-    domain: string | null;
-    user_friendly: string;
-}

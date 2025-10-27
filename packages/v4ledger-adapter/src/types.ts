@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import type { ApiClient } from '@ton/walletkit';
 import type { CHAIN } from '@tonconnect/protocol';
 import type Transport from '@ledgerhq/hw-transport';

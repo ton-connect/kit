@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import type { NftItemV3 } from './NftItemV3';
 import { AddressBookRowV3 } from './AddressBookRowV3';
 import { AddressMetadataV3 } from './AddressMetadataV3';

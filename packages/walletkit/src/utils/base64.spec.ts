@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import { Base64ToBigInt, Base64ToHex, Base64ToUint8Array, BigIntToBase64, Uint8ArrayToBase64 } from './base64';
 
 const data = 'SU0eXImjhI1aq6VO7sLhH2ycct1iTg2KMY2x4so5WYY=';

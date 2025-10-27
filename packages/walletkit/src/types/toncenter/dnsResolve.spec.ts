@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import { mockFn, mocked } from '../../../mock.config';
 import { createMockApiClient } from '../../contracts/w5/WalletV5R1.fixture';
 import { DnsCategory, dnsResolve, toDnsInternal, toTonDnsCategory } from './dnsResolve';

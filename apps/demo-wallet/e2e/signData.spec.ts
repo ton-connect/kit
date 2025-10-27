@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 import { allureId, label, suite, tags } from 'allure-js-commons';
 import type { TestInfo } from '@playwright/test';
 import { config } from 'dotenv';

@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 // github.com/wevm/viem/blob/f361a7a0465ded8303ea439b0dc2568459230ee6/src/utils/unit/formatUnits.ts
 
 /**
