@@ -15,7 +15,7 @@
   "prettier": "@ton/toolchain/prettier",
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
     "@ton/toolchain": "github:the-ton-tech/toolchain#v1.5.0",

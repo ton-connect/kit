@@ -5,6 +5,7 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/cjs/index.d.ts",
+  "license": "MIT",
   "exports": {
     ".": {
       "import": {
@@ -47,7 +48,6 @@
     "tonconnect"
   ],
   "author": "",
-  "license": "ISC",
   "files": [
     "dist"
   ],
