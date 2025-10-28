@@ -27,6 +27,37 @@ importers:
         specifier: ^2.5.6
         version: 2.5.6
 
+  apps/androidkit:
+    dependencies:
+      '@ton/core':
+        specifier: ^0.61.0
+        version: 0.61.0(@ton/crypto@3.3.0)
+      '@ton/walletkit':
+        specifier: workspace:*
+        version: link:../../packages/walletkit
+      '@tonconnect/bridge-sdk':
+        specifier: ^0.2.4
+        version: 0.2.4
+      '@tonconnect/protocol':
+        specifier: ^2.3.0
+        version: 2.3.0
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
+      whatwg-url:
+        specifier: ^13.0.0
+        version: 13.0.0
+    devDependencies:
+      '@types/whatwg-url':
+        specifier: ^13.0.0
+        version: 13.0.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.8.3
+      vite:
+        specifier: ^5.0.0
+        version: 5.4.20(@types/node@24.3.0)(lightningcss@1.30.1)
+
   apps/demo-wallet:
     dependencies:
       '@ledgerhq/hw-transport-webhid':
