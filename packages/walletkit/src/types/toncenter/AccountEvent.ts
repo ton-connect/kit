@@ -1,8 +1,27 @@
 import { fromNano } from '@ton/core';
 
-import { EmulationAction, EmulationTonTransferDetails } from './emulation';
-import { asAddressFriendly, Hex } from '../primitive';
+import {
+    EmulationAction,
+    EmulationAddressBookEntry,
+    EmulationTonTransferDetails,
+    ToncenterTraceItem,
+    ToncenterTransaction,
+} from './emulation';
+import { AddressFriendly, asAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
+
+export type AddressBook = Record<AddressFriendly, string>;
+
+export function toAddressBook(data: Record<string, EmulationAddressBookEntry>): AddressBook {
+    const out: Record<AddressFriendly, string> = {};
+    for (const item of Object.keys(data)) {
+        const domain = data[item].domain;
+        if (domain) {
+            out[asAddressFriendly(item)] = domain;
+        }
+    }
+    return out;
+}
 
 export interface Event {
     eventId: Hex;
@@ -12,6 +31,7 @@ export interface Event {
     isScam: boolean;
     lt: number;
     inProgress: boolean;
+    transactions: Record<string, ToncenterTransaction>;
 }
 
 export interface TypedAction {
@@ -67,17 +87,32 @@ export interface JettonMasterOut {
 
 export type Action = TypedAction | TonTransferAction | SmartContractExecAction | JettonSwapAction;
 
-export function createAction(data: EmulationAction): Action {
+export function toEvent(data: ToncenterTraceItem, account: string, addressBook: AddressBook = {}): Event {
+    const actions: Action[] = [];
+    const _list = data.transactions || []; // TODO pare transactions into Actions
+    return {
+        eventId: Base64ToHex(data.trace_id),
+        account: toAccount(account, addressBook),
+        timestamp: data.start_utime,
+        actions,
+        isScam: false, // TODO implement detect isScam for Event
+        lt: Number(data.start_lt),
+        inProgress: data.is_incomplete,
+        transactions: data.transactions,
+    };
+}
+
+export function toAction(data: EmulationAction, addressBook: AddressBook = {}): Action {
     switch (data.type) {
         case 'ton_transfer':
-            return createTonTransferAction(data);
+            return createTonTransferAction(data, addressBook);
         case 'jetton_mint': // TODO jetton_mint
         default:
-            return createDefaultAction(data);
+            return createDefaultAction(data, addressBook);
     }
 }
 
-export function createDefaultAction(data: EmulationAction): TypedAction {
+export function createDefaultAction(data: EmulationAction, addressBook: AddressBook = {}): TypedAction {
     return {
         type: 'Unknown',
         id: Base64ToHex(data.action_id),
@@ -86,13 +121,15 @@ export function createDefaultAction(data: EmulationAction): TypedAction {
             name: 'Unknown',
             description: 'Transferring unknown',
             value: 'unknown',
-            accounts: (data.accounts || []).map(toAccount),
+            accounts: (data.accounts || []).map((item) => {
+                return toAccount(item, addressBook);
+            }),
         },
         baseTransactions: data.transactions.map(Base64ToHex),
     };
 }
 
-export function createTonTransferAction(data: EmulationAction): TonTransferAction {
+export function createTonTransferAction(data: EmulationAction, addressBook: AddressBook = {}): TonTransferAction {
     const details = data.details as EmulationTonTransferDetails;
     return {
         type: 'TonTransfer',
@@ -108,7 +145,9 @@ export function createTonTransferAction(data: EmulationAction): TonTransferActio
             name: 'Ton Transfer',
             description: `Transferring ${fromNano(details.value)} TON`,
             value: `${fromNano(details.value)} TON`,
-            accounts: (data.accounts || []).map(toAccount),
+            accounts: (data.accounts || []).map((item) => {
+                return toAccount(item, addressBook);
+            }),
         },
         baseTransactions: data.transactions.map(Base64ToHex),
     };
@@ -135,10 +174,10 @@ export interface Account {
     isWallet: boolean;
 }
 
-export function toAccount(address: string): Account {
+export function toAccount(address: string, addressBook: AddressBook = {}): Account {
     return {
         address: asAddressFriendly(address),
-        // TODO implement name isScam for Account
+        name: addressBook[address],
         isScam: false, // TODO implement detect isScam for Account
         isWallet: true, // TODO implement detect isWallet for Account
     };

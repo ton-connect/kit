@@ -77,9 +77,16 @@ export interface GetJettonsByAddressRequest {
     limit?: number;
 }
 
+export interface GetEventsRequest {
+    account: Address | string;
+    offset?: number;
+    limit?: number;
+}
+
 export interface GetEventsResponse {
     events: Event[];
-    nextFrom: number;
+    offset: number;
+    limit: number;
 }
 
 export interface ApiClient {
@@ -109,5 +116,5 @@ export interface ApiClient {
     jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
     jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ResponseUserJettons>;
 
-    getEvents(account: Address | string, nextFrom?: number): Promise<GetEventsResponse>;
+    getEvents(request: GetEventsRequest): Promise<GetEventsResponse>;
 }

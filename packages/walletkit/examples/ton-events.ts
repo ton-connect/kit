@@ -1,5 +1,7 @@
 // npx ts-node examples/ton-events.ts
 import 'dotenv/config';
+import { replacer } from '@ton-community/tlb-runtime';
+
 import { ApiClientToncenter, CHAIN, WalletV5R1Adapter, Signer } from '../src';
 
 // eslint-disable-next-line no-console
@@ -18,9 +20,9 @@ async function main() {
     const wallet = await WalletV5R1Adapter.create(signer, { client, network });
     const account = wallet.getAddress();
     logInfo(account);
-    const list = await client.getEvents(account);
-    logInfo(list);
-    logInfo(await client.getEvents(account, list.nextFrom));
+    const list = await client.getEvents({ account });
+    logInfo(JSON.stringify(list, replacer, 2));
+    logInfo(await client.getEvents({ account, offset: 1 }));
     logInfo(list.events[0]);
 }
 
