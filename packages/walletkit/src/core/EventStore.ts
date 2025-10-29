@@ -151,7 +151,7 @@ export class StorageEventStore implements EventStore {
 
             // Save atomically within the lock
             allEvents[eventId] = updatedEvent;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storageAdapter.set(this.storageKey, JSON.stringify(allEvents));
 
             log.debug('Event lock acquired', { eventId, walletAddress });
             return updatedEvent;
@@ -187,7 +187,7 @@ export class StorageEventStore implements EventStore {
 
             // Save atomically within the lock
             allEvents[eventId] = updatedEvent;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storageAdapter.set(this.storageKey, JSON.stringify(allEvents));
 
             log.debug('Event status updated', { eventId, oldStatus, newStatus: status });
 
@@ -272,7 +272,7 @@ export class StorageEventStore implements EventStore {
                     delete allEvents[eventId];
                     cleanedUpCount++;
                 }
-                await this.storageAdapter.set(this.storageKey, allEvents);
+                await this.storageAdapter.set(this.storageKey, JSON.stringify(allEvents));
             });
             log.info('Event cleanup completed', { cleanedUpCount });
         }
@@ -324,7 +324,11 @@ export class StorageEventStore implements EventStore {
 
     private async getAllEventsFromStorage(): Promise<Record<string, StoredEvent>> {
         try {
-            const eventsData = await this.storageAdapter.get<Record<string, StoredEvent>>(this.storageKey);
+            const eventsDataStr = await this.storageAdapter.get(this.storageKey);
+            if (!eventsDataStr) {
+                return {};
+            }
+            const eventsData: Record<string, StoredEvent> = JSON.parse(eventsDataStr);
             return eventsData || {};
         } catch (error) {
             log.warn('Failed to get events from storage', { error });
@@ -336,7 +340,7 @@ export class StorageEventStore implements EventStore {
         return this.withLock('storage', async () => {
             const allEvents = await this.getAllEventsFromStorage();
             allEvents[event.id] = event;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storageAdapter.set(this.storageKey, JSON.stringify(allEvents));
         });
     }
 
@@ -344,7 +348,7 @@ export class StorageEventStore implements EventStore {
         return this.withLock('storage', async () => {
             const allEvents = await this.getAllEventsFromStorage();
             delete allEvents[eventId];
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storageAdapter.set(this.storageKey, JSON.stringify(allEvents));
         });
     }
 

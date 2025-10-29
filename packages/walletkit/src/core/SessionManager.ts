@@ -249,7 +249,12 @@ export class SessionManager {
      */
     private async loadSessions(): Promise<void> {
         try {
-            const sessionData = await this.storageAdapter.get<SessionData[]>(this.storageKey);
+            const sessionDataStr = await this.storageAdapter.get(this.storageKey);
+            if (!sessionDataStr) {
+                return;
+            }
+
+            const sessionData: SessionData[] = JSON.parse(sessionDataStr);
 
             if (sessionData && Array.isArray(sessionData)) {
                 // TODO: Implement session reconstruction from stored data
@@ -292,7 +297,7 @@ export class SessionManager {
                 dAppDescription: session.dAppDescription,
             }));
 
-            await this.storageAdapter.set(this.storageKey, sessionMetadata);
+            await this.storageAdapter.set(this.storageKey, JSON.stringify(sessionMetadata));
         } catch (error) {
             log.warn('Failed to persist sessions to storage', { error });
         }

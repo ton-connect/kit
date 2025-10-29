@@ -682,7 +682,7 @@ export class BridgeManager {
      */
     private async loadLastEventId(): Promise<void> {
         try {
-            const savedEventId = await this.storageAdapter.get<string>(this.storageKey);
+            const savedEventId = await this.storageAdapter.get(this.storageKey);
             if (savedEventId) {
                 this.lastEventId = savedEventId;
                 log.debug('Loaded last event ID from storage', { lastEventId: this.lastEventId });

@@ -32,18 +32,17 @@ export class LocalStorageAdapter implements StorageAdapter {
         // this.validateEnvironment();
     }
 
-    async get<T>(key: string): Promise<T | null> {
+    async get(key: string): Promise<string | null> {
         return this.withRetry(async () => {
             const fullKey = this.prefix + key;
-            const item = this.localStorage.getItem(fullKey);
-            return item ? JSON.parse(item) : null;
+            return this.localStorage.getItem(fullKey);
         });
     }
 
-    async set<T>(key: string, value: T): Promise<void> {
+    async set(key: string, value: string): Promise<void> {
         return this.withRetry(async () => {
             const fullKey = this.prefix + key;
-            this.localStorage.setItem(fullKey, JSON.stringify(value));
+            this.localStorage.setItem(fullKey, value);
         });
     }
 
