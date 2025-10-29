@@ -12,7 +12,8 @@ import { SessionCrypto } from '@tonconnect/protocol';
 
 import type { SessionInfo, IWallet } from '../types';
 import type { WalletManager } from '../core/WalletManager';
-import type { SessionData, StorageAdapter } from '../types/internal';
+import type { SessionData } from '../types/internal';
+import { Storage } from '../storage';
 import { globalLogger } from './Logger';
 import { IWalletAdapter } from '../types/wallet';
 
@@ -20,12 +21,12 @@ const log = globalLogger.createChild('SessionManager');
 
 export class SessionManager {
     private sessions: Map<string, SessionData> = new Map();
-    private storageAdapter: StorageAdapter;
+    private storage: Storage;
     private walletManager: WalletManager;
     private storageKey = 'sessions';
 
-    constructor(storageAdapter: StorageAdapter, walletManager: WalletManager) {
-        this.storageAdapter = storageAdapter;
+    constructor(storage: Storage, walletManager: WalletManager) {
+        this.storage = storage;
         this.walletManager = walletManager;
     }
 
@@ -249,12 +250,7 @@ export class SessionManager {
      */
     private async loadSessions(): Promise<void> {
         try {
-            const sessionDataStr = await this.storageAdapter.get(this.storageKey);
-            if (!sessionDataStr) {
-                return;
-            }
-
-            const sessionData: SessionData[] = JSON.parse(sessionDataStr);
+            const sessionData = await this.storage.get<SessionData[]>(this.storageKey);
 
             if (sessionData && Array.isArray(sessionData)) {
                 // TODO: Implement session reconstruction from stored data
@@ -297,7 +293,7 @@ export class SessionManager {
                 dAppDescription: session.dAppDescription,
             }));
 
-            await this.storageAdapter.set(this.storageKey, JSON.stringify(sessionMetadata));
+            await this.storage.set(this.storageKey, sessionMetadata);
         } catch (error) {
             log.warn('Failed to persist sessions to storage', { error });
         }

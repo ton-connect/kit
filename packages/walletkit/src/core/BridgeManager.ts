@@ -11,7 +11,8 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import { BridgeProvider, ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, SessionData, StorageAdapter } from '../types/internal';
+import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, SessionData } from '../types/internal';
+import { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
@@ -36,7 +37,7 @@ export class BridgeManager {
     private config: BridgeConfig;
     private bridgeProvider?: BridgeProvider<WalletConsumer>;
     private sessionManager: SessionManager;
-    private storageAdapter: StorageAdapter;
+    private storage: Storage;
     private isConnected = false;
     private reconnectAttempts = 0;
     private lastEventId?: string;
@@ -61,7 +62,7 @@ export class BridgeManager {
         walletManifest: WalletInfo | undefined,
         config: BridgeConfig | undefined,
         sessionManager: SessionManager,
-        storageAdapter: StorageAdapter,
+        storage: Storage,
         eventStore: EventStore,
         eventRouter: EventRouter,
         walletKitConfig: TonWalletKitOptions,
@@ -86,7 +87,7 @@ export class BridgeManager {
             ...config,
         };
         this.sessionManager = sessionManager;
-        this.storageAdapter = storageAdapter;
+        this.storage = storage;
         this.eventStore = eventStore;
         this.eventEmitter = eventEmitter;
         this.eventRouter = eventRouter;
@@ -682,7 +683,7 @@ export class BridgeManager {
      */
     private async loadLastEventId(): Promise<void> {
         try {
-            const savedEventId = await this.storageAdapter.get(this.storageKey);
+            const savedEventId = await this.storage.get<string>(this.storageKey);
             if (savedEventId) {
                 this.lastEventId = savedEventId;
                 log.debug('Loaded last event ID from storage', { lastEventId: this.lastEventId });
@@ -703,7 +704,7 @@ export class BridgeManager {
     private async saveLastEventId(): Promise<void> {
         try {
             if (this.lastEventId) {
-                await this.storageAdapter.set(this.storageKey, this.lastEventId);
+                await this.storage.set(this.storageKey, this.lastEventId);
                 log.debug('Saved last event ID to storage', { lastEventId: this.lastEventId });
             }
         } catch (error) {

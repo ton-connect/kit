@@ -12,7 +12,7 @@ import { CHAIN } from '@tonconnect/protocol';
 
 import { TonWalletKitOptions, IWallet, DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
 import type { StorageAdapter, StorageConfig } from '../storage';
-import { createStorageAdapter } from '../storage';
+import { createStorageAdapter, Storage } from '../storage';
 import { WalletManager } from './WalletManager';
 import { SessionManager } from './SessionManager';
 import { BridgeManager } from './BridgeManager';
@@ -40,7 +40,7 @@ export interface InitializationResult {
     bridgeManager: BridgeManager;
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
-    storageAdapter: StorageAdapter;
+    storage: Storage;
     eventProcessor: StorageEventProcessor;
 }
 
@@ -69,11 +69,11 @@ export class Initializer {
             this.tonClient = tonClient;
 
             // 2. Initialize storage adapter
-            const storageAdapter = this.initializeStorage(options);
+            const storage = this.initializeStorage(options);
 
             // 3. Initialize core managers
             const { walletManager, sessionManager, bridgeManager, eventRouter, eventProcessor } =
-                await this.initializeManagers(options, storageAdapter);
+                await this.initializeManagers(options, storage);
 
             // 5. Initialize processors
             const { requestProcessor } = this.initializeProcessors(sessionManager, bridgeManager, walletManager);
@@ -86,7 +86,7 @@ export class Initializer {
                 bridgeManager,
                 eventRouter,
                 requestProcessor,
-                storageAdapter,
+                storage,
                 eventProcessor,
             };
         } catch (error) {
@@ -96,9 +96,11 @@ export class Initializer {
     }
 
     /**
-     * Initialize storage adapter
+     * Initialize storage adapter and wrap it in Storage
      */
-    private initializeStorage(options: TonWalletKitOptions): StorageAdapter {
+    private initializeStorage(options: TonWalletKitOptions): Storage {
+        let adapter: StorageAdapter;
+
         if (
             options.storage &&
             'get' in options.storage &&
@@ -110,16 +112,18 @@ export class Initializer {
             'clear' in options.storage &&
             typeof options.storage.clear === 'function'
         ) {
-            return options.storage;
+            adapter = options.storage;
+        } else {
+            const createStorageOptions = {
+                prefix: (options?.storage as StorageConfig)?.prefix ?? 'tonwalletkit:',
+                maxRetries: (options?.storage as StorageConfig)?.maxRetries,
+                retryDelay: (options?.storage as StorageConfig)?.retryDelay,
+                allowMemory: (options?.storage as StorageConfig)?.allowMemory,
+            };
+            adapter = createStorageAdapter(createStorageOptions);
         }
 
-        const createStorageOptions = {
-            prefix: (options?.storage as StorageConfig)?.prefix ?? 'tonwalletkit:',
-            maxRetries: (options?.storage as StorageConfig)?.maxRetries,
-            retryDelay: (options?.storage as StorageConfig)?.retryDelay,
-            allowMemory: (options?.storage as StorageConfig)?.allowMemory,
-        };
-        return createStorageAdapter(createStorageOptions);
+        return new Storage(adapter);
     }
 
     /**
@@ -127,7 +131,7 @@ export class Initializer {
      */
     private async initializeManagers(
         options: TonWalletKitOptions,
-        storageAdapter: StorageAdapter,
+        storage: Storage,
     ): Promise<{
         walletManager: WalletManager;
         sessionManager: SessionManager;
@@ -136,13 +140,13 @@ export class Initializer {
         eventProcessor: StorageEventProcessor;
     }> {
         // Initialize managers
-        const walletManager = new WalletManager(storageAdapter);
+        const walletManager = new WalletManager(storage);
         await walletManager.initialize();
 
-        const sessionManager = new SessionManager(storageAdapter, walletManager);
+        const sessionManager = new SessionManager(storage, walletManager);
         await sessionManager.initialize();
 
-        const eventStore = new StorageEventStore(storageAdapter);
+        const eventStore = new StorageEventStore(storage);
         const eventRouter = new EventRouter(
             this.eventEmitter,
             sessionManager,
@@ -155,7 +159,7 @@ export class Initializer {
             options?.walletManifest,
             options?.bridge,
             sessionManager,
-            storageAdapter,
+            storage,
             eventStore,
             eventRouter,
             options,
