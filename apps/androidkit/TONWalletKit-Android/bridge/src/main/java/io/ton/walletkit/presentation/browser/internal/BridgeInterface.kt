@@ -4,6 +4,8 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import io.ton.walletkit.domain.constants.BrowserConstants
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * JavaScript interface for bridge communication.
@@ -20,10 +22,56 @@ internal class BridgeInterface(
     private val onResponse: ((message: JSONObject) -> Unit)? = null,
 ) {
     // Thread-safe storage for responses that iframes can pull
-    private val availableResponses = java.util.concurrent.ConcurrentHashMap<String, String>()
+    // Limit size to prevent unbounded growth if responses are never pulled
+    private val availableResponses = ConcurrentHashMap<String, ResponseEntry>()
 
     // Thread-safe queue for events (like disconnect) that any frame can pull
-    private val pendingEvents = java.util.concurrent.ConcurrentLinkedQueue<String>()
+    // Using a bounded queue to prevent memory leaks
+    private val pendingEvents = LinkedBlockingQueue<String>(MAX_PENDING_EVENTS)
+
+    private data class ResponseEntry(
+        val response: String,
+        val timestamp: Long = System.currentTimeMillis()
+    )
+
+    init {
+        // Start a background cleanup task to remove stale responses
+        startCleanupTask()
+    }
+
+    private fun startCleanupTask() {
+        // Clean up stale responses every 30 seconds
+        Thread {
+            while (true) {
+                try {
+                    Thread.sleep(CLEANUP_INTERVAL_MS)
+                    cleanupStaleResponses()
+                } catch (e: InterruptedException) {
+                    break
+                }
+            }
+        }.apply {
+            isDaemon = true
+            name = "BridgeInterface-Cleanup"
+            start()
+        }
+    }
+
+    private fun cleanupStaleResponses() {
+        val now = System.currentTimeMillis()
+        val staleEntries = availableResponses.entries.filter { (_, entry) ->
+            now - entry.timestamp > RESPONSE_TTL_MS
+        }
+        
+        staleEntries.forEach { (messageId, _) ->
+            availableResponses.remove(messageId)
+            Log.d(TAG, "🧹 Removed stale response for messageId: $messageId")
+        }
+
+        if (staleEntries.isNotEmpty()) {
+            Log.d(TAG, "🧹 Cleaned up ${staleEntries.size} stale response(s)")
+        }
+    }
 
     @JavascriptInterface
     fun postMessage(message: String) {
@@ -46,8 +94,18 @@ internal class BridgeInterface(
      * Called from Kotlin when a response is ready.
      */
     fun storeResponse(messageId: String, response: String) {
+        // Enforce max size limit
+        if (availableResponses.size >= MAX_STORED_RESPONSES) {
+            // Remove oldest entry
+            val oldestEntry = availableResponses.entries.minByOrNull { it.value.timestamp }
+            oldestEntry?.let {
+                availableResponses.remove(it.key)
+                Log.w(TAG, "⚠️ Response storage full, removed oldest response: ${it.key}")
+            }
+        }
+        
         Log.d(TAG, "📥 Storing response for messageId: $messageId")
-        availableResponses[messageId] = response
+        availableResponses[messageId] = ResponseEntry(response)
     }
 
     /**
@@ -57,11 +115,12 @@ internal class BridgeInterface(
      */
     @JavascriptInterface
     fun pullResponse(messageId: String): String? {
-        val response = availableResponses.remove(messageId)
-        if (response != null) {
+        val entry = availableResponses.remove(messageId)
+        if (entry != null) {
             Log.d(TAG, "📤 Pulled response for messageId: $messageId")
+            return entry.response
         }
-        return response
+        return null
     }
 
     /**
@@ -125,5 +184,9 @@ internal class BridgeInterface(
 
     companion object {
         private const val TAG = "BridgeInterface"
+        private const val MAX_PENDING_EVENTS = 100 // Maximum events in queue
+        private const val MAX_STORED_RESPONSES = 100 // Maximum responses in map
+        private const val CLEANUP_INTERVAL_MS = 60_000L // Clean up every 60 seconds
+        private const val RESPONSE_TTL_MS = 300_000L // Responses expire after 5 minutes
     }
 }

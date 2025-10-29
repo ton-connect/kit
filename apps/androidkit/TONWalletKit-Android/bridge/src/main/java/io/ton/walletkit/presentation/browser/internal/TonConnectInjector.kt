@@ -219,28 +219,10 @@ internal class TonConnectInjector(
         // Set custom WebViewClient to inject bridge on page load
         webView.webViewClient = TonConnectWebViewClient(
             onPageStarted = { url ->
-                // Track current URL for domain extraction
-                // SIMPLE RULE: Only update if we don't have a URL yet, OR if the domain changed
-                val shouldUpdate = if (currentUrl == null) {
-                    // First load - accept any URL
-                    true
-                } else {
-                    // Check if domain changed (ignore query params, paths, etc.)
-                    try {
-                        val currentDomain = android.net.Uri.parse(currentUrl).host
-                        val newDomain = android.net.Uri.parse(url).host
-                        currentDomain != newDomain
-                    } catch (e: Exception) {
-                        false
-                    }
-                }
-
-                if (shouldUpdate) {
-                    currentUrl = url
-                    Log.d(TAG, "✅ Current dApp URL updated: $url")
-                } else {
-                    Log.d(TAG, "⏭️ Keeping existing dApp URL (same domain)")
-                }
+                // Update current URL for domain extraction
+                // Always update - user can navigate from host/a to host/b
+                currentUrl = url
+                Log.d(TAG, "✅ Current dApp URL updated: $url")
 
                 // Emit page started event
                 scope.launch {
