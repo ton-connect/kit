@@ -100,7 +100,7 @@ export interface NftsSlice {
 
     // Utility methods
     getNftByAddress: (address: string) => NftItem | undefined;
-    formatNftIndex: (index: bigint) => string;
+    formatNftIndex: (index: string) => string;
 }
 
 // Wallet slice interface
