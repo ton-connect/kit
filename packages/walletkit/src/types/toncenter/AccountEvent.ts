@@ -10,6 +10,7 @@ import {
 import { AddressFriendly, asAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
+import { parseContractActions } from './parsers/Contract';
 
 export type AddressBook = Record<AddressFriendly, string>;
 
@@ -58,7 +59,7 @@ export interface SmartContractExecAction extends TypedAction {
 export interface SmartContractExec {
     executor: Account;
     contract: Account;
-    tonAttached: number;
+    tonAttached: bigint;
     operation: string;
     payload: string;
 }
@@ -88,7 +89,20 @@ export interface JettonMasterOut {
     score: number;
 }
 
-export type Action = TypedAction | TonTransferAction | SmartContractExecAction | JettonSwapAction;
+export interface ContractDeployAction extends TypedAction {
+    type: 'ContractDeploy';
+    ContractDeploy: {
+        address: string;
+        interfaces: string[];
+    };
+}
+
+export type Action =
+    | TypedAction
+    | TonTransferAction
+    | SmartContractExecAction
+    | ContractDeployAction
+    | JettonSwapAction;
 
 export function toEvent(data: ToncenterTraceItem, account: string, addressBook: AddressBook = {}): Event {
     const actions: Action[] = [];
@@ -106,6 +120,8 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
             ...parseIncomingTonTransfers(tx, addressBook, status),
         );
     }
+    // Smart-contract related actions (exec + deploy)
+    actions.push(...parseContractActions(accountFriendly, transactions, addressBook));
     return {
         eventId: Base64ToHex(data.trace_id),
         account: toAccount(account, addressBook),
@@ -196,7 +212,7 @@ export function toAccount(address: string, addressBook: AddressBook): Account {
         isScam: false, // TODO implement detect isScam for Account
         isWallet: true, // TODO implement detect isWallet for Account
     };
-    const name = addressBook[asAddressFriendly(address)];
+    const name = addressBook[asAddressFriendly(address)] as string | undefined;
     if (name) {
         out.name = name;
     }
