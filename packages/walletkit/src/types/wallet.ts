@@ -16,7 +16,8 @@ import { ConnectExtraCurrency, ConnectTransactionParamContent } from './internal
 import { JettonTransferParams } from './jettons';
 import { NftTransferParamsHuman, NftTransferParamsRaw } from './nfts';
 import { TransactionPreview } from './events';
-import { ApiClient, LimitRequest } from './toncenter/ApiClient';
+import { ApiClient, LimitRequest, GetJettonsByOwnerRequest } from './toncenter/ApiClient';
+import { ToncenterResponseJettonWallets } from './toncenter/emulation';
 import type { NftItem } from './toncenter/NftItem';
 import { NftItems } from './toncenter/NftItems';
 import { PrepareSignDataResult } from '../utils/signData/sign';
@@ -113,6 +114,7 @@ export interface WalletJettonInterface {
     createTransferJettonTransaction(params: JettonTransferParams): Promise<ConnectTransactionParamContent>;
     getJettonBalance(jettonAddress: string): Promise<string>;
     getJettonWalletAddress(jettonAddress: string): Promise<string>;
+    getJettons(params?: Omit<GetJettonsByOwnerRequest, 'ownerAddress'>): Promise<ToncenterResponseJettonWallets>;
 }
 
 export interface WalletNftInterface {
