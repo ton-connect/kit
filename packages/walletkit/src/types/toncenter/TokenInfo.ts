@@ -10,6 +10,7 @@ export interface TokenInfo {
     description?: string;
     extra?: { [key: string]: never };
     image?: string;
+    lottie?: string;
     name?: string;
     nftIndex?: string;
     symbol?: string;

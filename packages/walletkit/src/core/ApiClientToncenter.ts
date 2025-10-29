@@ -113,7 +113,8 @@ export class ApiClientToncenter implements ApiClient {
             offset: pagination.offset,
         };
         const response = await this.getJson<NftItemsResponseV3>('/api/v3/nft/items', props);
-        return toNftItemsResponse(response, pagination);
+        const formattedResponse = toNftItemsResponse(response, pagination);
+        return formattedResponse;
     }
 
     async fetchEmulation(

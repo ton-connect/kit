@@ -19,8 +19,9 @@ export interface NftItem {
     collectionAddress: AddressFriendly | null;
     content?: { [key: string]: never };
     metadata?: TokenInfo;
-    index: bigint;
+    index: string;
     init: boolean;
+    isSbt?: boolean;
     lastTransactionLt?: bigint;
     onSale: boolean;
     ownerAddress: AddressFriendly | null;

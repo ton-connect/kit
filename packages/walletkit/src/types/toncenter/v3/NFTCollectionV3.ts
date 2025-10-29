@@ -20,16 +20,39 @@ export interface NFTCollectionV3 {
     owner_address?: string;
 }
 
+export interface TokenInfoNFTCollection {
+    type: 'nft_collections';
+    valid: boolean;
+    name: string;
+    description: string;
+    image: string;
+    extra: { [key: string]: never };
+}
+
 export function toNftCollection(data: NFTCollectionV3 | null): NftCollection | null {
     if (!data) return null;
     const out: NftCollection = {
         address: asAddressFriendly(data.address),
         codeHash: data.code_hash ? Base64ToHex(data.code_hash) : null,
         dataHash: data.data_hash ? Base64ToHex(data.data_hash) : null,
-        nextItemIndex: BigInt(data.next_item_index),
+        nextItemIndex: data.next_item_index.toString(),
         ownerAddress: asMaybeAddressFriendly(data.owner_address),
     };
-    if (data.last_transaction_lt) out.lastTransactionLt = BigInt(data.last_transaction_lt);
+    if (data.last_transaction_lt) out.lastTransactionLt = data.last_transaction_lt.toString();
     if (data.collection_content) out.collectionContent = data.collection_content;
+    return out;
+}
+
+export function tokenMetaToNftCollection(address: string, data: TokenInfoNFTCollection): NftCollection | null {
+    if (!data) return null;
+
+    const image = data?.extra?._image_medium ?? data?.image;
+    const out: NftCollection = {
+        address: asAddressFriendly(address),
+        name: data.name,
+        description: data.description,
+        image: image,
+        extra: data.extra,
+    };
     return out;
 }

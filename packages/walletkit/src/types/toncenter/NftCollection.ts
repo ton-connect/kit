@@ -10,10 +10,18 @@ import { AddressFriendly, Hex } from '../primitive';
 
 export interface NftCollection {
     address: AddressFriendly;
-    codeHash: Hex | null;
+
     collectionContent?: { [key: string]: never };
-    dataHash: Hex | null;
-    lastTransactionLt?: bigint;
-    nextItemIndex: bigint;
-    ownerAddress: AddressFriendly | null;
+
+    lastTransactionLt?: string;
+    name?: string;
+    nextItemIndex?: string;
+    ownerAddress?: AddressFriendly | null;
+
+    codeHash?: Hex | null;
+    dataHash?: Hex | null;
+
+    description?: string;
+    image?: string;
+    extra?: { [key: string]: never };
 }
