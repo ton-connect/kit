@@ -1,18 +1,56 @@
 import { toEvent } from './AccountEvent';
 import { loadData } from '../../../data';
 import { ToncenterTracesResponse } from './emulation';
+import { AddressBook } from './AccountEvent';
 
-const traces = loadData<ToncenterTracesResponse>('traces-test');
-const account = 'UQC8G3SPXSa3TYV3mP9N1CUqK3nPUbIyrkG-HxnozZVHt2Iv';
+const account = 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9';
+const addressBook: AddressBook = {
+    EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9: 'tolya.ton',
+};
 
 describe('AccountEvent', () => {
-    it('toEvent 0', async () => {
-        const actual = toEvent(traces.traces[0], account);
-        expect(actual.actions).toEqual([]); // TODO add test data
-    });
-
-    it('toEvent 1', async () => {
-        const actual = toEvent(traces.traces[1], account);
-        expect(actual.actions).toEqual([]); // TODO add test data
+    it('ton sent', async () => {
+        const traces = loadData<ToncenterTracesResponse>('ton-sent-traces');
+        const actual = toEvent(traces.traces[0], account, addressBook);
+        expect(actual.actions).toEqual([
+            {
+                id: '0xf5079a2225e581ff140fd6e8963c5ba1cd795ea7da2761165cb7c7f786a9a847',
+                type: 'TonTransfer',
+                status: 'success',
+                TonTransfer: {
+                    sender: {
+                        address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                        name: 'tolya.ton',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    recipient: {
+                        address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    amount: 1000000000n,
+                },
+                simplePreview: {
+                    name: 'Ton Transfer',
+                    description: 'Transferring 1 TON',
+                    value: '1 TON',
+                    accounts: [
+                        {
+                            address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                            name: 'tolya.ton',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                        {
+                            address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                    ],
+                },
+                baseTransactions: ['0xf5079a2225e581ff140fd6e8963c5ba1cd795ea7da2761165cb7c7f786a9a847'],
+            },
+        ]);
     });
 });
