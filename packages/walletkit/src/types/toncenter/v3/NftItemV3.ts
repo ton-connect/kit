@@ -48,7 +48,7 @@ export function toNftItem(data: NftItemV3): NftItem {
         realOwner: asMaybeAddressFriendly(data.real_owner),
         saleContractAddress: asMaybeAddressFriendly(data.sale_contract_address),
     };
-    if (data.last_transaction_lt) out.lastTransactionLt = BigInt(data.last_transaction_lt);
+    if (data.last_transaction_lt) out.lastTransactionLt = data.last_transaction_lt;
     if (data.content) out.content = data.content;
     if (data.is_sbt !== undefined) out.isSbt = data.is_sbt;
 
