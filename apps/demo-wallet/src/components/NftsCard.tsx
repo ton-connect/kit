@@ -50,7 +50,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
     const getNftImage = (nft: NftItem): string | null => {
         // Try to extract image from content metadata
         if (nft.metadata && typeof nft.metadata === 'object') {
-            if (nft.metadata?.extra?._image_medium) {
+            if (nft.metadata?.extra?._image_medium && typeof nft.metadata.extra._image_medium === 'string') {
                 return nft.metadata.extra._image_medium;
             }
             if (nft.metadata.image && typeof nft.metadata.image === 'string') {

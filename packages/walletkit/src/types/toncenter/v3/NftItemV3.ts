@@ -18,10 +18,11 @@ export interface NftItemV3 {
     code_hash?: string;
     collection: NFTCollectionV3 | null;
     collection_address: string | null;
-    content?: { [key: string]: never };
+    content?: { [key: string]: string }; // uri - meta json
     data_hash?: string;
     index: string;
     init: boolean;
+    is_sbt?: boolean;
     last_transaction_lt?: string;
     on_sale: boolean;
     owner_address?: string;
@@ -37,7 +38,7 @@ export function toNftItem(data: NftItemV3): NftItem {
         dataHash: data.data_hash ? Base64ToHex(data.data_hash) : null,
         collection: toNftCollection(data.collection),
         collectionAddress: asMaybeAddressFriendly(data.collection_address),
-        index: BigInt(data.index),
+        index: data.index.toString(),
         init: data.init,
         onSale: data.on_sale,
         ownerAddress: asMaybeAddressFriendly(data.owner_address),
@@ -46,5 +47,6 @@ export function toNftItem(data: NftItemV3): NftItem {
     };
     if (data.last_transaction_lt) out.lastTransactionLt = BigInt(data.last_transaction_lt);
     if (data.content) out.content = data.content;
+    if (data.is_sbt !== undefined) out.isSbt = data.is_sbt;
     return out;
 }

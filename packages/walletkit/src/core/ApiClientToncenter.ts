@@ -66,6 +66,7 @@ export interface ApiClientConfig {
     timeout?: number;
     fetchApi?: typeof fetch;
     network?: CHAIN;
+    disableNetworkSend?: boolean;
 }
 
 export class ApiClientToncenter implements ApiClient {
@@ -75,6 +76,7 @@ export class ApiClientToncenter implements ApiClient {
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
     private readonly network?: CHAIN;
+    private readonly disableNetworkSend?: boolean;
 
     constructor(config: ApiClientConfig = {}) {
         this.network = config.network;
@@ -88,6 +90,7 @@ export class ApiClientToncenter implements ApiClient {
         this.apiKey = config.apiKey;
         this.timeout = config.timeout ?? 30000;
         this.fetchApi = config.fetchApi ?? fetch;
+        this.disableNetworkSend = config.disableNetworkSend ?? false;
     }
 
     async nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse> {
@@ -113,7 +116,8 @@ export class ApiClientToncenter implements ApiClient {
             offset: pagination.offset,
         };
         const response = await this.getJson<NftItemsResponseV3>('/api/v3/nft/items', props);
-        return toNftItemsResponse(response, pagination);
+        const formattedResponse = toNftItemsResponse(response, pagination);
+        return formattedResponse;
     }
 
     async fetchEmulation(
@@ -138,6 +142,9 @@ export class ApiClientToncenter implements ApiClient {
     }
 
     async sendBoc(boc: string | Uint8Array): Promise<string> {
+        if (this.disableNetworkSend) {
+            return '';
+        }
         if (typeof boc !== 'string') {
             boc = Uint8ArrayToBase64(boc);
         }

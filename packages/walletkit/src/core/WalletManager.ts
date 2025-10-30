@@ -9,7 +9,7 @@
 // Wallet management with validation and persistence
 
 import type { IWallet } from '../types';
-import type { StorageAdapter } from '../types/internal';
+import { Storage } from '../storage';
 import { IWalletAdapter } from '../types/wallet';
 import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
@@ -18,11 +18,11 @@ const log = globalLogger.createChild('WalletManager');
 
 export class WalletManager {
     private wallets: Map<string, IWallet> = new Map();
-    private storageAdapter: StorageAdapter;
+    private storage: Storage;
     // private storageKey = 'wallets';
 
-    constructor(storageAdapter: StorageAdapter) {
-        this.storageAdapter = storageAdapter;
+    constructor(storage: Storage) {
+        this.storage = storage;
     }
 
     /**

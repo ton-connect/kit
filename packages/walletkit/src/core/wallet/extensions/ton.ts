@@ -15,8 +15,12 @@ import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
 import { ApiClient } from '../../../types/toncenter/ApiClient';
-import { ERROR_CODES } from '../../../errors/codes';
-import { createErrorInfo } from '../../../errors/wrapper';
+import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
+import { EventTransactionResponse } from '../../../types/events';
+import { ERROR_CODES, WalletKitError } from '../../../errors';
+import { globalLogger } from '../../Logger';
+
+const log = globalLogger.createChild('WalletTonClass');
 
 export class WalletTonClass implements WalletTonInterface {
     client: ApiClient;
@@ -108,13 +112,33 @@ export class WalletTonClass implements WalletTonInterface {
     ): Promise<{
         preview: TransactionPreview;
     }> {
-        const _transaction = await param;
+        const transaction = await param;
+        const preview = await CallForSuccess(() => createTransactionPreviewHelper(transaction, this));
         return {
-            preview: {
-                result: 'error',
-                emulationError: createErrorInfo(ERROR_CODES.UNKNOWN_EMULATION_ERROR),
-            },
+            preview,
         };
+    }
+
+    async sendTransaction(this: IWallet, request: ConnectTransactionParamContent): Promise<EventTransactionResponse> {
+        try {
+            const signedBoc = await this.getSignedSendTransaction(request);
+
+            // if (!this.walletKitOptions.dev?.disableNetworkSend) {
+            await CallForSuccess(() => this.client.sendBoc(Buffer.from(signedBoc, 'base64')));
+            // }
+
+            return { signedBoc };
+        } catch (error) {
+            log.error('Failed to send transaction', { error });
+
+            if (error instanceof WalletKitError) {
+                throw error;
+            }
+            if ((error as { message: string })?.message?.includes('Ledger device')) {
+                throw new WalletKitError(ERROR_CODES.LEDGER_DEVICE_ERROR, 'Ledger device error', error as Error);
+            }
+            throw error;
+        }
     }
 
     async getBalance(this: IWallet): Promise<string> {

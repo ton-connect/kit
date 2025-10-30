@@ -32,7 +32,7 @@ export class ExtensionStorageAdapter implements StorageAdapter {
         // this.validateEnvironment();
     }
 
-    async get<T>(key: string): Promise<T | null> {
+    async get(key: string): Promise<string | null> {
         return this.withRetry(async () => {
             const fullKey = this.prefix + key;
             const itemObj = await this.localStorage.get(fullKey);
@@ -43,15 +43,15 @@ export class ExtensionStorageAdapter implements StorageAdapter {
             if (!item) {
                 return null;
             }
-            return item ? JSON.parse(item) : null;
+            return item;
         });
     }
 
-    async set<T>(key: string, value: T): Promise<void> {
+    async set(key: string, value: string): Promise<void> {
         return this.withRetry(async () => {
             const fullKey = this.prefix + key;
             await this.localStorage.set({
-                [fullKey]: JSON.stringify(value),
+                [fullKey]: value,
             });
         });
     }

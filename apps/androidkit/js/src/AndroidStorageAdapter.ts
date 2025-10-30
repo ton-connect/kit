@@ -16,7 +16,7 @@ export class AndroidStorageAdapter implements StorageAdapter {
         }
     }
 
-    async get<T>(key: string): Promise<T | null> {
+    async get(key: string): Promise<string | null> {
         if (!this.androidBridge || typeof this.androidBridge.storageGet !== 'function') {
             console.warn('[AndroidStorageAdapter] get() called but bridge not available:', key);
             return null;
@@ -25,26 +25,22 @@ export class AndroidStorageAdapter implements StorageAdapter {
         try {
             const value = this.androidBridge.storageGet(key);
             console.log('[AndroidStorageAdapter] get:', key, '=', value ? `${value.substring(0, 100)}...` : 'null');
-            if (!value) {
-                return null;
-            }
-            return JSON.parse(value) as T;
+            return value || null;
         } catch (error) {
             console.error('[AndroidStorageAdapter] Failed to get key:', key, error);
             return null;
         }
     }
 
-    async set<T>(key: string, value: T): Promise<void> {
+    async set(key: string, value: string): Promise<void> {
         if (!this.androidBridge || typeof this.androidBridge.storageSet !== 'function') {
             console.warn('[AndroidStorageAdapter] set() called but bridge not available:', key);
             return;
         }
 
         try {
-            const serialized = JSON.stringify(value);
-            console.log('[AndroidStorageAdapter] set:', key, '=', serialized.substring(0, 100) + '...');
-            this.androidBridge.storageSet(key, serialized);
+            console.log('[AndroidStorageAdapter] set:', key, '=', value.substring(0, 100) + '...');
+            this.androidBridge.storageSet(key, value);
         } catch (error) {
             console.error('[AndroidStorageAdapter] Failed to set key:', key, error);
         }

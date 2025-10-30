@@ -18,13 +18,12 @@ export class SwiftStorageAdapter implements StorageAdapter {
         this.swiftStorage = swiftStorage;
     }
 
-    async get<T>(key: string): Promise<T | null> {
-        const value = await this.swiftStorage.get<string>(key);
-        return value ? JSON.parse(value) : null;
+    async get(key: string): Promise<string | null> {
+        return await this.swiftStorage.get(key);
     }
 
-    async set<T>(key: string, value: T): Promise<void> {
-        await this.swiftStorage.set(key, JSON.stringify(value));
+    async set(key: string, value: string): Promise<void> {
+        await this.swiftStorage.set(key, value);
     }
 
     async remove(key: string): Promise<void> {

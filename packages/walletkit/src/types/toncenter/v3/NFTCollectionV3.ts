@@ -13,11 +13,20 @@ import { Base64ToHex } from '../../../utils/base64';
 export interface NFTCollectionV3 {
     address: string;
     code_hash?: string;
-    collection_content?: { [key: string]: never };
+    collection_content?: { [key: string]: string }; // uri - meta json
     data_hash?: string;
     last_transaction_lt?: string;
     next_item_index: string;
     owner_address?: string;
+}
+
+export interface TokenInfoNFTCollection {
+    type: 'nft_collections';
+    valid: boolean;
+    name: string;
+    description: string;
+    image: string;
+    extra: { [key: string]: string }; // cover_image, uri, _image_big, _image_medium, _image_small
 }
 
 export function toNftCollection(data: NFTCollectionV3 | null): NftCollection | null {
@@ -26,10 +35,24 @@ export function toNftCollection(data: NFTCollectionV3 | null): NftCollection | n
         address: asAddressFriendly(data.address),
         codeHash: data.code_hash ? Base64ToHex(data.code_hash) : null,
         dataHash: data.data_hash ? Base64ToHex(data.data_hash) : null,
-        nextItemIndex: BigInt(data.next_item_index),
+        nextItemIndex: data.next_item_index.toString(),
         ownerAddress: asMaybeAddressFriendly(data.owner_address),
     };
-    if (data.last_transaction_lt) out.lastTransactionLt = BigInt(data.last_transaction_lt);
+    if (data.last_transaction_lt) out.lastTransactionLt = data.last_transaction_lt.toString();
     if (data.collection_content) out.collectionContent = data.collection_content;
+    return out;
+}
+
+export function tokenMetaToNftCollection(address: string, data: TokenInfoNFTCollection): NftCollection | null {
+    if (!data) return null;
+
+    const image = data?.extra?._image_medium ?? data?.image;
+    const out: NftCollection = {
+        address: asAddressFriendly(address),
+        name: data.name,
+        description: data.description,
+        image: image,
+        extra: data.extra,
+    };
     return out;
 }

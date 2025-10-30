@@ -226,7 +226,7 @@ export const createNftsSlice: NftsSliceCreator = (set: SetState, get) => ({
         return state.nfts.userNfts.find((nft) => nft.address === address);
     },
 
-    formatNftIndex: (index: bigint): string => {
-        return `#${index.toString()}`;
+    formatNftIndex: (index: string): string => {
+        return `#${index}`;
     },
 });

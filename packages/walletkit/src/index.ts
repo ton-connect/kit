@@ -58,6 +58,7 @@ export { defaultWalletIdV4R2 } from './contracts/v4r2/constants';
 export { LocalStorageAdapter } from './storage/adapters/local';
 export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';
+export { Storage } from './storage/Storage';
 
 export type { ApiClient } from './types/toncenter/ApiClient';
 

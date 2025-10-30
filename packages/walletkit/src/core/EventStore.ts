@@ -9,7 +9,8 @@
 // Durable event storage implementation
 
 import type { StoredEvent, EventStore, EventStatus } from '../types/durableEvents';
-import type { RawBridgeEvent, EventType, StorageAdapter } from '../types/internal';
+import type { RawBridgeEvent, EventType } from '../types/internal';
+import { Storage } from '../storage';
 import { globalLogger } from './Logger';
 import { validateBridgeEvent } from '../validation/events';
 
@@ -22,15 +23,15 @@ const log = globalLogger.createChild('EventStore');
 const MAX_EVENT_SIZE_BYTES = 100 * 1024; // 100kb
 
 /**
- * Concrete implementation of EventStore using StorageAdapter
+ * Concrete implementation of EventStore using Storage
  */
 export class StorageEventStore implements EventStore {
-    private storageAdapter: StorageAdapter;
+    private storage: Storage;
     private storageKey = 'durable_events';
     private operationLock = new Map<string, Promise<void>>();
 
-    constructor(storageAdapter: StorageAdapter) {
-        this.storageAdapter = storageAdapter;
+    constructor(storage: Storage) {
+        this.storage = storage;
     }
 
     /**
@@ -151,7 +152,7 @@ export class StorageEventStore implements EventStore {
 
             // Save atomically within the lock
             allEvents[eventId] = updatedEvent;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storage.set(this.storageKey, allEvents);
 
             log.debug('Event lock acquired', { eventId, walletAddress });
             return updatedEvent;
@@ -187,7 +188,7 @@ export class StorageEventStore implements EventStore {
 
             // Save atomically within the lock
             allEvents[eventId] = updatedEvent;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storage.set(this.storageKey, allEvents);
 
             log.debug('Event status updated', { eventId, oldStatus, newStatus: status });
 
@@ -272,7 +273,7 @@ export class StorageEventStore implements EventStore {
                     delete allEvents[eventId];
                     cleanedUpCount++;
                 }
-                await this.storageAdapter.set(this.storageKey, allEvents);
+                await this.storage.set(this.storageKey, allEvents);
             });
             log.info('Event cleanup completed', { cleanedUpCount });
         }
@@ -324,7 +325,7 @@ export class StorageEventStore implements EventStore {
 
     private async getAllEventsFromStorage(): Promise<Record<string, StoredEvent>> {
         try {
-            const eventsData = await this.storageAdapter.get<Record<string, StoredEvent>>(this.storageKey);
+            const eventsData = await this.storage.get<Record<string, StoredEvent>>(this.storageKey);
             return eventsData || {};
         } catch (error) {
             log.warn('Failed to get events from storage', { error });
@@ -336,7 +337,7 @@ export class StorageEventStore implements EventStore {
         return this.withLock('storage', async () => {
             const allEvents = await this.getAllEventsFromStorage();
             allEvents[event.id] = event;
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storage.set(this.storageKey, allEvents);
         });
     }
 
@@ -344,7 +345,7 @@ export class StorageEventStore implements EventStore {
         return this.withLock('storage', async () => {
             const allEvents = await this.getAllEventsFromStorage();
             delete allEvents[eventId];
-            await this.storageAdapter.set(this.storageKey, allEvents);
+            await this.storage.set(this.storageKey, allEvents);
         });
     }
 
