@@ -51,7 +51,7 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
     // Get wallet kit instance for browser sheet
     val context = LocalContext.current
     val walletKit = remember { mutableStateOf<io.ton.walletkit.presentation.TONWalletKit?>(null) }
-    
+
     LaunchedEffect(Unit) {
         val app = context.applicationContext as WalletKitDemoApp
         walletKit.value = TONWalletKitHelper.mainnet(app)
