@@ -628,11 +628,10 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.initializer) {
             await this.initializer.cleanup({
                 walletManager: this.walletManager,
+                bridgeManager: this.bridgeManager,
                 sessionManager: this.sessionManager,
                 eventRouter: this.eventRouter,
                 requestProcessor: this.requestProcessor,
-                // responseHandler: this.responseHandler,
-                // tonClient: this.tonClient,
                 eventProcessor: this.eventProcessor,
             });
         }
