@@ -18,7 +18,6 @@ import type {
     IWallet,
     EventTransactionRequest,
     TransactionPreview,
-    ToncenterEmulationResponse,
     ValidationResult,
     TonWalletKitOptions,
 } from '../types';
@@ -31,11 +30,7 @@ import type {
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
 import { isValidAddress } from '../utils/address';
-import {
-    createToncenterMessage,
-    fetchToncenterEmulation,
-    processToncenterMoneyFlow,
-} from '../utils/toncenterEmulation';
+import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
@@ -116,7 +111,15 @@ export class TransactionHandler
 
         let preview: TransactionPreview;
         try {
-            preview = await CallForSuccess(() => this.createTransactionPreview(request, wallet));
+            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
+            // Emit emulation result event for jetton caching and other components
+            if (preview.result === 'success' && preview.emulationResult) {
+                try {
+                    this.eventEmitter.emit('emulation:result', preview.emulationResult);
+                } catch (error) {
+                    log.warn('Error emitting emulation result event', { error });
+                }
+            }
         } catch (error) {
             log.error('Failed to create transaction preview', { error });
             preview = {
@@ -295,66 +298,5 @@ export class TransactionHandler
         }
 
         return { result: validUntil, isValid: errors.length === 0, errors: errors };
-    }
-
-    /**
-     * Create human-readable transaction preview
-     */
-
-    private async createTransactionPreview(
-        request: ConnectTransactionParamContent,
-        wallet?: IWallet,
-    ): Promise<TransactionPreview> {
-        const emulationResult = await this.emulateTransaction(request, wallet);
-        log.info('Emulation result', { emulationResult });
-
-        return emulationResult;
-    }
-
-    /**
-     * Emulate transaction to get fees and balance changes
-     */
-
-    private async emulateTransaction(
-        request: ConnectTransactionParamContent,
-        wallet?: IWallet,
-    ): Promise<TransactionPreview> {
-        const message = createToncenterMessage(wallet?.getAddress(), request.messages);
-
-        let emulationResult: ToncenterEmulationResponse;
-        try {
-            const emulatedResult = await CallForSuccess(() => fetchToncenterEmulation(message));
-            if (emulatedResult.result === 'success') {
-                emulationResult = emulatedResult.emulationResult;
-            } else {
-                return emulatedResult;
-            }
-        } catch (_error) {
-            return {
-                result: 'error',
-                emulationError: {
-                    code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                    message: 'Unknown emulation error',
-                },
-            };
-        }
-
-        const moneyFlow = processToncenterMoneyFlow(emulationResult);
-
-        // Emit emulation result event for jetton caching and other components
-        if (emulationResult) {
-            try {
-                this.eventEmitter.emit('emulation:result', emulationResult);
-            } catch (error) {
-                log.warn('Error emitting emulation result event', { error });
-            }
-        }
-
-        // TODO implement user wallet money flow
-        return {
-            result: 'success',
-            emulationResult: emulationResult,
-            moneyFlow,
-        };
     }
 }

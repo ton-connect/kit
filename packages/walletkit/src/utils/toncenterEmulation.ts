@@ -13,6 +13,9 @@ import { ConnectTransactionParamContent } from '../types/internal';
 import { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
 import { ErrorInfo } from '../errors/WalletKitError';
 import { ERROR_CODES } from '../errors/codes';
+import { TransactionPreview, TransactionPreviewEmulationError } from '../types/events';
+import { CallForSuccess } from './retry';
+import { IWallet } from '../types';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -267,5 +270,41 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         allJettonTransfers: jettonTransfers,
         ourTransfers: selfTransfers,
         ourAddress: ourAddress.toRawString().toUpperCase(),
+    };
+}
+
+/**
+ * Creates a transaction preview by emulating the transaction
+ */
+export async function createTransactionPreview(
+    request: ConnectTransactionParamContent,
+    wallet?: IWallet,
+): Promise<TransactionPreview> {
+    const message = createToncenterMessage(wallet?.getAddress(), request.messages);
+
+    let emulationResult: ToncenterEmulationResponse;
+    try {
+        const emulatedResult = await CallForSuccess(() => fetchToncenterEmulation(message));
+        if (emulatedResult.result === 'success') {
+            emulationResult = emulatedResult.emulationResult;
+        } else {
+            return emulatedResult;
+        }
+    } catch (_error) {
+        return {
+            result: 'error',
+            emulationError: {
+                code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                message: 'Unknown emulation error',
+            },
+        } as TransactionPreviewEmulationError;
+    }
+
+    const moneyFlow = processToncenterMoneyFlow(emulationResult);
+
+    return {
+        result: 'success',
+        emulationResult: emulationResult,
+        moneyFlow,
     };
 }

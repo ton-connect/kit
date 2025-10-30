@@ -29,6 +29,7 @@ import type {
     EventSignDataApproval,
     TonWalletKitOptions,
 } from '../types';
+import type { ConnectTransactionParamContent } from '../types/internal';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -38,6 +39,7 @@ import { PrepareTonConnectData } from '../utils/signData/sign';
 import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
+import { IWallet } from '../types';
 import {
     EventConnectApproval,
     EventSignDataResponse,
@@ -356,28 +358,7 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                this.analyticsApi?.sendEvents([
-                    {
-                        event_name: 'wallet-transaction-accepted',
-                        trace_id: event.traceId,
-                        client_environment: 'wallet',
-                        subsystem: getEventsSubsystem(),
-                        event_id: uuidv7(),
-                        client_timestamp: getUnixtime(),
-                        version: getVersion(),
-                        network_id: this.walletKitOptions.network,
-                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
-                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        client_id: event.from,
-                        wallet_id: Base64Normalize(event.walletAddress),
-                    },
-                    {
-                        event_name: 'wallet-transaction-sent',
-                        trace_id: event.traceId,
-                        client_environment: 'wallet',
-                        subsystem: getEventsSubsystem(),
-                    },
-                ]);
+                this.sendTransactionAnalytics(event, event.result.signedBoc);
                 return { signedBoc: event.result.signedBoc };
             } else {
                 const signedBoc = await this.signTransaction(event);
@@ -393,41 +374,7 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
-                this.analyticsApi?.sendEvents([
-                    {
-                        event_name: 'wallet-transaction-accepted',
-                        trace_id: event.traceId,
-                        client_environment: 'wallet',
-                        subsystem: getEventsSubsystem(),
-                        dapp_name: event.dAppInfo?.name,
-                        origin_url: event.dAppInfo?.url,
-                        event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
-                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
-                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
-                        version: getVersion(),
-                        client_timestamp: getUnixtime(),
-                        client_id: event.from,
-                    },
-                    {
-                        event_name: 'wallet-transaction-sent',
-                        trace_id: event.traceId,
-                        client_environment: 'wallet',
-                        subsystem: getEventsSubsystem(),
-                        event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
-                        wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
-                        wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        version: getVersion(),
-                        client_timestamp: getUnixtime(),
-                        client_id: event.from,
-                        signed_boc: signedBoc,
-                        // error_code events todo
-                        // error_message events todo
-                        // normalized_hash events todo
-                    },
-                ]);
+                this.sendTransactionAnalytics(event, signedBoc);
                 return { signedBoc };
             }
         } catch (error) {
@@ -441,6 +388,47 @@ export class RequestProcessor {
             }
             throw error;
         }
+    }
+
+    /**
+     * Send transaction analytics events
+     */
+    private sendTransactionAnalytics(
+        event: EventTransactionRequest | EventTransactionApproval,
+        signedBoc: string,
+    ): void {
+        this.analyticsApi?.sendEvents([
+            {
+                event_name: 'wallet-transaction-accepted',
+                trace_id: event.traceId,
+                client_environment: 'wallet',
+                subsystem: getEventsSubsystem(),
+                event_id: uuidv7(),
+                client_timestamp: getUnixtime(),
+                version: getVersion(),
+                network_id: this.walletKitOptions.network,
+                wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                client_id: event.from,
+                wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                dapp_name: 'dAppInfo' in event ? event.dAppInfo?.name : undefined,
+                origin_url: 'dAppInfo' in event ? event.dAppInfo?.url : undefined,
+            },
+            {
+                event_name: 'wallet-transaction-sent',
+                trace_id: event.traceId,
+                client_environment: 'wallet',
+                subsystem: getEventsSubsystem(),
+                event_id: uuidv7(),
+                network_id: this.walletKitOptions.network,
+                wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
+                wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
+                version: getVersion(),
+                client_timestamp: getUnixtime(),
+                client_id: event.from,
+                signed_boc: signedBoc,
+            },
+        ]);
     }
 
     /**
@@ -800,17 +788,26 @@ export class RequestProcessor {
                 { walletAddress: event.walletAddress, eventId: event.id },
             );
         }
-        const signedBoc = await wallet.getSignedSendTransaction(event.request, {
-            fakeSignature: false,
-        });
-
-        log.debug('Signing transaction', {
-            id: event.id,
-            messagesCount: event.request.messages.length,
-            from: event.request.from,
-            validUntil: event.request.valid_until,
-        });
-
-        return signedBoc;
+        return await signTransactionInternal(wallet, event.request);
     }
+}
+
+/**
+ * Internal helper to sign transaction
+ */
+export async function signTransactionInternal(
+    wallet: IWallet,
+    request: ConnectTransactionParamContent,
+): Promise<string> {
+    const signedBoc = await wallet.getSignedSendTransaction(request, {
+        fakeSignature: false,
+    });
+
+    log.debug('Signing transaction', {
+        messagesCount: request.messages.length,
+        from: request.from,
+        validUntil: request.valid_until,
+    });
+
+    return signedBoc;
 }

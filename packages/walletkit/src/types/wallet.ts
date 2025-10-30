@@ -22,6 +22,7 @@ import { NftItems } from './toncenter/NftItems';
 import { PrepareSignDataResult } from '../utils/signData/sign';
 import { Hex } from './primitive';
 import { TonProofParsedMessage } from '../utils/tonProof';
+import { EventTransactionResponse } from './events';
 
 /**
  * TON network types
@@ -105,6 +106,8 @@ export interface WalletTonInterface {
     getTransactionPreview(data: ConnectTransactionParamContent | Promise<ConnectTransactionParamContent>): Promise<{
         preview: TransactionPreview;
     }>;
+
+    sendTransaction(request: ConnectTransactionParamContent): Promise<EventTransactionResponse>;
 
     getBalance(): Promise<string>;
 }
