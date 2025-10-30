@@ -12,14 +12,20 @@ import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
 
-export type AddressBook = Record<AddressFriendly, string>;
+export interface AddressBookItem {
+    domain?: string;
+    isScam?: boolean;
+    isWallet?: boolean;
+}
+
+export type AddressBook = Record<AddressFriendly, AddressBookItem>;
 
 export function toAddressBook(data: Record<string, EmulationAddressBookEntry>): AddressBook {
-    const out: Record<AddressFriendly, string> = {};
+    const out: AddressBook = {};
     for (const item of Object.keys(data)) {
         const domain = data[item].domain;
         if (domain) {
-            out[asAddressFriendly(item)] = domain;
+            out[asAddressFriendly(item)] = { domain } as AddressBookItem;
         }
     }
     return out;
@@ -209,12 +215,20 @@ export interface Account {
 export function toAccount(address: string, addressBook: AddressBook): Account {
     const out: Account = {
         address: asAddressFriendly(address),
-        isScam: false, // TODO implement detect isScam for Account
-        isWallet: true, // TODO implement detect isWallet for Account
+        isScam: false,
+        isWallet: true,
     };
-    const name = addressBook[asAddressFriendly(address)] as string | undefined;
-    if (name) {
-        out.name = name;
+    const record = addressBook[asAddressFriendly(address)];
+    if (record) {
+        if (record.isScam) {
+            out.isScam = record.isScam;
+        }
+        if (record.isWallet) {
+            out.isWallet = record.isWallet;
+        }
+        if (record.domain) {
+            out.name = record.domain;
+        }
     }
     return out;
 }
