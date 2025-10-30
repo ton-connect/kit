@@ -379,4 +379,110 @@ describe('AccountEvent', () => {
             },
         ]);
     });
+
+    it('nft sent', async () => {
+        const traces = loadData<ToncenterTracesResponse>('nft-sent-traces');
+        const actual = toEvent(traces.traces[0], account, addressBook);
+        expect(actual.actions).toEqual([
+            {
+                type: 'NftItemTransfer',
+                status: 'success',
+                NftItemTransfer: {
+                    sender: {
+                        address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                        name: 'tolya.ton',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    recipient: {
+                        address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    nft: 'EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ',
+                },
+                simplePreview: {
+                    name: 'NFT Transfer',
+                    description: 'Transferring 1 NFT',
+                    value: '1 NFT',
+                    accounts: [
+                        {
+                            address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                        {
+                            address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                            name: 'tolya.ton',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                        {
+                            address: 'EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ',
+                            isScam: false,
+                            isWallet: false,
+                        },
+                    ],
+                },
+                baseTransactions: [
+                    '0xa9fbb77b9dea075b459d883d95bf315bda384c71dbe2c4fd38f537fe0531b406',
+                    '0x94ca23cd5e1ebea0ec17d818136d38bc6503c8427722c7a7ee277c77bf5adaaf',
+                    '0x77dd11723edd46d6dfcbc2ebbb1be915e0851225d9c7d6656a9a917c22460c0c',
+                ],
+            },
+        ]);
+    });
+
+    it('nft received', async () => {
+        const traces = loadData<ToncenterTracesResponse>('nft-received-traces');
+        const actual = toEvent(traces.traces[0], account, addressBook);
+        expect(actual.actions).toEqual([
+            {
+                type: 'NftItemTransfer',
+                status: 'success',
+                NftItemTransfer: {
+                    sender: {
+                        address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    recipient: {
+                        address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                        name: 'tolya.ton',
+                        isScam: false,
+                        isWallet: true,
+                    },
+                    nft: 'EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ',
+                },
+                simplePreview: {
+                    name: 'NFT Transfer',
+                    description: 'Transferring 1 NFT',
+                    value: '1 NFT',
+                    accounts: [
+                        {
+                            address: 'EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9',
+                            name: 'tolya.ton',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                        {
+                            address: 'EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo',
+                            isScam: false,
+                            isWallet: true,
+                        },
+                        {
+                            address: 'EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ',
+                            isScam: false,
+                            isWallet: false,
+                        },
+                    ],
+                },
+                baseTransactions: [
+                    '0x05075fa2c6675d1f8a0c2ac1491d299cd52f0935d90d76658bcdfdf1caf47f10',
+                    '0x37c6c0484dcc0737cbea4f6dbf35200b91109f3afc5514caffe15c219b3391ab',
+                    '0x58f830603b332a711f6e5d883101f20c87e54f57b9d9ae10e8d1cd2abbb852ea',
+                ],
+            },
+        ]);
+    });
 });
