@@ -273,21 +273,11 @@ window.initWalletKit = async (configuration, storage) => {
             }
         },
 
-        async getWallets() {
+        getWallets() {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('📋 Bridge: Getting wallets');
 
-            try {
-                const wallets = await walletKit.getWallets();
-                console.log(
-                    '✅ Got wallets:',
-                    JSON.stringify(wallets, (_, v) => (typeof v === 'bigint' ? v.toString() : v)),
-                );
-                return wallets;
-            } catch (error) {
-                console.error('❌ Failed to get wallets:', error.toString());
-                throw error;
-            }
+            return walletKit.getWallets();
         },
 
         async getSessions() {
