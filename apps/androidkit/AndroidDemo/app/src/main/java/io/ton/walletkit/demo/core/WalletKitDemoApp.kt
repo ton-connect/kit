@@ -2,6 +2,13 @@ package io.ton.walletkit.demo.core
 
 import android.app.Application
 import android.util.Log
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.memory.MemoryCache
+import coil3.request.crossfade
+import coil3.util.DebugLogger
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.SecureDemoAppStorage
 import io.ton.walletkit.domain.model.TONNetwork
@@ -18,11 +25,33 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
+import okio.Path.Companion.toOkioPath
 
-class WalletKitDemoApp : Application() {
+class WalletKitDemoApp :
+    Application(),
+    SingletonImageLoader.Factory {
 
     // Application-level coroutine scope
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /**
+     * Create Coil ImageLoader with optimized settings for LazyGrid
+     */
+    override fun newImageLoader(context: PlatformContext): ImageLoader = ImageLoader.Builder(context)
+        .crossfade(true)
+        .memoryCache {
+            MemoryCache.Builder()
+                .maxSizePercent(context, 0.25) // Use 25% of app memory for image cache
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(context.cacheDir.resolve("image_cache").toOkioPath())
+                .maxSizeBytes(512L * 1024 * 1024) // 512 MB
+                .build()
+        }
+        .logger(DebugLogger()) // Enable logging for debugging
+        .build()
 
     /**
      * Demo app storage for wallet metadata and user preferences.
@@ -150,7 +179,6 @@ class WalletKitDemoApp : Application() {
 
 /**
  * Helper to get cached TONWalletKit instance.
- * Similar to iOS extension on TONWalletKit with static mainnet() function.
  */
 object TONWalletKitHelper {
     private var mainnetInstance: TONWalletKit? = null

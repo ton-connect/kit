@@ -52,6 +52,7 @@ import io.ton.walletkit.demo.presentation.ui.dialog.SignerConfirmationDialog
 import io.ton.walletkit.demo.presentation.ui.dialog.UrlPromptDialog
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
 import io.ton.walletkit.demo.presentation.ui.sections.EventLogSection
+import io.ton.walletkit.demo.presentation.ui.sections.NFTsSection
 import io.ton.walletkit.demo.presentation.ui.sections.SessionsSection
 import io.ton.walletkit.demo.presentation.ui.sections.TransactionHistorySection
 import io.ton.walletkit.demo.presentation.ui.sections.WalletsSection
@@ -62,6 +63,7 @@ import io.ton.walletkit.demo.presentation.ui.sheet.SignDataSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionDetailSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
+import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
 import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.presentation.TONWalletKit
 import io.ton.walletkit.presentation.browser.cleanupTonConnect
@@ -73,6 +75,7 @@ private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.ap
 fun WalletScreen(
     state: WalletUiState,
     walletKit: TONWalletKit,
+    nftsViewModel: NFTsListViewModel?,
     onAddWalletClick: () -> Unit,
     onUrlPromptClick: () -> Unit,
     onOpenBrowser: (String) -> Unit,
@@ -287,6 +290,13 @@ fun WalletScreen(
                 onWalletSelected = onWalletDetails,
                 onSendFromWallet = onSendFromWallet,
             )
+
+            // Show NFTs for the active wallet (if ViewModel is available)
+            if (nftsViewModel != null) {
+                NFTsSection(
+                    viewModel = nftsViewModel,
+                )
+            }
 
             // Show transaction history for the active wallet
             activeWallet?.let { wallet ->

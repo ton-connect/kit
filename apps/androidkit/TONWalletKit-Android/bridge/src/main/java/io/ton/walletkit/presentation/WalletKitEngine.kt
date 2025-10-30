@@ -288,6 +288,52 @@ internal interface WalletKitEngine {
     suspend fun disconnectSession(sessionId: String? = null)
 
     /**
+     * Get NFTs owned by a wallet with pagination.
+     *
+     * @param walletAddress Wallet address to get NFTs for
+     * @param limit Maximum number of NFTs to return
+     * @param offset Offset for pagination
+     * @return NFT items with pagination info
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getNfts(walletAddress: String, limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONNFTItems
+
+    /**
+     * Get a single NFT by its address.
+     *
+     * @param nftAddress NFT contract address
+     * @return NFT item or null if not found
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getNft(nftAddress: String): io.ton.walletkit.domain.model.TONNFTItem?
+
+    /**
+     * Create an NFT transfer transaction with human-friendly parameters.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param params Transfer parameters
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferNftTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman,
+    ): String
+
+    /**
+     * Create an NFT transfer transaction with raw parameters.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param params Raw transfer parameters
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferNftRawTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw,
+    ): String
+
+    /**
      * Call a bridge method directly.
      *
      * This is used internally by browser extensions to emit events.
