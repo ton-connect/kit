@@ -24,9 +24,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
 import io.ton.walletkit.domain.model.TONNFTItem
 import kotlinx.serialization.json.jsonPrimitive
@@ -48,7 +46,9 @@ fun NFTCard(
         try {
             // Try to get _image_medium from extra first
             val mediumImage = nft.metadata?.extra?.get("_image_medium")?.jsonPrimitive?.content
-            mediumImage ?: nft.metadata?.image
+            val url = mediumImage ?: nft.metadata?.image
+            Log.d("NFTCard", "Image URL for ${nft.address}: $url")
+            url
         } catch (e: Exception) {
             Log.e("NFTCard", "Error extracting image URL for ${nft.address}", e)
             nft.metadata?.image
@@ -63,8 +63,8 @@ fun NFTCard(
         shape = RoundedCornerShape(12.dp),
     ) {
         Column {
-            // NFT Image - using AsyncImage directly as recommended for LazyGrid
-            AsyncImage(
+            // NFT Image with SubcomposeAsyncImage for better state control
+            SubcomposeAsyncImage(
                 model = imageUrl,
                 contentDescription = nft.metadata?.name ?: "NFT",
                 modifier = Modifier
@@ -72,6 +72,32 @@ fun NFTCard(
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
                 contentScale = ContentScale.Crop,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .background(Color.LightGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                },
+                error = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .background(Color.LightGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Failed to load",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
             )
 
             // NFT Info

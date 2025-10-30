@@ -2,14 +2,15 @@ package io.ton.walletkit.demo.presentation.ui.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +38,8 @@ fun NFTsSection(
     val nfts by viewModel.nfts.collectAsState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
 
-    // Auto-load NFTs when section is first displayed
-    LaunchedEffect(Unit) {
+    // Auto-load NFTs when section is first displayed or when viewModel changes (wallet switch)
+    LaunchedEffect(viewModel) {
         viewModel.loadNFTs()
     }
 
@@ -62,41 +63,42 @@ fun NFTsSection(
             }
 
             is NFTsListViewModel.NFTState.Success -> {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.height(400.dp), // Fixed height to work inside scrollable container
-                ) {
-                    items(nfts, key = { it.address }) { nft ->
-                        NFTCard(
-                            nft = nft,
-                            onClick = {
-                                // TODO: Navigate to NFT details
-                            },
-                        )
-                    }
+                Column {
+                    // Horizontal scrolling row of NFTs
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(nfts, key = { it.address }) { nft ->
+                            NFTCard(
+                                nft = nft,
+                                onClick = {
+                                    // TODO: Navigate to NFT details
+                                },
+                                modifier = Modifier.width(160.dp), // Fixed width for horizontal scroll
+                            )
+                        }
 
-                    // Load More button
-                    if (viewModel.canLoadMore) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Button(
-                                    onClick = { viewModel.loadMoreNFTs() },
-                                    enabled = !isLoadingMore,
+                        // Load More button at the end
+                        if (viewModel.canLoadMore) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .height(200.dp)
+                                        .padding(vertical = 8.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    if (isLoadingMore) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.padding(end = 8.dp),
-                                        )
+                                    Button(
+                                        onClick = { viewModel.loadMoreNFTs() },
+                                        enabled = !isLoadingMore,
+                                    ) {
+                                        if (isLoadingMore) {
+                                            CircularProgressIndicator()
+                                        } else {
+                                            Text("Load\nMore")
+                                        }
                                     }
-                                    Text("Load More")
                                 }
                             }
                         }

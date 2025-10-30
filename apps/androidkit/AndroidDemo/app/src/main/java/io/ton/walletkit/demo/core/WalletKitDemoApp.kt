@@ -7,6 +7,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
@@ -49,6 +50,10 @@ class WalletKitDemoApp :
                 .directory(context.cacheDir.resolve("image_cache").toOkioPath())
                 .maxSizeBytes(512L * 1024 * 1024) // 512 MB
                 .build()
+        }
+        // Add components with retry capability
+        .components {
+            add(OkHttpNetworkFetcherFactory())
         }
         .logger(DebugLogger()) // Enable logging for debugging
         .build()
