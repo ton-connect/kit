@@ -300,6 +300,23 @@ internal interface WalletKitEngine {
     suspend fun callBridgeMethod(method: String, params: org.json.JSONObject? = null): org.json.JSONObject
 
     /**
+     * Add an event handler to receive SDK events.
+     *
+     * This allows adding event handlers after initialization, enabling on-demand
+     * event handling. Multiple handlers can be added, and each will receive all events.
+     *
+     * @param eventsHandler Handler for SDK events
+     */
+    suspend fun addEventsHandler(eventsHandler: io.ton.walletkit.presentation.listener.TONBridgeEventsHandler)
+
+    /**
+     * Remove a previously added event handler.
+     *
+     * @param eventsHandler Handler to remove
+     */
+    suspend fun removeEventsHandler(eventsHandler: io.ton.walletkit.presentation.listener.TONBridgeEventsHandler)
+
+    /**
      * Destroy the engine and release all resources.
      */
     suspend fun destroy()

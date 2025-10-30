@@ -692,6 +692,18 @@ internal class QuickJsWalletKitEngine(
         jsExecutor.shutdownNow()
     }
 
+    override suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        // QuickJS engine uses single handler pattern passed in constructor
+        // This method is a no-op for backward compatibility
+        Log.w(logTag, "addEventsHandler called but QuickJS engine uses single handler from constructor")
+    }
+
+    override suspend fun removeEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        // QuickJS engine uses single handler pattern passed in constructor
+        // This method is a no-op for backward compatibility
+        Log.w(logTag, "removeEventsHandler called but QuickJS engine uses single handler from constructor")
+    }
+
     private suspend fun call(
         method: String,
         params: JSONObject? = null,

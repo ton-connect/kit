@@ -8,9 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import io.ton.walletkit.demo.core.TONWalletKitHelper
 import io.ton.walletkit.demo.core.WalletKitDemoApp
 import io.ton.walletkit.demo.presentation.ui.screen.SetupPasswordScreen
 import io.ton.walletkit.demo.presentation.ui.screen.UnlockWalletScreen
@@ -43,6 +48,15 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
     val state by viewModel.state.collectAsState()
     val hasWallet = state.wallets.isNotEmpty()
 
+    // Get wallet kit instance for browser sheet
+    val context = LocalContext.current
+    val walletKit = remember { mutableStateOf<io.ton.walletkit.presentation.TONWalletKit?>(null) }
+    
+    LaunchedEffect(Unit) {
+        val app = context.applicationContext as WalletKitDemoApp
+        walletKit.value = TONWalletKitHelper.mainnet(app)
+    }
+
     when {
         // Step 1: Setup password (first time user)
         !isPasswordSet -> {
@@ -70,36 +84,40 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
         // Step 3 & 4: Main wallet screen (unlocked)
         // The AddWalletSheet will be shown automatically if no wallets exist
         else -> {
-            WalletScreen(
-                state = state,
-                onAddWalletClick = viewModel::openAddWalletSheet,
-                onUrlPromptClick = viewModel::showUrlPrompt,
-                onOpenBrowser = { url -> viewModel.openBrowser(url) },
-                onRefresh = viewModel::refreshAll,
-                onDismissSheet = viewModel::dismissSheet,
-                onWalletDetails = viewModel::showWalletDetails,
-                onSendFromWallet = viewModel::openSendTransactionSheet,
-                onDisconnectSession = viewModel::disconnectSession,
-                onToggleWalletSwitcher = viewModel::toggleWalletSwitcher,
-                onSwitchWallet = viewModel::switchWallet,
-                onRemoveWallet = viewModel::removeWallet,
-                onRenameWallet = viewModel::renameWallet,
-                onImportWallet = viewModel::importWallet,
-                onGenerateWallet = viewModel::generateWallet,
-                onApproveConnect = viewModel::approveConnect,
-                onRejectConnect = viewModel::rejectConnect,
-                onApproveTransaction = viewModel::approveTransaction,
-                onRejectTransaction = viewModel::rejectTransaction,
-                onApproveSignData = viewModel::approveSignData,
-                onRejectSignData = viewModel::rejectSignData,
-                onConfirmSignerApproval = viewModel::confirmSignerApproval,
-                onCancelSignerApproval = viewModel::cancelSignerApproval,
-                onSendTransaction = viewModel::sendLocalTransaction,
-                onRefreshTransactions = viewModel::refreshTransactions,
-                onTransactionClick = viewModel::showTransactionDetail,
-                onHandleUrl = viewModel::handleTonConnectUrl,
-                onDismissUrlPrompt = viewModel::hideUrlPrompt,
-            )
+            // Only show WalletScreen if walletKit is loaded
+            walletKit.value?.let { kit ->
+                WalletScreen(
+                    state = state,
+                    walletKit = kit,
+                    onAddWalletClick = viewModel::openAddWalletSheet,
+                    onUrlPromptClick = viewModel::showUrlPrompt,
+                    onOpenBrowser = { url -> viewModel.openBrowser(url) },
+                    onRefresh = viewModel::refreshAll,
+                    onDismissSheet = viewModel::dismissSheet,
+                    onWalletDetails = viewModel::showWalletDetails,
+                    onSendFromWallet = viewModel::openSendTransactionSheet,
+                    onDisconnectSession = viewModel::disconnectSession,
+                    onToggleWalletSwitcher = viewModel::toggleWalletSwitcher,
+                    onSwitchWallet = viewModel::switchWallet,
+                    onRemoveWallet = viewModel::removeWallet,
+                    onRenameWallet = viewModel::renameWallet,
+                    onImportWallet = viewModel::importWallet,
+                    onGenerateWallet = viewModel::generateWallet,
+                    onApproveConnect = viewModel::approveConnect,
+                    onRejectConnect = viewModel::rejectConnect,
+                    onApproveTransaction = viewModel::approveTransaction,
+                    onRejectTransaction = viewModel::rejectTransaction,
+                    onApproveSignData = viewModel::approveSignData,
+                    onRejectSignData = viewModel::rejectSignData,
+                    onConfirmSignerApproval = viewModel::confirmSignerApproval,
+                    onCancelSignerApproval = viewModel::cancelSignerApproval,
+                    onSendTransaction = viewModel::sendLocalTransaction,
+                    onRefreshTransactions = viewModel::refreshTransactions,
+                    onTransactionClick = viewModel::showTransactionDetail,
+                    onHandleUrl = viewModel::handleTonConnectUrl,
+                    onDismissUrlPrompt = viewModel::hideUrlPrompt,
+                )
+            }
         }
     }
 }

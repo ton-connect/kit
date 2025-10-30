@@ -78,7 +78,7 @@ import java.util.concurrent.ConcurrentHashMap
 internal class WebViewWalletKitEngine(
     context: Context,
     private val configuration: TONWalletKitConfiguration,
-    private val eventsHandler: TONBridgeEventsHandler,
+    eventsHandler: TONBridgeEventsHandler?,
     private val assetPath: String = WebViewConstants.DEFAULT_ASSET_PATH,
 ) : WalletKitEngine {
     override val kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW
@@ -96,6 +96,17 @@ internal class WebViewWalletKitEngine(
 
     // Whether persistent storage is enabled (set during init)
     @Volatile private var persistentStorageEnabled: Boolean = true
+
+    // Multiple event handlers support (like iOS)
+    private val eventHandlers = mutableListOf<TONBridgeEventsHandler>()
+    private val eventHandlersMutex = Mutex()
+
+    init {
+        // Add initial handler if provided
+        if (eventsHandler != null) {
+            eventHandlers.add(eventsHandler)
+        }
+    }
 
     private val assetLoader =
         WebViewAssetLoader
@@ -374,9 +385,9 @@ internal class WebViewWalletKitEngine(
         )
         call(BridgeMethodConstants.METHOD_INIT, payload)
 
-        // Event listeners are NOT set up automatically during init
-        // They will be set up on-demand when needed (e.g., when handleTonConnectUrl is called)
-        // This matches commit 9b36a4a: "Setup event listeners on demand"
+        // Event listeners are set up on-demand by the user (via SDK methods like handleTonConnectUrl).
+        // Events arriving before listeners are registered will be stored in durable_events by TS core
+        // and automatically replayed when listeners are eventually registered.
         Log.d(TAG, "WalletKit initialized. Event listeners will be set up on-demand.")
     }
 
@@ -776,7 +787,6 @@ internal class WebViewWalletKitEngine(
 
     override suspend fun handleTonConnectUrl(url: String) {
         ensureWalletKitInitialized()
-        ensureEventListenersSetUp()
         val params = JSONObject().apply { put(ResponseConstants.KEY_URL, url) }
         call(BridgeMethodConstants.METHOD_HANDLE_TON_CONNECT_URL, params)
     }
@@ -790,7 +800,6 @@ internal class WebViewWalletKitEngine(
     ) {
         try {
             ensureWalletKitInitialized()
-            ensureEventListenersSetUp()
 
             Log.d(TAG, "Processing internal browser request: $method (messageId: $messageId)")
             Log.d(TAG, "dApp URL: $url")
@@ -981,6 +990,42 @@ internal class WebViewWalletKitEngine(
         return call(method, params)
     }
 
+    override suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        eventHandlersMutex.withLock {
+            if (eventHandlers.contains(eventsHandler)) {
+                return@withLock
+            }
+            
+            val isFirstHandler = eventHandlers.isEmpty()
+            eventHandlers.add(eventsHandler)
+            Log.d(TAG, "Added event handler: ${eventsHandler.javaClass.simpleName}. Total handlers: ${eventHandlers.size}")
+            
+            // Set up event listeners in JS bridge only when first handler is added (matches iOS)
+            if (isFirstHandler) {
+                ensureEventListenersSetUp()
+            }
+        }
+    }
+
+    override suspend fun removeEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        eventHandlersMutex.withLock {
+            if (eventHandlers.remove(eventsHandler)) {
+                Log.d(TAG, "Removed event handler: ${eventsHandler.javaClass.simpleName}. Total handlers: ${eventHandlers.size}")
+                
+                // Remove event listeners from JS bridge when last handler is removed (matches iOS)
+                if (eventHandlers.isEmpty() && areEventListenersSetUp) {
+                    try {
+                        call(BridgeMethodConstants.METHOD_REMOVE_EVENT_LISTENERS, JSONObject())
+                        areEventListenersSetUp = false
+                        Log.d(TAG, "Event listeners removed from JS bridge (no handlers remaining)")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to remove event listeners from JS bridge", e)
+                    }
+                }
+            }
+        }
+    }
+
     override suspend fun destroy() {
         withContext(Dispatchers.Main) {
             // Remove event listeners before destroying
@@ -1159,11 +1204,24 @@ internal class WebViewWalletKitEngine(
         Log.d(TAG, "Parsed typed event: ${(typedEvent?.javaClass?.simpleName ?: ResponseConstants.VALUE_UNKNOWN)}")
 
         if (typedEvent != null) {
-            Log.d(TAG, "Notifying event handler")
+            Log.d(TAG, "Notifying event handler(s)")
 
             mainHandler.post {
                 try {
-                    eventsHandler.handle(typedEvent)
+                    // Notify all registered handlers - synchronous access safe here since we're on main thread
+                    val handlers = runBlocking {
+                        eventHandlersMutex.withLock {
+                            eventHandlers.toList() // Create a copy to avoid ConcurrentModificationException
+                        }
+                    }
+                    
+                    for (handler in handlers) {
+                        try {
+                            handler.handle(typedEvent)
+                        } catch (e: Exception) {
+                            Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId + " for handler ${handler.javaClass.simpleName}", e)
+                        }
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
                 }

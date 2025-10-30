@@ -40,6 +40,7 @@ import io.ton.walletkit.presentation.browser.injectTonConnect
 fun BrowserSheet(
     url: String,
     onClose: () -> Unit,
+    walletKit: TONWalletKit,
     isLoading: Boolean = false,
     currentUrl: String = url,
     webViewHolder: androidx.compose.runtime.MutableState<WebView?>? = null,
@@ -61,7 +62,7 @@ fun BrowserSheet(
             isNestedScrollingEnabled = false
 
             // Inject TonConnect support
-            injectTonConnect(TONWalletKit)
+            injectTonConnect(walletKit)
 
             // Load the URL
             loadUrl(url)

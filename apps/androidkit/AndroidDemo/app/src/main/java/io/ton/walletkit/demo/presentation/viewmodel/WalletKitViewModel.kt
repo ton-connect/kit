@@ -94,6 +94,13 @@ class WalletKitViewModel(
         logEvent(uiString(messageRes, *args))
     }
 
+    /**
+     * Get the shared TONWalletKit instance (matches iOS pattern).
+     */
+    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit {
+        return io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
+    }
+
     init {
         // Check password state on initialization (FIRST)
         _isPasswordSet.value = storage.isPasswordSet()
@@ -129,7 +136,7 @@ class WalletKitViewModel(
         // Load wallets from SDK (auto-restored from persistent storage)
         val loadResult = runCatching {
             Log.d(LOG_TAG, "bootstrap: requesting wallets from SDK (initial)")
-            val wallets = TONWallet.wallets()
+            val wallets = getKit().getWallets()
             wallets.forEach { wallet ->
                 wallet.address?.let { address ->
                     tonWallets[address] = wallet
@@ -158,7 +165,7 @@ class WalletKitViewModel(
 
         // Reload wallets from SDK (after any external changes)
         Log.d(LOG_TAG, "bootstrap: refreshing wallet list post-migration check")
-        val walletsAfterMigration = TONWallet.wallets()
+        val walletsAfterMigration = getKit().getWallets()
         tonWallets.clear()
         val metadataCorrections = mutableListOf<String>()
         for (wallet in walletsAfterMigration) {
@@ -437,10 +444,12 @@ class WalletKitViewModel(
             pendingWallets.addLast(pending)
 
             val result = runCatching {
+                val kit = getKit()
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(cleaned, name)
                     TONWallet.addWithSigner(
+                        kit = kit,
                         signer = signer,
                         version = version,
                         network = network,
@@ -453,7 +462,7 @@ class WalletKitViewModel(
                         version = version,
                         network = network,
                     )
-                    TONWallet.add(walletData)
+                    kit.addWallet(walletData)
                 }
             }
 
@@ -511,7 +520,8 @@ class WalletKitViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGeneratingMnemonic = true) }
             val words = try {
-                TONWallet.generateMnemonic(24)
+                val kit = getKit()
+                TONWallet.generateMnemonic(kit, 24)
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Mnemonic generation failed", e)
                 _state.update { it.copy(isGeneratingMnemonic = false, error = uiString(R.string.wallet_error_generate_failed)) }
@@ -528,10 +538,12 @@ class WalletKitViewModel(
             pendingWallets.addLast(pending)
 
             val result = runCatching {
+                val kit = getKit()
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(words, name)
                     TONWallet.addWithSigner(
+                        kit = kit,
                         signer = signer,
                         version = version,
                         network = network,
@@ -544,7 +556,7 @@ class WalletKitViewModel(
                         version = version,
                         network = network,
                     )
-                    TONWallet.add(walletData)
+                    kit.addWallet(walletData)
                 }
             }
 
@@ -898,11 +910,12 @@ class WalletKitViewModel(
             try {
                 // We need the domain WalletSession instance (from TONWallet) to call the extension
                 var disconnected = false
+                val kit = getKit()
                 for (wallet in tonWallets.values) {
                     val sessions = runCatching { wallet.sessions() }.getOrNull() ?: continue
                     val domainSession = sessions.firstOrNull { it.sessionId == sessionId }
                     if (domainSession != null) {
-                        domainSession.disconnect()
+                        domainSession.disconnect(kit)
                         disconnected = true
                         break
                     }
@@ -1233,7 +1246,7 @@ class WalletKitViewModel(
 
     private suspend fun loadWalletSummaries(): List<WalletSummary> {
         // Get wallets from SDK and update cache
-        val wallets = TONWallet.wallets()
+        val wallets = getKit().getWallets()
         wallets.forEach { wallet ->
             wallet.address?.let { address ->
                 tonWallets[address] = wallet
@@ -1402,7 +1415,7 @@ class WalletKitViewModel(
                 network = networkEnum,
             )
 
-            val result = runCatching { TONWallet.add(walletData) }
+            val result = runCatching { getKit().addWallet(walletData) }
             result.onSuccess { wallet ->
                 val restoredAddress = wallet.address
                 if (restoredAddress.isNullOrBlank()) {
@@ -1613,7 +1626,8 @@ class WalletKitViewModel(
         // This avoids creating and immediately deleting a temporary wallet.
 
         // Use SDK's new derivePublicKey method to get public key without creating a wallet
-        val publicKey = TONWallet.derivePublicKey(mnemonic)
+        val kit = getKit()
+        val publicKey = TONWallet.derivePublicKey(kit, mnemonic)
 
         Log.d(LOG_TAG, "Derived public key for signer wallet: ${publicKey.take(16)}...")
 
@@ -1629,7 +1643,9 @@ class WalletKitViewModel(
                     LOG_TAG,
                     "Demo signer signing ${data.size} bytes for wallet=$walletName (used for TonProof/transactions)",
                 )
+                val kit = getKit()
                 return TONWallet.signDataWithMnemonic(
+                    kit = kit,
                     mnemonic = signerMnemonic,
                     data = data,
                     mnemonicType = "ton",
