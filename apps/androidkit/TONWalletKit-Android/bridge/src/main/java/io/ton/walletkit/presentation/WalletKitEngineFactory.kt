@@ -75,9 +75,11 @@ internal object WalletKitEngineFactory {
         configuration: TONWalletKitConfiguration,
         eventsHandler: TONBridgeEventsHandler?,
     ): WalletKitEngine {
-        // Direct instantiation - WebViewWalletKitEngine is in the same module
-        val engine = WebViewWalletKitEngine(context, configuration, eventsHandler)
-        // Initialize engine (starts WebView, loads bridge)
+        // CRITICAL: Use network-based caching to prevent multiple WebView instances per network
+        // Multiple WebViews with the same JS bridge interface name will conflict
+        // Different networks (mainnet/testnet) get separate WebView engines
+        val engine = WebViewWalletKitEngine.getOrCreate(context, configuration, eventsHandler)
+        // Initialize engine (starts WebView, loads bridge) - safe to call multiple times
         engine.init(configuration)
         return engine
     }

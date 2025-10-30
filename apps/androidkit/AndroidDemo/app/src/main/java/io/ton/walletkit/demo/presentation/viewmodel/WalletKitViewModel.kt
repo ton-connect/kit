@@ -97,9 +97,7 @@ class WalletKitViewModel(
     /**
      * Get the shared TONWalletKit instance (matches iOS pattern).
      */
-    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit {
-        return io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
-    }
+    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
 
     init {
         // Check password state on initialization (FIRST)

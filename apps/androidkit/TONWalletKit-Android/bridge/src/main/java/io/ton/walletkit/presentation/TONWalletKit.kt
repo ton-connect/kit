@@ -62,7 +62,7 @@ class TONWalletKit private constructor(
      * @suppress
      */
     @JvmSynthetic
-    internal val engine: WalletKitEngine
+    internal val engine: WalletKitEngine,
 ) {
     @Volatile
     private var isDestroyed = false
@@ -104,9 +104,9 @@ class TONWalletKit private constructor(
      */
     suspend fun destroy() {
         if (isDestroyed) return
-        
+
         isDestroyed = true
-        
+
         try {
             engine.destroy()
         } catch (e: Exception) {
@@ -130,7 +130,7 @@ class TONWalletKit private constructor(
      */
     suspend fun addWallet(data: io.ton.walletkit.domain.model.TONWalletData): TONWallet {
         checkNotDestroyed()
-        
+
         val account = engine.addWalletFromMnemonic(
             words = data.mnemonic,
             name = data.name,
@@ -152,7 +152,7 @@ class TONWalletKit private constructor(
      */
     suspend fun getWallets(): List<TONWallet> {
         checkNotDestroyed()
-        
+
         val accounts = engine.getWallets()
         return accounts.map { account ->
             TONWallet(
@@ -178,7 +178,7 @@ class TONWalletKit private constructor(
                 kind = WalletKitEngineKind.WEBVIEW,
                 context = context,
                 configuration = configuration,
-                eventsHandler = null, // Event handlers are added on-demand
+                eventsHandler = null,
             )
 
             return TONWalletKit(newEngine)

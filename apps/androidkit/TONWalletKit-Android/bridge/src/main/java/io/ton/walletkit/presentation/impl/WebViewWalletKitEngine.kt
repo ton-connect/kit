@@ -64,6 +64,9 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.get
+import kotlin.collections.remove
+import kotlin.text.clear
 
 /**
  * WebView-backed WalletKit engine. Hosts the WalletKit bundle inside a hidden WebView and uses the
@@ -73,9 +76,14 @@ import java.util.concurrent.ConcurrentHashMap
  * using secure encrypted storage. Data is automatically restored on app restart.
  * Storage can be disabled via config for testing or privacy-focused use cases.
  *
+ * **IMPORTANT**: This engine caches WebView instances per network (mainnet/testnet).
+ * Multiple TONWalletKit instances with the same network configuration will share the same
+ * underlying WebView to prevent JavaScript bridge conflicts. Each TONWalletKit instance
+ * maintains its own event handlers. Different networks get separate WebView engines.
+ *
  * @suppress This is an internal implementation class. Use [WalletKitEngineFactory.create] instead.
  */
-internal class WebViewWalletKitEngine(
+internal class WebViewWalletKitEngine private constructor(
     context: Context,
     private val configuration: TONWalletKitConfiguration,
     eventsHandler: TONBridgeEventsHandler?,
@@ -405,31 +413,48 @@ internal class WebViewWalletKitEngine(
 
     /**
      * Ensures event listeners are set up in the JavaScript bridge. This is called on-demand
-     * when an operation needs events (e.g., handleTonConnectUrl). This matches the bridge behavior
-     * where event listeners are set up when first needed, not during initialization.
+     * when an operation needs events (e.g., handleTonConnectUrl, addEventsHandler).
+     *
+     * CRITICAL: This waits for WalletKit initialization to complete before setting up listeners,
+     * ensuring the JS bridge is ready and preventing race conditions.
      */
     private suspend fun ensureEventListenersSetUp() {
+        Log.d(TAG, "🔵 ensureEventListenersSetUp() called, areEventListenersSetUp=$areEventListenersSetUp")
+
         // Fast path: already set up
         if (areEventListenersSetUp) {
+            Log.d(TAG, "⚡ Event listeners already set up, skipping")
             return
         }
 
+        Log.d(TAG, "🔵 Acquiring eventListenersSetupMutex...")
         eventListenersSetupMutex.withLock {
+            Log.d(TAG, "🔵 eventListenersSetupMutex acquired")
+
             // Double-check after acquiring lock
             if (areEventListenersSetUp) {
+                Log.d(TAG, "⚡ Event listeners already set up (double-check), skipping")
                 return@withLock
             }
 
             try {
+                Log.d(TAG, "🔵 Waiting for WalletKit initialization...")
+                // CRITICAL: Wait for WalletKit initialization to complete before setting up event listeners
+                // This ensures the JS bridge is ready and prevents race conditions
+                ensureWalletKitInitialized()
+                Log.d(TAG, "✅ WalletKit initialization complete")
+
+                Log.d(TAG, "🔵 Calling JS setEventsListeners()...")
                 // Call JavaScript setEventsListeners() to start forwarding events
                 call(BridgeMethodConstants.METHOD_SET_EVENTS_LISTENERS, JSONObject())
                 areEventListenersSetUp = true
-                Log.d(TAG, "Event listeners set up successfully (on-demand)")
+                Log.d(TAG, "✅✅✅ Event listeners set up successfully! areEventListenersSetUp=true")
             } catch (err: Throwable) {
-                Log.e(TAG, "Failed to set up event listeners", err)
+                Log.e(TAG, "❌ Failed to set up event listeners", err)
                 throw WalletKitBridgeException(ERROR_FAILED_SET_UP_EVENT_LISTENERS + err.message)
             }
         }
+        Log.d(TAG, "🔵 eventListenersSetupMutex released")
     }
 
     override suspend fun addWalletFromMnemonic(
@@ -991,19 +1016,43 @@ internal class WebViewWalletKitEngine(
     }
 
     override suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler) {
-        eventHandlersMutex.withLock {
-            if (eventHandlers.contains(eventsHandler)) {
-                return@withLock
+        Log.w(TAG, "🔵🔵🔵 addEventsHandler() called!")
+        Log.w(TAG, "🔵 Handler class: ${eventsHandler.javaClass.name}")
+        Log.w(TAG, "🔵 Handler identity: ${System.identityHashCode(eventsHandler)}")
+        Log.w(TAG, "🔵 Current handlers count: ${eventHandlers.size}")
+        Log.w(TAG, "🔵 Current areEventListenersSetUp: $areEventListenersSetUp")
+
+        val shouldSetupListeners = eventHandlersMutex.withLock {
+            Log.d(TAG, "🔵 eventHandlersMutex acquired in addEventsHandler")
+
+            // Log all existing handlers
+            eventHandlers.forEachIndexed { index, handler ->
+                Log.d(TAG, "🔵 Existing handler[$index]: ${handler.javaClass.name} (identity: ${System.identityHashCode(handler)})")
             }
-            
+
+            if (eventHandlers.contains(eventsHandler)) {
+                Log.w(TAG, "⚠️⚠️⚠️ Handler already registered (found via .contains()), skipping!")
+                return@withLock false
+            }
+
             val isFirstHandler = eventHandlers.isEmpty()
             eventHandlers.add(eventsHandler)
-            Log.d(TAG, "Added event handler: ${eventsHandler.javaClass.simpleName}. Total handlers: ${eventHandlers.size}")
-            
-            // Set up event listeners in JS bridge only when first handler is added (matches iOS)
-            if (isFirstHandler) {
-                ensureEventListenersSetUp()
-            }
+            Log.w(TAG, "✅✅✅ Added event handler! Total handlers: ${eventHandlers.size}, isFirstHandler=$isFirstHandler")
+
+            // Return whether we need to set up listeners (only for first handler)
+            isFirstHandler
+        }
+
+        Log.w(TAG, "🔵 eventHandlersMutex released, shouldSetupListeners=$shouldSetupListeners")
+
+        // CRITICAL: Set up event listeners AFTER releasing the mutex to avoid deadlock
+        // Events arriving during setup need to acquire the mutex to access handlers list
+        if (shouldSetupListeners) {
+            Log.w(TAG, "🔵🔵🔵 First handler registered, setting up event listeners...")
+            ensureEventListenersSetUp()
+            Log.w(TAG, "✅✅✅ Event listener setup complete after first handler registration")
+        } else {
+            Log.w(TAG, "⚡⚡⚡ Not first handler, event listeners should already be set up (areEventListenersSetUp=$areEventListenersSetUp)")
         }
     }
 
@@ -1011,7 +1060,7 @@ internal class WebViewWalletKitEngine(
         eventHandlersMutex.withLock {
             if (eventHandlers.remove(eventsHandler)) {
                 Log.d(TAG, "Removed event handler: ${eventsHandler.javaClass.simpleName}. Total handlers: ${eventHandlers.size}")
-                
+
                 // Remove event listeners from JS bridge when last handler is removed (matches iOS)
                 if (eventHandlers.isEmpty() && areEventListenersSetUp) {
                     try {
@@ -1193,41 +1242,48 @@ internal class WebViewWalletKitEngine(
         val data = event.optJSONObject(ResponseConstants.KEY_DATA) ?: JSONObject()
         val eventId = event.optString(JsonConstants.KEY_ID, UUID.randomUUID().toString())
 
-        Log.d(TAG, "=== handleEvent called ===")
-        Log.d(TAG, "Event type: $type")
-        Log.d(TAG, "Event ID: $eventId")
-        Log.d(TAG, "Event data keys: ${data.keys().asSequence().toList()}")
-        Log.d(TAG, "event[$type] ")
+        Log.d(TAG, "🟢🟢🟢 === handleEvent called ===")
+        Log.d(TAG, "🟢 Event type: $type")
+        Log.d(TAG, "🟢 Event ID: $eventId")
+        Log.d(TAG, "🟢 Event data keys: ${data.keys().asSequence().toList()}")
+        Log.d(TAG, "🟢 Thread: ${Thread.currentThread().name}")
 
         // Typed event handlers (sealed class)
         val typedEvent = parseTypedEvent(type, data, event)
-        Log.d(TAG, "Parsed typed event: ${(typedEvent?.javaClass?.simpleName ?: ResponseConstants.VALUE_UNKNOWN)}")
+        Log.d(TAG, "🟢 Parsed typed event: ${(typedEvent?.javaClass?.simpleName ?: ResponseConstants.VALUE_UNKNOWN)}")
 
         if (typedEvent != null) {
-            Log.d(TAG, "Notifying event handler(s)")
+            Log.d(TAG, "🟢 Typed event is NOT null, posting to main handler...")
 
             mainHandler.post {
+                Log.d(TAG, "🟢 Main handler runnable executing for event $type")
                 try {
                     // Notify all registered handlers - synchronous access safe here since we're on main thread
+                    Log.d(TAG, "🟢 Acquiring eventHandlersMutex to get handlers list...")
                     val handlers = runBlocking {
                         eventHandlersMutex.withLock {
+                            Log.d(TAG, "🟢 eventHandlersMutex acquired, eventHandlers.size=${eventHandlers.size}")
                             eventHandlers.toList() // Create a copy to avoid ConcurrentModificationException
                         }
                     }
-                    
+
+                    Log.d(TAG, "🟢 Got ${handlers.size} handlers, notifying each...")
                     for (handler in handlers) {
                         try {
+                            Log.d(TAG, "🟢 Calling handler.handle() for ${handler.javaClass.simpleName}")
                             handler.handle(typedEvent)
+                            Log.d(TAG, "✅ Handler ${handler.javaClass.simpleName} processed event successfully")
                         } catch (e: Exception) {
-                            Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId + " for handler ${handler.javaClass.simpleName}", e)
+                            Log.e(TAG, "❌ " + MSG_HANDLER_EXCEPTION_PREFIX + eventId + " for handler ${handler.javaClass.simpleName}", e)
                         }
                     }
+                    Log.d(TAG, "✅ All handlers notified for event $type")
                 } catch (e: Exception) {
-                    Log.e(TAG, MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
+                    Log.e(TAG, "❌ " + MSG_HANDLER_EXCEPTION_PREFIX + eventId, e)
                 }
             }
         } else {
-            Log.w(TAG, MSG_FAILED_PARSE_TYPED_EVENT_PREFIX + type)
+            Log.w(TAG, "⚠️ " + MSG_FAILED_PARSE_TYPED_EVENT_PREFIX + type + " - event will be ignored")
         }
     }
 
@@ -1515,16 +1571,44 @@ internal class WebViewWalletKitEngine(
     }
 
     private fun handleReady(payload: JSONObject) {
+        Log.d(TAG, "🚀 handleReady() called")
+
         payload.optNullableString(ResponseConstants.KEY_NETWORK)?.let { currentNetwork = it }
         payload.optNullableString(ResponseConstants.KEY_TON_API_URL)?.let { apiBaseUrl = it }
         if (!bridgeLoaded.isCompleted) {
             bridgeLoaded.complete(Unit)
+            Log.d(TAG, "🚀 bridgeLoaded completed")
         }
         markJsBridgeReady()
+
+        val wasAlreadyReady = ready.isCompleted
+        Log.d(TAG, "🚀 wasAlreadyReady=$wasAlreadyReady, ready.isCompleted=${ready.isCompleted}")
+
         if (!ready.isCompleted) {
-            Log.d(TAG, "bridge ready")
+            Log.d(TAG, "🚀 Completing ready for the first time")
             ready.complete(Unit)
         }
+
+        // CRITICAL: If the bridge is becoming ready AGAIN (page reload, WebView context lost),
+        // and we had event listeners set up before, we need to re-setup them in the new JS context
+        if (wasAlreadyReady && areEventListenersSetUp) {
+            Log.w(TAG, "⚠️⚠️⚠️ Bridge ready event received again - JavaScript context was lost! Re-setting up event listeners...")
+            // Reset the flag so ensureEventListenersSetUp will actually re-run
+            areEventListenersSetUp = false
+            // Re-setup event listeners in the new JS context (this will trigger replay of stored events)
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    Log.d(TAG, "🔵 Re-setting up event listeners after JS context loss...")
+                    ensureEventListenersSetUp()
+                    Log.d(TAG, "✅ Event listeners re-established after JS context loss")
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Failed to re-setup event listeners after JS context loss", e)
+                }
+            }
+        } else {
+            Log.d(TAG, "🚀 Normal ready event (wasAlreadyReady=$wasAlreadyReady, areEventListenersSetUp=$areEventListenersSetUp)")
+        }
+
         val data = JSONObject()
         val keys = payload.keys()
         while (keys.hasNext()) {
@@ -1540,7 +1624,9 @@ internal class WebViewWalletKitEngine(
             put(ResponseConstants.KEY_TYPE, ResponseConstants.VALUE_KIND_READY)
             put(ResponseConstants.KEY_DATA, data)
         }
+        Log.d(TAG, "🚀 Calling handleEvent for ready event")
         handleEvent(readyEvent)
+        Log.d(TAG, "🚀 handleReady() complete")
     }
 
     private fun JSONObject.optNullableString(key: String): String? {
@@ -1556,16 +1642,39 @@ internal class WebViewWalletKitEngine(
         fun postMessage(json: String) {
             try {
                 // Log raw JSON received from JS for debugging
-                Log.d(TAG, "JsBinding.postMessage raw: $json")
+                Log.d(TAG, "📨 JsBinding.postMessage received from JS")
+                Log.d(TAG, "📨 Thread: ${Thread.currentThread().name}")
+                Log.v(TAG, "📨 Raw JSON: $json")
+
                 val payload = JSONObject(json)
-                when (payload.optString(ResponseConstants.KEY_KIND)) {
-                    ResponseConstants.VALUE_KIND_READY -> handleReady(payload)
-                    ResponseConstants.VALUE_KIND_EVENT -> payload.optJSONObject(ResponseConstants.KEY_EVENT)?.let { handleEvent(it) }
-                    ResponseConstants.VALUE_KIND_RESPONSE -> handleResponse(payload.optString(ResponseConstants.KEY_ID), payload)
-                    ResponseConstants.VALUE_KIND_JS_BRIDGE_EVENT -> handleJsBridgeEvent(payload)
+                val kind = payload.optString(ResponseConstants.KEY_KIND)
+                Log.d(TAG, "📨 Message kind: $kind")
+
+                when (kind) {
+                    ResponseConstants.VALUE_KIND_READY -> {
+                        Log.d(TAG, "📨 Handling READY event")
+                        handleReady(payload)
+                    }
+                    ResponseConstants.VALUE_KIND_EVENT -> {
+                        Log.d(TAG, "📨 Handling EVENT")
+                        payload.optJSONObject(ResponseConstants.KEY_EVENT)?.let {
+                            handleEvent(it)
+                        } ?: Log.w(TAG, "⚠️ EVENT kind but no event object in payload")
+                    }
+                    ResponseConstants.VALUE_KIND_RESPONSE -> {
+                        Log.d(TAG, "📨 Handling RESPONSE")
+                        handleResponse(payload.optString(ResponseConstants.KEY_ID), payload)
+                    }
+                    ResponseConstants.VALUE_KIND_JS_BRIDGE_EVENT -> {
+                        Log.d(TAG, "📨 Handling JS_BRIDGE_EVENT")
+                        handleJsBridgeEvent(payload)
+                    }
+                    else -> {
+                        Log.w(TAG, "⚠️ Unknown message kind: $kind")
+                    }
                 }
             } catch (err: JSONException) {
-                Log.e(TAG, LogConstants.MSG_MALFORMED_PAYLOAD, err)
+                Log.e(TAG, "❌ " + LogConstants.MSG_MALFORMED_PAYLOAD, err)
                 pending.values.forEach { deferred ->
                     if (!deferred.isCompleted) {
                         deferred.completeExceptionally(WalletKitBridgeException(LogConstants.ERROR_MALFORMED_PAYLOAD_PREFIX + err.message))
@@ -1656,6 +1765,82 @@ internal class WebViewWalletKitEngine(
     )
 
     companion object {
+        // Cache of WebView engines keyed by network
+        // Multiple configs with same network share the same WebView engine
+        private val instances = mutableMapOf<TONNetwork, WebViewWalletKitEngine>()
+        private val instanceMutex = Mutex()
+
+        /**
+         * Get or create a WebView engine instance for the given configuration.
+         *
+         * CRITICAL: WebView engines are cached per network to prevent JS bridge conflicts.
+         * Multiple TONWalletKit instances with the same network will share the same underlying
+         * WebView engine, each with their own event handlers.
+         *
+         * Different networks (mainnet vs testnet) get separate WebView engines since they
+         * require different bridge configurations and API endpoints.
+         */
+        suspend fun getOrCreate(
+            context: Context,
+            configuration: TONWalletKitConfiguration,
+            eventsHandler: TONBridgeEventsHandler?,
+            assetPath: String = WebViewConstants.DEFAULT_ASSET_PATH,
+        ): WebViewWalletKitEngine {
+            val network = configuration.network
+
+            // Fast path: instance already exists for this network
+            instances[network]?.let { existingInstance ->
+                Log.w(TAG, "♻️♻️♻️ Reusing existing WebView engine for network: $network")
+                // Add the event handler OUTSIDE the lock to avoid blocking
+                if (eventsHandler != null) {
+                    existingInstance.addEventsHandler(eventsHandler)
+                }
+                return existingInstance
+            }
+
+            // Slow path: create new instance (with mutex)
+            val newInstance = instanceMutex.withLock {
+                // Double-check after acquiring lock
+                instances[network]?.let {
+                    Log.w(TAG, "♻️♻️♻️ Reusing existing WebView engine for network: $network (after lock)")
+                    return@withLock it
+                }
+
+                Log.w(TAG, "🔶🔶🔶 Creating NEW WebView engine for network: $network")
+                val instance = WebViewWalletKitEngine(context, configuration, eventsHandler, assetPath)
+                instances[network] = instance
+                instance
+            }
+
+            // If we got an existing instance from the double-check, add the handler outside the lock
+            if (eventsHandler != null && !newInstance.eventHandlers.contains(eventsHandler)) {
+                newInstance.addEventsHandler(eventsHandler)
+            }
+
+            return newInstance
+        }
+
+        /**
+         * Clear cached instances (for testing or cleanup).
+         * @param network If specified, clears only the instance for that network.
+         *                If null, clears all instances.
+         * @suppress Internal method for testing
+         */
+        @JvmStatic
+        internal suspend fun clearInstances(network: TONNetwork? = null) {
+            instanceMutex.withLock {
+                if (network != null) {
+                    instances[network]?.destroy()
+                    instances.remove(network)
+                    Log.w(TAG, "🗑️ Cleared WebView engine for network: $network")
+                } else {
+                    instances.values.forEach { it.destroy() }
+                    instances.clear()
+                    Log.w(TAG, "🗑️ Cleared all WebView engine instances")
+                }
+            }
+        }
+
         private const val TAG = LogConstants.TAG_WEBVIEW_ENGINE
         private const val ERROR_NEW_WALLET_NOT_FOUND = "Failed to retrieve newly added wallet"
         private const val MSG_FAILED_INITIALIZE_WEBVIEW = "Failed to initialize WebView"
