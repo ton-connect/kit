@@ -5,7 +5,6 @@ import android.webkit.JavascriptInterface
 import io.ton.walletkit.domain.constants.BrowserConstants
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * JavaScript interface for bridge communication.
@@ -31,13 +30,13 @@ internal class BridgeInterface(
 
     private data class ResponseEntry(
         val response: String,
-        val timestamp: Long = System.currentTimeMillis()
+        val timestamp: Long = System.currentTimeMillis(),
     )
 
     private data class EventBroadcast(
         val eventData: String,
         val consumedByFrames: MutableSet<String> = mutableSetOf(),
-        val timestamp: Long = System.currentTimeMillis()
+        val timestamp: Long = System.currentTimeMillis(),
     )
 
     init {
@@ -65,12 +64,12 @@ internal class BridgeInterface(
 
     private fun cleanupStaleResponses() {
         val now = System.currentTimeMillis()
-        
+
         // Clean up stale responses
         val staleResponses = availableResponses.entries.filter { (_, entry) ->
             now - entry.timestamp > RESPONSE_TTL_MS
         }
-        
+
         staleResponses.forEach { (messageId, _) ->
             availableResponses.remove(messageId)
             Log.d(TAG, "🧹 Removed stale response for messageId: $messageId")
@@ -125,7 +124,7 @@ internal class BridgeInterface(
                 Log.w(TAG, "⚠️ Response storage full, removed oldest response: ${it.key}")
             }
         }
-        
+
         Log.d(TAG, "📥 Storing response for messageId: $messageId")
         availableResponses[messageId] = ResponseEntry(response)
     }
@@ -180,9 +179,9 @@ internal class BridgeInterface(
         try {
             val json = JSONObject(event)
             val eventId = "${System.currentTimeMillis()}-${event.hashCode()}"
-            
+
             Log.d(TAG, "📥 Broadcasting event to all frames: ${event.take(100)}")
-            
+
             // Enforce max size limit for broadcast events
             if (broadcastEvents.size >= MAX_BROADCAST_EVENTS) {
                 // Remove oldest event
@@ -192,7 +191,7 @@ internal class BridgeInterface(
                     Log.w(TAG, "⚠️ Broadcast storage full, removed oldest event: ${it.key}")
                 }
             }
-            
+
             broadcastEvents[eventId] = EventBroadcast(event)
             Log.d(TAG, "✅ Event stored for broadcast with ID: $eventId (total: ${broadcastEvents.size})")
         } catch (e: Exception) {
@@ -204,7 +203,7 @@ internal class BridgeInterface(
      * Pull an event for a specific frame.
      * Called from JavaScript in any frame to check for new events.
      * Returns an event JSON string that this frame hasn't seen yet, or null.
-     * 
+     *
      * This implements broadcast: each frame gets each event once.
      */
     @JavascriptInterface
@@ -216,19 +215,19 @@ internal class BridgeInterface(
                     // Mark this frame as having consumed the event
                     broadcast.consumedByFrames.add(frameId)
                     Log.d(TAG, "📤 Frame '$frameId' pulled event $eventId (consumed by ${broadcast.consumedByFrames.size} frames)")
-                    
+
                     // If all expected frames have consumed this event, or if too many frames have seen it, remove it
                     // We use a generous limit (10 frames) to ensure all legitimate frames get the event
                     if (broadcast.consumedByFrames.size >= MAX_FRAMES_PER_EVENT) {
                         broadcastEvents.remove(eventId)
                         Log.d(TAG, "🗑️ Removed event $eventId after being consumed by ${broadcast.consumedByFrames.size} frames")
                     }
-                    
+
                     return broadcast.eventData
                 }
             }
         }
-        
+
         return null
     }
 

@@ -169,7 +169,7 @@ internal class TonConnectInjector(
     internal fun setup() {
         // Register automatic cleanup listener
         webView.addOnAttachStateChangeListener(detachListener)
-        
+
         // Add JavaScript interface for bridge communication
         // Store reference so we can call storeResponse() later
         bridgeInterface = BridgeInterface(
@@ -190,16 +190,16 @@ internal class TonConnectInjector(
                 val injectionScript = context.assets.open(BrowserConstants.INJECT_SCRIPT_PATH)
                     .bufferedReader()
                     .use { it.readText() }
-                
+
                 // Allow all origins (*) since this is a wallet browser that loads any dApp
                 val allowedOrigins = setOf("*")
-                
+
                 WebViewCompat.addDocumentStartJavaScript(
                     webView,
                     injectionScript,
-                    allowedOrigins
+                    allowedOrigins,
                 )
-                
+
                 Log.d(TAG, "✅ Bridge script registered via addDocumentStartJavaScript (executes before HTML parsing)")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to add document start script, falling back to onPageStarted injection", e)
@@ -417,7 +417,7 @@ internal class TonConnectInjector(
                 }
             })();
         """.trimIndent()
-        
+
         Log.d(TAG, "📤 Notifying main frame about event availability...")
         webView.post {
             webView.evaluateJavascript(script) { result ->
@@ -670,7 +670,7 @@ internal class TonConnectInjector(
 
                 // Get params - can be JSONObject, JSONArray, or null
                 val paramsRaw = json.opt(ResponseConstants.KEY_PARAMS)
-                
+
                 // Convert to JSON string for engine (engine will parse it properly)
                 val paramsJson: String? = when (paramsRaw) {
                     is JSONObject -> paramsRaw.toString()
@@ -773,7 +773,7 @@ internal class TonConnectInjector(
                 }
             })();
         """.trimIndent()
-        
+
         Log.d(TAG, "📤 Notifying main frame about response availability...")
         webView.evaluateJavascript(script) { result ->
             Log.d(TAG, "📣 Notification result: $result")

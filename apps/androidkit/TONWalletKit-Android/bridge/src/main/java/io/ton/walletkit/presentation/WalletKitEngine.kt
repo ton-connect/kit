@@ -192,7 +192,9 @@ internal interface WalletKitEngine {
         paramsJson: String?,
         url: String? = null,
         responseCallback: (org.json.JSONObject) -> Unit,
-    )    /**
+    )
+
+    /**
      * Create a new locally-initiated transaction request.
      * This will trigger a transaction request event that needs to be approved via [approveTransaction].
      *
