@@ -6,11 +6,12 @@
  *
  */
 
+import { NftItemAttribute } from '../NftItem';
 import { TokenInfo } from '../TokenInfo';
 
 export interface NftTokenInfoV3 {
     description?: string;
-    extra?: { [key: string]: never };
+    extra?: { [key: string]: string | NftItemAttribute[] }; // attributes, lottie, uri, _image_big, _image_medium, _image_small
     image?: string;
     lottie?: string;
     name?: string;

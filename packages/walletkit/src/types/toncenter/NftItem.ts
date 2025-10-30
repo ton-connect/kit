@@ -10,6 +10,11 @@ import { AddressFriendly, Hex } from '../primitive';
 import type { NftCollection } from './NftCollection';
 import { TokenInfo } from './TokenInfo';
 
+export interface NftItemAttribute {
+    trait_type: string;
+    value: string;
+}
+
 export interface NftItem {
     address: AddressFriendly;
     auctionContractAddress: AddressFriendly | null;
@@ -17,7 +22,7 @@ export interface NftItem {
     dataHash: Hex | null;
     collection: NftCollection | null;
     collectionAddress: AddressFriendly | null;
-    content?: { [key: string]: never };
+    content?: { [key: string]: string }; // uri - meta json
     metadata?: TokenInfo;
     index: string;
     init: boolean;
@@ -27,4 +32,5 @@ export interface NftItem {
     ownerAddress: AddressFriendly | null;
     realOwner: AddressFriendly | null;
     saleContractAddress: AddressFriendly | null;
+    attributes?: NftItemAttribute[];
 }
