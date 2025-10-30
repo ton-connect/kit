@@ -30,7 +30,7 @@ export interface NftItem {
     index: string;
     init: boolean;
     isSbt?: boolean;
-    lastTransactionLt?: bigint;
+    lastTransactionLt?: string;
     onSale: boolean;
     ownerAddress: AddressFriendly | null;
     realOwner: AddressFriendly | null;
