@@ -25,8 +25,8 @@ export interface TokenInfo {
     image?: string;
     lottie?: string;
     name?: string;
-    nftIndex?: string;
     symbol?: string;
     type?: string;
     valid?: boolean;
+    animation?: string;
 }

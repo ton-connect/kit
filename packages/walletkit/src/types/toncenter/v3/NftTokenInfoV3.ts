@@ -39,6 +39,7 @@ export function toTokenInfo(data: NftTokenInfoV3): TokenInfo {
         description: data.description,
         image: data.image,
         extra: data.extra,
+        animation: data?.extra?.animation_url,
     };
     // Extract lottie from extra if it exists, or use direct lottie field
     if (data.lottie) {
@@ -48,6 +49,12 @@ export function toTokenInfo(data: NftTokenInfoV3): TokenInfo {
         if (typeof lottieValue === 'string') {
             result.lottie = lottieValue;
         }
+    }
+
+    if (data?.extra?.animation_url) {
+        result.animation = data.extra.animation_url;
+    } else if (data?.extra?.content_url && data.extra.content_url.includes('mp4')) {
+        result.animation = data.extra.content_url;
     }
     return result;
 }
