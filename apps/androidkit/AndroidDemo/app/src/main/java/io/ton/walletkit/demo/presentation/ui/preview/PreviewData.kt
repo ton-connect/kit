@@ -4,12 +4,16 @@ import io.ton.walletkit.demo.presentation.model.ConnectPermissionUi
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
 import io.ton.walletkit.demo.presentation.model.SessionSummary
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
+import io.ton.walletkit.demo.presentation.model.TransactionDetailUi
 import io.ton.walletkit.demo.presentation.model.TransactionMessageUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.state.SheetState
 import io.ton.walletkit.demo.presentation.state.WalletUiState
+import io.ton.walletkit.domain.model.TONNFTCollection
+import io.ton.walletkit.domain.model.TONNFTItem
 import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.domain.model.TONTokenInfo
 import org.json.JSONObject
 
 object PreviewData {
@@ -77,6 +81,20 @@ object PreviewData {
         raw = JSONObject(mapOf("id" to "sign-preview")),
     )
 
+    val transactionDetail: TransactionDetailUi = TransactionDetailUi(
+        hash = "abc123def456hash789preview",
+        timestamp = System.currentTimeMillis() - 3600000, // 1 hour ago
+        isOutgoing = true,
+        amount = "1.5 TON",
+        fee = "0.005 TON",
+        fromAddress = wallet.address,
+        toAddress = "0:recipient_address_preview",
+        comment = "Payment for services",
+        status = "Confirmed",
+        blockSeqno = 12345678,
+        lt = "9876543210",
+    )
+
     val uiState: WalletUiState = WalletUiState(
         initialized = true,
         status = "WalletKit ready",
@@ -90,4 +108,36 @@ object PreviewData {
         events = listOf("Handled TON Connect URL", "Approved transaction"),
         lastUpdated = System.currentTimeMillis(),
     )
+
+    val nftCollection: TONNFTCollection = TONNFTCollection(
+        address = "0:collection_address_preview",
+        nextItemIndex = "100",
+        ownerAddress = "0:owner_address",
+    )
+
+    val nftItem: TONNFTItem = TONNFTItem(
+        address = "0:nft_item_address_preview",
+        index = "1",
+        ownerAddress = wallet.address,
+        collection = nftCollection,
+        metadata = TONTokenInfo(
+            name = "Cool NFT #1",
+            description = "A preview NFT item",
+            image = "https://picsum.photos/seed/nft1/400/400",
+        ),
+    )
+
+    val nftItem2: TONNFTItem = TONNFTItem(
+        address = "0:nft_item_address_preview_2",
+        index = "2",
+        ownerAddress = wallet.address,
+        collection = nftCollection,
+        metadata = TONTokenInfo(
+            name = "Cool NFT #2",
+            description = "Another preview NFT item",
+            image = "https://picsum.photos/seed/nft2/400/400",
+        ),
+    )
+
+    val nftItems = listOf(nftItem, nftItem2)
 }

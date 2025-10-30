@@ -88,6 +88,10 @@ class WalletKitViewModel(
     private val tonWallets = mutableMapOf<String, TONWallet>()
     private var lastPersistedActiveWallet: String? = null
 
+    // NFTs ViewModel for active wallet
+    private val _nftsViewModel = MutableStateFlow<NFTsListViewModel?>(null)
+    val nftsViewModel: StateFlow<NFTsListViewModel?> = _nftsViewModel.asStateFlow()
+
     private fun uiString(@StringRes resId: Int, vararg args: Any): String = application.getString(resId, *args)
 
     private fun logEvent(@StringRes messageRes: Int, vararg args: Any) {
@@ -95,7 +99,7 @@ class WalletKitViewModel(
     }
 
     /**
-     * Get the shared TONWalletKit instance (matches iOS pattern).
+     * Get the shared TONWalletKit instance used across the demo.
      */
     private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
 
@@ -215,6 +219,8 @@ class WalletKitViewModel(
         if (!savedActiveWallet.isNullOrBlank() && tonWallets.containsKey(savedActiveWallet)) {
             _state.update { it.copy(activeWalletAddress = savedActiveWallet) }
             Log.d(LOG_TAG, "Restored active wallet selection: $savedActiveWallet")
+            // Update NFTs ViewModel for active wallet
+            updateNftsViewModel(savedActiveWallet)
             // Fetch transactions for the restored active wallet
             refreshTransactions(savedActiveWallet)
         } else {
@@ -224,6 +230,8 @@ class WalletKitViewModel(
             // Fetch transactions for the first wallet if no saved wallet
             state.value.activeWalletAddress?.let { address ->
                 if (tonWallets.containsKey(address)) {
+                    // Update NFTs ViewModel for active wallet
+                    updateNftsViewModel(address)
                     refreshTransactions(address)
                 } else {
                     Log.w(LOG_TAG, "Active wallet address '$address' not found in loaded wallets")
@@ -489,6 +497,7 @@ class WalletKitViewModel(
                 newWallet?.address?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
                     persistActiveWalletPreference(address)
+                    updateNftsViewModel(address)
                     Log.d(LOG_TAG, "Auto-switched to newly imported wallet: $address")
                 }
                 refreshWallets()
@@ -583,6 +592,7 @@ class WalletKitViewModel(
                 newWallet?.address?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
                     persistActiveWalletPreference(address)
+                    updateNftsViewModel(address)
                     Log.d(LOG_TAG, "Auto-switched to newly generated wallet: $address")
                 }
                 refreshWallets()
@@ -1014,6 +1024,9 @@ class WalletKitViewModel(
             // Save active wallet preference
             persistActiveWalletPreference(address)
 
+            // Update NFTs ViewModel for new active wallet
+            updateNftsViewModel(address)
+
             // Refresh wallet state to get latest balance, then transactions
             refreshWallets()
             logEvent(R.string.wallet_event_switched_wallet, wallet.name)
@@ -1059,6 +1072,26 @@ class WalletKitViewModel(
                 Log.e(LOG_TAG, "Failed to save active wallet preference", e)
             }
         }
+    }
+
+    /**
+     * Update the NFTs ViewModel for the given wallet address.
+     */
+    private fun updateNftsViewModel(address: String?) {
+        if (address == null) {
+            _nftsViewModel.value = null
+            return
+        }
+
+        val wallet = tonWallets[address]
+        if (wallet == null) {
+            Log.w(LOG_TAG, "updateNftsViewModel: wallet not found for address $address")
+            _nftsViewModel.value = null
+            return
+        }
+
+        _nftsViewModel.value = NFTsListViewModel(wallet)
+        Log.d(LOG_TAG, "updateNftsViewModel: created NFTsListViewModel for $address")
     }
 
     fun refreshTransactions(address: String? = state.value.activeWalletAddress, limit: Int = TRANSACTION_FETCH_LIMIT) {

@@ -1,6 +1,6 @@
 [versions]
 agp = "8.13.0"
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 leakcanaryAndroid = "2.14"
 spotless = "8.0.0"
 androidxCoreKtx = "1.17.0"
@@ -15,6 +15,7 @@ kotlinxSerialization = "1.9.0"
 webkit = "1.14.0"
 datastorePreferences = "1.1.7"
 securityCrypto = "1.1.0"
+coil = "3.3.0"
 
 [libraries]
 androidxCoreKtx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
@@ -37,6 +38,8 @@ androidxWebkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
 androidxDatastorePreferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidxSecurityCrypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 leakcanaryAndroid = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
+coilCompose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coilNetwork = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
