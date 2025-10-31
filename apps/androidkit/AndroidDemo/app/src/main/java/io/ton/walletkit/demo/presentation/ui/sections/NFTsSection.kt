@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.presentation.ui.components.EmptyNFTState
 import io.ton.walletkit.demo.presentation.ui.components.NFTCard
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
+import io.ton.walletkit.domain.model.TONNFTItem
 
 /**
  * Section displaying NFTs owned by the wallet.
@@ -32,6 +33,7 @@ import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
 @Composable
 fun NFTsSection(
     viewModel: NFTsListViewModel,
+    onNFTClick: (TONNFTItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.state.collectAsState()
@@ -72,9 +74,7 @@ fun NFTsSection(
                         items(nfts, key = { it.address }) { nft ->
                             NFTCard(
                                 nft = nft,
-                                onClick = {
-                                    // TODO: Navigate to NFT details
-                                },
+                                onClick = onNFTClick,
                                 modifier = Modifier.width(160.dp), // Fixed width for horizontal scroll
                             )
                         }
@@ -113,11 +113,21 @@ fun NFTsSection(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = "Error loading NFTs: ${(state as NFTsListViewModel.NFTState.Error).message}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Text(
+                            text = "Error loading NFTs: ${(state as NFTsListViewModel.NFTState.Error).message}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        Button(
+                            onClick = { viewModel.refresh() },
+                        ) {
+                            Text("Retry")
+                        }
+                    }
                 }
             }
         }

@@ -548,6 +548,21 @@ internal class QuickJsWalletKitEngine(
         call(BridgeMethodConstants.METHOD_SEND_LOCAL_TRANSACTION, params)
     }
 
+    override suspend fun sendTransaction(
+        walletAddress: String,
+        transactionContent: String,
+    ): String {
+        ensureWalletKitInitialized()
+        val params =
+            JSONObject().apply {
+                put("walletAddress", walletAddress)
+                put("transactionContent", transactionContent)
+            }
+        val result = call(BridgeMethodConstants.METHOD_SEND_TRANSACTION, params)
+        // Extract the signedBoc from the result
+        return result.getString("signedBoc")
+    }
+
     override suspend fun approveConnect(event: io.ton.walletkit.presentation.event.ConnectRequestEvent) {
         ensureWalletKitInitialized()
         val params =

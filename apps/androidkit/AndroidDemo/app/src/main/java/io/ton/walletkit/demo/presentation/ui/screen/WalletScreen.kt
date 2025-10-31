@@ -30,8 +30,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
+import io.ton.walletkit.demo.presentation.model.NFTDetails
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
@@ -64,6 +67,7 @@ import io.ton.walletkit.demo.presentation.ui.sheet.TransactionDetailSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
+import io.ton.walletkit.domain.model.TONNFTItem
 import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.presentation.TONWalletKit
 import io.ton.walletkit.presentation.browser.cleanupTonConnect
@@ -106,6 +110,10 @@ fun WalletScreen(
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // State for NFT details bottom sheet
+    var selectedNFT by remember { mutableStateOf<TONNFTItem?>(null) }
+    val nftDetailsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Keep browser WebView alive across sheet changes to prevent destruction during TonConnect requests
     // This WebView persists even when switching to Connect/Transaction sheets
@@ -295,6 +303,7 @@ fun WalletScreen(
             if (nftsViewModel != null) {
                 NFTsSection(
                     viewModel = nftsViewModel,
+                    onNFTClick = { nft -> selectedNFT = nft },
                 )
             }
 
@@ -319,6 +328,30 @@ fun WalletScreen(
             }
 
             Spacer(modifier = Modifier.height(48.dp))
+        }
+    }
+
+    // NFT Details Modal Bottom Sheet (separate from main sheet state)
+    selectedNFT?.let { nft ->
+        ModalBottomSheet(
+            onDismissRequest = { selectedNFT = null },
+            sheetState = nftDetailsSheetState,
+            dragHandle = null,
+        ) {
+            // Get the wallet to pass to NFTDetailsScreen
+            activeWallet?.let { wallet ->
+                val nftDetails = NFTDetails.from(nft)
+                NFTDetailsScreen(
+                    walletAddress = wallet.address,
+                    walletKit = walletKit,
+                    nftDetails = nftDetails,
+                    onClose = { selectedNFT = null },
+                    onTransferSuccess = {
+                        // Refresh NFT list after successful transfer
+                        nftsViewModel?.refresh()
+                    },
+                )
+            }
         }
     }
 }

@@ -192,6 +192,16 @@ internal object ResponseConstants {
     const val KEY_TO_ADDRESS = "toAddress"
 
     /**
+     * JSON key for transaction content (JSON string).
+     */
+    const val KEY_TRANSACTION_CONTENT = "transactionContent"
+
+    /**
+     * JSON key for signed BOC (transaction hash).
+     */
+    const val KEY_SIGNED_BOC = "signedBoc"
+
+    /**
      * JSON key for URL parameter.
      */
     const val KEY_URL = "url"

@@ -212,6 +212,22 @@ internal interface WalletKitEngine {
     )
 
     /**
+     * Send a transaction to the blockchain.
+     *
+     * This method takes transaction content (as JSON) and sends it to the blockchain,
+     * returning the transaction hash. This matches the iOS wallet.sendTransaction() behavior.
+     *
+     * @param walletAddress Wallet address that will sign and send the transaction
+     * @param transactionContent Transaction content as JSON (from transferNFT, createTransferJettonTransaction, etc.)
+     * @return Transaction hash (signedBoc) after successful broadcast
+     * @throws WalletKitBridgeException if sending fails
+     */
+    suspend fun sendTransaction(
+        walletAddress: String,
+        transactionContent: String,
+    ): String
+
+    /**
      * Approve a connection request from a dApp.
      *
      * @param event Typed event from the connect request

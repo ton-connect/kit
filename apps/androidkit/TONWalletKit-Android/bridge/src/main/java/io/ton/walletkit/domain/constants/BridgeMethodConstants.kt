@@ -61,6 +61,12 @@ internal object BridgeMethodConstants {
     const val METHOD_SEND_LOCAL_TRANSACTION = "sendLocalTransaction"
 
     /**
+     * Method name for sending a transaction to the blockchain.
+     * This sends arbitrary transaction content (created by transferNFT, etc.)
+     */
+    const val METHOD_SEND_TRANSACTION = "sendTransaction"
+
+    /**
      * Method name for approving a connect request.
      */
     const val METHOD_APPROVE_CONNECT_REQUEST = "approveConnectRequest"

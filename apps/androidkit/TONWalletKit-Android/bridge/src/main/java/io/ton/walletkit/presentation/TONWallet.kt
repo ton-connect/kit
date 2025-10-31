@@ -341,4 +341,29 @@ class TONWallet internal constructor(
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.createTransferNftRawTransaction(addr, params)
     }
+
+    /**
+     * Send a transaction to the blockchain.
+     *
+     * This method takes transaction content (usually created by transferNFT, sendLocalTransaction, etc.)
+     * and actually sends it to the blockchain, returning the transaction hash.
+     *
+     * Matches the iOS wallet.sendTransaction() behavior for cross-platform consistency.
+     *
+     * Example:
+     * ```kotlin
+     * // Create NFT transfer transaction
+     * val txContent = wallet.transferNFT(params)
+     * // Send it to blockchain
+     * val txHash = wallet.sendTransaction(txContent)
+     * ```
+     *
+     * @param transactionContent Transaction content JSON (from transferNFT, etc.)
+     * @return Transaction hash (boc) after successful broadcast
+     * @throws WalletKitBridgeException if sending fails
+     */
+    suspend fun sendTransaction(transactionContent: String): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.sendTransaction(addr, transactionContent)
+    }
 }

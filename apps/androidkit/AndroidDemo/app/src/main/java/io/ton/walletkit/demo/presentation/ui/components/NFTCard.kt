@@ -37,7 +37,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @Composable
 fun NFTCard(
     nft: TONNFTItem,
-    onClick: () -> Unit,
+    onClick: (TONNFTItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // Get image URL, preferring _image_medium from extra if available (like demo wallet)
@@ -58,7 +58,7 @@ fun NFTCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = { onClick(nft) }),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp),
     ) {
@@ -78,7 +78,7 @@ fun NFTCard(
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
@@ -89,15 +89,15 @@ fun NFTCard(
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = "Failed to load",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
+                            color = Color.Gray,
                         )
                     }
-                }
+                },
             )
 
             // NFT Info

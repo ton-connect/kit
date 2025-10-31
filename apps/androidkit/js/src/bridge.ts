@@ -1304,6 +1304,52 @@ const api = {
     };
   },
 
+  async sendTransaction(
+    args: { walletAddress: string; transactionContent: string },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'sendTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'sendTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'sendTransaction:after-requireWalletKit');
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
+
+    const transactionContent =
+      typeof args.transactionContent === 'string' ? args.transactionContent.trim() : String(args.transactionContent ?? '').trim();
+    if (!transactionContent) {
+      throw new Error('Transaction content is required');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${walletAddress}`);
+    }
+
+    // Parse the transaction content JSON
+    let transaction: any;
+    try {
+      transaction = JSON.parse(transactionContent);
+    } catch (error) {
+      throw new Error(`Invalid transaction content JSON: ${error}`);
+    }
+
+    // Send the transaction directly to the blockchain using wallet.sendTransaction
+    emitCallCheckpoint(context, 'sendTransaction:before-wallet.sendTransaction');
+    const result = await wallet.sendTransaction(transaction);
+    emitCallCheckpoint(context, 'sendTransaction:after-wallet.sendTransaction');
+
+    // Return the signed BOC (transaction hash)
+    return {
+      signedBoc: result.signedBoc,
+    };
+  },
+
   async approveConnectRequest(args: { event: any; walletAddress: string }, context?: CallContext) {
     emitCallCheckpoint(context, 'approveConnectRequest:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();

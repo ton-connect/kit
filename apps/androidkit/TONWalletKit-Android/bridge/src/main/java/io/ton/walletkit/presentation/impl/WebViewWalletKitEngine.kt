@@ -898,6 +898,21 @@ internal class WebViewWalletKitEngine private constructor(
         call(BridgeMethodConstants.METHOD_SEND_LOCAL_TRANSACTION, params)
     }
 
+    override suspend fun sendTransaction(
+        walletAddress: String,
+        transactionContent: String,
+    ): String {
+        ensureWalletKitInitialized()
+        val params =
+            JSONObject().apply {
+                put(ResponseConstants.KEY_WALLET_ADDRESS, walletAddress)
+                put(ResponseConstants.KEY_TRANSACTION_CONTENT, transactionContent)
+            }
+        val result = call(BridgeMethodConstants.METHOD_SEND_TRANSACTION, params)
+        // Extract the signedBoc from the result
+        return result.getString(ResponseConstants.KEY_SIGNED_BOC)
+    }
+
     override suspend fun approveConnect(event: ConnectRequestEvent) {
         ensureWalletKitInitialized()
         val eventJson = JSONObject(json.encodeToString(event))

@@ -79,7 +79,7 @@ class NFTsListViewModel(
                     pagination = result.pagination
                     _nfts.value = result.items
                     _state.value = NFTState.Success
-                    
+
                     // Check if there are more items based on whether we got a full page
                     hasMoreItems = result.items.size >= limit
                     Log.d("NFTsListViewModel", "hasMoreItems: $hasMoreItems (got ${result.items.size} items, limit=$limit)")
@@ -110,13 +110,13 @@ class NFTsListViewModel(
                 )
 
                 Log.d("NFTsListViewModel", "Loaded ${result.items.size} more NFTs")
-                
+
                 pagination = result.pagination
                 // Only add NFTs that don't already exist (filter duplicates by address)
                 val existingAddresses = _nfts.value.map { it.address }.toSet()
                 val newNfts = result.items.filterNot { it.address in existingAddresses }
                 _nfts.value = _nfts.value + newNfts
-                
+
                 // Update hasMoreItems based on whether we got a full page
                 hasMoreItems = result.items.size >= limit
                 Log.d("NFTsListViewModel", "Added ${newNfts.size} new NFTs (filtered ${result.items.size - newNfts.size} duplicates), hasMoreItems=$hasMoreItems")
