@@ -44,7 +44,11 @@ test('[amount] Success if as a string @allureId(2223)', async ({ wallet, app, wi
     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
 });
 
-test("[from] Error if address doesn't match the user's wallet address @allureId(2251)", async ({ wallet, app, widget }) => {
+test("[from] Error if address doesn't match the user's wallet address @allureId(2251)", async ({
+    wallet,
+    app,
+    widget,
+}) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
 });
 
