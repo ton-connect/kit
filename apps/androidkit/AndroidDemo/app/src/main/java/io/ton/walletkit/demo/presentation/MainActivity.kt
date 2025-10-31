@@ -118,6 +118,11 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
                     onTransactionClick = viewModel::showTransactionDetail,
                     onHandleUrl = viewModel::handleTonConnectUrl,
                     onDismissUrlPrompt = viewModel::hideUrlPrompt,
+                    onShowJettonDetails = viewModel::showJettonDetails,
+                    onTransferJetton = viewModel::transferJetton,
+                    onShowTransferJetton = viewModel::showTransferJetton,
+                    onLoadMoreJettons = viewModel::loadMoreJettons,
+                    onRefreshJettons = viewModel::refreshJettons,
                 )
             }
         }

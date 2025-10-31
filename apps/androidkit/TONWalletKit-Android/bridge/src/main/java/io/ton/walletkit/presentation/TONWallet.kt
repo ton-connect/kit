@@ -366,4 +366,77 @@ class TONWallet internal constructor(
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.sendTransaction(addr, transactionContent)
     }
+
+    /**
+     * Get jetton wallets owned by this wallet with pagination.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param limit Maximum number of jetton wallets to return (default: 100)
+     * @param offset Offset for pagination (default: 0)
+     * @return Jetton wallets with pagination information
+     * @throws WalletKitBridgeException if jetton retrieval fails
+     */
+    suspend fun jettonsWallets(limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONJettonWallets {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.getJettons(addr, limit, offset)
+    }
+
+    /**
+     * Get a single jetton by its master contract address.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param jettonAddress Jetton master contract address
+     * @return Jetton information or null if not found
+     * @throws WalletKitBridgeException if jetton retrieval fails
+     */
+    suspend fun jetton(jettonAddress: String): io.ton.walletkit.domain.model.TONJetton? {
+        return engine.getJetton(jettonAddress)
+    }
+
+    /**
+     * Create a jetton transfer transaction.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param params Transfer parameters (recipient address, jetton address, amount, optional comment)
+     * @return Transaction content that can be sent via TON Connect
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun transferJettonTransaction(params: io.ton.walletkit.domain.model.TONJettonTransferParams): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.createTransferJettonTransaction(addr, params)
+    }
+
+    /**
+     * Get the balance of a specific jetton for this wallet.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param jettonAddress Jetton master contract address
+     * @return Balance as a string (in jetton units, not considering decimals)
+     * @throws WalletKitBridgeException if balance retrieval fails
+     */
+    suspend fun jettonBalance(jettonAddress: String): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.getJettonBalance(addr, jettonAddress)
+    }
+
+    /**
+     * Get the jetton wallet address for a specific jetton master contract.
+     *
+     * Each user has a unique jetton wallet contract for each jetton they hold.
+     * This method returns the address of this wallet's jetton wallet for the given jetton.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param jettonAddress Jetton master contract address
+     * @return Jetton wallet contract address
+     * @throws WalletKitBridgeException if address retrieval fails
+     */
+    suspend fun jettonWalletAddress(jettonAddress: String): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.getJettonWalletAddress(addr, jettonAddress)
+    }
 }

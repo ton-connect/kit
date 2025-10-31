@@ -1,5 +1,6 @@
 package io.ton.walletkit.demo.presentation.state
 
+import io.ton.walletkit.demo.presentation.model.JettonSummary
 import io.ton.walletkit.demo.presentation.model.SessionSummary
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
@@ -24,4 +25,8 @@ data class WalletUiState(
     val lastUpdated: Long? = null,
     val clipboardContent: String? = null,
     val pendingSignerConfirmation: SignDataRequestUi? = null, // Request awaiting signer confirmation
+    val jettons: List<JettonSummary> = emptyList(),
+    val isLoadingJettons: Boolean = false,
+    val jettonsError: String? = null,
+    val canLoadMoreJettons: Boolean = false,
 )

@@ -175,4 +175,29 @@ internal object BridgeMethodConstants {
      * Method name for creating an NFT transfer transaction with raw parameters.
      */
     const val METHOD_CREATE_TRANSFER_NFT_RAW_TRANSACTION = "createTransferNftRawTransaction"
+
+    /**
+     * Method name for getting jettons owned by a wallet.
+     */
+    const val METHOD_GET_JETTONS = "getJettons"
+
+    /**
+     * Method name for getting a single jetton by address.
+     */
+    const val METHOD_GET_JETTON = "getJetton"
+
+    /**
+     * Method name for creating a jetton transfer transaction.
+     */
+    const val METHOD_CREATE_TRANSFER_JETTON_TRANSACTION = "createTransferJettonTransaction"
+
+    /**
+     * Method name for getting jetton balance for a wallet.
+     */
+    const val METHOD_GET_JETTON_BALANCE = "getJettonBalance"
+
+    /**
+     * Method name for getting jetton wallet address.
+     */
+    const val METHOD_GET_JETTON_WALLET_ADDRESS = "getJettonWalletAddress"
 }

@@ -725,6 +725,81 @@ internal class QuickJsWalletKitEngine(
         return result.toString()
     }
 
+    // Jetton methods
+    override suspend fun getJettons(walletAddress: String, limit: Int, offset: Int): io.ton.walletkit.domain.model.TONJettonWallets {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", walletAddress)
+            put("limit", limit)
+            put("offset", offset)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_JETTONS, params)
+        val jettonsWallets: io.ton.walletkit.domain.model.TONJettonWallets = json.decodeFromString(result.toString())
+
+        // Hack: populate jetton info separately (same as WebView implementation)
+        val updatedItems = jettonsWallets.items.map { jettonWallet ->
+            val jettonAddress = jettonWallet.jettonAddress
+            if (jettonAddress != null) {
+                val jettonInfo = getJetton(jettonAddress)
+                jettonWallet.copy(jetton = jettonInfo)
+            } else {
+                jettonWallet
+            }
+        }
+
+        return jettonsWallets.copy(items = updatedItems)
+    }
+
+    override suspend fun getJetton(jettonAddress: String): io.ton.walletkit.domain.model.TONJetton? {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", jettonAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_JETTON, params)
+        return if (result.has("address")) {
+            json.decodeFromString(result.toString())
+        } else {
+            null
+        }
+    }
+
+    override suspend fun createTransferJettonTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONJettonTransferParams,
+    ): String {
+        ensureWalletKitInitialized()
+        val paramsJson = JSONObject(
+            json.encodeToString(
+                io.ton.walletkit.domain.model.TONJettonTransferParams.serializer(),
+                params,
+            ),
+        ).apply {
+            put("address", walletAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TRANSFER_JETTON_TRANSACTION, paramsJson)
+        return result.toString()
+    }
+
+    override suspend fun getJettonBalance(walletAddress: String, jettonAddress: String): String {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", walletAddress)
+            put("jettonAddress", jettonAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_JETTON_BALANCE, params)
+        return result.toString()
+    }
+
+    override suspend fun getJettonWalletAddress(walletAddress: String, jettonAddress: String): String {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", walletAddress)
+            put("jettonAddress", jettonAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_JETTON_WALLET_ADDRESS, params)
+        return result.toString()
+    }
+
     override suspend fun callBridgeMethod(method: String, params: JSONObject?): JSONObject {
         return call(method, params)
     }

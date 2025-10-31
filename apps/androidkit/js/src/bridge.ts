@@ -1666,7 +1666,7 @@ const api = {
     }
     
     // Get any wallet to access client methods (NFT lookups don't require wallet context)
-    const wallets = walletKit.listWallets();
+    const wallets = walletKit.getWallets?.() || [];
     if (!wallets || wallets.length === 0) {
       throw new Error('No wallets available');
     }
@@ -1753,6 +1753,167 @@ const api = {
     
     emitCallCheckpoint(context, 'createTransferNftRawTransaction:after-wallet.createTransferNftRawTransaction');
     console.log('[walletkitBridge] createTransferNftRawTransaction result:', result);
+    
+    return result;
+  },
+
+  async getJettons(args: { address: string; limit?: number; offset?: number }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getJettons:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getJettons:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    const limit = Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 100;
+    const offset = Number.isFinite(args.offset) && (args.offset as number) >= 0 ? Math.floor(args.offset as number) : 0;
+    
+    console.log('[walletkitBridge] getJettons fetching jettons for address:', address, 'limit:', limit, 'offset:', offset);
+    emitCallCheckpoint(context, 'getJettons:before-wallet.getJettons');
+    
+    const result = await wallet.getJettons({ limit, offset });
+    
+    emitCallCheckpoint(context, 'getJettons:after-wallet.getJettons');
+    console.log('[walletkitBridge] getJettons result:', result);
+    
+    return result;
+  },
+
+  async getJetton(args: { jettonAddress: string }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getJetton:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getJetton:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const jettonAddress = args.jettonAddress?.trim();
+    if (!jettonAddress) {
+      throw new Error('Jetton address is required');
+    }
+    
+    // Get any wallet to access client methods (jetton lookups don't require wallet context)
+    const wallets = walletKit.getWallets?.() || [];
+    if (!wallets || wallets.length === 0) {
+      throw new Error('No wallets available');
+    }
+    
+    const wallet = wallets[0];
+    
+    console.log('[walletkitBridge] getJetton fetching jetton for address:', jettonAddress);
+    emitCallCheckpoint(context, 'getJetton:before-wallet.getJetton');
+    
+    const result = await wallet.getJetton(jettonAddress);
+    
+    emitCallCheckpoint(context, 'getJetton:after-wallet.getJetton');
+    console.log('[walletkitBridge] getJetton result:', result);
+    
+    return result || null;
+  },
+
+  async createTransferJettonTransaction(
+    args: { address: string; jettonAddress: string; amount: string; toAddress: string; comment?: string },
+    context?: CallContext
+  ) {
+    emitCallCheckpoint(context, 'createTransferJettonTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createTransferJettonTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    console.log('[walletkitBridge] createTransferJettonTransaction for jetton:', args.jettonAddress, 'to:', args.toAddress, 'amount:', args.amount);
+    emitCallCheckpoint(context, 'createTransferJettonTransaction:before-wallet.createTransferJettonTransaction');
+    
+    const params = {
+      jettonAddress: args.jettonAddress,
+      amount: args.amount,
+      toAddress: args.toAddress,
+      comment: args.comment,
+    };
+    
+    const result = await wallet.createTransferJettonTransaction(params);
+    
+    emitCallCheckpoint(context, 'createTransferJettonTransaction:after-wallet.createTransferJettonTransaction');
+    console.log('[walletkitBridge] createTransferJettonTransaction result:', result);
+    
+    return result;
+  },
+
+  async getJettonBalance(args: { address: string; jettonAddress: string }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getJettonBalance:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getJettonBalance:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    const jettonAddress = args.jettonAddress?.trim();
+    if (!jettonAddress) {
+      throw new Error('Jetton address is required');
+    }
+    
+    console.log('[walletkitBridge] getJettonBalance for jetton:', jettonAddress);
+    emitCallCheckpoint(context, 'getJettonBalance:before-wallet.getJettonBalance');
+    
+    const result = await wallet.getJettonBalance(jettonAddress);
+    
+    emitCallCheckpoint(context, 'getJettonBalance:after-wallet.getJettonBalance');
+    console.log('[walletkitBridge] getJettonBalance result:', result);
+    
+    return result;
+  },
+
+  async getJettonWalletAddress(args: { address: string; jettonAddress: string }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getJettonWalletAddress:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getJettonWalletAddress:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    const jettonAddress = args.jettonAddress?.trim();
+    if (!jettonAddress) {
+      throw new Error('Jetton address is required');
+    }
+    
+    console.log('[walletkitBridge] getJettonWalletAddress for jetton:', jettonAddress);
+    emitCallCheckpoint(context, 'getJettonWalletAddress:before-wallet.getJettonWalletAddress');
+    
+    const result = await wallet.getJettonWalletAddress(jettonAddress);
+    
+    emitCallCheckpoint(context, 'getJettonWalletAddress:after-wallet.getJettonWalletAddress');
+    console.log('[walletkitBridge] getJettonWalletAddress result:', result);
     
     return result;
   },

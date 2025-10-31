@@ -498,6 +498,7 @@ class WalletKitViewModel(
                     _state.update { it.copy(activeWalletAddress = address) }
                     persistActiveWalletPreference(address)
                     updateNftsViewModel(address)
+                    loadJettons()
                     Log.d(LOG_TAG, "Auto-switched to newly imported wallet: $address")
                 }
                 refreshWallets()
@@ -593,6 +594,7 @@ class WalletKitViewModel(
                     _state.update { it.copy(activeWalletAddress = address) }
                     persistActiveWalletPreference(address)
                     updateNftsViewModel(address)
+                    loadJettons()
                     Log.d(LOG_TAG, "Auto-switched to newly generated wallet: $address")
                 }
                 refreshWallets()
@@ -1026,6 +1028,9 @@ class WalletKitViewModel(
 
             // Update NFTs ViewModel for new active wallet
             updateNftsViewModel(address)
+
+            // Load jettons for new active wallet
+            loadJettons()
 
             // Refresh wallet state to get latest balance, then transactions
             refreshWallets()
@@ -1767,6 +1772,206 @@ class WalletKitViewModel(
                 Log.e(LOG_TAG, "Failed to reset wallet", e)
                 val reason = e.message ?: uiString(R.string.wallet_error_unknown)
                 _state.update { it.copy(error = uiString(R.string.wallet_error_reset_wallet, reason)) }
+            }
+        }
+    }
+
+    // ========================================================================
+    // Jetton Management
+    // ========================================================================
+
+    /**
+     * Load jettons for the active wallet.
+     */
+    fun loadJettons() {
+        viewModelScope.launch {
+            val wallet = _state.value.wallets.find { it.address == _state.value.activeWalletAddress }
+            if (wallet == null) {
+                Log.w(LOG_TAG, "loadJettons: No active wallet")
+                return@launch
+            }
+
+            val tonWallet = tonWallets[wallet.address]
+            if (tonWallet == null) {
+                Log.w(LOG_TAG, "loadJettons: TONWallet not found for ${wallet.address}")
+                return@launch
+            }
+
+            _state.update { it.copy(isLoadingJettons = true, jettonsError = null) }
+
+            try {
+                Log.d(LOG_TAG, "loadJettons: Fetching jettons for wallet address: ${wallet.address}")
+                val jettonsWallets = tonWallet.jettonsWallets(limit = 100, offset = 0)
+
+                Log.d(LOG_TAG, "loadJettons: Received ${jettonsWallets.items.size} jettons")
+
+                // Log each jetton for debugging
+                jettonsWallets.items.forEachIndexed { index, jettonWallet ->
+                    Log.d(LOG_TAG, "loadJettons: Jetton $index - address: ${jettonWallet.jettonAddress}, balance: ${jettonWallet.balance}, name: ${jettonWallet.jetton?.name}")
+                }
+
+                val jettonSummaries = jettonsWallets.items.map { jettonWallet ->
+                    io.ton.walletkit.demo.presentation.model.JettonSummary.from(jettonWallet)
+                }
+
+                val pagination = jettonsWallets.pagination
+                val canLoadMore = pagination != null &&
+                    pagination.offset + jettonsWallets.items.size < (pagination.pages ?: Int.MAX_VALUE)
+
+                _state.update {
+                    it.copy(
+                        jettons = jettonSummaries,
+                        isLoadingJettons = false,
+                        canLoadMoreJettons = canLoadMore,
+                    )
+                }
+
+                Log.d(LOG_TAG, "loadJettons: Successfully loaded ${jettonSummaries.size} jettons")
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "loadJettons: Failed to load jettons", e)
+                _state.update {
+                    it.copy(
+                        isLoadingJettons = false,
+                        jettonsError = e.message ?: "Failed to load jettons",
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Load more jettons with pagination.
+     */
+    fun loadMoreJettons() {
+        viewModelScope.launch {
+            val currentState = _state.value
+            if (!currentState.canLoadMoreJettons || currentState.isLoadingJettons) {
+                return@launch
+            }
+
+            val wallet = currentState.wallets.find { it.address == currentState.activeWalletAddress }
+            if (wallet == null) {
+                Log.w(LOG_TAG, "loadMoreJettons: No active wallet")
+                return@launch
+            }
+
+            val tonWallet = tonWallets[wallet.address]
+            if (tonWallet == null) {
+                Log.w(LOG_TAG, "loadMoreJettons: TONWallet not found for ${wallet.address}")
+                return@launch
+            }
+
+            _state.update { it.copy(isLoadingJettons = true) }
+
+            try {
+                val currentOffset = currentState.jettons.size
+                Log.d(LOG_TAG, "loadMoreJettons: Fetching more jettons, offset=$currentOffset")
+
+                val jettonsWallets = tonWallet.jettonsWallets(limit = 100, offset = currentOffset)
+
+                Log.d(LOG_TAG, "loadMoreJettons: Received ${jettonsWallets.items.size} more jettons")
+
+                val newJettonSummaries = jettonsWallets.items.map { jettonWallet ->
+                    io.ton.walletkit.demo.presentation.model.JettonSummary.from(jettonWallet)
+                }
+
+                val pagination = jettonsWallets.pagination
+                val canLoadMore = pagination != null &&
+                    pagination.offset + jettonsWallets.items.size < (pagination.pages ?: Int.MAX_VALUE)
+
+                _state.update {
+                    it.copy(
+                        jettons = it.jettons + newJettonSummaries,
+                        isLoadingJettons = false,
+                        canLoadMoreJettons = canLoadMore,
+                    )
+                }
+
+                Log.d(LOG_TAG, "loadMoreJettons: Total jettons now: ${_state.value.jettons.size}")
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "loadMoreJettons: Failed to load more jettons", e)
+                _state.update {
+                    it.copy(
+                        isLoadingJettons = false,
+                        jettonsError = e.message ?: "Failed to load more jettons",
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Refresh jettons for the active wallet.
+     */
+    fun refreshJettons() {
+        Log.d(LOG_TAG, "refreshJettons: Refreshing jettons")
+        loadJettons()
+    }
+
+    /**
+     * Show jetton details sheet.
+     */
+    fun showJettonDetails(jettonSummary: io.ton.walletkit.demo.presentation.model.JettonSummary) {
+        val jettonDetails = io.ton.walletkit.demo.presentation.model.JettonDetails.from(jettonSummary.jettonWallet)
+        _state.update { it.copy(sheetState = io.ton.walletkit.demo.presentation.state.SheetState.JettonDetails(jettonDetails)) }
+    }
+
+    /**
+     * Show jetton transfer sheet.
+     */
+    fun showTransferJetton(jettonDetails: io.ton.walletkit.demo.presentation.model.JettonDetails) {
+        _state.update { it.copy(sheetState = io.ton.walletkit.demo.presentation.state.SheetState.TransferJetton(jettonDetails)) }
+    }
+
+    /**
+     * Transfer jetton to another address.
+     */
+    fun transferJetton(jettonAddress: String, recipient: String, amount: String, comment: String) {
+        viewModelScope.launch {
+            try {
+                val walletAddress = _state.value.activeWalletAddress
+                if (walletAddress == null) {
+                    _state.update { it.copy(error = "No active wallet") }
+                    return@launch
+                }
+
+                val wallet = tonWallets[walletAddress]
+                if (wallet == null) {
+                    _state.update { it.copy(error = "Wallet not found") }
+                    return@launch
+                }
+
+                val transferParams = io.ton.walletkit.domain.model.TONJettonTransferParams(
+                    toAddress = recipient,
+                    jettonAddress = jettonAddress,
+                    amount = amount,
+                    comment = comment.takeIf { it.isNotBlank() },
+                )
+
+                // Create the jetton transfer transaction
+                val transactionBoc = wallet.transferJettonTransaction(transferParams)
+
+                Log.i(LOG_TAG, "Jetton transfer transaction created, sending...")
+
+                // Send the transaction via TON Connect (triggers approval flow)
+                wallet.sendTransaction(transactionBoc)
+
+                // Dismiss sheet on success
+                _state.update {
+                    it.copy(
+                        error = null,
+                        sheetState = io.ton.walletkit.demo.presentation.state.SheetState.None,
+                    )
+                }
+
+                Log.i(LOG_TAG, "Jetton transfer transaction sent for approval")
+
+                // Refresh jettons after a longer delay to allow transaction to be confirmed and indexed
+                delay(5000)
+                loadJettons()
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Failed to transfer jetton", e)
+                _state.update { it.copy(error = "Transfer failed: ${e.message}") }
             }
         }
     }

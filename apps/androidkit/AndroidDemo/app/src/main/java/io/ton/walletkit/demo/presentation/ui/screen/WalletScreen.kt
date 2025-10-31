@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
+import io.ton.walletkit.demo.presentation.model.JettonDetails
+import io.ton.walletkit.demo.presentation.model.JettonSummary
 import io.ton.walletkit.demo.presentation.model.NFTDetails
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
@@ -55,6 +57,7 @@ import io.ton.walletkit.demo.presentation.ui.dialog.SignerConfirmationDialog
 import io.ton.walletkit.demo.presentation.ui.dialog.UrlPromptDialog
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
 import io.ton.walletkit.demo.presentation.ui.sections.EventLogSection
+import io.ton.walletkit.demo.presentation.ui.sections.JettonsSection
 import io.ton.walletkit.demo.presentation.ui.sections.NFTsSection
 import io.ton.walletkit.demo.presentation.ui.sections.SessionsSection
 import io.ton.walletkit.demo.presentation.ui.sections.TransactionHistorySection
@@ -62,9 +65,11 @@ import io.ton.walletkit.demo.presentation.ui.sections.WalletsSection
 import io.ton.walletkit.demo.presentation.ui.sheet.AddWalletSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.BrowserSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.ConnectRequestSheet
+import io.ton.walletkit.demo.presentation.ui.sheet.JettonDetailsSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.SignDataSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionDetailSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
+import io.ton.walletkit.demo.presentation.ui.sheet.TransferJettonSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
 import io.ton.walletkit.domain.model.TONNFTItem
@@ -107,6 +112,11 @@ fun WalletScreen(
     onTransactionClick: (transactionHash: String, walletAddress: String) -> Unit,
     onHandleUrl: (String) -> Unit,
     onDismissUrlPrompt: () -> Unit,
+    onShowJettonDetails: (JettonSummary) -> Unit,
+    onTransferJetton: (jettonAddress: String, recipient: String, amount: String, comment: String) -> Unit,
+    onShowTransferJetton: (JettonDetails) -> Unit,
+    onLoadMoreJettons: () -> Unit,
+    onRefreshJettons: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -208,6 +218,25 @@ fun WalletScreen(
                     webViewHolder = browserWebViewHolder,
                 )
 
+                is SheetState.JettonDetails -> {
+                    JettonDetailsSheet(
+                        jetton = sheet.jetton,
+                        onDismiss = onDismissSheet,
+                        onTransfer = { onShowTransferJetton(sheet.jetton) },
+                    )
+                }
+
+                is SheetState.TransferJetton -> {
+                    TransferJettonSheet(
+                        jetton = sheet.jetton,
+                        onDismiss = onDismissSheet,
+                        onTransfer = { recipient, amount, comment ->
+                            onTransferJetton(sheet.jetton.jettonAddress ?: "", recipient, amount, comment)
+                        },
+                        isLoading = false,
+                    )
+                }
+
                 SheetState.None -> Unit
             }
         }
@@ -306,6 +335,17 @@ fun WalletScreen(
                     onNFTClick = { nft -> selectedNFT = nft },
                 )
             }
+
+            // Show Jettons for the active wallet
+            JettonsSection(
+                jettons = state.jettons,
+                isLoading = state.isLoadingJettons,
+                error = state.jettonsError,
+                canLoadMore = state.canLoadMoreJettons,
+                onJettonClick = { jetton -> onShowJettonDetails(jetton) },
+                onLoadMore = { onLoadMoreJettons() },
+                onRefresh = { onRefreshJettons() },
+            )
 
             // Show transaction history for the active wallet
             activeWallet?.let { wallet ->
