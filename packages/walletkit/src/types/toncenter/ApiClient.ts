@@ -12,13 +12,13 @@ import type { ConnectTransactionParamMessage } from '../internal';
 import type {
     ToncenterEmulationResponse,
     ToncenterResponseJettonMasters,
-    ToncenterResponseJettonWallets,
     ToncenterTracesResponse,
     ToncenterTransactionsResponse,
 } from './emulation';
 import type { FullAccountState, GetResult } from './api';
 import type { NftItemsResponse } from './NftItemsResponse';
 import { RawStackItem } from '../../utils/tvmStack';
+import { ResponseUserJettons } from '../export/responses/jettons';
 
 export interface LimitRequest {
     limit?: number;
@@ -99,5 +99,5 @@ export interface ApiClient {
     backResolveDnsWallet(address: Address | string): Promise<string | null>;
 
     jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
-    jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ToncenterResponseJettonWallets>;
+    jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ResponseUserJettons>;
 }

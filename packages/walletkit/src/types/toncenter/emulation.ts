@@ -292,15 +292,14 @@ export interface EmulationTokenInfoMasters extends EmulationTokenInfoBase {
     };
 }
 
-// Toncenter Jetton Wallets API Response Types
-export interface ToncenterResponseJettonWallets {
-    jetton_wallets: ToncenterJettonWallet[];
+export interface ToncenterResponseJettonMasters {
+    jetton_masters: ToncenterJettonWallet[];
     address_book: Record<string, EmulationAddressBookEntry>;
     metadata: Record<string, EmulationAddressMetadata>;
 }
 
-export interface ToncenterResponseJettonMasters {
-    jetton_masters: ToncenterJettonWallet[];
+export interface ToncenterResponseJettonWallets {
+    jetton_wallets: ToncenterJettonWallet[];
     address_book: Record<string, EmulationAddressBookEntry>;
     metadata: Record<string, EmulationAddressMetadata>;
 }
