@@ -449,7 +449,7 @@ export class ApiClientToncenter implements ApiClient {
         const userJettons: AddressJetton[] = rawResponse.jetton_wallets.map((wallet) => {
             const jettonInfo = this.extractJettonInfoFromMetadata(wallet.jetton, rawResponse.metadata);
             return {
-                address: wallet.address,
+                address: wallet.jetton,
                 balance: wallet.balance,
                 jettonWalletAddress: wallet.address,
                 usdValue: '0',
