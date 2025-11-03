@@ -7,32 +7,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.R
-import io.ton.walletkit.demo.data.cache.TransactionCache
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
-import io.ton.walletkit.demo.data.storage.UserPreferences
 import io.ton.walletkit.demo.data.storage.WalletRecord
 import io.ton.walletkit.demo.domain.model.PendingWalletRecord
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.domain.model.WalletMetadata
 import io.ton.walletkit.demo.domain.model.toBridgeValue
-import io.ton.walletkit.demo.domain.model.toTonNetwork
 import io.ton.walletkit.demo.presentation.model.ConnectPermissionUi
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
-import io.ton.walletkit.demo.presentation.model.SessionSummary
+import io.ton.walletkit.demo.presentation.model.JettonDetails
+import io.ton.walletkit.demo.presentation.model.JettonSummary
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionMessageUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.state.SheetState
 import io.ton.walletkit.demo.presentation.state.WalletUiState
-import io.ton.walletkit.demo.presentation.util.TimestampParser
-import io.ton.walletkit.demo.presentation.util.TonFormatter
 import io.ton.walletkit.demo.presentation.util.TransactionDetailMapper
-import io.ton.walletkit.demo.presentation.util.TransactionDiffUtil
-import io.ton.walletkit.demo.presentation.util.UrlSanitizer
 import io.ton.walletkit.domain.model.TONNetwork
 import io.ton.walletkit.domain.model.TONWalletData
-import io.ton.walletkit.domain.model.WalletSession
 import io.ton.walletkit.domain.model.WalletSigner
 import io.ton.walletkit.presentation.TONWallet
 import io.ton.walletkit.presentation.event.TONWalletKitEvent
@@ -68,46 +61,84 @@ class WalletKitViewModel(
     )
     val state: StateFlow<WalletUiState> = _state.asStateFlow()
 
-    // Password and authentication state
-    private val _isPasswordSet = MutableStateFlow(false)
-    val isPasswordSet: StateFlow<Boolean> = _isPasswordSet.asStateFlow()
-
-    private val _isUnlocked = MutableStateFlow(false)
-    val isUnlocked: StateFlow<Boolean> = _isUnlocked.asStateFlow()
-
     private var balanceJob: Job? = null
-    private var currentNetwork: TONNetwork = DEFAULT_NETWORK
+    private var walletKit: io.ton.walletkit.presentation.TONWalletKit? = null
 
-    private val walletMetadata = mutableMapOf<String, WalletMetadata>()
-    private val pendingWallets = ArrayDeque<PendingWalletRecord>()
+    private val lifecycleManager = WalletLifecycleManager(
+        storage = storage,
+        defaultWalletVersion = DEFAULT_WALLET_VERSION,
+        defaultWalletNameProvider = { index -> defaultWalletName(index) },
+        kitProvider = { getKit() },
+        initialNetwork = DEFAULT_NETWORK,
+    )
 
-    // Transaction cache for efficient list updates
-    private val transactionCache = TransactionCache()
+    private val sessionsViewModel = SessionsViewModel(
+        getAllWallets = { lifecycleManager.tonWallets.values.toList() },
+        getKit = { walletKit ?: error("TONWalletKit not initialized") },
+        unknownDAppLabel = uiString(R.string.wallet_event_unknown_dapp),
+    )
 
-    // TONWallet instances (loaded from SDK)
-    private val tonWallets = mutableMapOf<String, TONWallet>()
-    private var lastPersistedActiveWallet: String? = null
+    private val uiCoordinator = WalletUiStateCoordinator(_state)
+    private val securityController = WalletSecurityController(storage)
+    private val eventLogger = WalletEventLogger(
+        state = _state,
+        scope = viewModelScope,
+        maxEvents = MAX_EVENT_LOG,
+        hideDelayMillis = HIDE_MESSAGE_MS,
+        defaultStatusProvider = { uiString(R.string.wallet_status_walletkit_ready) },
+        stringProvider = { resId, args -> uiString(resId, *args) },
+    )
+
+    val isPasswordSet: StateFlow<Boolean> = securityController.isPasswordSet
+    val isUnlocked: StateFlow<Boolean> = securityController.isUnlocked
+
+    private val tonConnectViewModel = TonConnectViewModel(
+        getWalletByAddress = { address -> lifecycleManager.tonWallets[address] },
+        onRequestApproved = { onTonConnectRequestApproved() },
+        onRequestRejected = { onTonConnectRequestRejected() },
+        onSessionsChanged = { viewModelScope.launch { sessionsViewModel.refresh() } },
+    )
+
+    private val walletOperationsViewModel = WalletOperationsViewModel(
+        getWalletByAddress = { address -> lifecycleManager.tonWallets[address] },
+        onWalletSwitched = { address -> handleWalletSwitched(address) },
+        onTransactionInitiated = { address -> onLocalTransactionInitiated(address) },
+    )
 
     // NFTs ViewModel for active wallet
     private val _nftsViewModel = MutableStateFlow<NFTsListViewModel?>(null)
     val nftsViewModel: StateFlow<NFTsListViewModel?> = _nftsViewModel.asStateFlow()
 
-    private fun uiString(@StringRes resId: Int, vararg args: Any): String = application.getString(resId, *args)
+    private val activeTransactionHistoryViewModel = MutableStateFlow<TransactionHistoryViewModel?>(null)
+    private val activeJettonsViewModel = MutableStateFlow<JettonsListViewModel?>(null)
 
-    private fun logEvent(@StringRes messageRes: Int, vararg args: Any) {
-        logEvent(uiString(messageRes, *args))
+    private var jettonsCollectors: List<Job> = emptyList()
+    private var transactionsCollectors: List<Job> = emptyList()
+    private var currentTransactionsWalletAddress: String? = null
+    private var currentJettonsWalletAddress: String? = null
+    private var currentNftsWalletAddress: String? = null
+
+    private sealed interface TonConnectAction {
+        data class Connect(val request: ConnectRequestUi, val wallet: WalletSummary?) : TonConnectAction
+        data class Transaction(val request: TransactionRequestUi) : TonConnectAction
+        data class SignData(val request: SignDataRequestUi, val viaSigner: Boolean) : TonConnectAction
     }
+
+    private var pendingTonConnectAction: TonConnectAction? = null
+
+    private fun uiString(@StringRes resId: Int, vararg args: Any): String = application.getString(resId, *args)
 
     /**
      * Get the shared TONWalletKit instance used across the demo.
      */
-    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
+    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit {
+        walletKit?.let { return it }
+        val kit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
+        walletKit = kit
+        return kit
+    }
 
     init {
-        // Check password state on initialization (FIRST)
-        _isPasswordSet.value = storage.isPasswordSet()
-        _isUnlocked.value = storage.isUnlocked()
-
         // Wait for SDK initialization before bootstrapping
         viewModelScope.launch {
             sdkInitialized.first { it } // Wait for true
@@ -120,36 +151,18 @@ class WalletKitViewModel(
                 handleSdkEvent(event)
             }
         }
+
+        observeSessions()
+        observeWalletOperations()
+        observeTonConnect()
     }
 
     private suspend fun bootstrap() {
         _state.update { it.copy(status = uiString(R.string.wallet_status_loading), error = null) }
 
-        // Load user preferences (including active wallet address)
-        Log.d(LOG_TAG, "bootstrap: loading user preferences")
-        val userPrefs = storage.loadUserPreferences()
-        val savedActiveWallet = userPrefs?.activeWalletAddress
-        lastPersistedActiveWallet = savedActiveWallet
-        Log.d(LOG_TAG, "Loaded saved active wallet: $savedActiveWallet")
-
-        // SDK already initialized in Application
-        currentNetwork = DEFAULT_NETWORK
-
-        // Load wallets from SDK (auto-restored from persistent storage)
-        val loadResult = runCatching {
-            Log.d(LOG_TAG, "bootstrap: requesting wallets from SDK (initial)")
-            val wallets = getKit().getWallets()
-            wallets.forEach { wallet ->
-                wallet.address?.let { address ->
-                    tonWallets[address] = wallet
-                }
-            }
-            Log.d(LOG_TAG, "bootstrap: initial SDK wallet count = ${wallets.size}")
-            Log.d(LOG_TAG, "bootstrap: cached addresses after initial load = ${tonWallets.keys}")
-        }
-
-        if (loadResult.isFailure) {
-            val loadErrorMessage = loadResult.exceptionOrNull()?.message ?: uiString(R.string.wallet_error_load_default)
+        val bootstrapResult = lifecycleManager.bootstrap()
+        if (bootstrapResult.isFailure) {
+            val loadErrorMessage = bootstrapResult.exceptionOrNull()?.message ?: uiString(R.string.wallet_error_load_default)
             _state.update {
                 it.copy(
                     status = uiString(R.string.wallet_status_failed_to_load),
@@ -159,80 +172,42 @@ class WalletKitViewModel(
             return
         }
 
-        if (tonWallets.isEmpty()) {
-            Log.d(LOG_TAG, "bootstrap: no wallets from SDK, attempting rehydrate from storage")
-            val restored = rehydrateWalletsFromStorage()
-            Log.d(LOG_TAG, "bootstrap: rehydrate restored=$restored, cached=${tonWallets.keys}")
-        }
-
-        // Reload wallets from SDK (after any external changes)
-        Log.d(LOG_TAG, "bootstrap: refreshing wallet list post-migration check")
-        val walletsAfterMigration = getKit().getWallets()
-        tonWallets.clear()
-        val metadataCorrections = mutableListOf<String>()
-        for (wallet in walletsAfterMigration) {
-            val address = wallet.address ?: continue
-            tonWallets[address] = wallet
-            if (walletMetadata[address] == null) {
-                Log.d(LOG_TAG, "bootstrap: metadata missing for $address, loading from storage")
-                val storedRecord = storage.loadWallet(address)
-                if (storedRecord != null) {
-                    Log.d(LOG_TAG, "bootstrap: restored metadata for $address from storage (name='${storedRecord.name}')")
-                    walletMetadata[address] = WalletMetadata(
-                        name = storedRecord.name,
-                        network = storedRecord.network.toTonNetwork(currentNetwork),
-                        version = storedRecord.version,
-                    )
-                } else {
-                    val fallback = WalletMetadata(
-                        name = defaultWalletName(walletMetadata.size),
-                        network = currentNetwork,
-                        version = DEFAULT_WALLET_VERSION,
-                    )
-                    walletMetadata[address] = fallback
-                    metadataCorrections.add(address)
-                }
-            }
-        }
-        if (metadataCorrections.isNotEmpty()) {
-            Log.w(
-                LOG_TAG,
-                "No stored metadata for restored wallets: ${metadataCorrections.joinToString()} (fallback metadata applied)",
-            )
-        }
-
-        Log.d(LOG_TAG, "bootstrap: cached addresses after migration = ${tonWallets.keys}")
-        Log.d(LOG_TAG, "After migration: ${walletsAfterMigration.size} wallets in SDK")
-
         _state.update { it.copy(initialized = true, status = uiString(R.string.wallet_status_ready), error = null) }
+
+        val savedActiveWallet = bootstrapResult.getOrNull()?.savedActiveWallet
+        Log.d(LOG_TAG, "Loaded saved active wallet: $savedActiveWallet")
 
         // Load wallets and sessions concurrently and wait for both to complete
         coroutineScope {
             val walletsJob = async { refreshWallets() }
-            val sessionsJob = async { refreshSessions() }
+            val sessionsJob = async { sessionsViewModel.loadSessions() }
             walletsJob.await()
             sessionsJob.await()
         }
 
         // Restore saved active wallet after wallets are loaded
         // Only restore if the saved wallet actually exists in the loaded wallets
+        val tonWallets = lifecycleManager.tonWallets
         if (!savedActiveWallet.isNullOrBlank() && tonWallets.containsKey(savedActiveWallet)) {
-            _state.update { it.copy(activeWalletAddress = savedActiveWallet) }
             Log.d(LOG_TAG, "Restored active wallet selection: $savedActiveWallet")
-            // Update NFTs ViewModel for active wallet
-            updateNftsViewModel(savedActiveWallet)
-            // Fetch transactions for the restored active wallet
-            refreshTransactions(savedActiveWallet)
+            applyWalletSwitch(
+                address = savedActiveWallet,
+                persistPreference = false,
+                logSwitch = false,
+                refreshOnSwitch = false,
+            )
         } else {
             if (!savedActiveWallet.isNullOrBlank()) {
                 Log.w(LOG_TAG, "Saved active wallet '$savedActiveWallet' not found in loaded wallets, using first wallet instead")
             }
-            // Fetch transactions for the first wallet if no saved wallet
             state.value.activeWalletAddress?.let { address ->
                 if (tonWallets.containsKey(address)) {
-                    // Update NFTs ViewModel for active wallet
-                    updateNftsViewModel(address)
-                    refreshTransactions(address)
+                    applyWalletSwitch(
+                        address = address,
+                        persistPreference = false,
+                        logSwitch = false,
+                        refreshOnSwitch = false,
+                    )
                 } else {
                     Log.w(LOG_TAG, "Active wallet address '$address' not found in loaded wallets")
                 }
@@ -262,7 +237,7 @@ class WalletKitViewModel(
             }
             is TONWalletKitEvent.Disconnect -> {
                 Log.d(LOG_TAG, "Session disconnected: ${event.event.sessionId}")
-                viewModelScope.launch { refreshSessions() }
+                viewModelScope.launch { sessionsViewModel.refresh() }
             }
             // Browser events - logged but not handled here as BrowserSheet manages WebView directly
             is TONWalletKitEvent.BrowserPageStarted,
@@ -273,6 +248,169 @@ class WalletKitViewModel(
                 // These events are informational only - BrowserSheet manages the WebView lifecycle
                 Log.d(LOG_TAG, "Browser event: ${event::class.simpleName}")
             }
+        }
+    }
+
+    private fun observeSessions() {
+        viewModelScope.launch {
+            sessionsViewModel.state.collect { sessionsState ->
+                uiCoordinator.onSessionsStateChanged(sessionsState)
+            }
+        }
+    }
+
+    private fun observeWalletOperations() {
+        viewModelScope.launch {
+            walletOperationsViewModel.state.collect { operationsState ->
+                uiCoordinator.onWalletOperationsStateChanged(operationsState)
+                if (operationsState.successMessage != null) {
+                    walletOperationsViewModel.clearMessage()
+                }
+                if (operationsState.error != null) {
+                    walletOperationsViewModel.clearMessage()
+                }
+            }
+        }
+    }
+
+    private fun observeTonConnect() {
+        viewModelScope.launch {
+            tonConnectViewModel.state.collect { tonState ->
+                uiCoordinator.onTonConnectStateChanged(tonState)
+                if (tonState.successMessage != null) {
+                    uiCoordinator.hideUrlPrompt()
+                }
+                if (tonState.error != null) {
+                    pendingTonConnectAction = null
+                }
+                if (tonState.error != null || tonState.successMessage != null) {
+                    tonConnectViewModel.clearMessage()
+                }
+            }
+        }
+    }
+
+    private fun handleWalletSwitched(
+        address: String,
+        persistPreference: Boolean = true,
+        logSwitch: Boolean = true,
+        refreshOnSwitch: Boolean = true,
+    ) {
+        viewModelScope.launch {
+            applyWalletSwitch(
+                address = address,
+                persistPreference = persistPreference,
+                logSwitch = logSwitch,
+                refreshOnSwitch = refreshOnSwitch,
+            )
+        }
+    }
+
+    private suspend fun applyWalletSwitch(
+        address: String,
+        persistPreference: Boolean,
+        logSwitch: Boolean,
+        refreshOnSwitch: Boolean,
+    ) {
+        val wallet = lifecycleManager.tonWallets[address]
+        if (wallet == null) {
+            _state.update { it.copy(error = uiString(R.string.wallet_error_wallet_not_found)) }
+            return
+        }
+
+        uiCoordinator.setActiveWallet(address)
+
+        if (persistPreference) {
+            lifecycleManager.persistActiveWalletPreference(address)
+        }
+
+        updateNftsViewModel(address)
+        attachTransactionHistoryViewModel(address)
+        attachJettonsViewModel(address)
+
+        if (refreshOnSwitch) {
+            refreshWallets()
+        }
+
+        if (logSwitch) {
+            val walletName = lifecycleManager.walletMetadata[address]?.name ?: wallet.address ?: address
+            eventLogger.log(R.string.wallet_event_switched_wallet, walletName)
+        }
+    }
+
+    private fun onLocalTransactionInitiated(walletAddress: String) {
+        val walletName = state.value.wallets.firstOrNull { it.address == walletAddress }?.name ?: walletAddress
+        eventLogger.log(R.string.wallet_event_transaction_initiated, walletName)
+    }
+
+    private fun onTonConnectRequestApproved() {
+        when (val action = pendingTonConnectAction) {
+            is TonConnectAction.Connect -> {
+                eventLogger.log(R.string.wallet_event_approved_connect, action.request.dAppName)
+                dismissOrRestoreBrowserSheet()
+            }
+            is TonConnectAction.Transaction -> {
+                eventLogger.log(R.string.wallet_event_approved_transaction, action.request.id)
+                viewModelScope.launch {
+                    refreshWallets()
+                    sessionsViewModel.refresh()
+                }
+                dismissSheet()
+            }
+            is TonConnectAction.SignData -> {
+                val eventRes = if (action.viaSigner) {
+                    R.string.wallet_event_sign_data_approved_signer
+                } else {
+                    R.string.wallet_event_sign_data_approved
+                }
+                eventLogger.log(eventRes)
+                dismissSheet()
+                eventLogger.showTemporaryStatus(uiString(R.string.wallet_status_signed_success))
+                if (action.viaSigner) {
+                    viewModelScope.launch {
+                        if (state.value.activeWalletAddress == action.request.walletAddress) {
+                            activeTransactionHistoryViewModel.value?.refresh()
+                        }
+                    }
+                }
+            }
+            null -> Unit
+        }
+        pendingTonConnectAction = null
+    }
+
+    private fun onTonConnectRequestRejected() {
+        when (val action = pendingTonConnectAction) {
+            is TonConnectAction.Connect -> {
+                eventLogger.log(R.string.wallet_event_rejected_connect, action.request.dAppName)
+                dismissOrRestoreBrowserSheet()
+            }
+            is TonConnectAction.Transaction -> {
+                eventLogger.log(R.string.wallet_event_rejected_transaction, action.request.id)
+                dismissSheet()
+            }
+            is TonConnectAction.SignData -> {
+                if (action.viaSigner) {
+                    eventLogger.log(R.string.wallet_event_sign_request_cancelled)
+                    dismissSheet()
+                    eventLogger.showTemporaryStatus(uiString(R.string.wallet_status_sign_cancelled))
+                } else {
+                    eventLogger.log(R.string.wallet_event_sign_request_rejected)
+                    dismissSheet()
+                    eventLogger.showTemporaryStatus(uiString(R.string.wallet_status_sign_rejected))
+                }
+            }
+            null -> Unit
+        }
+        pendingTonConnectAction = null
+    }
+
+    private fun dismissOrRestoreBrowserSheet() {
+        val previousSheet = _state.value.previousSheet
+        if (previousSheet is SheetState.Browser) {
+            uiCoordinator.setSheet(previousSheet, savePrevious = false)
+        } else {
+            dismissSheet()
         }
     }
 
@@ -289,7 +427,7 @@ class WalletKitViewModel(
     fun refreshAll() {
         viewModelScope.launch {
             refreshWallets()
-            refreshSessions()
+            sessionsViewModel.refresh()
         }
     }
 
@@ -297,9 +435,9 @@ class WalletKitViewModel(
         _state.update { it.copy(isLoadingWallets = true) }
         Log.d(
             LOG_TAG,
-            "refreshWallets: start active=${state.value.activeWalletAddress} cached=${tonWallets.keys}",
+            "refreshWallets: start active=${state.value.activeWalletAddress} cached=${lifecycleManager.tonWallets.keys}",
         )
-        val summaries = runCatching { loadWalletSummaries() }
+        val summaries = runCatching { lifecycleManager.loadWalletSummaries(state.value.sessions) }
         summaries.onSuccess { wallets ->
             val now = System.currentTimeMillis()
             Log.d(LOG_TAG, "refreshWallets: loaded ${wallets.size} summaries -> ${wallets.map { it.address }}")
@@ -323,9 +461,17 @@ class WalletKitViewModel(
                 )
             }
 
-            if (activeAddress != newActiveAddress || lastPersistedActiveWallet != newActiveAddress) {
-                persistActiveWalletPreference(newActiveAddress)
+            if (activeAddress != newActiveAddress || lifecycleManager.lastPersistedActiveWallet != newActiveAddress) {
+                lifecycleManager.persistActiveWalletPreference(newActiveAddress)
             }
+
+            if (currentTransactionsWalletAddress != newActiveAddress) {
+                attachTransactionHistoryViewModel(newActiveAddress)
+            }
+            if (currentJettonsWalletAddress != newActiveAddress) {
+                attachJettonsViewModel(newActiveAddress)
+            }
+            updateNftsViewModel(newActiveAddress)
         }.onFailure { error ->
             Log.e(LOG_TAG, "refreshWallets: loadWalletSummaries failed", error)
             val fallback = uiString(R.string.wallet_error_load_default)
@@ -339,92 +485,34 @@ class WalletKitViewModel(
     }
 
     private suspend fun refreshSessions() {
-        _state.update { it.copy(isLoadingSessions = true) }
-
-        // Aggregate sessions from all wallets
-        val allSessions = mutableListOf<WalletSession>()
-        tonWallets.values.forEach { wallet ->
-            runCatching {
-                val walletSessions = wallet.sessions()
-                allSessions.addAll(walletSessions)
-            }.onFailure {
-                Log.w(LOG_TAG, "Failed to get sessions for wallet ${wallet.address}", it)
-            }
-        }
-
-        Log.d(LOG_TAG, "Loaded ${allSessions.size} sessions from ${tonWallets.size} wallets")
-        allSessions.forEach { session ->
-            Log.d(
-                LOG_TAG,
-                "Session: id=${session.sessionId}, dApp=${session.dAppName}, " +
-                    "wallet=${session.walletAddress}, url=${session.dAppUrl}",
-            )
-        }
-
-        val mapped = allSessions.mapNotNull { session ->
-            val sessionUrl = UrlSanitizer.sanitize(session.dAppUrl)
-            val sessionManifest = UrlSanitizer.sanitize(session.manifestUrl)
-            val sessionIcon = UrlSanitizer.sanitize(session.iconUrl)
-
-            // Skip sessions with no metadata (appears disconnected)
-            val appearsDisconnected = sessionUrl == null && sessionManifest == null
-            if (appearsDisconnected && session.sessionId.isNotBlank()) {
-                Log.d(
-                    LOG_TAG,
-                    "Empty metadata for session ${session.sessionId}",
-                )
-                return@mapNotNull null
-            }
-
-            val displayName = session.dAppName.ifBlank { uiString(R.string.wallet_event_unknown_dapp) }
-
-            SessionSummary(
-                sessionId = session.sessionId,
-                dAppName = displayName,
-                walletAddress = session.walletAddress,
-                dAppUrl = sessionUrl,
-                manifestUrl = sessionManifest,
-                iconUrl = sessionIcon,
-                createdAt = TimestampParser.parse(session.createdAtIso),
-                lastActivity = TimestampParser.parse(session.lastActivityIso),
-            )
-        }
-        val finalSessions = mapped
-        finalSessions.forEach { summary ->
-            Log.d(
-                LOG_TAG,
-                "Mapped session summary: id=${summary.sessionId}, dApp=${summary.dAppName}, " +
-                    "url=${summary.dAppUrl}, icon=${summary.iconUrl}",
-            )
-        }
-        _state.update { it.copy(sessions = finalSessions, error = null, isLoadingSessions = false) }
+        sessionsViewModel.loadSessions()
     }
 
     fun openAddWalletSheet() {
-        setSheet(SheetState.AddWallet)
+        uiCoordinator.openAddWalletSheet()
     }
 
     fun showWalletDetails(address: String) {
         val target = state.value.wallets.firstOrNull { it.address == address }
         if (target != null) {
-            setSheet(SheetState.WalletDetails(target))
+            uiCoordinator.showWalletDetails(target)
         }
     }
 
     fun dismissSheet() {
-        setSheet(SheetState.None)
+        uiCoordinator.dismissSheet()
     }
 
     fun showUrlPrompt() {
-        _state.update { it.copy(isUrlPromptVisible = true) }
+        uiCoordinator.showUrlPrompt()
     }
 
     fun hideUrlPrompt() {
-        _state.update { it.copy(isUrlPromptVisible = false) }
+        uiCoordinator.hideUrlPrompt()
     }
 
     fun openBrowser(url: String) {
-        setSheet(SheetState.Browser(url))
+        uiCoordinator.openBrowser(url)
     }
 
     fun importWallet(
@@ -446,8 +534,11 @@ class WalletKitViewModel(
         )
 
         viewModelScope.launch {
-            switchNetworkIfNeeded(network)
-            pendingWallets.addLast(pending)
+            lifecycleManager.switchNetworkIfNeeded(network) {
+                refreshWallets()
+                sessionsViewModel.refresh()
+            }
+            lifecycleManager.pendingWallets.addLast(pending)
 
             val result = runCatching {
                 val kit = getKit()
@@ -475,12 +566,13 @@ class WalletKitViewModel(
             if (result.isSuccess) {
                 val newWallet = result.getOrNull()
 
-                // Cache the wallet
+                var newAddress: String? = null
                 newWallet?.address?.let { address ->
-                    tonWallets[address] = newWallet
+                    newAddress = address
+                    lifecycleManager.tonWallets[address] = newWallet
 
                     // Store metadata and mnemonic for UI
-                    walletMetadata[address] = pending.metadata
+                    lifecycleManager.walletMetadata[address] = pending.metadata
                     val record = WalletRecord(
                         mnemonic = cleaned,
                         name = pending.metadata.name,
@@ -493,10 +585,9 @@ class WalletKitViewModel(
                         .onFailure { Log.e(LOG_TAG, "importWallet: failed to save wallet record for $address", it) }
                 }
 
-                // Automatically switch to the newly imported wallet
-                newWallet?.address?.let { address ->
+                newAddress?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
-                    persistActiveWalletPreference(address)
+                    lifecycleManager.persistActiveWalletPreference(address)
                     updateNftsViewModel(address)
                     loadJettons()
                     Log.d(LOG_TAG, "Auto-switched to newly imported wallet: $address")
@@ -504,14 +595,14 @@ class WalletKitViewModel(
                 refreshWallets()
                 dismissSheet()
 
-                logEvent(
+                eventLogger.log(
                     R.string.wallet_event_wallet_imported,
                     pending.metadata.name,
                     version,
                     interfaceType.value,
                 )
             } else {
-                pendingWallets.removeLastOrNull()
+                lifecycleManager.pendingWallets.removeLastOrNull()
                 val fallback = uiString(R.string.wallet_error_import_failed)
                 _state.update { it.copy(error = result.exceptionOrNull()?.message ?: fallback) }
             }
@@ -542,8 +633,11 @@ class WalletKitViewModel(
                 metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
                 mnemonic = words,
             )
-            switchNetworkIfNeeded(network)
-            pendingWallets.addLast(pending)
+            lifecycleManager.switchNetworkIfNeeded(network) {
+                refreshWallets()
+                sessionsViewModel.refresh()
+            }
+            lifecycleManager.pendingWallets.addLast(pending)
 
             val result = runCatching {
                 val kit = getKit()
@@ -571,12 +665,12 @@ class WalletKitViewModel(
             if (result.isSuccess) {
                 val newWallet = result.getOrNull()
 
-                // Cache the wallet
+                var newAddress: String? = null
                 newWallet?.address?.let { address ->
-                    tonWallets[address] = newWallet
+                    newAddress = address
+                    lifecycleManager.tonWallets[address] = newWallet
 
-                    // Store metadata and mnemonic for UI
-                    walletMetadata[address] = pending.metadata
+                    lifecycleManager.walletMetadata[address] = pending.metadata
                     val record = WalletRecord(
                         mnemonic = words,
                         name = pending.metadata.name,
@@ -589,10 +683,9 @@ class WalletKitViewModel(
                         .onFailure { Log.e(LOG_TAG, "generateWallet: failed to save wallet record for $address", it) }
                 }
 
-                // Automatically switch to the newly generated wallet
-                newWallet?.address?.let { address ->
+                newAddress?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
-                    persistActiveWalletPreference(address)
+                    lifecycleManager.persistActiveWalletPreference(address)
                     updateNftsViewModel(address)
                     loadJettons()
                     Log.d(LOG_TAG, "Auto-switched to newly generated wallet: $address")
@@ -600,14 +693,14 @@ class WalletKitViewModel(
                 refreshWallets()
                 dismissSheet()
 
-                logEvent(
+                eventLogger.log(
                     R.string.wallet_event_wallet_generated,
                     pending.metadata.name,
                     version,
                     interfaceType.value,
                 )
             } else {
-                pendingWallets.removeLastOrNull()
+                lifecycleManager.pendingWallets.removeLastOrNull()
                 val fallback = uiString(R.string.wallet_error_generate_failed)
                 _state.update { it.copy(error = result.exceptionOrNull()?.message ?: fallback) }
             }
@@ -615,468 +708,95 @@ class WalletKitViewModel(
     }
 
     fun handleTonConnectUrl(url: String) {
-        viewModelScope.launch {
-            val trimmed = url.trim()
-
-            // Get active wallet to connect
-            val activeAddress = state.value.activeWalletAddress
-            val wallet = activeAddress?.let { tonWallets[it] }
-
-            if (wallet == null) {
-                _state.update { it.copy(error = uiString(R.string.wallet_error_no_wallet_selected)) }
-                return@launch
-            }
-
-            val result = runCatching { wallet.connect(trimmed) }
-            result.onSuccess {
-                hideUrlPrompt()
-                logEvent(R.string.wallet_event_handled_ton_connect_url)
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_ton_connect)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
+        val activeAddress = state.value.activeWalletAddress
+        if (activeAddress == null) {
+            _state.update { it.copy(error = uiString(R.string.wallet_error_no_wallet_selected)) }
+            return
         }
+        tonConnectViewModel.handleTonConnectUrl(url.trim(), activeAddress)
     }
 
     fun approveConnect(request: ConnectRequestUi, wallet: WalletSummary) {
-        viewModelScope.launch {
-            val result = runCatching {
-                request.connectRequest?.approve(wallet.address)
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                // Check if we should restore the browser sheet
-                val previousSheet = _state.value.previousSheet
-                if (previousSheet is SheetState.Browser) {
-                    // Restore browser so dApp can show connection confirmation
-                    _state.update { it.copy(sheetState = previousSheet, previousSheet = null) }
-                } else {
-                    // No browser to restore, dismiss the sheet
-                    dismissSheet()
-                }
-
-                refreshSessions()
-                logEvent(R.string.wallet_event_approved_connect, request.dAppName)
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_approve_connect)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
-        }
+        pendingTonConnectAction = TonConnectAction.Connect(request, wallet)
+        tonConnectViewModel.approveConnect(request, wallet.address)
     }
 
     fun rejectConnect(request: ConnectRequestUi, reason: String = DEFAULT_REJECTION_REASON) {
-        viewModelScope.launch {
-            val result = runCatching {
-                request.connectRequest?.reject(reason)
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                // Check if we should restore the browser sheet
-                val previousSheet = _state.value.previousSheet
-                if (previousSheet is SheetState.Browser) {
-                    // Restore browser so user can see the dApp
-                    _state.update { it.copy(sheetState = previousSheet, previousSheet = null) }
-                } else {
-                    // No browser to restore, dismiss the sheet
-                    dismissSheet()
-                }
-
-                logEvent(R.string.wallet_event_rejected_connect, request.dAppName)
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_reject_connect)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
-        }
+        pendingTonConnectAction = TonConnectAction.Connect(request, null)
+        tonConnectViewModel.rejectConnect(request, reason)
     }
 
     fun approveTransaction(request: TransactionRequestUi) {
-        viewModelScope.launch {
-            val result = runCatching {
-                request.transactionRequest?.approve()
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-                refreshWallets() // Refresh to show updated balance after transaction is sent
-                refreshSessions()
-                logEvent(R.string.wallet_event_approved_transaction, request.id)
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_approve_transaction)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
-        }
+        pendingTonConnectAction = TonConnectAction.Transaction(request)
+        tonConnectViewModel.approveTransaction(request)
     }
 
     fun rejectTransaction(request: TransactionRequestUi, reason: String = DEFAULT_REJECTION_REASON) {
-        viewModelScope.launch {
-            val result = runCatching {
-                request.transactionRequest?.reject(reason)
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-                logEvent(R.string.wallet_event_rejected_transaction, request.id)
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_reject_transaction)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
-        }
+        pendingTonConnectAction = TonConnectAction.Transaction(request)
+        tonConnectViewModel.rejectTransaction(request, reason)
     }
 
     fun approveSignData(request: SignDataRequestUi) {
-        viewModelScope.launch {
-            Log.d(LOG_TAG, "Approving sign data request ID: ${request.id}")
-
-            // Check if this wallet uses Signer interface type
-            val wallet = state.value.wallets.firstOrNull { it.address == request.walletAddress }
-            if (wallet?.interfaceType == WalletInterfaceType.SIGNER) {
-                // For Signer wallets, show confirmation dialog first
-                Log.d(LOG_TAG, "Wallet is SIGNER type, requesting confirmation")
-                _state.update { it.copy(pendingSignerConfirmation = request) }
-                return@launch
-            }
-
-            // For MNEMONIC wallets, approve immediately
-            val result = runCatching {
-                request.signDataRequest?.approve()
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-
-                // Log approval
-                Log.d(LOG_TAG, "========================================")
-                Log.d(LOG_TAG, "✅ SIGN DATA APPROVED")
-                Log.d(LOG_TAG, "========================================")
-                Log.d(LOG_TAG, "Request ID: ${request.id}")
-                Log.d(LOG_TAG, "Payload Type: ${request.payloadType}")
-                Log.d(LOG_TAG, "========================================")
-
-                logEvent(R.string.wallet_event_sign_data_approved)
-
-                _state.update {
-                    it.copy(
-                        status = uiString(R.string.wallet_status_signed_success),
-                        error = null,
-                    )
-                }
-
-                // Auto-hide success message after 10 seconds
-                launch {
-                    delay(HIDE_MESSAGE_MS)
-                    _state.update { currentState ->
-                        // Only clear if the status is still the success message
-                        val successStatus = uiString(R.string.wallet_status_signed_success)
-                        if (currentState.status == successStatus) {
-                            currentState.copy(status = uiString(R.string.wallet_status_walletkit_ready))
-                        } else {
-                            currentState
-                        }
-                    }
-                }
-            }.onFailure { error ->
-                Log.e(LOG_TAG, "❌ Sign data approval failed", error)
-                val errorMessage = error.message ?: uiString(R.string.wallet_error_unknown)
-                logEvent(R.string.wallet_event_sign_data_failed, errorMessage)
-                val fallback = uiString(R.string.wallet_error_approve_sign_request)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
+        val wallet = state.value.wallets.firstOrNull { it.address == request.walletAddress }
+        if (wallet?.interfaceType == WalletInterfaceType.SIGNER) {
+            Log.d(LOG_TAG, "Wallet is SIGNER type, requesting confirmation for sign data")
+            _state.update { it.copy(pendingSignerConfirmation = request) }
+            return
         }
+        pendingTonConnectAction = TonConnectAction.SignData(request, viaSigner = false)
+        tonConnectViewModel.approveSignData(request)
     }
 
     fun rejectSignData(request: SignDataRequestUi, reason: String = DEFAULT_REJECTION_REASON) {
-        viewModelScope.launch {
-            val result = runCatching {
-                request.signDataRequest?.reject(reason)
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-                Log.d(LOG_TAG, "❌ Rejected sign request ${request.id}: $reason")
-                logEvent(R.string.wallet_event_sign_request_rejected)
-                _state.update { it.copy(status = uiString(R.string.wallet_status_sign_rejected)) }
-
-                // Auto-hide rejection message after 10 seconds
-                launch {
-                    delay(HIDE_MESSAGE_MS)
-                    _state.update { currentState ->
-                        val rejectedStatus = uiString(R.string.wallet_status_sign_rejected)
-                        if (currentState.status == rejectedStatus) {
-                            currentState.copy(status = uiString(R.string.wallet_status_walletkit_ready))
-                        } else {
-                            currentState
-                        }
-                    }
-                }
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_reject_sign_request)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
-        }
+        pendingTonConnectAction = TonConnectAction.SignData(request, viaSigner = false)
+        tonConnectViewModel.rejectSignData(request, reason)
     }
 
     fun confirmSignerApproval() {
-        viewModelScope.launch {
-            val request = state.value.pendingSignerConfirmation
-            if (request == null) {
-                Log.w(LOG_TAG, "No pending signer confirmation to approve")
-                return@launch
-            }
-
-            Log.d(LOG_TAG, "User confirmed signer approval for request ID: ${request.id}")
-
-            // Clear the confirmation dialog
-            _state.update { it.copy(pendingSignerConfirmation = null) }
-
-            // Now actually approve the request
-            val result = runCatching {
-                request.signDataRequest?.approve()
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-
-                // Log approval
-                Log.d(LOG_TAG, "========================================")
-                Log.d(LOG_TAG, "✅ SIGN DATA APPROVED (via SIGNER confirmation)")
-                Log.d(LOG_TAG, "========================================")
-                Log.d(LOG_TAG, "Request ID: ${request.id}")
-                Log.d(LOG_TAG, "Payload Type: ${request.payloadType}")
-                Log.d(LOG_TAG, "========================================")
-
-                logEvent(R.string.wallet_event_sign_data_approved_signer)
-
-                // Update transaction details after signing
-                launch {
-                    request.walletAddress?.let { address ->
-                        if (state.value.activeWalletAddress == address) {
-                            refreshTransactions(address)
-                        }
-                    }
-                }
-            }.onFailure { error ->
-                Log.e(LOG_TAG, "❌ Sign data approval failed", error)
-                val errorMessage = error.message ?: uiString(R.string.wallet_error_unknown)
-                logEvent(R.string.wallet_event_sign_data_failed, errorMessage)
-                val fallback = uiString(R.string.wallet_error_approve_sign_request)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
+        val request = state.value.pendingSignerConfirmation
+        if (request == null) {
+            Log.w(LOG_TAG, "No pending signer confirmation to approve")
+            return
         }
+        Log.d(LOG_TAG, "User confirmed signer approval for request ID: ${request.id}")
+        _state.update { it.copy(pendingSignerConfirmation = null) }
+        pendingTonConnectAction = TonConnectAction.SignData(request, viaSigner = true)
+        tonConnectViewModel.approveSignData(request)
     }
 
     fun cancelSignerApproval() {
-        viewModelScope.launch {
-            val request = state.value.pendingSignerConfirmation
-            if (request == null) {
-                Log.w(LOG_TAG, "No pending signer confirmation to cancel")
-                return@launch
-            }
-
-            Log.d(LOG_TAG, "User cancelled signer approval for request ID: ${request.id}")
-
-            // Clear the confirmation dialog
-            _state.update { it.copy(pendingSignerConfirmation = null) }
-
-            // Reject the request
-            val result = runCatching {
-                request.signDataRequest?.reject(SIGNER_CONFIRMATION_CANCEL_REASON)
-                    ?: error(ERROR_REQUEST_OBJECT_NOT_AVAILABLE)
-            }
-
-            result.onSuccess {
-                dismissSheet()
-                Log.d(LOG_TAG, "❌ Rejected sign request ${request.id}: User cancelled signer confirmation")
-                logEvent(R.string.wallet_event_sign_request_cancelled)
-                _state.update { it.copy(status = uiString(R.string.wallet_status_sign_cancelled)) }
-
-                // Auto-hide cancellation message
-                launch {
-                    delay(HIDE_MESSAGE_MS)
-                    _state.update { currentState ->
-                        val cancelledStatus = uiString(R.string.wallet_status_sign_cancelled)
-                        if (currentState.status == cancelledStatus) {
-                            currentState.copy(status = uiString(R.string.wallet_status_walletkit_ready))
-                        } else {
-                            currentState
-                        }
-                    }
-                }
-            }.onFailure { error ->
-                val fallback = uiString(R.string.wallet_error_cancel_sign_request)
-                _state.update { it.copy(error = error.message ?: fallback) }
-            }
+        val request = state.value.pendingSignerConfirmation
+        if (request == null) {
+            Log.w(LOG_TAG, "No pending signer confirmation to cancel")
+            return
         }
+        Log.d(LOG_TAG, "User cancelled signer approval for request ID: ${request.id}")
+        _state.update { it.copy(pendingSignerConfirmation = null) }
+        pendingTonConnectAction = TonConnectAction.SignData(request, viaSigner = true)
+        tonConnectViewModel.rejectSignData(request, SIGNER_CONFIRMATION_CANCEL_REASON)
     }
 
     fun disconnectSession(sessionId: String) {
-        viewModelScope.launch {
-            try {
-                // We need the domain WalletSession instance (from TONWallet) to call the extension
-                var disconnected = false
-                val kit = getKit()
-                for (wallet in tonWallets.values) {
-                    val sessions = runCatching { wallet.sessions() }.getOrNull() ?: continue
-                    val domainSession = sessions.firstOrNull { it.sessionId == sessionId }
-                    if (domainSession != null) {
-                        domainSession.disconnect(kit)
-                        disconnected = true
-                        break
-                    }
-                }
-
-                if (!disconnected) {
-                    Log.w(LOG_TAG, "disconnectSession: session not found: $sessionId")
-                    _state.update { it.copy(error = uiString(R.string.wallet_error_session_not_found)) }
-                    return@launch
-                }
-
-                logEvent(R.string.wallet_event_session_disconnected, sessionId)
-            } catch (e: Exception) {
-                Log.w(LOG_TAG, "Failed to disconnect session $sessionId", e)
-                val fallback = uiString(R.string.wallet_error_disconnect_session)
-                _state.update { it.copy(error = e.message ?: fallback) }
-            } finally {
-                // Refresh sessions regardless to update the UI
-                refreshSessions()
-            }
-        }
+        sessionsViewModel.disconnectSession(sessionId)
     }
 
     fun openSendTransactionSheet(walletAddress: String) {
         val wallet = state.value.wallets.firstOrNull { it.address == walletAddress }
         if (wallet != null) {
-            setSheet(SheetState.SendTransaction(wallet))
+            uiCoordinator.openSendTransactionSheet(wallet)
         }
     }
 
     fun sendLocalTransaction(walletAddress: String, recipient: String, amount: String, comment: String = "") {
-        viewModelScope.launch {
-            _state.update { it.copy(isSendingTransaction = true, error = null) }
-
-            val wallet = tonWallets[walletAddress]
-            if (wallet == null) {
-                _state.update {
-                    it.copy(
-                        isSendingTransaction = false,
-                        error = uiString(R.string.wallet_error_wallet_not_found),
-                    )
-                }
-                return@launch
-            }
-
-            // Convert TON to nanoTON
-            val amountInNano = try {
-                TonFormatter.tonToNano(amount)
-            } catch (e: Exception) {
-                _state.update {
-                    val reason = e.message ?: uiString(R.string.wallet_error_unknown)
-                    it.copy(
-                        isSendingTransaction = false,
-                        error = uiString(R.string.wallet_error_invalid_amount, reason),
-                    )
-                }
-                return@launch
-            }
-
-            val result = runCatching { wallet.sendLocalTransaction(recipient, amountInNano, comment) }
-
-            result.onSuccess {
-                // Transaction request sent - it will trigger onTransactionRequest event
-                // which will show the approval dialog
-                _state.update { it.copy(isSendingTransaction = false, error = null) }
-                logEvent(R.string.wallet_event_transaction_initiated, walletAddress)
-            }.onFailure { error ->
-                _state.update {
-                    it.copy(
-                        isSendingTransaction = false,
-                        error = error.message ?: uiString(R.string.wallet_error_send_transaction),
-                    )
-                }
-            }
-        }
+        walletOperationsViewModel.sendLocalTransaction(walletAddress, recipient, amount, comment)
     }
 
     fun toggleWalletSwitcher() {
-        _state.update { it.copy(isWalletSwitcherExpanded = !it.isWalletSwitcherExpanded) }
+        uiCoordinator.toggleWalletSwitcher()
     }
 
     fun switchWallet(address: String) {
-        viewModelScope.launch {
-            val wallet = state.value.wallets.firstOrNull { it.address == address }
-            if (wallet == null) {
-                _state.update { it.copy(error = uiString(R.string.wallet_error_wallet_not_found)) }
-                return@launch
-            }
-
-            _state.update {
-                it.copy(
-                    activeWalletAddress = address,
-                    isWalletSwitcherExpanded = false,
-                    error = null,
-                )
-            }
-
-            // Save active wallet preference
-            persistActiveWalletPreference(address)
-
-            // Update NFTs ViewModel for new active wallet
-            updateNftsViewModel(address)
-
-            // Load jettons for new active wallet
-            loadJettons()
-
-            // Refresh wallet state to get latest balance, then transactions
-            refreshWallets()
-            logEvent(R.string.wallet_event_switched_wallet, wallet.name)
-
-            // Immediately fetch transactions after wallets refresh completes
-            refreshTransactions(address)
-        }
-    }
-
-    /**
-     * Persist the active wallet address to storage (nullable to clear preference).
-     */
-    private fun persistActiveWalletPreference(address: String?) {
-        if (lastPersistedActiveWallet == address) {
-            Log.d(
-                LOG_TAG,
-                if (address != null) {
-                    "persistActiveWalletPreference: unchanged ($address), skip write"
-                } else {
-                    "persistActiveWalletPreference: unchanged (null), skip write"
-                },
-            )
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                Log.d(LOG_TAG, "persistActiveWalletPreference: writing preference $address")
-                val updatedPrefs = UserPreferences(
-                    activeWalletAddress = address,
-                )
-                storage.saveUserPreferences(updatedPrefs)
-                lastPersistedActiveWallet = address
-                Log.d(
-                    LOG_TAG,
-                    if (address != null) {
-                        "Saved active wallet preference: $address"
-                    } else {
-                        "Cleared active wallet preference"
-                    },
-                )
-            } catch (e: Exception) {
-                Log.e(LOG_TAG, "Failed to save active wallet preference", e)
-            }
-        }
+        walletOperationsViewModel.switchWallet(address)
     }
 
     /**
@@ -1085,34 +805,61 @@ class WalletKitViewModel(
     private fun updateNftsViewModel(address: String?) {
         if (address == null) {
             _nftsViewModel.value = null
+            currentNftsWalletAddress = null
             return
         }
 
-        val wallet = tonWallets[address]
+        if (currentNftsWalletAddress == address && _nftsViewModel.value != null) {
+            return
+        }
+
+        val wallet = lifecycleManager.tonWallets[address]
         if (wallet == null) {
             Log.w(LOG_TAG, "updateNftsViewModel: wallet not found for address $address")
             _nftsViewModel.value = null
+            currentNftsWalletAddress = null
             return
         }
 
         _nftsViewModel.value = NFTsListViewModel(wallet)
+        currentNftsWalletAddress = address
         Log.d(LOG_TAG, "updateNftsViewModel: created NFTsListViewModel for $address")
     }
 
-    fun refreshTransactions(address: String? = state.value.activeWalletAddress, limit: Int = TRANSACTION_FETCH_LIMIT) {
-        val targetAddress = address ?: return
-        viewModelScope.launch {
-            val refreshErrorMessage = uiString(R.string.wallet_error_refresh_transactions)
-            _state.update { it.copy(isLoadingTransactions = true) }
+    private fun attachTransactionHistoryViewModel(address: String?) {
+        transactionsCollectors.forEach { it.cancel() }
+        transactionsCollectors = emptyList()
+        if (address == null) {
+            activeTransactionHistoryViewModel.value = null
+            currentTransactionsWalletAddress = null
+            _state.update { current ->
+                current.copy(
+                    isLoadingTransactions = false,
+                    wallets = current.wallets.map { it.copy(transactions = emptyList()) },
+                )
+            }
+            return
+        }
 
-            // Try to get cached transactions first for immediate display
-            val cachedTransactions = transactionCache.get(targetAddress)
-            if (cachedTransactions != null) {
-                Log.d(LOG_TAG, "Using cached transactions for $targetAddress: ${cachedTransactions.size} items")
+        val wallet = lifecycleManager.tonWallets[address]
+        if (wallet == null) {
+            Log.w(LOG_TAG, "attachTransactionHistoryViewModel: wallet not found for $address")
+            activeTransactionHistoryViewModel.value = null
+            currentTransactionsWalletAddress = null
+            _state.update { it.copy(isLoadingTransactions = false) }
+            return
+        }
+
+        val viewModel = TransactionHistoryViewModel(wallet, lifecycleManager.transactionCache)
+        activeTransactionHistoryViewModel.value = viewModel
+        currentTransactionsWalletAddress = address
+
+        val transactionsJob = viewModelScope.launch {
+            viewModel.transactions.collect { transactions ->
                 _state.update { current ->
                     val updatedWallets = current.wallets.map { summary ->
-                        if (summary.address == targetAddress) {
-                            summary.copy(transactions = cachedTransactions)
+                        if (summary.address == address) {
+                            summary.copy(transactions = transactions)
                         } else {
                             summary
                         }
@@ -1120,53 +867,114 @@ class WalletKitViewModel(
                     current.copy(wallets = updatedWallets)
                 }
             }
+        }
 
-            // Fetch fresh transactions from network via wallet instance
-            val wallet = tonWallets[targetAddress]
-            val result = if (wallet != null) {
-                runCatching { wallet.transactions() }
-            } else {
-                Result.failure(Exception(uiString(R.string.wallet_error_wallet_not_found)))
-            }
-
-            result.onSuccess { newTransactions ->
-                // Update cache with new transactions (merges with existing)
-                val mergedTransactions = transactionCache.update(targetAddress, newTransactions)
-
-                // Calculate diff for logging/debugging
-                val oldList = cachedTransactions ?: emptyList()
-                if (oldList.isNotEmpty()) {
-                    val newItems = TransactionDiffUtil.getNewTransactions(oldList, mergedTransactions)
-                    if (newItems.isNotEmpty()) {
-                        Log.d(LOG_TAG, "Found ${newItems.size} new transactions for $targetAddress")
-                    }
-                }
-
+        val stateJob = viewModelScope.launch {
+            viewModel.state.collect { historyState ->
                 _state.update { current ->
-                    val updatedWallets = current.wallets.map { summary ->
-                        if (summary.address == targetAddress) {
-                            summary.copy(transactions = mergedTransactions)
-                        } else {
-                            summary
-                        }
+                    val errorMessage = if (historyState is TransactionHistoryViewModel.TransactionState.Error) {
+                        historyState.message
+                    } else {
+                        current.error
                     }
-                    val updatedError = if (current.error == refreshErrorMessage) null else current.error
                     current.copy(
-                        wallets = updatedWallets,
-                        isLoadingTransactions = false,
-                        error = updatedError,
-                    )
-                }
-            }.onFailure { error ->
-                Log.e(LOG_TAG, "Failed to refresh transactions for $targetAddress", error)
-                _state.update {
-                    it.copy(
-                        isLoadingTransactions = false,
-                        error = error.message ?: refreshErrorMessage,
+                        isLoadingTransactions = historyState is TransactionHistoryViewModel.TransactionState.Loading,
+                        error = errorMessage,
                     )
                 }
             }
         }
+
+        transactionsCollectors = listOf(transactionsJob, stateJob)
+        viewModel.loadTransactions(limit = TRANSACTION_FETCH_LIMIT)
+    }
+
+    private fun attachJettonsViewModel(address: String?) {
+        jettonsCollectors.forEach { it.cancel() }
+        jettonsCollectors = emptyList()
+        if (address == null) {
+            activeJettonsViewModel.value = null
+            currentJettonsWalletAddress = null
+            _state.update {
+                it.copy(
+                    jettons = emptyList(),
+                    isLoadingJettons = false,
+                    jettonsError = null,
+                    canLoadMoreJettons = false,
+                )
+            }
+            return
+        }
+
+        val wallet = lifecycleManager.tonWallets[address]
+        if (wallet == null) {
+            Log.w(LOG_TAG, "attachJettonsViewModel: wallet not found for $address")
+            activeJettonsViewModel.value = null
+            currentJettonsWalletAddress = null
+            _state.update {
+                it.copy(
+                    jettons = emptyList(),
+                    isLoadingJettons = false,
+                    jettonsError = uiString(R.string.wallet_error_wallet_not_found),
+                    canLoadMoreJettons = false,
+                )
+            }
+            return
+        }
+
+        val viewModel = JettonsListViewModel(wallet)
+        activeJettonsViewModel.value = viewModel
+        currentJettonsWalletAddress = address
+
+        val dataJob = viewModelScope.launch {
+            viewModel.jettons.collect { jettons ->
+                val summaries = jettons.map { JettonSummary.from(it) }
+                _state.update {
+                    it.copy(
+                        jettons = summaries,
+                        canLoadMoreJettons = viewModel.canLoadMore,
+                    )
+                }
+            }
+        }
+
+        val stateJob = viewModelScope.launch {
+            viewModel.state.collect { jettonState ->
+                _state.update { current ->
+                    val errorMessage = when (jettonState) {
+                        is JettonsListViewModel.JettonState.Error -> jettonState.message
+                        JettonsListViewModel.JettonState.Loading -> null
+                        else -> null
+                    }
+                    current.copy(
+                        isLoadingJettons = jettonState is JettonsListViewModel.JettonState.Loading,
+                        jettonsError = errorMessage,
+                        canLoadMoreJettons = viewModel.canLoadMore,
+                    )
+                }
+            }
+        }
+
+        val transferErrorJob = viewModelScope.launch {
+            viewModel.transferError.collect { error ->
+                if (error != null) {
+                    _state.update { it.copy(error = error) }
+                    viewModel.clearTransferError()
+                }
+            }
+        }
+
+        jettonsCollectors = listOf(dataJob, stateJob, transferErrorJob)
+        viewModel.loadJettons()
+    }
+
+    fun refreshTransactions(address: String? = state.value.activeWalletAddress, limit: Int = TRANSACTION_FETCH_LIMIT) {
+        val targetAddress = address ?: return
+        if (currentTransactionsWalletAddress != targetAddress) {
+            attachTransactionHistoryViewModel(targetAddress)
+            return
+        }
+        activeTransactionHistoryViewModel.value?.loadTransactions(limit = limit)
     }
 
     fun showTransactionDetail(transactionHash: String, walletAddress: String) {
@@ -1184,12 +992,12 @@ class WalletKitViewModel(
             defaultFeeLabel = uiString(R.string.wallet_transaction_fee_default),
             successStatusLabel = uiString(R.string.wallet_transaction_status_success),
         )
-        _state.update { it.copy(sheetState = SheetState.TransactionDetail(detail)) }
+        uiCoordinator.showTransactionDetail(SheetState.TransactionDetail(detail))
     }
 
     fun removeWallet(address: String) {
         viewModelScope.launch {
-            val wallet = tonWallets[address]
+            val wallet = lifecycleManager.tonWallets[address]
             if (wallet == null) {
                 _state.update { it.copy(error = uiString(R.string.wallet_error_wallet_not_found)) }
                 return@launch
@@ -1204,16 +1012,16 @@ class WalletKitViewModel(
             }
 
             // Remove from cache
-            tonWallets.remove(address)
+            lifecycleManager.tonWallets.remove(address)
 
             runCatching { storage.clear(address) }
                 .onSuccess { Log.d(LOG_TAG, "removeWallet: cleared storage entry for $address") }
                 .onFailure { Log.w(LOG_TAG, "removeWallet: failed to clear storage for $address", it) }
 
             // Clear transaction cache for removed wallet
-            transactionCache.clear(address)
+            lifecycleManager.transactionCache.clear(address)
 
-            walletMetadata.remove(address)
+            lifecycleManager.walletMetadata.remove(address)
 
             val walletName = state.value.wallets.firstOrNull { it.address == address }?.name
                 ?: uiString(R.string.wallet_default_name_fallback)
@@ -1236,25 +1044,29 @@ class WalletKitViewModel(
             }
 
             if (previousActiveAddress != updatedActiveAddress) {
-                persistActiveWalletPreference(updatedActiveAddress)
+                lifecycleManager.persistActiveWalletPreference(updatedActiveAddress)
             }
 
-            refreshWallets()
-            refreshSessions() // Refresh to update UI with removed sessions
+            updateNftsViewModel(updatedActiveAddress)
+            attachTransactionHistoryViewModel(updatedActiveAddress)
+            attachJettonsViewModel(updatedActiveAddress)
 
-            logEvent(R.string.wallet_event_wallet_removed, walletName)
+            refreshWallets()
+            sessionsViewModel.refresh() // Refresh to update UI with removed sessions
+
+            eventLogger.log(R.string.wallet_event_wallet_removed, walletName)
         }
     }
 
     fun renameWallet(address: String, newName: String) {
-        val metadata = walletMetadata[address]
+        val metadata = lifecycleManager.walletMetadata[address]
         if (metadata == null) {
             _state.update { it.copy(error = uiString(R.string.wallet_error_wallet_not_found)) }
             return
         }
 
         val updated = metadata.copy(name = newName.ifBlank { defaultWalletName(0) })
-        walletMetadata[address] = updated
+        lifecycleManager.walletMetadata[address] = updated
 
         // Update storage
         viewModelScope.launch {
@@ -1276,236 +1088,7 @@ class WalletKitViewModel(
 
             // Refresh to update UI
             refreshWallets()
-            logEvent(R.string.wallet_event_wallet_renamed, newName)
-        }
-    }
-
-    private suspend fun loadWalletSummaries(): List<WalletSummary> {
-        // Get wallets from SDK and update cache
-        val wallets = getKit().getWallets()
-        wallets.forEach { wallet ->
-            wallet.address?.let { address ->
-                tonWallets[address] = wallet
-            }
-        }
-
-        Log.d(LOG_TAG, "loadWalletSummaries: got ${wallets.size} wallets from SDK")
-        val knownAddresses = wallets.mapNotNull { it.address }.toSet()
-        walletMetadata.keys.retainAll(knownAddresses)
-
-        val result = mutableListOf<WalletSummary>()
-        for (wallet in wallets) {
-            val address = wallet.address ?: continue
-            val publicKey = wallet.publicKey
-            val metadata = ensureMetadataForAddress(address, publicKey)
-            Log.d(
-                LOG_TAG,
-                "loadWalletSummaries: metadata for $address name='${metadata.name}' network=${metadata.network} version=${metadata.version}",
-            )
-
-            Log.d(LOG_TAG, "loadWalletSummaries: fetching state for $address")
-            val stateData = runCatching {
-                wallet.stateInit()
-            }.onFailure {
-                Log.e(LOG_TAG, "loadWalletSummaries: stateInit failed for $address", it)
-            }.getOrNull()
-
-            val balance = runCatching {
-                wallet.balance()
-            }.onFailure {
-                Log.e(LOG_TAG, "loadWalletSummaries: balance failed for $address", it)
-            }.getOrNull()
-
-            Log.d(LOG_TAG, "loadWalletSummaries: balance for $address = $balance")
-            val formatted = balance?.let { TonFormatter.formatTon(it) }
-
-            // Use cached transactions only - don't fetch on every balance refresh
-            // Transactions will be fetched explicitly via refreshTransactions()
-            val cachedTransactions = transactionCache.get(address)
-
-            // Get sessions connected to this wallet
-            val walletSessions = _state.value.sessions.filter { session ->
-                session.walletAddress == address
-            }
-
-            // Get creation date from stored record
-            val storedRecord = storage.loadWallet(address)
-            Log.d(
-                LOG_TAG,
-                "loadWalletSummaries: storage record for $address present=${storedRecord != null}",
-            )
-            val createdAt = storedRecord?.createdAt
-            val interfaceType = storedRecord?.interfaceType?.let { WalletInterfaceType.fromValue(it) }
-                ?: WalletInterfaceType.MNEMONIC
-
-            val summary = WalletSummary(
-                address = address,
-                name = metadata.name,
-                network = metadata.network,
-                version = metadata.version.ifBlank { DEFAULT_WALLET_VERSION },
-                publicKey = publicKey,
-                balanceNano = balance,
-                balance = formatted,
-                transactions = cachedTransactions,
-                lastUpdated = System.currentTimeMillis(),
-                connectedSessions = walletSessions,
-                createdAt = createdAt,
-                interfaceType = interfaceType,
-            )
-            result.add(summary)
-        }
-        return result
-    }
-
-    private suspend fun ensureMetadataForAddress(address: String, publicKey: String?): WalletMetadata {
-        walletMetadata[address]?.let { return it }
-
-        val pending = pendingWallets.removeLastOrNull()
-        Log.d(
-            LOG_TAG,
-            "ensureMetadataForAddress: address=$address pending=${pending != null} stored=${walletMetadata.containsKey(address)}",
-        )
-        val storedRecord = storage.loadWallet(address)
-        if (storedRecord != null) {
-            Log.d(
-                LOG_TAG,
-                "ensureMetadataForAddress: storage hit for $address name='${storedRecord.name}' network='${storedRecord.network}' version='${storedRecord.version}'",
-            )
-        } else {
-            Log.d(LOG_TAG, "ensureMetadataForAddress: no stored record for $address")
-        }
-        val metadata = pending?.metadata
-            ?: storedRecord?.let {
-                WalletMetadata(
-                    name = it.name,
-                    network = it.network.toTonNetwork(currentNetwork),
-                    version = it.version,
-                )
-            }
-            ?: WalletMetadata(
-                name = defaultWalletName(walletMetadata.size),
-                network = currentNetwork,
-                version = DEFAULT_WALLET_VERSION,
-            )
-        walletMetadata[address] = metadata
-
-        if (pending?.mnemonic != null) {
-            val record = WalletRecord(
-                mnemonic = pending.mnemonic,
-                name = metadata.name,
-                network = metadata.network.toBridgeValue(),
-                version = metadata.version,
-            )
-            runCatching { storage.saveWallet(address, record) }
-                .onSuccess { Log.d(LOG_TAG, "ensureMetadataForAddress: saved pending record for $address") }
-                .onFailure { Log.e(LOG_TAG, "ensureMetadataForAddress: failed to save pending record for $address", it) }
-        } else if (storedRecord != null) {
-            val needsUpdate = storedRecord.name != metadata.name ||
-                storedRecord.network != metadata.network.toBridgeValue() ||
-                storedRecord.version != metadata.version
-            if (needsUpdate) {
-                val record = WalletRecord(
-                    mnemonic = storedRecord.mnemonic,
-                    name = metadata.name,
-                    network = metadata.network.toBridgeValue(),
-                    version = metadata.version,
-                    // Preserve stored interfaceType and createdAt
-                    interfaceType = storedRecord.interfaceType,
-                    createdAt = storedRecord.createdAt,
-                )
-                runCatching { storage.saveWallet(address, record) }
-                    .onSuccess { Log.d(LOG_TAG, "ensureMetadataForAddress: refreshed stored record for $address") }
-                    .onFailure { Log.e(LOG_TAG, "ensureMetadataForAddress: refresh save failed for $address", it) }
-            }
-        }
-
-        return metadata
-    }
-
-    private suspend fun rehydrateWalletsFromStorage(): Boolean {
-        val stored = storage.loadAllWallets()
-        if (stored.isEmpty()) {
-            Log.d(LOG_TAG, "rehydrate: storage empty, nothing to restore")
-            return false
-        }
-
-        var restoredCount = 0
-        for ((storedAddress, record) in stored) {
-            val interfaceType = record.interfaceType
-            if (interfaceType != WalletInterfaceType.MNEMONIC.value) {
-                Log.w(
-                    LOG_TAG,
-                    "rehydrate: skipping $storedAddress (interfaceType=$interfaceType not supported for auto-restore)",
-                )
-                continue
-            }
-
-            val networkEnum = record.network.toTonNetwork(currentNetwork)
-            val version = record.version.ifBlank { DEFAULT_WALLET_VERSION }
-            val name = record.name.ifBlank { defaultWalletName(restoredCount) }
-
-            val walletData = TONWalletData(
-                mnemonic = record.mnemonic,
-                name = name,
-                version = version,
-                network = networkEnum,
-            )
-
-            val result = runCatching { getKit().addWallet(walletData) }
-            result.onSuccess { wallet ->
-                val restoredAddress = wallet.address
-                if (restoredAddress.isNullOrBlank()) {
-                    Log.w(LOG_TAG, "rehydrate: wallet added but address null for stored $storedAddress")
-                    return@onSuccess
-                }
-
-                tonWallets[restoredAddress] = wallet
-                walletMetadata[restoredAddress] = WalletMetadata(
-                    name = name,
-                    network = networkEnum,
-                    version = version,
-                )
-
-                if (restoredAddress != storedAddress) {
-                    Log.w(
-                        LOG_TAG,
-                        "rehydrate: restored address mismatch stored=$storedAddress restored=$restoredAddress",
-                    )
-                }
-
-                restoredCount += 1
-                Log.d(
-                    LOG_TAG,
-                    "rehydrate: restored wallet $restoredAddress (name='$name', network=$networkEnum, version=$version)",
-                )
-            }.onFailure {
-                Log.e(LOG_TAG, "rehydrate: failed to restore $storedAddress", it)
-            }
-        }
-
-        return restoredCount > 0
-    }
-
-    private suspend fun reinitializeForNetwork(
-        target: TONNetwork,
-    ) {
-        // Note: SDK is initialized globally, network switching not supported in current public API
-        // For now, just update local state
-        currentNetwork = target
-        walletMetadata.clear()
-        pendingWallets.clear()
-    }
-
-    private suspend fun switchNetworkIfNeeded(target: TONNetwork) {
-        if (target == currentNetwork) return
-        reinitializeForNetwork(target)
-        refreshAll()
-    }
-
-    private fun setSheet(sheet: SheetState, savePrevious: Boolean = false) {
-        _state.update { currentState ->
-            val previousSheet = if (savePrevious) currentState.sheetState else null
-            currentState.copy(sheetState = sheet, previousSheet = previousSheet)
+            eventLogger.log(R.string.wallet_event_wallet_renamed, newName)
         }
     }
 
@@ -1540,10 +1123,10 @@ class WalletKitViewModel(
         // Save previous sheet (e.g., Browser) so we can restore it after approval/rejection
         val currentSheet = _state.value.sheetState
         val shouldSavePrevious = currentSheet is SheetState.Browser
-        setSheet(SheetState.Connect(uiRequest), savePrevious = shouldSavePrevious)
+        uiCoordinator.setSheet(SheetState.Connect(uiRequest), savePrevious = shouldSavePrevious)
 
         val eventDAppName = dAppInfo?.name ?: fallbackDAppName
-        logEvent(R.string.wallet_event_connect_request, eventDAppName)
+        eventLogger.log(R.string.wallet_event_connect_request, eventDAppName)
     }
 
     private fun onTransactionRequest(request: TONWalletTransactionRequest) {
@@ -1589,10 +1172,10 @@ class WalletKitViewModel(
         )
 
         Log.d(LOG_TAG, "Setting sheet to Transaction state with ${messages.size} messages")
-        setSheet(SheetState.Transaction(uiRequest))
+        uiCoordinator.setSheet(SheetState.Transaction(uiRequest))
         Log.d(LOG_TAG, "Sheet state updated: ${state.value.sheetState}")
         val eventDAppName = dAppInfo?.name ?: fallbackDAppName
-        logEvent(R.string.wallet_event_transaction_request, eventDAppName)
+        eventLogger.log(R.string.wallet_event_transaction_request, eventDAppName)
     }
 
     private fun onSignDataRequest(request: TONWalletSignDataRequest) {
@@ -1611,16 +1194,9 @@ class WalletKitViewModel(
             signDataRequest = request,
         )
 
-        setSheet(SheetState.SignData(uiRequest))
+        uiCoordinator.setSheet(SheetState.SignData(uiRequest))
         val eventDAppName = dAppInfo?.name ?: fallbackDAppName
-        logEvent(R.string.wallet_event_sign_data_request, eventDAppName)
-    }
-
-    private fun logEvent(message: String) {
-        _state.update {
-            val events = listOf(message) + it.events
-            it.copy(events = events.take(MAX_EVENT_LOG))
-        }
+        eventLogger.log(R.string.wallet_event_sign_data_request, eventDAppName)
     }
 
     override fun onCleared() {
@@ -1695,17 +1271,14 @@ class WalletKitViewModel(
     fun setupPassword(password: String) {
         viewModelScope.launch {
             try {
-                storage.setPassword(password)
-                _isPasswordSet.value = true
-                _isUnlocked.value = true
-                storage.setUnlocked(true)
+                securityController.setPassword(password)
 
                 // Wait for SDK to initialize and wallets to load
                 sdkInitialized.first { it }
 
                 // If no wallets exist, automatically open add wallet sheet
                 if (_state.value.wallets.isEmpty()) {
-                    _state.update { it.copy(sheetState = SheetState.AddWallet) }
+                    uiCoordinator.openAddWalletSheet()
                 }
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Failed to setup password", e)
@@ -1715,33 +1288,30 @@ class WalletKitViewModel(
         }
     }
 
-    fun unlockWallet(password: String): Boolean = if (storage.verifyPassword(password)) {
-        _isUnlocked.value = true
-        storage.setUnlocked(true)
-
-        // If no wallets exist, automatically open add wallet sheet
-        viewModelScope.launch {
-            sdkInitialized.first { it }
-            if (_state.value.wallets.isEmpty()) {
-                _state.update { it.copy(sheetState = SheetState.AddWallet) }
+    fun unlockWallet(password: String): Boolean {
+        val verified = securityController.verifyPassword(password)
+        if (verified) {
+            viewModelScope.launch {
+                sdkInitialized.first { it }
+                if (_state.value.wallets.isEmpty()) {
+                    uiCoordinator.openAddWalletSheet()
+                }
             }
+            return true
         }
-        true
-    } else {
         _state.update { it.copy(error = uiString(R.string.wallet_error_incorrect_password)) }
-        false
+        return false
     }
 
     fun lockWallet() {
-        _isUnlocked.value = false
-        storage.setUnlocked(false)
+        securityController.lock()
     }
 
     fun resetWallet() {
         viewModelScope.launch {
             try {
                 // Remove all wallets from SDK first
-                val allWallets = tonWallets.values.toList()
+                val allWallets = lifecycleManager.tonWallets.values.toList()
                 allWallets.forEach { wallet ->
                     runCatching { wallet.remove() }.onFailure {
                         Log.w(LOG_TAG, "Failed to remove wallet during reset", it)
@@ -1749,17 +1319,13 @@ class WalletKitViewModel(
                 }
 
                 // Clear local caches
-                tonWallets.clear()
-                walletMetadata.clear()
-                transactionCache.clearAll()
+                lifecycleManager.clearCachesForReset()
 
                 // Clear all stored data (including password)
                 storage.clearAll()
-                lastPersistedActiveWallet = null
 
                 // Reset state
-                _isPasswordSet.value = false
-                _isUnlocked.value = false
+                securityController.reset()
                 _state.update {
                     WalletUiState(
                         status = uiString(R.string.wallet_status_wallet_reset),
@@ -1784,196 +1350,52 @@ class WalletKitViewModel(
      * Load jettons for the active wallet.
      */
     fun loadJettons() {
-        viewModelScope.launch {
-            val wallet = _state.value.wallets.find { it.address == _state.value.activeWalletAddress }
-            if (wallet == null) {
-                Log.w(LOG_TAG, "loadJettons: No active wallet")
-                return@launch
-            }
-
-            val tonWallet = tonWallets[wallet.address]
-            if (tonWallet == null) {
-                Log.w(LOG_TAG, "loadJettons: TONWallet not found for ${wallet.address}")
-                return@launch
-            }
-
-            _state.update { it.copy(isLoadingJettons = true, jettonsError = null) }
-
-            try {
-                Log.d(LOG_TAG, "loadJettons: Fetching jettons for wallet address: ${wallet.address}")
-                val jettonsWallets = tonWallet.jettonsWallets(limit = 100, offset = 0)
-
-                Log.d(LOG_TAG, "loadJettons: Received ${jettonsWallets.items.size} jettons")
-
-                // Log each jetton for debugging
-                jettonsWallets.items.forEachIndexed { index, jettonWallet ->
-                    Log.d(LOG_TAG, "loadJettons: Jetton $index - address: ${jettonWallet.jettonAddress}, balance: ${jettonWallet.balance}, name: ${jettonWallet.jetton?.name}")
-                }
-
-                val jettonSummaries = jettonsWallets.items.map { jettonWallet ->
-                    io.ton.walletkit.demo.presentation.model.JettonSummary.from(jettonWallet)
-                }
-
-                val pagination = jettonsWallets.pagination
-                val canLoadMore = pagination != null &&
-                    pagination.offset + jettonsWallets.items.size < (pagination.pages ?: Int.MAX_VALUE)
-
-                _state.update {
-                    it.copy(
-                        jettons = jettonSummaries,
-                        isLoadingJettons = false,
-                        canLoadMoreJettons = canLoadMore,
-                    )
-                }
-
-                Log.d(LOG_TAG, "loadJettons: Successfully loaded ${jettonSummaries.size} jettons")
-            } catch (e: Exception) {
-                Log.e(LOG_TAG, "loadJettons: Failed to load jettons", e)
-                _state.update {
-                    it.copy(
-                        isLoadingJettons = false,
-                        jettonsError = e.message ?: "Failed to load jettons",
-                    )
-                }
-            }
+        val address = state.value.activeWalletAddress
+        if (address == null) {
+            Log.w(LOG_TAG, "loadJettons: No active wallet")
+            return
+        }
+        if (currentJettonsWalletAddress != address) {
+            attachJettonsViewModel(address)
+        } else {
+            activeJettonsViewModel.value?.loadJettons()
         }
     }
 
-    /**
-     * Load more jettons with pagination.
-     */
     fun loadMoreJettons() {
-        viewModelScope.launch {
-            val currentState = _state.value
-            if (!currentState.canLoadMoreJettons || currentState.isLoadingJettons) {
-                return@launch
-            }
-
-            val wallet = currentState.wallets.find { it.address == currentState.activeWalletAddress }
-            if (wallet == null) {
-                Log.w(LOG_TAG, "loadMoreJettons: No active wallet")
-                return@launch
-            }
-
-            val tonWallet = tonWallets[wallet.address]
-            if (tonWallet == null) {
-                Log.w(LOG_TAG, "loadMoreJettons: TONWallet not found for ${wallet.address}")
-                return@launch
-            }
-
-            _state.update { it.copy(isLoadingJettons = true) }
-
-            try {
-                val currentOffset = currentState.jettons.size
-                Log.d(LOG_TAG, "loadMoreJettons: Fetching more jettons, offset=$currentOffset")
-
-                val jettonsWallets = tonWallet.jettonsWallets(limit = 100, offset = currentOffset)
-
-                Log.d(LOG_TAG, "loadMoreJettons: Received ${jettonsWallets.items.size} more jettons")
-
-                val newJettonSummaries = jettonsWallets.items.map { jettonWallet ->
-                    io.ton.walletkit.demo.presentation.model.JettonSummary.from(jettonWallet)
-                }
-
-                val pagination = jettonsWallets.pagination
-                val canLoadMore = pagination != null &&
-                    pagination.offset + jettonsWallets.items.size < (pagination.pages ?: Int.MAX_VALUE)
-
-                _state.update {
-                    it.copy(
-                        jettons = it.jettons + newJettonSummaries,
-                        isLoadingJettons = false,
-                        canLoadMoreJettons = canLoadMore,
-                    )
-                }
-
-                Log.d(LOG_TAG, "loadMoreJettons: Total jettons now: ${_state.value.jettons.size}")
-            } catch (e: Exception) {
-                Log.e(LOG_TAG, "loadMoreJettons: Failed to load more jettons", e)
-                _state.update {
-                    it.copy(
-                        isLoadingJettons = false,
-                        jettonsError = e.message ?: "Failed to load more jettons",
-                    )
-                }
-            }
-        }
+        activeJettonsViewModel.value?.loadMoreJettons()
     }
 
-    /**
-     * Refresh jettons for the active wallet.
-     */
     fun refreshJettons() {
-        Log.d(LOG_TAG, "refreshJettons: Refreshing jettons")
-        loadJettons()
+        activeJettonsViewModel.value?.refresh()
     }
 
     /**
      * Show jetton details sheet.
      */
-    fun showJettonDetails(jettonSummary: io.ton.walletkit.demo.presentation.model.JettonSummary) {
-        val jettonDetails = io.ton.walletkit.demo.presentation.model.JettonDetails.from(jettonSummary.jettonWallet)
-        _state.update { it.copy(sheetState = io.ton.walletkit.demo.presentation.state.SheetState.JettonDetails(jettonDetails)) }
+    fun showJettonDetails(jettonSummary: JettonSummary) {
+        val jettonDetails = JettonDetails.from(jettonSummary.jettonWallet)
+        uiCoordinator.showJettonDetails(jettonDetails)
     }
 
     /**
      * Show jetton transfer sheet.
      */
-    fun showTransferJetton(jettonDetails: io.ton.walletkit.demo.presentation.model.JettonDetails) {
-        _state.update { it.copy(sheetState = io.ton.walletkit.demo.presentation.state.SheetState.TransferJetton(jettonDetails)) }
+    fun showTransferJetton(jettonDetails: JettonDetails) {
+        uiCoordinator.showTransferJetton(jettonDetails)
     }
 
     /**
      * Transfer jetton to another address.
      */
     fun transferJetton(jettonAddress: String, recipient: String, amount: String, comment: String) {
-        viewModelScope.launch {
-            try {
-                val walletAddress = _state.value.activeWalletAddress
-                if (walletAddress == null) {
-                    _state.update { it.copy(error = "No active wallet") }
-                    return@launch
-                }
-
-                val wallet = tonWallets[walletAddress]
-                if (wallet == null) {
-                    _state.update { it.copy(error = "Wallet not found") }
-                    return@launch
-                }
-
-                val transferParams = io.ton.walletkit.domain.model.TONJettonTransferParams(
-                    toAddress = recipient,
-                    jettonAddress = jettonAddress,
-                    amount = amount,
-                    comment = comment.takeIf { it.isNotBlank() },
-                )
-
-                // Create the jetton transfer transaction
-                val transactionBoc = wallet.transferJettonTransaction(transferParams)
-
-                Log.i(LOG_TAG, "Jetton transfer transaction created, sending...")
-
-                // Send the transaction via TON Connect (triggers approval flow)
-                wallet.sendTransaction(transactionBoc)
-
-                // Dismiss sheet on success
-                _state.update {
-                    it.copy(
-                        error = null,
-                        sheetState = io.ton.walletkit.demo.presentation.state.SheetState.None,
-                    )
-                }
-
-                Log.i(LOG_TAG, "Jetton transfer transaction sent for approval")
-
-                // Refresh jettons after a longer delay to allow transaction to be confirmed and indexed
-                delay(5000)
-                loadJettons()
-            } catch (e: Exception) {
-                Log.e(LOG_TAG, "Failed to transfer jetton", e)
-                _state.update { it.copy(error = "Transfer failed: ${e.message}") }
-            }
+        val viewModel = activeJettonsViewModel.value
+        if (viewModel == null) {
+            _state.update { it.copy(error = uiString(R.string.wallet_error_wallet_not_found)) }
+            return
         }
+        viewModel.transferJetton(jettonAddress, recipient, amount, comment)
+        dismissSheet()
     }
 
     companion object {
