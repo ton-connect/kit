@@ -3,10 +3,10 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.ton.walletkit.domain.model.TONJettonTransferParams
-import io.ton.walletkit.domain.model.TONJettonWallet
-import io.ton.walletkit.domain.model.TONPagination
-import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.model.TONJettonTransferParams
+import io.ton.walletkit.model.TONJettonWallet
+import io.ton.walletkit.model.TONPagination
+import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
  * Handles jetton loading, pagination, and transfer operations.
  */
 class JettonsListViewModel(
-    private val wallet: TONWallet,
+    private val wallet: ITONWallet,
 ) : ViewModel() {
     private val _state = MutableStateFlow<JettonState>(JettonState.Initial)
     val state: StateFlow<JettonState> = _state.asStateFlow()

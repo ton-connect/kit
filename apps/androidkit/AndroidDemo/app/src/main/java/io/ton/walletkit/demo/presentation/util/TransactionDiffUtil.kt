@@ -1,7 +1,7 @@
 package io.ton.walletkit.demo.presentation.util
 
 import androidx.recyclerview.widget.DiffUtil
-import io.ton.walletkit.domain.model.Transaction
+import io.ton.walletkit.model.Transaction
 
 private const val CHANGE_AMOUNT = "amount"
 private const val CHANGE_FEE = "fee"

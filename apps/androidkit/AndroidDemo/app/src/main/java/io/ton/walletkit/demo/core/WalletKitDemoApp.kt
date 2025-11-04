@@ -13,13 +13,13 @@ import coil3.util.DebugLogger
 import dagger.hilt.android.HiltAndroidApp
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.SecureDemoAppStorage
-import io.ton.walletkit.domain.model.TONNetwork
-import io.ton.walletkit.domain.model.TONWalletData
-import io.ton.walletkit.presentation.TONWalletKit
-import io.ton.walletkit.presentation.config.SignDataType
-import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
-import io.ton.walletkit.presentation.event.TONWalletKitEvent
-import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.model.TONWalletData
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.config.SignDataType
+import io.ton.walletkit.config.TONWalletKitConfiguration
+import io.ton.walletkit.event.TONWalletKitEvent
+import io.ton.walletkit.listener.TONBridgeEventsHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -87,7 +87,7 @@ class WalletKitDemoApp :
         Log.w(TAG, "🔴 Process ID: ${android.os.Process.myPid()}")
         Log.w(TAG, "🔴 Application instance: ${System.identityHashCode(this)}")
 
-        // Initialize TONWalletKit SDK and add event handler
+        // Initialize ITONWalletKit SDK and add event handler
         applicationScope.launch {
             try {
                 Log.w(TAG, "🔴 Launching SDK initialization coroutine...")
@@ -123,7 +123,7 @@ class WalletKitDemoApp :
      * This must be done BEFORE adding event handlers to ensure wallets are available
      * when replayed events are processed.
      */
-    private suspend fun loadAndAddStoredWallets(kit: TONWalletKit) {
+    private suspend fun loadAndAddStoredWallets(kit: ITONWalletKit) {
         try {
             // Get all stored wallet records
             val storage = getSharedPreferences("wallet_storage", MODE_PRIVATE)
@@ -185,13 +185,13 @@ class WalletKitDemoApp :
 }
 
 /**
- * Helper to get cached TONWalletKit instance.
+ * Helper to get cached ITONWalletKit instance.
  */
 object TONWalletKitHelper {
-    private var mainnetInstance: TONWalletKit? = null
+    private var mainnetInstance: ITONWalletKit? = null
     private val mutex = kotlinx.coroutines.sync.Mutex()
 
-    suspend fun mainnet(application: Application): TONWalletKit {
+    suspend fun mainnet(application: Application): ITONWalletKit {
         // Fast path: already initialized
         mainnetInstance?.let { return it }
 
@@ -203,7 +203,7 @@ object TONWalletKitHelper {
                 return@withLock it
             }
 
-            Log.w("TONWalletKitHelper", "🔶🔶🔶 Creating NEW TONWalletKit instance...")
+            Log.w("TONWalletKitHelper", "🔶🔶🔶 Creating NEW ITONWalletKit instance...")
 
             val config = TONWalletKitConfiguration(
                 network = TONNetwork.MAINNET,
@@ -228,7 +228,7 @@ object TONWalletKitHelper {
                 storage = TONWalletKitConfiguration.Storage(persistent = true),
             )
 
-            val kit = TONWalletKit.initialize(application, config)
+            val kit = ITONWalletKit.initialize(application, config)
             mainnetInstance = kit
             Log.w("TONWalletKitHelper", "✅ Created and cached mainnet instance: ${System.identityHashCode(kit)}")
             kit

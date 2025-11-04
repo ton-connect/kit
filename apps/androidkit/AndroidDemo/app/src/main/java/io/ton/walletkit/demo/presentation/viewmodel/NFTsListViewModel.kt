@@ -3,9 +3,9 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.ton.walletkit.domain.model.TONNFTItem
-import io.ton.walletkit.domain.model.TONPagination
-import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.model.TONNFTItem
+import io.ton.walletkit.model.TONPagination
+import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
  * ViewModel for displaying NFTs owned by a wallet.
  */
 class NFTsListViewModel(
-    private val wallet: TONWallet,
+    private val wallet: ITONWallet,
 ) : ViewModel() {
     private val _state = MutableStateFlow<NFTState>(NFTState.Initial)
     val state: StateFlow<NFTState> = _state.asStateFlow()

@@ -1,8 +1,8 @@
 package io.ton.walletkit.demo.presentation.util
 
 import io.ton.walletkit.demo.presentation.model.TransactionDetailUi
-import io.ton.walletkit.domain.model.Transaction
-import io.ton.walletkit.domain.model.TransactionType
+import io.ton.walletkit.model.Transaction
+import io.ton.walletkit.model.TransactionType
 
 /**
  * Mapper for converting domain Transaction objects to UI models.

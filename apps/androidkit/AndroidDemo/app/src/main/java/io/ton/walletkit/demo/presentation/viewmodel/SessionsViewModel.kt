@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.presentation.model.SessionSummary
 import io.ton.walletkit.demo.presentation.util.TimestampParser
 import io.ton.walletkit.demo.presentation.util.UrlSanitizer
-import io.ton.walletkit.domain.model.WalletSession
-import io.ton.walletkit.presentation.TONWallet
-import io.ton.walletkit.presentation.TONWalletKit
-import io.ton.walletkit.presentation.extensions.disconnect
+import io.ton.walletkit.model.WalletSession
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.extensions.disconnect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
  * Handles session listing, disconnection, and refresh.
  */
 class SessionsViewModel(
-    private val getAllWallets: () -> List<TONWallet>,
-    private val getKit: () -> TONWalletKit,
+    private val getAllWallets: () -> List<ITONWallet>,
+    private val getKit: () -> ITONWalletKit,
     private val unknownDAppLabel: String = "Unknown dApp",
 ) : ViewModel() {
 

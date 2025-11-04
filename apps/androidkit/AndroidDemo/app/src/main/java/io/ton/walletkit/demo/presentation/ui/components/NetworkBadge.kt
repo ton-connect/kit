@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
-import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.model.TONNetwork
 
 @Composable
 fun NetworkBadge(network: TONNetwork) {

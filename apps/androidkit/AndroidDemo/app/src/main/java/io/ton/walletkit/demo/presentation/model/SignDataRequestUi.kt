@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.presentation.model
 
-import io.ton.walletkit.presentation.request.TONWalletSignDataRequest
+import io.ton.walletkit.request.TONWalletSignDataRequest
 import org.json.JSONObject
 
 data class SignDataRequestUi(

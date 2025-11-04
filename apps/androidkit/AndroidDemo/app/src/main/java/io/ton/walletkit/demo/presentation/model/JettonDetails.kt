@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.presentation.model
 
-import io.ton.walletkit.domain.model.TONJettonWallet
+import io.ton.walletkit.model.TONJettonWallet
 import java.math.BigDecimal
 import java.math.RoundingMode
 

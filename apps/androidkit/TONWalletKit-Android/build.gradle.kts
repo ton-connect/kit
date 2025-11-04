@@ -36,11 +36,11 @@ tasks.register("buildWebview") {
     group = "build"
     description = "Build WebView-only SDK variant (lightweight, no QuickJS)"
     
-    dependsOn(":bridge:assembleWebviewRelease")
+    dependsOn(":impl:bundleWebviewReleaseAar")
     
     doLast {
-        println("✅ WebView variant built: bridge-webview-release.aar (1.2M)")
-        println("   No QuickJS native libs, no OkHttp dependency")
+        println("✅ WebView variant built: impl-webview-release.aar (2.7M)")
+        println("   Includes API + implementation, no QuickJS native libs")
     }
 }
 
@@ -49,11 +49,11 @@ tasks.register("buildFull") {
     group = "build"
     description = "Build Full SDK variant (includes QuickJS)"
     
-    dependsOn(":bridge:assembleFullRelease")
+    dependsOn(":impl:bundleFullReleaseAar")
     
     doLast {
-        println("✅ Full variant built: bridge-full-release.aar (4.3M)")
-        println("   Includes QuickJS native libs + OkHttp")
+        println("✅ Full variant built: impl-full-release.aar (4.3M)")
+        println("   Includes API + implementation + QuickJS native libs")
     }
 }
 
@@ -70,15 +70,15 @@ tasks.register<Copy>("buildAndCopyWebviewToDemo") {
     group = "build"
     description = "Build WebView SDK variant and copy to AndroidDemo/app/libs (default)"
     
-    dependsOn(":bridge:assembleWebviewRelease")
+    dependsOn(":impl:bundleWebviewReleaseAar")
     
-    from(layout.projectDirectory.file("bridge/build/outputs/aar/bridge-webview-release.aar"))
+    from(layout.projectDirectory.file("impl/build/outputs/aar/impl-webview-release.aar"))
     into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
-    rename("bridge-webview-release.aar", "bridge-release.aar")
+    rename("impl-webview-release.aar", "tonwalletkit-release.aar")
     
     doLast {
-        println("✅ WebView variant copied to AndroidDemo/app/libs/bridge-release.aar")
-        println("   Size: ~1.2M (no QuickJS)")
+        println("✅ WebView variant copied to AndroidDemo/app/libs/tonwalletkit-release.aar")
+        println("   Size: ~2.7M (fat AAR with API + impl, no QuickJS)")
         println("   Demo app uses: WebView engine only")
     }
 }
@@ -88,15 +88,15 @@ tasks.register<Copy>("buildAndCopyFullToDemo") {
     group = "build"
     description = "Build Full SDK variant (with QuickJS) and copy to AndroidDemo/app/libs"
     
-    dependsOn(":bridge:assembleFullRelease")
+    dependsOn(":impl:bundleFullReleaseAar")
     
-    from(layout.projectDirectory.file("bridge/build/outputs/aar/bridge-full-release.aar"))
+    from(layout.projectDirectory.file("impl/build/outputs/aar/impl-full-release.aar"))
     into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
-    rename("bridge-full-release.aar", "bridge-release.aar")
+    rename("impl-full-release.aar", "tonwalletkit-release.aar")
     
     doLast {
-        println("✅ Full variant copied to AndroidDemo/app/libs/bridge-release.aar")
-        println("   Size: ~4.3M (includes QuickJS)")
+        println("✅ Full variant copied to AndroidDemo/app/libs/tonwalletkit-release.aar")
+        println("   Size: ~4.3M (fat AAR with API + impl + QuickJS)")
         println("   Demo app uses: WebView + QuickJS engines")
     }
 }
@@ -107,4 +107,32 @@ tasks.register("buildAndCopyToDemo") {
     description = "Build and copy WebView variant to demo (alias for buildAndCopyWebviewToDemo)"
     
     dependsOn("buildAndCopyWebviewToDemo")
+}
+
+// Task to just copy existing WebView AAR without rebuilding
+tasks.register<Copy>("copyWebviewToDemo") {
+    group = "build"
+    description = "Copy existing WebView AAR to demo (no rebuild)"
+    
+    from(layout.projectDirectory.file("impl/build/outputs/aar/impl-webview-release.aar"))
+    into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
+    rename("impl-webview-release.aar", "tonwalletkit-release.aar")
+    
+    doLast {
+        println("✅ Copied existing AAR to AndroidDemo/app/libs/tonwalletkit-release.aar")
+    }
+}
+
+// Task to just copy existing Full AAR without rebuilding
+tasks.register<Copy>("copyFullToDemo") {
+    group = "build"
+    description = "Copy existing Full AAR to demo (no rebuild)"
+    
+    from(layout.projectDirectory.file("impl/build/outputs/aar/impl-full-release.aar"))
+    into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
+    rename("impl-full-release.aar", "tonwalletkit-release.aar")
+    
+    doLast {
+        println("✅ Copied existing AAR to AndroidDemo/app/libs/tonwalletkit-release.aar")
+    }
 }

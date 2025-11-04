@@ -5,15 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.presentation.model.NFTDetails
-import io.ton.walletkit.domain.model.TONNFTTransferParamsHuman
-import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.model.TONNFTTransferParamsHuman
+import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class NFTDetailsViewModel(
-    private val wallet: TONWallet,
+    private val wallet: ITONWallet,
     nftDetails: NFTDetails,
 ) : ViewModel() {
 
@@ -78,7 +78,7 @@ class NFTDetailsViewModel(
                 )
 
                 // Step 1: Create the NFT transfer transaction
-                val transactionJson = wallet.createTransferNftTransaction(params)
+                val transactionJson = wallet.createTransferNFTTransaction(params)
                 Log.d(TAG, "NFT transfer transaction created: $transactionJson")
 
                 // Step 2: Send the transaction to the blockchain
@@ -113,7 +113,7 @@ class NFTDetailsViewModel(
     companion object {
         private const val TAG = "NFTDetailsViewModel"
 
-        fun factory(wallet: TONWallet, nftDetails: NFTDetails): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(wallet: ITONWallet, nftDetails: NFTDetails): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T = NFTDetailsViewModel(wallet, nftDetails) as T
         }

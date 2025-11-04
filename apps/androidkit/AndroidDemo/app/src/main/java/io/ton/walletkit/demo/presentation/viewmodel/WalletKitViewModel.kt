@@ -26,15 +26,15 @@ import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.state.SheetState
 import io.ton.walletkit.demo.presentation.state.WalletUiState
 import io.ton.walletkit.demo.presentation.util.TransactionDetailMapper
-import io.ton.walletkit.domain.model.TONNetwork
-import io.ton.walletkit.domain.model.TONWalletData
-import io.ton.walletkit.domain.model.WalletSigner
-import io.ton.walletkit.presentation.TONWallet
-import io.ton.walletkit.presentation.event.TONWalletKitEvent
-import io.ton.walletkit.presentation.extensions.disconnect
-import io.ton.walletkit.presentation.request.TONWalletConnectionRequest
-import io.ton.walletkit.presentation.request.TONWalletSignDataRequest
-import io.ton.walletkit.presentation.request.TONWalletTransactionRequest
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.model.TONWalletData
+import io.ton.walletkit.model.WalletSigner
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.event.TONWalletKitEvent
+import io.ton.walletkit.extensions.disconnect
+import io.ton.walletkit.request.TONWalletConnectionRequest
+import io.ton.walletkit.request.TONWalletSignDataRequest
+import io.ton.walletkit.request.TONWalletTransactionRequest
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -68,7 +68,7 @@ class WalletKitViewModel @Inject constructor(
     val state: StateFlow<WalletUiState> = _state.asStateFlow()
 
     private var balanceJob: Job? = null
-    private var walletKit: io.ton.walletkit.presentation.TONWalletKit? = null
+    private var walletKit: io.ton.walletkit.ITONWalletKit? = null
 
     private val lifecycleManager = WalletLifecycleManager(
         storage = storage,
@@ -80,7 +80,7 @@ class WalletKitViewModel @Inject constructor(
 
     private val sessionsViewModel = SessionsViewModel(
         getAllWallets = { lifecycleManager.tonWallets.values.toList() },
-        getKit = { walletKit ?: error("TONWalletKit not initialized") },
+        getKit = { walletKit ?: error("ITONWalletKit not initialized") },
         unknownDAppLabel = uiString(R.string.wallet_event_unknown_dapp),
     )
 
@@ -106,7 +106,7 @@ class WalletKitViewModel @Inject constructor(
     )
 
     private val walletOperationsViewModel = WalletOperationsViewModel(
-        walletKit = { walletKit ?: error("TONWalletKit not initialized") },
+        walletKit = { walletKit ?: error("ITONWalletKit not initialized") },
         getWalletByAddress = { address -> lifecycleManager.tonWallets[address] },
         onWalletSwitched = { address -> handleWalletSwitched(address) },
         onTransactionInitiated = { address -> onLocalTransactionInitiated(address) },
@@ -136,9 +136,9 @@ class WalletKitViewModel @Inject constructor(
     private fun uiString(@StringRes resId: Int, vararg args: Any): String = application.getString(resId, *args)
 
     /**
-     * Get the shared TONWalletKit instance used across the demo.
+     * Get the shared ITONWalletKit instance used across the demo.
      */
-    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit {
+    private suspend fun getKit(): io.ton.walletkit.ITONWalletKit {
         walletKit?.let { return it }
         val kit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
         walletKit = kit
@@ -552,8 +552,7 @@ class WalletKitViewModel @Inject constructor(
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(cleaned, name)
-                    TONWallet.addWithSigner(
-                        kit = kit,
+                    kit.addWalletWithSigner(
                         signer = signer,
                         version = version,
                         network = network,
@@ -651,8 +650,7 @@ class WalletKitViewModel @Inject constructor(
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(words, name)
-                    TONWallet.addWithSigner(
-                        kit = kit,
+                    kit.addWalletWithSigner(
                         signer = signer,
                         version = version,
                         network = network,
@@ -1246,7 +1244,7 @@ class WalletKitViewModel @Inject constructor(
 
         // Use SDK's new derivePublicKey method to get public key without creating a wallet
         val kit = getKit()
-        val publicKey = TONWallet.derivePublicKey(kit, mnemonic)
+        val publicKey = kit.derivePublicKey(mnemonic)
 
         Log.d(LOG_TAG, "Derived public key for signer wallet: ${publicKey.take(16)}...")
 
@@ -1263,12 +1261,13 @@ class WalletKitViewModel @Inject constructor(
                     "Demo signer signing ${data.size} bytes for wallet=$walletName (used for TonProof/transactions)",
                 )
                 val kit = getKit()
-                return TONWallet.signDataWithMnemonic(
-                    kit = kit,
+                val result = kit.signDataWithMnemonic(
                     mnemonic = signerMnemonic,
                     data = data,
                     mnemonicType = "ton",
                 )
+                // Decode Base64 signature back to ByteArray
+                return android.util.Base64.decode(result.signature, android.util.Base64.NO_WRAP)
             }
         }
     }

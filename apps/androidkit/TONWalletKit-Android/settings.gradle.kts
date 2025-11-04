@@ -18,4 +18,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "TONWalletKit-Android"
 
-include(":bridge")
+include(":api")
+include(":impl")

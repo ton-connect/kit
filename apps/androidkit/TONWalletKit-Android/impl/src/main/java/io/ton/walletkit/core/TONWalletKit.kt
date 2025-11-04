@@ -1,0 +1,322 @@
+package io.ton.walletkit
+
+import android.content.Context
+import io.ton.walletkit.config.TONWalletKitConfiguration
+import io.ton.walletkit.listener.TONBridgeEventsHandler
+import io.ton.walletkit.engine.WalletKitEngine
+import io.ton.walletkit.browser.TonConnectInjector
+import io.ton.walletkit.internal.constants.ResponseConstants
+import io.ton.walletkit.core.WalletKitEngineFactory
+import io.ton.walletkit.core.WalletKitEngineKind
+
+/**
+ * Main entry point for TON Wallet Kit SDK.
+ *
+ * Mirrors the canonical TON Wallet Kit specification for cross-platform consistency.
+ *
+ * Initialize the SDK by calling [initialize] with your configuration.
+ * Then add event handlers using [addEventsHandler] when you're ready to receive events.
+ *
+ * **Important:** Unlike a singleton, each TONWalletKit instance is independent. When you're done
+ * with an instance, call [destroy] or let it go out of scope to clean up resources and stop
+ * receiving events.
+ *
+ * Example:
+ * ```kotlin
+ * val config = TONWalletKitConfiguration(
+ *     network = TONNetwork.MAINNET,
+ *     walletManifest = TONWalletKitConfiguration.Manifest(
+ *         name = "My TON Wallet",
+ *         appName = "Wallet",
+ *         imageUrl = "https://example.com/icon.png",
+ *         aboutUrl = "https://example.com",
+ *         universalLink = "https://example.com/tc",
+ *         bridgeUrl = "https://bridge.tonapi.io/bridge"
+ *     ),
+ *     bridge = TONWalletKitConfiguration.Bridge(
+ *         bridgeUrl = "https://bridge.tonapi.io/bridge"
+ *     ),
+ *     features = listOf(
+ *         TONWalletKitConfiguration.SendTransactionFeature(maxMessages = 4),
+ *         TONWalletKitConfiguration.SignDataFeature(
+ *             types = listOf(SignDataType.TEXT, SignDataType.BINARY, SignDataType.CELL)
+ *         )
+ *     ),
+ *     storage = TONWalletKitConfiguration.Storage(persistent = true)
+ * )
+ *
+ * // Initialize SDK (returns instance)
+ * val kit = TONWalletKit.initialize(context, config)
+ *
+ * // Later, add event handler when ready
+ * val handler = object : TONBridgeEventsHandler {
+ *     override fun handle(event: TONWalletKitEvent) {
+ *         // Handle events
+ *     }
+ * }
+ * kit.addEventsHandler(handler)
+ *
+ * // When done, destroy to stop receiving events and clean up
+ * kit.destroy()
+ * // or let kit = null (will auto-cleanup)
+ * ```
+ */
+internal class TONWalletKit private constructor(
+    /**
+     * Internal engine instance. Exposed for TONWallet class access.
+     * @suppress
+     */
+    @JvmSynthetic
+    internal val engine: WalletKitEngine,
+) : ITONWalletKit {
+    @Volatile
+    private var isDestroyed = false
+
+    /**
+     * Add an event handler to receive SDK events.
+     *
+     * This method can be called after initialization to start receiving events.
+     * Multiple handlers can be added, and each will receive all events.
+     * Events that occurred before the handler was added will be replayed if they
+     * are still in the durable events queue.
+     *
+     * @param eventsHandler Handler for SDK events (connections, transactions, sign data, disconnects)
+     * @throws IllegalStateException if SDK instance has been destroyed
+     */
+    override suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        checkNotDestroyed()
+        engine.addEventsHandler(eventsHandler)
+    }
+
+    /**
+     * Remove a previously added event handler.
+     *
+     * @param eventsHandler Handler to remove
+     */
+    override suspend fun removeEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        if (isDestroyed) return
+        engine.removeEventsHandler(eventsHandler)
+    }
+
+    /**
+     * Shut down the Wallet Kit instance and release all resources.
+     *
+     * This removes all event handlers, stops the WebView engine, and ensures
+     * no more events will be received. After calling this, the instance cannot
+     * be reused.
+     *
+     * This is called automatically when the instance is garbage collected.
+     */
+    override suspend fun destroy() {
+        if (isDestroyed) return
+
+        isDestroyed = true
+
+        try {
+            engine.destroy()
+        } catch (e: Exception) {
+            // Log but don't throw - cleanup should be best-effort
+        }
+    }
+
+    private fun checkNotDestroyed() {
+        if (isDestroyed) {
+            throw IllegalStateException("TONWalletKit instance has been destroyed. Create a new instance.")
+        }
+    }
+
+    // === Wallet Management Methods ===
+
+    /**
+     * Generate a new TON mnemonic phrase.
+     * Matches the JS API `CreateTonMnemonic()` function.
+     *
+     * @param wordCount Number of words to generate (12 or 24). Defaults to 24.
+     * @return List of mnemonic words
+     */
+    override suspend fun createMnemonic(wordCount: Int): List<String> {
+        checkNotDestroyed()
+        return engine.createTonMnemonic(wordCount)
+    }
+
+    /**
+     * Add a new wallet from mnemonic data.
+     *
+     * @param data Wallet creation data (mnemonic, name, version, network)
+     * @return The newly created wallet
+     */
+    override suspend fun addWallet(data: io.ton.walletkit.model.TONWalletData): ITONWallet {
+        checkNotDestroyed()
+
+        // Create wallet using appropriate method - this creates adapter and adds to kit in one call
+        val result = when (data.version) {
+            "v5r1" -> engine.createV5R1WalletAdapter(
+                words = data.mnemonic,
+                network = data.network.value,
+            )
+            "v4r2" -> engine.createV4R2WalletAdapter(
+                words = data.mnemonic,
+                network = data.network.value,
+            )
+            else -> throw IllegalArgumentException("Unsupported wallet version: ${data.version}")
+        }
+
+        // Extract address from result
+        val address = when (result) {
+            is org.json.JSONObject -> result.optString(ResponseConstants.KEY_ADDRESS)
+            else -> throw IllegalStateException("Unexpected result type from createWallet: ${result::class.java.name}")
+        }
+
+        if (address.isEmpty()) {
+            throw IllegalStateException("Failed to get address from wallet creation")
+        }
+
+        // Get wallet info to create TONWallet instance
+        val wallets = engine.getWallets()
+        val account = wallets.firstOrNull { it.address == address }
+            ?: throw IllegalStateException("Wallet was added but not found in wallet list")
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
+
+    /**
+     * Add a new wallet with an external signer.
+     *
+     * @param signer External wallet signer interface
+     * @param version Wallet contract version (e.g., "v4r2", "v5r1")
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return The newly created wallet
+     */
+    override suspend fun addWalletWithSigner(
+        signer: io.ton.walletkit.model.WalletSigner,
+        version: String,
+        network: io.ton.walletkit.model.TONNetwork,
+    ): ITONWallet {
+        checkNotDestroyed()
+
+        val account = engine.addWalletWithSigner(
+            signer = signer,
+            version = version,
+            network = network.value,
+        )
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
+
+    /**
+     * Get all wallets managed by this SDK instance.
+     *
+     * @return List of all wallets
+     */
+    override suspend fun getWallets(): List<ITONWallet> {
+        checkNotDestroyed()
+
+        val accounts = engine.getWallets()
+        return accounts.map { account ->
+            TONWallet(
+                address = account.address,
+                engine = engine,
+                account = account,
+            )
+        }
+    }
+
+    /**
+     * Derive a public key from a mnemonic without creating a wallet.
+     */
+    override suspend fun derivePublicKey(mnemonic: List<String>): String {
+        checkNotDestroyed()
+        return engine.derivePublicKeyFromMnemonic(mnemonic)
+    }
+
+    /**
+     * Sign data with a mnemonic (for custom signers).
+     */
+    override suspend fun signDataWithMnemonic(
+        mnemonic: List<String>,
+        data: ByteArray,
+        mnemonicType: String,
+    ): io.ton.walletkit.model.SignDataResult {
+        checkNotDestroyed()
+        val signatureBytes = engine.signDataWithMnemonic(mnemonic, data, mnemonicType)
+        val signatureBase64 = android.util.Base64.encodeToString(signatureBytes, android.util.Base64.NO_WRAP)
+        return io.ton.walletkit.model.SignDataResult(signature = signatureBase64)
+    }
+
+    /**
+     * Handle a new transaction initiated from the wallet app.
+     *
+     * This method takes transaction content (created via wallet.createTransferTonTransaction,
+     * wallet.transferJettonTransaction, etc.) and triggers the transaction approval flow.
+     *
+     * Matches the JS WalletKit API:
+     * ```typescript
+     * const tx = await wallet.createTransferTonTransaction(params);
+     * await kit.handleNewTransaction(wallet, tx);
+     * // This triggers onTransactionRequest event
+     * ```
+     *
+     * The transaction will appear as a TransactionRequestEvent that can be approved or rejected
+     * via the event handler.
+     *
+     * @param wallet The wallet that will sign and send the transaction
+     * @param transactionContent Transaction content as JSON string (from createTransferTonTransaction, etc.)
+     * @throws WalletKitBridgeException if transaction handling fails
+     */
+    override suspend fun handleNewTransaction(wallet: ITONWallet, transactionContent: String) {
+        checkNotDestroyed()
+        val addr = wallet.address ?: throw IllegalArgumentException("Wallet address is null")
+        engine.handleNewTransaction(addr, transactionContent)
+    }
+
+    /**
+     * Disconnect a TON Connect session by session ID.
+     *
+     * @param sessionId The ID of the session to disconnect
+     * @throws WalletKitBridgeException if session disconnection fails
+     */
+    override suspend fun disconnectSession(sessionId: String) {
+        checkNotDestroyed()
+        engine.disconnectSession(sessionId)
+    }
+
+    /**
+     * Create a WebView TonConnect injector for the given WebView.
+     *
+     * @param webView The WebView to inject TonConnect into
+     * @return A WebViewTonConnectInjector that can setup and cleanup TonConnect
+     */
+    override fun createWebViewInjector(webView: android.webkit.WebView): io.ton.walletkit.WebViewTonConnectInjector {
+        return TonConnectInjector(webView, this)
+    }
+
+    companion object {
+        /**
+         * Initialize TON Wallet Kit with configuration.
+         *
+         * See class-level documentation for usage examples.
+         */
+        suspend fun initialize(
+            context: Context,
+            configuration: TONWalletKitConfiguration,
+        ): ITONWalletKit {
+            // Create engine with configuration using the WebView implementation
+            val newEngine = WalletKitEngineFactory.create(
+                kind = WalletKitEngineKind.WEBVIEW,
+                context = context,
+                configuration = configuration,
+                eventsHandler = null,
+            )
+
+            return TONWalletKit(newEngine)
+        }
+    }
+}

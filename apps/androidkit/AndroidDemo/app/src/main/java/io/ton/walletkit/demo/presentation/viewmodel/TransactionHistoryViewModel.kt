@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.data.cache.TransactionCache
 import io.ton.walletkit.demo.presentation.util.TransactionDiffUtil
-import io.ton.walletkit.domain.model.Transaction
-import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.model.Transaction
+import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
  * Handles loading, caching, and refreshing transactions.
  */
 class TransactionHistoryViewModel(
-    private val wallet: TONWallet,
+    private val wallet: ITONWallet,
     private val transactionCache: TransactionCache,
 ) : ViewModel() {
     private val _state = MutableStateFlow<TransactionState>(TransactionState.Initial)

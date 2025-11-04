@@ -10,10 +10,10 @@ import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.state.SheetState
 import io.ton.walletkit.demo.presentation.state.WalletUiState
-import io.ton.walletkit.domain.model.TONNFTCollection
-import io.ton.walletkit.domain.model.TONNFTItem
-import io.ton.walletkit.domain.model.TONNetwork
-import io.ton.walletkit.domain.model.TONTokenInfo
+import io.ton.walletkit.model.TONNFTCollection
+import io.ton.walletkit.model.TONNFTItem
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.model.TONTokenInfo
 import org.json.JSONObject
 
 object PreviewData {

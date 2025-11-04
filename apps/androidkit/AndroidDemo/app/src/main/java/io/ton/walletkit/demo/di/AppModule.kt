@@ -10,7 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import io.ton.walletkit.demo.core.WalletKitDemoApp
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.SecureDemoAppStorage
-import io.ton.walletkit.presentation.event.TONWalletKitEvent
+import io.ton.walletkit.event.TONWalletKitEvent
 import kotlinx.coroutines.flow.SharedFlow
 import javax.inject.Singleton
 

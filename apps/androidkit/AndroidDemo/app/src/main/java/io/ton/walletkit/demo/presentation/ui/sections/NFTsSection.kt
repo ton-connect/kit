@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.presentation.ui.components.EmptyNFTState
 import io.ton.walletkit.demo.presentation.ui.components.NFTCard
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
-import io.ton.walletkit.domain.model.TONNFTItem
+import io.ton.walletkit.model.TONNFTItem
 
 /**
  * Section displaying NFTs owned by the wallet.

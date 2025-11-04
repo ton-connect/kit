@@ -11,4 +11,4 @@ captures/
 .kotlin
 
 # QuickJS source (deprecated, not for prod - see README.md)
-bridge/src/main/cpp/third_party/quickjs-ng/
+impl/src/main/cpp/third_party/quickjs-ng/

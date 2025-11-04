@@ -49,19 +49,20 @@ import coil3.compose.SubcomposeAsyncImage
 import io.ton.walletkit.demo.presentation.model.NFTDetails
 import io.ton.walletkit.demo.presentation.ui.dialog.WalletAddressInputDialog
 import io.ton.walletkit.demo.presentation.viewmodel.NFTDetailsViewModel
-import io.ton.walletkit.presentation.TONWalletKit
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.ITONWallet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NFTDetailsScreen(
     walletAddress: String,
-    walletKit: TONWalletKit,
+    walletKit: ITONWalletKit,
     nftDetails: NFTDetails,
     onClose: () -> Unit,
     onTransferSuccess: () -> Unit = {},
 ) {
     // Get the wallet instance from walletKit asynchronously
-    var wallet by remember { mutableStateOf<io.ton.walletkit.presentation.TONWallet?>(null) }
+    var wallet by remember { mutableStateOf<io.ton.walletkit.ITONWallet?>(null) }
     var isLoadingWallet by remember { mutableStateOf(true) }
 
     LaunchedEffect(walletAddress) {

@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.presentation.util.TonFormatter
-import io.ton.walletkit.domain.model.TONTransferParams
-import io.ton.walletkit.presentation.TONWallet
-import io.ton.walletkit.presentation.TONWalletKit
+import io.ton.walletkit.model.TONTransferParams
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
  * Handles operations that require an active wallet context.
  */
 class WalletOperationsViewModel(
-    private val walletKit: () -> TONWalletKit,
-    private val getWalletByAddress: (String) -> TONWallet?,
+    private val walletKit: () -> ITONWalletKit,
+    private val getWalletByAddress: (String) -> ITONWallet?,
     private val onWalletSwitched: (String) -> Unit = {},
     private val onTransactionInitiated: (String) -> Unit = {},
 ) : ViewModel() {

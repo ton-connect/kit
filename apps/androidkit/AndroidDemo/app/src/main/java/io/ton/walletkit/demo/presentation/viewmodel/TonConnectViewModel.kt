@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
-import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
  * Manages connect, transaction, and sign data approval/rejection flows.
  */
 class TonConnectViewModel(
-    private val getWalletByAddress: (String) -> TONWallet?,
+    private val getWalletByAddress: (String) -> ITONWallet?,
     private val onRequestApproved: () -> Unit = {},
     private val onRequestRejected: () -> Unit = {},
     private val onSessionsChanged: () -> Unit = {},

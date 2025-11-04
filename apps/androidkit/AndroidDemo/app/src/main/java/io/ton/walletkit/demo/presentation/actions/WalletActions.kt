@@ -7,7 +7,7 @@ import io.ton.walletkit.demo.presentation.model.JettonSummary
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
 import io.ton.walletkit.demo.presentation.model.WalletSummary
-import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.model.TONNetwork
 
 /**
  * Interface defining all wallet-related actions.

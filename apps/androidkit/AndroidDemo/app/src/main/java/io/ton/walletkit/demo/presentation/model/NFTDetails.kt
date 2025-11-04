@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.presentation.model
 
-import io.ton.walletkit.domain.model.TONNFTItem
+import io.ton.walletkit.model.TONNFTItem
 import kotlinx.serialization.json.jsonPrimitive
 
 /**

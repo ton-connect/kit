@@ -12,10 +12,11 @@ import io.ton.walletkit.demo.domain.model.toTonNetwork
 import io.ton.walletkit.demo.presentation.model.SessionSummary
 import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.util.TonFormatter
-import io.ton.walletkit.domain.model.TONNetwork
-import io.ton.walletkit.domain.model.TONWalletData
-import io.ton.walletkit.presentation.TONWallet
-import io.ton.walletkit.presentation.TONWalletKit
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.model.TONWalletData
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 
 /**
  * Handles wallet lifecycle: bootstrapping from storage, metadata management,
@@ -25,7 +26,7 @@ class WalletLifecycleManager(
     private val storage: DemoAppStorage,
     private val defaultWalletVersion: String,
     private val defaultWalletNameProvider: (Int) -> String,
-    private val kitProvider: suspend () -> TONWalletKit,
+    private val kitProvider: suspend () -> ITONWalletKit,
     initialNetwork: TONNetwork,
 ) {
 
@@ -33,7 +34,7 @@ class WalletLifecycleManager(
         val savedActiveWallet: String?,
     )
 
-    val tonWallets: MutableMap<String, TONWallet> = mutableMapOf()
+    val tonWallets: MutableMap<String, ITONWallet> = mutableMapOf()
     val walletMetadata: MutableMap<String, WalletMetadata> = mutableMapOf()
     val pendingWallets: ArrayDeque<PendingWalletRecord> = ArrayDeque()
     val transactionCache: TransactionCache = TransactionCache()
@@ -110,7 +111,7 @@ class WalletLifecycleManager(
             val publicKey = wallet.publicKey
             val metadata = ensureMetadataForAddress(address)
 
-            val balance = runCatching { wallet.balance() }
+            val balance = runCatching { wallet.getBalance() }
                 .onFailure { Log.e(LOG_TAG, "loadWalletSummaries: balance failed for $address", it) }
                 .getOrNull()
             val formattedBalance = balance?.let { TonFormatter.formatTon(it) }
@@ -176,7 +177,7 @@ class WalletLifecycleManager(
         var restoredCount = 0
         for ((storedAddress, record) in stored) {
             val interfaceType = record.interfaceType
-            if (interfaceType != io.ton.walletkit.demo.domain.model.WalletInterfaceType.MNEMONIC.value) {
+            if (interfaceType != WalletInterfaceType.MNEMONIC.value) {
                 Log.w(
                     LOG_TAG,
                     "rehydrate: skipping $storedAddress (interfaceType=$interfaceType not supported for auto-restore)",

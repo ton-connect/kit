@@ -45,7 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
-import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.model.TONNetwork
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable

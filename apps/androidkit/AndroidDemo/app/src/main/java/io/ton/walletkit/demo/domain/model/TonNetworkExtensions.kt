@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.domain.model
 
-import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.model.TONNetwork
 
 private const val BRIDGE_MAINNET = "-239"
 private const val BRIDGE_TESTNET = "-3"

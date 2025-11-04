@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
-import io.ton.walletkit.domain.model.TONNFTItem
+import io.ton.walletkit.model.TONNFTItem
 import kotlinx.serialization.json.jsonPrimitive
 
 /**

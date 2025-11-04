@@ -67,9 +67,9 @@ dependencies {
     implementation(libs.hiltAndroid)
     ksp(libs.hiltCompiler)
 
-    // TONWalletKit SDK - AAR file
+    // TONWalletKit SDK - AAR file (fat AAR with API + implementation)
     // Build and copy with: ./gradlew buildAndCopyWebviewToDemo (or buildAndCopyFullToDemo)
-    implementation(files("libs/bridge-release.aar"))
+    implementation(files("libs/tonwalletkit-release.aar"))
 
     // Required transitive dependencies (must be declared manually with AAR files)
     implementation(libs.androidxWebkit)

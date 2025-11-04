@@ -1,6 +1,6 @@
 package io.ton.walletkit.demo.domain.model
 
-import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.model.TONNetwork
 
 data class WalletMetadata(
     val name: String,

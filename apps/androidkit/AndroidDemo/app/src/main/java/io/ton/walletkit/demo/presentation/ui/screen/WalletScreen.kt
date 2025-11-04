@@ -73,10 +73,10 @@ import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransferJettonSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
-import io.ton.walletkit.domain.model.TONNFTItem
-import io.ton.walletkit.domain.model.TONNetwork
-import io.ton.walletkit.presentation.TONWalletKit
-import io.ton.walletkit.presentation.browser.cleanupTonConnect
+import io.ton.walletkit.model.TONNFTItem
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.extensions.cleanupTonConnect
 
 private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.app/iframe/iframe"
 
@@ -84,7 +84,7 @@ private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.ap
 @Composable
 fun WalletScreen(
     state: WalletUiState,
-    walletKit: TONWalletKit,
+    walletKit: ITONWalletKit,
     nftsViewModel: NFTsListViewModel?,
     actions: WalletActions,
 ) {
@@ -366,7 +366,7 @@ fun WalletScreen(
     }
 }
 
-// Preview temporarily disabled - requires TONWalletKit instance
+// Preview temporarily disabled - requires ITONWalletKit instance
 // @Preview(showBackground = true)
 // @Composable
 // private fun WalletScreenPreview() {
