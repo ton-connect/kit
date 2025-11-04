@@ -787,6 +787,47 @@ internal class QuickJsWalletKitEngine(
         return result.toString()
     }
 
+    override suspend fun createTransferMultiTonTransaction(
+        walletAddress: String,
+        messages: List<io.ton.walletkit.domain.model.TONTransferParams>,
+    ): String {
+        ensureWalletKitInitialized()
+        val messagesArray = JSONArray()
+        messages.forEach { message ->
+            val msgJson = JSONObject().apply {
+                put("toAddress", message.toAddress)
+                put("amount", message.amount)
+                message.comment?.let { put("comment", it) }
+                message.body?.let { put("body", it) }
+                message.stateInit?.let { put("stateInit", it) }
+            }
+            messagesArray.put(msgJson)
+        }
+        val paramsJson = JSONObject().apply {
+            put("address", walletAddress)
+            put("messages", messagesArray)
+        }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TRANSFER_MULTI_TON_TRANSACTION, paramsJson)
+        return result.toString()
+    }
+
+    override suspend fun getTransactionPreview(
+        walletAddress: String,
+        transactionContent: String,
+    ): io.ton.walletkit.domain.model.TONTransactionPreview {
+        ensureWalletKitInitialized()
+        val paramsJson = JSONObject().apply {
+            put("address", walletAddress)
+            put("transactionContent", JSONObject(transactionContent))
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_TRANSACTION_PREVIEW, paramsJson)
+        // Parse the result using kotlinx.serialization
+        return json.decodeFromString(
+            io.ton.walletkit.domain.model.TONTransactionPreview.serializer(),
+            result.toString()
+        )
+    }
+
     override suspend fun getJettonBalance(walletAddress: String, jettonAddress: String): String {
         ensureWalletKitInitialized()
         val params = JSONObject().apply {

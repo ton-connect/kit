@@ -2,6 +2,7 @@ package io.ton.walletkit.presentation.event
 
 import io.ton.walletkit.domain.model.DAppInfo
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Represents a connection request event from the bridge.
@@ -25,7 +26,10 @@ data class ConnectRequestEvent(
     val messageId: String? = null,
     val traceId: String? = null,
     val method: String? = null,
-    val params: List<String>? = null,
+    // params can be either an array or an object depending on the method
+    // For 'connect' method: params is an object with manifest info
+    // For 'send' method: params is an array
+    val params: JsonElement? = null,
 ) {
     @Serializable
     data class Preview(

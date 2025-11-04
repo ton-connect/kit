@@ -74,7 +74,7 @@ class JettonsListViewModel(
             try {
                 _state.value = JettonState.Loading
 
-                val result = wallet.jettonsWallets(limit = limit, offset = 0)
+                val result = wallet.jettons(limit = limit, offset = 0)
 
                 Log.d(TAG, "Loaded ${result.items.size} jettons, pagination: ${result.pagination}")
                 result.items.forEachIndexed { index, jettonWallet ->
@@ -119,7 +119,7 @@ class JettonsListViewModel(
             try {
                 _isLoadingMore.value = true
 
-                val result = wallet.jettonsWallets(
+                val result = wallet.jettons(
                     limit = limit,
                     offset = currentOffset,
                 )
@@ -184,12 +184,12 @@ class JettonsListViewModel(
 
                 Log.i(TAG, "Creating jetton transfer transaction: jetton=$jettonAddress, to=$recipient, amount=$amount")
 
-                // Create the jetton transfer transaction
-                val transactionBoc = wallet.transferJettonTransaction(transferParams)
+                // Create the jetton transfer transaction (step 1)
+                val transactionBoc = wallet.createTransferJettonTransaction(transferParams)
 
                 Log.i(TAG, "Jetton transfer transaction created, sending...")
 
-                // Send the transaction
+                // Send the transaction (step 2)
                 wallet.sendTransaction(transactionBoc)
 
                 Log.i(TAG, "Jetton transfer transaction sent successfully")

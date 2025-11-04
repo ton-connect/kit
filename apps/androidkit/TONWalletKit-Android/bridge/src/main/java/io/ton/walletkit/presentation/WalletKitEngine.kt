@@ -408,6 +408,32 @@ internal interface WalletKitEngine {
     ): String
 
     /**
+     * Create a multi-recipient TON transfer transaction.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param messages List of transfer parameters for each recipient
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferMultiTonTransaction(
+        walletAddress: String,
+        messages: List<io.ton.walletkit.domain.model.TONTransferParams>,
+    ): String
+
+    /**
+     * Get a preview of a transaction including estimated fees.
+     *
+     * @param walletAddress Wallet address
+     * @param transactionContent Transaction content as JSON string
+     * @return Transaction preview with fee estimation
+     * @throws WalletKitBridgeException if preview generation fails
+     */
+    suspend fun getTransactionPreview(
+        walletAddress: String,
+        transactionContent: String,
+    ): io.ton.walletkit.domain.model.TONTransactionPreview
+
+    /**
      * Get the balance of a specific jetton for a wallet.
      *
      * @param walletAddress Wallet address

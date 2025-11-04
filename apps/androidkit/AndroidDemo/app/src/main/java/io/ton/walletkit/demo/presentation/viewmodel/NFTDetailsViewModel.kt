@@ -49,8 +49,8 @@ class NFTDetailsViewModel(
     /**
      * Transfers the NFT to the specified address
      *
-     * Uses the new 2-step process (matching iOS):
-     * 1. Create transaction: wallet.transferNFT() returns transaction JSON
+     * Uses the standard 2-step process (matching JS API):
+     * 1. Create transaction: wallet.createTransferNftTransaction() returns transaction JSON
      * 2. Send to blockchain: wallet.sendTransaction(transactionJSON) returns hash
      */
     fun transfer(toAddress: String) {
@@ -78,7 +78,7 @@ class NFTDetailsViewModel(
                 )
 
                 // Step 1: Create the NFT transfer transaction
-                val transactionJson = wallet.transferNFT(params)
+                val transactionJson = wallet.createTransferNftTransaction(params)
                 Log.d(TAG, "NFT transfer transaction created: $transactionJson")
 
                 // Step 2: Send the transaction to the blockchain

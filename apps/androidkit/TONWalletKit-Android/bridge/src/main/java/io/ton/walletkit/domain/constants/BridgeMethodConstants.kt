@@ -212,6 +212,16 @@ internal object BridgeMethodConstants {
     const val METHOD_CREATE_TRANSFER_JETTON_TRANSACTION = "createTransferJettonTransaction"
 
     /**
+     * Method name for creating a multi-recipient TON transfer transaction.
+     */
+    const val METHOD_CREATE_TRANSFER_MULTI_TON_TRANSACTION = "createTransferMultiTonTransaction"
+
+    /**
+     * Method name for getting a transaction preview with fee estimation.
+     */
+    const val METHOD_GET_TRANSACTION_PREVIEW = "getTransactionPreview"
+
+    /**
      * Method name for getting jetton balance for a wallet.
      */
     const val METHOD_GET_JETTON_BALANCE = "getJettonBalance"

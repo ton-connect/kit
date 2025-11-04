@@ -862,10 +862,21 @@ const api = {
   const isMainnet = networkValue === CHAIN.MAINNET;
   const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
-    return await WalletV4R2Adapter.create(signer, {
+    const adapter = await WalletV4R2Adapter.create(signer, {
       client: walletKit.getApiClient(),
       network: chain,
     });
+    
+    // Add wallet immediately - adapter stays in JS, no serialization
+    const wallet = await walletKit.addWallet(adapter);
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
+    }
+    
+    return {
+      address: wallet.getAddress(),
+      publicKey: signer.publicKey.replace('0x', ''),
+    };
   },
 
   async createV4R2WalletUsingSecretKey(
@@ -887,10 +898,21 @@ const api = {
   const isMainnet = networkValue === CHAIN.MAINNET;
   const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromPrivateKey(args.secretKey);
-    return await WalletV4R2Adapter.create(signer, {
+    const adapter = await WalletV4R2Adapter.create(signer, {
       client: walletKit.getApiClient(),
       network: chain,
     });
+    
+    // Add wallet immediately - adapter stays in JS, no serialization
+    const wallet = await walletKit.addWallet(adapter);
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
+    }
+    
+    return {
+      address: wallet.getAddress(),
+      publicKey: signer.publicKey.replace('0x', ''),
+    };
   },
 
   async createV5R1WalletUsingMnemonic(
@@ -1262,6 +1284,106 @@ const api = {
       transaction,
       preview,
     };
+  },
+
+  async createTransferMultiTonTransaction(
+    args: { walletAddress: string; messages: Array<{ toAddress: string; amount: string; comment?: string; body?: string; stateInit?: string }> },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'createTransferMultiTonTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createTransferMultiTonTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address required for multi-transfer transaction');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found: ${walletAddress}`);
+    }
+
+    if (!args.messages || !Array.isArray(args.messages) || args.messages.length === 0) {
+      throw new Error('At least one message required for multi-transfer transaction');
+    }
+
+    // Build messages array
+    const messages = args.messages.map((msg) => {
+      const transferParams: Record<string, unknown> = {
+        toAddress: msg.toAddress,
+        amount: msg.amount,
+      };
+
+      if (msg.comment) {
+        transferParams.comment = msg.comment;
+      }
+      if (msg.body) {
+        transferParams.body = msg.body;
+      }
+      if (msg.stateInit) {
+        transferParams.stateInit = msg.stateInit;
+      }
+
+      return transferParams;
+    });
+
+    emitCallCheckpoint(context, 'createTransferMultiTonTransaction:before-wallet.createTransferMultiTonTransaction');
+    const transaction = await wallet.createTransferMultiTonTransaction({ messages });
+    emitCallCheckpoint(context, 'createTransferMultiTonTransaction:after-wallet.createTransferMultiTonTransaction');
+
+    let preview: unknown = null;
+    if (typeof wallet.getTransactionPreview === 'function') {
+      try {
+        emitCallCheckpoint(context, 'createTransferMultiTonTransaction:before-wallet.getTransactionPreview');
+        const previewResult = await wallet.getTransactionPreview(transaction);
+        preview = previewResult?.preview ?? previewResult;
+        emitCallCheckpoint(context, 'createTransferMultiTonTransaction:after-wallet.getTransactionPreview');
+      } catch (error) {
+        console.warn('[walletkitBridge] getTransactionPreview failed', error);
+      }
+    }
+
+    return {
+      transaction,
+      preview,
+    };
+  },
+
+  async getTransactionPreview(
+    args: { walletAddress: string; transactionContent: string },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'getTransactionPreview:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getTransactionPreview:after-ensureWalletKitLoaded');
+    requireWalletKit();
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address required for transaction preview');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found: ${walletAddress}`);
+    }
+
+    let transaction: any;
+    try {
+      transaction = JSON.parse(args.transactionContent);
+    } catch (error) {
+      throw new Error('Invalid transaction content JSON');
+    }
+
+    emitCallCheckpoint(context, 'getTransactionPreview:before-wallet.getTransactionPreview');
+    const result = await wallet.getTransactionPreview(transaction);
+    emitCallCheckpoint(context, 'getTransactionPreview:after-wallet.getTransactionPreview');
+
+    return result?.preview ?? result;
   },
 
   async handleNewTransaction(

@@ -4,6 +4,7 @@ import io.ton.walletkit.domain.constants.JsonConstants
 import io.ton.walletkit.domain.model.DAppInfo
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Represents a sign data request event from the bridge.
@@ -27,7 +28,8 @@ data class SignDataRequestEvent(
     val isLocal: Boolean? = null,
     val traceId: String? = null,
     val method: String? = null,
-    val params: List<String>? = null,
+    // params can be either an array or an object depending on the protocol
+    val params: JsonElement? = null,
 ) {
     @Serializable
     data class Payload(

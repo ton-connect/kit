@@ -271,8 +271,6 @@ class TONWallet internal constructor(
      * await kit.handleNewTransaction(wallet, tx);
      * ```
      *
-     * Matches the shared API surface for cross-platform consistency.
-     *
      * @param params Transfer parameters (recipient address, amount, optional comment/body/stateInit)
      * @return Transaction content as JSON string
      * @throws WalletKitBridgeException if transaction creation fails
@@ -280,6 +278,34 @@ class TONWallet internal constructor(
     suspend fun createTransferTonTransaction(params: io.ton.walletkit.domain.model.TONTransferParams): String {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.createTransferTonTransaction(addr, params)
+    }
+
+    /**
+     * Create a multi-recipient TON transfer transaction.
+     * Matches the JS API `wallet.createTransferMultiTonTransaction()` function.
+     *
+     * Allows sending TON to multiple recipients in a single transaction.
+     *
+     * @param messages List of transfer messages (each with recipient address, amount, optional comment)
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferMultiTonTransaction(messages: List<io.ton.walletkit.domain.model.TONTransferParams>): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.createTransferMultiTonTransaction(addr, messages)
+    }
+
+    /**
+     * Get transaction preview with fee estimation.
+     * Matches the JS API `wallet.getTransactionPreview()` function.
+     *
+     * @param transactionContent Transaction content (from createTransfer* methods)
+     * @return Transaction preview with fee information
+     * @throws WalletKitBridgeException if preview generation fails
+     */
+    suspend fun getTransactionPreview(transactionContent: String): io.ton.walletkit.domain.model.TONTransactionPreview {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.getTransactionPreview(addr, transactionContent)
     }
 
     /**
@@ -312,49 +338,47 @@ class TONWallet internal constructor(
 
     /**
      * Create an NFT transfer transaction with human-friendly parameters.
-     *
-     * Matches the shared API surface for cross-platform consistency.
+     * Matches the JS API `wallet.createTransferNftTransaction()` function.
      *
      * @param params Transfer parameters (NFT address, recipient, amount, optional comment)
-     * @return Transaction content that can be sent via TON Connect
+     * @return Transaction content that can be sent via sendTransaction()
      * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun transferNFT(params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman): String {
+    suspend fun createTransferNftTransaction(params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman): String {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.createTransferNftTransaction(addr, params)
     }
 
     /**
      * Create an NFT transfer transaction with raw parameters.
-     *
-     * Matches the shared API surface for cross-platform consistency.
+     * Matches the JS API `wallet.createTransferNftRawTransaction()` function.
      *
      * @param params Raw transfer parameters with full control over transfer message
-     * @return Transaction content that can be sent via TON Connect
+     * @return Transaction content that can be sent via sendTransaction()
      * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun transferNFT(params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw): String {
+    suspend fun createTransferNftRawTransaction(params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw): String {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.createTransferNftRawTransaction(addr, params)
     }
 
     /**
      * Send a transaction to the blockchain.
+     * Matches the JS API `wallet.sendTransaction()` function.
      *
-     * This method takes transaction content (usually created by transferNFT, createTransferTonTransaction, etc.)
-     * and actually sends it to the blockchain, returning the transaction hash.
-     *
-     * Matches the iOS wallet.sendTransaction() behavior for cross-platform consistency.
+     * This method takes transaction content (usually created by createTransferNftTransaction, 
+     * createTransferTonTransaction, createTransferJettonTransaction, etc.) and actually sends 
+     * it to the blockchain, returning the transaction hash.
      *
      * Example:
      * ```kotlin
      * // Create NFT transfer transaction
-     * val txContent = wallet.transferNFT(params)
+     * val txContent = wallet.createTransferNftTransaction(params)
      * // Send it to blockchain
      * val txHash = wallet.sendTransaction(txContent)
      * ```
      *
-     * @param transactionContent Transaction content JSON (from transferNFT, etc.)
+     * @param transactionContent Transaction content JSON (from createTransfer* methods)
      * @return Transaction hash (boc) after successful broadcast
      * @throws WalletKitBridgeException if sending fails
      */
@@ -365,23 +389,21 @@ class TONWallet internal constructor(
 
     /**
      * Get jetton wallets owned by this wallet with pagination.
-     *
-     * Matches the shared API surface for cross-platform consistency.
+     * Matches the JS API `wallet.getJettons()` function.
      *
      * @param limit Maximum number of jetton wallets to return (default: 100)
      * @param offset Offset for pagination (default: 0)
      * @return Jetton wallets with pagination information
      * @throws WalletKitBridgeException if jetton retrieval fails
      */
-    suspend fun jettonsWallets(limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONJettonWallets {
+    suspend fun jettons(limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONJettonWallets {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.getJettons(addr, limit, offset)
     }
 
     /**
      * Get a single jetton by its master contract address.
-     *
-     * Matches the shared API surface for cross-platform consistency.
+     * Android-specific helper method (not in JS API).
      *
      * @param jettonAddress Jetton master contract address
      * @return Jetton information or null if not found
@@ -393,14 +415,13 @@ class TONWallet internal constructor(
 
     /**
      * Create a jetton transfer transaction.
-     *
-     * Matches the shared API surface for cross-platform consistency.
+     * Matches the JS API `wallet.createTransferJettonTransaction()` function.
      *
      * @param params Transfer parameters (recipient address, jetton address, amount, optional comment)
-     * @return Transaction content that can be sent via TON Connect
+     * @return Transaction content that can be sent via sendTransaction()
      * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun transferJettonTransaction(params: io.ton.walletkit.domain.model.TONJettonTransferParams): String {
+    suspend fun createTransferJettonTransaction(params: io.ton.walletkit.domain.model.TONJettonTransferParams): String {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         return engine.createTransferJettonTransaction(addr, params)
     }
