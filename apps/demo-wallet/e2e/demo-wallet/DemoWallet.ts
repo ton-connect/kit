@@ -83,9 +83,10 @@ export class DemoWallet extends WalletApp {
         await this.close();
     }
 
-    async sendTransaction(isPositiveCase: boolean, confirm: boolean): Promise<void> {
+    async sendTransaction(isPositiveCase: boolean, confirm: boolean, waitBeforeApprove: number = 0): Promise<void> {
         await this.open();
-        if (isPositiveCase) {
+        if (isPositiveCase || waitBeforeApprove > 0) {
+            await new Promise((resolve) => setTimeout(resolve, waitBeforeApprove));
             await this.accept(confirm);
         }
     }

@@ -6,22 +6,17 @@
  *
  */
 
-import { allureId, label, suite, tags } from 'allure-js-commons';
-import type { TestInfo } from '@playwright/test';
 import { config } from 'dotenv';
 
-import { AllureApiClient, createAllureConfig, getTestCaseData, extractAllureId } from './utils';
+import { AllureApiClient, createAllureConfig } from './utils';
 import { testWithDemoWalletFixture } from './demo-wallet';
-import type { TestFixture } from './qa';
-// Загружаем переменные окружения
-config();
+import { runSignDataTest } from './runTest';
 
-const isExtension = process.env.E2E_JS_BRIDGE === 'true';
+config();
 
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
 });
-const { expect } = test;
 
 let allureClient: AllureApiClient;
 
@@ -36,62 +31,14 @@ test.beforeAll(async () => {
     }
 });
 
-async function runSignDataTest(
-    { wallet, app, widget }: Pick<TestFixture, 'wallet' | 'app' | 'widget'>,
-    testInfo: TestInfo,
-) {
-    const testAllureId = extractAllureId(testInfo.title);
-    if (testAllureId) {
-        await allureId(testAllureId);
-        //await owner('e.kurilenko');
-        await suite('JS result');
-        await label('sub-suite', 'SignData');
-        //await subSuite('SignData');
-        await tags('automated', 'signData');
-    }
-    let precondition: string = '';
-    let expectedResult: string = '';
-
-    if (testAllureId && allureClient) {
-        try {
-            const testCaseData = await getTestCaseData(allureClient, testAllureId);
-            precondition = testCaseData.precondition;
-            expectedResult = testCaseData.expectedResult;
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Error getting test case data:', error);
-        }
-    } else {
-        // eslint-disable-next-line no-console
-        console.warn('AllureId not found in test title or client not available');
-    }
-
-    await expect(widget.connectButtonText).toHaveText('Connect Wallet');
-
-    if (isExtension) {
-        await widget.connectWallet('Tonkeeper');
-        await wallet.connect(true);
-    } else {
-        await wallet.connectBy(await widget.connectUrl());
-        await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
-    }
-
-    await app.getByTestId('signDataPrecondition').fill(precondition);
-    await app.getByTestId('signDataExpectedResult').fill(expectedResult);
-    await app.getByTestId('sign-data-button').click();
-
-    await wallet.signData(true);
-    await expect(app.getByTestId('signDataValidation')).toHaveText('Validation Passed');
-}
-
 test('Sign text @allureId(2258)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
 });
 
 test('Sign cell @allureId(2260)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
 });
 
 test('Sign binary @allureId(2259)', async ({ wallet, app, widget }) => {
-    await runSignDataTest({ wallet, app, widget }, test.info());
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
 });
