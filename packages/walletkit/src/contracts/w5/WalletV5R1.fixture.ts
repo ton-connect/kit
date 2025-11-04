@@ -9,7 +9,7 @@
 import { CHAIN } from '@tonconnect/protocol';
 
 import { mockFn } from '../../../mock.config';
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
 import type { FullAccountState, GetResult } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
@@ -98,6 +98,7 @@ export function createMockApiClient(): ApiClient {
             address_book: {},
             pagination: { offset: 0, limit: 50 },
         } as ResponseUserJettons),
+        getEvents: mockFn().mockResolvedValue({} as GetEventsResponse),
     };
 }
 export async function createDummyWallet(walletId?: bigint): Promise<WalletV5R1Adapter> {

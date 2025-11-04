@@ -233,7 +233,17 @@ export interface EmulationCallContractDetails {
     extra_currencies: Record<string, string> | null;
 }
 
+export interface EmulationTonTransferDetails {
+    source: string;
+    destination: string;
+    value: string;
+    value_extra_currencies: Record<string, string>;
+    comment: string | null;
+    encrypted: boolean;
+}
+
 export type EmulationActionDetails =
+    | EmulationTonTransferDetails
     | EmulationJettonSwapDetails
     | EmulationCallContractDetails
     | Record<string, unknown>; // fallback for unknown action types

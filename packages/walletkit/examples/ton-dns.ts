@@ -13,18 +13,15 @@ const logInfo = console.log;
 // eslint-disable-next-line no-console
 const logError = console.error;
 
-const apiKey = process.env.TONCENTER_API_KEY;
-const endpoint = 'https://toncenter.com';
-const tonClient = new ApiClientToncenter({
-    endpoint,
-    apiKey,
-    network: CHAIN.MAINNET,
-});
+const networkName = process.env.TON_NETWORK ?? 'TESTNET';
+const network = CHAIN[networkName as keyof typeof CHAIN];
+const apiKey = process.env[`TON_API_KEY_${networkName}`];
+const client = new ApiClientToncenter({ apiKey, network });
 
 async function main() {
-    const wallet = await tonClient.resolveDnsWallet('tolya.ton');
+    const wallet = await client.resolveDnsWallet('tolya.ton');
     logInfo({ wallet });
-    const domain = await tonClient.backResolveDnsWallet(wallet!);
+    const domain = await client.backResolveDnsWallet(wallet!);
     logInfo({ domain });
 }
 
