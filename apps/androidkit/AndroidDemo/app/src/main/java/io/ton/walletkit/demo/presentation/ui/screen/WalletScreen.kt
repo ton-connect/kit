@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
+import io.ton.walletkit.demo.presentation.actions.WalletActions
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
 import io.ton.walletkit.demo.presentation.model.JettonDetails
 import io.ton.walletkit.demo.presentation.model.JettonSummary
@@ -85,38 +86,7 @@ fun WalletScreen(
     state: WalletUiState,
     walletKit: TONWalletKit,
     nftsViewModel: NFTsListViewModel?,
-    onAddWalletClick: () -> Unit,
-    onUrlPromptClick: () -> Unit,
-    onOpenBrowser: (String) -> Unit,
-    onRefresh: () -> Unit,
-    onDismissSheet: () -> Unit,
-    onWalletDetails: (String) -> Unit,
-    onSendFromWallet: (String) -> Unit,
-    onDisconnectSession: (String) -> Unit,
-    onToggleWalletSwitcher: () -> Unit,
-    onSwitchWallet: (String) -> Unit,
-    onRemoveWallet: (String) -> Unit,
-    onRenameWallet: (String, String) -> Unit,
-    onImportWallet: (String, TONNetwork, List<String>, String, WalletInterfaceType) -> Unit,
-    onGenerateWallet: (String, TONNetwork, String, WalletInterfaceType) -> Unit,
-    onApproveConnect: (ConnectRequestUi, WalletSummary) -> Unit,
-    onRejectConnect: (ConnectRequestUi) -> Unit,
-    onApproveTransaction: (TransactionRequestUi) -> Unit,
-    onRejectTransaction: (TransactionRequestUi) -> Unit,
-    onApproveSignData: (SignDataRequestUi) -> Unit,
-    onRejectSignData: (SignDataRequestUi) -> Unit,
-    onConfirmSignerApproval: () -> Unit,
-    onCancelSignerApproval: () -> Unit,
-    onSendTransaction: (walletAddress: String, recipient: String, amount: String, comment: String) -> Unit,
-    onRefreshTransactions: (String) -> Unit,
-    onTransactionClick: (transactionHash: String, walletAddress: String) -> Unit,
-    onHandleUrl: (String) -> Unit,
-    onDismissUrlPrompt: () -> Unit,
-    onShowJettonDetails: (JettonSummary) -> Unit,
-    onTransferJetton: (jettonAddress: String, recipient: String, amount: String, comment: String) -> Unit,
-    onShowTransferJetton: (JettonDetails) -> Unit,
-    onLoadMoreJettons: () -> Unit,
-    onRefreshJettons: () -> Unit,
+    actions: WalletActions,
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -160,47 +130,47 @@ fun WalletScreen(
         ?: state.wallets.firstOrNull()
     if (showSheet) {
         ModalBottomSheet(
-            onDismissRequest = onDismissSheet,
+            onDismissRequest = actions::onDismissSheet,
             sheetState = sheetState,
             dragHandle = null,
         ) {
             when (sheet) {
                 SheetState.AddWallet -> AddWalletSheet(
-                    onDismiss = onDismissSheet,
-                    onImportWallet = onImportWallet,
-                    onGenerateWallet = onGenerateWallet,
+                    onDismiss = actions::onDismissSheet,
+                    onImportWallet = actions::onImportWallet,
+                    onGenerateWallet = actions::onGenerateWallet,
                     walletCount = state.wallets.size,
                 )
 
                 is SheetState.Connect -> ConnectRequestSheet(
                     request = sheet.request,
                     wallets = state.wallets,
-                    onApprove = { req, wallet -> onApproveConnect(req, wallet) },
-                    onReject = { req -> onRejectConnect(req) },
+                    onApprove = actions::onApproveConnect,
+                    onReject = actions::onRejectConnect,
                 )
 
                 is SheetState.Transaction -> TransactionRequestSheet(
                     request = sheet.request,
-                    onApprove = { onApproveTransaction(sheet.request) },
-                    onReject = { onRejectTransaction(sheet.request) },
+                    onApprove = { actions.onApproveTransaction(sheet.request) },
+                    onReject = { actions.onRejectTransaction(sheet.request) },
                 )
 
                 is SheetState.SignData -> SignDataSheet(
                     request = sheet.request,
-                    onApprove = { onApproveSignData(sheet.request) },
-                    onReject = { onRejectSignData(sheet.request) },
+                    onApprove = { actions.onApproveSignData(sheet.request) },
+                    onReject = { actions.onRejectSignData(sheet.request) },
                 )
 
                 is SheetState.WalletDetails -> WalletDetailsSheet(
                     wallet = sheet.wallet,
-                    onDismiss = onDismissSheet,
+                    onDismiss = actions::onDismissSheet,
                 )
 
                 is SheetState.SendTransaction -> SendTransactionScreen(
                     wallet = sheet.wallet,
-                    onBack = onDismissSheet,
+                    onBack = actions::onDismissSheet,
                     onSend = { recipient, amount, comment ->
-                        onSendTransaction(sheet.wallet.address, recipient, amount, comment)
+                        actions.onSendTransaction(sheet.wallet.address, recipient, amount, comment)
                     },
                     error = state.error,
                     isLoading = state.isSendingTransaction,
@@ -208,12 +178,12 @@ fun WalletScreen(
 
                 is SheetState.TransactionDetail -> TransactionDetailSheet(
                     transaction = sheet.transaction,
-                    onDismiss = onDismissSheet,
+                    onDismiss = actions::onDismissSheet,
                 )
 
                 is SheetState.Browser -> BrowserSheet(
                     url = sheet.url,
-                    onClose = onDismissSheet,
+                    onClose = actions::onDismissSheet,
                     walletKit = walletKit,
                     webViewHolder = browserWebViewHolder,
                 )
@@ -221,17 +191,17 @@ fun WalletScreen(
                 is SheetState.JettonDetails -> {
                     JettonDetailsSheet(
                         jetton = sheet.jetton,
-                        onDismiss = onDismissSheet,
-                        onTransfer = { onShowTransferJetton(sheet.jetton) },
+                        onDismiss = actions::onDismissSheet,
+                        onTransfer = { actions.onShowTransferJetton(sheet.jetton) },
                     )
                 }
 
                 is SheetState.TransferJetton -> {
                     TransferJettonSheet(
                         jetton = sheet.jetton,
-                        onDismiss = onDismissSheet,
+                        onDismiss = actions::onDismissSheet,
                         onTransfer = { recipient, amount, comment ->
-                            onTransferJetton(sheet.jetton.jettonAddress ?: "", recipient, amount, comment)
+                            actions.onTransferJetton(sheet.jetton.jettonAddress ?: "", recipient, amount, comment)
                         },
                         isLoading = false,
                     )
@@ -244,8 +214,8 @@ fun WalletScreen(
 
     if (state.isUrlPromptVisible) {
         UrlPromptDialog(
-            onDismiss = onDismissUrlPrompt,
-            onConfirm = onHandleUrl,
+            onDismiss = actions::onDismissUrlPrompt,
+            onConfirm = actions::onHandleUrl,
         )
     }
 
@@ -253,8 +223,8 @@ fun WalletScreen(
     state.pendingSignerConfirmation?.let { request ->
         SignerConfirmationDialog(
             request = request,
-            onConfirm = onConfirmSignerApproval,
-            onCancel = onCancelSignerApproval,
+            onConfirm = actions::onConfirmSignerApproval,
+            onCancel = actions::onCancelSignerApproval,
         )
     }
 
@@ -269,16 +239,16 @@ fun WalletScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { onOpenBrowser(DEFAULT_DAPP_URL) }) {
+                    IconButton(onClick = { actions.onOpenBrowser(DEFAULT_DAPP_URL) }) {
                         Icon(Icons.Default.Language, contentDescription = "Open dApp Browser")
                     }
-                    IconButton(onClick = onRefresh) {
+                    IconButton(onClick = actions::onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.action_refresh))
                     }
-                    IconButton(onClick = onUrlPromptClick) {
+                    IconButton(onClick = actions::onUrlPromptClick) {
                         Icon(Icons.Outlined.Link, contentDescription = stringResource(R.string.action_handle_url))
                     }
-                    IconButton(onClick = onAddWalletClick) {
+                    IconButton(onClick = actions::onAddWalletClick) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add_wallet))
                     }
                 },
@@ -303,9 +273,9 @@ fun WalletScreen(
             StatusHeader(state)
 
             QuickActionsCard(
-                onHandleUrl = onUrlPromptClick,
-                onAddWallet = onAddWalletClick,
-                onRefresh = onRefresh,
+                onHandleUrl = actions::onUrlPromptClick,
+                onAddWallet = actions::onAddWalletClick,
+                onRefresh = actions::onRefresh,
             )
 
             // Wallet Switcher (only show if multiple wallets exist)
@@ -314,18 +284,18 @@ fun WalletScreen(
                     wallets = state.wallets,
                     activeWalletAddress = state.activeWalletAddress,
                     isExpanded = state.isWalletSwitcherExpanded,
-                    onToggle = onToggleWalletSwitcher,
-                    onSwitchWallet = onSwitchWallet,
-                    onRemoveWallet = onRemoveWallet,
-                    onRenameWallet = onRenameWallet,
+                    onToggle = actions::onToggleWalletSwitcher,
+                    onSwitchWallet = actions::onSwitchWallet,
+                    onRemoveWallet = actions::onRemoveWallet,
+                    onRenameWallet = actions::onRenameWallet,
                 )
             }
 
             WalletsSection(
                 activeWallet = activeWallet,
                 totalWallets = state.wallets.size,
-                onWalletSelected = onWalletDetails,
-                onSendFromWallet = onSendFromWallet,
+                onWalletSelected = actions::onWalletDetails,
+                onSendFromWallet = actions::onSendFromWallet,
             )
 
             // Show NFTs for the active wallet (if ViewModel is available)
@@ -342,9 +312,9 @@ fun WalletScreen(
                 isLoading = state.isLoadingJettons,
                 error = state.jettonsError,
                 canLoadMore = state.canLoadMoreJettons,
-                onJettonClick = { jetton -> onShowJettonDetails(jetton) },
-                onLoadMore = { onLoadMoreJettons() },
-                onRefresh = { onRefreshJettons() },
+                onJettonClick = actions::onShowJettonDetails,
+                onLoadMore = actions::onLoadMoreJettons,
+                onRefresh = actions::onRefreshJettons,
             )
 
             // Show transaction history for the active wallet
@@ -353,14 +323,14 @@ fun WalletScreen(
                     transactions = wallet.transactions,
                     walletAddress = wallet.address,
                     isRefreshing = state.isLoadingTransactions,
-                    onRefreshTransactions = { onRefreshTransactions(wallet.address) },
-                    onTransactionClick = { hash -> onTransactionClick(hash, wallet.address) },
+                    onRefreshTransactions = { actions.onRefreshTransactions(wallet.address) },
+                    onTransactionClick = { hash -> actions.onTransactionClick(hash, wallet.address) },
                 )
             }
 
             SessionsSection(
                 sessions = state.sessions,
-                onDisconnect = onDisconnectSession,
+                onDisconnect = actions::onDisconnectSession,
             )
 
             if (state.events.isNotEmpty()) {

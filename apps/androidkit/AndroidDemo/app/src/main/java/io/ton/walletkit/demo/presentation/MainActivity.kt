@@ -15,19 +15,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import dagger.hilt.android.AndroidEntryPoint
 import io.ton.walletkit.demo.core.TONWalletKitHelper
 import io.ton.walletkit.demo.core.WalletKitDemoApp
+import io.ton.walletkit.demo.presentation.actions.WalletActionsImpl
 import io.ton.walletkit.demo.presentation.ui.screen.SetupPasswordScreen
 import io.ton.walletkit.demo.presentation.ui.screen.UnlockWalletScreen
 import io.ton.walletkit.demo.presentation.ui.screen.WalletScreen
 import io.ton.walletkit.demo.presentation.viewmodel.WalletKitViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: WalletKitViewModel by viewModels {
-        val app = application as WalletKitDemoApp
-        WalletKitViewModel.factory(app, app.storage, app.sdkEvents, app.sdkInitialized)
-    }
+    private val viewModel: WalletKitViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +43,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppNavigation(viewModel: WalletKitViewModel) {
+private fun AppNavigation(
+    viewModel: WalletKitViewModel,
+) {
     val isPasswordSet by viewModel.isPasswordSet.collectAsState()
     val isUnlocked by viewModel.isUnlocked.collectAsState()
     val state by viewModel.state.collectAsState()
@@ -57,6 +60,9 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
         val app = context.applicationContext as WalletKitDemoApp
         walletKit.value = TONWalletKitHelper.mainnet(app)
     }
+
+    // Create WalletActions implementation
+    val walletActions = remember(viewModel) { WalletActionsImpl(viewModel) }
 
     when {
         // Step 1: Setup password (first time user)
@@ -85,44 +91,12 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
         // Step 3 & 4: Main wallet screen (unlocked)
         // The AddWalletSheet will be shown automatically if no wallets exist
         else -> {
-            // Only show WalletScreen if walletKit is loaded
             walletKit.value?.let { kit ->
                 WalletScreen(
                     state = state,
                     walletKit = kit,
                     nftsViewModel = nftsViewModel,
-                    onAddWalletClick = viewModel::openAddWalletSheet,
-                    onUrlPromptClick = viewModel::showUrlPrompt,
-                    onOpenBrowser = { url -> viewModel.openBrowser(url) },
-                    onRefresh = viewModel::refreshAll,
-                    onDismissSheet = viewModel::dismissSheet,
-                    onWalletDetails = viewModel::showWalletDetails,
-                    onSendFromWallet = viewModel::openSendTransactionSheet,
-                    onDisconnectSession = viewModel::disconnectSession,
-                    onToggleWalletSwitcher = viewModel::toggleWalletSwitcher,
-                    onSwitchWallet = viewModel::switchWallet,
-                    onRemoveWallet = viewModel::removeWallet,
-                    onRenameWallet = viewModel::renameWallet,
-                    onImportWallet = viewModel::importWallet,
-                    onGenerateWallet = viewModel::generateWallet,
-                    onApproveConnect = viewModel::approveConnect,
-                    onRejectConnect = viewModel::rejectConnect,
-                    onApproveTransaction = viewModel::approveTransaction,
-                    onRejectTransaction = viewModel::rejectTransaction,
-                    onApproveSignData = viewModel::approveSignData,
-                    onRejectSignData = viewModel::rejectSignData,
-                    onConfirmSignerApproval = viewModel::confirmSignerApproval,
-                    onCancelSignerApproval = viewModel::cancelSignerApproval,
-                    onSendTransaction = viewModel::sendLocalTransaction,
-                    onRefreshTransactions = viewModel::refreshTransactions,
-                    onTransactionClick = viewModel::showTransactionDetail,
-                    onHandleUrl = viewModel::handleTonConnectUrl,
-                    onDismissUrlPrompt = viewModel::hideUrlPrompt,
-                    onShowJettonDetails = viewModel::showJettonDetails,
-                    onTransferJetton = viewModel::transferJetton,
-                    onShowTransferJetton = viewModel::showTransferJetton,
-                    onLoadMoreJettons = viewModel::loadMoreJettons,
-                    onRefreshJettons = viewModel::refreshJettons,
+                    actions = walletActions,
                 )
             }
         }

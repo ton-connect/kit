@@ -10,6 +10,7 @@ import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
+import dagger.hilt.android.HiltAndroidApp
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.SecureDemoAppStorage
 import io.ton.walletkit.domain.model.TONNetwork
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import okio.Path.Companion.toOkioPath
 
+@HiltAndroidApp
 class WalletKitDemoApp :
     Application(),
     SingletonImageLoader.Factory {

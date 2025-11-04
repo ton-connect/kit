@@ -1,11 +1,13 @@
 package io.ton.walletkit.demo.presentation.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.WalletRecord
@@ -44,15 +46,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.collections.ArrayDeque
 import kotlin.collections.firstOrNull
 
-class WalletKitViewModel(
-    private val application: Application,
+@HiltViewModel
+class WalletKitViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val storage: DemoAppStorage,
-    private val sdkEvents: SharedFlow<TONWalletKitEvent>,
-    private val sdkInitialized: SharedFlow<Boolean>,
+    private val sdkEvents: @JvmSuppressWildcards SharedFlow<TONWalletKitEvent>,
+    private val sdkInitialized: @JvmSuppressWildcards SharedFlow<Boolean>,
 ) : ViewModel() {
+
+    private val application: Application get() = context.applicationContext as Application
 
     private val _state = MutableStateFlow(
         WalletUiState(
@@ -1410,15 +1416,5 @@ class WalletKitViewModel(
         private const val DEFAULT_REJECTION_REASON = "User rejected"
         private const val SIGNER_CONFIRMATION_CANCEL_REASON = "User cancelled signer confirmation"
         private const val ERROR_DIRECT_SIGNING_UNSUPPORTED = "Direct signing not supported - use SDK's transaction/signData methods"
-
-        fun factory(
-            application: Application,
-            storage: DemoAppStorage,
-            sdkEvents: SharedFlow<TONWalletKitEvent>,
-            sdkInitialized: SharedFlow<Boolean>,
-        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T = WalletKitViewModel(application, storage, sdkEvents, sdkInitialized) as T
-        }
     }
 }

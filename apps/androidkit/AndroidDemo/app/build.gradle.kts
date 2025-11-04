@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.kotlinCompose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hiltAndroid)
 }
 
 android {
@@ -60,6 +62,10 @@ dependencies {
     implementation(libs.androidxSecurityCrypto)
     implementation(libs.coilCompose)
     implementation(libs.coilNetwork)
+
+    // Hilt dependency injection
+    implementation(libs.hiltAndroid)
+    ksp(libs.hiltCompiler)
 
     // TONWalletKit SDK - AAR file
     // Build and copy with: ./gradlew buildAndCopyWebviewToDemo (or buildAndCopyFullToDemo)
