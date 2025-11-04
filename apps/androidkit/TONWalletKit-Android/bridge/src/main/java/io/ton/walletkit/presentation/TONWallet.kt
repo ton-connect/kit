@@ -109,16 +109,6 @@ class TONWallet internal constructor(
         }
 
         /**
-         * Generate a new TON mnemonic phrase using the SDK's JS utilities.
-         * Defaults to 24 words.
-         *
-         * @param kit The TONWalletKit instance
-         */
-        suspend fun generateMnemonic(kit: TONWalletKit, wordCount: Int = 24): List<String> {
-            return kit.engine.createTonMnemonic(wordCount)
-        }
-
-        /**
          * Add a new wallet using an external signer.
          *
          * Use this method to create wallets where the private key is managed externally,
@@ -271,19 +261,25 @@ class TONWallet internal constructor(
     }
 
     /**
-     * Send a locally initiated transaction from this wallet.
+     * Create a TON transfer transaction.
      *
-     * This creates and sends a transaction with the specified parameters.
-     * The transaction will trigger a transaction request event that should be approved by the user.
+     * This method creates transaction content that can be passed to `kit.handleNewTransaction()`
+     * to trigger the approval flow. This matches the JS WalletKit API:
      *
-     * @param recipient Recipient address
-     * @param amount Amount in nanoTON as a string
-     * @param comment Optional comment/memo for the transaction
-     * @throws WalletKitBridgeException if transaction creation or sending fails
+     * ```typescript
+     * const tx = await wallet.createTransferTonTransaction(params);
+     * await kit.handleNewTransaction(wallet, tx);
+     * ```
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param params Transfer parameters (recipient address, amount, optional comment/body/stateInit)
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun sendLocalTransaction(recipient: String, amount: String, comment: String? = null) {
+    suspend fun createTransferTonTransaction(params: io.ton.walletkit.domain.model.TONTransferParams): String {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
-        engine.sendLocalTransaction(addr, recipient, amount, comment)
+        return engine.createTransferTonTransaction(addr, params)
     }
 
     /**
@@ -345,7 +341,7 @@ class TONWallet internal constructor(
     /**
      * Send a transaction to the blockchain.
      *
-     * This method takes transaction content (usually created by transferNFT, sendLocalTransaction, etc.)
+     * This method takes transaction content (usually created by transferNFT, createTransferTonTransaction, etc.)
      * and actually sends it to the blockchain, returning the transaction hash.
      *
      * Matches the iOS wallet.sendTransaction() behavior for cross-platform consistency.

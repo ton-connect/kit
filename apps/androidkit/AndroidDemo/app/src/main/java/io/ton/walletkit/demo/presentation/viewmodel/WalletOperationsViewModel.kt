@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ton.walletkit.demo.presentation.util.TonFormatter
+import io.ton.walletkit.domain.model.TONTransferParams
 import io.ton.walletkit.presentation.TONWallet
+import io.ton.walletkit.presentation.TONWalletKit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.launch
  * Handles operations that require an active wallet context.
  */
 class WalletOperationsViewModel(
+    private val walletKit: () -> TONWalletKit,
     private val getWalletByAddress: (String) -> TONWallet?,
     private val onWalletSwitched: (String) -> Unit = {},
     private val onTransactionInitiated: (String) -> Unit = {},
@@ -54,6 +57,10 @@ class WalletOperationsViewModel(
      * Send a local transaction (TON transfer).
      * This creates a transaction request that will trigger the approval flow.
      *
+     * This uses the standard JS WalletKit API:
+     * 1. wallet.createTransferTonTransaction(params) - creates transaction content
+     * 2. kit.handleNewTransaction(wallet, transaction) - triggers approval flow
+     *
      * @param walletAddress The sender wallet address
      * @param recipient The recipient address
      * @param amount The amount in TON (will be converted to nanoTON)
@@ -89,7 +96,16 @@ class WalletOperationsViewModel(
             }
 
             runCatching {
-                wallet.sendLocalTransaction(recipient, amountInNano, comment)
+                // Step 1: Create transaction content
+                val params = TONTransferParams(
+                    toAddress = recipient,
+                    amount = amountInNano,
+                    comment = comment.takeIf { it.isNotBlank() }
+                )
+                val transactionContent = wallet.createTransferTonTransaction(params)
+                
+                // Step 2: Trigger approval flow
+                walletKit().handleNewTransaction(wallet, transactionContent)
             }.onSuccess {
                 _state.value = _state.value.copy(
                     isSendingTransaction = false,

@@ -48,7 +48,15 @@ export interface WalletKitBridgeApi {
   getWallets: () => Promise<unknown>;
   getWalletState: (args: { address: string }) => Promise<unknown>;
   handleTonConnectUrl: (args: { url: string }) => Promise<unknown>;
-  sendLocalTransaction: (args: { walletAddress: string; toAddress: string; amount: string; comment?: string }) => Promise<unknown>;
+  createTransferTonTransaction: (args: { 
+    walletAddress: string; 
+    toAddress: string; 
+    amount: string; 
+    comment?: string;
+    body?: string;
+    stateInit?: string;
+  }) => Promise<unknown>;
+  handleNewTransaction: (args: { walletAddress: string; transactionContent: string }) => Promise<unknown>;
   approveConnectRequest: (args: { requestId: any; walletAddress: string }) => Promise<unknown>;
   rejectConnectRequest: (args: { requestId: any; reason?: string }) => Promise<unknown>;
   approveTransactionRequest: (args: { requestId: any }) => Promise<unknown>;

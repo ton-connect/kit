@@ -56,9 +56,16 @@ internal object BridgeMethodConstants {
     const val METHOD_HANDLE_TON_CONNECT_URL = "handleTonConnectUrl"
 
     /**
-     * Method name for sending a local transaction.
+     * Method name for creating a TON transfer transaction.
+     * Matches JS API: wallet.createTransferTonTransaction()
      */
-    const val METHOD_SEND_LOCAL_TRANSACTION = "sendLocalTransaction"
+    const val METHOD_CREATE_TRANSFER_TON_TRANSACTION = "createTransferTonTransaction"
+
+    /**
+     * Method name for handling a new transaction.
+     * Matches JS API: kit.handleNewTransaction()
+     */
+    const val METHOD_HANDLE_NEW_TRANSACTION = "handleNewTransaction"
 
     /**
      * Method name for sending a transaction to the blockchain.

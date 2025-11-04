@@ -195,20 +195,34 @@ internal interface WalletKitEngine {
     )
 
     /**
-     * Create a new locally-initiated transaction request.
-     * This will trigger a transaction request event that needs to be approved via [approveTransaction].
+     * Create a TON transfer transaction.
+     *
+     * This method creates transaction content matching the JS WalletKit API wallet.createTransferTonTransaction().
+     * The returned transaction content can be passed to handleNewTransaction() to trigger the approval flow.
      *
      * @param walletAddress Source wallet address
-     * @param recipient Recipient address
-     * @param amount Amount in nanoTON
-     * @param comment Optional comment/message
+     * @param params Transfer parameters (recipient, amount, optional comment/body/stateInit)
+     * @return Transaction content as JSON string
      * @throws WalletKitBridgeException if transaction creation fails
      */
-    suspend fun sendLocalTransaction(
+    suspend fun createTransferTonTransaction(
         walletAddress: String,
-        recipient: String,
-        amount: String,
-        comment: String? = null,
+        params: io.ton.walletkit.domain.model.TONTransferParams,
+    ): String
+
+    /**
+     * Handle a new transaction initiated from the wallet app.
+     *
+     * This method matches the JS WalletKit API kit.handleNewTransaction() and triggers
+     * a transaction request event that can be approved or rejected via the event handler.
+     *
+     * @param walletAddress Wallet address that will sign the transaction
+     * @param transactionContent Transaction content as JSON (from createTransferTonTransaction, etc.)
+     * @throws WalletKitBridgeException if transaction handling fails
+     */
+    suspend fun handleNewTransaction(
+        walletAddress: String,
+        transactionContent: String,
     )
 
     /**

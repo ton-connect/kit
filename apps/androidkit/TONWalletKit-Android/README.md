@@ -73,7 +73,7 @@ kit.removeEventsHandler(eventsHandler)
 ```kotlin
 import io.ton.walletkit.domain.model.TONWalletData
 
-val mnemonic = TONWallet.generateMnemonic(kit, 24)
+val mnemonic = kit.createMnemonic()
 val walletData = TONWalletData(
     mnemonic = mnemonic,
     name = "My Wallet",
@@ -138,13 +138,22 @@ val sessions = wallet.sessions()
 sessions.firstOrNull()?.disconnect()
 ```
 
-#### Send a local transaction:
+#### Send a transaction:
 ```kotlin
-wallet.sendLocalTransaction(
-    recipient = "EQD...",
+import io.ton.walletkit.domain.model.TONTransferParams
+
+// Create transfer parameters
+val params = TONTransferParams(
+    toAddress = "EQD...",
     amount = "1000000000", // 1 TON in nanotons
     comment = "Payment"
 )
+
+// Create transaction content
+val transactionContent = wallet.createTransferTonTransaction(params)
+
+// Trigger transaction approval flow
+kit.handleNewTransaction(wallet, transactionContent)
 ```
 
 #### Remove wallet:

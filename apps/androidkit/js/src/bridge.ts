@@ -1221,15 +1221,15 @@ const api = {
     }
   },
 
-  async sendLocalTransaction(
-    args: { walletAddress: string; toAddress: string; amount: string; comment?: string },
+  async createTransferTonTransaction(
+    args: { walletAddress: string; toAddress: string; amount: string; comment?: string; body?: string; stateInit?: string },
     context?: CallContext,
   ) {
-    emitCallCheckpoint(context, 'sendLocalTransaction:before-ensureWalletKitLoaded');
+    emitCallCheckpoint(context, 'createTransferTonTransaction:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'sendLocalTransaction:after-ensureWalletKitLoaded');
+    emitCallCheckpoint(context, 'createTransferTonTransaction:after-ensureWalletKitLoaded');
     requireWalletKit();
-    emitCallCheckpoint(context, 'sendLocalTransaction:after-requireWalletKit');
+    emitCallCheckpoint(context, 'createTransferTonTransaction:after-requireWalletKit');
 
     const walletAddress =
       typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
@@ -1264,9 +1264,19 @@ const api = {
       transferParams.comment = comment;
     }
 
-    emitCallCheckpoint(context, 'sendLocalTransaction:before-wallet.createTransferTonTransaction');
+    const body = typeof args.body === 'string' ? args.body.trim() : '';
+    if (body) {
+      transferParams.body = body;
+    }
+
+    const stateInit = typeof args.stateInit === 'string' ? args.stateInit.trim() : '';
+    if (stateInit) {
+      transferParams.stateInit = stateInit;
+    }
+
+    emitCallCheckpoint(context, 'createTransferTonTransaction:before-wallet.createTransferTonTransaction');
     const transaction = await wallet.createTransferTonTransaction(transferParams);
-    emitCallCheckpoint(context, 'sendLocalTransaction:after-wallet.createTransferTonTransaction');
+    emitCallCheckpoint(context, 'createTransferTonTransaction:after-wallet.createTransferTonTransaction');
 
     // Add comment to transaction messages for UI display (doesn't affect blockchain encoding)
     if (comment && transaction.messages && Array.isArray(transaction.messages)) {
@@ -1279,28 +1289,62 @@ const api = {
     let preview: unknown = null;
     if (typeof wallet.getTransactionPreview === 'function') {
       try {
-        emitCallCheckpoint(context, 'sendLocalTransaction:before-wallet.getTransactionPreview');
+        emitCallCheckpoint(context, 'createTransferTonTransaction:before-wallet.getTransactionPreview');
         const previewResult = await wallet.getTransactionPreview(transaction);
         preview = previewResult?.preview ?? previewResult;
-        emitCallCheckpoint(context, 'sendLocalTransaction:after-wallet.getTransactionPreview');
+        emitCallCheckpoint(context, 'createTransferTonTransaction:after-wallet.getTransactionPreview');
       } catch (error) {
         console.warn('[walletkitBridge] getTransactionPreview failed', error);
       }
     }
 
+    // Return transaction content and preview
+    // This doesn't trigger any events - caller must call handleNewTransaction separately
+    return {
+      transaction,
+      preview,
+    };
+  },
+
+  async handleNewTransaction(
+    args: { walletAddress: string; transactionContent: string },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'handleNewTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'handleNewTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'handleNewTransaction:after-requireWalletKit');
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${walletAddress}`);
+    }
+
+    let transaction;
+    try {
+      transaction = typeof args.transactionContent === 'string' 
+        ? JSON.parse(args.transactionContent) 
+        : args.transactionContent;
+    } catch (error) {
+      throw new Error(`Invalid transaction content: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
     // handleNewTransaction triggers onTransactionRequest event
     // Android app should listen to transactionRequest event to show confirmation UI with fee details
     // User then calls approveTransactionRequest or rejectTransactionRequest
-    emitCallCheckpoint(context, 'sendLocalTransaction:before-walletKit.handleNewTransaction');
+    emitCallCheckpoint(context, 'handleNewTransaction:before-walletKit.handleNewTransaction');
     await walletKit.handleNewTransaction(wallet, transaction);
-    emitCallCheckpoint(context, 'sendLocalTransaction:after-walletKit.handleNewTransaction');
+    emitCallCheckpoint(context, 'handleNewTransaction:after-walletKit.handleNewTransaction');
 
-    // This returns immediately after queuing the transaction request
-    // The actual transaction is sent only when approveTransactionRequest is called
     return {
       success: true,
-      transaction,
-      preview,
     };
   },
 

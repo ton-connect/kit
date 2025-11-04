@@ -106,6 +106,7 @@ class WalletKitViewModel @Inject constructor(
     )
 
     private val walletOperationsViewModel = WalletOperationsViewModel(
+        walletKit = { walletKit ?: error("TONWalletKit not initialized") },
         getWalletByAddress = { address -> lifecycleManager.tonWallets[address] },
         onWalletSwitched = { address -> handleWalletSwitched(address) },
         onTransactionInitiated = { address -> onLocalTransactionInitiated(address) },
@@ -626,7 +627,7 @@ class WalletKitViewModel @Inject constructor(
             _state.update { it.copy(isGeneratingMnemonic = true) }
             val words = try {
                 val kit = getKit()
-                TONWallet.generateMnemonic(kit, 24)
+                kit.createMnemonic(24)
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Mnemonic generation failed", e)
                 _state.update { it.copy(isGeneratingMnemonic = false, error = uiString(R.string.wallet_error_generate_failed)) }

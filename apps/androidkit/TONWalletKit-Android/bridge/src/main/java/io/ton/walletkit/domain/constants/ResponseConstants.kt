@@ -147,6 +147,11 @@ internal object ResponseConstants {
     const val KEY_COMMENT = "comment"
 
     /**
+     * JSON key for state init (base64 BOC).
+     */
+    const val KEY_STATE_INIT = "stateInit"
+
+    /**
      * JSON key for total transaction fees.
      */
     const val KEY_TOTAL_FEES = "total_fees"

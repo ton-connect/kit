@@ -123,6 +123,18 @@ class TONWalletKit private constructor(
     // === Wallet Management Methods ===
 
     /**
+     * Generate a new TON mnemonic phrase.
+     * Matches the JS API `CreateTonMnemonic()` function.
+     *
+     * @param wordCount Number of words to generate (12 or 24). Defaults to 24.
+     * @return List of mnemonic words
+     */
+    suspend fun createMnemonic(wordCount: Int = 24): List<String> {
+        checkNotDestroyed()
+        return engine.createTonMnemonic(wordCount)
+    }
+
+    /**
      * Add a new wallet from mnemonic data.
      *
      * @param data Wallet creation data (mnemonic, name, version, network)
@@ -161,6 +173,32 @@ class TONWalletKit private constructor(
                 account = account,
             )
         }
+    }
+
+    /**
+     * Handle a new transaction initiated from the wallet app.
+     *
+     * This method takes transaction content (created via wallet.createTransferTonTransaction,
+     * wallet.transferJettonTransaction, etc.) and triggers the transaction approval flow.
+     *
+     * Matches the JS WalletKit API:
+     * ```typescript
+     * const tx = await wallet.createTransferTonTransaction(params);
+     * await kit.handleNewTransaction(wallet, tx);
+     * // This triggers onTransactionRequest event
+     * ```
+     *
+     * The transaction will appear as a TransactionRequestEvent that can be approved or rejected
+     * via the event handler.
+     *
+     * @param wallet The wallet that will sign and send the transaction
+     * @param transactionContent Transaction content as JSON string (from createTransferTonTransaction, etc.)
+     * @throws WalletKitBridgeException if transaction handling fails
+     */
+    suspend fun handleNewTransaction(wallet: TONWallet, transactionContent: String) {
+        checkNotDestroyed()
+        val addr = wallet.address ?: throw IllegalArgumentException("Wallet address is null")
+        engine.handleNewTransaction(addr, transactionContent)
     }
 
     companion object {

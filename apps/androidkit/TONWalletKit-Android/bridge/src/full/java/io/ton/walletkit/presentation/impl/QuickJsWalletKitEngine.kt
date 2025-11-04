@@ -529,23 +529,42 @@ internal class QuickJsWalletKitEngine(
         call("handleTonConnectUrl", params)
     }
 
-    override suspend fun sendLocalTransaction(
+    override suspend fun createTransferTonTransaction(
         walletAddress: String,
-        recipient: String,
-        amount: String,
-        comment: String?,
+        params: io.ton.walletkit.domain.model.TONTransferParams,
+    ): String {
+        ensureWalletKitInitialized()
+        val paramsJson =
+            JSONObject().apply {
+                put("walletAddress", walletAddress)
+                put("toAddress", params.toAddress)
+                put("amount", params.amount)
+                if (!params.comment.isNullOrBlank()) {
+                    put("comment", params.comment)
+                }
+                if (!params.body.isNullOrBlank()) {
+                    put("body", params.body)
+                }
+                if (!params.stateInit.isNullOrBlank()) {
+                    put("stateInit", params.stateInit)
+                }
+            }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TRANSFER_TON_TRANSACTION, paramsJson)
+        // Return the transaction content as JSON string
+        return result.toString()
+    }
+
+    override suspend fun handleNewTransaction(
+        walletAddress: String,
+        transactionContent: String,
     ) {
         ensureWalletKitInitialized()
         val params =
             JSONObject().apply {
                 put("walletAddress", walletAddress)
-                put("toAddress", recipient)
-                put("amount", amount)
-                if (!comment.isNullOrBlank()) {
-                    put("comment", comment)
-                }
+                put("transactionContent", transactionContent)
             }
-        call(BridgeMethodConstants.METHOD_SEND_LOCAL_TRANSACTION, params)
+        call(BridgeMethodConstants.METHOD_HANDLE_NEW_TRANSACTION, params)
     }
 
     override suspend fun sendTransaction(
