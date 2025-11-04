@@ -270,44 +270,32 @@ internal class QuickJsWalletKitEngine(
         ensureWalletKitInitialized(configuration)
     }
 
-    override suspend fun addWalletFromMnemonic(
+    override suspend fun createV5R1WalletAdapter(
         words: List<String>,
-        name: String?,
-        version: String,
         network: String?,
-    ): WalletAccount {
+    ): Any {
         ensureWalletKitInitialized()
 
-        // Call addWalletFromMnemonic on the bridge (which handles creating and adding the wallet)
-        val normalizedVersion = version.lowercase()
         val params = JSONObject().apply {
-            put("words", JSONArray(words))
-            put("version", normalizedVersion)
+            put("mnemonic", JSONArray(words))
             network?.let { put("network", it) }
         }
 
-        call("addWalletFromMnemonic", params)
+        return call("createV5R1WalletUsingMnemonic", params)
+    }
 
-        // Get wallets to find the one we just added
-        val walletsResult = call("getWallets")
-        val items = walletsResult.optJSONArray("items") ?: JSONArray()
+    override suspend fun createV4R2WalletAdapter(
+        words: List<String>,
+        network: String?,
+    ): Any {
+        ensureWalletKitInitialized()
 
-        // The last wallet should be the one we just added
-        if (items.length() > 0) {
-            val lastWallet = items.optJSONObject(items.length() - 1)
-            if (lastWallet != null) {
-                return WalletAccount(
-                    address = lastWallet.optString("address"),
-                    publicKey = lastWallet.optNullableString("publicKey"),
-                    name = lastWallet.optNullableString("name") ?: name,
-                    version = lastWallet.optString("version", version),
-                    network = lastWallet.optString("network", network ?: currentNetwork),
-                    index = lastWallet.optInt("index", 0),
-                )
-            }
+        val params = JSONObject().apply {
+            put("mnemonic", JSONArray(words))
+            network?.let { put("network", it) }
         }
 
-        throw IllegalStateException("Failed to retrieve newly added wallet")
+        return call("createV4R2WalletUsingMnemonic", params)
     }
 
     override suspend fun derivePublicKeyFromMnemonic(words: List<String>): String {

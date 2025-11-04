@@ -457,45 +457,34 @@ internal class WebViewWalletKitEngine private constructor(
         Log.d(TAG, "🔵 eventListenersSetupMutex released")
     }
 
-    override suspend fun addWalletFromMnemonic(
+    override suspend fun createV5R1WalletAdapter(
         words: List<String>,
-        name: String?,
-        version: String,
         network: String?,
-    ): WalletAccount {
+    ): Any {
         ensureWalletKitInitialized()
 
-        // Call addWalletFromMnemonic on the bridge (which handles creating and adding the wallet)
-        val normalizedVersion = version.lowercase()
         val params =
             JSONObject().apply {
-                put(JsonConstants.KEY_WORDS, JSONArray(words))
-                put(JsonConstants.KEY_VERSION, normalizedVersion)
+                put(JsonConstants.KEY_MNEMONIC, JSONArray(words))
                 network?.let { put(JsonConstants.KEY_NETWORK, it) }
             }
 
-        call(BridgeMethodConstants.METHOD_ADD_WALLET_FROM_MNEMONIC, params)
+        return call(BridgeMethodConstants.METHOD_CREATE_V5R1_WALLET_USING_MNEMONIC, params)
+    }
 
-        // Get wallets to find the one we just added
-        val walletsResult = call(BridgeMethodConstants.METHOD_GET_WALLETS)
-        val items = walletsResult.optJSONArray(ResponseConstants.KEY_ITEMS) ?: JSONArray()
+    override suspend fun createV4R2WalletAdapter(
+        words: List<String>,
+        network: String?,
+    ): Any {
+        ensureWalletKitInitialized()
 
-        // The last wallet should be the one we just added
-        if (items.length() > 0) {
-            val lastWallet = items.optJSONObject(items.length() - 1)
-            if (lastWallet != null) {
-                return WalletAccount(
-                    address = lastWallet.optString(ResponseConstants.KEY_ADDRESS),
-                    publicKey = lastWallet.optNullableString(ResponseConstants.KEY_PUBLIC_KEY),
-                    name = lastWallet.optNullableString(JsonConstants.KEY_NAME) ?: name,
-                    version = lastWallet.optString(JsonConstants.KEY_VERSION, version),
-                    network = lastWallet.optString(JsonConstants.KEY_NETWORK, network ?: currentNetwork),
-                    index = lastWallet.optInt(ResponseConstants.KEY_INDEX, 0),
-                )
+        val params =
+            JSONObject().apply {
+                put(JsonConstants.KEY_MNEMONIC, JSONArray(words))
+                network?.let { put(JsonConstants.KEY_NETWORK, it) }
             }
-        }
 
-        throw WalletKitBridgeException(ERROR_NEW_WALLET_NOT_FOUND)
+        return call(BridgeMethodConstants.METHOD_CREATE_V4R2_WALLET_USING_MNEMONIC, params)
     }
 
     override suspend fun derivePublicKeyFromMnemonic(words: List<String>): String {

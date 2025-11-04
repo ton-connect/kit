@@ -26,9 +26,22 @@ internal object BridgeMethodConstants {
     const val METHOD_REMOVE_EVENT_LISTENERS = "removeEventListeners"
 
     /**
-     * Method name for adding a wallet from mnemonic phrase.
+     * Method name for creating a V5R1 wallet adapter from mnemonic.
+     * Matches JS API: createV5R1WalletUsingMnemonic()
      */
-    const val METHOD_ADD_WALLET_FROM_MNEMONIC = "addWalletFromMnemonic"
+    const val METHOD_CREATE_V5R1_WALLET_USING_MNEMONIC = "createV5R1WalletUsingMnemonic"
+
+    /**
+     * Method name for creating a V4R2 wallet adapter from mnemonic.
+     * Matches JS API: createV4R2WalletUsingMnemonic()
+     */
+    const val METHOD_CREATE_V4R2_WALLET_USING_MNEMONIC = "createV4R2WalletUsingMnemonic"
+
+    /**
+     * Method name for adding a wallet adapter to the kit.
+     * Matches JS API: walletKit.addWallet(adapter)
+     */
+    const val METHOD_ADD_WALLET = "addWallet"
 
     /**
      * Method name for getting all wallets.

@@ -143,12 +143,33 @@ class TONWalletKit private constructor(
     suspend fun addWallet(data: io.ton.walletkit.domain.model.TONWalletData): TONWallet {
         checkNotDestroyed()
 
-        val account = engine.addWalletFromMnemonic(
-            words = data.mnemonic,
-            name = data.name,
-            version = data.version,
-            network = data.network.value,
-        )
+        // Create wallet using appropriate method - this creates adapter and adds to kit in one call
+        val result = when (data.version) {
+            "v5r1" -> engine.createV5R1WalletAdapter(
+                words = data.mnemonic,
+                network = data.network.value,
+            )
+            "v4r2" -> engine.createV4R2WalletAdapter(
+                words = data.mnemonic,
+                network = data.network.value,
+            )
+            else -> throw IllegalArgumentException("Unsupported wallet version: ${data.version}")
+        }
+
+        // Extract address from result
+        val address = when (result) {
+            is org.json.JSONObject -> result.optString(io.ton.walletkit.domain.constants.ResponseConstants.KEY_ADDRESS)
+            else -> throw IllegalStateException("Unexpected result type from createWallet: ${result::class.java.name}")
+        }
+
+        if (address.isEmpty()) {
+            throw IllegalStateException("Failed to get address from wallet creation")
+        }
+
+        // Get wallet info to create TONWallet instance
+        val wallets = engine.getWallets()
+        val account = wallets.firstOrNull { it.address == address }
+            ?: throw IllegalStateException("Wallet was added but not found in wallet list")
 
         return TONWallet(
             address = account.address,

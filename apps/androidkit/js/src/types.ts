@@ -44,7 +44,9 @@ export interface WalletKitNativeBridgeType {
 
 export interface WalletKitBridgeApi {
   init: (config?: WalletKitBridgeInitConfig) => Promise<unknown>;
-  addWalletFromMnemonic: (args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: string }) => Promise<unknown>;
+  createV5R1WalletUsingMnemonic: (args: { mnemonic: string[]; network?: string }) => Promise<unknown>;
+  createV4R2WalletUsingMnemonic: (args: { mnemonic: string[]; network?: string }) => Promise<unknown>;
+  addWallet: (args: { wallet: any }) => Promise<unknown>;
   getWallets: () => Promise<unknown>;
   getWalletState: (args: { address: string }) => Promise<unknown>;
   handleTonConnectUrl: (args: { url: string }) => Promise<unknown>;

@@ -40,21 +40,32 @@ internal interface WalletKitEngine {
     suspend fun init(configuration: TONWalletKitConfiguration)
 
     /**
-     * Add a new wallet from mnemonic phrase.
+     * Create a V5R1 wallet from mnemonic and add it to the kit.
+     * Matches the JS API `createV5R1WalletUsingMnemonic()` function.
      *
      * @param words Mnemonic phrase as a list of words
-     * @param name Optional user-assigned name for the wallet
-     * @param version Wallet version (e.g., "v5r1", "v4r2")
      * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
-     * @return The newly added wallet account
+     * @return Object containing wallet address and publicKey
      * @throws WalletKitBridgeException if wallet creation fails
      */
-    suspend fun addWalletFromMnemonic(
+    suspend fun createV5R1WalletAdapter(
         words: List<String>,
-        name: String? = null,
-        version: String,
         network: String? = null,
-    ): WalletAccount
+    ): Any
+
+    /**
+     * Create a V4R2 wallet from mnemonic and add it to the kit.
+     * Matches the JS API `createV4R2WalletUsingMnemonic()` function.
+     *
+     * @param words Mnemonic phrase as a list of words
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return Object containing wallet address and publicKey
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV4R2WalletAdapter(
+        words: List<String>,
+        network: String? = null,
+    ): Any
 
     /**
      * Derive public key from a mnemonic phrase without creating a wallet.

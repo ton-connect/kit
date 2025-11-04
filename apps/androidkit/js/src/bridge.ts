@@ -718,52 +718,6 @@ const api = {
     return { items: words };
   },
 
-  async addWalletFromMnemonic(
-  args: { words: string[]; version: 'v5r1' | 'v4r2'; network?: string },
-    context?: CallContext,
-  ) {
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:after-requireWalletKit');
-    const chains = tonConnectChain;
-    if (!chains) {
-      throw new Error('TON Connect chain constants unavailable');
-    }
-    // Support both network names (mainnet/testnet) and chain IDs (-239/-3)
-  // Normalize network input (accept legacy names but convert to CHAIN enum values)
-  const networkValue = normalizeNetworkValue(args.network as string | undefined);
-  const isMainnet = networkValue === CHAIN.MAINNET;
-  const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
-    
-    // Create wallet adapter based on version
-    let walletAdapter: any;
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:before-createWalletAdapter');
-    
-    if (args.version === 'v4r2') {
-      const signer = await Signer.fromMnemonic(args.words, { type: 'ton' });
-      walletAdapter = await WalletV4R2Adapter.create(signer, {
-        client: walletKit.getApiClient(),
-        network: chain,
-      });
-    } else if (args.version === 'v5r1') {
-      const signer = await Signer.fromMnemonic(args.words, { type: 'ton' });
-      walletAdapter = await WalletV5R1Adapter.create(signer, {
-        client: walletKit.getApiClient(),
-        network: chain,
-      });
-    } else {
-      throw new Error('Unsupported wallet version: ${args.version}');
-    }
-    
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:after-createWalletAdapter');
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:before-walletKit.addWallet');
-    await walletKit.addWallet(walletAdapter);
-    emitCallCheckpoint(context, 'addWalletFromMnemonic:after-walletKit.addWallet');
-    return { ok: true };
-  },
-
   async addWalletWithSigner(
     args: { 
       publicKey: string; 
@@ -958,10 +912,21 @@ const api = {
   const isMainnet = networkValue === CHAIN.MAINNET;
   const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
-    return await WalletV5R1Adapter.create(signer, {
+    const adapter = await WalletV5R1Adapter.create(signer, {
       client: walletKit.getApiClient(),
       network: chain,
     });
+    
+    // Add wallet immediately - adapter stays in JS, no serialization
+    const wallet = await walletKit.addWallet(adapter);
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
+    }
+    
+    return {
+      address: wallet.getAddress(),
+      publicKey: signer.publicKey.replace('0x', ''),
+    };
   },
 
   async createV5R1WalletUsingSecretKey(
@@ -983,27 +948,20 @@ const api = {
   const isMainnet = networkValue === CHAIN.MAINNET;
   const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
     const signer = await Signer.fromPrivateKey(args.secretKey);
-    return await WalletV5R1Adapter.create(signer, {
+    const adapter = await WalletV5R1Adapter.create(signer, {
       client: walletKit.getApiClient(),
       network: chain,
     });
-  },
-
-  async addWallet(
-    args: { wallet: any },
-    context?: CallContext,
-  ) {
-    emitCallCheckpoint(context, 'addWallet:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'addWallet:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    if (!args.wallet) {
-      throw new Error('Wallet required for wallet addition');
+    
+    const wallet = await walletKit.addWallet(adapter);
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
     }
-    emitCallCheckpoint(context, 'addWallet:before-walletKit.addWallet');
-    await walletKit.addWallet(args.wallet);
-    emitCallCheckpoint(context, 'addWallet:after-walletKit.addWallet');
-    return { ok: true };
+    
+    return {
+      address: wallet.getAddress(),
+      publicKey: signer.publicKey.replace('0x', ''),
+    };
   },
 
   async getWallets(_?: unknown, context?: CallContext) {

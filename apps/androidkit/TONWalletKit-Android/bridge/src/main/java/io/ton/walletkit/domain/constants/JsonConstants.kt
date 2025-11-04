@@ -40,6 +40,11 @@ internal object JsonConstants {
      */
     const val KEY_VERSION = "version"
 
+    /**
+     * JSON key for wallet adapter object.
+     */
+    const val KEY_WALLET = "wallet"
+
     // Session hint keys
     /**
      * JSON key for manifest URL.
