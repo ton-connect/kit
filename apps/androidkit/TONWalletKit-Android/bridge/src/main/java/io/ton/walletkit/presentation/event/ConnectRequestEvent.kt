@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ConnectRequestEvent(
-    val id: String,
+    val id: String? = null,
     val from: String? = null,
     val preview: Preview? = null,
     val request: List<Request>? = null,
@@ -18,10 +18,14 @@ data class ConnectRequestEvent(
 
     // JS Bridge fields for internal browser
     val isJsBridge: Boolean? = null,
-    // Domain of the dApp (for internal browser)
     val domain: String? = null,
     val tabId: String? = null,
+    val sessionId: String? = null,
+    val isLocal: Boolean? = null,
     val messageId: String? = null,
+    val traceId: String? = null,
+    val method: String? = null,
+    val params: List<String>? = null,
 ) {
     @Serializable
     data class Preview(

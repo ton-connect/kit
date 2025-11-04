@@ -350,6 +350,59 @@ internal interface WalletKitEngine {
     ): String
 
     /**
+     * Get jetton wallets owned by a wallet with pagination.
+     *
+     * @param walletAddress Wallet address to get jettons for
+     * @param limit Maximum number of jetton wallets to return
+     * @param offset Offset for pagination
+     * @return Jetton wallets with pagination info
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getJettons(walletAddress: String, limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONJettonWallets
+
+    /**
+     * Get a single jetton by its master contract address.
+     *
+     * @param jettonAddress Jetton master contract address
+     * @return Jetton information or null if not found
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getJetton(jettonAddress: String): io.ton.walletkit.domain.model.TONJetton?
+
+    /**
+     * Create a jetton transfer transaction.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param params Transfer parameters
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferJettonTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONJettonTransferParams,
+    ): String
+
+    /**
+     * Get the balance of a specific jetton for a wallet.
+     *
+     * @param walletAddress Wallet address
+     * @param jettonAddress Jetton master contract address
+     * @return Balance as a string (in jetton units)
+     * @throws WalletKitBridgeException if balance retrieval fails
+     */
+    suspend fun getJettonBalance(walletAddress: String, jettonAddress: String): String
+
+    /**
+     * Get the jetton wallet address for a specific jetton master contract.
+     *
+     * @param walletAddress User's main wallet address
+     * @param jettonAddress Jetton master contract address
+     * @return Jetton wallet contract address
+     * @throws WalletKitBridgeException if address retrieval fails
+     */
+    suspend fun getJettonWalletAddress(walletAddress: String, jettonAddress: String): String
+
+    /**
      * Call a bridge method directly.
      *
      * This is used internally by browser extensions to emit events.

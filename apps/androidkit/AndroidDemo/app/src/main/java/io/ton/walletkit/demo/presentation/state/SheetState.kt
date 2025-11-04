@@ -1,6 +1,7 @@
 package io.ton.walletkit.demo.presentation.state
 
 import io.ton.walletkit.demo.presentation.model.ConnectRequestUi
+import io.ton.walletkit.demo.presentation.model.JettonDetails
 import io.ton.walletkit.demo.presentation.model.SignDataRequestUi
 import io.ton.walletkit.demo.presentation.model.TransactionDetailUi
 import io.ton.walletkit.demo.presentation.model.TransactionRequestUi
@@ -16,4 +17,6 @@ sealed interface SheetState {
     data class SendTransaction(val wallet: WalletSummary) : SheetState
     data class TransactionDetail(val transaction: TransactionDetailUi) : SheetState
     data class Browser(val url: String) : SheetState
+    data class JettonDetails(val jetton: io.ton.walletkit.demo.presentation.model.JettonDetails) : SheetState
+    data class TransferJetton(val jetton: io.ton.walletkit.demo.presentation.model.JettonDetails) : SheetState
 }

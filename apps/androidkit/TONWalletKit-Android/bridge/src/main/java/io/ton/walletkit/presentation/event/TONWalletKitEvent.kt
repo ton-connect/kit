@@ -117,7 +117,31 @@ sealed class TONWalletKitEvent {
  * Disconnect event details.
  *
  * @property sessionId ID of the disconnected session
+ * @property from Session ID from the request
+ * @property walletAddress Wallet address involved in the disconnection
+ * @property domain Domain of the dApp
+ * @property isJsBridge Whether this is from JS bridge (internal browser)
+ * @property tabId Tab ID for JS bridge events
+ * @property isLocal Whether this is a local event
+ * @property messageId Message ID for tracking
+ * @property traceId Trace ID for debugging
+ * @property method Request method
+ * @property params Request parameters
+ * @property reason Disconnect reason
+ * @property dAppInfo DApp information
  */
 data class DisconnectEvent(
-    val sessionId: String,
+    val sessionId: String? = null,
+    val from: String? = null,
+    val walletAddress: String? = null,
+    val domain: String? = null,
+    val isJsBridge: Boolean? = null,
+    val tabId: String? = null,
+    val isLocal: Boolean? = null,
+    val messageId: String? = null,
+    val traceId: String? = null,
+    val method: String? = null,
+    val params: List<String>? = null,
+    val reason: String? = null,
+    val dAppInfo: io.ton.walletkit.domain.model.DAppInfo? = null,
 )
