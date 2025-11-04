@@ -548,6 +548,21 @@ internal class QuickJsWalletKitEngine(
         call(BridgeMethodConstants.METHOD_SEND_LOCAL_TRANSACTION, params)
     }
 
+    override suspend fun sendTransaction(
+        walletAddress: String,
+        transactionContent: String,
+    ): String {
+        ensureWalletKitInitialized()
+        val params =
+            JSONObject().apply {
+                put("walletAddress", walletAddress)
+                put("transactionContent", transactionContent)
+            }
+        val result = call(BridgeMethodConstants.METHOD_SEND_TRANSACTION, params)
+        // Extract the signedBoc from the result
+        return result.getString("signedBoc")
+    }
+
     override suspend fun approveConnect(event: io.ton.walletkit.presentation.event.ConnectRequestEvent) {
         ensureWalletKitInitialized()
         val params =
@@ -651,6 +666,63 @@ internal class QuickJsWalletKitEngine(
         val params = JSONObject()
         sessionId?.let { params.put("sessionId", it) }
         call("disconnectSession", if (params.length() == 0) null else params)
+    }
+
+    override suspend fun getNfts(walletAddress: String, limit: Int, offset: Int): io.ton.walletkit.domain.model.TONNFTItems {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", walletAddress)
+            put("limit", limit)
+            put("offset", offset)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_NFTS, params)
+        return json.decodeFromString(result.toString())
+    }
+
+    override suspend fun getNft(nftAddress: String): io.ton.walletkit.domain.model.TONNFTItem? {
+        ensureWalletKitInitialized()
+        val params = JSONObject().apply {
+            put("address", nftAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_GET_NFT, params)
+        return if (result.has("address")) {
+            json.decodeFromString(result.toString())
+        } else {
+            null
+        }
+    }
+
+    override suspend fun createTransferNftTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman,
+    ): String {
+        ensureWalletKitInitialized()
+        val paramsJson = JSONObject().apply {
+            put("address", walletAddress)
+            put("nftAddress", params.nftAddress)
+            put("transferAmount", params.transferAmount)
+            put("toAddress", params.toAddress)
+            params.comment?.let { put("comment", it) }
+        }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TRANSFER_NFT_TRANSACTION, paramsJson)
+        return result.toString()
+    }
+
+    override suspend fun createTransferNftRawTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw,
+    ): String {
+        ensureWalletKitInitialized()
+        val paramsJson = JSONObject(
+            json.encodeToString(
+                io.ton.walletkit.domain.model.TONNFTTransferParamsRaw.serializer(),
+                params,
+            ),
+        ).apply {
+            put("address", walletAddress)
+        }
+        val result = call(BridgeMethodConstants.METHOD_CREATE_TRANSFER_NFT_RAW_TRANSACTION, paramsJson)
+        return result.toString()
     }
 
     override suspend fun callBridgeMethod(method: String, params: JSONObject?): JSONObject {

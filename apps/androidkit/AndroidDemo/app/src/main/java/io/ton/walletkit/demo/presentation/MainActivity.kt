@@ -46,6 +46,7 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
     val isPasswordSet by viewModel.isPasswordSet.collectAsState()
     val isUnlocked by viewModel.isUnlocked.collectAsState()
     val state by viewModel.state.collectAsState()
+    val nftsViewModel by viewModel.nftsViewModel.collectAsState()
     val hasWallet = state.wallets.isNotEmpty()
 
     // Get wallet kit instance for browser sheet
@@ -89,6 +90,7 @@ private fun AppNavigation(viewModel: WalletKitViewModel) {
                 WalletScreen(
                     state = state,
                     walletKit = kit,
+                    nftsViewModel = nftsViewModel,
                     onAddWalletClick = viewModel::openAddWalletSheet,
                     onUrlPromptClick = viewModel::showUrlPrompt,
                     onOpenBrowser = { url -> viewModel.openBrowser(url) },

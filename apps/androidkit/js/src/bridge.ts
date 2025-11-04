@@ -1,6 +1,17 @@
 import type { WalletKitBridgeEvent, WalletKitBridgeInitConfig } from './types';
 import { AndroidStorageAdapter } from './AndroidStorageAdapter';
 
+/**
+ * JSON replacer to handle BigInt serialization
+ * Converts BigInt values to strings to prevent "Do not know how to serialize Bigint" errors
+ */
+function bigIntReplacer(_key: string, value: any): any {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
+
 const walletKitModulePromise = import('@ton/walletkit');
 const tonCoreModulePromise = import('@ton/core');
 
@@ -274,7 +285,7 @@ function postToNative(payload: BridgePayload) {
     console.error('[walletkitBridge] postToNative received non-object payload', diagnostic);
     throw new Error('Invalid payload - must be an object');
   }
-  const json = JSON.stringify(payload);
+  const json = JSON.stringify(payload, bigIntReplacer);
   const scope = resolveGlobalScope();
   const nativePostMessage = resolveNativeBridge(scope);
   if (nativePostMessage) {
@@ -1293,6 +1304,52 @@ const api = {
     };
   },
 
+  async sendTransaction(
+    args: { walletAddress: string; transactionContent: string },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'sendTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'sendTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'sendTransaction:after-requireWalletKit');
+
+    const walletAddress =
+      typeof args.walletAddress === 'string' ? args.walletAddress.trim() : String(args.walletAddress ?? '').trim();
+    if (!walletAddress) {
+      throw new Error('Wallet address is required');
+    }
+
+    const transactionContent =
+      typeof args.transactionContent === 'string' ? args.transactionContent.trim() : String(args.transactionContent ?? '').trim();
+    if (!transactionContent) {
+      throw new Error('Transaction content is required');
+    }
+
+    const wallet = walletKit.getWallet?.(walletAddress);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${walletAddress}`);
+    }
+
+    // Parse the transaction content JSON
+    let transaction: any;
+    try {
+      transaction = JSON.parse(transactionContent);
+    } catch (error) {
+      throw new Error(`Invalid transaction content JSON: ${error}`);
+    }
+
+    // Send the transaction directly to the blockchain using wallet.sendTransaction
+    emitCallCheckpoint(context, 'sendTransaction:before-wallet.sendTransaction');
+    const result = await wallet.sendTransaction(transaction);
+    emitCallCheckpoint(context, 'sendTransaction:after-wallet.sendTransaction');
+
+    // Return the signed BOC (transaction hash)
+    return {
+      signedBoc: result.signedBoc,
+    };
+  },
+
   async approveConnectRequest(args: { event: any; walletAddress: string }, context?: CallContext) {
     emitCallCheckpoint(context, 'approveConnectRequest:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
@@ -1565,6 +1622,139 @@ const api = {
     await walletKit.disconnect(args?.sessionId);
     emitCallCheckpoint(context, 'disconnectSession:after-walletKit.disconnect');
     return { ok: true };
+  },
+
+  async getNfts(args: { address: string; limit?: number; offset?: number }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getNfts:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getNfts:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    const limit = Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 100;
+    const offset = Number.isFinite(args.offset) && (args.offset as number) >= 0 ? Math.floor(args.offset as number) : 0;
+    
+    console.log('[walletkitBridge] getNfts fetching NFTs for address:', address, 'limit:', limit, 'offset:', offset);
+    emitCallCheckpoint(context, 'getNfts:before-wallet.getNfts');
+    
+    const result = await wallet.getNfts({ limit, offset });
+    
+    emitCallCheckpoint(context, 'getNfts:after-wallet.getNfts');
+    console.log('[walletkitBridge] getNfts result:', result);
+    
+    return result;
+  },
+
+  async getNft(args: { address: string }, context?: CallContext) {
+    emitCallCheckpoint(context, 'getNft:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'getNft:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const nftAddress = args.address?.trim();
+    if (!nftAddress) {
+      throw new Error('NFT address is required');
+    }
+    
+    // Get any wallet to access client methods (NFT lookups don't require wallet context)
+    const wallets = walletKit.listWallets();
+    if (!wallets || wallets.length === 0) {
+      throw new Error('No wallets available');
+    }
+    
+    const wallet = wallets[0];
+    
+    console.log('[walletkitBridge] getNft fetching NFT for address:', nftAddress);
+    emitCallCheckpoint(context, 'getNft:before-wallet.getNft');
+    
+    const result = await wallet.getNft(nftAddress);
+    
+    emitCallCheckpoint(context, 'getNft:after-wallet.getNft');
+    console.log('[walletkitBridge] getNft result:', result);
+    
+    return result || null;
+  },
+
+  async createTransferNftTransaction(
+    args: { address: string; nftAddress: string; transferAmount: string; toAddress: string; comment?: string },
+    context?: CallContext
+  ) {
+    emitCallCheckpoint(context, 'createTransferNftTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createTransferNftTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    console.log('[walletkitBridge] createTransferNftTransaction for NFT:', args.nftAddress, 'to:', args.toAddress);
+    emitCallCheckpoint(context, 'createTransferNftTransaction:before-wallet.createTransferNftTransaction');
+    
+    const params = {
+      nftAddress: args.nftAddress,
+      transferAmount: args.transferAmount,
+      toAddress: args.toAddress,
+      comment: args.comment,
+    };
+    
+    const result = await wallet.createTransferNftTransaction(params);
+    
+    emitCallCheckpoint(context, 'createTransferNftTransaction:after-wallet.createTransferNftTransaction');
+    console.log('[walletkitBridge] createTransferNftTransaction result:', result);
+    
+    return result;
+  },
+
+  async createTransferNftRawTransaction(
+    args: { address: string; nftAddress: string; transferAmount: string; transferMessage: any },
+    context?: CallContext
+  ) {
+    emitCallCheckpoint(context, 'createTransferNftRawTransaction:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createTransferNftRawTransaction:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    
+    const address = args.address?.trim();
+    if (!address) {
+      throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+      throw new Error(`Wallet not found for address ${address}`);
+    }
+    
+    console.log('[walletkitBridge] createTransferNftRawTransaction for NFT:', args.nftAddress);
+    emitCallCheckpoint(context, 'createTransferNftRawTransaction:before-wallet.createTransferNftRawTransaction');
+    
+    const params = {
+      nftAddress: args.nftAddress,
+      transferAmount: args.transferAmount,
+      transferMessage: args.transferMessage,
+    };
+    
+    const result = await wallet.createTransferNftRawTransaction(params);
+    
+    emitCallCheckpoint(context, 'createTransferNftRawTransaction:after-wallet.createTransferNftRawTransaction');
+    console.log('[walletkitBridge] createTransferNftRawTransaction result:', result);
+    
+    return result;
   },
 
   async processInternalBrowserRequest(

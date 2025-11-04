@@ -43,7 +43,7 @@ class TONWallet internal constructor(
         /**
          * Add a new wallet from mnemonic data.
          *
-         * **Note:** This method is deprecated. Use `kit.addWallet(data)` instead to match iOS API.
+         * **Note:** This method is deprecated. Use `kit.addWallet(data)` instead to stay aligned with the primary kit API.
          *
          * Wallets are automatically persisted by the SDK when persistent storage is enabled.
          *
@@ -176,7 +176,7 @@ class TONWallet internal constructor(
         /**
          * Get all wallets managed by the SDK.
          *
-         * **Note:** This method is deprecated. Use `kit.getWallets()` instead to match iOS API.
+         * **Note:** This method is deprecated. Use `kit.getWallets()` instead to stay aligned with the primary kit API.
          *
          * @param kit The TONWalletKit instance
          * @return List of all wallets
@@ -284,5 +284,86 @@ class TONWallet internal constructor(
     suspend fun sendLocalTransaction(recipient: String, amount: String, comment: String? = null) {
         val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
         engine.sendLocalTransaction(addr, recipient, amount, comment)
+    }
+
+    /**
+     * Get NFTs owned by this wallet with pagination.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param limit Maximum number of NFTs to return (default: 100)
+     * @param offset Offset for pagination (default: 0)
+     * @return NFT items with pagination information
+     * @throws WalletKitBridgeException if NFT retrieval fails
+     */
+    suspend fun nfts(limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONNFTItems {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.getNfts(addr, limit, offset)
+    }
+
+    /**
+     * Get a single NFT by its address.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param nftAddress NFT contract address
+     * @return NFT item or null if not found
+     * @throws WalletKitBridgeException if NFT retrieval fails
+     */
+    suspend fun nft(nftAddress: String): io.ton.walletkit.domain.model.TONNFTItem? {
+        return engine.getNft(nftAddress)
+    }
+
+    /**
+     * Create an NFT transfer transaction with human-friendly parameters.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param params Transfer parameters (NFT address, recipient, amount, optional comment)
+     * @return Transaction content that can be sent via TON Connect
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun transferNFT(params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.createTransferNftTransaction(addr, params)
+    }
+
+    /**
+     * Create an NFT transfer transaction with raw parameters.
+     *
+     * Matches the shared API surface for cross-platform consistency.
+     *
+     * @param params Raw transfer parameters with full control over transfer message
+     * @return Transaction content that can be sent via TON Connect
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun transferNFT(params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.createTransferNftRawTransaction(addr, params)
+    }
+
+    /**
+     * Send a transaction to the blockchain.
+     *
+     * This method takes transaction content (usually created by transferNFT, sendLocalTransaction, etc.)
+     * and actually sends it to the blockchain, returning the transaction hash.
+     *
+     * Matches the iOS wallet.sendTransaction() behavior for cross-platform consistency.
+     *
+     * Example:
+     * ```kotlin
+     * // Create NFT transfer transaction
+     * val txContent = wallet.transferNFT(params)
+     * // Send it to blockchain
+     * val txHash = wallet.sendTransaction(txContent)
+     * ```
+     *
+     * @param transactionContent Transaction content JSON (from transferNFT, etc.)
+     * @return Transaction hash (boc) after successful broadcast
+     * @throws WalletKitBridgeException if sending fails
+     */
+    suspend fun sendTransaction(transactionContent: String): String {
+        val addr = address ?: throw WalletKitBridgeException("Wallet address is null")
+        return engine.sendTransaction(addr, transactionContent)
     }
 }

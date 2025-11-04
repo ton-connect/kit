@@ -61,6 +61,12 @@ internal object BridgeMethodConstants {
     const val METHOD_SEND_LOCAL_TRANSACTION = "sendLocalTransaction"
 
     /**
+     * Method name for sending a transaction to the blockchain.
+     * This sends arbitrary transaction content (created by transferNFT, etc.)
+     */
+    const val METHOD_SEND_TRANSACTION = "sendTransaction"
+
+    /**
      * Method name for approving a connect request.
      */
     const val METHOD_APPROVE_CONNECT_REQUEST = "approveConnectRequest"
@@ -149,4 +155,24 @@ internal object BridgeMethodConstants {
      * Method name for emitting a browser bridge request diagnostic event.
      */
     const val METHOD_EMIT_BROWSER_BRIDGE_REQUEST = "emitBrowserBridgeRequest"
+
+    /**
+     * Method name for getting NFTs owned by a wallet.
+     */
+    const val METHOD_GET_NFTS = "getNfts"
+
+    /**
+     * Method name for getting a single NFT by address.
+     */
+    const val METHOD_GET_NFT = "getNft"
+
+    /**
+     * Method name for creating an NFT transfer transaction with human-friendly parameters.
+     */
+    const val METHOD_CREATE_TRANSFER_NFT_TRANSACTION = "createTransferNftTransaction"
+
+    /**
+     * Method name for creating an NFT transfer transaction with raw parameters.
+     */
+    const val METHOD_CREATE_TRANSFER_NFT_RAW_TRANSACTION = "createTransferNftRawTransaction"
 }

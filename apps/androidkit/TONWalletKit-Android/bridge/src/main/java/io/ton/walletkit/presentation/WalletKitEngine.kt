@@ -212,6 +212,22 @@ internal interface WalletKitEngine {
     )
 
     /**
+     * Send a transaction to the blockchain.
+     *
+     * This method takes transaction content (as JSON) and sends it to the blockchain,
+     * returning the transaction hash. This matches the iOS wallet.sendTransaction() behavior.
+     *
+     * @param walletAddress Wallet address that will sign and send the transaction
+     * @param transactionContent Transaction content as JSON (from transferNFT, createTransferJettonTransaction, etc.)
+     * @return Transaction hash (signedBoc) after successful broadcast
+     * @throws WalletKitBridgeException if sending fails
+     */
+    suspend fun sendTransaction(
+        walletAddress: String,
+        transactionContent: String,
+    ): String
+
+    /**
      * Approve a connection request from a dApp.
      *
      * @param event Typed event from the connect request
@@ -286,6 +302,52 @@ internal interface WalletKitEngine {
      * @throws WalletKitBridgeException if disconnection fails
      */
     suspend fun disconnectSession(sessionId: String? = null)
+
+    /**
+     * Get NFTs owned by a wallet with pagination.
+     *
+     * @param walletAddress Wallet address to get NFTs for
+     * @param limit Maximum number of NFTs to return
+     * @param offset Offset for pagination
+     * @return NFT items with pagination info
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getNfts(walletAddress: String, limit: Int = 100, offset: Int = 0): io.ton.walletkit.domain.model.TONNFTItems
+
+    /**
+     * Get a single NFT by its address.
+     *
+     * @param nftAddress NFT contract address
+     * @return NFT item or null if not found
+     * @throws WalletKitBridgeException if the request fails
+     */
+    suspend fun getNft(nftAddress: String): io.ton.walletkit.domain.model.TONNFTItem?
+
+    /**
+     * Create an NFT transfer transaction with human-friendly parameters.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param params Transfer parameters
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferNftTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsHuman,
+    ): String
+
+    /**
+     * Create an NFT transfer transaction with raw parameters.
+     *
+     * @param walletAddress Wallet address to transfer from
+     * @param params Raw transfer parameters
+     * @return Transaction content as JSON string
+     * @throws WalletKitBridgeException if transaction creation fails
+     */
+    suspend fun createTransferNftRawTransaction(
+        walletAddress: String,
+        params: io.ton.walletkit.domain.model.TONNFTTransferParamsRaw,
+    ): String
 
     /**
      * Call a bridge method directly.

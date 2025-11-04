@@ -120,7 +120,7 @@ class TONWalletKit private constructor(
         }
     }
 
-    // === Wallet Management Methods (matching iOS API) ===
+    // === Wallet Management Methods ===
 
     /**
      * Add a new wallet from mnemonic data.

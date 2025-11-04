@@ -38,9 +38,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.presentation.model.TransactionDetailUi
+import io.ton.walletkit.demo.presentation.ui.preview.PreviewData
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -256,4 +258,15 @@ private fun formatFullTimestamp(timestamp: Long, unknownLabel: String): String =
     }
 } catch (e: Exception) {
     unknownLabel
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TransactionDetailSheetPreview() {
+    MaterialTheme {
+        TransactionDetailSheet(
+            transaction = PreviewData.transactionDetail,
+            onDismiss = {},
+        )
+    }
 }
