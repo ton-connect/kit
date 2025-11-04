@@ -44,10 +44,9 @@ val configuration = TONWalletKitConfiguration(
 )
 
 // Initialize the kit
-TONWalletKit.initialize(
+val kit = TONWalletKit.initialize(
     context = context,
-    configuration = configuration,
-    eventsHandler = eventsHandler
+    configuration = configuration
 )
 ```
 
@@ -61,21 +60,27 @@ val eventsHandler = object : TONBridgeEventsHandler {
         println("TONWalletKit event: $event")
     }
 }
+
+kit.addEventsHandler(eventsHandler)
+```
+
+#### Remove events listener:
+```kotlin
+kit.removeEventsHandler(eventsHandler)
 ```
 
 #### Create and add a v5r1 wallet using mnemonic:
 ```kotlin
-import io.ton.walletkit.presentation.TONWallet
 import io.ton.walletkit.domain.model.TONWalletData
 
-val mnemonic = TONWallet.generateMnemonic(24)
+val mnemonic = TONWallet.generateMnemonic(kit, 24)
 val walletData = TONWalletData(
     mnemonic = mnemonic,
     name = "My Wallet",
     version = "v5r1",
     network = TONNetwork.TESTNET
 )
-val wallet = TONWallet.add(walletData)
+val wallet = kit.addWallet(walletData)
 ```
 
 #### Read wallet address and balance:
@@ -96,7 +101,6 @@ wallet.connect("tc://...")
 #### Integrate WebView with TonConnect:
 ```kotlin
 import android.webkit.WebView
-import io.ton.walletkit.presentation.TONWalletKit
 import io.ton.walletkit.presentation.browser.injectTonConnect
 
 val webView = WebView(context).apply {
@@ -104,7 +108,7 @@ val webView = WebView(context).apply {
     settings.domStorageEnabled = true
     
     // Inject TonConnect bridge - connects WebView dApps to your wallet
-    injectTonConnect(TONWalletKit)
+    injectTonConnect(kit)
     
     loadUrl("https://your-dapp-url.com")
 }
@@ -150,7 +154,7 @@ wallet.remove()
 
 #### Get all wallets:
 ```kotlin
-val wallets = TONWallet.wallets()
+val wallets = kit.getWallets()
 ```
 
 #### Add wallet with external signer:
@@ -158,7 +162,7 @@ val wallets = TONWallet.wallets()
 import io.ton.walletkit.domain.model.WalletSigner
 
 // Derive public key from mnemonic (or get from remote signing service)
-val publicKey = TONWallet.derivePublicKey(mnemonic)
+val publicKey = TONWallet.derivePublicKey(kit, mnemonic)
 
 val signer = object : WalletSigner {
     override val publicKey: String = publicKey
@@ -173,10 +177,17 @@ val signer = object : WalletSigner {
 }
 
 val wallet = TONWallet.addWithSigner(
+    kit = kit,
     signer = signer,
     version = "v4r2",
     network = TONNetwork.MAINNET
 )
+```
+
+#### Clean up when done:
+```kotlin
+// Remove all event handlers and release resources
+kit.destroy()
 ```
 
 #### Notes

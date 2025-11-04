@@ -20,7 +20,7 @@ internal object WalletKitEngineFactory {
      * @param context Android application context
      * @param kind The engine kind to create (WEBVIEW or QUICKJS)
      * @param configuration SDK configuration
-     * @param eventsHandler Handler for SDK events
+     * @param eventsHandler Optional handler for SDK events (can be added later via addEventsHandler)
      * @return WalletKitEngine instance
      * @throws IllegalStateException if the requested engine is not available in this SDK variant
      *
@@ -35,7 +35,7 @@ internal object WalletKitEngineFactory {
         context: Context,
         kind: WalletKitEngineKind = WalletKitEngineKind.WEBVIEW,
         configuration: TONWalletKitConfiguration,
-        eventsHandler: TONBridgeEventsHandler,
+        eventsHandler: TONBridgeEventsHandler? = null,
     ): WalletKitEngine {
         return when (kind) {
             WalletKitEngineKind.WEBVIEW -> {
@@ -73,11 +73,13 @@ internal object WalletKitEngineFactory {
     private suspend fun createWebViewEngine(
         context: Context,
         configuration: TONWalletKitConfiguration,
-        eventsHandler: TONBridgeEventsHandler,
+        eventsHandler: TONBridgeEventsHandler?,
     ): WalletKitEngine {
-        // Direct instantiation - WebViewWalletKitEngine is in the same module
-        val engine = WebViewWalletKitEngine(context, configuration, eventsHandler)
-        // Initialize engine (starts WebView, loads bridge)
+        // CRITICAL: Use network-based caching to prevent multiple WebView instances per network
+        // Multiple WebViews with the same JS bridge interface name will conflict
+        // Different networks (mainnet/testnet) get separate WebView engines
+        val engine = WebViewWalletKitEngine.getOrCreate(context, configuration, eventsHandler)
+        // Initialize engine (starts WebView, loads bridge) - safe to call multiple times
         engine.init(configuration)
         return engine
     }
@@ -85,7 +87,7 @@ internal object WalletKitEngineFactory {
     private suspend fun createQuickJsEngine(
         context: Context,
         configuration: TONWalletKitConfiguration,
-        eventsHandler: TONBridgeEventsHandler,
+        eventsHandler: TONBridgeEventsHandler?,
     ): WalletKitEngine {
         try {
             // Use reflection only for QuickJS to avoid compile-time dependency in webview variant

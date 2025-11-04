@@ -63,6 +63,7 @@ import io.ton.walletkit.demo.presentation.ui.sheet.TransactionDetailSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
 import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.presentation.TONWalletKit
 import io.ton.walletkit.presentation.browser.cleanupTonConnect
 
 private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.app/iframe/iframe"
@@ -71,6 +72,7 @@ private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.ap
 @Composable
 fun WalletScreen(
     state: WalletUiState,
+    walletKit: TONWalletKit,
     onAddWalletClick: () -> Unit,
     onUrlPromptClick: () -> Unit,
     onOpenBrowser: (String) -> Unit,
@@ -191,6 +193,7 @@ fun WalletScreen(
                 is SheetState.Browser -> BrowserSheet(
                     url = sheet.url,
                     onClose = onDismissSheet,
+                    walletKit = walletKit,
                     webViewHolder = browserWebViewHolder,
                 )
 
@@ -310,37 +313,14 @@ fun WalletScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun WalletScreenPreview() {
-    WalletScreen(
-        state = PreviewData.uiState,
-        onAddWalletClick = {},
-        onUrlPromptClick = {},
-        onOpenBrowser = {},
-        onRefresh = {},
-        onDismissSheet = {},
-        onWalletDetails = {},
-        onSendFromWallet = {},
-        onDisconnectSession = {},
-        onToggleWalletSwitcher = {},
-        onSwitchWallet = {},
-        onRemoveWallet = {},
-        onRenameWallet = { _, _ -> },
-        onImportWallet = { _, _, _, _, _ -> },
-        onGenerateWallet = { _, _, _, _ -> },
-        onApproveConnect = { _, _ -> },
-        onRejectConnect = {},
-        onApproveTransaction = {},
-        onRejectTransaction = {},
-        onApproveSignData = {},
-        onRejectSignData = {},
-        onConfirmSignerApproval = {},
-        onCancelSignerApproval = {},
-        onSendTransaction = { _, _, _, _ -> },
-        onRefreshTransactions = {},
-        onTransactionClick = { _, _ -> },
-        onHandleUrl = {},
-        onDismissUrlPrompt = {},
-    )
-}
+// Preview temporarily disabled - requires TONWalletKit instance
+// @Preview(showBackground = true)
+// @Composable
+// private fun WalletScreenPreview() {
+//     WalletScreen(
+//         state = PreviewData.uiState,
+//         walletKit = ..., // TODO: Mock instance
+//         onAddWalletClick = {},
+//         ...
+//     )
+// }

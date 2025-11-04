@@ -30,7 +30,7 @@ import io.ton.walletkit.domain.model.WalletSigner
  * @property address Wallet address (null if not yet created)
  * @property publicKey Public key of the wallet (null if not available)
  */
-class TONWallet private constructor(
+class TONWallet internal constructor(
     val address: String?,
     private val engine: WalletKitEngine,
     private val account: WalletAccount?,
@@ -40,34 +40,21 @@ class TONWallet private constructor(
      */
     val publicKey: String? get() = account?.publicKey
     companion object {
-        private const val ERROR_WALLETKIT_NOT_INITIALIZED = "TONWalletKit not initialized. Call TONWalletKit.initialize() first."
-
         /**
          * Add a new wallet from mnemonic data.
          *
-         * Wallets are automatically persisted by the SDK when persistent storage is enabled.
-         * Use [wallets] to retrieve all persisted wallets on app startup.
+         * **Note:** This method is deprecated. Use `kit.addWallet(data)` instead to match iOS API.
          *
+         * Wallets are automatically persisted by the SDK when persistent storage is enabled.
+         *
+         * @param kit The TONWalletKit instance
          * @param data Wallet creation data (mnemonic, name, version, network)
          * @return The newly created wallet
-         * @throws WalletKitBridgeException if wallet creation fails or SDK not initialized
+         * @throws WalletKitBridgeException if wallet creation fails
          */
-        suspend fun add(data: TONWalletData): TONWallet {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            val account = engine.addWalletFromMnemonic(
-                words = data.mnemonic,
-                name = data.name,
-                version = data.version,
-                network = data.network.value,
-            )
-
-            return TONWallet(
-                address = account.address,
-                engine = engine,
-                account = account,
-            )
+        @Deprecated("Use kit.addWallet(data) instead", ReplaceWith("kit.addWallet(data)"))
+        suspend fun add(kit: TONWalletKit, data: TONWalletData): TONWallet {
+            return kit.addWallet(data)
         }
 
         /**
@@ -78,8 +65,9 @@ class TONWallet private constructor(
          *
          * Example:
          * ```kotlin
+         * val kit = TONWalletKit.initialize(context, config)
          * val mnemonic = listOf("word1", "word2", ..., "word24")
-         * val publicKey = TONWallet.derivePublicKey(mnemonic)
+         * val publicKey = TONWallet.derivePublicKey(kit, mnemonic)
          *
          * // Now create a custom signer with this public key
          * val signer = object : WalletSigner {
@@ -95,11 +83,8 @@ class TONWallet private constructor(
          * @return Hex-encoded public key
          * @throws WalletKitBridgeException if derivation fails or SDK not initialized
          */
-        suspend fun derivePublicKey(mnemonic: List<String>): String {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            return engine.derivePublicKeyFromMnemonic(mnemonic)
+        suspend fun derivePublicKey(kit: TONWalletKit, mnemonic: List<String>): String {
+            return kit.engine.derivePublicKeyFromMnemonic(mnemonic)
         }
 
         /**
@@ -109,30 +94,28 @@ class TONWallet private constructor(
          * is available in-app (e.g., simulated external signers). Production apps should
          * forward [WalletSigner.sign] requests to their secure signer implementation instead.
          *
+         * @param kit The TONWalletKit instance
          * @param mnemonic Mnemonic phrase used to derive the signing key
          * @param data Bytes that need to be signed
          * @param mnemonicType Mnemonic type ("ton" by default)
          */
         suspend fun signDataWithMnemonic(
+            kit: TONWalletKit,
             mnemonic: List<String>,
             data: ByteArray,
             mnemonicType: String = "ton",
         ): ByteArray {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            return engine.signDataWithMnemonic(mnemonic, data, mnemonicType)
+            return kit.engine.signDataWithMnemonic(mnemonic, data, mnemonicType)
         }
 
         /**
          * Generate a new TON mnemonic phrase using the SDK's JS utilities.
          * Defaults to 24 words.
+         *
+         * @param kit The TONWalletKit instance
          */
-        suspend fun generateMnemonic(wordCount: Int = 24): List<String> {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            return engine.createTonMnemonic(wordCount)
+        suspend fun generateMnemonic(kit: TONWalletKit, wordCount: Int = 24): List<String> {
+            return kit.engine.createTonMnemonic(wordCount)
         }
 
         /**
@@ -140,6 +123,8 @@ class TONWallet private constructor(
          *
          * Use this method to create wallets where the private key is managed externally,
          * such as hardware wallets, watch-only wallets, or separate secure modules.
+         *
+         * @param kit The TONWalletKit instance
          *
          * The [signer] will be called whenever the wallet needs to sign a transaction or data.
          *
@@ -162,21 +147,20 @@ class TONWallet private constructor(
          * )
          * ```
          *
+         * @param kit The TONWalletKit instance
          * @param signer The external signer that will handle all signing operations
          * @param version Wallet version (e.g., "v4r2", "v5r1")
          * @param network Network to use (default: current network)
          * @return The newly created wallet
-         * @throws WalletKitBridgeException if wallet creation fails or SDK not initialized
+         * @throws WalletKitBridgeException if wallet creation fails
          */
         suspend fun addWithSigner(
+            kit: TONWalletKit,
             signer: WalletSigner,
             version: String = "v4r2",
             network: TONNetwork = TONNetwork.MAINNET,
         ): TONWallet {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            val account = engine.addWalletWithSigner(
+            val account = kit.engine.addWalletWithSigner(
                 signer = signer,
                 version = version,
                 network = network.value,
@@ -184,7 +168,7 @@ class TONWallet private constructor(
 
             return TONWallet(
                 address = account.address,
-                engine = engine,
+                engine = kit.engine,
                 account = account,
             )
         }
@@ -192,25 +176,14 @@ class TONWallet private constructor(
         /**
          * Get all wallets managed by the SDK.
          *
-         * When persistent storage is enabled (default), wallets are automatically saved
-         * and will be available across app restarts. Call this method on app startup
-         * to retrieve previously created wallets.
+         * **Note:** This method is deprecated. Use `kit.getWallets()` instead to match iOS API.
          *
+         * @param kit The TONWalletKit instance
          * @return List of all wallets
-         * @throws WalletKitBridgeException if SDK not initialized
          */
-        suspend fun wallets(): List<TONWallet> {
-            val engine = TONWalletKit.engine
-                ?: throw WalletKitBridgeException(ERROR_WALLETKIT_NOT_INITIALIZED)
-
-            val accounts = engine.getWallets()
-            return accounts.map { account ->
-                TONWallet(
-                    address = account.address,
-                    engine = engine,
-                    account = account,
-                )
-            }
+        @Deprecated("Use kit.getWallets() instead", ReplaceWith("kit.getWallets()"))
+        suspend fun wallets(kit: TONWalletKit): List<TONWallet> {
+            return kit.getWallets()
         }
     }
 

@@ -86,12 +86,18 @@ class WalletKitViewModel(
 
     // TONWallet instances (loaded from SDK)
     private val tonWallets = mutableMapOf<String, TONWallet>()
+    private var lastPersistedActiveWallet: String? = null
 
     private fun uiString(@StringRes resId: Int, vararg args: Any): String = application.getString(resId, *args)
 
     private fun logEvent(@StringRes messageRes: Int, vararg args: Any) {
         logEvent(uiString(messageRes, *args))
     }
+
+    /**
+     * Get the shared TONWalletKit instance (matches iOS pattern).
+     */
+    private suspend fun getKit(): io.ton.walletkit.presentation.TONWalletKit = io.ton.walletkit.demo.core.TONWalletKitHelper.mainnet(application)
 
     init {
         // Check password state on initialization (FIRST)
@@ -116,8 +122,10 @@ class WalletKitViewModel(
         _state.update { it.copy(status = uiString(R.string.wallet_status_loading), error = null) }
 
         // Load user preferences (including active wallet address)
+        Log.d(LOG_TAG, "bootstrap: loading user preferences")
         val userPrefs = storage.loadUserPreferences()
         val savedActiveWallet = userPrefs?.activeWalletAddress
+        lastPersistedActiveWallet = savedActiveWallet
         Log.d(LOG_TAG, "Loaded saved active wallet: $savedActiveWallet")
 
         // SDK already initialized in Application
@@ -125,13 +133,15 @@ class WalletKitViewModel(
 
         // Load wallets from SDK (auto-restored from persistent storage)
         val loadResult = runCatching {
-            val wallets = TONWallet.wallets()
+            Log.d(LOG_TAG, "bootstrap: requesting wallets from SDK (initial)")
+            val wallets = getKit().getWallets()
             wallets.forEach { wallet ->
                 wallet.address?.let { address ->
                     tonWallets[address] = wallet
                 }
             }
-            Log.d(LOG_TAG, "Loaded ${wallets.size} wallets from SDK")
+            Log.d(LOG_TAG, "bootstrap: initial SDK wallet count = ${wallets.size}")
+            Log.d(LOG_TAG, "bootstrap: cached addresses after initial load = ${tonWallets.keys}")
         }
 
         if (loadResult.isFailure) {
@@ -145,14 +155,49 @@ class WalletKitViewModel(
             return
         }
 
+        if (tonWallets.isEmpty()) {
+            Log.d(LOG_TAG, "bootstrap: no wallets from SDK, attempting rehydrate from storage")
+            val restored = rehydrateWalletsFromStorage()
+            Log.d(LOG_TAG, "bootstrap: rehydrate restored=$restored, cached=${tonWallets.keys}")
+        }
+
         // Reload wallets from SDK (after any external changes)
-        val walletsAfterMigration = TONWallet.wallets()
+        Log.d(LOG_TAG, "bootstrap: refreshing wallet list post-migration check")
+        val walletsAfterMigration = getKit().getWallets()
         tonWallets.clear()
-        walletsAfterMigration.forEach { wallet ->
-            wallet.address?.let { address ->
-                tonWallets[address] = wallet
+        val metadataCorrections = mutableListOf<String>()
+        for (wallet in walletsAfterMigration) {
+            val address = wallet.address ?: continue
+            tonWallets[address] = wallet
+            if (walletMetadata[address] == null) {
+                Log.d(LOG_TAG, "bootstrap: metadata missing for $address, loading from storage")
+                val storedRecord = storage.loadWallet(address)
+                if (storedRecord != null) {
+                    Log.d(LOG_TAG, "bootstrap: restored metadata for $address from storage (name='${storedRecord.name}')")
+                    walletMetadata[address] = WalletMetadata(
+                        name = storedRecord.name,
+                        network = storedRecord.network.toTonNetwork(currentNetwork),
+                        version = storedRecord.version,
+                    )
+                } else {
+                    val fallback = WalletMetadata(
+                        name = defaultWalletName(walletMetadata.size),
+                        network = currentNetwork,
+                        version = DEFAULT_WALLET_VERSION,
+                    )
+                    walletMetadata[address] = fallback
+                    metadataCorrections.add(address)
+                }
             }
         }
+        if (metadataCorrections.isNotEmpty()) {
+            Log.w(
+                LOG_TAG,
+                "No stored metadata for restored wallets: ${metadataCorrections.joinToString()} (fallback metadata applied)",
+            )
+        }
+
+        Log.d(LOG_TAG, "bootstrap: cached addresses after migration = ${tonWallets.keys}")
         Log.d(LOG_TAG, "After migration: ${walletsAfterMigration.size} wallets in SDK")
 
         _state.update { it.copy(initialized = true, status = uiString(R.string.wallet_status_ready), error = null) }
@@ -242,9 +287,14 @@ class WalletKitViewModel(
 
     suspend fun refreshWallets() {
         _state.update { it.copy(isLoadingWallets = true) }
+        Log.d(
+            LOG_TAG,
+            "refreshWallets: start active=${state.value.activeWalletAddress} cached=${tonWallets.keys}",
+        )
         val summaries = runCatching { loadWalletSummaries() }
         summaries.onSuccess { wallets ->
             val now = System.currentTimeMillis()
+            Log.d(LOG_TAG, "refreshWallets: loaded ${wallets.size} summaries -> ${wallets.map { it.address }}")
 
             // Set active wallet based on saved preference or default to first
             val activeAddress = state.value.activeWalletAddress
@@ -264,11 +314,20 @@ class WalletKitViewModel(
                     error = null,
                 )
             }
+
+            if (activeAddress != newActiveAddress || lastPersistedActiveWallet != newActiveAddress) {
+                persistActiveWalletPreference(newActiveAddress)
+            }
         }.onFailure { error ->
+            Log.e(LOG_TAG, "refreshWallets: loadWalletSummaries failed", error)
             val fallback = uiString(R.string.wallet_error_load_default)
             _state.update { it.copy(error = error.message ?: fallback) }
         }
         _state.update { it.copy(isLoadingWallets = false) }
+        Log.d(
+            LOG_TAG,
+            "refreshWallets: done active=${_state.value.activeWalletAddress} wallets=${_state.value.wallets.map { it.address }}",
+        )
     }
 
     private suspend fun refreshSessions() {
@@ -383,10 +442,12 @@ class WalletKitViewModel(
             pendingWallets.addLast(pending)
 
             val result = runCatching {
+                val kit = getKit()
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(cleaned, name)
                     TONWallet.addWithSigner(
+                        kit = kit,
                         signer = signer,
                         version = version,
                         network = network,
@@ -399,7 +460,7 @@ class WalletKitViewModel(
                         version = version,
                         network = network,
                     )
-                    TONWallet.add(walletData)
+                    kit.addWallet(walletData)
                 }
             }
 
@@ -420,17 +481,18 @@ class WalletKitViewModel(
                         interfaceType = interfaceType.value,
                     )
                     runCatching { storage.saveWallet(address, record) }
+                        .onSuccess { Log.d(LOG_TAG, "importWallet: saved wallet record for $address") }
+                        .onFailure { Log.e(LOG_TAG, "importWallet: failed to save wallet record for $address", it) }
                 }
-
-                refreshWallets()
-                dismissSheet()
 
                 // Automatically switch to the newly imported wallet
                 newWallet?.address?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
-                    saveActiveWalletPreference(address)
+                    persistActiveWalletPreference(address)
                     Log.d(LOG_TAG, "Auto-switched to newly imported wallet: $address")
                 }
+                refreshWallets()
+                dismissSheet()
 
                 logEvent(
                     R.string.wallet_event_wallet_imported,
@@ -456,7 +518,8 @@ class WalletKitViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isGeneratingMnemonic = true) }
             val words = try {
-                TONWallet.generateMnemonic(24)
+                val kit = getKit()
+                TONWallet.generateMnemonic(kit, 24)
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Mnemonic generation failed", e)
                 _state.update { it.copy(isGeneratingMnemonic = false, error = uiString(R.string.wallet_error_generate_failed)) }
@@ -473,10 +536,12 @@ class WalletKitViewModel(
             pendingWallets.addLast(pending)
 
             val result = runCatching {
+                val kit = getKit()
                 if (interfaceType == WalletInterfaceType.SIGNER) {
                     // Create wallet with external signer that requires user confirmation
                     val signer = createDemoSigner(words, name)
                     TONWallet.addWithSigner(
+                        kit = kit,
                         signer = signer,
                         version = version,
                         network = network,
@@ -489,7 +554,7 @@ class WalletKitViewModel(
                         version = version,
                         network = network,
                     )
-                    TONWallet.add(walletData)
+                    kit.addWallet(walletData)
                 }
             }
 
@@ -510,17 +575,18 @@ class WalletKitViewModel(
                         interfaceType = interfaceType.value,
                     )
                     runCatching { storage.saveWallet(address, record) }
+                        .onSuccess { Log.d(LOG_TAG, "generateWallet: saved wallet record for $address") }
+                        .onFailure { Log.e(LOG_TAG, "generateWallet: failed to save wallet record for $address", it) }
                 }
-
-                refreshWallets()
-                dismissSheet()
 
                 // Automatically switch to the newly generated wallet
                 newWallet?.address?.let { address ->
                     _state.update { it.copy(activeWalletAddress = address) }
-                    saveActiveWalletPreference(address)
+                    persistActiveWalletPreference(address)
                     Log.d(LOG_TAG, "Auto-switched to newly generated wallet: $address")
                 }
+                refreshWallets()
+                dismissSheet()
 
                 logEvent(
                     R.string.wallet_event_wallet_generated,
@@ -842,11 +908,12 @@ class WalletKitViewModel(
             try {
                 // We need the domain WalletSession instance (from TONWallet) to call the extension
                 var disconnected = false
+                val kit = getKit()
                 for (wallet in tonWallets.values) {
                     val sessions = runCatching { wallet.sessions() }.getOrNull() ?: continue
                     val domainSession = sessions.firstOrNull { it.sessionId == sessionId }
                     if (domainSession != null) {
-                        domainSession.disconnect()
+                        domainSession.disconnect(kit)
                         disconnected = true
                         break
                     }
@@ -945,7 +1012,7 @@ class WalletKitViewModel(
             }
 
             // Save active wallet preference
-            saveActiveWalletPreference(address)
+            persistActiveWalletPreference(address)
 
             // Refresh wallet state to get latest balance, then transactions
             refreshWallets()
@@ -957,16 +1024,37 @@ class WalletKitViewModel(
     }
 
     /**
-     * Save the active wallet address to persistent storage.
+     * Persist the active wallet address to storage (nullable to clear preference).
      */
-    private fun saveActiveWalletPreference(address: String) {
+    private fun persistActiveWalletPreference(address: String?) {
+        if (lastPersistedActiveWallet == address) {
+            Log.d(
+                LOG_TAG,
+                if (address != null) {
+                    "persistActiveWalletPreference: unchanged ($address), skip write"
+                } else {
+                    "persistActiveWalletPreference: unchanged (null), skip write"
+                },
+            )
+            return
+        }
+
         viewModelScope.launch {
             try {
+                Log.d(LOG_TAG, "persistActiveWalletPreference: writing preference $address")
                 val updatedPrefs = UserPreferences(
                     activeWalletAddress = address,
                 )
                 storage.saveUserPreferences(updatedPrefs)
-                Log.d(LOG_TAG, "Saved active wallet preference: $address")
+                lastPersistedActiveWallet = address
+                Log.d(
+                    LOG_TAG,
+                    if (address != null) {
+                        "Saved active wallet preference: $address"
+                    } else {
+                        "Cleared active wallet preference"
+                    },
+                )
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Failed to save active wallet preference", e)
             }
@@ -1080,9 +1168,9 @@ class WalletKitViewModel(
             // Remove from cache
             tonWallets.remove(address)
 
-            runCatching { storage.clear(address) }.onFailure {
-                Log.w(LOG_TAG, "removeWallet: failed to clear storage for $address", it)
-            }
+            runCatching { storage.clear(address) }
+                .onSuccess { Log.d(LOG_TAG, "removeWallet: cleared storage entry for $address") }
+                .onFailure { Log.w(LOG_TAG, "removeWallet: failed to clear storage for $address", it) }
 
             // Clear transaction cache for removed wallet
             transactionCache.clear(address)
@@ -1092,6 +1180,8 @@ class WalletKitViewModel(
             val walletName = state.value.wallets.firstOrNull { it.address == address }?.name
                 ?: uiString(R.string.wallet_default_name_fallback)
 
+            val previousActiveAddress = state.value.activeWalletAddress
+            var updatedActiveAddress: String? = null
             _state.update {
                 val filteredWallets = it.wallets.filterNot { summary -> summary.address == address }
                 val newActiveAddress = when {
@@ -1099,11 +1189,16 @@ class WalletKitViewModel(
                     it.activeWalletAddress == address -> filteredWallets.first().address
                     else -> it.activeWalletAddress
                 }
+                updatedActiveAddress = newActiveAddress
                 it.copy(
                     wallets = filteredWallets,
                     activeWalletAddress = newActiveAddress,
                     isWalletSwitcherExpanded = if (filteredWallets.size <= 1) false else it.isWalletSwitcherExpanded,
                 )
+            }
+
+            if (previousActiveAddress != updatedActiveAddress) {
+                persistActiveWalletPreference(updatedActiveAddress)
             }
 
             refreshWallets()
@@ -1136,7 +1231,9 @@ class WalletKitViewModel(
                     network = updated.network.toBridgeValue(),
                     version = updated.version,
                 )
-                storage.saveWallet(address, updatedRecord)
+                runCatching { storage.saveWallet(address, updatedRecord) }
+                    .onSuccess { Log.d(LOG_TAG, "renameWallet: updated record for $address") }
+                    .onFailure { Log.e(LOG_TAG, "renameWallet: failed to update record for $address", it) }
             }
 
             // Refresh to update UI
@@ -1147,7 +1244,7 @@ class WalletKitViewModel(
 
     private suspend fun loadWalletSummaries(): List<WalletSummary> {
         // Get wallets from SDK and update cache
-        val wallets = TONWallet.wallets()
+        val wallets = getKit().getWallets()
         wallets.forEach { wallet ->
             wallet.address?.let { address ->
                 tonWallets[address] = wallet
@@ -1163,6 +1260,10 @@ class WalletKitViewModel(
             val address = wallet.address ?: continue
             val publicKey = wallet.publicKey
             val metadata = ensureMetadataForAddress(address, publicKey)
+            Log.d(
+                LOG_TAG,
+                "loadWalletSummaries: metadata for $address name='${metadata.name}' network=${metadata.network} version=${metadata.version}",
+            )
 
             Log.d(LOG_TAG, "loadWalletSummaries: fetching state for $address")
             val stateData = runCatching {
@@ -1191,6 +1292,10 @@ class WalletKitViewModel(
 
             // Get creation date from stored record
             val storedRecord = storage.loadWallet(address)
+            Log.d(
+                LOG_TAG,
+                "loadWalletSummaries: storage record for $address present=${storedRecord != null}",
+            )
             val createdAt = storedRecord?.createdAt
             val interfaceType = storedRecord?.interfaceType?.let { WalletInterfaceType.fromValue(it) }
                 ?: WalletInterfaceType.MNEMONIC
@@ -1218,7 +1323,19 @@ class WalletKitViewModel(
         walletMetadata[address]?.let { return it }
 
         val pending = pendingWallets.removeLastOrNull()
+        Log.d(
+            LOG_TAG,
+            "ensureMetadataForAddress: address=$address pending=${pending != null} stored=${walletMetadata.containsKey(address)}",
+        )
         val storedRecord = storage.loadWallet(address)
+        if (storedRecord != null) {
+            Log.d(
+                LOG_TAG,
+                "ensureMetadataForAddress: storage hit for $address name='${storedRecord.name}' network='${storedRecord.network}' version='${storedRecord.version}'",
+            )
+        } else {
+            Log.d(LOG_TAG, "ensureMetadataForAddress: no stored record for $address")
+        }
         val metadata = pending?.metadata
             ?: storedRecord?.let {
                 WalletMetadata(
@@ -1242,6 +1359,8 @@ class WalletKitViewModel(
                 version = metadata.version,
             )
             runCatching { storage.saveWallet(address, record) }
+                .onSuccess { Log.d(LOG_TAG, "ensureMetadataForAddress: saved pending record for $address") }
+                .onFailure { Log.e(LOG_TAG, "ensureMetadataForAddress: failed to save pending record for $address", it) }
         } else if (storedRecord != null) {
             val needsUpdate = storedRecord.name != metadata.name ||
                 storedRecord.network != metadata.network.toBridgeValue() ||
@@ -1257,10 +1376,76 @@ class WalletKitViewModel(
                     createdAt = storedRecord.createdAt,
                 )
                 runCatching { storage.saveWallet(address, record) }
+                    .onSuccess { Log.d(LOG_TAG, "ensureMetadataForAddress: refreshed stored record for $address") }
+                    .onFailure { Log.e(LOG_TAG, "ensureMetadataForAddress: refresh save failed for $address", it) }
             }
         }
 
         return metadata
+    }
+
+    private suspend fun rehydrateWalletsFromStorage(): Boolean {
+        val stored = storage.loadAllWallets()
+        if (stored.isEmpty()) {
+            Log.d(LOG_TAG, "rehydrate: storage empty, nothing to restore")
+            return false
+        }
+
+        var restoredCount = 0
+        for ((storedAddress, record) in stored) {
+            val interfaceType = record.interfaceType
+            if (interfaceType != WalletInterfaceType.MNEMONIC.value) {
+                Log.w(
+                    LOG_TAG,
+                    "rehydrate: skipping $storedAddress (interfaceType=$interfaceType not supported for auto-restore)",
+                )
+                continue
+            }
+
+            val networkEnum = record.network.toTonNetwork(currentNetwork)
+            val version = record.version.ifBlank { DEFAULT_WALLET_VERSION }
+            val name = record.name.ifBlank { defaultWalletName(restoredCount) }
+
+            val walletData = TONWalletData(
+                mnemonic = record.mnemonic,
+                name = name,
+                version = version,
+                network = networkEnum,
+            )
+
+            val result = runCatching { getKit().addWallet(walletData) }
+            result.onSuccess { wallet ->
+                val restoredAddress = wallet.address
+                if (restoredAddress.isNullOrBlank()) {
+                    Log.w(LOG_TAG, "rehydrate: wallet added but address null for stored $storedAddress")
+                    return@onSuccess
+                }
+
+                tonWallets[restoredAddress] = wallet
+                walletMetadata[restoredAddress] = WalletMetadata(
+                    name = name,
+                    network = networkEnum,
+                    version = version,
+                )
+
+                if (restoredAddress != storedAddress) {
+                    Log.w(
+                        LOG_TAG,
+                        "rehydrate: restored address mismatch stored=$storedAddress restored=$restoredAddress",
+                    )
+                }
+
+                restoredCount += 1
+                Log.d(
+                    LOG_TAG,
+                    "rehydrate: restored wallet $restoredAddress (name='$name', network=$networkEnum, version=$version)",
+                )
+            }.onFailure {
+                Log.e(LOG_TAG, "rehydrate: failed to restore $storedAddress", it)
+            }
+        }
+
+        return restoredCount > 0
     }
 
     private suspend fun reinitializeForNetwork(
@@ -1439,7 +1624,8 @@ class WalletKitViewModel(
         // This avoids creating and immediately deleting a temporary wallet.
 
         // Use SDK's new derivePublicKey method to get public key without creating a wallet
-        val publicKey = TONWallet.derivePublicKey(mnemonic)
+        val kit = getKit()
+        val publicKey = TONWallet.derivePublicKey(kit, mnemonic)
 
         Log.d(LOG_TAG, "Derived public key for signer wallet: ${publicKey.take(16)}...")
 
@@ -1455,7 +1641,9 @@ class WalletKitViewModel(
                     LOG_TAG,
                     "Demo signer signing ${data.size} bytes for wallet=$walletName (used for TonProof/transactions)",
                 )
+                val kit = getKit()
                 return TONWallet.signDataWithMnemonic(
+                    kit = kit,
                     mnemonic = signerMnemonic,
                     data = data,
                     mnemonicType = "ton",
@@ -1529,6 +1717,7 @@ class WalletKitViewModel(
 
                 // Clear all stored data (including password)
                 storage.clearAll()
+                lastPersistedActiveWallet = null
 
                 // Reset state
                 _isPasswordSet.value = false

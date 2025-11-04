@@ -5,6 +5,7 @@ import android.util.Log
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.SecureDemoAppStorage
 import io.ton.walletkit.domain.model.TONNetwork
+import io.ton.walletkit.domain.model.TONWalletData
 import io.ton.walletkit.presentation.TONWalletKit
 import io.ton.walletkit.presentation.config.SignDataType
 import io.ton.walletkit.presentation.config.TONWalletKitConfiguration
@@ -16,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 
 class WalletKitDemoApp : Application() {
 
@@ -45,56 +47,173 @@ class WalletKitDemoApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Initialize TONWalletKit SDK
+        Log.w(TAG, "🔴🔴🔴 WalletKitDemoApp.onCreate() CALLED!")
+        Log.w(TAG, "🔴 Process ID: ${android.os.Process.myPid()}")
+        Log.w(TAG, "🔴 Application instance: ${System.identityHashCode(this)}")
+
+        // Initialize TONWalletKit SDK and add event handler
         applicationScope.launch {
-            initializeSDK()
-            _sdkInitialized.emit(true)
+            try {
+                Log.w(TAG, "🔴 Launching SDK initialization coroutine...")
+                val kit = TONWalletKitHelper.mainnet(this@WalletKitDemoApp)
+                Log.w(TAG, "🔴 Got kit instance: ${System.identityHashCode(kit)}")
+
+                // CRITICAL: Load and add wallets BEFORE setting up event listeners
+                // This ensures that when events are replayed (which happens when the first
+                // event handler is added), the wallets are already available in the SDK
+                // for event approval/rejection operations.
+                loadAndAddStoredWallets(kit)
+
+                Log.w(TAG, "🔴🔴🔴 About to add event handler...")
+                // Add event handler (this triggers setEventsListeners() and event replay)
+                kit.addEventsHandler(object : TONBridgeEventsHandler {
+                    override fun handle(event: TONWalletKitEvent) {
+                        Log.d(TAG, "🟢 Event handler callback invoked for event: ${event.javaClass.simpleName}")
+                        _sdkEvents.tryEmit(event)
+                    }
+                })
+                Log.w(TAG, "✅ Event handler added successfully")
+
+                _sdkInitialized.emit(true)
+                Log.w(TAG, "✅ SDK initialization complete, sdkInitialized emitted")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌❌❌ Failed to initialize SDK", e)
+            }
         }
     }
 
-    private suspend fun initializeSDK() {
-        Log.d(TAG, "Initializing SDK with network: ${TONNetwork.MAINNET}")
-        val config = TONWalletKitConfiguration(
-            network = TONNetwork.MAINNET,
-            walletManifest = TONWalletKitConfiguration.Manifest(
-                name = DEFAULT_MANIFEST_NAME,
-                appName = DEFAULT_APP_NAME,
-                imageUrl = DEFAULT_MANIFEST_IMAGE_URL,
-                aboutUrl = DEFAULT_MANIFEST_ABOUT_URL,
-                universalLink = DEFAULT_MANIFEST_UNIVERSAL_LINK,
-                bridgeUrl = DEFAULT_BRIDGE_URL,
-            ),
-            bridge = TONWalletKitConfiguration.Bridge(
-                bridgeUrl = DEFAULT_BRIDGE_URL,
-            ),
-            apiClient = null, // Use default API URLs based on network
-            features = listOf(
-                TONWalletKitConfiguration.SendTransactionFeature(maxMessages = 4),
-                TONWalletKitConfiguration.SignDataFeature(
-                    types = listOf(SignDataType.TEXT, SignDataType.BINARY, SignDataType.CELL),
-                ),
-            ),
-            storage = TONWalletKitConfiguration.Storage(persistent = true),
-        )
+    /**
+     * Load wallets from encrypted storage and add them to the SDK.
+     * This must be done BEFORE adding event handlers to ensure wallets are available
+     * when replayed events are processed.
+     */
+    private suspend fun loadAndAddStoredWallets(kit: TONWalletKit) {
+        try {
+            // Get all stored wallet records
+            val storage = getSharedPreferences("wallet_storage", MODE_PRIVATE)
+            val walletDataJson = storage.getString("wallets", "[]") ?: "[]"
 
-        TONWalletKit.initialize(
-            context = this,
-            configuration = config,
-            eventsHandler = object : TONBridgeEventsHandler {
-                override fun handle(event: TONWalletKitEvent) {
-                    _sdkEvents.tryEmit(event)
+            // Skip if no wallets stored (empty list is fine)
+            if (walletDataJson == "[]") {
+                Log.d(TAG, "No stored wallets to load")
+                return
+            }
+
+            val walletDataList = kotlinx.serialization.json.Json.decodeFromString<List<WalletDataRecord>>(walletDataJson)
+
+            Log.d(TAG, "Loading ${walletDataList.size} stored wallets into SDK")
+
+            // Add each wallet to the SDK
+            for (walletRecord in walletDataList) {
+                try {
+                    // Convert mnemonic string to list of words
+                    val mnemonicWords = walletRecord.mnemonic.split(" ").filter { it.isNotBlank() }
+
+                    // Convert network string to TONNetwork enum
+                    val network = when (walletRecord.network.lowercase()) {
+                        "mainnet", "-239" -> TONNetwork.MAINNET
+                        "testnet", "-3" -> TONNetwork.TESTNET
+                        else -> TONNetwork.MAINNET
+                    }
+
+                    val walletData = TONWalletData(
+                        mnemonic = mnemonicWords,
+                        name = "", // Name is stored separately in demo app storage
+                        network = network,
+                        version = walletRecord.version,
+                    )
+                    kit.addWallet(walletData)
+                    Log.d(TAG, "Added wallet to SDK: ${walletRecord.address}")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to add wallet ${walletRecord.address} to SDK", e)
                 }
-            },
-        )
+            }
+
+            Log.d(TAG, "Finished loading wallets into SDK")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to load stored wallets", e)
+        }
     }
+
+    @kotlinx.serialization.Serializable
+    private data class WalletDataRecord(
+        val mnemonic: String,
+        val address: String,
+        val network: String,
+        val version: String,
+    )
 
     private companion object {
         private const val TAG = "WalletKitDemoApp"
-        private const val DEFAULT_MANIFEST_NAME = "Wallet"
-        private const val DEFAULT_APP_NAME = "Wallet"
-        private const val DEFAULT_MANIFEST_IMAGE_URL = "https://wallet.ton.org/icon.png"
-        private const val DEFAULT_MANIFEST_ABOUT_URL = "https://wallet.ton.org"
-        private const val DEFAULT_MANIFEST_UNIVERSAL_LINK = "https://wallet.ton.org/tc"
-        private const val DEFAULT_BRIDGE_URL = "https://bridge.tonapi.io/bridge"
     }
+}
+
+/**
+ * Helper to get cached TONWalletKit instance.
+ * Similar to iOS extension on TONWalletKit with static mainnet() function.
+ */
+object TONWalletKitHelper {
+    private var mainnetInstance: TONWalletKit? = null
+    private val mutex = kotlinx.coroutines.sync.Mutex()
+
+    suspend fun mainnet(application: Application): TONWalletKit {
+        // Fast path: already initialized
+        mainnetInstance?.let { return it }
+
+        // Slow path: need to initialize (with mutex to prevent double-init)
+        return mutex.withLock {
+            // Double-check after acquiring lock
+            mainnetInstance?.let {
+                Log.d("TONWalletKitHelper", "Returning cached mainnet instance (after lock): ${System.identityHashCode(it)}")
+                return@withLock it
+            }
+
+            Log.w("TONWalletKitHelper", "🔶🔶🔶 Creating NEW TONWalletKit instance...")
+
+            val config = TONWalletKitConfiguration(
+                network = TONNetwork.MAINNET,
+                walletManifest = TONWalletKitConfiguration.Manifest(
+                    name = DEFAULT_MANIFEST_NAME,
+                    appName = DEFAULT_APP_NAME,
+                    imageUrl = DEFAULT_MANIFEST_IMAGE_URL,
+                    aboutUrl = DEFAULT_MANIFEST_ABOUT_URL,
+                    universalLink = DEFAULT_MANIFEST_UNIVERSAL_LINK,
+                    bridgeUrl = DEFAULT_BRIDGE_URL,
+                ),
+                bridge = TONWalletKitConfiguration.Bridge(
+                    bridgeUrl = DEFAULT_BRIDGE_URL,
+                ),
+                apiClient = null,
+                features = listOf(
+                    TONWalletKitConfiguration.SendTransactionFeature(maxMessages = 4),
+                    TONWalletKitConfiguration.SignDataFeature(
+                        types = listOf(SignDataType.TEXT, SignDataType.BINARY, SignDataType.CELL),
+                    ),
+                ),
+                storage = TONWalletKitConfiguration.Storage(persistent = true),
+            )
+
+            val kit = TONWalletKit.initialize(application, config)
+            mainnetInstance = kit
+            Log.w("TONWalletKitHelper", "✅ Created and cached mainnet instance: ${System.identityHashCode(kit)}")
+            kit
+        }
+    }
+
+    /**
+     * Clear the cached instance (for testing or logout scenarios).
+     */
+    suspend fun clearMainnet() {
+        mutex.withLock {
+            mainnetInstance?.destroy()
+            mainnetInstance = null
+        }
+    }
+
+    private const val DEFAULT_MANIFEST_NAME = "Wallet"
+    private const val DEFAULT_APP_NAME = "Wallet"
+    private const val DEFAULT_MANIFEST_IMAGE_URL = "https://wallet.ton.org/icon.png"
+    private const val DEFAULT_MANIFEST_ABOUT_URL = "https://wallet.ton.org"
+    private const val DEFAULT_MANIFEST_UNIVERSAL_LINK = "https://wallet.ton.org/tc"
+    private const val DEFAULT_BRIDGE_URL = "https://bridge.tonapi.io/bridge"
 }

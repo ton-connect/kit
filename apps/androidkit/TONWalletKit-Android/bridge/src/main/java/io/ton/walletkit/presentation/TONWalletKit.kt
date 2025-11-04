@@ -9,8 +9,12 @@ import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
  *
  * Mirrors the canonical TON Wallet Kit specification for cross-platform consistency.
  *
- * Initialize the SDK by calling [initialize] with your configuration
- * and event handler before using any other functionality.
+ * Initialize the SDK by calling [initialize] with your configuration.
+ * Then add event handlers using [addEventsHandler] when you're ready to receive events.
+ *
+ * **Important:** Unlike a singleton, each TONWalletKit instance is independent. When you're done
+ * with an instance, call [destroy] or let it go out of scope to clean up resources and stop
+ * receiving events.
  *
  * Example:
  * ```kotlin
@@ -36,95 +40,148 @@ import io.ton.walletkit.presentation.listener.TONBridgeEventsHandler
  *     storage = TONWalletKitConfiguration.Storage(persistent = true)
  * )
  *
- * TONWalletKit.initialize(context, config, eventsHandler)
+ * // Initialize SDK (returns instance)
+ * val kit = TONWalletKit.initialize(context, config)
+ *
+ * // Later, add event handler when ready
+ * val handler = object : TONBridgeEventsHandler {
+ *     override fun handle(event: TONWalletKitEvent) {
+ *         // Handle events
+ *     }
+ * }
+ * kit.addEventsHandler(handler)
+ *
+ * // When done, destroy to stop receiving events and clean up
+ * kit.destroy()
+ * // or let kit = null (will auto-cleanup)
  * ```
  */
-object TONWalletKit {
+class TONWalletKit private constructor(
     /**
      * Internal engine instance. Exposed for TONWallet class access.
      * @suppress
      */
     @JvmSynthetic
-    internal var engine: WalletKitEngine? = null
-        private set
+    internal val engine: WalletKitEngine,
+) {
+    @Volatile
+    private var isDestroyed = false
 
     /**
-     * Initialize TON Wallet Kit with configuration and event handler.
+     * Add an event handler to receive SDK events.
      *
-     * This method must be called before using any other SDK functionality.
-     * Calling it multiple times will have no effect (first call wins).
+     * This method can be called after initialization to start receiving events.
+     * Multiple handlers can be added, and each will receive all events.
+     * Events that occurred before the handler was added will be replayed if they
+     * are still in the durable events queue.
      *
-     * **Event Handler:**
-     * The provided event handler will receive all wallet events (connection requests,
-     * transaction requests, sign data requests, disconnects). Implement the
-     * [TONBridgeEventsHandler] interface to handle these events.
-     *
-     * **Usage Example:**
-     * ```kotlin
-     * TONWalletKit.initialize(
-     *     context = context,
-     *     configuration = config,
-     *     eventsHandler = object : TONBridgeEventsHandler {
-     *         override fun handle(event: TONWalletKitEvent) {
-     *             when (event) {
-     *                 is TONWalletKitEvent.ConnectRequest -> {
-     *                     // Handle connection request
-     *                     event.request.approve(walletAddress)
-     *                 }
-     *                 is TONWalletKitEvent.TransactionRequest -> {
-     *                     // Handle transaction request
-     *                     event.request.approve()
-     *                 }
-     *                 is TONWalletKitEvent.SignDataRequest -> {
-     *                     // Handle sign data request
-     *                     event.request.approve()
-     *                 }
-     *                 is TONWalletKitEvent.Disconnect -> {
-     *                     // Handle disconnect
-     *                 }
-     *             }
-     *         }
-     *     }
-     * )
-     * ```
-     *
-     * @param context Android context (required for storage and WebView initialization)
-     * @param configuration SDK configuration (network, manifest, bridge, features, storage)
      * @param eventsHandler Handler for SDK events (connections, transactions, sign data, disconnects)
-     * @throws WalletKitBridgeException if initialization fails
+     * @throws IllegalStateException if SDK instance has been destroyed
      */
-    suspend fun initialize(
-        context: Context,
-        configuration: TONWalletKitConfiguration,
-        eventsHandler: TONBridgeEventsHandler,
-    ) {
-        if (engine != null) {
-            return // Already initialized
-        }
-
-        // Create engine with configuration and events handler using the WebView implementation
-        val newEngine = WalletKitEngineFactory.create(
-            kind = WalletKitEngineKind.WEBVIEW,
-            context = context,
-            configuration = configuration,
-            eventsHandler = eventsHandler,
-        )
-
-        engine = newEngine
+    suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        checkNotDestroyed()
+        engine.addEventsHandler(eventsHandler)
     }
 
     /**
-     * Shut down the Wallet Kit engine and release all resources.
+     * Remove a previously added event handler.
      *
-     * This is primarily useful for tests or when the hosting process is about
-     * to terminate and wants to eagerly dispose the underlying WebView.
+     * @param eventsHandler Handler to remove
      */
-    suspend fun shutdown() {
-        val currentEngine = engine ?: return
+    suspend fun removeEventsHandler(eventsHandler: TONBridgeEventsHandler) {
+        if (isDestroyed) return
+        engine.removeEventsHandler(eventsHandler)
+    }
+
+    /**
+     * Shut down the Wallet Kit instance and release all resources.
+     *
+     * This removes all event handlers, stops the WebView engine, and ensures
+     * no more events will be received. After calling this, the instance cannot
+     * be reused.
+     *
+     * This is called automatically when the instance is garbage collected.
+     */
+    suspend fun destroy() {
+        if (isDestroyed) return
+
+        isDestroyed = true
+
         try {
-            currentEngine.destroy()
-        } finally {
-            engine = null
+            engine.destroy()
+        } catch (e: Exception) {
+            // Log but don't throw - cleanup should be best-effort
+        }
+    }
+
+    private fun checkNotDestroyed() {
+        if (isDestroyed) {
+            throw IllegalStateException("TONWalletKit instance has been destroyed. Create a new instance.")
+        }
+    }
+
+    // === Wallet Management Methods (matching iOS API) ===
+
+    /**
+     * Add a new wallet from mnemonic data.
+     *
+     * @param data Wallet creation data (mnemonic, name, version, network)
+     * @return The newly created wallet
+     */
+    suspend fun addWallet(data: io.ton.walletkit.domain.model.TONWalletData): TONWallet {
+        checkNotDestroyed()
+
+        val account = engine.addWalletFromMnemonic(
+            words = data.mnemonic,
+            name = data.name,
+            version = data.version,
+            network = data.network.value,
+        )
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
+
+    /**
+     * Get all wallets managed by this SDK instance.
+     *
+     * @return List of all wallets
+     */
+    suspend fun getWallets(): List<TONWallet> {
+        checkNotDestroyed()
+
+        val accounts = engine.getWallets()
+        return accounts.map { account ->
+            TONWallet(
+                address = account.address,
+                engine = engine,
+                account = account,
+            )
+        }
+    }
+
+    companion object {
+        /**
+         * Initialize TON Wallet Kit with configuration.
+         *
+         * See class-level documentation for usage examples.
+         */
+        suspend fun initialize(
+            context: Context,
+            configuration: TONWalletKitConfiguration,
+        ): TONWalletKit {
+            // Create engine with configuration using the WebView implementation
+            val newEngine = WalletKitEngineFactory.create(
+                kind = WalletKitEngineKind.WEBVIEW,
+                context = context,
+                configuration = configuration,
+                eventsHandler = null,
+            )
+
+            return TONWalletKit(newEngine)
         }
     }
 }
