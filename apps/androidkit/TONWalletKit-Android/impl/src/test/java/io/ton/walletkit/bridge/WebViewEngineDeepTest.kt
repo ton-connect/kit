@@ -6,7 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.WalletKitBridgeException
 import io.ton.walletkit.config.TONWalletKitConfiguration
 import io.ton.walletkit.event.TONWalletKitEvent
-import io.ton.walletkit.impl.WebViewWalletKitEngine
+import io.ton.walletkit.engine.WebViewWalletKitEngine
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.Transaction
@@ -365,7 +365,9 @@ class WebViewEngineDeepTest {
         configuration: TONWalletKitConfiguration = defaultConfiguration,
         eventsHandler: TONBridgeEventsHandler = NoopEventsHandler,
     ): WebViewWalletKitEngine {
-        return WebViewWalletKitEngine(context, configuration, eventsHandler)
+        return kotlinx.coroutines.runBlocking {
+            WebViewWalletKitEngine.getOrCreate(context, configuration, eventsHandler)
+        }
     }
 
     private fun disconnectEvent(sessionId: String): JSONObject {

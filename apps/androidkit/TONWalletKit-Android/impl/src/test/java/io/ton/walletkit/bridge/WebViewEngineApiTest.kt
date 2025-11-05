@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.config.TONWalletKitConfiguration
-import io.ton.walletkit.impl.WebViewWalletKitEngine
+import io.ton.walletkit.engine.WebViewWalletKitEngine
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +29,9 @@ class WebViewEngineApiTest {
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         configuration = testWalletKitConfiguration()
-        engine = WebViewWalletKitEngine(context, configuration, NoopEventsHandler)
+        engine = kotlinx.coroutines.runBlocking {
+            WebViewWalletKitEngine.getOrCreate(context, configuration, NoopEventsHandler)
+        }
         flushMainThread()
     }
 
@@ -39,8 +41,8 @@ class WebViewEngineApiTest {
     }
 
     @Test
-    fun `engine implements addWalletFromMnemonic method`() {
-        assertNotNull(engine::addWalletFromMnemonic)
+    fun `engine implements createV5R1WalletAdapter method`() {
+        assertNotNull(engine::createV5R1WalletAdapter)
     }
 
     @Test
@@ -79,8 +81,8 @@ class WebViewEngineApiTest {
     }
 
     @Test
-    fun `engine implements sendLocalTransaction method`() {
-        assertNotNull(engine::sendLocalTransaction)
+    fun `engine implements sendTransaction method`() {
+        assertNotNull(engine::sendTransaction)
     }
 
     @Test
@@ -132,7 +134,7 @@ class WebViewEngineApiTest {
     fun `all core wallet operations are present`() {
         val methods = listOf(
             engine::init,
-            engine::addWalletFromMnemonic,
+            engine::createV5R1WalletAdapter,
             engine::getWallets,
             engine::removeWallet,
             engine::getWalletState,

@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.config.TONWalletKitConfiguration
-import io.ton.walletkit.impl.WebViewWalletKitEngine
+import io.ton.walletkit.engine.WebViewWalletKitEngine
 import io.ton.walletkit.model.TONNetwork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,7 +47,7 @@ class WebViewEngineAutoInitTest {
 
     @Test
     fun `engine has auto-init capability`() = runTest {
-        val engine = WebViewWalletKitEngine(context, defaultConfiguration, NoopEventsHandler)
+        val engine = WebViewWalletKitEngine.getOrCreate(context, defaultConfiguration, NoopEventsHandler)
         assertNotNull(engine)
 
         // Auto-init happens on first call to any method
@@ -65,7 +65,7 @@ class WebViewEngineAutoInitTest {
             persistent = false,
         )
 
-        val engine = WebViewWalletKitEngine(context, config, NoopEventsHandler)
+        val engine = WebViewWalletKitEngine.getOrCreate(context, config, NoopEventsHandler)
 
         assertNotNull(config)
 
@@ -75,7 +75,7 @@ class WebViewEngineAutoInitTest {
     @Test
     fun `init accepts testnet config`() = runTest {
         val config = testWalletKitConfiguration(network = TONNetwork.TESTNET)
-        val engine = WebViewWalletKitEngine(context, config, NoopEventsHandler)
+        val engine = WebViewWalletKitEngine.getOrCreate(context, config, NoopEventsHandler)
 
         assertNotNull(config)
         assertNotNull(engine)
@@ -85,7 +85,7 @@ class WebViewEngineAutoInitTest {
 
     @Test
     fun `engine supports storage configuration`() = runTest {
-        val engine = WebViewWalletKitEngine(context, defaultConfiguration, NoopEventsHandler)
+        val engine = WebViewWalletKitEngine.getOrCreate(context, defaultConfiguration, NoopEventsHandler)
 
         val withStorage = testWalletKitConfiguration(persistent = true)
         val withoutStorage = testWalletKitConfiguration(persistent = false)
@@ -99,9 +99,9 @@ class WebViewEngineAutoInitTest {
 
     @Test
     fun `engine can be created multiple times`() = runTest {
-        val engine1 = WebViewWalletKitEngine(context, defaultConfiguration, NoopEventsHandler)
-        val engine2 = WebViewWalletKitEngine(context, defaultConfiguration, NoopEventsHandler)
-        val engine3 = WebViewWalletKitEngine(context, defaultConfiguration, NoopEventsHandler)
+        val engine1 = WebViewWalletKitEngine.getOrCreate(context, defaultConfiguration, NoopEventsHandler)
+        val engine2 = WebViewWalletKitEngine.getOrCreate(context, defaultConfiguration, NoopEventsHandler)
+        val engine3 = WebViewWalletKitEngine.getOrCreate(context, defaultConfiguration, NoopEventsHandler)
 
         assertNotNull(engine1)
         assertNotNull(engine2)

@@ -2,9 +2,9 @@ package io.ton.walletkit.bridge
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import io.ton.walletkit.WalletKitEngine
-import io.ton.walletkit.WalletKitEngineFactory
-import io.ton.walletkit.WalletKitEngineKind
+import io.ton.walletkit.engine.WalletKitEngine
+import io.ton.walletkit.core.WalletKitEngineFactory
+import io.ton.walletkit.core.WalletKitEngineKind
 import io.ton.walletkit.config.TONWalletKitConfiguration
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import org.junit.Assert.assertEquals
