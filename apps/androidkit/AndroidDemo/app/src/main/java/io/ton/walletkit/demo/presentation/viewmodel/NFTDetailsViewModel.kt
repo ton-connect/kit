@@ -4,9 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import io.ton.walletkit.ITONWallet
 import io.ton.walletkit.demo.presentation.model.NFTDetails
 import io.ton.walletkit.model.TONNFTTransferParamsHuman
-import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.ton.walletkit.ITONWallet
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.WalletRecord
@@ -26,12 +27,11 @@ import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.state.SheetState
 import io.ton.walletkit.demo.presentation.state.WalletUiState
 import io.ton.walletkit.demo.presentation.util.TransactionDetailMapper
+import io.ton.walletkit.event.TONWalletKitEvent
+import io.ton.walletkit.extensions.disconnect
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.TONWalletData
 import io.ton.walletkit.model.WalletSigner
-import io.ton.walletkit.ITONWallet
-import io.ton.walletkit.event.TONWalletKitEvent
-import io.ton.walletkit.extensions.disconnect
 import io.ton.walletkit.request.TONWalletConnectionRequest
 import io.ton.walletkit.request.TONWalletSignDataRequest
 import io.ton.walletkit.request.TONWalletTransactionRequest

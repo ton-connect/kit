@@ -3,10 +3,10 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.ton.walletkit.ITONWallet
 import io.ton.walletkit.model.TONJettonTransferParams
 import io.ton.walletkit.model.TONJettonWallet
 import io.ton.walletkit.model.TONPagination
-import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

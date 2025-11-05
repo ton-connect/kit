@@ -3,13 +3,13 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
 import io.ton.walletkit.demo.presentation.model.SessionSummary
 import io.ton.walletkit.demo.presentation.util.TimestampParser
 import io.ton.walletkit.demo.presentation.util.UrlSanitizer
-import io.ton.walletkit.model.WalletSession
-import io.ton.walletkit.ITONWallet
-import io.ton.walletkit.ITONWalletKit
 import io.ton.walletkit.extensions.disconnect
+import io.ton.walletkit.model.WalletSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

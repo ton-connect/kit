@@ -3,10 +3,10 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.ton.walletkit.demo.presentation.util.TonFormatter
-import io.ton.walletkit.model.TONTransferParams
 import io.ton.walletkit.ITONWallet
 import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.demo.presentation.util.TonFormatter
+import io.ton.walletkit.model.TONTransferParams
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -100,10 +100,10 @@ class WalletOperationsViewModel(
                 val params = TONTransferParams(
                     toAddress = recipient,
                     amount = amountInNano,
-                    comment = comment.takeIf { it.isNotBlank() }
+                    comment = comment.takeIf { it.isNotBlank() },
                 )
                 val transactionContent = wallet.createTransferTonTransaction(params)
-                
+
                 // Step 2: Trigger approval flow
                 walletKit().handleNewTransaction(wallet, transactionContent)
             }.onSuccess {

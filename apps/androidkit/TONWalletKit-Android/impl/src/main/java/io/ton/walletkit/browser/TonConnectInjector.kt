@@ -7,9 +7,8 @@ import android.webkit.WebView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import io.ton.walletkit.ITONWalletKit
-import io.ton.walletkit.WebViewTonConnectInjector
-import io.ton.walletkit.browser.PendingRequest
 import io.ton.walletkit.TONWalletKit
+import io.ton.walletkit.WebViewTonConnectInjector
 import io.ton.walletkit.engine.WalletKitEngine
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.internal.constants.BrowserConstants

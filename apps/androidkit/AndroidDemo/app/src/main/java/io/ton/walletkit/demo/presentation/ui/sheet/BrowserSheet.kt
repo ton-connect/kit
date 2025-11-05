@@ -29,8 +29,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import io.ton.walletkit.demo.R
 import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.demo.R
 import io.ton.walletkit.extensions.cleanupTonConnect
 import io.ton.walletkit.extensions.injectTonConnect
 

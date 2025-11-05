@@ -1,6 +1,8 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.parsing
 
 import android.util.Log
+import io.ton.walletkit.engine.WalletKitEngine
+import io.ton.walletkit.engine.state.SignerManager
 import io.ton.walletkit.event.ConnectRequestEvent
 import io.ton.walletkit.event.SignDataRequestEvent
 import io.ton.walletkit.event.TONWalletKitEvent
@@ -9,12 +11,10 @@ import io.ton.walletkit.internal.constants.EventTypeConstants
 import io.ton.walletkit.internal.constants.JsonConstants
 import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.ResponseConstants
-import io.ton.walletkit.listener.TONBridgeEventsHandler
 import io.ton.walletkit.model.DAppInfo
 import io.ton.walletkit.model.SignDataRequest
 import io.ton.walletkit.model.TransactionRequest
 import io.ton.walletkit.model.WalletSigner
-import io.ton.walletkit.request.RequestHandler
 import io.ton.walletkit.request.TONWalletConnectionRequest
 import io.ton.walletkit.request.TONWalletSignDataRequest
 import io.ton.walletkit.request.TONWalletTransactionRequest
@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import org.json.JSONArray
 import org.json.JSONObject
 
 /**

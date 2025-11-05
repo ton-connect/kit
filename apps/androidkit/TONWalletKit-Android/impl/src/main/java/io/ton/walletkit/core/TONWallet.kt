@@ -1,11 +1,11 @@
 package io.ton.walletkit
 
+import io.ton.walletkit.engine.WalletKitEngine
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.TONWalletData
 import io.ton.walletkit.model.WalletAccount
 import io.ton.walletkit.model.WalletSession
 import io.ton.walletkit.model.WalletSigner
-import io.ton.walletkit.engine.WalletKitEngine
 
 /**
  * Represents a TON wallet with balance and state management.

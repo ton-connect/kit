@@ -46,11 +46,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.SubcomposeAsyncImage
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
 import io.ton.walletkit.demo.presentation.model.NFTDetails
 import io.ton.walletkit.demo.presentation.ui.dialog.WalletAddressInputDialog
 import io.ton.walletkit.demo.presentation.viewmodel.NFTDetailsViewModel
-import io.ton.walletkit.ITONWalletKit
-import io.ton.walletkit.ITONWallet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

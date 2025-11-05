@@ -1,7 +1,8 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.operations
 
 import android.util.Log
 import io.ton.walletkit.WalletKitBridgeException
+import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.internal.constants.JsonConstants
 import io.ton.walletkit.internal.constants.LogConstants

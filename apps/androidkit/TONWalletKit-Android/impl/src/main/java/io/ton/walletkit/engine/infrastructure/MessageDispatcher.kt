@@ -1,14 +1,16 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.infrastructure
 
 import android.os.Handler
 import android.util.Log
 import io.ton.walletkit.WalletKitBridgeException
+import io.ton.walletkit.browser.TonConnectInjector
+import io.ton.walletkit.engine.parsing.EventParser
+import io.ton.walletkit.engine.state.EventRouter
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.internal.constants.EventTypeConstants
 import io.ton.walletkit.internal.constants.JsonConstants
 import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.ResponseConstants
-import io.ton.walletkit.browser.TonConnectInjector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,6 +42,7 @@ internal class MessageDispatcher(
 ) {
     private val mainHandler: Handler = webViewManager.getMainHandler()
     private val eventListenersSetupMutex = Mutex()
+
     @Volatile private var areEventListenersSetUp = false
 
     fun dispatchMessage(payload: JSONObject) {

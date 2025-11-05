@@ -1,4 +1,4 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.parsing
 
 import android.util.Log
 import io.ton.walletkit.internal.constants.JsonConstants

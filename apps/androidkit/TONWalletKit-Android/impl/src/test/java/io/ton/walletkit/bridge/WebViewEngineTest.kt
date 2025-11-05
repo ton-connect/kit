@@ -3,10 +3,10 @@ package io.ton.walletkit.bridge
 import android.content.Context
 import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
-import io.ton.walletkit.core.WalletKitEngineKind
 import io.ton.walletkit.config.TONWalletKitConfiguration
-import io.ton.walletkit.event.TONWalletKitEvent
+import io.ton.walletkit.core.WalletKitEngineKind
 import io.ton.walletkit.engine.WebViewWalletKitEngine
+import io.ton.walletkit.event.TONWalletKitEvent
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import org.json.JSONObject
 import org.junit.Before

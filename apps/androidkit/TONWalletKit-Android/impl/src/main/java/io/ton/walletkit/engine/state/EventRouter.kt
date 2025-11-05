@@ -1,4 +1,4 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.state
 
 import android.util.Log
 import io.ton.walletkit.event.TONWalletKitEvent
@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.withLock
 internal class EventRouter {
     private val eventHandlers = mutableListOf<TONBridgeEventsHandler>()
     private val mutex = Mutex()
+
     @Volatile private var handlerCount: Int = 0
 
     /**

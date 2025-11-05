@@ -2,7 +2,6 @@ package io.ton.walletkit.storage
 
 import android.content.Context
 import android.util.Log
-import io.ton.walletkit.storage.SecureWalletKitStorage
 import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.StorageConstants
 import kotlinx.coroutines.Dispatchers

@@ -1,15 +1,18 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.operations
 
 import android.util.Log
 import io.ton.walletkit.WalletKitBridgeException
+import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
+import io.ton.walletkit.engine.parsing.TransactionParser
+import io.ton.walletkit.engine.state.SignerManager
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.internal.constants.JsonConstants
 import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.ResponseConstants
 import io.ton.walletkit.model.Transaction
 import io.ton.walletkit.model.WalletAccount
-import io.ton.walletkit.model.WalletState
 import io.ton.walletkit.model.WalletSigner
+import io.ton.walletkit.model.WalletState
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -190,11 +193,11 @@ internal class WalletOperations(
 
         return WalletState(
             balance =
-                when {
-                    result.has(ResponseConstants.KEY_BALANCE) -> result.optString(ResponseConstants.KEY_BALANCE)
-                    result.has(ResponseConstants.KEY_VALUE) -> result.optString(ResponseConstants.KEY_VALUE)
-                    else -> null
-                },
+            when {
+                result.has(ResponseConstants.KEY_BALANCE) -> result.optString(ResponseConstants.KEY_BALANCE)
+                result.has(ResponseConstants.KEY_VALUE) -> result.optString(ResponseConstants.KEY_VALUE)
+                else -> null
+            },
             transactions = transactionParser.parseTransactions(result.optJSONArray(ResponseConstants.KEY_TRANSACTIONS)),
         )
     }

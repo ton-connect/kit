@@ -1,11 +1,14 @@
 package io.ton.walletkit.demo.presentation.viewmodel
 
 import android.util.Log
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
 import io.ton.walletkit.demo.data.cache.TransactionCache
 import io.ton.walletkit.demo.data.storage.DemoAppStorage
 import io.ton.walletkit.demo.data.storage.UserPreferences
 import io.ton.walletkit.demo.data.storage.WalletRecord
 import io.ton.walletkit.demo.domain.model.PendingWalletRecord
+import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.domain.model.WalletMetadata
 import io.ton.walletkit.demo.domain.model.toBridgeValue
 import io.ton.walletkit.demo.domain.model.toTonNetwork
@@ -14,9 +17,6 @@ import io.ton.walletkit.demo.presentation.model.WalletSummary
 import io.ton.walletkit.demo.presentation.util.TonFormatter
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.TONWalletData
-import io.ton.walletkit.ITONWallet
-import io.ton.walletkit.ITONWalletKit
-import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 
 /**
  * Handles wallet lifecycle: bootstrapping from storage, metadata management,

@@ -5,8 +5,8 @@ import android.os.Looper
 import androidx.test.core.app.ApplicationProvider
 import io.ton.walletkit.WalletKitBridgeException
 import io.ton.walletkit.config.TONWalletKitConfiguration
-import io.ton.walletkit.event.TONWalletKitEvent
 import io.ton.walletkit.engine.WebViewWalletKitEngine
+import io.ton.walletkit.event.TONWalletKitEvent
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.Transaction

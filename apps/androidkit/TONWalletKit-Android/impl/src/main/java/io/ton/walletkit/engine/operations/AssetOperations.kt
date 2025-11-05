@@ -1,5 +1,6 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.operations
 
+import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.model.TONJetton
 import io.ton.walletkit.model.TONJettonTransferParams

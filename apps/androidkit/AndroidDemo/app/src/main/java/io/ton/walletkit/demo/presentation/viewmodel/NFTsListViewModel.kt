@@ -3,9 +3,9 @@ package io.ton.walletkit.demo.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.ton.walletkit.ITONWallet
 import io.ton.walletkit.model.TONNFTItem
 import io.ton.walletkit.model.TONPagination
-import io.ton.walletkit.ITONWallet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

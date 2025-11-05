@@ -1,4 +1,4 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.infrastructure
 
 import android.content.Context
 import android.util.Log
@@ -9,7 +9,6 @@ import io.ton.walletkit.internal.constants.BridgeMethodConstants
 import io.ton.walletkit.internal.constants.JsonConstants
 import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.NetworkConstants
-import io.ton.walletkit.internal.constants.ResponseConstants
 import io.ton.walletkit.internal.constants.WebViewConstants
 import io.ton.walletkit.model.TONNetwork
 import kotlinx.coroutines.sync.Mutex
@@ -36,9 +35,13 @@ internal class InitializationManager(
     private val walletKitInitMutex = Mutex()
 
     @Volatile private var isWalletKitInitialized: Boolean = false
+
     @Volatile private var persistentStorageEnabled: Boolean = true
+
     @Volatile private var currentNetwork: String = NetworkConstants.DEFAULT_NETWORK
+
     @Volatile private var apiBaseUrl: String = NetworkConstants.DEFAULT_TESTNET_API_URL
+
     @Volatile private var tonApiKey: String? = null
 
     private var pendingInitConfig: TONWalletKitConfiguration? = null

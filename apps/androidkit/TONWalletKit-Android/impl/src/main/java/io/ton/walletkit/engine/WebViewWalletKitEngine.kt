@@ -6,6 +6,20 @@ import android.view.ViewGroup
 import io.ton.walletkit.WalletKitBridgeException
 import io.ton.walletkit.config.TONWalletKitConfiguration
 import io.ton.walletkit.core.WalletKitEngineKind
+import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
+import io.ton.walletkit.engine.infrastructure.InitializationManager
+import io.ton.walletkit.engine.infrastructure.MessageDispatcher
+import io.ton.walletkit.engine.infrastructure.StorageManager
+import io.ton.walletkit.engine.infrastructure.WebViewManager
+import io.ton.walletkit.engine.operations.AssetOperations
+import io.ton.walletkit.engine.operations.CryptoOperations
+import io.ton.walletkit.engine.operations.TonConnectOperations
+import io.ton.walletkit.engine.operations.TransactionOperations
+import io.ton.walletkit.engine.operations.WalletOperations
+import io.ton.walletkit.engine.parsing.EventParser
+import io.ton.walletkit.engine.parsing.TransactionParser
+import io.ton.walletkit.engine.state.EventRouter
+import io.ton.walletkit.engine.state.SignerManager
 import io.ton.walletkit.event.ConnectRequestEvent
 import io.ton.walletkit.event.SignDataRequestEvent
 import io.ton.walletkit.event.TransactionRequestEvent
@@ -32,9 +46,9 @@ import io.ton.walletkit.storage.BridgeStorageAdapter
 import io.ton.walletkit.storage.SecureBridgeStorageAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 
@@ -63,9 +77,13 @@ internal class WebViewWalletKitEngine private constructor(
     }
 
     private val storageAdapter: BridgeStorageAdapter = SecureBridgeStorageAdapter(appContext)
+
     @Volatile private var persistentStorageEnabled: Boolean = true
+
     @Volatile private var currentNetwork: String = NetworkConstants.DEFAULT_NETWORK
+
     @Volatile private var apiBaseUrl: String = NetworkConstants.DEFAULT_TESTNET_API_URL
+
     @Volatile private var tonApiKey: String? = null
 
     private val signerManager = SignerManager()

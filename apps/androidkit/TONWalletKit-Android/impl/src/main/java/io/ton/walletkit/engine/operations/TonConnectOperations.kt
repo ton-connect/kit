@@ -1,7 +1,8 @@
-package io.ton.walletkit.engine
+package io.ton.walletkit.engine.operations
 
 import android.util.Log
 import io.ton.walletkit.WalletKitBridgeException
+import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
 import io.ton.walletkit.event.ConnectRequestEvent
 import io.ton.walletkit.event.SignDataRequestEvent
 import io.ton.walletkit.event.TransactionRequestEvent

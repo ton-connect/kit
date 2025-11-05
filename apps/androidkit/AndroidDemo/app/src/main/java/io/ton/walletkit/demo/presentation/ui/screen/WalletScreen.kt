@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.ton.walletkit.ITONWalletKit
 import io.ton.walletkit.demo.R
 import io.ton.walletkit.demo.domain.model.WalletInterfaceType
 import io.ton.walletkit.demo.presentation.actions.WalletActions
@@ -73,10 +74,9 @@ import io.ton.walletkit.demo.presentation.ui.sheet.TransactionRequestSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.TransferJettonSheet
 import io.ton.walletkit.demo.presentation.ui.sheet.WalletDetailsSheet
 import io.ton.walletkit.demo.presentation.viewmodel.NFTsListViewModel
+import io.ton.walletkit.extensions.cleanupTonConnect
 import io.ton.walletkit.model.TONNFTItem
 import io.ton.walletkit.model.TONNetwork
-import io.ton.walletkit.ITONWalletKit
-import io.ton.walletkit.extensions.cleanupTonConnect
 
 private const val DEFAULT_DAPP_URL = "https://tonconnect-sdk-demo-dapp.vercel.app/iframe/iframe"
 
