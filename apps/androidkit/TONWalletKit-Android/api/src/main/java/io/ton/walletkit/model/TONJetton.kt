@@ -9,7 +9,7 @@ import kotlinx.serialization.json.JsonElement
  *
  * Represents the metadata and configuration of a Jetton master contract.
  *
- * @property address Jetton master contract address
+ * @property address Jetton master contract address (user-friendly format: UQ... or EQ...)
  * @property name Jetton name (e.g., "Tether USD")
  * @property symbol Jetton symbol (e.g., "USDT")
  * @property description Jetton description
@@ -23,6 +23,7 @@ import kotlinx.serialization.json.JsonElement
  */
 @Serializable
 data class TONJetton(
+    /** Jetton master contract address (user-friendly format: UQ... or EQ...) */
     val address: String? = null,
     val name: String? = null,
     val symbol: String? = null,
