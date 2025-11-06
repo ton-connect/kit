@@ -42,6 +42,7 @@ gradle.properties
 
 # AAR files in libs folders (build artifacts)
 **/libs/*.aar
+**/libs/*.jar
 
 # Temporary documentation files (can be regenerated)
 JITPACK_QUICKSTART.md

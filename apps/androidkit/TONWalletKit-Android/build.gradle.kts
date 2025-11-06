@@ -70,16 +70,20 @@ tasks.register<Copy>("buildAndCopyWebviewToDemo") {
     group = "build"
     description = "Build WebView SDK variant and copy to AndroidDemo/app/libs (default)"
     
-    dependsOn(":impl:bundleWebviewReleaseAar")
+    dependsOn(":impl:bundleWebviewReleaseAar", ":api:sourcesJar")
     
     from(layout.projectDirectory.file("impl/build/outputs/aar/impl-webview-release.aar"))
+    from(layout.projectDirectory.file("api/build/libs/api-sources.jar"))
     into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
     rename("impl-webview-release.aar", "tonwalletkit-release.aar")
+    rename("api-sources.jar", "tonwalletkit-release-sources.jar")
     
     doLast {
         println("✅ WebView variant copied to AndroidDemo/app/libs/tonwalletkit-release.aar")
+        println("✅ Sources JAR copied to AndroidDemo/app/libs/tonwalletkit-release-sources.jar")
         println("   Size: ~2.7M (fat AAR with API + impl, no QuickJS)")
         println("   Demo app uses: WebView engine only")
+        println("   💡 Sources JAR enables KDoc viewing in Android Studio")
     }
 }
 
@@ -88,16 +92,20 @@ tasks.register<Copy>("buildAndCopyFullToDemo") {
     group = "build"
     description = "Build Full SDK variant (with QuickJS) and copy to AndroidDemo/app/libs"
     
-    dependsOn(":impl:bundleFullReleaseAar")
+    dependsOn(":impl:bundleFullReleaseAar", ":api:sourcesJar")
     
     from(layout.projectDirectory.file("impl/build/outputs/aar/impl-full-release.aar"))
+    from(layout.projectDirectory.file("api/build/libs/api-sources.jar"))
     into(layout.projectDirectory.dir("../AndroidDemo/app/libs"))
     rename("impl-full-release.aar", "tonwalletkit-release.aar")
+    rename("api-sources.jar", "tonwalletkit-release-sources.jar")
     
     doLast {
         println("✅ Full variant copied to AndroidDemo/app/libs/tonwalletkit-release.aar")
+        println("✅ Sources JAR copied to AndroidDemo/app/libs/tonwalletkit-release-sources.jar")
         println("   Size: ~4.3M (fat AAR with API + impl + QuickJS)")
         println("   Demo app uses: WebView + QuickJS engines")
+        println("   💡 Sources JAR enables KDoc viewing in Android Studio")
     }
 }
 

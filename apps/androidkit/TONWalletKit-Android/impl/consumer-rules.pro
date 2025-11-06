@@ -1,6 +1,11 @@
 # ============================================================
-# TON WalletKit Android SDK - Consumer ProGuard Rules
-# These rules are automatically applied to apps using this AAR
+# TON WalletKit Android SDK - Implementation ProGuard Rules
+# These rules protect internal implementation while keeping runtime requirements
+# 
+# STRATEGY:
+# - Obfuscate all internal implementation classes (io.ton.walletkit.bridge.**)
+# - Keep only what's required for runtime (reflection, JNI, JavaScript interface)
+# - Public API visibility is handled by the api module's consumer-rules.pro
 # ============================================================
 
 # ------------------------------------------------------------
@@ -12,72 +17,47 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# Keep the JsBinding inner class used by WebView engine
--keepclassmembers class io.ton.walletkit.presentation.impl.WebViewWalletKitEngine$JsBinding {
-    @android.webkit.JavascriptInterface <methods>;
+# ------------------------------------------------------------
+# 2. Reflection-based instantiation
+# Keep constructors that are called via reflection
+# These are internal implementation details but must work at runtime
+# ------------------------------------------------------------
+
+# Keep specific constructors used by factory pattern (obfuscate class names but keep constructors)
+-keepclassmembers class io.ton.walletkit.bridge.** {
+    public <init>(android.content.Context, java.lang.String);
+    public <init>(android.content.Context, java.lang.String, okhttp3.OkHttpClient);
 }
 
 # ------------------------------------------------------------
-# 2. QuickJS Native Bridge (Full variant only)
-# Keep QuickJsNativeHost for reflection-based instantiation by QuickJS
+# 3. QuickJS Native Bridge (Full variant only)
+# Keep for JNI and reflection
 # ------------------------------------------------------------
--keep class io.ton.walletkit.presentation.impl.QuickJsNativeHost {
-    <init>();
-    public <methods>;
-}
 
-# Keep QuickJS JNI native methods
--keepclasseswithmembernames class io.ton.walletkit.presentation.impl.quickjs.QuickJs {
+# Keep QuickJS JNI native methods (JNI requires exact method signatures)
+-keepclasseswithmembernames class ** {
     native <methods>;
 }
 
 # ------------------------------------------------------------
-# 3. Public API - Keep all public interfaces and classes
-# Partners need access to these at runtime
-# ------------------------------------------------------------
--keep public interface io.ton.walletkit.presentation.WalletKitEngine { *; }
--keep public class io.ton.walletkit.presentation.WalletKitEngineFactory { *; }
--keep public enum io.ton.walletkit.presentation.WalletKitEngineKind { *; }
--keep public class io.ton.walletkit.presentation.WalletKitBridgeException { *; }
-
-# Keep configuration classes
--keep public class io.ton.walletkit.presentation.config.** { *; }
-
-# Keep event classes and interfaces
--keep public class io.ton.walletkit.presentation.event.** { *; }
--keep public interface io.ton.walletkit.presentation.listener.** { *; }
-
-# Keep request classes (used in events)
--keep public class io.ton.walletkit.presentation.request.** {
-    public <methods>;
-    public <fields>;
-}
-
-# Keep domain models (return types from API)
--keep public class io.ton.walletkit.domain.model.** {
-    public <methods>;
-    public <fields>;
-}
-
-# ------------------------------------------------------------
-# 4. Kotlinx Serialization (ONLY for library's internal use)
-# Keep ONLY what serialization needs at runtime
-# Reference: https://github.com/Kotlin/kotlinx.serialization#android
+# 4. Kotlinx Serialization (internal use only)
+# Keep ONLY what serialization needs at runtime for impl classes
 # ------------------------------------------------------------
 
-# Keep Serializer classes for library's internal serialized classes
--keepclassmembers class io.ton.walletkit.** {
+# Keep Companion objects for serializable implementation classes
+-keepclassmembers class io.ton.walletkit.bridge.** {
     *** Companion;
 }
 
--keepclasseswithmembers class io.ton.walletkit.** {
+# Keep serializer methods for implementation
+-keepclasseswithmembers class io.ton.walletkit.bridge.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Preserve serializer names for library classes
--keep,includedescriptorclasses class io.ton.walletkit.**$$serializer { *; }
+# Preserve serializer names for implementation classes
+-keep,includedescriptorclasses class io.ton.walletkit.bridge.**$$serializer { *; }
 
-# Keep kotlinx.serialization runtime (library uses it internally)
+# Keep kotlinx.serialization runtime
 -keepclassmembers class kotlinx.serialization.json.** {
     *** Companion;
 }
@@ -86,18 +66,82 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# Keep generic signatures for serialization (only for library classes)
+# ------------------------------------------------------------
+# 5. Preserve essential attributes for impl
+# ------------------------------------------------------------
+
+# Keep generic signatures for serialization
 -keepattributes Signature
+
+# Keep inner classes for proper compilation
 -keepattributes InnerClasses
 
-# REMOVED: -keepattributes *Annotation* 
-# Reason: This prevents optimizations in consumer apps. We don't need 
-# to keep ALL annotations - only what's specifically required above.
+# Keep source file and line numbers for crash reports (but class names will be obfuscated)
+-keepattributes SourceFile,LineNumberTable
 
 # ------------------------------------------------------------
-# 5. Reflection (used by WalletKitEngineFactory)
-# Keep classes that are loaded via Class.forName()
+# 6. Android Security & Crypto (internal use)
 # ------------------------------------------------------------
+-keep class androidx.security.crypto.** { *; }
+-keep class com.google.crypto.tink.** { *; }
+
+# ------------------------------------------------------------
+# 7. Coroutines (internal use)
+# ------------------------------------------------------------
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+
+# Coroutines volatile fields optimization
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+
+# Avoid aggressive optimization breaking coroutines
+-dontwarn kotlinx.coroutines.**
+
+# ------------------------------------------------------------
+# 8. OkHttp (Full variant only - internal use)
+# ------------------------------------------------------------
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+# OkHttp platform implementations
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+# ------------------------------------------------------------
+# 9. AndroidX WebKit (internal use)
+# ------------------------------------------------------------
+-dontwarn androidx.webkit.**
+
+# ------------------------------------------------------------
+# 10. OPTIMIZATION SETTINGS
+# Apply optimization to implementation code while preserving runtime requirements
+# ------------------------------------------------------------
+
+# Apply optimization passes
+-optimizationpasses 5
+
+# Allow ProGuard to modify access modifiers for better optimization
+-allowaccessmodification
+
+# Merge interfaces aggressively to reduce DEX size
+-mergeinterfacesaggressively
+
+# ------------------------------------------------------------
+# 11. IMPLEMENTATION OBFUSCATION
+# All implementation details will be obfuscated
+# Only runtime-required members (JavascriptInterface, JNI, reflection) are kept
+# ------------------------------------------------------------
+# Implementation classes in io.ton.walletkit.bridge.** will have:
+# - Obfuscated class names (except where kept for reflection/JNI)
+# - Obfuscated method names (except @JavascriptInterface, public constructors, native methods)
+# - Obfuscated field names
+# - Removed debug information (except line numbers for crash reports)
+
+
 
 # Keep engine implementations for reflection-based factory
 -keep class io.ton.walletkit.presentation.impl.WebViewWalletKitEngine {

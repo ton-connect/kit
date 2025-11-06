@@ -2,6 +2,7 @@ package io.ton.walletkit
 
 import android.content.Context
 import io.ton.walletkit.config.TONWalletKitConfiguration
+import io.ton.walletkit.internal.TONWalletKitFactory
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import io.ton.walletkit.model.SignDataResult
 import io.ton.walletkit.model.TONNetwork
@@ -23,38 +24,10 @@ interface ITONWalletKit {
          * @param config SDK configuration
          * @return Initialized ITONWalletKit instance
          */
-        @Suppress("UNCHECKED_CAST")
-        suspend fun initialize(
+        suspend inline fun initialize(
             context: Context,
             config: TONWalletKitConfiguration,
-        ): ITONWalletKit {
-            // Load the implementation class via reflection to avoid compile-time dependency
-            val implClass = Class.forName("io.ton.walletkit.TONWalletKit")
-
-            // Get the Companion object
-            val companionField = implClass.getDeclaredField("Companion")
-            companionField.isAccessible = true
-            val companion = companionField.get(null)
-
-            // Get the initialize method from the Companion class
-            val companionClass = companion.javaClass
-            val method = companionClass.getDeclaredMethod(
-                "initialize",
-                Context::class.java,
-                TONWalletKitConfiguration::class.java,
-                kotlin.coroutines.Continuation::class.java,
-            )
-            method.isAccessible = true
-
-            // Call as suspend function - need to use kotlin.coroutines
-            return kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
-                try {
-                    method.invoke(companion, context, config, continuation)
-                } catch (e: Exception) {
-                    continuation.resumeWith(Result.failure(e))
-                }
-            }
-        }
+        ): ITONWalletKit = TONWalletKitFactory.create(context, config)
     }
 
     /**
