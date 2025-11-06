@@ -10,19 +10,19 @@ import io.ton.walletkit.model.TONWalletData
 import io.ton.walletkit.model.WalletSigner
 
 /**
- * Main entry point for TON Wallet Kit SDK.
+ * TON Wallet Kit SDK for managing wallets and TON Connect.
  *
- * Use the companion object's initialize method to create an instance.
- * Then add event handlers using [addEventsHandler] when you're ready to receive events.
+ * Create an instance via [initialize], add event handlers with [addEventsHandler],
+ * then manage wallets via [addWallet] or [addWalletWithSigner].
  */
 interface ITONWalletKit {
     companion object {
         /**
-         * Initialize the SDK with the given configuration.
+         * Initialize the SDK.
          *
          * @param context Android application context
-         * @param config SDK configuration
-         * @return Initialized ITONWalletKit instance
+         * @param config SDK configuration (network, storage, engine)
+         * @return Initialized SDK instance
          */
         suspend inline fun initialize(
             context: Context,
@@ -31,32 +31,45 @@ interface ITONWalletKit {
     }
 
     /**
-     * Add an event handler to receive SDK events.
+     * Add event handler for TON Connect and transaction events.
      */
     suspend fun addEventsHandler(eventsHandler: TONBridgeEventsHandler)
 
     /**
-     * Remove a previously added event handler.
+     * Remove event handler.
      */
     suspend fun removeEventsHandler(eventsHandler: TONBridgeEventsHandler)
 
     /**
-     * Shut down the Wallet Kit instance and release all resources.
+     * Shut down SDK and release resources.
      */
     suspend fun destroy()
 
     /**
-     * Generate a new TON mnemonic phrase.
+     * Generate new TON mnemonic phrase.
+     *
+     * @param wordCount Number of words (default: 24)
+     * @return Mnemonic words
      */
     suspend fun createMnemonic(wordCount: Int = 24): List<String>
 
     /**
-     * Add a new wallet from mnemonic data.
+     * Add wallet from mnemonic.
+     *
+     * @param data Mnemonic, version, network, name
+     * @return Created wallet instance
      */
     suspend fun addWallet(data: TONWalletData): ITONWallet
 
     /**
-     * Add a new wallet with an external signer.
+     * Add wallet with external signer (hardware wallet, watch-only).
+     *
+     * The signer will be called for all signing operations.
+     *
+     * @param signer External signer implementation
+     * @param version Wallet version (v4r2 or v5r1)
+     * @param network Network to use
+     * @return Created wallet instance
      */
     suspend fun addWalletWithSigner(
         signer: WalletSigner,
@@ -65,17 +78,28 @@ interface ITONWalletKit {
     ): ITONWallet
 
     /**
-     * Get all wallets managed by this SDK instance.
+     * Get all wallets managed by SDK.
      */
     suspend fun getWallets(): List<ITONWallet>
 
     /**
-     * Derive a public key from a mnemonic without creating a wallet.
+     * Derive public key from mnemonic without creating wallet.
+     *
+     * Useful for custom signers where you need the public key
+     * but don't want to store the mnemonic.
+     *
+     * @param mnemonic 24-word mnemonic phrase
+     * @return Hex-encoded public key
      */
     suspend fun derivePublicKey(mnemonic: List<String>): String
 
     /**
-     * Sign data with a mnemonic (for custom signers).
+     * Sign data with mnemonic (for custom signer implementations).
+     *
+     * @param mnemonic Mnemonic phrase
+     * @param data Bytes to sign
+     * @param mnemonicType Mnemonic type (ton or bip39)
+     * @return Signature result
      */
     suspend fun signDataWithMnemonic(
         mnemonic: List<String>,
@@ -84,38 +108,46 @@ interface ITONWalletKit {
     ): SignDataResult
 
     /**
-     * Handle a new transaction initiated from the wallet app.
+     * Trigger transaction approval flow.
+     *
+     * This triggers the onTransactionRequest event for user confirmation.
+     *
+     * @param wallet Wallet to send from
+     * @param transactionContent Transaction from createTransfer* methods
      */
     suspend fun handleNewTransaction(wallet: ITONWallet, transactionContent: String)
 
     /**
-     * Disconnect a TON Connect session by session ID.
+     * Disconnect TON Connect session.
      *
-     * @param sessionId The ID of the session to disconnect
+     * @param sessionId Session ID to disconnect
      */
     suspend fun disconnectSession(sessionId: String)
 
     /**
-     * Create a WebView TonConnect injector for the given WebView.
-     * This is used internally by the WebView extension functions.
+     * Create WebView TON Connect injector.
      *
-     * @return An object that can setup and cleanup TonConnect in a WebView
+     * Used internally by WebView extension functions.
+     *
+     * @param webView WebView to inject into
+     * @return Injector for setup/cleanup
      */
     fun createWebViewInjector(webView: android.webkit.WebView): WebViewTonConnectInjector
 }
 
 /**
- * Interface for managing TonConnect injection in a WebView.
+ * WebView TON Connect injector for enabling TON Connect in WebView.
+ *
  * Created by [ITONWalletKit.createWebViewInjector].
  */
 interface WebViewTonConnectInjector {
     /**
-     * Setup TonConnect in the WebView.
+     * Setup TON Connect in WebView.
      */
     fun setup()
 
     /**
-     * Cleanup TonConnect resources.
+     * Cleanup TON Connect resources.
      */
     fun cleanup()
 }

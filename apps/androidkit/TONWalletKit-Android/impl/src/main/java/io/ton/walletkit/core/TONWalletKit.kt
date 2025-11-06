@@ -1,13 +1,21 @@
-package io.ton.walletkit
+package io.ton.walletkit.core
 
 import android.content.Context
+import android.util.Base64
+import android.webkit.WebView
+import io.ton.walletkit.ITONWallet
+import io.ton.walletkit.ITONWalletKit
+import io.ton.walletkit.WebViewTonConnectInjector
 import io.ton.walletkit.browser.TonConnectInjector
 import io.ton.walletkit.config.TONWalletKitConfiguration
-import io.ton.walletkit.core.WalletKitEngineFactory
-import io.ton.walletkit.core.WalletKitEngineKind
 import io.ton.walletkit.engine.WalletKitEngine
 import io.ton.walletkit.internal.constants.ResponseConstants
 import io.ton.walletkit.listener.TONBridgeEventsHandler
+import io.ton.walletkit.model.SignDataResult
+import io.ton.walletkit.model.TONNetwork
+import io.ton.walletkit.model.TONWalletData
+import io.ton.walletkit.model.WalletSigner
+import org.json.JSONObject
 
 /**
  * Main entry point for TON Wallet Kit SDK.
@@ -145,7 +153,7 @@ internal class TONWalletKit private constructor(
      * @param data Wallet creation data (mnemonic, name, version, network)
      * @return The newly created wallet
      */
-    override suspend fun addWallet(data: io.ton.walletkit.model.TONWalletData): ITONWallet {
+    override suspend fun addWallet(data: TONWalletData): ITONWallet {
         checkNotDestroyed()
 
         // Create wallet using appropriate method - this creates adapter and adds to kit in one call
@@ -163,7 +171,7 @@ internal class TONWalletKit private constructor(
 
         // Extract address from result
         val address = when (result) {
-            is org.json.JSONObject -> result.optString(ResponseConstants.KEY_ADDRESS)
+            is JSONObject -> result.optString(ResponseConstants.KEY_ADDRESS)
             else -> throw IllegalStateException("Unexpected result type from createWallet: ${result::class.java.name}")
         }
 
@@ -192,9 +200,9 @@ internal class TONWalletKit private constructor(
      * @return The newly created wallet
      */
     override suspend fun addWalletWithSigner(
-        signer: io.ton.walletkit.model.WalletSigner,
+        signer: WalletSigner,
         version: String,
-        network: io.ton.walletkit.model.TONNetwork,
+        network: TONNetwork,
     ): ITONWallet {
         checkNotDestroyed()
 
@@ -244,11 +252,11 @@ internal class TONWalletKit private constructor(
         mnemonic: List<String>,
         data: ByteArray,
         mnemonicType: String,
-    ): io.ton.walletkit.model.SignDataResult {
+    ): SignDataResult {
         checkNotDestroyed()
         val signatureBytes = engine.signDataWithMnemonic(mnemonic, data, mnemonicType)
-        val signatureBase64 = android.util.Base64.encodeToString(signatureBytes, android.util.Base64.NO_WRAP)
-        return io.ton.walletkit.model.SignDataResult(signature = signatureBase64)
+        val signatureBase64 = Base64.encodeToString(signatureBytes, Base64.NO_WRAP)
+        return SignDataResult(signature = signatureBase64)
     }
 
     /**
@@ -269,7 +277,7 @@ internal class TONWalletKit private constructor(
      *
      * @param wallet The wallet that will sign and send the transaction
      * @param transactionContent Transaction content as JSON string (from createTransferTonTransaction, etc.)
-     * @throws WalletKitBridgeException if transaction handling fails
+     * @throws io.ton.walletkit.WalletKitBridgeException if transaction handling fails
      */
     override suspend fun handleNewTransaction(wallet: ITONWallet, transactionContent: String) {
         checkNotDestroyed()
@@ -281,7 +289,7 @@ internal class TONWalletKit private constructor(
      * Disconnect a TON Connect session by session ID.
      *
      * @param sessionId The ID of the session to disconnect
-     * @throws WalletKitBridgeException if session disconnection fails
+     * @throws io.ton.walletkit.WalletKitBridgeException if session disconnection fails
      */
     override suspend fun disconnectSession(sessionId: String) {
         checkNotDestroyed()
@@ -294,7 +302,7 @@ internal class TONWalletKit private constructor(
      * @param webView The WebView to inject TonConnect into
      * @return A WebViewTonConnectInjector that can setup and cleanup TonConnect
      */
-    override fun createWebViewInjector(webView: android.webkit.WebView): io.ton.walletkit.WebViewTonConnectInjector {
+    override fun createWebViewInjector(webView: WebView): WebViewTonConnectInjector {
         return TonConnectInjector(webView, this)
     }
 
