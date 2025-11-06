@@ -189,15 +189,27 @@ class WalletLifecycleManager(
             val version = record.version.ifBlank { defaultWalletVersion }
             val name = record.name.ifBlank { defaultWalletNameProvider(restoredCount) }
 
-            val walletData = TONWalletData(
-                mnemonic = record.mnemonic,
-                name = name,
-                version = version,
-                network = networkEnum,
-            )
-
-            val result = runCatching { kit.addWallet(walletData) }
-            result.onSuccess { wallet ->
+            val result = runCatching {
+                when (version) {
+                    "v4r2" -> kit.createV4R2WalletFromMnemonic(
+                        mnemonic = record.mnemonic,
+                        network = networkEnum,
+                    )
+                    "v5r1" -> kit.createV5R1WalletFromMnemonic(
+                        mnemonic = record.mnemonic,
+                        network = networkEnum,
+                    )
+                    else -> {
+                        Log.w(LOG_TAG, "rehydrate: unsupported version $version for $storedAddress")
+                        null
+                    }
+                }
+            }
+            if (result.getOrNull() == null) {
+                continue
+            }
+            result.onSuccess { walletNullable ->
+                val wallet = walletNullable ?: return@onSuccess
                 val restoredAddress = wallet.address
                 if (restoredAddress.isNullOrBlank()) {
                     Log.w(LOG_TAG, "rehydrate: wallet added but address null for stored $storedAddress")

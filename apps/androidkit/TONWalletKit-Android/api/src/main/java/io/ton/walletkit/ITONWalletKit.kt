@@ -6,7 +6,6 @@ import io.ton.walletkit.internal.TONWalletKitFactory
 import io.ton.walletkit.listener.TONBridgeEventsHandler
 import io.ton.walletkit.model.SignDataResult
 import io.ton.walletkit.model.TONNetwork
-import io.ton.walletkit.model.TONWalletData
 import io.ton.walletkit.model.WalletSigner
 
 /**
@@ -46,20 +45,54 @@ interface ITONWalletKit {
     suspend fun destroy()
 
     /**
-     * Generate new TON mnemonic phrase.
+     * Create V4R2 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
      *
-     * @param wordCount Number of words (default: 24)
-     * @return Mnemonic words
-     */
-    suspend fun createMnemonic(wordCount: Int = 24): List<String>
-
-    /**
-     * Add wallet from mnemonic.
-     *
-     * @param data Mnemonic, version, network, name
+     * @param mnemonic 24-word mnemonic phrase, or null to generate a new one
+     * @param network Network to use (MAINNET or TESTNET)
      * @return Created wallet instance
      */
-    suspend fun addWallet(data: TONWalletData): ITONWallet
+    suspend fun createV4R2WalletFromMnemonic(
+        mnemonic: List<String>? = null,
+        network: TONNetwork = TONNetwork.MAINNET,
+    ): ITONWallet
+
+    /**
+     * Create V5R1 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
+     *
+     * @param mnemonic 24-word mnemonic phrase, or null to generate a new one
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return Created wallet instance
+     */
+    suspend fun createV5R1WalletFromMnemonic(
+        mnemonic: List<String>? = null,
+        network: TONNetwork = TONNetwork.MAINNET,
+    ): ITONWallet
+
+    /**
+     * Create V4R2 wallet from secret key (private key).
+     *
+     * @param secretKey 32-byte secret key
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return Created wallet instance
+     */
+    suspend fun createV4R2WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: TONNetwork = TONNetwork.MAINNET,
+    ): ITONWallet
+
+    /**
+     * Create V5R1 wallet from secret key (private key).
+     *
+     * @param secretKey 32-byte secret key
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return Created wallet instance
+     */
+    suspend fun createV5R1WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: TONNetwork = TONNetwork.MAINNET,
+    ): ITONWallet
 
     /**
      * Create V4R2 wallet with external signer (hardware wallet, watch-only).

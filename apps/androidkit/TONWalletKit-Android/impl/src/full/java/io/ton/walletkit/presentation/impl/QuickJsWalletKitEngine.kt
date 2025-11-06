@@ -320,6 +320,34 @@ internal class QuickJsWalletKitEngine(
         TODO("Not yet implemented")
     }
 
+    override suspend fun createV4R2WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: String?,
+    ): WalletAccount {
+        throw UnsupportedOperationException("QuickJS engine does not support mnemonic-based wallet creation. Use WebView engine.")
+    }
+
+    override suspend fun createV5R1WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: String?,
+    ): WalletAccount {
+        throw UnsupportedOperationException("QuickJS engine does not support mnemonic-based wallet creation. Use WebView engine.")
+    }
+
+    override suspend fun createV4R2WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String?,
+    ): WalletAccount {
+        throw UnsupportedOperationException("QuickJS engine does not support secret key-based wallet creation. Use WebView engine.")
+    }
+
+    override suspend fun createV5R1WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String?,
+    ): WalletAccount {
+        throw UnsupportedOperationException("QuickJS engine does not support secret key-based wallet creation. Use WebView engine.")
+    }
+
     override suspend fun createV4R2WalletWithSigner(
         signer: io.ton.walletkit.model.WalletSigner,
         network: String?,

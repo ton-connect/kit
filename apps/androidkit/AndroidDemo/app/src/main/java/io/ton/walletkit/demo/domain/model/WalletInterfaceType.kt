@@ -10,6 +10,11 @@ enum class WalletInterfaceType(val value: String) {
     MNEMONIC("mnemonic"),
 
     /**
+     * Secret key (private key) based wallet that automatically handles signing.
+     */
+    SECRET_KEY("secretKey"),
+
+    /**
      * Custom signer wallet that requires user confirmation for each signing operation.
      */
     SIGNER("signer"),

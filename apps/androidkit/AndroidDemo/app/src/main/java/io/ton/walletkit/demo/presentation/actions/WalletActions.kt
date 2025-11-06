@@ -26,7 +26,14 @@ interface WalletActions {
     fun onSwitchWallet(address: String)
     fun onRemoveWallet(address: String)
     fun onRenameWallet(address: String, newName: String)
-    fun onImportWallet(name: String, network: TONNetwork, mnemonics: List<String>, password: String, interfaceType: WalletInterfaceType)
+    fun onImportWallet(
+        name: String,
+        network: TONNetwork,
+        mnemonics: List<String> = emptyList(),
+        secretKeyHex: String = "",
+        password: String,
+        interfaceType: WalletInterfaceType,
+    )
     fun onGenerateWallet(name: String, network: TONNetwork, password: String, interfaceType: WalletInterfaceType)
     fun onApproveConnect(request: ConnectRequestUi, wallet: WalletSummary)
     fun onRejectConnect(request: ConnectRequestUi)

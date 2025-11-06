@@ -26,7 +26,7 @@ data class JettonSummary(
      */
     val imageSource: String?
         get() = imageUrl ?: imageData
-    
+
     companion object {
         /**
          * Create JettonSummary from SDK's TONJettonWallet.

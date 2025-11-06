@@ -109,6 +109,60 @@ internal interface WalletKitEngine : RequestHandler {
     suspend fun createTonMnemonic(wordCount: Int = 24): List<String>
 
     /**
+     * Create a V4R2 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
+     *
+     * @param mnemonic Mnemonic phrase as a list of words, or null to generate a new one
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly created wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV4R2WalletFromMnemonic(
+        mnemonic: List<String>? = null,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
+     * Create a V5R1 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
+     *
+     * @param mnemonic Mnemonic phrase as a list of words, or null to generate a new one
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly created wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV5R1WalletFromMnemonic(
+        mnemonic: List<String>? = null,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
+     * Create a V4R2 wallet from secret key (private key bytes).
+     *
+     * @param secretKey Private key as byte array (32 bytes for Ed25519)
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly created wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV4R2WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
+     * Create a V5R1 wallet from secret key (private key bytes).
+     *
+     * @param secretKey Private key as byte array (32 bytes for Ed25519)
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly created wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV5R1WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
      * Create a V4R2 wallet backed by an external signer implementation
      * (e.g., hardware wallet, watch-only wallet, separate secure module).
      *

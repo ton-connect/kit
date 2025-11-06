@@ -38,6 +38,18 @@ internal object BridgeMethodConstants {
     const val METHOD_CREATE_V4R2_WALLET_USING_MNEMONIC = "createV4R2WalletUsingMnemonic"
 
     /**
+     * Method name for creating a V4R2 wallet adapter from secret key.
+     * Matches JS API: createV4R2WalletUsingSecretKey()
+     */
+    const val METHOD_CREATE_V4R2_WALLET_USING_SECRET_KEY = "createV4R2WalletUsingSecretKey"
+
+    /**
+     * Method name for creating a V5R1 wallet adapter from secret key.
+     * Matches JS API: createV5R1WalletUsingSecretKey()
+     */
+    const val METHOD_CREATE_V5R1_WALLET_USING_SECRET_KEY = "createV5R1WalletUsingSecretKey"
+
+    /**
      * Method name for adding a wallet adapter to the kit.
      * Matches JS API: walletKit.addWallet(adapter)
      */

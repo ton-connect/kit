@@ -53,6 +53,8 @@
     <!-- Wallet Interface Types -->
     <string name="interface_type_mnemonic">Mnemonic</string>
     <string name="interface_type_mnemonic_desc">Standard wallet</string>
+    <string name="interface_type_secret_key">Secret Key</string>
+    <string name="interface_type_secret_key_desc">Private key import</string>
     <string name="interface_type_signer">Signer</string>
     <string name="interface_type_signer_desc">Custom signing</string>
 
@@ -147,7 +149,6 @@
     <string name="url_prompt_title">Handle TON Connect URL</string>
     <string name="url_prompt_placeholder">https:// or ton://</string>
     <string name="url_prompt_paste_content_description">Paste from clipboard</string>
-    <string name="add_wallet_paste_supporting_text">Paste all words at once, or fill individually below</string>
 
     <!-- Add wallet sheet -->
     <string name="add_wallet_title">Add Wallet</string>
@@ -156,9 +157,14 @@
     <string name="add_wallet_recovery_title">Recovery phrase (%1$d words)</string>
     <string name="add_wallet_recovery_placeholder">word1 word2 word3 ... word24</string>
     <string name="add_wallet_paste_label">Paste all 24 words here</string>
+    <string name="add_wallet_secret_key_title">Secret Key (Private Key)</string>
+    <string name="add_wallet_secret_key_label">Secret Key (hex)</string>
+    <string name="add_wallet_secret_key_placeholder">64 hexadecimal characters (32 bytes)</string>
+    <string name="add_wallet_secret_key_supporting_text">Enter your 64-character hex private key (with or without 0x prefix)</string>
     <string name="add_wallet_generate_description">Generate a demo wallet using a mock mnemonic phrase. Store it securely if you intend to reuse it.</string>
     <string name="add_wallet_clipboard_content_description">Paste from clipboard</string>
     <string name="add_wallet_version_default">Default</string>
+    <string name="add_wallet_paste_supporting_text">Paste your 24-word recovery phrase or tap the paste icon to import from clipboard</string>
 
     <!-- Quick help -->
     <string name="helper_comment_visibility">This message will be visible on the blockchain</string>
@@ -201,8 +207,10 @@
     <string name="wallet_event_unknown_dapp">Unknown dApp</string>
     <string name="wallet_event_generic_dapp">dApp</string>
     <string name="wallet_error_recovery_phrase_length">Recovery phrase must contain 24 words</string>
+    <string name="wallet_error_invalid_secret_key">Invalid secret key. Must be 64 hexadecimal characters (32 bytes)</string>
     <string name="wallet_event_wallet_imported">Imported wallet &quot;%1$s&quot; (version: %2$s, type: %3$s)</string>
     <string name="wallet_error_import_failed">Failed to import wallet</string>
+    <string name="wallet_error_signer_cannot_generate">Signer wallets cannot be generated randomly. Please import with recovery phrase instead.</string>
     <string name="wallet_event_wallet_generated">Generated wallet &quot;%1$s&quot; (version: %2$s, type: %3$s)</string>
     <string name="wallet_error_generate_failed">Failed to generate wallet</string>
     <string name="wallet_error_no_wallet_selected">No wallet selected</string>
@@ -257,6 +265,7 @@
     <string name="wallet_status_wallet_reset">Wallet reset</string>
     <string name="wallet_error_reset_wallet">Failed to reset wallet: %1$s</string>
     <string name="wallet_interface_type_mnemonic">Mnemonic (Standard)</string>
+    <string name="wallet_interface_type_secret_key">Secret Key (Private Key)</string>
     <string name="wallet_interface_type_signer">Signer (Custom Confirmation)</string>
 
     <!-- Status messages -->

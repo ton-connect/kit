@@ -247,6 +247,26 @@ internal class WebViewWalletKitEngine private constructor(
     override suspend fun createTonMnemonic(wordCount: Int): List<String> =
         cryptoOperations.createTonMnemonic(wordCount)
 
+    override suspend fun createV4R2WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: String?,
+    ): WalletAccount = walletOperations.createV4R2WalletUsingMnemonic(mnemonic, network)
+
+    override suspend fun createV5R1WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: String?,
+    ): WalletAccount = walletOperations.createV5R1WalletUsingMnemonic(mnemonic, network)
+
+    override suspend fun createV4R2WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String?,
+    ): WalletAccount = walletOperations.createV4R2WalletUsingSecretKey(secretKey, network)
+
+    override suspend fun createV5R1WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: String?,
+    ): WalletAccount = walletOperations.createV5R1WalletUsingSecretKey(secretKey, network)
+
     override suspend fun createV4R2WalletWithSigner(
         signer: WalletSigner,
         network: String?,

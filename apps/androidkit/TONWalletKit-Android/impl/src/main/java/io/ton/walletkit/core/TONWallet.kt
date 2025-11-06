@@ -14,7 +14,6 @@ import io.ton.walletkit.model.TONNFTTransferParamsRaw
 import io.ton.walletkit.model.TONNetwork
 import io.ton.walletkit.model.TONTransactionPreview
 import io.ton.walletkit.model.TONTransferParams
-import io.ton.walletkit.model.TONWalletData
 import io.ton.walletkit.model.Transaction
 import io.ton.walletkit.model.WalletAccount
 import io.ton.walletkit.model.WalletSession
@@ -54,23 +53,6 @@ internal class TONWallet internal constructor(
      */
     override val publicKey: String? get() = account?.publicKey
     companion object {
-        /**
-         * Add a new wallet from mnemonic data.
-         *
-         * **Note:** This method is deprecated. Use `kit.addWallet(data)` instead to stay aligned with the primary kit API.
-         *
-         * Wallets are automatically persisted by the SDK when persistent storage is enabled.
-         *
-         * @param kit The TONWalletKit instance
-         * @param data Wallet creation data (mnemonic, name, version, network)
-         * @return The newly created wallet
-         * @throws io.ton.walletkit.WalletKitBridgeException if wallet creation fails
-         */
-        @Deprecated("Use kit.addWallet(data) instead", ReplaceWith("kit.addWallet(data)"))
-        suspend fun add(kit: TONWalletKit, data: TONWalletData): TONWallet {
-            return kit.addWallet(data) as TONWallet
-        }
-
         /**
          * Derive a public key from a mnemonic phrase without creating a wallet.
          *

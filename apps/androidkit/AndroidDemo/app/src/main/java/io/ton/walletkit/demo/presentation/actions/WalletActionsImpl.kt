@@ -48,9 +48,10 @@ class WalletActionsImpl @Inject constructor(
         name: String,
         network: TONNetwork,
         mnemonics: List<String>,
+        secretKeyHex: String,
         password: String,
         interfaceType: WalletInterfaceType,
-    ) = viewModel.importWallet(name, network, mnemonics, password, interfaceType)
+    ) = viewModel.importWallet(name, network, mnemonics, secretKeyHex, password, interfaceType)
 
     override fun onGenerateWallet(
         name: String,

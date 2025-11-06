@@ -26,6 +26,11 @@ internal object JsonConstants {
     const val KEY_MNEMONIC_TYPE = "mnemonicType"
 
     /**
+     * JSON key for secret key (private key) as hex string.
+     */
+    const val KEY_SECRET_KEY = "secretKey"
+
+    /**
      * JSON key for wallet name.
      */
     const val KEY_NAME = "name"

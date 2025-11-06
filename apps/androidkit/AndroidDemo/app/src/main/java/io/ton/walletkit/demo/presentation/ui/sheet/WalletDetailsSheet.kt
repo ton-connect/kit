@@ -313,6 +313,7 @@ private fun formatCreatedDate(timestamp: Long): String {
 @Composable
 private fun formatInterfaceType(type: WalletInterfaceType): String = when (type) {
     WalletInterfaceType.MNEMONIC -> stringResource(R.string.wallet_interface_type_mnemonic)
+    WalletInterfaceType.SECRET_KEY -> stringResource(R.string.wallet_interface_type_secret_key)
     WalletInterfaceType.SIGNER -> stringResource(R.string.wallet_interface_type_signer)
 }
 

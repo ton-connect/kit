@@ -19,7 +19,7 @@ internal object TONWalletKitFactory {
         config: TONWalletKitConfiguration,
     ): ITONWalletKit {
         // Load the implementation class via reflection to avoid compile-time dependency
-        val implClass = Class.forName("io.ton.walletkit.TONWalletKit")
+        val implClass = Class.forName("io.ton.walletkit.core.TONWalletKit")
 
         // Get the Companion object
         val companionField = implClass.getDeclaredField("Companion")

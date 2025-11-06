@@ -30,7 +30,7 @@ data class JettonDetails(
      */
     val imageSource: String?
         get() = imageUrl ?: imageData
-    
+
     companion object {
         /**
          * Create JettonDetails from SDK's TONJettonWallet.

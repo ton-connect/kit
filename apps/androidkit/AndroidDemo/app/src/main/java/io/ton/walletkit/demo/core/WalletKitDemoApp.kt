@@ -152,13 +152,21 @@ class WalletKitDemoApp :
                         else -> TONNetwork.MAINNET
                     }
 
-                    val walletData = TONWalletData(
-                        mnemonic = mnemonicWords,
-                        name = "", // Name is stored separately in demo app storage
-                        network = network,
-                        version = walletRecord.version,
-                    )
-                    kit.addWallet(walletData)
+                    // Use version-specific creation methods
+                    when (walletRecord.version) {
+                        "v4r2" -> kit.createV4R2WalletFromMnemonic(
+                            mnemonic = mnemonicWords,
+                            network = network,
+                        )
+                        "v5r1" -> kit.createV5R1WalletFromMnemonic(
+                            mnemonic = mnemonicWords,
+                            network = network,
+                        )
+                        else -> {
+                            Log.w(TAG, "Unsupported wallet version: ${walletRecord.version}, skipping")
+                            continue
+                        }
+                    }
                     Log.d(TAG, "Added wallet to SDK: ${walletRecord.address}")
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to add wallet ${walletRecord.address} to SDK", e)

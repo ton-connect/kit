@@ -136,53 +136,99 @@ internal class TONWalletKit private constructor(
     // === Wallet Management Methods ===
 
     /**
-     * Generate a new TON mnemonic phrase.
-     * Matches the JS API `CreateTonMnemonic()` function.
+     * Create a new V4R2 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
      *
-     * @param wordCount Number of words to generate (12 or 24). Defaults to 24.
-     * @return List of mnemonic words
+     * @param mnemonic 24-word mnemonic phrase, or null to generate a new one
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return The newly created wallet
      */
-    override suspend fun createMnemonic(wordCount: Int): List<String> {
+    override suspend fun createV4R2WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: TONNetwork,
+    ): ITONWallet {
         checkNotDestroyed()
-        return engine.createTonMnemonic(wordCount)
+
+        val account = engine.createV4R2WalletFromMnemonic(
+            mnemonic = mnemonic,
+            network = network.value,
+        )
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
     }
 
     /**
-     * Add a new wallet from mnemonic data.
+     * Create a new V5R1 wallet from mnemonic phrase.
+     * If mnemonic is null, a new random mnemonic will be generated.
      *
-     * @param data Wallet creation data (mnemonic, name, version, network)
+     * @param mnemonic 24-word mnemonic phrase, or null to generate a new one
+     * @param network Network to use (MAINNET or TESTNET)
      * @return The newly created wallet
      */
-    override suspend fun addWallet(data: TONWalletData): ITONWallet {
+    override suspend fun createV5R1WalletFromMnemonic(
+        mnemonic: List<String>?,
+        network: TONNetwork,
+    ): ITONWallet {
         checkNotDestroyed()
 
-        // Create wallet using appropriate method - this creates adapter and adds to kit in one call
-        val result = when (data.version) {
-            "v5r1" -> engine.createV5R1WalletAdapter(
-                words = data.mnemonic,
-                network = data.network.value,
-            )
-            "v4r2" -> engine.createV4R2WalletAdapter(
-                words = data.mnemonic,
-                network = data.network.value,
-            )
-            else -> throw IllegalArgumentException("Unsupported wallet version: ${data.version}")
-        }
+        val account = engine.createV5R1WalletFromMnemonic(
+            mnemonic = mnemonic,
+            network = network.value,
+        )
 
-        // Extract address from result
-        val address = when (result) {
-            is JSONObject -> result.optString(ResponseConstants.KEY_ADDRESS)
-            else -> throw IllegalStateException("Unexpected result type from createWallet: ${result::class.java.name}")
-        }
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
 
-        if (address.isEmpty()) {
-            throw IllegalStateException("Failed to get address from wallet creation")
-        }
+    /**
+     * Create a new V4R2 wallet from secret key (private key).
+     *
+     * @param secretKey 32-byte secret key
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return The newly created wallet
+     */
+    override suspend fun createV4R2WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: TONNetwork,
+    ): ITONWallet {
+        checkNotDestroyed()
 
-        // Get wallet info to create TONWallet instance
-        val wallets = engine.getWallets()
-        val account = wallets.firstOrNull { it.address == address }
-            ?: throw IllegalStateException("Wallet was added but not found in wallet list")
+        val account = engine.createV4R2WalletFromSecretKey(
+            secretKey = secretKey,
+            network = network.value,
+        )
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
+
+    /**
+     * Create a new V5R1 wallet from secret key (private key).
+     *
+     * @param secretKey 32-byte secret key
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return The newly created wallet
+     */
+    override suspend fun createV5R1WalletFromSecretKey(
+        secretKey: ByteArray,
+        network: TONNetwork,
+    ): ITONWallet {
+        checkNotDestroyed()
+
+        val account = engine.createV5R1WalletFromSecretKey(
+            secretKey = secretKey,
+            network = network.value,
+        )
 
         return TONWallet(
             address = account.address,

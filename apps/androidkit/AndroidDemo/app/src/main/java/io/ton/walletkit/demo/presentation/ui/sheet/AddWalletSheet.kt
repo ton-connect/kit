@@ -51,7 +51,7 @@ import io.ton.walletkit.model.TONNetwork
 @Composable
 fun AddWalletSheet(
     onDismiss: () -> Unit,
-    onImportWallet: (String, TONNetwork, List<String>, String, WalletInterfaceType) -> Unit,
+    onImportWallet: (String, TONNetwork, List<String>, String, String, WalletInterfaceType) -> Unit,
     onGenerateWallet: (String, TONNetwork, String, WalletInterfaceType) -> Unit,
     walletCount: Int,
 ) {
@@ -62,6 +62,7 @@ fun AddWalletSheet(
     var walletVersion by rememberSaveable { mutableStateOf(DEFAULT_WALLET_VERSION) }
     var interfaceType by rememberSaveable { mutableStateOf(WalletInterfaceType.MNEMONIC) }
     val mnemonicWords = remember { mutableStateListOf(*Array(24) { "" }) }
+    var secretKeyHex by rememberSaveable { mutableStateOf("") }
     var pasteField by rememberSaveable { mutableStateOf("") }
     val clipboardManager = LocalClipboardManager.current
 
@@ -163,6 +164,7 @@ fun AddWalletSheet(
                             Text(
                                 when (type) {
                                     WalletInterfaceType.MNEMONIC -> stringResource(R.string.interface_type_mnemonic)
+                                    WalletInterfaceType.SECRET_KEY -> stringResource(R.string.interface_type_secret_key)
                                     WalletInterfaceType.SIGNER -> stringResource(R.string.interface_type_signer)
                                 },
                                 fontWeight = FontWeight.Bold,
@@ -170,6 +172,7 @@ fun AddWalletSheet(
                             Text(
                                 when (type) {
                                     WalletInterfaceType.MNEMONIC -> stringResource(R.string.interface_type_mnemonic_desc)
+                                    WalletInterfaceType.SECRET_KEY -> stringResource(R.string.interface_type_secret_key_desc)
                                     WalletInterfaceType.SIGNER -> stringResource(R.string.interface_type_signer_desc)
                                 },
                                 style = MaterialTheme.typography.labelSmall,
@@ -182,73 +185,121 @@ fun AddWalletSheet(
 
         when (selectedTab) {
             AddWalletTab.Import -> {
-                Text(
-                    stringResource(R.string.add_wallet_recovery_title, MNEMONIC_WORD_COUNT),
-                    style = MaterialTheme.typography.titleSmall,
-                )
+                when (interfaceType) {
+                    WalletInterfaceType.SECRET_KEY -> {
+                        // Secret Key Import UI
+                        Text(
+                            stringResource(R.string.add_wallet_secret_key_title),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
 
-                // Paste field for quick input
-                OutlinedTextField(
-                    value = pasteField,
-                    onValueChange = {
-                        pasteField = it
-                        // Auto-parse when text is pasted (contains multiple words)
-                        if (it.trim().split(Regex("\\s+")).size > 1) {
-                            parseSeedPhrase(it)
-                        }
-                    },
-                    label = { Text(stringResource(R.string.add_wallet_paste_label)) },
-                    placeholder = { Text(stringResource(R.string.add_wallet_recovery_placeholder)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    maxLines = 3,
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                clipboardManager.getText()?.text?.let { clipboardText ->
-                                    parseSeedPhrase(clipboardText)
+                        OutlinedTextField(
+                            value = secretKeyHex,
+                            onValueChange = { secretKeyHex = it.trim() },
+                            label = { Text(stringResource(R.string.add_wallet_secret_key_label)) },
+                            placeholder = { Text(stringResource(R.string.add_wallet_secret_key_placeholder)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            supportingText = {
+                                Text(
+                                    stringResource(R.string.add_wallet_secret_key_supporting_text),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.getText()?.text?.let { clipboardText ->
+                                            secretKeyHex = clipboardText.trim()
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentPaste,
+                                        contentDescription = stringResource(R.string.add_wallet_clipboard_content_description),
+                                    )
                                 }
                             },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ContentPaste,
-                                contentDescription = stringResource(R.string.add_wallet_clipboard_content_description),
-                            )
-                        }
-                    },
-                    supportingText = {
-                        Text(
-                            stringResource(R.string.add_wallet_paste_supporting_text),
-                            style = MaterialTheme.typography.bodySmall,
                         )
-                    },
-                )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    userScrollEnabled = false,
-                    modifier = Modifier.heightIn(max = 600.dp),
-                ) {
-                    itemsIndexed(mnemonicWords) { index, word ->
-                        TextField(
-                            value = word,
-                            onValueChange = { mnemonicWords[index] = it.lowercase().trim() },
-                            singleLine = true,
-                            label = { Text("${index + 1}") },
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { onImportWallet(walletName, network, emptyList(), secretKeyHex, walletVersion, interfaceType) },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodySmall,
+                        ) { Text(stringResource(R.string.action_import_wallet)) }
+                    }
+
+                    else -> {
+                        // Mnemonic/Signer Import UI
+                        Text(
+                            stringResource(R.string.add_wallet_recovery_title, MNEMONIC_WORD_COUNT),
+                            style = MaterialTheme.typography.titleSmall,
                         )
+
+                        // Paste field for quick input
+                        OutlinedTextField(
+                            value = pasteField,
+                            onValueChange = {
+                                pasteField = it
+                                // Auto-parse when text is pasted (contains multiple words)
+                                if (it.trim().split(Regex("\\s+")).size > 1) {
+                                    parseSeedPhrase(it)
+                                }
+                            },
+                            label = { Text(stringResource(R.string.add_wallet_paste_label)) },
+                            placeholder = { Text(stringResource(R.string.add_wallet_recovery_placeholder)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 2,
+                            maxLines = 3,
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.getText()?.text?.let { clipboardText ->
+                                            parseSeedPhrase(clipboardText)
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentPaste,
+                                        contentDescription = stringResource(R.string.add_wallet_clipboard_content_description),
+                                    )
+                                }
+                            },
+                            supportingText = {
+                                Text(
+                                    stringResource(R.string.add_wallet_paste_supporting_text),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            userScrollEnabled = false,
+                            modifier = Modifier.heightIn(max = 600.dp),
+                        ) {
+                            itemsIndexed(mnemonicWords) { index, word ->
+                                TextField(
+                                    value = word,
+                                    onValueChange = { mnemonicWords[index] = it.lowercase().trim() },
+                                    singleLine = true,
+                                    label = { Text("${index + 1}") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    textStyle = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = { onImportWallet(walletName, network, mnemonicWords.toList(), "", walletVersion, interfaceType) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.action_import_wallet)) }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = { onImportWallet(walletName, network, mnemonicWords.toList(), walletVersion, interfaceType) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.action_import_wallet)) }
             }
 
             AddWalletTab.Generate -> {
@@ -283,7 +334,7 @@ private const val DEFAULT_WALLET_VERSION = "v4r2"
 private fun AddWalletSheetPreview() {
     AddWalletSheet(
         onDismiss = {},
-        onImportWallet = { _, _, _, _, _ -> },
+        onImportWallet = { _, _, _, _, _, _ -> },
         onGenerateWallet = { _, _, _, _ -> },
         walletCount = 1,
     )

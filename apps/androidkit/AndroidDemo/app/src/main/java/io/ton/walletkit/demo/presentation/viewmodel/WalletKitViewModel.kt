@@ -525,16 +525,31 @@ class WalletKitViewModel @Inject constructor(
     fun importWallet(
         name: String,
         network: TONNetwork,
-        words: List<String>,
+        words: List<String> = emptyList(),
+        secretKeyHex: String = "",
         version: String = DEFAULT_WALLET_VERSION,
         interfaceType: WalletInterfaceType = WalletInterfaceType.MNEMONIC,
     ) {
-        val cleaned = words.map { it.trim().lowercase() }.filter { it.isNotBlank() }
-        if (cleaned.size != 24) {
-            _state.update { it.copy(error = uiString(R.string.wallet_error_recovery_phrase_length)) }
-            return
+        // Validation based on interface type
+        when (interfaceType) {
+            WalletInterfaceType.MNEMONIC, WalletInterfaceType.SIGNER -> {
+                val cleaned = words.map { it.trim().lowercase() }.filter { it.isNotBlank() }
+                if (cleaned.size != 24) {
+                    _state.update { it.copy(error = uiString(R.string.wallet_error_recovery_phrase_length)) }
+                    return
+                }
+            }
+            WalletInterfaceType.SECRET_KEY -> {
+                // Validate hex string format and length (64 hex chars = 32 bytes)
+                val trimmed = secretKeyHex.trim().removePrefix("0x")
+                if (!trimmed.matches(Regex("^[0-9a-fA-F]{64}$"))) {
+                    _state.update { it.copy(error = uiString(R.string.wallet_error_invalid_secret_key)) }
+                    return
+                }
+            }
         }
 
+        val cleaned = words.map { it.trim().lowercase() }.filter { it.isNotBlank() }
         val pending = PendingWalletRecord(
             metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
             mnemonic = cleaned,
@@ -549,23 +564,53 @@ class WalletKitViewModel @Inject constructor(
 
             val result = runCatching {
                 val kit = getKit()
-                if (interfaceType == WalletInterfaceType.SIGNER) {
-                    // Create wallet with external signer that requires user confirmation
-                    val signer = createDemoSigner(cleaned, name)
-                    kit.addWalletWithSigner(
-                        signer = signer,
-                        version = version,
-                        network = network,
-                    )
-                } else {
-                    // Create regular mnemonic wallet
-                    val walletData = TONWalletData(
-                        mnemonic = cleaned,
-                        name = pending.metadata.name,
-                        version = version,
-                        network = network,
-                    )
-                    kit.addWallet(walletData)
+                when (interfaceType) {
+                    WalletInterfaceType.SIGNER -> {
+                        // Create wallet with external signer that requires user confirmation
+                        val signer = createDemoSigner(cleaned, name)
+                        when (version) {
+                            "v4r2" -> kit.createV4R2WalletWithSigner(
+                                signer = signer,
+                                network = network,
+                            )
+                            "v5r1" -> kit.createV5R1WalletWithSigner(
+                                signer = signer,
+                                network = network,
+                            )
+                            else -> throw IllegalArgumentException("Unsupported wallet version: $version")
+                        }
+                    }
+                    WalletInterfaceType.SECRET_KEY -> {
+                        // Create wallet from secret key
+                        val secretKeyBytes = secretKeyHex.trim().removePrefix("0x").chunked(2)
+                            .map { it.toInt(16).toByte() }
+                            .toByteArray()
+                        when (version) {
+                            "v4r2" -> kit.createV4R2WalletFromSecretKey(
+                                secretKey = secretKeyBytes,
+                                network = network,
+                            )
+                            "v5r1" -> kit.createV5R1WalletFromSecretKey(
+                                secretKey = secretKeyBytes,
+                                network = network,
+                            )
+                            else -> throw IllegalArgumentException("Unsupported wallet version: $version")
+                        }
+                    }
+                    WalletInterfaceType.MNEMONIC -> {
+                        // Create regular mnemonic wallet
+                        when (version) {
+                            "v4r2" -> kit.createV4R2WalletFromMnemonic(
+                                mnemonic = cleaned,
+                                network = network,
+                            )
+                            "v5r1" -> kit.createV5R1WalletFromMnemonic(
+                                mnemonic = cleaned,
+                                network = network,
+                            )
+                            else -> throw IllegalArgumentException("Unsupported wallet version: $version")
+                        }
+                    }
                 }
             }
 
@@ -621,23 +666,20 @@ class WalletKitViewModel @Inject constructor(
         version: String = DEFAULT_WALLET_VERSION,
         interfaceType: WalletInterfaceType = WalletInterfaceType.MNEMONIC,
     ) {
-        // Run mnemonic generation asynchronously to avoid blocking the main thread (ANR)
+        // Create wallet with random mnemonic
         viewModelScope.launch {
-            _state.update { it.copy(isGeneratingMnemonic = true) }
-            val words = try {
-                val kit = getKit()
-                kit.createMnemonic(24)
-            } catch (e: Exception) {
-                Log.e(LOG_TAG, "Mnemonic generation failed", e)
-                _state.update { it.copy(isGeneratingMnemonic = false, error = uiString(R.string.wallet_error_generate_failed)) }
+            // Check if trying to generate signer wallet (not supported)
+            if (interfaceType == WalletInterfaceType.SIGNER) {
+                _state.update {
+                    it.copy(error = uiString(R.string.wallet_error_signer_cannot_generate))
+                }
+                lifecycleManager.pendingWallets.removeLastOrNull()
                 return@launch
-            } finally {
-                _state.update { it.copy(isGeneratingMnemonic = false) }
             }
 
             val pending = PendingWalletRecord(
                 metadata = WalletMetadata(name.ifBlank { defaultWalletName(state.value.wallets.size) }, network, version),
-                mnemonic = words,
+                mnemonic = emptyList(), // Will be generated by the SDK
             )
             lifecycleManager.switchNetworkIfNeeded(network) {
                 refreshWallets()
@@ -647,23 +689,17 @@ class WalletKitViewModel @Inject constructor(
 
             val result = runCatching {
                 val kit = getKit()
-                if (interfaceType == WalletInterfaceType.SIGNER) {
-                    // Create wallet with external signer that requires user confirmation
-                    val signer = createDemoSigner(words, name)
-                    kit.addWalletWithSigner(
-                        signer = signer,
-                        version = version,
+                // Create regular mnemonic wallet with random mnemonic (pass null)
+                when (version) {
+                    "v4r2" -> kit.createV4R2WalletFromMnemonic(
+                        mnemonic = null, // Generate random mnemonic
                         network = network,
                     )
-                } else {
-                    // Create regular mnemonic wallet
-                    val walletData = TONWalletData(
-                        mnemonic = words,
-                        name = pending.metadata.name,
-                        version = version,
+                    "v5r1" -> kit.createV5R1WalletFromMnemonic(
+                        mnemonic = null, // Generate random mnemonic
                         network = network,
                     )
-                    kit.addWallet(walletData)
+                    else -> throw IllegalArgumentException("Unsupported wallet version: $version")
                 }
             }
 
@@ -677,7 +713,7 @@ class WalletKitViewModel @Inject constructor(
 
                     lifecycleManager.walletMetadata[address] = pending.metadata
                     val record = WalletRecord(
-                        mnemonic = words,
+                        mnemonic = emptyList(), // Random mnemonic not saved in demo app
                         name = pending.metadata.name,
                         network = network.toBridgeValue(),
                         version = version,
