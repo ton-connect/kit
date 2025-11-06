@@ -1,0 +1,28 @@
+{
+  "name": "androidkit",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "node js/build.cjs",
+    "build:quickjs": "vite build --config vite.config.quickjs.ts",
+    "build:all": "pnpm run build && pnpm run build:quickjs",
+    "preview": "vite preview",
+    "copy:demo": "rm -rf AndroidDemo/app/src/main/assets/walletkit && mkdir -p AndroidDemo/app/src/main/assets/walletkit && cp -R dist-android/* AndroidDemo/app/src/main/assets/walletkit/ && mkdir -p AndroidDemo/app/src/main/assets/walletkit/quickjs && cp dist-android-quickjs/walletkit.quickjs.js AndroidDemo/app/src/main/assets/walletkit/quickjs/index.js"
+  },
+  "dependencies": {
+    "@ton/core": "^0.61.0",
+    "@ton/walletkit": "workspace:*",
+    "@tonconnect/bridge-sdk": "^0.2.4",
+    "@tonconnect/protocol": "^2.3.0",
+    "buffer": "^6.0.3",
+    "whatwg-url": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/whatwg-url": "^13.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.0.0"
+  }
+}
