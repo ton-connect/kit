@@ -202,11 +202,6 @@ internal object BridgeMethodConstants {
     const val METHOD_GET_JETTONS = "getJettons"
 
     /**
-     * Method name for getting a single jetton by address.
-     */
-    const val METHOD_GET_JETTON = "getJetton"
-
-    /**
      * Method name for creating a jetton transfer transaction.
      */
     const val METHOD_CREATE_TRANSFER_JETTON_TRANSACTION = "createTransferJettonTransaction"

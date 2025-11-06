@@ -27,7 +27,6 @@ import io.ton.walletkit.internal.constants.LogConstants
 import io.ton.walletkit.internal.constants.NetworkConstants
 import io.ton.walletkit.internal.constants.WebViewConstants
 import io.ton.walletkit.listener.TONBridgeEventsHandler
-import io.ton.walletkit.model.TONJetton
 import io.ton.walletkit.model.TONJettonTransferParams
 import io.ton.walletkit.model.TONJettonWallets
 import io.ton.walletkit.model.TONNFTItem
@@ -350,10 +349,6 @@ internal class WebViewWalletKitEngine private constructor(
         limit: Int,
         offset: Int,
     ): TONJettonWallets = assetOperations.getJettons(walletAddress, limit, offset)
-
-    override suspend fun getJetton(
-        jettonAddress: String,
-    ): TONJetton? = assetOperations.getJetton(jettonAddress)
 
     override suspend fun createTransferJettonTransaction(
         walletAddress: String,

@@ -2,7 +2,6 @@ package io.ton.walletkit.engine.operations
 
 import io.ton.walletkit.engine.infrastructure.BridgeRpcClient
 import io.ton.walletkit.internal.constants.BridgeMethodConstants
-import io.ton.walletkit.model.TONJetton
 import io.ton.walletkit.model.TONJettonTransferParams
 import io.ton.walletkit.model.TONJettonWallets
 import io.ton.walletkit.model.TONNFTItem
@@ -107,18 +106,6 @@ internal class AssetOperations(
 
         val result = rpcClient.call(BridgeMethodConstants.METHOD_GET_JETTONS, params)
         return json.decodeFromString(result.toString())
-    }
-
-    suspend fun getJetton(jettonAddress: String): TONJetton? {
-        ensureInitialized()
-
-        val params = JSONObject().apply { put("jettonAddress", jettonAddress) }
-        val result = rpcClient.call(BridgeMethodConstants.METHOD_GET_JETTON, params)
-        return if (result.has("address")) {
-            json.decodeFromString(result.toString())
-        } else {
-            null
-        }
     }
 
     suspend fun createTransferJettonTransaction(

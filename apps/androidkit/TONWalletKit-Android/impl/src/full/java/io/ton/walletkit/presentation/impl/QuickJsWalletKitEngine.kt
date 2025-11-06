@@ -729,19 +729,6 @@ internal class QuickJsWalletKitEngine(
         return json.decodeFromString(result.toString())
     }
 
-    override suspend fun getJetton(jettonAddress: String): io.ton.walletkit.model.TONJetton? {
-        ensureWalletKitInitialized()
-        val params = JSONObject().apply {
-            put("address", jettonAddress)
-        }
-        val result = call(BridgeMethodConstants.METHOD_GET_JETTON, params)
-        return if (result.has("address")) {
-            json.decodeFromString(result.toString())
-        } else {
-            null
-        }
-    }
-
     override suspend fun createTransferJettonTransaction(
         walletAddress: String,
         params: io.ton.walletkit.model.TONJettonTransferParams,

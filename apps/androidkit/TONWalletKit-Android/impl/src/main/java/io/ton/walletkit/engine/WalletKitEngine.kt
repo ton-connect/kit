@@ -386,15 +386,6 @@ internal interface WalletKitEngine : RequestHandler {
     suspend fun getJettons(walletAddress: String, limit: Int = 100, offset: Int = 0): io.ton.walletkit.model.TONJettonWallets
 
     /**
-     * Get a single jetton by its master contract address.
-     *
-     * @param jettonAddress Jetton master contract address
-     * @return Jetton information or null if not found
-     * @throws WalletKitBridgeException if the request fails
-     */
-    suspend fun getJetton(jettonAddress: String): io.ton.walletkit.model.TONJetton?
-
-    /**
      * Create a jetton transfer transaction.
      *
      * @param walletAddress Wallet address to transfer from

@@ -403,18 +403,6 @@ internal class TONWallet internal constructor(
     }
 
     /**
-     * Get a single jetton by its master contract address.
-     * Android-specific helper method (not in JS API).
-     *
-     * @param jettonAddress Jetton master contract address
-     * @return Jetton information or null if not found
-     * @throws WalletKitBridgeException if jetton retrieval fails
-     */
-    suspend fun jetton(jettonAddress: String): io.ton.walletkit.model.TONJetton? {
-        return engine.getJetton(jettonAddress)
-    }
-
-    /**
      * Create a jetton transfer transaction.
      * Matches the JS API `wallet.createTransferJettonTransaction()` function.
      *
