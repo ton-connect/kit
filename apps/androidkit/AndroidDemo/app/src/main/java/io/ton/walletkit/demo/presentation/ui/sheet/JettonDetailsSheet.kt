@@ -102,7 +102,7 @@ fun JettonDetailsSheet(
         ) {
             // Jetton image/icon
             SubcomposeAsyncImage(
-                model = jetton.imageUrl,
+                model = jetton.imageSource,
                 contentDescription = jetton.name,
                 modifier = Modifier
                     .size(120.dp)

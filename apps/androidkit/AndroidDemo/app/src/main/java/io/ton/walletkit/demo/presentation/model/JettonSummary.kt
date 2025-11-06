@@ -21,6 +21,12 @@ data class JettonSummary(
     val estimatedValue: String,
     val jettonWallet: TONJettonWallet,
 ) {
+    /**
+     * Get the image source, preferring URL over base64 data.
+     */
+    val imageSource: String?
+        get() = imageUrl ?: imageData
+    
     companion object {
         /**
          * Create JettonSummary from SDK's TONJettonWallet.

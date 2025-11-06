@@ -95,9 +95,9 @@ fun TransferJettonSheet(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Jetton Icon
-                    if (!jetton.imageUrl.isNullOrEmpty()) {
+                    if (!jetton.imageSource.isNullOrEmpty()) {
                         AsyncImage(
-                            model = jetton.imageUrl,
+                            model = jetton.imageSource,
                             contentDescription = jetton.name,
                             modifier = Modifier.size(40.dp),
                         )

@@ -70,7 +70,7 @@ tasks.register<Copy>("buildAndCopyWebviewToDemo") {
     group = "build"
     description = "Build WebView SDK variant and copy to AndroidDemo/app/libs (default)"
     
-    dependsOn(":impl:bundleWebviewReleaseAar", ":api:sourcesJar")
+    dependsOn(":api:build", ":impl:bundleWebviewReleaseAar", ":api:sourcesJar")
     
     from(layout.projectDirectory.file("impl/build/outputs/aar/impl-webview-release.aar"))
     from(layout.projectDirectory.file("api/build/libs/api-sources.jar"))
@@ -92,7 +92,7 @@ tasks.register<Copy>("buildAndCopyFullToDemo") {
     group = "build"
     description = "Build Full SDK variant (with QuickJS) and copy to AndroidDemo/app/libs"
     
-    dependsOn(":impl:bundleFullReleaseAar", ":api:sourcesJar")
+    dependsOn(":api:build", ":impl:bundleFullReleaseAar", ":api:sourcesJar")
     
     from(layout.projectDirectory.file("impl/build/outputs/aar/impl-full-release.aar"))
     from(layout.projectDirectory.file("api/build/libs/api-sources.jar"))

@@ -726,20 +726,7 @@ internal class QuickJsWalletKitEngine(
             put("offset", offset)
         }
         val result = call(BridgeMethodConstants.METHOD_GET_JETTONS, params)
-        val jettonsWallets: io.ton.walletkit.model.TONJettonWallets = json.decodeFromString(result.toString())
-
-        // Hack: populate jetton info separately (same as WebView implementation)
-        val updatedItems = jettonsWallets.items.map { jettonWallet ->
-            val jettonAddress = jettonWallet.jettonAddress
-            if (jettonAddress != null) {
-                val jettonInfo = getJetton(jettonAddress)
-                jettonWallet.copy(jetton = jettonInfo)
-            } else {
-                jettonWallet
-            }
-        }
-
-        return jettonsWallets.copy(items = updatedItems)
+        return json.decodeFromString(result.toString())
     }
 
     override suspend fun getJetton(jettonAddress: String): io.ton.walletkit.model.TONJetton? {

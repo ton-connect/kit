@@ -39,15 +39,16 @@ kotlin {
 }
 
 // Generate sources JAR with KDocs for better IDE experience
-val sourcesJar = tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(android.sourceSets["main"].java.srcDirs)
-    // Include all Kotlin source files with KDocs
-    include("**/*.kt")
-    include("**/*.java")
-    // Exclude internal implementation details
-    exclude("**/internal/**")
-}
+val sourcesJar =
+    tasks.register<Jar>("sourcesJar") {
+        archiveClassifier.set("sources")
+        from(android.sourceSets["main"].java.srcDirs)
+        // Include all Kotlin source files with KDocs
+        include("**/*.kt")
+        include("**/*.java")
+        // Exclude internal implementation details
+        exclude("**/internal/**")
+    }
 
 // Attach sources JAR to artifacts (for Maven publishing)
 artifacts {

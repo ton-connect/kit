@@ -25,6 +25,12 @@ data class JettonDetails(
     val verificationSource: String?,
     val warnings: List<String>?,
 ) {
+    /**
+     * Get the image source, preferring URL over base64 data.
+     */
+    val imageSource: String?
+        get() = imageUrl ?: imageData
+    
     companion object {
         /**
          * Create JettonDetails from SDK's TONJettonWallet.
@@ -39,7 +45,7 @@ data class JettonDetails(
             val symbol = jetton?.symbol ?: "UNKNOWN"
             val description = jetton?.description
             val jettonAddress = jettonWallet.jettonAddress
-            val walletAddress = jettonWallet.address
+            val walletAddress = jettonWallet.walletAddress
             val balance = jettonWallet.balance ?: "0"
             val decimals = jetton?.decimals ?: 9
 
