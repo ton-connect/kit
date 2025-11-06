@@ -20,7 +20,14 @@ import type {
     ITonWalletKit,
 } from '@ton/walletkit';
 
-import type { AuthState, WalletState, PreviewTransaction, SavedWallet } from './wallet';
+import type {
+    AuthState,
+    WalletState,
+    PreviewTransaction,
+    SavedWallet,
+    QueuedRequest,
+    QueuedRequestData,
+} from './wallet';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
@@ -148,10 +155,18 @@ export interface WalletSlice extends WalletState {
     handleDisconnectEvent: (event: EventDisconnect) => void;
     clearDisconnectNotifications: () => void;
 
+    // Queue management
+    enqueueRequest: (request: QueuedRequestData) => void;
+    processNextRequest: () => void;
+    clearExpiredRequests: () => void;
+    getCurrentRequest: () => QueuedRequest | undefined;
+
     // Getters
     getDecryptedMnemonic: (walletId?: string) => Promise<string[] | null>;
     getAvailableWallets: () => IWallet[];
     getActiveWallet: () => SavedWallet | undefined;
+
+    clearCurrentRequestFromQueue: () => void;
 }
 
 // Combined app state
