@@ -77,24 +77,24 @@ window.initWalletKit = async (configuration, storage) => {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('🔔 Bridge: Adding event listeners');
 
-            walletKit.onConnectRequest((event) => {
+            walletKit.onConnectRequest(async (event) => {
                 console.log('📨 Connect request received:', event);
-                callback('connectRequest', event);
+                await callback('connectRequest', event);
             });
 
-            walletKit.onTransactionRequest((event) => {
+            walletKit.onTransactionRequest(async (event) => {
                 console.log('📨 Transaction request received:', event);
-                callback('transactionRequest', event);
+                await callback('transactionRequest', event);
             });
 
-            walletKit.onSignDataRequest((event) => {
+            walletKit.onSignDataRequest(async (event) => {
                 console.log('📨 Sign data request received:', event);
-                callback('signDataRequest', event);
+                await callback('signDataRequest', event);
             });
 
-            walletKit.onDisconnect((event) => {
+            walletKit.onDisconnect(async (event) => {
                 console.log('📨 Disconnect event received:', event);
-                callback('disconnect', event);
+                await callback('disconnect', event);
             });
         },
 
