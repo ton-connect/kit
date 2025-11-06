@@ -109,27 +109,37 @@ internal interface WalletKitEngine : RequestHandler {
     suspend fun createTonMnemonic(wordCount: Int = 24): List<String>
 
     /**
-     * Add a new wallet using an external signer.
-     *
-     * This allows creating wallets where the private key is managed externally
+     * Create a V4R2 wallet backed by an external signer implementation
      * (e.g., hardware wallet, watch-only wallet, separate secure module).
      *
      * @param signer The external signer that will handle signing operations
-     * @param version Wallet version (e.g., "v5r1", "v4r2")
      * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
-     * @return The newly added wallet account
+     * @return The newly created wallet account
      * @throws WalletKitBridgeException if wallet creation fails
      */
-    suspend fun addWalletWithSigner(
+    suspend fun createV4R2WalletWithSigner(
         signer: io.ton.walletkit.model.WalletSigner,
-        version: String,
+        network: String? = null,
+    ): WalletAccount
+
+    /**
+     * Create a V5R1 wallet backed by an external signer implementation
+     * (e.g., hardware wallet, watch-only wallet, separate secure module).
+     *
+     * @param signer The external signer that will handle signing operations
+     * @param network Network to use (e.g., "mainnet", "testnet"), defaults to current network
+     * @return The newly created wallet account
+     * @throws WalletKitBridgeException if wallet creation fails
+     */
+    suspend fun createV5R1WalletWithSigner(
+        signer: io.ton.walletkit.model.WalletSigner,
         network: String? = null,
     ): WalletAccount
 
     /**
      * Respond to a sign request from an external signer wallet.
      *
-     * When a wallet created with [addWalletWithSigner] needs to sign data,
+     * When a wallet created with [createV4R2WalletWithSigner] or [createV5R1WalletWithSigner] needs to sign data,
      * it will emit a signerSignRequest event. The app should call this method
      * to provide the signature or error.
      *

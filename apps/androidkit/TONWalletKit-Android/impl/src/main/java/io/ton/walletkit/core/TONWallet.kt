@@ -153,20 +153,54 @@ internal class TONWallet internal constructor(
          *
          * @param kit The TONWalletKit instance
          * @param signer The external signer that will handle all signing operations
-         * @param version Wallet version (e.g., "v4r2", "v5r1")
-         * @param network Network to use (default: current network)
-         * @return The newly created wallet
+         * @param network Network to use (default: MAINNET)
+         * @return The newly created V4R2 wallet
          * @throws io.ton.walletkit.WalletKitBridgeException if wallet creation fails
          */
-        suspend fun addWithSigner(
+        suspend fun createV4R2WithSigner(
             kit: TONWalletKit,
             signer: WalletSigner,
-            version: String = "v4r2",
             network: TONNetwork = TONNetwork.MAINNET,
         ): TONWallet {
-            val account = kit.engine.addWalletWithSigner(
+            val account = kit.engine.createV4R2WalletWithSigner(
                 signer = signer,
-                version = version,
+                network = network.value,
+            )
+
+            return TONWallet(
+                address = account.address,
+                engine = kit.engine,
+                account = account,
+            )
+        }
+
+        /**
+         * Create a V5R1 wallet backed by an external signer.
+         *
+         * Similar to [createV4R2WithSigner] but creates a V5R1 wallet contract.
+         *
+         * Example:
+         * ```kotlin
+         * val wallet = TONWallet.createV5R1WithSigner(
+         *     kit = walletKit,
+         *     signer = myHardwareWalletSigner,
+         *     network = TONNetwork.MAINNET
+         * )
+         * ```
+         *
+         * @param kit The TONWalletKit instance
+         * @param signer The external signer that will handle all signing operations
+         * @param network Network to use (default: MAINNET)
+         * @return The newly created V5R1 wallet
+         * @throws io.ton.walletkit.WalletKitBridgeException if wallet creation fails
+         */
+        suspend fun createV5R1WithSigner(
+            kit: TONWalletKit,
+            signer: WalletSigner,
+            network: TONNetwork = TONNetwork.MAINNET,
+        ): TONWallet {
+            val account = kit.engine.createV5R1WalletWithSigner(
+                signer = signer,
                 network = network.value,
             )
 

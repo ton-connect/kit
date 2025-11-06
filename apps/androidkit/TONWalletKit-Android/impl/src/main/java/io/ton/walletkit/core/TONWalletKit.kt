@@ -192,23 +192,45 @@ internal class TONWalletKit private constructor(
     }
 
     /**
-     * Add a new wallet with an external signer.
+     * Create a new V4R2 wallet with an external signer.
      *
      * @param signer External wallet signer interface
-     * @param version Wallet contract version (e.g., "v4r2", "v5r1")
      * @param network Network to use (MAINNET or TESTNET)
      * @return The newly created wallet
      */
-    override suspend fun addWalletWithSigner(
+    override suspend fun createV4R2WalletWithSigner(
         signer: WalletSigner,
-        version: String,
         network: TONNetwork,
     ): ITONWallet {
         checkNotDestroyed()
 
-        val account = engine.addWalletWithSigner(
+        val account = engine.createV4R2WalletWithSigner(
             signer = signer,
-            version = version,
+            network = network.value,
+        )
+
+        return TONWallet(
+            address = account.address,
+            engine = engine,
+            account = account,
+        )
+    }
+
+    /**
+     * Create a new V5R1 wallet with an external signer.
+     *
+     * @param signer External wallet signer interface
+     * @param network Network to use (MAINNET or TESTNET)
+     * @return The newly created wallet
+     */
+    override suspend fun createV5R1WalletWithSigner(
+        signer: WalletSigner,
+        network: TONNetwork,
+    ): ITONWallet {
+        checkNotDestroyed()
+
+        val account = engine.createV5R1WalletWithSigner(
+            signer = signer,
             network = network.value,
         )
 

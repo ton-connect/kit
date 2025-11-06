@@ -69,46 +69,63 @@ internal class WalletOperations(
     }
 
     /**
-     * Add a wallet to the bridge using a signer implementation.
+     * Create a V4R2 wallet using a signer implementation.
      */
-    suspend fun addWalletWithSigner(
+    suspend fun createV4R2WalletWithSigner(
         signer: WalletSigner,
-        version: String,
         network: String?,
     ): WalletAccount {
         ensureInitialized()
 
         val signerId = signerManager.registerSigner(signer)
-        val normalizedVersion = version.lowercase()
 
         val params =
             JSONObject().apply {
                 put(ResponseConstants.KEY_PUBLIC_KEY, signer.publicKey)
-                put(JsonConstants.KEY_VERSION, normalizedVersion)
                 put(ResponseConstants.KEY_SIGNER_ID, signerId)
                 network?.let { put(JsonConstants.KEY_NETWORK, it) }
             }
 
-        rpcClient.call(BridgeMethodConstants.METHOD_ADD_WALLET_WITH_SIGNER, params)
+        val result = rpcClient.call(BridgeMethodConstants.METHOD_CREATE_V4R2_WALLET_WITH_SIGNER, params)
+        
+        return WalletAccount(
+            address = result.optString(ResponseConstants.KEY_ADDRESS),
+            publicKey = result.optString(ResponseConstants.KEY_PUBLIC_KEY),
+            name = null,
+            version = "v4r2",
+            network = network ?: currentNetworkProvider(),
+            index = 0,
+        )
+    }
 
-        val walletsResult = rpcClient.call(BridgeMethodConstants.METHOD_GET_WALLETS)
-        val items = walletsResult.optJSONArray(ResponseConstants.KEY_ITEMS) ?: JSONArray()
+    /**
+     * Create a V5R1 wallet using a signer implementation.
+     */
+    suspend fun createV5R1WalletWithSigner(
+        signer: WalletSigner,
+        network: String?,
+    ): WalletAccount {
+        ensureInitialized()
 
-        if (items.length() > 0) {
-            val lastWallet = items.optJSONObject(items.length() - 1)
-            if (lastWallet != null) {
-                return WalletAccount(
-                    address = lastWallet.optString(ResponseConstants.KEY_ADDRESS),
-                    publicKey = lastWallet.optNullableString(ResponseConstants.KEY_PUBLIC_KEY),
-                    name = lastWallet.optNullableString(JsonConstants.KEY_NAME),
-                    version = lastWallet.optString(JsonConstants.KEY_VERSION, version),
-                    network = lastWallet.optString(JsonConstants.KEY_NETWORK, network ?: currentNetworkProvider()),
-                    index = lastWallet.optInt(ResponseConstants.KEY_INDEX, 0),
-                )
+        val signerId = signerManager.registerSigner(signer)
+
+        val params =
+            JSONObject().apply {
+                put(ResponseConstants.KEY_PUBLIC_KEY, signer.publicKey)
+                put(ResponseConstants.KEY_SIGNER_ID, signerId)
+                network?.let { put(JsonConstants.KEY_NETWORK, it) }
             }
-        }
 
-        throw WalletKitBridgeException(ERROR_NEW_WALLET_NOT_FOUND)
+        val result = rpcClient.call(BridgeMethodConstants.METHOD_CREATE_V5R1_WALLET_WITH_SIGNER, params)
+        
+        return WalletAccount(
+            address = result.optString(ResponseConstants.KEY_ADDRESS),
+            publicKey = result.optString(ResponseConstants.KEY_PUBLIC_KEY),
+            name = null,
+            version = "v5r1",
+            network = network ?: currentNetworkProvider(),
+            index = 0,
+        )
     }
 
     /**

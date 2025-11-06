@@ -137,9 +137,14 @@ internal object BridgeMethodConstants {
     const val METHOD_SIGN_DATA_WITH_MNEMONIC = "signDataWithMnemonic"
 
     /**
-     * Method name for adding a wallet backed by an external signer.
+     * Method name for creating a V4R2 wallet backed by an external signer.
      */
-    const val METHOD_ADD_WALLET_WITH_SIGNER = "addWalletWithSigner"
+    const val METHOD_CREATE_V4R2_WALLET_WITH_SIGNER = "createV4R2WalletWithSigner"
+
+    /**
+     * Method name for creating a V5R1 wallet backed by an external signer.
+     */
+    const val METHOD_CREATE_V5R1_WALLET_WITH_SIGNER = "createV5R1WalletWithSigner"
 
     /**
      * Method name for responding to a sign request.

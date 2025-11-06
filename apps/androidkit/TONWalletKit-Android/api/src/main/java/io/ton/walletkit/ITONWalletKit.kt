@@ -13,7 +13,7 @@ import io.ton.walletkit.model.WalletSigner
  * TON Wallet Kit SDK for managing wallets and TON Connect.
  *
  * Create an instance via [initialize], add event handlers with [addEventsHandler],
- * then manage wallets via [addWallet] or [addWalletWithSigner].
+ * then manage wallets via [addWallet], [createV4R2WalletWithSigner], or [createV5R1WalletWithSigner].
  */
 interface ITONWalletKit {
     companion object {
@@ -62,18 +62,30 @@ interface ITONWalletKit {
     suspend fun addWallet(data: TONWalletData): ITONWallet
 
     /**
-     * Add wallet with external signer (hardware wallet, watch-only).
+     * Create V4R2 wallet with external signer (hardware wallet, watch-only).
      *
      * The signer will be called for all signing operations.
      *
      * @param signer External signer implementation
-     * @param version Wallet version (v4r2 or v5r1)
      * @param network Network to use
      * @return Created wallet instance
      */
-    suspend fun addWalletWithSigner(
+    suspend fun createV4R2WalletWithSigner(
         signer: WalletSigner,
-        version: String = "v4r2",
+        network: TONNetwork = TONNetwork.MAINNET,
+    ): ITONWallet
+
+    /**
+     * Create V5R1 wallet with external signer (hardware wallet, watch-only).
+     *
+     * The signer will be called for all signing operations.
+     *
+     * @param signer External signer implementation
+     * @param network Network to use
+     * @return Created wallet instance
+     */
+    suspend fun createV5R1WalletWithSigner(
+        signer: WalletSigner,
         network: TONNetwork = TONNetwork.MAINNET,
     ): ITONWallet
 

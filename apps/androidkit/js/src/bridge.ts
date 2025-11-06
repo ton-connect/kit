@@ -548,6 +548,36 @@ function requireWalletKit() {
   }
 }
 
+/**
+ * Helper to call a method on a wallet instance by address.
+ * Reduces boilerplate for wallet operations.
+ * 
+ * @param address - Wallet address
+ * @param method - Method name to call on the wallet
+ * @param args - Arguments to pass to the method (optional)
+ * @returns Result from the wallet method
+ */
+async function callOnWallet<T = any>(address: string, method: string, args?: any): Promise<T> {
+  requireWalletKit();
+  
+  const trimmedAddress = address?.trim();
+  if (!trimmedAddress) {
+    throw new Error('Wallet address is required');
+  }
+  
+  const wallet = walletKit.getWallet?.(trimmedAddress);
+  if (!wallet) {
+    throw new Error(`Wallet not found for address ${trimmedAddress}`);
+  }
+  
+  if (typeof wallet[method] !== 'function') {
+    throw new Error(`Method '${method}' not found on wallet`);
+  }
+  
+  // Call the method with or without args
+  return args !== undefined ? await wallet[method](args) : await wallet[method]();
+}
+
 const api = {
   // Event listener references stored on the API object (like iOS stores on window.walletKit)
   onConnectListener: null as ((event: any) => void) | null,
@@ -718,29 +748,28 @@ const api = {
     return { items: words };
   },
 
-  async addWalletWithSigner(
+  async createV4R2WalletWithSigner(
     args: { 
       publicKey: string; 
-      version: 'v5r1' | 'v4r2'; 
       network?: string;
       signerId: string; // Unique ID for this signer, will be included in sign events
     },
     context?: CallContext,
   ) {
-    emitCallCheckpoint(context, 'addWalletWithSigner:before-ensureWalletKitLoaded');
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'addWalletWithSigner:after-ensureWalletKitLoaded');
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-ensureWalletKitLoaded');
     requireWalletKit();
-    emitCallCheckpoint(context, 'addWalletWithSigner:after-requireWalletKit');
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-requireWalletKit');
     
     const chains = tonConnectChain;
     if (!chains) {
       throw new Error('TON Connect chain constants unavailable');
     }
     
-  const networkValue = normalizeNetworkValue(args.network as string | undefined);
-  const isMainnet = networkValue === CHAIN.MAINNET;
-  const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
+    const networkValue = normalizeNetworkValue(args.network as string | undefined);
+    const isMainnet = networkValue === CHAIN.MAINNET;
+    const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
     
     // Store pending sign requests
     const pendingSignRequests = new Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>();
@@ -783,29 +812,112 @@ const api = {
     }
     (globalThis as any).__walletKitSignerRequests.set(args.signerId, pendingSignRequests);
     
-    // Create wallet adapter based on version
-    let walletAdapter: any;
-    emitCallCheckpoint(context, 'addWalletWithSigner:before-createWalletAdapter');
+    // Create wallet adapter
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-createWalletAdapter');
+    const walletAdapter = await WalletV4R2Adapter.create(customSigner, {
+      client: walletKit.getApiClient(),
+      network: chain,
+    });
     
-    if (args.version === 'v4r2') {
-      walletAdapter = await WalletV4R2Adapter.create(customSigner, {
-        client: walletKit.getApiClient(),
-        network: chain,
-      });
-    } else if (args.version === 'v5r1') {
-      walletAdapter = await WalletV5R1Adapter.create(customSigner, {
-        client: walletKit.getApiClient(),
-        network: chain,
-      });
-    } else {
-      throw new Error('Unsupported wallet version: ${args.version}');
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-createWalletAdapter');
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-walletKit.addWallet');
+    const wallet = await walletKit.addWallet(walletAdapter);
+    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-walletKit.addWallet');
+    
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
     }
     
-    emitCallCheckpoint(context, 'addWalletWithSigner:after-createWalletAdapter');
-    emitCallCheckpoint(context, 'addWalletWithSigner:before-walletKit.addWallet');
-    await walletKit.addWallet(walletAdapter);
-    emitCallCheckpoint(context, 'addWalletWithSigner:after-walletKit.addWallet');
-    return { ok: true };
+    return {
+      address: wallet.getAddress(),
+      publicKey: args.publicKey.replace(/^0x/, ''),
+    };
+  },
+
+  async createV5R1WalletWithSigner(
+    args: { 
+      publicKey: string; 
+      network?: string;
+      signerId: string; // Unique ID for this signer, will be included in sign events
+    },
+    context?: CallContext,
+  ) {
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-ensureWalletKitLoaded');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-requireWalletKit');
+    
+    const chains = tonConnectChain;
+    if (!chains) {
+      throw new Error('TON Connect chain constants unavailable');
+    }
+    
+    const networkValue = normalizeNetworkValue(args.network as string | undefined);
+    const isMainnet = networkValue === CHAIN.MAINNET;
+    const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
+    
+    // Store pending sign requests
+    const pendingSignRequests = new Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>();
+    
+    // Normalize public key - ensure it has 0x prefix (like Signer.fromMnemonic returns)
+    const publicKeyHex = args.publicKey.startsWith('0x') ? args.publicKey : `0x${args.publicKey}`;
+    
+    // Create a custom signer that calls back to Android via events
+    const customSigner: any = {
+      sign: async (bytes: Uint8Array) => {
+        // Generate unique request ID
+        const requestId = `sign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Emit sign request event to Android
+        emit('signerSignRequest', {
+          signerId: args.signerId,
+          requestId: requestId,
+          data: Array.from(bytes), // Convert to array for JSON serialization
+        });
+        
+        // Wait for Android to respond with signature
+        return new Promise<Uint8Array>((resolve, reject) => {
+          pendingSignRequests.set(requestId, { resolve, reject });
+          
+          // Timeout after 60 seconds
+          setTimeout(() => {
+            if (pendingSignRequests.has(requestId)) {
+              pendingSignRequests.delete(requestId);
+              reject(new Error('Sign request timed out'));
+            }
+          }, 60000);
+        });
+      },
+      publicKey: publicKeyHex, // Must be hex string with 0x prefix (same format as Signer.fromMnemonic)
+    };
+    
+    // Store the pending requests map so Android can respond
+    if (!(globalThis as any).__walletKitSignerRequests) {
+      (globalThis as any).__walletKitSignerRequests = new Map();
+    }
+    (globalThis as any).__walletKitSignerRequests.set(args.signerId, pendingSignRequests);
+    
+    // Create wallet adapter
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-createWalletAdapter');
+    const walletAdapter = await WalletV5R1Adapter.create(customSigner, {
+      client: walletKit.getApiClient(),
+      network: chain,
+    });
+    
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-createWalletAdapter');
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-walletKit.addWallet');
+    const wallet = await walletKit.addWallet(walletAdapter);
+    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-walletKit.addWallet');
+    
+    if (!wallet) {
+      throw new Error('Failed to add wallet - may already exist');
+    }
+    
+    return {
+      address: wallet.getAddress(),
+      publicKey: args.publicKey.replace(/^0x/, ''),
+    };
   },
 
   async respondToSignRequest(
@@ -1752,25 +1864,14 @@ const api = {
     emitCallCheckpoint(context, 'getNfts:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'getNfts:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     const limit = Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 100;
     const offset = Number.isFinite(args.offset) && (args.offset as number) >= 0 ? Math.floor(args.offset as number) : 0;
     
-    console.log('[walletkitBridge] getNfts fetching NFTs for address:', address, 'limit:', limit, 'offset:', offset);
+    console.log('[walletkitBridge] getNfts fetching NFTs for address:', args.address, 'limit:', limit, 'offset:', offset);
     emitCallCheckpoint(context, 'getNfts:before-wallet.getNfts');
     
-    const result = await wallet.getNfts({ limit, offset });
+    const result = await callOnWallet(args.address, 'getNfts', { limit, offset });
     
     emitCallCheckpoint(context, 'getNfts:after-wallet.getNfts');
     console.log('[walletkitBridge] getNfts result:', result);
@@ -1815,17 +1916,6 @@ const api = {
     emitCallCheckpoint(context, 'createTransferNftTransaction:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'createTransferNftTransaction:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     console.log('[walletkitBridge] createTransferNftTransaction for NFT:', args.nftAddress, 'to:', args.toAddress);
     emitCallCheckpoint(context, 'createTransferNftTransaction:before-wallet.createTransferNftTransaction');
@@ -1837,7 +1927,7 @@ const api = {
       comment: args.comment,
     };
     
-    const result = await wallet.createTransferNftTransaction(params);
+    const result = await callOnWallet(args.address, 'createTransferNftTransaction', params);
     
     emitCallCheckpoint(context, 'createTransferNftTransaction:after-wallet.createTransferNftTransaction');
     console.log('[walletkitBridge] createTransferNftTransaction result:', result);
@@ -1852,17 +1942,6 @@ const api = {
     emitCallCheckpoint(context, 'createTransferNftRawTransaction:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'createTransferNftRawTransaction:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     console.log('[walletkitBridge] createTransferNftRawTransaction for NFT:', args.nftAddress);
     emitCallCheckpoint(context, 'createTransferNftRawTransaction:before-wallet.createTransferNftRawTransaction');
@@ -1873,7 +1952,7 @@ const api = {
       transferMessage: args.transferMessage,
     };
     
-    const result = await wallet.createTransferNftRawTransaction(params);
+    const result = await callOnWallet(args.address, 'createTransferNftRawTransaction', params);
     
     emitCallCheckpoint(context, 'createTransferNftRawTransaction:after-wallet.createTransferNftRawTransaction');
     console.log('[walletkitBridge] createTransferNftRawTransaction result:', result);
@@ -1885,25 +1964,14 @@ const api = {
     emitCallCheckpoint(context, 'getJettons:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'getJettons:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     const limit = Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 100;
     const offset = Number.isFinite(args.offset) && (args.offset as number) >= 0 ? Math.floor(args.offset as number) : 0;
     
-    console.log('[walletkitBridge] getJettons fetching jettons for address:', address, 'limit:', limit, 'offset:', offset);
+    console.log('[walletkitBridge] getJettons fetching jettons for address:', args.address, 'limit:', limit, 'offset:', offset);
     emitCallCheckpoint(context, 'getJettons:before-wallet.getJettons');
     
-    const result = await wallet.getJettons({ limit, offset });
+    const result = await callOnWallet(args.address, 'getJettons', { limit, offset });
     
     emitCallCheckpoint(context, 'getJettons:after-wallet.getJettons');
     console.log('[walletkitBridge] getJettons result:', result);
@@ -1918,17 +1986,6 @@ const api = {
     emitCallCheckpoint(context, 'createTransferJettonTransaction:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'createTransferJettonTransaction:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     console.log('[walletkitBridge] createTransferJettonTransaction for jetton:', args.jettonAddress, 'to:', args.toAddress, 'amount:', args.amount);
     emitCallCheckpoint(context, 'createTransferJettonTransaction:before-wallet.createTransferJettonTransaction');
@@ -1940,7 +1997,7 @@ const api = {
       comment: args.comment,
     };
     
-    const result = await wallet.createTransferJettonTransaction(params);
+    const result = await callOnWallet(args.address, 'createTransferJettonTransaction', params);
     
     emitCallCheckpoint(context, 'createTransferJettonTransaction:after-wallet.createTransferJettonTransaction');
     console.log('[walletkitBridge] createTransferJettonTransaction result:', result);
@@ -1952,17 +2009,6 @@ const api = {
     emitCallCheckpoint(context, 'getJettonBalance:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'getJettonBalance:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     const jettonAddress = args.jettonAddress?.trim();
     if (!jettonAddress) {
@@ -1972,7 +2018,7 @@ const api = {
     console.log('[walletkitBridge] getJettonBalance for jetton:', jettonAddress);
     emitCallCheckpoint(context, 'getJettonBalance:before-wallet.getJettonBalance');
     
-    const result = await wallet.getJettonBalance(jettonAddress);
+    const result = await callOnWallet(args.address, 'getJettonBalance', jettonAddress);
     
     emitCallCheckpoint(context, 'getJettonBalance:after-wallet.getJettonBalance');
     console.log('[walletkitBridge] getJettonBalance result:', result);
@@ -1984,17 +2030,6 @@ const api = {
     emitCallCheckpoint(context, 'getJettonWalletAddress:before-ensureWalletKitLoaded');
     await ensureWalletKitLoaded();
     emitCallCheckpoint(context, 'getJettonWalletAddress:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    
-    const address = args.address?.trim();
-    if (!address) {
-      throw new Error('Wallet address is required');
-    }
-    
-    const wallet = walletKit.getWallet?.(address);
-    if (!wallet) {
-      throw new Error(`Wallet not found for address ${address}`);
-    }
     
     const jettonAddress = args.jettonAddress?.trim();
     if (!jettonAddress) {
@@ -2004,7 +2039,7 @@ const api = {
     console.log('[walletkitBridge] getJettonWalletAddress for jetton:', jettonAddress);
     emitCallCheckpoint(context, 'getJettonWalletAddress:before-wallet.getJettonWalletAddress');
     
-    const result = await wallet.getJettonWalletAddress(jettonAddress);
+    const result = await callOnWallet(args.address, 'getJettonWalletAddress', jettonAddress);
     
     emitCallCheckpoint(context, 'getJettonWalletAddress:after-wallet.getJettonWalletAddress');
     console.log('[walletkitBridge] getJettonWalletAddress result:', result);

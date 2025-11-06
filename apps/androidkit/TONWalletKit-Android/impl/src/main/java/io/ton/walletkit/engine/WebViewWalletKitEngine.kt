@@ -247,11 +247,15 @@ internal class WebViewWalletKitEngine private constructor(
     override suspend fun createTonMnemonic(wordCount: Int): List<String> =
         cryptoOperations.createTonMnemonic(wordCount)
 
-    override suspend fun addWalletWithSigner(
+    override suspend fun createV4R2WalletWithSigner(
         signer: WalletSigner,
-        version: String,
         network: String?,
-    ): WalletAccount = walletOperations.addWalletWithSigner(signer, version, network)
+    ): WalletAccount = walletOperations.createV4R2WalletWithSigner(signer, network)
+
+    override suspend fun createV5R1WalletWithSigner(
+        signer: WalletSigner,
+        network: String?,
+    ): WalletAccount = walletOperations.createV5R1WalletWithSigner(signer, network)
 
     override suspend fun respondToSignRequest(
         signerId: String,
