@@ -1,4 +1,15 @@
 /**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
  * Initialization and event listener management for the Android WalletKit bridge.
  */
 import type { WalletKitBridgeInitConfig, CallContext, SetEventsListenersArgs } from '../types';
@@ -18,18 +29,18 @@ import { AndroidStorageAdapter } from '../adapters/AndroidStorageAdapter';
  * @param context - Diagnostic context used to emit bridge checkpoints.
  */
 export async function init(config?: WalletKitBridgeInitConfig, context?: CallContext) {
-  emitCallCheckpoint(context, 'init:before-ensureWalletKitLoaded');
-  await ensureWalletKitLoaded();
-  emitCallCheckpoint(context, 'init:after-ensureWalletKitLoaded');
-  emitCallCheckpoint(context, 'init:before-initTonWalletKit');
-  const result = await initTonWalletKit(config, context, {
-    emitCallCheckpoint,
-    emit,
-    postToNative,
-    AndroidStorageAdapter,
-  });
-  emitCallCheckpoint(context, 'init:after-initTonWalletKit');
-  return result;
+    emitCallCheckpoint(context, 'init:before-ensureWalletKitLoaded');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'init:after-ensureWalletKitLoaded');
+    emitCallCheckpoint(context, 'init:before-initTonWalletKit');
+    const result = await initTonWalletKit(config, context, {
+        emitCallCheckpoint,
+        emit,
+        postToNative,
+        AndroidStorageAdapter,
+    });
+    emitCallCheckpoint(context, 'init:after-initTonWalletKit');
+    return result;
 }
 
 /**
@@ -39,68 +50,68 @@ export async function init(config?: WalletKitBridgeInitConfig, context?: CallCon
  * @param context - Diagnostic context used to emit checkpoints.
  */
 export function setEventsListeners(args?: SetEventsListenersArgs, context?: CallContext) {
-  emitCallCheckpoint(context, 'setEventsListeners:enter');
-  requireWalletKit();
-  console.log('[walletkitBridge] 🔔 Setting up event listeners');
+    emitCallCheckpoint(context, 'setEventsListeners:enter');
+    requireWalletKit();
+    console.log('[walletkitBridge] 🔔 Setting up event listeners');
 
-  const callback =
-    args?.callback ||
-    ((type: string, event: any) => {
-      emit(type as any, event);
-    });
+    const callback =
+        args?.callback ||
+        ((type: string, event: any) => {
+            emit(type as any, event);
+        });
 
-  if (eventListeners.onConnectListener) {
-    walletKit.removeConnectRequestCallback();
-  }
+    if (eventListeners.onConnectListener) {
+        walletKit.removeConnectRequestCallback();
+    }
 
-  eventListeners.onConnectListener = (event: any) => {
-    console.log('[walletkitBridge] 📨 Connect request received');
-    callback('connectRequest', event);
-  };
+    eventListeners.onConnectListener = (event: any) => {
+        console.log('[walletkitBridge] 📨 Connect request received');
+        callback('connectRequest', event);
+    };
 
-  walletKit.onConnectRequest(eventListeners.onConnectListener);
-  console.log('[walletkitBridge] ✅ Connect listener registered');
+    walletKit.onConnectRequest(eventListeners.onConnectListener);
+    console.log('[walletkitBridge] ✅ Connect listener registered');
 
-  if (eventListeners.onTransactionListener) {
-    walletKit.removeTransactionRequestCallback();
-  }
+    if (eventListeners.onTransactionListener) {
+        walletKit.removeTransactionRequestCallback();
+    }
 
-  eventListeners.onTransactionListener = (event: any) => {
-    console.log('[walletkitBridge] 📨 Transaction request received');
-    callback('transactionRequest', event);
-  };
+    eventListeners.onTransactionListener = (event: any) => {
+        console.log('[walletkitBridge] 📨 Transaction request received');
+        callback('transactionRequest', event);
+    };
 
-  console.log('[walletkitBridge] About to call walletKit.onTransactionRequest...');
-  walletKit.onTransactionRequest(eventListeners.onTransactionListener);
-  console.log('[walletkitBridge] ✅ Transaction listener registered');
+    console.log('[walletkitBridge] About to call walletKit.onTransactionRequest...');
+    walletKit.onTransactionRequest(eventListeners.onTransactionListener);
+    console.log('[walletkitBridge] ✅ Transaction listener registered');
 
-  if (eventListeners.onSignDataListener) {
-    walletKit.removeSignDataRequestCallback();
-  }
+    if (eventListeners.onSignDataListener) {
+        walletKit.removeSignDataRequestCallback();
+    }
 
-  eventListeners.onSignDataListener = (event: any) => {
-    console.log('[walletkitBridge] 📨 Sign data request received');
-    callback('signDataRequest', event);
-  };
+    eventListeners.onSignDataListener = (event: any) => {
+        console.log('[walletkitBridge] 📨 Sign data request received');
+        callback('signDataRequest', event);
+    };
 
-  console.log('[walletkitBridge] About to call walletKit.onSignDataRequest...');
-  walletKit.onSignDataRequest(eventListeners.onSignDataListener);
-  console.log('[walletkitBridge] ✅ Sign data listener registered');
+    console.log('[walletkitBridge] About to call walletKit.onSignDataRequest...');
+    walletKit.onSignDataRequest(eventListeners.onSignDataListener);
+    console.log('[walletkitBridge] ✅ Sign data listener registered');
 
-  if (eventListeners.onDisconnectListener) {
-    walletKit.removeDisconnectCallback();
-  }
+    if (eventListeners.onDisconnectListener) {
+        walletKit.removeDisconnectCallback();
+    }
 
-  eventListeners.onDisconnectListener = (event: any) => {
-    console.log('[walletkitBridge] 📨 Disconnect event received');
-    callback('disconnect', event);
-  };
+    eventListeners.onDisconnectListener = (event: any) => {
+        console.log('[walletkitBridge] 📨 Disconnect event received');
+        callback('disconnect', event);
+    };
 
-  walletKit.onDisconnect(eventListeners.onDisconnectListener);
-  console.log('[walletkitBridge] ✅ Disconnect listener registered');
+    walletKit.onDisconnect(eventListeners.onDisconnectListener);
+    console.log('[walletkitBridge] ✅ Disconnect listener registered');
 
-  console.log('[walletkitBridge] ✅ Event listeners set up successfully');
-  return { ok: true };
+    console.log('[walletkitBridge] ✅ Event listeners set up successfully');
+    return { ok: true };
 }
 
 /**
@@ -110,30 +121,30 @@ export function setEventsListeners(args?: SetEventsListenersArgs, context?: Call
  * @param context - Diagnostic context used to emit checkpoints.
  */
 export function removeEventListeners(_?: unknown, context?: CallContext) {
-  emitCallCheckpoint(context, 'removeEventListeners:enter');
-  requireWalletKit();
-  console.log('[walletkitBridge] 🗑️ Removing all event listeners');
+    emitCallCheckpoint(context, 'removeEventListeners:enter');
+    requireWalletKit();
+    console.log('[walletkitBridge] 🗑️ Removing all event listeners');
 
-  if (eventListeners.onConnectListener) {
-    walletKit.removeConnectRequestCallback();
-    eventListeners.onConnectListener = null;
-  }
+    if (eventListeners.onConnectListener) {
+        walletKit.removeConnectRequestCallback();
+        eventListeners.onConnectListener = null;
+    }
 
-  if (eventListeners.onTransactionListener) {
-    walletKit.removeTransactionRequestCallback();
-    eventListeners.onTransactionListener = null;
-  }
+    if (eventListeners.onTransactionListener) {
+        walletKit.removeTransactionRequestCallback();
+        eventListeners.onTransactionListener = null;
+    }
 
-  if (eventListeners.onSignDataListener) {
-    walletKit.removeSignDataRequestCallback();
-    eventListeners.onSignDataListener = null;
-  }
+    if (eventListeners.onSignDataListener) {
+        walletKit.removeSignDataRequestCallback();
+        eventListeners.onSignDataListener = null;
+    }
 
-  if (eventListeners.onDisconnectListener) {
-    walletKit.removeDisconnectCallback();
-    eventListeners.onDisconnectListener = null;
-  }
+    if (eventListeners.onDisconnectListener) {
+        walletKit.removeDisconnectCallback();
+        eventListeners.onDisconnectListener = null;
+    }
 
-  console.log('[walletkitBridge] ✅ All event listeners removed');
-  return { ok: true };
+    console.log('[walletkitBridge] ✅ All event listeners removed');
+    return { ok: true };
 }
