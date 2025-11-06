@@ -1,10 +1,20 @@
-// Re-export types from types.ts for backwards compatibility
+// Re-export bridge types for backwards compatibility
 import type { 
   WalletKitBridgeEvent, 
   WalletKitBridgeInitConfig,
   AndroidBridgeType,
   WalletKitNativeBridgeType,
-  WalletKitBridgeApi
+  WalletKitBridgeApi,
+  WalletKitApiMethod
 } from './types';
 
-// No need to re-declare these - they're already in types.ts
+declare global {
+  interface Window {
+    walletkitBridge?: WalletKitBridgeApi;
+    __walletkitCall?: (id: string, method: WalletKitApiMethod, paramsJson?: string | null) => void;
+    WalletKitNative?: WalletKitNativeBridgeType;
+    AndroidBridge?: AndroidBridgeType;
+  }
+}
+
+export {};
