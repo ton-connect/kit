@@ -26,8 +26,8 @@ const sharedConfig = {
 async function buildAll() {
     console.log('🏗️  Building Android WalletKit bundles...\n');
 
-    // Output to apps/androidkit/dist-android (where Android SDK expects them)
-    const buildDir = path.resolve(__dirname, '../../../apps/androidkit/dist-android');
+    // Output to package dist directory
+    const buildDir = path.resolve(__dirname, '../dist');
     if (fs.existsSync(buildDir)) {
         const files = await fs.promises.readdir(buildDir);
         for (const file of files) {

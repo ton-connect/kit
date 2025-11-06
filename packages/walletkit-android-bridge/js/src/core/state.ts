@@ -1,4 +1,14 @@
 /**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
  * Shared mutable bridge state.
  */
 
@@ -13,7 +23,7 @@ export let currentApiBase: string = 'https://testnet.tonapi.io';
  * @param instance - The instantiated WalletKit or null when reset.
  */
 export function setWalletKit(instance: any | null): void {
-  walletKit = instance;
+    walletKit = instance;
 }
 
 /**
@@ -22,7 +32,7 @@ export function setWalletKit(instance: any | null): void {
  * @param value - Whether WalletKit has completed initialization.
  */
 export function setInitialized(value: boolean): void {
-  initialized = value;
+    initialized = value;
 }
 
 /**
@@ -31,7 +41,7 @@ export function setInitialized(value: boolean): void {
  * @param network - Network value reported by WalletKit.
  */
 export function setCurrentNetwork(network: string): void {
-  currentNetwork = network;
+    currentNetwork = network;
 }
 
 /**
@@ -40,5 +50,5 @@ export function setCurrentNetwork(network: string): void {
  * @param apiBase - Base URL used for TON API calls.
  */
 export function setCurrentApiBase(apiBase: string): void {
-  currentApiBase = apiBase;
+    currentApiBase = apiBase;
 }
