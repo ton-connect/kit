@@ -18,6 +18,19 @@ if (globalThis && !globalThis.Buffer) {
     globalThis.Buffer = Buffer;
 }
 
+// Debug logging flag - can be set via window.__TONCONNECT_DEBUG__ from native code
+// In production builds, this should be false to suppress all bridge logs
+const DEBUG_ENABLED = typeof (window as any).__TONCONNECT_DEBUG__ !== 'undefined' 
+    ? (window as any).__TONCONNECT_DEBUG__ 
+    : false; // Default to false (no logs) in production
+
+// Debug logger - only logs when DEBUG_ENABLED is true
+const debugLog = (...args: any[]) => {
+    if (DEBUG_ENABLED) {
+        console.log(...args);
+    }
+};
+
 import { injectBridgeCode } from '@ton/walletkit/bridge';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 
@@ -50,13 +63,13 @@ if (!(window as any).__tonconnect_frameId) {
 
 const isAndroidWebView = typeof (window as any).AndroidTonConnect !== 'undefined';
 
-console.log(`[TonConnect] ===== INJECTION STARTING =====`);
-console.log(`[TonConnect] Frame ID: ${frameId}`);
-console.log(`[TonConnect] Is top window: ${window === window.top}`);
-console.log(`[TonConnect] Is iframe: ${window !== window.parent}`);
-console.log(`[TonConnect] Android WebView: ${isAndroidWebView}`);
-console.log(`[TonConnect] Current URL: ${window.location.href}`);
-console.log(`[TonConnect] ===== STARTING BRIDGE SETUP =====`);
+debugLog(`[TonConnect] ===== INJECTION STARTING =====`);
+debugLog(`[TonConnect] Frame ID: ${frameId}`);
+debugLog(`[TonConnect] Is top window: ${window === window.top}`);
+debugLog(`[TonConnect] Is iframe: ${window !== window.parent}`);
+debugLog(`[TonConnect] Android WebView: ${isAndroidWebView}`);
+debugLog(`[TonConnect] Current URL: ${window.location.href}`);
+debugLog(`[TonConnect] ===== STARTING BRIDGE SETUP =====`);
 
 // Device info matching demo wallet extension format
 const deviceInfo = {
@@ -137,24 +150,24 @@ class AndroidWebViewTransport implements Transport {
             return;
         }
 
-        console.log('[AndroidTransport] 🔧 Setting up notification handlers in frame:', frameId);
-        console.log('[AndroidTransport] 🔧 Is top window:', window === window.top);
-        console.log('[AndroidTransport] 🔧 Window location:', window.location.href);
+        debugLog('[AndroidTransport] 🔧 Setting up notification handlers in frame:', frameId);
+        debugLog('[AndroidTransport] 🔧 Is top window:', window === window.top);
+        debugLog('[AndroidTransport] 🔧 Window location:', window.location.href);
 
         // Main frame: Pull from BridgeInterface and broadcast to iframes
         if (window === window.top) {
             bridge.__notifyResponse = (messageId: string) => {
-                console.log(`[AndroidTransport] 📬 Main frame notified of response: ${messageId}`);
+                debugLog(`[AndroidTransport] 📬 Main frame notified of response: ${messageId}`);
                 this.handleResponseNotification(messageId);
             };
 
             bridge.__notifyEvent = () => {
-                console.log('[AndroidTransport] � Main frame notified of event');
+                debugLog('[AndroidTransport] � Main frame notified of event');
                 this.handleEventNotification();
             };
         }
 
-        console.log('[AndroidTransport] ✅ Notification handlers registered');
+        debugLog('[AndroidTransport] ✅ Notification handlers registered');
     }
 
     private setupPostMessageRelay(): void {
@@ -162,11 +175,11 @@ class AndroidWebViewTransport implements Transport {
         window.addEventListener('message', (event) => {
             // Prevent infinite loops - don't process messages from self
             if (event.source === window) {
-                console.log(`[AndroidTransport] 🔄 Frame ${frameId} ignoring self-message`);
+                debugLog(`[AndroidTransport] 🔄 Frame ${frameId} ignoring self-message`);
                 return;
             }
 
-            console.log(
+            debugLog(
                 `[AndroidTransport] 📬 Frame ${frameId} received postMessage:`,
                 event.data?.type,
                 'from origin:',
@@ -176,7 +189,7 @@ class AndroidWebViewTransport implements Transport {
             // Handle response notifications
             if (event.data?.type === 'ANDROID_BRIDGE_RESPONSE') {
                 const messageId = event.data.messageId;
-                console.log(`[AndroidTransport] 📨 Frame ${frameId} received response notification: ${messageId}`);
+                debugLog(`[AndroidTransport] 📨 Frame ${frameId} received response notification: ${messageId}`);
 
                 // 1. Try to handle in THIS frame (if we have pending request)
                 this.pullAndDeliverResponse(messageId);
@@ -184,13 +197,13 @@ class AndroidWebViewTransport implements Transport {
                 // 2. Relay to ALL child iframes (recursive cascade to reach nested iframes)
                 const childIframes = document.querySelectorAll('iframe');
                 if (childIframes.length > 0) {
-                    console.log(
+                    debugLog(
                         `[AndroidTransport] 🔁 Frame ${frameId} relaying response to ${childIframes.length} child iframe(s)`,
                     );
                     childIframes.forEach((iframe, index) => {
                         try {
                             iframe.contentWindow?.postMessage(event.data, '*');
-                            console.log(`[AndroidTransport] ✅ Frame ${frameId} relayed to child iframe #${index}`);
+                            debugLog(`[AndroidTransport] ✅ Frame ${frameId} relayed to child iframe #${index}`);
                         } catch (e) {
                             console.warn(
                                 `[AndroidTransport] ❌ Frame ${frameId} failed to relay to child iframe #${index}:`,
@@ -199,12 +212,12 @@ class AndroidWebViewTransport implements Transport {
                         }
                     });
                 } else {
-                    console.log(`[AndroidTransport] 📭 Frame ${frameId} has no child iframes to relay to`);
+                    debugLog(`[AndroidTransport] 📭 Frame ${frameId} has no child iframes to relay to`);
                 }
             }
             // Handle event notifications
             else if (event.data?.type === 'ANDROID_BRIDGE_EVENT') {
-                console.log(`[AndroidTransport] 📨 Frame ${frameId} received event notification`);
+                debugLog(`[AndroidTransport] 📨 Frame ${frameId} received event notification`);
 
                 // 1. Try to handle in THIS frame
                 this.pullAndDeliverEvent();
@@ -212,13 +225,13 @@ class AndroidWebViewTransport implements Transport {
                 // 2. Relay to ALL child iframes (recursive cascade)
                 const childIframes = document.querySelectorAll('iframe');
                 if (childIframes.length > 0) {
-                    console.log(
+                    debugLog(
                         `[AndroidTransport] 🔁 Frame ${frameId} relaying event to ${childIframes.length} child iframe(s)`,
                     );
                     childIframes.forEach((iframe, index) => {
                         try {
                             iframe.contentWindow?.postMessage(event.data, '*');
-                            console.log(
+                            debugLog(
                                 `[AndroidTransport] ✅ Frame ${frameId} relayed event to child iframe #${index}`,
                             );
                         } catch (e) {
@@ -229,24 +242,24 @@ class AndroidWebViewTransport implements Transport {
                         }
                     });
                 } else {
-                    console.log(`[AndroidTransport] 📭 Frame ${frameId} has no child iframes to relay to`);
+                    debugLog(`[AndroidTransport] 📭 Frame ${frameId} has no child iframes to relay to`);
                 }
             }
         });
 
-        console.log(`[AndroidTransport] ✅ postMessage listener with recursive relay registered in frame: ${frameId}`);
+        debugLog(`[AndroidTransport] ✅ postMessage listener with recursive relay registered in frame: ${frameId}`);
     }
 
     private handleResponseNotification(messageId: string): void {
         // Main frame: Pull response and deliver locally, then trigger recursive cascade
-        console.log(`[AndroidTransport] 📡 Main frame initiating response notification cascade for: ${messageId}`);
+        debugLog(`[AndroidTransport] 📡 Main frame initiating response notification cascade for: ${messageId}`);
 
         // 1. Try to handle in main frame first
         this.pullAndDeliverResponse(messageId);
 
         // 2. Broadcast to direct child iframes (they will relay to their children recursively)
         const iframes = document.querySelectorAll('iframe');
-        console.log(`[AndroidTransport] 📡 Main frame broadcasting to ${iframes.length} direct child iframe(s)`);
+        debugLog(`[AndroidTransport] 📡 Main frame broadcasting to ${iframes.length} direct child iframe(s)`);
 
         iframes.forEach((iframe, index) => {
             try {
@@ -257,7 +270,7 @@ class AndroidWebViewTransport implements Transport {
                     },
                     '*',
                 );
-                console.log(`[AndroidTransport] ✅ Main frame sent to direct child iframe #${index}`);
+                debugLog(`[AndroidTransport] ✅ Main frame sent to direct child iframe #${index}`);
             } catch (e) {
                 console.warn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
             }
@@ -266,14 +279,14 @@ class AndroidWebViewTransport implements Transport {
 
     private handleEventNotification(): void {
         // Main frame: Pull event and deliver locally, then trigger recursive cascade
-        console.log('[AndroidTransport] 📡 Main frame initiating event notification cascade');
+        debugLog('[AndroidTransport] 📡 Main frame initiating event notification cascade');
 
         // 1. Try to handle in main frame first
         this.pullAndDeliverEvent();
 
         // 2. Broadcast to direct child iframes (they will relay to their children recursively)
         const iframes = document.querySelectorAll('iframe');
-        console.log(`[AndroidTransport] 📡 Main frame broadcasting to ${iframes.length} direct child iframe(s)`);
+        debugLog(`[AndroidTransport] 📡 Main frame broadcasting to ${iframes.length} direct child iframe(s)`);
 
         iframes.forEach((iframe, index) => {
             try {
@@ -283,7 +296,7 @@ class AndroidWebViewTransport implements Transport {
                     },
                     '*',
                 );
-                console.log(`[AndroidTransport] ✅ Main frame sent event to direct child iframe #${index}`);
+                debugLog(`[AndroidTransport] ✅ Main frame sent event to direct child iframe #${index}`);
             } catch (e) {
                 console.warn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
             }
@@ -293,7 +306,7 @@ class AndroidWebViewTransport implements Transport {
     private pullAndDeliverResponse(messageId: string): void {
         const pending = this.pendingRequests.get(messageId);
         if (!pending) {
-            console.log(`[AndroidTransport] No pending request for: ${messageId} in frame: ${frameId}`);
+            debugLog(`[AndroidTransport] No pending request for: ${messageId} in frame: ${frameId}`);
             return;
         }
 
@@ -307,7 +320,7 @@ class AndroidWebViewTransport implements Transport {
             const responseStr = bridge.pullResponse(messageId);
             if (responseStr) {
                 const response = JSON.parse(responseStr);
-                console.log(
+                debugLog(
                     `[AndroidTransport] ✅ Pulled and processing response for: ${messageId} in frame: ${frameId}`,
                 );
 
@@ -344,17 +357,17 @@ class AndroidWebViewTransport implements Transport {
                         event?: unknown;
                     };
 
-                    console.log('[AndroidTransport] 🔔 Pulled event in frame:', frameId);
-                    console.log('[AndroidTransport] 🔔 Event data:', JSON.stringify(data).substring(0, 200));
+                    debugLog('[AndroidTransport] 🔔 Pulled event in frame:', frameId);
+                    debugLog('[AndroidTransport] 🔔 Event data:', JSON.stringify(data).substring(0, 200));
 
                     if (data.type === 'TONCONNECT_BRIDGE_EVENT' && data.event) {
-                        console.log('[AndroidTransport] 🔔 Event callbacks count:', this.eventCallbacks.length);
+                        debugLog('[AndroidTransport] 🔔 Event callbacks count:', this.eventCallbacks.length);
 
                         this.eventCallbacks.forEach((callback, index) => {
                             try {
-                                console.log(`[AndroidTransport] 🔔 Calling event callback #${index}`);
+                                debugLog(`[AndroidTransport] 🔔 Calling event callback #${index}`);
                                 callback(data.event);
-                                console.log(`[AndroidTransport] ✅ Event callback #${index} completed`);
+                                debugLog(`[AndroidTransport] ✅ Event callback #${index} completed`);
                             } catch (error) {
                                 console.error(`[AndroidTransport] ❌ Event callback #${index} error:`, error);
                             }
@@ -368,9 +381,9 @@ class AndroidWebViewTransport implements Transport {
     }
 
     async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
-        console.log('[AndroidTransport] 📤 Sending request:', request.method);
-        console.log('[AndroidTransport] 📤 Frame ID:', frameId);
-        console.log('[AndroidTransport] 📤 Is top window:', window === window.top);
+        debugLog('[AndroidTransport] 📤 Sending request:', request.method);
+        debugLog('[AndroidTransport] 📤 Frame ID:', frameId);
+        debugLog('[AndroidTransport] 📤 Is top window:', window === window.top);
 
         const messageId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         const method = request.method || 'unknown';
@@ -384,7 +397,7 @@ class AndroidWebViewTransport implements Transport {
             frameId,
         };
 
-        console.log('[AndroidTransport] 📤 Sending to Kotlin with messageId:', messageId);
+        debugLog('[AndroidTransport] 📤 Sending to Kotlin with messageId:', messageId);
         (window as any).AndroidTonConnect.postMessage(JSON.stringify(payload));
 
         return new Promise((resolve, reject) => {
@@ -394,20 +407,20 @@ class AndroidWebViewTransport implements Transport {
                 reject(new Error('Request timeout'));
             }, 30000);
 
-            console.log('[AndroidTransport] ⏳ Waiting for response to messageId:', messageId);
+            debugLog('[AndroidTransport] ⏳ Waiting for response to messageId:', messageId);
             this.pendingRequests.set(messageId, { resolve, reject, timeout });
         });
     }
 
     onEvent(callback: (event: unknown) => void): void {
-        console.log('[AndroidTransport] 📝 Registering event callback');
-        console.log('[AndroidTransport] 📝 Frame ID:', frameId);
-        console.log('[AndroidTransport] 📝 Window location:', window.location.href);
-        console.log('[AndroidTransport] 📝 Is top window:', window === window.top);
-        console.log('[AndroidTransport] 📝 Callbacks before:', this.eventCallbacks.length);
+        debugLog('[AndroidTransport] 📝 Registering event callback');
+        debugLog('[AndroidTransport] 📝 Frame ID:', frameId);
+        debugLog('[AndroidTransport] 📝 Window location:', window.location.href);
+        debugLog('[AndroidTransport] 📝 Is top window:', window === window.top);
+        debugLog('[AndroidTransport] 📝 Callbacks before:', this.eventCallbacks.length);
 
         this.eventCallbacks.push(callback);
-        console.log('[AndroidTransport] 📝 Callbacks after:', this.eventCallbacks.length);
+        debugLog('[AndroidTransport] 📝 Callbacks after:', this.eventCallbacks.length);
     }
 
     isAvailable(): boolean {
@@ -415,15 +428,15 @@ class AndroidWebViewTransport implements Transport {
     }
 
     requestContentScriptInjection(): void {
-        console.log('[TonConnect] ⚠️ requestContentScriptInjection CALLED - IframeWatcher detected iframe!');
+        debugLog('[TonConnect] ⚠️ requestContentScriptInjection CALLED - IframeWatcher detected iframe!');
 
         // For Android WebView, we need to inject the bridge into iframes
         if (typeof document !== 'undefined') {
             const iframes = document.querySelectorAll('iframe');
-            console.log(`[TonConnect] Found ${iframes.length} iframes in DOM`);
+            debugLog(`[TonConnect] Found ${iframes.length} iframes in DOM`);
 
             iframes.forEach((iframe, index) => {
-                console.log(
+                debugLog(
                     `[TonConnect] Processing iframe ${index}:`,
                     iframe.src || iframe.getAttribute('src') || '(no src)',
                 );
@@ -433,21 +446,21 @@ class AndroidWebViewTransport implements Transport {
                     const iframeWindow = iframe.contentWindow;
 
                     if (!iframeWindow) {
-                        console.log(`[TonConnect] iframe ${index}: contentWindow is null`);
+                        debugLog(`[TonConnect] iframe ${index}: contentWindow is null`);
                         return;
                     }
 
                     if (iframeWindow === window) {
-                        console.log(`[TonConnect] iframe ${index}: contentWindow === window (skipping self)`);
+                        debugLog(`[TonConnect] iframe ${index}: contentWindow === window (skipping self)`);
                         return;
                     }
 
                     // Check if bridge already exists in this iframe
                     const hasExtension = !!(iframeWindow as any).tonkeeper?.tonconnect;
-                    console.log(`[TonConnect] iframe ${index}: Bridge exists? ${hasExtension}`);
+                    debugLog(`[TonConnect] iframe ${index}: Bridge exists? ${hasExtension}`);
 
                     if (!hasExtension) {
-                        console.log(`[TonConnect] ✅ Injecting bridge into same-origin iframe ${index}`);
+                        debugLog(`[TonConnect] ✅ Injecting bridge into same-origin iframe ${index}`);
                         // Re-run injection in the iframe context
                         injectBridgeCode(
                             iframeWindow,
@@ -458,17 +471,17 @@ class AndroidWebViewTransport implements Transport {
                             },
                             new AndroidWebViewTransport(),
                         );
-                        console.log(`[TonConnect] ✅ Bridge injection complete for iframe ${index}`);
+                        debugLog(`[TonConnect] ✅ Bridge injection complete for iframe ${index}`);
                     }
                 } catch (e) {
                     // Cross-origin iframe, can't access
-                    console.log(
+                    debugLog(
                         `[TonConnect] iframe ${index}: Cross-origin - will use postMessage bridge (${(e as Error).message})`,
                     );
                 }
             });
         } else {
-            console.log('[TonConnect] document is undefined, cannot query iframes');
+            debugLog('[TonConnect] document is undefined, cannot query iframes');
         }
     }
 
@@ -503,16 +516,16 @@ class AndroidWebViewTransport implements Transport {
  * - Android WebView documentation: "JavaScript runs in the context of the current page,
  *   including all iframes within that page"
  */
-console.log('[TonConnect] Android WebView injects bridge into all frames automatically');
+debugLog('[TonConnect] Android WebView injects bridge into all frames automatically');
 
 // Create custom transport for Android or undefined for default behavior
 const transport: Transport | undefined = isAndroidWebView ? new AndroidWebViewTransport() : undefined;
 
 // Function to inject the bridge
 const performInjection = () => {
-    console.log('[TonConnect] Injecting bridge code...');
-    console.log('[TonConnect] document.body exists?', !!document.body);
-    console.log('[TonConnect] Current iframes in DOM:', document.querySelectorAll('iframe').length);
+    debugLog('[TonConnect] Injecting bridge code...');
+    debugLog('[TonConnect] document.body exists?', !!document.body);
+    debugLog('[TonConnect] Current iframes in DOM:', document.querySelectorAll('iframe').length);
 
     // Inject wallet with proper configuration and custom transport
     injectBridgeCode(
@@ -525,17 +538,17 @@ const performInjection = () => {
         transport,
     );
 
-    console.log(`[TonConnect] Bridge ready for frame: ${frameId} (transport: ${transport ? 'Android' : 'default'})`);
-    console.log('[TonConnect] Wallet Info:', JSON.stringify(walletInfo, null, 2));
-    console.log('[TonConnect] isWalletBrowser check:', (window as any).tonkeeper?.tonconnect?.isWalletBrowser);
+    debugLog(`[TonConnect] Bridge ready for frame: ${frameId} (transport: ${transport ? 'Android' : 'default'})`);
+    debugLog('[TonConnect] Wallet Info:', JSON.stringify(walletInfo, null, 2));
+    debugLog('[TonConnect] isWalletBrowser check:', (window as any).tonkeeper?.tonconnect?.isWalletBrowser);
 
     // After injection, manually check for existing iframes
     setTimeout(() => {
         const iframes = document.querySelectorAll('iframe');
-        console.log(`[TonConnect] Post-injection check: ${iframes.length} iframes found`);
+        debugLog(`[TonConnect] Post-injection check: ${iframes.length} iframes found`);
         if (iframes.length > 0) {
-            console.log('[TonConnect] ⚠️ Iframes exist but IframeWatcher may not have triggered yet');
-            console.log('[TonConnect] Manually triggering iframe injection...');
+            debugLog('[TonConnect] ⚠️ Iframes exist but IframeWatcher may not have triggered yet');
+            debugLog('[TonConnect] Manually triggering iframe injection...');
             if (transport && 'requestContentScriptInjection' in transport) {
                 (transport as any).requestContentScriptInjection();
             }
@@ -546,14 +559,14 @@ const performInjection = () => {
 // Wait for document.body to exist before injecting
 // This is critical because IframeWatcher needs document.body to observe for iframes
 if (!document.body) {
-    console.log('[TonConnect] Waiting for document.body before injecting bridge...');
+    debugLog('[TonConnect] Waiting for document.body before injecting bridge...');
 
     // Use DOMContentLoaded if DOM is still loading
     if (document.readyState === 'loading') {
         document.addEventListener(
             'DOMContentLoaded',
             () => {
-                console.log('[TonConnect] DOMContentLoaded fired, injecting bridge');
+                debugLog('[TonConnect] DOMContentLoaded fired, injecting bridge');
                 performInjection();
             },
             { once: true },
@@ -562,7 +575,7 @@ if (!document.body) {
         // DOM is interactive/complete but body doesn't exist yet (rare) - use timer
         const checkBody = () => {
             if (document.body) {
-                console.log('[TonConnect] document.body now available, injecting bridge');
+                debugLog('[TonConnect] document.body now available, injecting bridge');
                 performInjection();
             } else {
                 setTimeout(checkBody, 10);
@@ -572,6 +585,6 @@ if (!document.body) {
     }
 } else {
     // Body already exists, inject immediately
-    console.log('[TonConnect] document.body exists, injecting bridge immediately');
+    debugLog('[TonConnect] document.body exists, injecting bridge immediately');
     performInjection();
 }
