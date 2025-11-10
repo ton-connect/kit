@@ -51,7 +51,7 @@ export interface RemoveWalletArgs {
     address: string;
 }
 
-export interface GetWalletStateArgs {
+export interface GetBalanceArgs {
     address: string;
 }
 
@@ -227,7 +227,7 @@ export interface WalletKitBridgeApi {
     getWallets(): PromiseOrValue<WalletDescriptor[]>;
     getWallet(args: { address: string }): PromiseOrValue<WalletDescriptor | null>;
     removeWallet(args: RemoveWalletArgs): PromiseOrValue<{ removed: boolean }>;
-    getWalletState(args: GetWalletStateArgs): PromiseOrValue<{ balance: string; transactions: unknown[] }>;
+    getBalance(args: GetBalanceArgs): PromiseOrValue<{ balance: string }>;
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<{ items: unknown[] }>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<unknown>;
     createTransferTonTransaction(

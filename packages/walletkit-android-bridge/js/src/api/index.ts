@@ -41,7 +41,7 @@ const apiImpl: WalletKitBridgeApi = {
     getWallets: wallets.getWallets,
     getWallet: wallets.getWallet,
     removeWallet: wallets.removeWallet,
-    getWalletState: wallets.getWalletState,
+    getBalance: wallets.getBalance,
 
     // Transactions
     getRecentTransactions: transactions.getRecentTransactions,

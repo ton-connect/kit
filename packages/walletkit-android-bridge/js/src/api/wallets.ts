@@ -14,7 +14,7 @@
 
 import type {
     RemoveWalletArgs,
-    GetWalletStateArgs,
+    GetBalanceArgs,
     WalletDescriptor,
     CreateSignerArgs,
     CreateAdapterArgs,
@@ -116,8 +116,8 @@ export async function removeWallet(args: RemoveWalletArgs) {
 /**
  * Fetches wallet balance and cached transactions.
  */
-export async function getWalletState(args: GetWalletStateArgs) {
-    return callBridge('getWalletState', async () => {
+export async function getBalance(args: GetBalanceArgs) {
+    return callBridge('getBalance', async () => {
         const wallet = walletKit.getWallet(args.address) as WalletKitWallet | undefined;
         if (!wallet) {
             throw new Error('Wallet not found');
@@ -126,9 +126,8 @@ export async function getWalletState(args: GetWalletStateArgs) {
         // Balance formatting handled by Kotlin
         const balance = await wallet.getBalance();
         const balanceStr = String(balance ?? '0');
-        const transactions = wallet.getTransactions ? await wallet.getTransactions(10) : [];
 
-        return { balance: balanceStr, transactions };
+        return { balance: balanceStr };
     });
 }
 
