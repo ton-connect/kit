@@ -12,13 +12,13 @@
  * Wallet management helpers covering creation, listing, and state retrieval.
  */
 import type {
-    CreateWalletWithSignerArgs,
-    CreateWalletUsingMnemonicArgs,
-    CreateWalletUsingSecretKeyArgs,
     RemoveWalletArgs,
     GetWalletStateArgs,
     CallContext,
     WalletDescriptor,
+    CreateSignerArgs,
+    CreateAdapterArgs,
+    AddWalletArgs,
 } from '../types';
 import {
     ensureWalletKitLoaded,
@@ -48,224 +48,6 @@ function resolveChain(network?: string) {
 }
 
 /**
- * Creates a V4R2 wallet backed by an external signer managed on the native side.
- *
- * @param args - Signer metadata and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV4R2WalletWithSigner(args: CreateWalletWithSignerArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-requireWalletKit');
-
-    const { chain } = resolveChain(args.network as string | undefined);
-
-    const pendingSignRequests = new Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>();
-    registerSignerRequest(args.signerId, pendingSignRequests);
-
-    const publicKeyHex = args.publicKey.startsWith('0x') ? args.publicKey : `0x${args.publicKey}`;
-
-    const customSigner: any = {
-        sign: async (bytes: Uint8Array) => {
-            const requestId = `sign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            emitSignerRequest(args.signerId, requestId, bytes);
-            return new Promise<Uint8Array>((resolve, reject) => {
-                pendingSignRequests.set(requestId, { resolve, reject });
-                setTimeout(() => {
-                    if (pendingSignRequests.has(requestId)) {
-                        pendingSignRequests.delete(requestId);
-                        reject(new Error('Sign request timed out'));
-                    }
-                }, 60000);
-            });
-        },
-        publicKey: publicKeyHex,
-    };
-
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-createWalletAdapter');
-    const walletAdapter = await WalletV4R2Adapter.create(customSigner, {
-        client: walletKit.getApiClient(),
-        network: chain,
-    });
-
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-createWalletAdapter');
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:before-walletKit.addWallet');
-    const wallet = await walletKit.addWallet(walletAdapter);
-    emitCallCheckpoint(context, 'createV4R2WalletWithSigner:after-walletKit.addWallet');
-
-    if (!wallet) {
-        throw new Error('Failed to add wallet - may already exist');
-    }
-
-    return {
-        address: wallet.getAddress(),
-        publicKey: args.publicKey.replace(/^0x/, ''),
-    };
-}
-
-/**
- * Creates a V5R1 wallet backed by an external signer managed on the native side.
- *
- * @param args - Signer metadata and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV5R1WalletWithSigner(args: CreateWalletWithSignerArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-requireWalletKit');
-
-    const { chain } = resolveChain(args.network as string | undefined);
-
-    const pendingSignRequests = new Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>();
-    registerSignerRequest(args.signerId, pendingSignRequests);
-
-    const publicKeyHex = args.publicKey.startsWith('0x') ? args.publicKey : `0x${args.publicKey}`;
-
-    const customSigner: any = {
-        sign: async (bytes: Uint8Array) => {
-            const requestId = `sign_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            emitSignerRequest(args.signerId, requestId, bytes);
-            return new Promise<Uint8Array>((resolve, reject) => {
-                pendingSignRequests.set(requestId, { resolve, reject });
-                setTimeout(() => {
-                    if (pendingSignRequests.has(requestId)) {
-                        pendingSignRequests.delete(requestId);
-                        reject(new Error('Sign request timed out'));
-                    }
-                }, 60000);
-            });
-        },
-        publicKey: publicKeyHex,
-    };
-
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-createWalletAdapter');
-    const walletAdapter = await WalletV5R1Adapter.create(customSigner, {
-        client: walletKit.getApiClient(),
-        network: chain,
-    });
-
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-createWalletAdapter');
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:before-walletKit.addWallet');
-    const wallet = await walletKit.addWallet(walletAdapter);
-    emitCallCheckpoint(context, 'createV5R1WalletWithSigner:after-walletKit.addWallet');
-
-    if (!wallet) {
-        throw new Error('Failed to add wallet - may already exist');
-    }
-
-    return {
-        address: wallet.getAddress(),
-        publicKey: args.publicKey.replace(/^0x/, ''),
-    };
-}
-
-async function createWalletUsingMnemonic(
-    args: CreateWalletUsingMnemonicArgs,
-    adapterFactory: typeof WalletV4R2Adapter | typeof WalletV5R1Adapter,
-    context: CallContext | undefined,
-) {
-    emitCallCheckpoint(context, 'createWalletUsingMnemonic:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'createWalletUsingMnemonic:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    if (!args.mnemonic) {
-        throw new Error('Mnemonic required for mnemonic wallet type');
-    }
-
-    const { chain } = resolveChain(args.network as string | undefined);
-    const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
-    const adapter = await adapterFactory.create(signer, {
-        client: walletKit.getApiClient(),
-        network: chain,
-    });
-
-    const wallet = await walletKit.addWallet(adapter);
-    if (!wallet) {
-        throw new Error('Failed to add wallet - may already exist');
-    }
-
-    return {
-        address: wallet.getAddress(),
-        publicKey: signer.publicKey.replace('0x', ''),
-    };
-}
-
-async function createWalletUsingSecretKey(
-    args: CreateWalletUsingSecretKeyArgs,
-    adapterFactory: typeof WalletV4R2Adapter | typeof WalletV5R1Adapter,
-    context: CallContext | undefined,
-) {
-    emitCallCheckpoint(context, 'createWalletUsingSecretKey:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'createWalletUsingSecretKey:after-ensureWalletKitLoaded');
-    requireWalletKit();
-    if (!args.secretKey) {
-        throw new Error('Secret key required for secret key wallet type');
-    }
-
-    const { chain } = resolveChain(args.network as string | undefined);
-    const signer = await Signer.fromPrivateKey(args.secretKey);
-    const adapter = await adapterFactory.create(signer, {
-        client: walletKit.getApiClient(),
-        network: chain,
-    });
-
-    const wallet = await walletKit.addWallet(adapter);
-    if (!wallet) {
-        throw new Error('Failed to add wallet - may already exist');
-    }
-
-    return {
-        address: wallet.getAddress(),
-        publicKey: signer.publicKey.replace('0x', ''),
-    };
-}
-
-/**
- * Creates a V4R2 wallet using a mnemonic phrase.
- *
- * @param args - Mnemonic words and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV4R2WalletUsingMnemonic(args: CreateWalletUsingMnemonicArgs, context?: CallContext) {
-    return createWalletUsingMnemonic(args, WalletV4R2Adapter, context);
-}
-
-/**
- * Creates a V4R2 wallet using a raw secret key.
- *
- * @param args - Secret key and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV4R2WalletUsingSecretKey(args: CreateWalletUsingSecretKeyArgs, context?: CallContext) {
-    return createWalletUsingSecretKey(args, WalletV4R2Adapter, context);
-}
-
-/**
- * Creates a V5R1 wallet using a mnemonic phrase.
- *
- * @param args - Mnemonic words and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV5R1WalletUsingMnemonic(args: CreateWalletUsingMnemonicArgs, context?: CallContext) {
-    return createWalletUsingMnemonic(args, WalletV5R1Adapter, context);
-}
-
-/**
- * Creates a V5R1 wallet using a raw secret key.
- *
- * @param args - Secret key and optional network override.
- * @param context - Diagnostic context for tracing.
- */
-export async function createV5R1WalletUsingSecretKey(args: CreateWalletUsingSecretKeyArgs, context?: CallContext) {
-    return createWalletUsingSecretKey(args, WalletV5R1Adapter, context);
-}
-
-/**
  * Lists all wallets known to WalletKit along with metadata required by the native layer.
  *
  * @param _args - Unused placeholder to preserve compatibility.
@@ -291,6 +73,44 @@ export async function getWallets(_?: unknown, context?: CallContext): Promise<Wa
         index,
         network: currentNetwork,
     }));
+}
+
+/**
+ * Get a single wallet by address.
+ *
+ * @param args - Wallet address to find.
+ * @param context - Diagnostic context for tracing.
+ */
+export async function getWallet(args: { address: string }, context?: CallContext): Promise<WalletDescriptor | null> {
+    emitCallCheckpoint(context, 'getWallet:enter');
+    requireWalletKit();
+    emitCallCheckpoint(context, 'getWallet:after-requireWalletKit');
+    if (typeof walletKit.ensureInitialized === 'function') {
+        emitCallCheckpoint(context, 'getWallet:before-walletKit.ensureInitialized');
+        await walletKit.ensureInitialized();
+        emitCallCheckpoint(context, 'getWallet:after-walletKit.ensureInitialized');
+    }
+    
+    const address = args.address?.trim();
+    if (!address) {
+        throw new Error('Wallet address is required');
+    }
+    
+    const wallet = walletKit.getWallet?.(address);
+    if (!wallet) {
+        return null;
+    }
+    
+    emitCallCheckpoint(context, 'getWallet:after-walletKit.getWallet');
+    return {
+        address: wallet.getAddress(),
+        publicKey: Array.from(wallet.publicKey as Uint8Array)
+            .map((b: number) => b.toString(16).padStart(2, '0'))
+            .join(''),
+        version: typeof wallet.version === 'string' ? wallet.version : 'unknown',
+        index: 0, // Single wallet doesn't have index
+        network: currentNetwork,
+    };
 }
 
 /**
@@ -340,4 +160,137 @@ export async function getWalletState(args: GetWalletStateArgs, context?: CallCon
     const transactions = wallet.getTransactions ? await wallet.getTransactions(10) : [];
     emitCallCheckpoint(context, 'getWalletState:after-wallet.getTransactions');
     return { balance: balanceStr, transactions };
+}
+
+// Store for signers and adapters
+const signerStore = new Map<string, any>();
+const adapterStore = new Map<string, any>();
+
+/**
+ * Creates a signer from mnemonic or secret key.
+ * This matches the step 1 in the JS WalletKit docs pattern.
+ *
+ * @param args - Mnemonic or secret key with optional type
+ * @param context - Diagnostic context for tracing
+ * @returns Signer ID and public key
+ */
+export async function createSigner(args: CreateSignerArgs, context?: CallContext) {
+    emitCallCheckpoint(context, 'createSigner:start');
+    await ensureWalletKitLoaded();
+    emitCallCheckpoint(context, 'createSigner:after-ensureWalletKitLoaded');
+
+    let signer: any;
+    
+    if (args.mnemonic && args.mnemonic.length > 0) {
+        // Create from mnemonic
+        signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType || 'ton' });
+    } else if (args.secretKey) {
+        // Create from secret key
+        signer = await Signer.fromPrivateKey(args.secretKey);
+    } else {
+        throw new Error('Either mnemonic or secretKey must be provided');
+    }
+
+    // Generate a unique ID for this signer
+    const signerId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    signerStore.set(signerId, signer);
+
+    emitCallCheckpoint(context, 'createSigner:complete');
+    return {
+        signerId,
+        publicKey: signer.publicKey.replace(/^0x/, ''),
+    };
+}
+
+/**
+ * Creates a wallet adapter from a signer.
+ * This matches the step 2 in the JS WalletKit docs pattern.
+ *
+ * @param args - Signer ID and wallet version
+ * @param context - Diagnostic context for tracing
+ * @returns Adapter ID and wallet address
+ */
+export async function createAdapter(args: CreateAdapterArgs, context?: CallContext) {
+    emitCallCheckpoint(context, 'createAdapter:start');
+    await ensureWalletKitLoaded();
+    requireWalletKit();
+    emitCallCheckpoint(context, 'createAdapter:after-requireWalletKit');
+
+    const signer = signerStore.get(args.signerId);
+    if (!signer) {
+        throw new Error(`Signer not found: ${args.signerId}`);
+    }
+
+    const { chain } = resolveChain(args.network as string | undefined);
+
+    // Extract workchain and walletId from args, with defaults
+    const workchain = args.workchain !== undefined ? args.workchain : 0;
+    const walletId = args.walletId !== undefined ? args.walletId : undefined;
+
+    let adapter: any;
+    if (args.walletVersion === 'v5r1') {
+        adapter = await WalletV5R1Adapter.create(signer, {
+            client: walletKit.getApiClient(),
+            network: chain,
+            workchain,
+            ...(walletId !== undefined && { walletId }),
+        });
+    } else if (args.walletVersion === 'v4r2') {
+        adapter = await WalletV4R2Adapter.create(signer, {
+            client: walletKit.getApiClient(),
+            network: chain,
+            workchain,
+            ...(walletId !== undefined && { walletId }),
+        });
+    } else {
+        throw new Error(`Unsupported wallet version: ${args.walletVersion}`);
+    }
+
+    // Generate a unique ID for this adapter
+    const adapterId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    adapterStore.set(adapterId, adapter);
+
+    emitCallCheckpoint(context, 'createAdapter:complete');
+    return {
+        adapterId,
+        address: adapter.getAddress(),
+    };
+}
+
+/**
+ * Adds a wallet to the WalletKit using an adapter.
+ * This matches the step 3 in the JS WalletKit docs pattern.
+ *
+ * @param args - Adapter ID
+ * @param context - Diagnostic context for tracing
+ * @returns Wallet address and public key
+ */
+export async function addWallet(args: AddWalletArgs, context?: CallContext) {
+    emitCallCheckpoint(context, 'addWallet:start');
+    await ensureWalletKitLoaded();
+    requireWalletKit();
+    emitCallCheckpoint(context, 'addWallet:after-requireWalletKit');
+
+    const adapter = adapterStore.get(args.adapterId);
+    if (!adapter) {
+        throw new Error(`Adapter not found: ${args.adapterId}`);
+    }
+
+    emitCallCheckpoint(context, 'addWallet:before-walletKit.addWallet');
+    const wallet = await walletKit.addWallet(adapter);
+    emitCallCheckpoint(context, 'addWallet:after-walletKit.addWallet');
+
+    if (!wallet) {
+        throw new Error('Failed to add wallet - may already exist');
+    }
+
+    // Clean up the adapter from store after use
+    adapterStore.delete(args.adapterId);
+
+    return {
+        address: wallet.getAddress(),
+        publicKey: Array.from(wallet.publicKey as Uint8Array)
+            .map((b: number) => b.toString(16).padStart(2, '0'))
+            .join(''),
+    };
 }

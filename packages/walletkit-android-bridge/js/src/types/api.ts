@@ -15,24 +15,18 @@ export interface SetEventsListenersArgs {
     callback?: WalletKitBridgeEventCallback;
 }
 
-export interface DerivePublicKeyFromMnemonicArgs {
+export interface MnemonicToKeyPairArgs {
     mnemonic: string[];
+    mnemonicType?: 'ton' | 'bip39';
 }
 
-export interface SignDataWithMnemonicArgs {
-    words: string[];
+export interface SignArgs {
     data: number[];
-    mnemonicType?: 'ton' | 'bip39';
+    secretKey: number[];
 }
 
 export interface CreateTonMnemonicArgs {
     count?: number;
-}
-
-export interface CreateWalletWithSignerArgs {
-    publicKey: string;
-    network?: string;
-    signerId: string;
 }
 
 export interface RespondToSignRequestArgs {
@@ -42,14 +36,22 @@ export interface RespondToSignRequestArgs {
     error?: string;
 }
 
-export interface CreateWalletUsingMnemonicArgs {
-    mnemonic: string[];
-    network?: string;
+export interface CreateSignerArgs {
+    mnemonic?: string[];
+    secretKey?: string;
+    mnemonicType?: 'ton' | 'bip39';
 }
 
-export interface CreateWalletUsingSecretKeyArgs {
-    secretKey: string;
+export interface CreateAdapterArgs {
+    signerId: string;
+    walletVersion: 'v4r2' | 'v5r1';
     network?: string;
+    workchain?: number;
+    walletId?: number;
+}
+
+export interface AddWalletArgs {
+    adapterId: string;
 }
 
 export interface RemoveWalletArgs {
@@ -223,29 +225,17 @@ export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<unknown>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
     removeEventListeners(): PromiseOrValue<{ ok: true }>;
-    derivePublicKeyFromMnemonic(args: DerivePublicKeyFromMnemonicArgs): PromiseOrValue<{ publicKey: string }>;
-    signDataWithMnemonic(args: SignDataWithMnemonicArgs): PromiseOrValue<{ signature: number[] }>;
+    mnemonicToKeyPair(
+        args: MnemonicToKeyPairArgs,
+    ): PromiseOrValue<{ publicKey: number[]; secretKey: number[] }>;
+    sign(args: SignArgs): PromiseOrValue<{ signature: number[] }>;
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<{ items: string[] }>;
-    createV4R2WalletWithSigner(
-        args: CreateWalletWithSignerArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletWithSigner(
-        args: CreateWalletWithSignerArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
     respondToSignRequest(args: RespondToSignRequestArgs): PromiseOrValue<{ ok: true }>;
-    createV4R2WalletUsingMnemonic(
-        args: CreateWalletUsingMnemonicArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV4R2WalletUsingSecretKey(
-        args: CreateWalletUsingSecretKeyArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletUsingMnemonic(
-        args: CreateWalletUsingMnemonicArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletUsingSecretKey(
-        args: CreateWalletUsingSecretKeyArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
+    createSigner(args: CreateSignerArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
+    createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
+    addWallet(args: AddWalletArgs): PromiseOrValue<{ address: string; publicKey: string }>;
     getWallets(): PromiseOrValue<WalletDescriptor[]>;
+    getWallet(args: { address: string }): PromiseOrValue<WalletDescriptor | null>;
     removeWallet(args: RemoveWalletArgs): PromiseOrValue<{ removed: boolean }>;
     getWalletState(args: GetWalletStateArgs): PromiseOrValue<{ balance: string; transactions: unknown[] }>;
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<{ items: unknown[] }>;

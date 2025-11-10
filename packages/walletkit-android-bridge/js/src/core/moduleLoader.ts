@@ -20,7 +20,9 @@ export let TonWalletKit: any;
 export let createWalletInitConfigMnemonic: any;
 export let createWalletManifest: any;
 export let CreateTonMnemonic: any;
+export let MnemonicToKeyPair: any;
 export let Signer: any;
+export let DefaultSignature: any;
 export let WalletV4R2Adapter: any;
 export let WalletV5R1Adapter: any;
 export let Address: any;
@@ -40,6 +42,8 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         Address &&
         Cell &&
         Signer &&
+        MnemonicToKeyPair &&
+        DefaultSignature &&
         WalletV4R2Adapter &&
         WalletV5R1Adapter
     ) {
@@ -50,6 +54,8 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         !TonWalletKit ||
         !createWalletInitConfigMnemonic ||
         !Signer ||
+        !MnemonicToKeyPair ||
+        !DefaultSignature ||
         !WalletV4R2Adapter ||
         !WalletV5R1Adapter ||
         !CHAIN
@@ -58,10 +64,12 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         TonWalletKit = (module as any).TonWalletKit;
         createWalletInitConfigMnemonic = (module as any).createWalletInitConfigMnemonic;
         CreateTonMnemonic = (module as any).CreateTonMnemonic ?? (module as any).CreateTonMnemonic;
+        MnemonicToKeyPair = (module as any).MnemonicToKeyPair ?? (module as any).MnemonicToKeyPair;
         createWalletManifest = (module as any).createWalletManifest ?? createWalletManifest;
         CHAIN = (module as any).CHAIN;
         tonConnectChain = (module as any).CHAIN ?? tonConnectChain;
         Signer = (module as any).Signer;
+        DefaultSignature = (module as any).DefaultSignature;
         WalletV4R2Adapter = (module as any).WalletV4R2Adapter;
         WalletV5R1Adapter = (module as any).WalletV5R1Adapter;
     }

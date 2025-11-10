@@ -12,70 +12,64 @@
  * Cryptographic helpers backed by WalletKit and custom signer coordination.
  */
 import type {
-    DerivePublicKeyFromMnemonicArgs,
-    SignDataWithMnemonicArgs,
+    MnemonicToKeyPairArgs,
+    SignArgs,
     CreateTonMnemonicArgs,
     RespondToSignRequestArgs,
     CallContext,
 } from '../types';
-import { ensureWalletKitLoaded, Signer, CreateTonMnemonic } from '../core/moduleLoader';
+import { ensureWalletKitLoaded, Signer, CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
 import { emitCallCheckpoint } from '../transport/diagnostics';
 import { hexToBytes, bytesToHex, normalizeHex } from '../utils/serialization';
 import { emit } from '../transport/messaging';
 
 /**
- * Derives the public key from a mnemonic phrase using WalletKit's signer implementation.
+ * Converts a mnemonic phrase to a key pair (public + secret keys).
  *
- * @param args - Mnemonic words used for derivation.
+ * @param args - Mnemonic words and optional type ('ton' or 'bip39').
  * @param context - Diagnostic context for tracing.
  */
-export async function derivePublicKeyFromMnemonic(args: DerivePublicKeyFromMnemonicArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'derivePublicKeyFromMnemonic:start');
+export async function mnemonicToKeyPair(args: MnemonicToKeyPairArgs, context?: CallContext) {
+    emitCallCheckpoint(context, 'mnemonicToKeyPair:start');
     await ensureWalletKitLoaded();
 
-    const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
+    const keyPair = await MnemonicToKeyPair(args.mnemonic, args.mnemonicType ?? 'ton');
 
-    emitCallCheckpoint(context, 'derivePublicKeyFromMnemonic:complete');
-    return { publicKey: signer.publicKey };
+    emitCallCheckpoint(context, 'mnemonicToKeyPair:complete');
+    return {
+        publicKey: Array.from(keyPair.publicKey) as number[],
+        secretKey: Array.from(keyPair.secretKey) as number[],
+    };
 }
 
 /**
- * Signs arbitrary data using a mnemonic phrase.
+ * Signs arbitrary data using a secret key.
  *
- * @param args - Mnemonic words, payload bytes, and optional mnemonic type.
+ * @param args - Data bytes and secret key bytes.
  * @param context - Diagnostic context for tracing.
  */
-export async function signDataWithMnemonic(args: SignDataWithMnemonicArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'signDataWithMnemonic:before-ensureWalletKitLoaded');
+export async function sign(args: SignArgs, context?: CallContext) {
+    emitCallCheckpoint(context, 'sign:start');
     await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-ensureWalletKitLoaded');
 
-    if (!args?.words || args.words.length === 0) {
-        throw new Error('Mnemonic words required for signDataWithMnemonic');
-    }
     if (!Array.isArray(args.data)) {
-        throw new Error('Data array required for signDataWithMnemonic');
+        throw new Error('Data array required for sign');
     }
-
-    const signer = await Signer.fromMnemonic(args.words, { type: args.mnemonicType ?? 'ton' });
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-createSigner');
+    if (!Array.isArray(args.secretKey)) {
+        throw new Error('Secret key array required for sign');
+    }
 
     const dataBytes = Uint8Array.from(args.data);
-    const signatureResult = await signer.sign(dataBytes);
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-sign');
+    const secretKeyBytes = Uint8Array.from(args.secretKey);
 
-    let signatureBytes: Uint8Array;
-    if (typeof signatureResult === 'string') {
-        signatureBytes = hexToBytes(signatureResult);
-    } else if (signatureResult instanceof Uint8Array) {
-        signatureBytes = signatureResult;
-    } else if (Array.isArray(signatureResult)) {
-        signatureBytes = Uint8Array.from(signatureResult);
-    } else {
-        throw new Error('Unsupported signature format from signer');
-    }
+    // DefaultSignature returns hex string
+    const signatureHex = DefaultSignature(dataBytes, secretKeyBytes);
+    
+    // Convert hex to bytes for consistent return format
+    const signatureBytes = hexToBytes(signatureHex);
 
-    return { signature: Array.from(signatureBytes) };
+    emitCallCheckpoint(context, 'sign:complete');
+    return { signature: Array.from(signatureBytes) as number[] };
 }
 
 /**
