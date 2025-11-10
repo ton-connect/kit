@@ -29,13 +29,6 @@ export interface CreateTonMnemonicArgs {
     count?: number;
 }
 
-export interface RespondToSignRequestArgs {
-    signerId: string;
-    requestId: string;
-    signature?: number[] | string;
-    error?: string;
-}
-
 export interface CreateSignerArgs {
     mnemonic?: string[];
     secretKey?: string;
@@ -91,7 +84,7 @@ export interface CreateTransferMultiTonTransactionArgs {
 
 export interface TransactionContentArgs {
     walletAddress: string;
-    transactionContent: string;
+    transactionContent: unknown; // Can be object (from Kotlin) or string (legacy)
 }
 
 export interface TonConnectRequestEvent extends Record<string, unknown> {
@@ -225,12 +218,9 @@ export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<unknown>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
     removeEventListeners(): PromiseOrValue<{ ok: true }>;
-    mnemonicToKeyPair(
-        args: MnemonicToKeyPairArgs,
-    ): PromiseOrValue<{ publicKey: number[]; secretKey: number[] }>;
+    mnemonicToKeyPair(args: MnemonicToKeyPairArgs): PromiseOrValue<{ publicKey: number[]; secretKey: number[] }>;
     sign(args: SignArgs): PromiseOrValue<{ signature: number[] }>;
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<{ items: string[] }>;
-    respondToSignRequest(args: RespondToSignRequestArgs): PromiseOrValue<{ ok: true }>;
     createSigner(args: CreateSignerArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
     createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
     addWallet(args: AddWalletArgs): PromiseOrValue<{ address: string; publicKey: string }>;

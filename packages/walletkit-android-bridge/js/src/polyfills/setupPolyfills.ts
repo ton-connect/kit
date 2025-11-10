@@ -6,35 +6,56 @@
  *
  */
 
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Buffer } from 'buffer';
 
 import { URL, URLSearchParams } from 'whatwg-url';
 
 import textEncoder from './textEncoder';
+import { debugLog, debugWarn, logError } from '../utils/logger';
 
-type AnyGlobal = typeof globalThis & Record<string, unknown>;
+type NativeStorageBridge = {
+    storageGet: (key: string) => string | null | undefined;
+    storageSet: (key: string, value: string) => void;
+    storageRemove: (key: string) => void;
+    storageClear: () => void;
+};
 
-function applyTextEncoder(target: AnyGlobal) {
+type PolyfilledGlobal = typeof globalThis & {
+    fetch?: typeof fetch;
+    AbortController?: typeof AbortController;
+    Buffer?: typeof Buffer;
+    URL?: typeof URL;
+    URLSearchParams?: typeof URLSearchParams;
+    AndroidBridge?: NativeStorageBridge;
+    WalletKitNative?: NativeStorageBridge;
+    WalletKitNativeStorage?: Storage;
+};
+
+function applyTextEncoder(target: PolyfilledGlobal) {
     try {
-        textEncoder(target as any);
+        textEncoder(target);
     } catch (err) {
-        console.error('[walletkitBridge] Failed to apply TextEncoder polyfill', err);
+        logError('[walletkitBridge] Failed to apply TextEncoder polyfill', err);
     }
 }
 
-function ensureFetch(target: AnyGlobal) {
+function ensureFetch(target: PolyfilledGlobal) {
     if (typeof target.fetch === 'undefined' && typeof window !== 'undefined' && typeof window.fetch === 'function') {
         target.fetch = window.fetch.bind(window);
     }
 }
 
-function ensureAbortController(target: AnyGlobal) {
+function ensureAbortController(target: PolyfilledGlobal) {
     if (typeof target.AbortController === 'undefined') {
+        type MutableAbortSignal = AbortSignal & {
+            aborted: boolean;
+            onabort: null;
+            reason?: unknown;
+            throwIfAborted(): void;
+        };
+
         class PolyfillAbortController implements AbortController {
-            signal = {
+            signal: MutableAbortSignal = {
                 aborted: false,
                 addEventListener() {},
                 removeEventListener() {},
@@ -44,22 +65,22 @@ function ensureAbortController(target: AnyGlobal) {
                 onabort: null,
                 reason: undefined,
                 throwIfAborted() {},
-            } as AbortSignal;
+            };
 
             abort() {
-                (this.signal as any).aborted = true;
+                this.signal.aborted = true;
             }
         }
-        target.AbortController = PolyfillAbortController as any;
+        target.AbortController = PolyfillAbortController as typeof AbortController;
     }
 }
 
-function overrideLocalStorage(target: AnyGlobal) {
+function overrideLocalStorage(target: PolyfilledGlobal) {
     // Check if we have the native bridge available
-    const bridge = (target as any).AndroidBridge || (target as any).WalletKitNative;
+    const bridge = target.AndroidBridge || target.WalletKitNative;
 
     if (!bridge) {
-        console.warn('[walletkitBridge] No native bridge found, localStorage will not be overridden');
+        debugWarn('[walletkitBridge] No native bridge found, localStorage will not be overridden');
         return;
     }
 
@@ -70,18 +91,18 @@ function overrideLocalStorage(target: AnyGlobal) {
         typeof bridge.storageRemove !== 'function' ||
         typeof bridge.storageClear !== 'function'
     ) {
-        console.warn('[walletkitBridge] Bridge is missing storage methods, localStorage will not be overridden');
+        debugWarn('[walletkitBridge] Bridge is missing storage methods, localStorage will not be overridden');
         return;
     }
 
     // Create a secure storage implementation that redirects to the native bridge
-    const secureStorage: Storage = {
+    const _secureStorage: Storage = {
         getItem(key: string): string | null {
             try {
                 const value = bridge.storageGet(key);
                 return value === undefined || value === null ? null : String(value);
             } catch (err) {
-                console.error('[walletkitBridge] Error in localStorage.getItem:', err);
+                logError('[walletkitBridge] Error in localStorage.getItem:', err);
                 return null;
             }
         },
@@ -90,7 +111,7 @@ function overrideLocalStorage(target: AnyGlobal) {
             try {
                 bridge.storageSet(key, String(value));
             } catch (err) {
-                console.error('[walletkitBridge] Error in localStorage.setItem:', err);
+                logError('[walletkitBridge] Error in localStorage.setItem:', err);
             }
         },
 
@@ -98,7 +119,7 @@ function overrideLocalStorage(target: AnyGlobal) {
             try {
                 bridge.storageRemove(key);
             } catch (err) {
-                console.error('[walletkitBridge] Error in localStorage.removeItem:', err);
+                logError('[walletkitBridge] Error in localStorage.removeItem:', err);
             }
         },
 
@@ -106,7 +127,7 @@ function overrideLocalStorage(target: AnyGlobal) {
             try {
                 bridge.storageClear();
             } catch (err) {
-                console.error('[walletkitBridge] Error in localStorage.clear:', err);
+                logError('[walletkitBridge] Error in localStorage.clear:', err);
             }
         },
 
@@ -116,7 +137,7 @@ function overrideLocalStorage(target: AnyGlobal) {
             return 0;
         },
 
-        key(index: number): string | null {
+        key(_index: number): string | null {
             // Note: The native bridge doesn't provide a key enumeration method
             // This is a limitation but shouldn't affect most use cases
             return null;
@@ -129,13 +150,13 @@ function overrideLocalStorage(target: AnyGlobal) {
     // WalletKit storage adapter (or call window.WalletKitNativeStorage) when
     // they require secure/native persistence.
     try {
-        const namespaced: any = {
+        const namespaced: Storage = {
             getItem(key: string) {
                 try {
                     const value = bridge.storageGet(key);
                     return value === undefined || value === null ? null : String(value);
                 } catch (err) {
-                    console.error('[walletkitBridge] Error in WalletKitNativeStorage.getItem:', err);
+                    logError('[walletkitBridge] Error in WalletKitNativeStorage.getItem:', err);
                     return null;
                 }
             },
@@ -143,46 +164,52 @@ function overrideLocalStorage(target: AnyGlobal) {
                 try {
                     bridge.storageSet(key, String(value));
                 } catch (err) {
-                    console.error('[walletkitBridge] Error in WalletKitNativeStorage.setItem:', err);
+                    logError('[walletkitBridge] Error in WalletKitNativeStorage.setItem:', err);
                 }
             },
             removeItem(key: string) {
                 try {
                     bridge.storageRemove(key);
                 } catch (err) {
-                    console.error('[walletkitBridge] Error in WalletKitNativeStorage.removeItem:', err);
+                    logError('[walletkitBridge] Error in WalletKitNativeStorage.removeItem:', err);
                 }
             },
             clear() {
                 try {
                     bridge.storageClear();
                 } catch (err) {
-                    console.error('[walletkitBridge] Error in WalletKitNativeStorage.clear:', err);
+                    logError('[walletkitBridge] Error in WalletKitNativeStorage.clear:', err);
                 }
+            },
+            get length(): number {
+                return 0;
+            },
+            key() {
+                return null;
             },
         };
 
         // Attach without clobbering existing properties
-        if (typeof (target as any).WalletKitNativeStorage === 'undefined') {
+        if (typeof target.WalletKitNativeStorage === 'undefined') {
             Object.defineProperty(target, 'WalletKitNativeStorage', {
                 value: namespaced,
                 writable: false,
                 configurable: true,
             });
-            console.log('[walletkitBridge] ✅ WalletKitNativeStorage exposed for secure native storage');
+            debugLog('[walletkitBridge] ✅ WalletKitNativeStorage exposed for secure native storage');
         } else {
-            console.warn('[walletkitBridge] WalletKitNativeStorage already present, not overriding');
+            debugWarn('[walletkitBridge] WalletKitNativeStorage already present, not overriding');
         }
     } catch (err) {
-        console.error('[walletkitBridge] Failed to expose WalletKitNativeStorage:', err);
+        logError('[walletkitBridge] Failed to expose WalletKitNativeStorage:', err);
     }
 }
 
 export function setupPolyfills() {
-    const scopes: Array<AnyGlobal | undefined> = [
-        typeof globalThis !== 'undefined' ? (globalThis as unknown as AnyGlobal) : undefined,
-        typeof window !== 'undefined' ? (window as unknown as AnyGlobal) : undefined,
-        typeof self !== 'undefined' ? (self as unknown as AnyGlobal) : undefined,
+    const scopes: Array<PolyfilledGlobal | undefined> = [
+        typeof globalThis !== 'undefined' ? (globalThis as PolyfilledGlobal) : undefined,
+        typeof window !== 'undefined' ? (window as PolyfilledGlobal) : undefined,
+        typeof self !== 'undefined' ? (self as PolyfilledGlobal) : undefined,
     ];
 
     scopes.forEach((scope) => {
@@ -192,13 +219,13 @@ export function setupPolyfills() {
         ensureAbortController(scope);
         overrideLocalStorage(scope);
         if (typeof scope.Buffer === 'undefined') {
-            scope.Buffer = Buffer as any;
+            scope.Buffer = Buffer;
         }
         if (typeof scope.URL === 'undefined') {
-            scope.URL = URL as any;
+            scope.URL = URL;
         }
         if (typeof scope.URLSearchParams === 'undefined') {
-            scope.URLSearchParams = URLSearchParams as any;
+            scope.URLSearchParams = URLSearchParams;
         }
     });
 }

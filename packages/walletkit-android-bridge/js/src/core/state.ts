@@ -6,13 +6,13 @@
  *
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Shared mutable bridge state.
  */
 
-export let walletKit: any | null = null;
+import type { WalletKitInstance } from '../types';
+
+export let walletKit: WalletKitInstance | null = null;
 export let initialized = false;
 export let currentNetwork: string = '';
 export let currentApiBase: string = 'https://testnet.tonapi.io';
@@ -22,7 +22,7 @@ export let currentApiBase: string = 'https://testnet.tonapi.io';
  *
  * @param instance - The instantiated WalletKit or null when reset.
  */
-export function setWalletKit(instance: any | null): void {
+export function setWalletKit(instance: WalletKitInstance | null): void {
     walletKit = instance;
 }
 

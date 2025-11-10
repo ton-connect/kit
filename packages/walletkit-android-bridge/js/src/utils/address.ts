@@ -6,11 +6,11 @@
  *
  */
 
-/* eslint-disable no-console */
-
 /**
  * Address helpers for formatting and conversion.
  */
+
+import { debugWarn } from './logger';
 
 export interface ToUserFriendlyAddressOptions {
     addressParser?: {
@@ -30,7 +30,7 @@ export function toUserFriendlyAddress(rawAddress: string | null, options: ToUser
         const addr = options.addressParser.parse(rawAddress);
         return addr.toString({ bounceable: false, testOnly: options.isTestnet });
     } catch (error) {
-        console.warn('[walletkitBridge] Failed to parse address:', rawAddress, error);
+        debugWarn('[walletkitBridge] Failed to parse address:', rawAddress, error);
         return rawAddress;
     }
 }
@@ -48,7 +48,7 @@ export function base64ToHex(base64: string): string {
         }
         return hex;
     } catch (error) {
-        console.warn('[walletkitBridge] Failed to convert hash to hex:', base64, error);
+        debugWarn('[walletkitBridge] Failed to convert hash to hex:', base64, error);
         return base64;
     }
 }

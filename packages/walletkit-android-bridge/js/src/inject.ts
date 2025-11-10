@@ -6,61 +6,83 @@
  *
  */
 
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable no-undef */
 // Bridge injection for Android internal browser
 import { Buffer } from 'buffer';
 
-window.Buffer = Buffer;
-if (globalThis && !globalThis.Buffer) {
-    globalThis.Buffer = Buffer;
-}
-
-// Debug logging flag - can be set via window.__TONCONNECT_DEBUG__ from native code
-// In production builds, this should be false to suppress all bridge logs
-const DEBUG_ENABLED =
-    typeof (window as any).__TONCONNECT_DEBUG__ !== 'undefined' ? (window as any).__TONCONNECT_DEBUG__ : false; // Default to false (no logs) in production
-
-// Debug logger - only logs when DEBUG_ENABLED is true
-const debugLog = (...args: any[]) => {
-    if (DEBUG_ENABLED) {
-        console.log(...args);
-    }
-};
-
 import { injectBridgeCode } from '@ton/walletkit/bridge';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
+
+import { debugLog, debugWarn, logError } from './utils/logger';
+
+type DeviceFeature = string | { name: string; maxMessages?: number; types?: string[] };
+
+type WalletPlatform = 'ios' | 'android' | 'macos' | 'windows' | 'linux' | 'chrome' | 'firefox' | 'safari';
+
+interface WalletInfoPayload {
+    name: string;
+    app_name: string;
+    about_url: string;
+    image: string;
+    platforms: WalletPlatform[];
+    jsBridgeKey: string;
+    injected: boolean;
+    embedded: boolean;
+    tondns: string;
+    bridgeUrl: string;
+    features: DeviceFeature[];
+}
+
+type TonConnectBridge = {
+    __notifyResponse?: (messageId: string) => void;
+    __notifyEvent?: () => void;
+    pullResponse?: (messageId: string) => string | null;
+    pullEvent?: (frameId: string) => string | null;
+    hasEvent?: (frameId: string) => boolean;
+    postMessage?: (payload: string) => void;
+};
+
+type TonConnectWindow = Window & {
+    Buffer?: typeof Buffer;
+    __tonconnect_frameId?: string;
+    AndroidTonConnect?: TonConnectBridge;
+    tonkeeper?: {
+        tonconnect?: {
+            isWalletBrowser?: boolean;
+        };
+    };
+};
+
+type GlobalWithBuffer = typeof globalThis & {
+    Buffer?: typeof Buffer;
+};
 
 // Import Transport type - it's available as internal export
 interface Transport {
     send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown>;
     onEvent(callback: (event: unknown) => void): void;
     isAvailable(): boolean;
-    requestContentScriptInjection(): void;
+    requestContentScriptInjection?(): void;
     destroy(): void;
 }
 
-// Polyfill Buffer
-if (typeof window !== 'undefined') {
-    (window as any).Buffer = Buffer;
-}
-if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
-    (globalThis as any).Buffer = Buffer;
+const tonWindow = window as TonConnectWindow;
+tonWindow.Buffer = Buffer;
+
+const bufferGlobal = globalThis as GlobalWithBuffer;
+if (!bufferGlobal.Buffer) {
+    bufferGlobal.Buffer = Buffer;
 }
 
 // Generate unique frame ID (preserve existing one if already set to prevent re-injection issues)
 const frameId =
-    (window as any).__tonconnect_frameId ||
+    tonWindow.__tonconnect_frameId ??
     (window === window.top ? 'main' : `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
 
-// Store the frameId (only set if not already set)
-if (!(window as any).__tonconnect_frameId) {
-    (window as any).__tonconnect_frameId = frameId;
+if (!tonWindow.__tonconnect_frameId) {
+    tonWindow.__tonconnect_frameId = frameId;
 }
 
-const isAndroidWebView = typeof (window as any).AndroidTonConnect !== 'undefined';
+const isAndroidWebView = typeof tonWindow.AndroidTonConnect !== 'undefined';
 
 debugLog(`[TonConnect] ===== INJECTION STARTING =====`);
 debugLog(`[TonConnect] Frame ID: ${frameId}`);
@@ -71,8 +93,14 @@ debugLog(`[TonConnect] Current URL: ${window.location.href}`);
 debugLog(`[TonConnect] ===== STARTING BRIDGE SETUP =====`);
 
 // Device info matching demo wallet extension format
-const deviceInfo = {
-    platform: 'android' as const,
+const deviceInfo: {
+    platform: 'android';
+    appName: string;
+    appVersion: string;
+    maxProtocolVersion: number;
+    features: DeviceFeature[];
+} = {
+    platform: 'android',
     appName: 'Tonkeeper',
     appVersion: '1.0.0',
     maxProtocolVersion: 2,
@@ -86,27 +114,18 @@ const deviceInfo = {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
-    ] as any,
+    ],
 };
 
 // Wallet info matching demo wallet extension format
 // NOTE: TonConnect SDK expects snake_case properties (app_name, about_url, image)
 // even though the TypeScript types use camelCase
-const walletInfo = {
+const walletInfo: WalletInfoPayload = {
     name: 'tonkeeper', // key for wallet
     app_name: 'Tonkeeper', // SDK expects app_name not appName
     about_url: 'https://tonkeeper.com', // SDK expects about_url not aboutUrl
     image: 'https://tonkeeper.com/assets/tonconnect-icon.png', // SDK expects image not imageUrl
-    platforms: [
-        'ios' as const,
-        'android' as const,
-        'macos' as const,
-        'windows' as const,
-        'linux' as const,
-        'chrome' as const,
-        'firefox' as const,
-        'safari' as const,
-    ], // supported platforms
+    platforms: ['ios', 'android', 'macos', 'windows', 'linux', 'chrome', 'firefox', 'safari'], // supported platforms
     jsBridgeKey: 'tonkeeper', // window key for wallet bridge
     injected: true, // wallet is injected into the page (via injectBridgeCode)
     embedded: true, // dApp IS embedded in wallet (wallet's internal browser) - tells dApp to prefer injected bridge
@@ -122,8 +141,8 @@ const walletInfo = {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
-    ] as any,
-} as any; // Cast to any to bypass TypeScript type checking
+    ],
+};
 
 /**
  * Android WebView Transport Implementation
@@ -132,7 +151,7 @@ const walletInfo = {
 class AndroidWebViewTransport implements Transport {
     private pendingRequests = new Map<
         string,
-        { resolve: (value: unknown) => void; reject: (error: Error) => void; timeout: NodeJS.Timeout }
+        { resolve: (value: unknown) => void; reject: (error: Error) => void; timeout: ReturnType<typeof setTimeout> }
     >();
     private eventCallbacks: Array<(event: unknown) => void> = [];
 
@@ -143,9 +162,9 @@ class AndroidWebViewTransport implements Transport {
     }
 
     private setupNotificationHandlers(): void {
-        const bridge = (window as any).AndroidTonConnect;
+        const bridge = tonWindow.AndroidTonConnect;
         if (!bridge) {
-            console.warn('[AndroidTransport] ⚠️ AndroidTonConnect bridge not available');
+            debugWarn('[AndroidTransport] ⚠️ AndroidTonConnect bridge not available');
             return;
         }
 
@@ -204,7 +223,7 @@ class AndroidWebViewTransport implements Transport {
                             iframe.contentWindow?.postMessage(event.data, '*');
                             debugLog(`[AndroidTransport] ✅ Frame ${frameId} relayed to child iframe #${index}`);
                         } catch (e) {
-                            console.warn(
+                            debugWarn(
                                 `[AndroidTransport] ❌ Frame ${frameId} failed to relay to child iframe #${index}:`,
                                 e,
                             );
@@ -232,7 +251,7 @@ class AndroidWebViewTransport implements Transport {
                             iframe.contentWindow?.postMessage(event.data, '*');
                             debugLog(`[AndroidTransport] ✅ Frame ${frameId} relayed event to child iframe #${index}`);
                         } catch (e) {
-                            console.warn(
+                            debugWarn(
                                 `[AndroidTransport] ❌ Frame ${frameId} failed to relay event to child iframe #${index}:`,
                                 e,
                             );
@@ -269,7 +288,7 @@ class AndroidWebViewTransport implements Transport {
                 );
                 debugLog(`[AndroidTransport] ✅ Main frame sent to direct child iframe #${index}`);
             } catch (e) {
-                console.warn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
+                debugWarn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
             }
         });
     }
@@ -295,7 +314,7 @@ class AndroidWebViewTransport implements Transport {
                 );
                 debugLog(`[AndroidTransport] ✅ Main frame sent event to direct child iframe #${index}`);
             } catch (e) {
-                console.warn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
+                debugWarn(`[AndroidTransport] ❌ Main frame failed to notify iframe #${index}:`, e);
             }
         });
     }
@@ -308,9 +327,9 @@ class AndroidWebViewTransport implements Transport {
         }
 
         try {
-            const bridge = (window as any).AndroidTonConnect;
+            const bridge = tonWindow.AndroidTonConnect;
             if (!bridge?.pullResponse) {
-                console.error(`[AndroidTransport] Bridge not available in frame: ${frameId}`);
+                logError(`[AndroidTransport] Bridge not available in frame: ${frameId}`);
                 return;
             }
 
@@ -328,19 +347,19 @@ class AndroidWebViewTransport implements Transport {
                     pending.resolve(response.payload);
                 }
             } else {
-                console.warn(
+                debugWarn(
                     `[AndroidTransport] Response ${messageId} already pulled or not available in frame: ${frameId}`,
                 );
             }
         } catch (error) {
-            console.error('[AndroidTransport] Failed to pull/process response:', error);
+            logError('[AndroidTransport] Failed to pull/process response:', error);
             pending.reject(error as Error);
         }
     }
 
     private pullAndDeliverEvent(): void {
         try {
-            const bridge = (window as any).AndroidTonConnect;
+            const bridge = tonWindow.AndroidTonConnect;
             if (!bridge?.pullEvent || !bridge?.hasEvent) return;
 
             // Pull event for this frame (Kotlin tracks per-frame consumption)
@@ -364,14 +383,14 @@ class AndroidWebViewTransport implements Transport {
                                 callback(data.event);
                                 debugLog(`[AndroidTransport] ✅ Event callback #${index} completed`);
                             } catch (error) {
-                                console.error(`[AndroidTransport] ❌ Event callback #${index} error:`, error);
+                                logError(`[AndroidTransport] ❌ Event callback #${index} error:`, error);
                             }
                         });
                     }
                 }
             }
         } catch (error) {
-            console.error('[AndroidTransport] Failed to pull/process event:', error);
+            logError('[AndroidTransport] Failed to pull/process event:', error);
         }
     }
 
@@ -393,11 +412,15 @@ class AndroidWebViewTransport implements Transport {
         };
 
         debugLog('[AndroidTransport] 📤 Sending to Kotlin with messageId:', messageId);
-        (window as any).AndroidTonConnect.postMessage(JSON.stringify(payload));
+        const bridge = tonWindow.AndroidTonConnect;
+        if (!bridge?.postMessage) {
+            throw new Error('AndroidTonConnect postMessage is not available');
+        }
+        bridge.postMessage(JSON.stringify(payload));
 
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                console.error(`[AndroidTransport] ⏱️ Timeout waiting for response to ${messageId}`);
+                logError(`[AndroidTransport] ⏱️ Timeout waiting for response to ${messageId}`);
                 this.pendingRequests.delete(messageId);
                 reject(new Error('Request timeout'));
             }, 30000);
@@ -438,20 +461,21 @@ class AndroidWebViewTransport implements Transport {
 
                 try {
                     // Try to access iframe's window (will fail for cross-origin)
-                    const iframeWindow = iframe.contentWindow;
+                    const iframeWindowRaw = iframe.contentWindow;
 
-                    if (!iframeWindow) {
+                    if (!iframeWindowRaw) {
                         debugLog(`[TonConnect] iframe ${index}: contentWindow is null`);
                         return;
                     }
 
-                    if (iframeWindow === window) {
+                    if (iframeWindowRaw === window) {
                         debugLog(`[TonConnect] iframe ${index}: contentWindow === window (skipping self)`);
                         return;
                     }
 
                     // Check if bridge already exists in this iframe
-                    const hasExtension = !!(iframeWindow as any).tonkeeper?.tonconnect;
+                    const iframeWindow = iframeWindowRaw as TonConnectWindow;
+                    const hasExtension = !!iframeWindow.tonkeeper?.tonconnect;
                     debugLog(`[TonConnect] iframe ${index}: Bridge exists? ${hasExtension}`);
 
                     if (!hasExtension) {
@@ -489,7 +513,7 @@ class AndroidWebViewTransport implements Transport {
         this.eventCallbacks = [];
 
         // Clean up notification handlers
-        const bridge = (window as any).AndroidTonConnect;
+        const bridge = tonWindow.AndroidTonConnect;
         if (bridge && window === window.top) {
             delete bridge.__notifyResponse;
             delete bridge.__notifyEvent;
@@ -535,7 +559,7 @@ const performInjection = () => {
 
     debugLog(`[TonConnect] Bridge ready for frame: ${frameId} (transport: ${transport ? 'Android' : 'default'})`);
     debugLog('[TonConnect] Wallet Info:', JSON.stringify(walletInfo, null, 2));
-    debugLog('[TonConnect] isWalletBrowser check:', (window as any).tonkeeper?.tonconnect?.isWalletBrowser);
+    debugLog('[TonConnect] isWalletBrowser check:', tonWindow.tonkeeper?.tonconnect?.isWalletBrowser);
 
     // After injection, manually check for existing iframes
     setTimeout(() => {
@@ -544,9 +568,7 @@ const performInjection = () => {
         if (iframes.length > 0) {
             debugLog('[TonConnect] ⚠️ Iframes exist but IframeWatcher may not have triggered yet');
             debugLog('[TonConnect] Manually triggering iframe injection...');
-            if (transport && 'requestContentScriptInjection' in transport) {
-                (transport as any).requestContentScriptInjection();
-            }
+            transport?.requestContentScriptInjection?.();
         }
     }, 100);
 };

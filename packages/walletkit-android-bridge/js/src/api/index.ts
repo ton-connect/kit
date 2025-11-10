@@ -33,7 +33,6 @@ const apiImpl: WalletKitBridgeApi = {
     mnemonicToKeyPair: cryptography.mnemonicToKeyPair,
     sign: cryptography.sign,
     createTonMnemonic: cryptography.createTonMnemonic,
-    respondToSignRequest: cryptography.respondToSignRequest,
 
     // Wallets
     createSigner: wallets.createSigner,

@@ -10,22 +10,6 @@
  * Miscellaneous helper utilities shared across bridge modules.
  */
 
-/**
- * Resolves the most appropriate global scope object for the current environment.
- */
-export function resolveGlobalScope(): typeof globalThis {
-    if (typeof globalThis !== 'undefined') {
-        return globalThis;
-    }
-    if (typeof window !== 'undefined') {
-        return window as typeof globalThis;
-    }
-    if (typeof self !== 'undefined') {
-        return self as typeof globalThis;
-    }
-    return {} as typeof globalThis;
-}
-
 export interface CallOnWalletDeps {
     walletKit: {
         getWallet?: (address: string) => unknown;

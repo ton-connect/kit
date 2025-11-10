@@ -6,22 +6,22 @@
  *
  */
 
-/* eslint-disable no-console */
-
 /**
  * Parsing helpers for TON-specific payloads.
  */
 
+import { debugLog } from './logger';
+
 export function resolveTonConnectUrl(input: unknown): string | null {
-    console.log('[walletkitBridge] resolveTonConnectUrl called with input type:', typeof input);
+    debugLog('[walletkitBridge] resolveTonConnectUrl called with input type:', typeof input);
     if (input == null) {
-        console.log('[walletkitBridge] input is null/undefined');
+        debugLog('[walletkitBridge] input is null/undefined');
         return null;
     }
 
     if (typeof input === 'string') {
         const trimmed = input.trim();
-        console.log('[walletkitBridge] input is string, trimmed:', trimmed.substring(0, 100));
+        debugLog('[walletkitBridge] input is string, trimmed:', trimmed.substring(0, 100));
         if (!trimmed) {
             return null;
         }
@@ -37,7 +37,7 @@ export function resolveTonConnectUrl(input: unknown): string | null {
     }
 
     if (Array.isArray(input)) {
-        console.log('[walletkitBridge] input is array, length:', input.length);
+        debugLog('[walletkitBridge] input is array, length:', input.length);
         for (const item of input) {
             const resolved = resolveTonConnectUrl(item);
             if (resolved) {
@@ -48,7 +48,7 @@ export function resolveTonConnectUrl(input: unknown): string | null {
     }
 
     if (typeof input === 'object') {
-        console.log('[walletkitBridge] input is object, keys:', Object.keys(input));
+        debugLog('[walletkitBridge] input is object, keys:', Object.keys(input));
         const record = input as Record<string, unknown>;
         const candidates = [
             record.url,
@@ -63,7 +63,7 @@ export function resolveTonConnectUrl(input: unknown): string | null {
             if (typeof candidate === 'string') {
                 const trimmed = candidate.trim();
                 if (trimmed) {
-                    console.log('[walletkitBridge] found candidate URL:', trimmed.substring(0, 100));
+                    debugLog('[walletkitBridge] found candidate URL:', trimmed.substring(0, 100));
                     return trimmed;
                 }
             }
@@ -78,7 +78,7 @@ export function resolveTonConnectUrl(input: unknown): string | null {
         }
     }
 
-    console.log('[walletkitBridge] no URL found in input');
+    debugLog('[walletkitBridge] no URL found in input');
     return null;
 }
 

@@ -7,10 +7,6 @@
  */
 
 /**
- * Serialization helpers shared across the WalletKit Android bridge.
- */
-
-/**
  * JSON replacer that converts BigInt values to strings to avoid serialization errors.
  */
 export function bigIntReplacer(_key: string, value: unknown): unknown {

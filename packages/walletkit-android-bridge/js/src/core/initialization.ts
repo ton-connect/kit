@@ -6,63 +6,73 @@
  *
  */
 
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * WalletKit initialization helpers used by the bridge entry point.
  */
-import type { WalletKitBridgeInitConfig, CallContext, BridgePayload, WalletKitBridgeEvent } from '../types';
-import {
-    walletKit,
-    setWalletKit,
-    initialized,
-    setInitialized,
-    setCurrentNetwork,
-    setCurrentApiBase,
-    currentNetwork,
-    currentApiBase,
-} from './state';
-import {
-    ensureWalletKitLoaded,
-    TonWalletKit,
-    createWalletManifest,
-    CreateTonMnemonic,
-    Signer,
-    WalletV4R2Adapter,
-    WalletV5R1Adapter,
-    Address,
-    Cell,
-    CHAIN,
-    tonConnectChain,
-} from './moduleLoader';
+import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent } from '../types';
+import { debugLog, debugWarn } from '../utils/logger';
+import { walletKit, setWalletKit, initialized, setInitialized, setCurrentNetwork, setCurrentApiBase } from './state';
+import { ensureWalletKitLoaded, TonWalletKit, createWalletManifest, CHAIN, tonConnectChain } from './moduleLoader';
 import { normalizeNetworkValue } from '../utils/network';
+import { getInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
 
 export interface InitTonWalletKitDeps {
-    emitCallCheckpoint: (context: CallContext | undefined, message: string) => void;
     emit: (type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeEvent['data']) => void;
     postToNative: (payload: BridgePayload) => void;
     AndroidStorageAdapter: new () => unknown;
+}
+
+type WalletManifestObject = {
+    bridgeUrl?: string;
+} & Record<string, unknown>;
+
+type JsBridgeMessage = {
+    type: string;
+    messageId?: string;
+    payload?: {
+        event?: string;
+        [key: string]: unknown;
+    };
+    source?: unknown;
+    traceId?: string;
+    [key: string]: unknown;
+};
+
+type NativeStorageBridge = {
+    storageGet?: (key: string) => string | null;
+    storageSet?: (key: string, value: string) => void;
+    getItem?: (key: string) => string | null;
+    setItem?: (key: string, value: string) => void;
+};
+
+type AndroidBridgeWindow = Window & {
+    WalletKitNativeStorage?: NativeStorageBridge;
+    WalletKitNative?: NativeStorageBridge;
+    Android?: NativeStorageBridge;
+};
+
+function resolveManifestBridgeUrl(manifest: unknown): string | undefined {
+    if (manifest && typeof manifest === 'object') {
+        const manifestObj = manifest as WalletManifestObject;
+        return typeof manifestObj.bridgeUrl === 'string' ? manifestObj.bridgeUrl : undefined;
+    }
+    return undefined;
 }
 
 /**
  * Initializes WalletKit with Android-specific configuration and wiring.
  *
  * @param config - Optional initialization configuration.
- * @param context - Diagnostic context for tracing native calls.
  * @param deps - Helper dependencies injected from the API layer.
  */
 export async function initTonWalletKit(
     config: WalletKitBridgeInitConfig | undefined,
-    context: CallContext | undefined,
     deps: InitTonWalletKitDeps,
 ): Promise<{ ok: true }> {
     if (initialized && walletKit) {
-        deps.emitCallCheckpoint(context, 'initTonWalletKit:already-initialized');
         return { ok: true };
     }
 
-    deps.emitCallCheckpoint(context, 'initTonWalletKit:begin');
     await ensureWalletKitLoaded();
 
     if (!CHAIN) {
@@ -71,17 +81,15 @@ export async function initTonWalletKit(
 
     const networkRaw = (config?.network as string | undefined) ?? 'testnet';
     const network = normalizeNetworkValue(networkRaw, CHAIN);
-    setCurrentNetwork(network);
+    setCurrentNetwork(networkRaw); // Store the original string value
 
     const isMainnet = network === CHAIN.MAINNET;
-    const tonApiUrl =
-        config?.tonApiUrl || config?.apiBaseUrl || (isMainnet ? 'https://tonapi.io' : 'https://testnet.tonapi.io');
-    const clientEndpoint =
-        config?.tonClientEndpoint ||
-        config?.apiUrl ||
-        (isMainnet ? 'https://toncenter.com/api/v2/jsonRPC' : 'https://testnet.toncenter.com/api/v2/jsonRPC');
-    setCurrentApiBase(tonApiUrl);
-    deps.emitCallCheckpoint(context, 'initTonWalletKit:constructing-tonwalletkit');
+    // URLs are now set by Android WalletKit core with proper defaults
+    const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl;
+    const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl;
+    if (tonApiUrl) {
+        setCurrentApiBase(tonApiUrl);
+    }
 
     const chains = tonConnectChain;
     if (!chains) {
@@ -89,19 +97,19 @@ export async function initTonWalletKit(
     }
     const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
 
-    console.log('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
+    debugLog('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
 
     let walletManifest = config?.walletManifest;
-    console.log('[walletkitBridge] walletManifest from config:', walletManifest);
+    debugLog('[walletkitBridge] walletManifest from config:', walletManifest);
 
     if (!walletManifest && config?.bridgeUrl && typeof createWalletManifest === 'function') {
-        console.log('[walletkitBridge] Creating wallet manifest with bridgeName:', config.bridgeName);
+        debugLog('[walletkitBridge] Creating wallet manifest with bridgeName:', config.bridgeName);
         walletManifest = createWalletManifest({
             bridgeUrl: config.bridgeUrl,
             name: config.bridgeName ?? 'Wallet',
             appName: config.bridgeName ?? 'Wallet',
         });
-        console.log('[walletkitBridge] Created wallet manifest:', walletManifest);
+        debugLog('[walletkitBridge] Created wallet manifest:', walletManifest);
     }
 
     const kitOptions: Record<string, unknown> = {
@@ -117,62 +125,62 @@ export async function initTonWalletKit(
         kitOptions.walletManifest = walletManifest;
     }
 
-    const resolvedBridgeUrl =
-        config?.bridgeUrl ??
-        (walletManifest && typeof walletManifest === 'object' ? (walletManifest as any).bridgeUrl : undefined);
+    const resolvedBridgeUrl = config?.bridgeUrl ?? resolveManifestBridgeUrl(walletManifest);
 
     if (resolvedBridgeUrl) {
         kitOptions.bridge = {
             bridgeUrl: resolvedBridgeUrl,
-            jsBridgeTransport: async (sessionId: string, message: any) => {
-                console.log('[walletkitBridge] 📤 jsBridgeTransport called:', {
+            jsBridgeTransport: async (sessionId: string, message: JsBridgeMessage) => {
+                debugLog('[walletkitBridge] 📤 jsBridgeTransport called:', {
                     sessionId,
                     messageType: message.type,
                     messageId: message.messageId,
                     hasPayload: !!message.payload,
                     payloadEvent: message.payload?.event,
                 });
-                console.log('[walletkitBridge] 📤 Full message:', JSON.stringify(message, null, 2));
+                debugLog('[walletkitBridge] 📤 Full message:', JSON.stringify(message, null, 2));
+
+                let bridgeMessage: JsBridgeMessage = message;
 
                 if (
-                    message.type === 'TONCONNECT_BRIDGE_RESPONSE' &&
-                    message.payload?.event === 'disconnect' &&
-                    !message.messageId
+                    bridgeMessage.type === 'TONCONNECT_BRIDGE_RESPONSE' &&
+                    bridgeMessage.payload?.event === 'disconnect' &&
+                    !bridgeMessage.messageId
                 ) {
-                    console.log('[walletkitBridge] 🔄 Transforming disconnect response to event');
-                    message = {
+                    debugLog('[walletkitBridge] 🔄 Transforming disconnect response to event');
+                    bridgeMessage = {
                         type: 'TONCONNECT_BRIDGE_EVENT',
-                        source: message.source,
-                        event: message.payload,
-                        traceId: message.traceId,
+                        source: bridgeMessage.source,
+                        event: bridgeMessage.payload,
+                        traceId: bridgeMessage.traceId,
                     };
-                    console.log('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(message, null, 2));
+                    debugLog('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(bridgeMessage, null, 2));
                 }
 
-                if (message.messageId) {
-                    console.log('[walletkitBridge] 🔵 Message has messageId, checking for pending promise');
-                    const resolvers = (globalThis as any).__internalBrowserResponseResolvers;
-                    if (resolvers && resolvers.has(message.messageId)) {
-                        console.log(
+                if (bridgeMessage.messageId) {
+                    debugLog('[walletkitBridge] 🔵 Message has messageId, checking for pending promise');
+                    const resolvers = getInternalBrowserResolverMap();
+                    const resolver = resolvers?.get(bridgeMessage.messageId);
+                    if (resolver) {
+                        debugLog(
                             '[walletkitBridge] ✅ Resolving response promise for messageId:',
-                            message.messageId,
+                            bridgeMessage.messageId,
                         );
-                        const { resolve } = resolvers.get(message.messageId);
-                        resolvers.delete(message.messageId);
-                        resolve(message);
+                        resolvers?.delete(bridgeMessage.messageId);
+                        resolver.resolve(bridgeMessage);
                     } else {
-                        console.warn('[walletkitBridge] ⚠️ No pending promise for messageId:', message.messageId);
+                        debugWarn('[walletkitBridge] ⚠️ No pending promise for messageId:', bridgeMessage.messageId);
                     }
                 }
 
-                if (message.type === 'TONCONNECT_BRIDGE_EVENT') {
-                    console.log('[walletkitBridge] 📤 Sending event to WebView for session:', sessionId);
+                if (bridgeMessage.type === 'TONCONNECT_BRIDGE_EVENT') {
+                    debugLog('[walletkitBridge] 📤 Sending event to WebView for session:', sessionId);
                     deps.postToNative({
                         kind: 'jsBridgeEvent',
                         sessionId,
-                        event: message,
+                        event: bridgeMessage,
                     });
-                    console.log('[walletkitBridge] ✅ Event sent successfully');
+                    debugLog('[walletkitBridge] ✅ Event sent successfully');
                 }
 
                 return Promise.resolve();
@@ -180,12 +188,13 @@ export async function initTonWalletKit(
         };
     }
 
+    const androidWindow = window as AndroidBridgeWindow;
     const nativeStorageBridge =
-        (window as any).WalletKitNativeStorage ??
-        ((window as any).WalletKitNative && typeof (window as any).WalletKitNative.storageGet === 'function'
-            ? (window as any).WalletKitNative
+        androidWindow.WalletKitNativeStorage ??
+        (androidWindow.WalletKitNative && typeof androidWindow.WalletKitNative.storageGet === 'function'
+            ? androidWindow.WalletKitNative
             : undefined) ??
-        (window as any).Android;
+        androidWindow.Android;
 
     const hasStorageMethods =
         nativeStorageBridge &&
@@ -193,34 +202,33 @@ export async function initTonWalletKit(
         (typeof nativeStorageBridge.storageSet === 'function' || typeof nativeStorageBridge.setItem === 'function');
 
     if (hasStorageMethods) {
-        console.log('[walletkitBridge] Using Android native storage adapter');
+        debugLog('[walletkitBridge] Using Android native storage adapter');
         kitOptions.storage = new deps.AndroidStorageAdapter();
     } else if (config?.allowMemoryStorage) {
-        console.log('[walletkitBridge] Using memory storage (sessions will not persist)');
+        debugLog('[walletkitBridge] Using memory storage (sessions will not persist)');
         kitOptions.storage = {
             allowMemory: true,
         };
     }
 
+    if (!TonWalletKit) {
+        throw new Error('TonWalletKit module not loaded');
+    }
     setWalletKit(new TonWalletKit(kitOptions));
 
     if (typeof walletKit.ensureInitialized === 'function') {
-        deps.emitCallCheckpoint(context, 'initTonWalletKit:before-walletKit.ensureInitialized');
         await walletKit.ensureInitialized();
-        deps.emitCallCheckpoint(context, 'initTonWalletKit:after-walletKit.ensureInitialized');
     }
 
     setInitialized(true);
-    deps.emitCallCheckpoint(context, 'initTonWalletKit:initialized');
     const readyDetails = {
-        network,
+        network: networkRaw, // Send the original string network value
         tonApiUrl,
         tonClientEndpoint: clientEndpoint,
     };
     deps.emit('ready', readyDetails);
     deps.postToNative({ kind: 'ready', ...readyDetails });
-    console.log('[walletkitBridge] WalletKit ready');
-    deps.emitCallCheckpoint(context, 'initTonWalletKit:ready-dispatched');
+    debugLog('[walletkitBridge] WalletKit ready');
     return { ok: true };
 }
 
