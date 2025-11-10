@@ -31,7 +31,6 @@ window.injectWalletKit = (options) => {
 window.id = crypto.randomUUID();
 
 class SwiftTransport implements Transport {
-    private readonly frameID: String;
     private readonly window: Window;
     private eventCallback: ((event: unknown) => void) | null = null;
     private messageListener: ((event: MessageEvent) => void) | null = null;
