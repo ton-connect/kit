@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "build_": "vite build"
+    "build": "node build.js"
   },
   "dependencies": {
     "@ton/crypto": "^3.3.0",
