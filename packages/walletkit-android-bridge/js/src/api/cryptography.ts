@@ -15,23 +15,7 @@
  */
 import type { MnemonicToKeyPairArgs, SignArgs, CreateTonMnemonicArgs } from '../types';
 import { CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
-import { hexToBytes, bytesToHex, normalizeHex } from '../utils/serialization';
 import { callBridge } from '../utils/bridgeWrapper';
-
-type SignerRequestHandler = {
-    resolve: (signature: string) => void;
-    reject: (error: Error) => void;
-};
-
-type SignerRequestMap = Map<string, SignerRequestHandler>;
-
-type WalletKitSignerRegistry = Map<string, SignerRequestMap>;
-
-type WalletKitGlobal = typeof globalThis & {
-    __walletKitSignerRequests?: WalletKitSignerRegistry;
-};
-
-const walletKitGlobal = globalThis as WalletKitGlobal;
 
 /**
  * Converts a mnemonic phrase to a key pair (public + secret keys).
@@ -40,8 +24,7 @@ const walletKitGlobal = globalThis as WalletKitGlobal;
  */
 export async function mnemonicToKeyPair(args: MnemonicToKeyPairArgs) {
     return callBridge('mnemonicToKeyPair', async () => {
-        const mnemonicToKeyPairFn = requireModule(MnemonicToKeyPair, 'MnemonicToKeyPair');
-        const keyPair = await mnemonicToKeyPairFn(args.mnemonic, args.mnemonicType ?? 'ton');
+        const keyPair = await MnemonicToKeyPair!(args.mnemonic, args.mnemonicType ?? 'ton');
 
         return {
             publicKey: Array.from(keyPair.publicKey) as number[],
@@ -67,14 +50,10 @@ export async function sign(args: SignArgs) {
         const dataBytes = Uint8Array.from(args.data);
         const secretKeyBytes = Uint8Array.from(args.secretKey);
 
-        // DefaultSignature returns hex string
-        const signatureFn = requireModule(DefaultSignature, 'DefaultSignature');
-        const signatureHex = signatureFn(dataBytes, secretKeyBytes);
+        // DefaultSignature returns hex string - pass directly to Kotlin
+        const signatureHex = DefaultSignature!(dataBytes, secretKeyBytes);
 
-        // Convert hex to bytes for consistent return format
-        const signatureBytes = hexToBytes(signatureHex);
-
-        return { signature: Array.from(signatureBytes) as number[] };
+        return { signature: signatureHex };
     });
 }
 
@@ -85,16 +64,8 @@ export async function sign(args: SignArgs) {
  */
 export async function createTonMnemonic(_args: CreateTonMnemonicArgs = { count: 24 }) {
     return callBridge('createTonMnemonic', async () => {
-        const createTonMnemonicFn = requireModule(CreateTonMnemonic, 'CreateTonMnemonic');
-        const mnemonicResult = await createTonMnemonicFn();
+        const mnemonicResult = await CreateTonMnemonic!();
         const words = Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
         return { items: words };
     });
-}
-
-function requireModule<T>(moduleRef: T | null, name: string): T {
-    if (!moduleRef) {
-        throw new Error(`${name} is not available`);
-    }
-    return moduleRef;
 }

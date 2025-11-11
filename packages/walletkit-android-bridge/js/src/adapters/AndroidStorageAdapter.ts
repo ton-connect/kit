@@ -8,14 +8,17 @@
 
 import { StorageAdapter } from '@ton/walletkit';
 
-import { debugLog, debugWarn, logError } from '../utils/logger';
+import { debugLog, logError } from '../utils/logger';
 
-type BridgeFunction = (...args: unknown[]) => unknown;
-
-type AndroidStorageBridge = Record<string, BridgeFunction | undefined>;
+type AndroidStorageBridge = {
+    storageGet: (key: string) => string | null;
+    storageSet: (key: string, value: string) => void;
+    storageRemove: (key: string) => void;
+    storageClear: () => void;
+};
 
 type AndroidWindow = Window & {
-    WalletKitNativeStorage?: AndroidStorageBridge;
+    WalletKitNative?: AndroidStorageBridge;
 };
 
 /**
@@ -23,27 +26,19 @@ type AndroidWindow = Window & {
  * Uses Android's JavascriptInterface methods for persistent storage
  */
 export class AndroidStorageAdapter implements StorageAdapter {
-    private androidBridge?: AndroidStorageBridge;
+    private androidBridge: AndroidStorageBridge;
 
     constructor() {
-        // Prefer namespaced WalletKitNativeStorage if injected by polyfills
         const androidWindow = window as AndroidWindow;
-        if (typeof androidWindow.WalletKitNativeStorage !== 'undefined') {
-            this.androidBridge = androidWindow.WalletKitNativeStorage;
-        } else {
-            debugWarn('[AndroidStorageAdapter] Android bridge not available, storage will not persist');
+        if (!androidWindow.WalletKitNative) {
+            throw new Error('WalletKitNative bridge not available');
         }
+        this.androidBridge = androidWindow.WalletKitNative;
     }
 
     async get<T>(key: string): Promise<T | null> {
-        const getFn = this.getBridgeFunction<(key: string) => string | null>('storageGet', 'getItem');
-        if (!getFn) {
-            debugWarn('[AndroidStorageAdapter] get() called but bridge not available:', key);
-            return null;
-        }
-
         try {
-            const value = getFn(key);
+            const value = this.androidBridge.storageGet(key);
             debugLog('[AndroidStorageAdapter] get:', key, '=', value ? `${value.substring(0, 100)}...` : 'null');
             if (!value) {
                 return null;
@@ -56,59 +51,30 @@ export class AndroidStorageAdapter implements StorageAdapter {
     }
 
     async set<T>(key: string, value: T): Promise<void> {
-        const setFn = this.getBridgeFunction<(key: string, serialized: string) => void>('storageSet', 'setItem');
-        if (!setFn) {
-            debugWarn('[AndroidStorageAdapter] set() called but bridge not available:', key);
-            return;
-        }
-
         try {
             const serialized = JSON.stringify(value);
             debugLog('[AndroidStorageAdapter] set:', key, '=', serialized.substring(0, 100) + '...');
-            setFn(key, serialized);
+            this.androidBridge.storageSet(key, serialized);
         } catch (error) {
             logError('[AndroidStorageAdapter] Failed to set key:', key, error);
         }
     }
 
     async remove(key: string): Promise<void> {
-        const removeFn = this.getBridgeFunction<(key: string) => void>('storageRemove', 'removeItem');
-        if (!removeFn) {
-            return;
-        }
-
         try {
-            removeFn(key);
+            debugLog('[AndroidStorageAdapter] remove:', key);
+            this.androidBridge.storageRemove(key);
         } catch (error) {
             logError('[AndroidStorageAdapter] Failed to remove key:', key, error);
         }
     }
 
     async clear(): Promise<void> {
-        const clearFn = this.getBridgeFunction<() => void>('storageClear', 'clear');
-        if (!clearFn) {
-            return;
-        }
-
         try {
-            clearFn();
+            debugLog('[AndroidStorageAdapter] clear: clearing all storage');
+            this.androidBridge.storageClear();
         } catch (error) {
             logError('[AndroidStorageAdapter] Failed to clear storage:', error);
         }
-    }
-
-    private getBridgeFunction<T extends BridgeFunction>(...candidates: string[]): T | null {
-        if (!this.androidBridge) {
-            return null;
-        }
-
-        for (const name of candidates) {
-            const candidate = this.androidBridge[name];
-            if (typeof candidate === 'function') {
-                return candidate.bind(this.androidBridge) as T;
-            }
-        }
-
-        return null;
     }
 }

@@ -30,14 +30,3 @@ export function emitCallDiagnostic(
         message,
     });
 }
-
-/**
- * Emits a checkpoint diagnostic if call context is available.
- *
- * @param context - Diagnostic context associated with the ongoing native call.
- * @param message - Checkpoint label.
- */
-export function emitCallCheckpoint(context: CallContext | undefined, message: string): void {
-    if (!context) return;
-    emitCallDiagnostic(context.id, context.method, 'checkpoint', message);
-}

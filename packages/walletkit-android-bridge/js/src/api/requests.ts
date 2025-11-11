@@ -43,8 +43,7 @@ export async function approveConnectRequest(args: ApproveConnectRequestArgs) {
         }
 
         args.event.wallet = wallet;
-        args.event.walletAddress =
-            (typeof wallet.getAddress === 'function' ? wallet.getAddress() : wallet.address) || args.walletAddress;
+        args.event.walletAddress = wallet.getAddress?.() ?? wallet.address ?? args.walletAddress;
 
         const result = await walletKit.approveConnectRequest(args.event);
 

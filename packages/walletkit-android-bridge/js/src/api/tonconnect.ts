@@ -15,7 +15,6 @@
 
 import type { HandleTonConnectUrlArgs, DisconnectSessionArgs, ProcessInternalBrowserRequestArgs } from '../types';
 import { walletKit } from '../core/state';
-import { resolveTonConnectUrl } from '../utils/parsing';
 import { callBridge } from '../utils/bridgeWrapper';
 import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
 
@@ -24,12 +23,11 @@ import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolv
  */
 export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
     return callBridge('handleTonConnectUrl', async () => {
-        const url = resolveTonConnectUrl(args);
-        if (!url) {
-            throw new Error('TON Connect URL is missing');
+        if (!args || typeof args !== 'string') {
+            throw new Error('TON Connect URL string is required');
         }
 
-        return await walletKit.handleTonConnectUrl(url);
+        return await walletKit.handleTonConnectUrl(args);
     });
 }
 
@@ -39,12 +37,8 @@ export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
  */
 export async function listSessions() {
     return callBridge('listSessions', async () => {
-        let sessions: unknown[] = [];
-        if (typeof walletKit.listSessions === 'function') {
-            const fetchedSessions = await walletKit.listSessions();
-            sessions = Array.isArray(fetchedSessions) ? fetchedSessions : [];
-        }
-
+        const fetchedSessions = await walletKit.listSessions();
+        const sessions = Array.isArray(fetchedSessions) ? fetchedSessions : [];
         return { items: sessions };
     });
 }
@@ -54,10 +48,6 @@ export async function listSessions() {
  */
 export async function disconnectSession(args?: DisconnectSessionArgs) {
     return callBridge('disconnectSession', async () => {
-        if (typeof walletKit.disconnect !== 'function') {
-            throw new Error('walletKit.disconnect is not available');
-        }
-
         await walletKit.disconnect(args?.sessionId);
         return { ok: true };
     });
@@ -69,67 +59,38 @@ export async function disconnectSession(args?: DisconnectSessionArgs) {
  */
 export async function processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs) {
     return callBridge('processInternalBrowserRequest', async () => {
-        if (typeof walletKit.processInjectedBridgeRequest !== 'function') {
-            throw new Error('walletKit.processInjectedBridgeRequest is not available');
-        }
-
-        let actualDomain = 'internal-browser';
-        if (args.url) {
-            try {
-                const dappUrl = new URL(args.url);
-                actualDomain = dappUrl.hostname;
-            } catch {
-                // Use default
-            }
-        }
+        // Extract domain from URL if provided, otherwise use default
+        const domain = args.url ? new URL(args.url).hostname : 'internal-browser';
 
         const messageInfo = {
             messageId: args.messageId,
             tabId: args.messageId,
-            domain: actualDomain,
+            domain,
         };
-
-        const finalParams = args.params;
-
-        // Inject manifestUrl for connect requests if missing
-        if (
-            args.method === 'connect' &&
-            args.manifestUrl &&
-            finalParams &&
-            typeof finalParams === 'object' &&
-            !Array.isArray(finalParams)
-        ) {
-            const paramsObj = finalParams as Record<string, unknown>;
-            const hasManifestUrl =
-                paramsObj.manifestUrl ||
-                (paramsObj.manifest &&
-                    typeof paramsObj.manifest === 'object' &&
-                    (paramsObj.manifest as Record<string, unknown>).url);
-
-            if (!hasManifestUrl) {
-                paramsObj.manifestUrl = args.manifestUrl;
-            }
-        }
 
         const request: Record<string, unknown> = {
             id: args.messageId,
             method: args.method,
-            params: finalParams,
+            params: args.params,
         };
 
         await walletKit.processInjectedBridgeRequest(messageInfo, request);
 
-        // Wait for response from jsBridgeTransport
-        const responsePromise = new Promise<unknown>((resolve, reject) => {
+        // Wait for response from jsBridgeTransport (via initialization.ts)
+        return new Promise<unknown>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 reject(new Error(`Request timeout: ${args.messageId}`));
-            }, 60000);
+            }, 60000); // 60 second timeout
 
             const resolverMap = ensureInternalBrowserResolverMap();
             resolverMap.set(args.messageId, {
                 resolve: (response: unknown) => {
                     clearTimeout(timeoutId);
-                    resolve(response);
+                    if (response && typeof response === 'object' && 'payload' in response) {
+                        resolve((response as { payload?: unknown }).payload ?? response);
+                    } else {
+                        resolve(response);
+                    }
                 },
                 reject: (error: unknown) => {
                     clearTimeout(timeoutId);
@@ -137,12 +98,5 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
                 },
             });
         });
-
-        const response = await responsePromise;
-        if (response && typeof response === 'object' && 'payload' in response) {
-            const typed = response as { payload?: unknown };
-            return typed.payload ?? response;
-        }
-        return response;
     });
 }

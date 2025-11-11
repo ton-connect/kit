@@ -12,6 +12,7 @@
  * Simplified bridge for wallet creation, listing, removal, and state retrieval.
  */
 
+import { CHAIN } from '@ton/walletkit';
 import type {
     RemoveWalletArgs,
     GetBalanceArgs,
@@ -23,20 +24,12 @@ import type {
     WalletKitAdapter,
     WalletKitSigner,
 } from '../types';
-import { Signer, WalletV4R2Adapter, WalletV5R1Adapter, CHAIN } from '../core/moduleLoader';
-import { walletKit, currentNetwork } from '../core/state';
-import { normalizeNetworkValue } from '../utils/network';
+import { Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '../core/moduleLoader';
+import { walletKit } from '../core/state';
 import { callBridge } from '../utils/bridgeWrapper';
 
 type SignerInstance = WalletKitSigner;
 type AdapterInstance = WalletKitAdapter;
-
-function requireModule<T>(moduleRef: T | null, name: string): T {
-    if (!moduleRef) {
-        throw new Error(`${name} module is not available`);
-    }
-    return moduleRef;
-}
 
 /**
  * Lists all wallets with metadata.
@@ -44,6 +37,7 @@ function requireModule<T>(moduleRef: T | null, name: string): T {
 export async function getWallets(): Promise<WalletDescriptor[]> {
     return callBridge('getWallets', async () => {
         const wallets = (walletKit.getWallets?.() ?? []) as WalletKitWallet[];
+        const network = walletKit.getNetwork?.() ?? 'testnet';
 
         // PublicKey formatting handled by Kotlin
         return wallets.map((wallet, index) => ({
@@ -51,7 +45,7 @@ export async function getWallets(): Promise<WalletDescriptor[]> {
             publicKey: wallet.publicKey,
             version: typeof wallet.version === 'string' ? wallet.version : 'unknown',
             index,
-            network: currentNetwork,
+            network,
         }));
     });
 }
@@ -70,13 +64,15 @@ export async function getWallet(args: { address: string }): Promise<WalletDescri
             return null;
         }
 
+        const network = walletKit.getNetwork?.() ?? 'testnet';
+
         // PublicKey formatting handled by Kotlin
         return {
             address: wallet.getAddress(),
             publicKey: wallet.publicKey,
             version: typeof wallet.version === 'string' ? wallet.version : 'unknown',
             index: 0,
-            network: currentNetwork,
+            network,
         };
     });
 }
@@ -128,14 +124,13 @@ const adapterStore = new Map<string, AdapterInstance>();
 export async function createSigner(args: CreateSignerArgs) {
     return callBridge('createSigner', async () => {
         let signer: SignerInstance;
-        const signerFactory = requireModule(Signer, 'Signer');
 
         if (args.mnemonic && args.mnemonic.length > 0) {
-            signer = (await signerFactory.fromMnemonic(args.mnemonic, {
+            signer = (await Signer!.fromMnemonic(args.mnemonic, {
                 type: args.mnemonicType || 'ton',
             })) as SignerInstance;
         } else if (args.secretKey) {
-            signer = (await signerFactory.fromPrivateKey(args.secretKey)) as SignerInstance;
+            signer = (await Signer!.fromPrivateKey(args.secretKey)) as SignerInstance;
         } else {
             throw new Error('Either mnemonic or secretKey must be provided');
         }
@@ -161,26 +156,21 @@ export async function createAdapter(args: CreateAdapterArgs) {
             throw new Error(`Signer not found: ${args.signerId}`);
         }
 
-        if (!CHAIN) {
-            throw new Error('CHAIN constants not loaded');
-        }
-        const network = normalizeNetworkValue(args.network as string | undefined, CHAIN);
+        const network = args.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
 
         const workchain = args.workchain !== undefined ? args.workchain : 0;
         const walletId = args.walletId !== undefined ? args.walletId : undefined;
 
         let adapter: AdapterInstance;
         if (args.walletVersion === 'v5r1') {
-            const factory = requireModule(WalletV5R1Adapter, 'WalletV5R1Adapter');
-            adapter = (await factory.create(signer, {
+            adapter = (await WalletV5R1Adapter!.create(signer, {
                 client: walletKit.getApiClient(),
                 network,
                 workchain,
                 ...(walletId !== undefined && { walletId }),
             })) as AdapterInstance;
         } else if (args.walletVersion === 'v4r2') {
-            const factory = requireModule(WalletV4R2Adapter, 'WalletV4R2Adapter');
-            adapter = (await factory.create(signer, {
+            adapter = (await WalletV4R2Adapter!.create(signer, {
                 client: walletKit.getApiClient(),
                 network,
                 workchain,

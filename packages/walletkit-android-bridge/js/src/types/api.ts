@@ -219,7 +219,7 @@ export interface WalletKitBridgeApi {
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
     removeEventListeners(): PromiseOrValue<{ ok: true }>;
     mnemonicToKeyPair(args: MnemonicToKeyPairArgs): PromiseOrValue<{ publicKey: number[]; secretKey: number[] }>;
-    sign(args: SignArgs): PromiseOrValue<{ signature: number[] }>;
+    sign(args: SignArgs): PromiseOrValue<{ signature: string }>;
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<{ items: string[] }>;
     createSigner(args: CreateSignerArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
     createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;

@@ -9,11 +9,6 @@
 import type { WalletKitBridgeEvent } from './events';
 import type { WalletKitBridgeApi } from './api';
 
-export interface TonChainEnum {
-    MAINNET: number;
-    TESTNET: number;
-}
-
 export type WalletKitApiMethod = keyof WalletKitBridgeApi;
 
 export type DiagnosticStage = 'start' | 'checkpoint' | 'success' | 'error';

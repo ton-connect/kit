@@ -69,6 +69,7 @@ export interface WalletKitInstance extends WalletKitBridgeApi {
     ensureInitialized?: () => Promise<void>;
     getWallets: () => WalletKitWallet[];
     getWallet(address: string): WalletKitWallet | undefined;
+    getNetwork?: () => string;
     removeWallet(address: string): Promise<void>;
     getApiClient(): unknown;
     addWallet(adapter: unknown): Promise<WalletKitWallet | null>;

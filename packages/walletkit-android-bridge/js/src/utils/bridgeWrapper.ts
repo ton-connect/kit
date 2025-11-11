@@ -10,14 +10,9 @@
  * bridgeWrapper.ts - Unified bridge operation wrappers
  *
  * Provides consistent initialization and error handling for all bridge operations.
- * Eliminates duplicate ensureWalletKitLoaded/requireWalletKit calls across API files.
  */
 
-import { ensureWalletKitLoaded } from '../core/moduleLoader';
-import { requireWalletKit } from '../core/initialization';
 import { walletKit } from '../core/state';
-import { callOnWallet } from './helpers';
-import { logError } from './logger';
 
 /**
  * Unified wrapper for all bridge operations.
@@ -27,25 +22,19 @@ import { logError } from './logger';
  * @param fn - Function containing the actual business logic
  * @returns Result of the operation
  */
-export async function callBridge<T>(operation: string, fn: () => Promise<T> | T): Promise<T> {
-    await ensureWalletKitLoaded();
-    requireWalletKit();
-
-    if (typeof walletKit.ensureInitialized === 'function') {
+export async function callBridge<T>(method: string, operation: () => Promise<T>): Promise<T> {
+    if (!walletKit) {
+        throw new Error('WalletKit not initialized');
+    }
+    if (walletKit.ensureInitialized) {
         await walletKit.ensureInitialized();
     }
-
-    try {
-        return await fn();
-    } catch (error) {
-        logError(`[${operation}] failed:`, error);
-        throw error;
-    }
+    return await operation();
 }
 
 /**
  * Wrapper for wallet-specific operations.
- * Combines callBridge with callOnWallet for consistent wallet method invocations.
+ * Gets a wallet by address and calls a method on it.
  *
  * @param address - Wallet address
  * @param method - Wallet method name to call
@@ -53,27 +42,22 @@ export async function callBridge<T>(operation: string, fn: () => Promise<T> | T)
  * @returns Result of the wallet method
  */
 export async function callOnWalletBridge<T>(address: string, method: string, args?: unknown): Promise<T> {
-    return callBridge(`callOnWallet:${method}`, async () => {
-        return await callOnWallet<T>({ walletKit, requireWalletKit }, address, method, args);
+    return callBridge(`wallet.${method}`, async () => {
+        const trimmedAddress = address?.trim();
+        if (!trimmedAddress) {
+            throw new Error('Wallet address is required');
+        }
+
+        const wallet = walletKit.getWallet?.(trimmedAddress);
+        if (!wallet) {
+            throw new Error(`Wallet not found for address ${trimmedAddress}`);
+        }
+
+        const methodRef = (wallet as unknown as Record<string, unknown>)[method];
+        if (typeof methodRef !== 'function') {
+            throw new Error(`Method '${method}' not found on wallet`);
+        }
+
+        return (await (methodRef as (args?: unknown) => Promise<T>).call(wallet, args)) as T;
     });
-}
-
-/**
- * Lightweight wrapper for operations that don't need ensureInitialized.
- * Use for operations that only need WalletKit loaded but not fully initialized.
- *
- * @param operation - Operation name for error logging
- * @param fn - Function containing the actual business logic
- * @returns Result of the operation
- */
-export async function callBridgeLight<T>(operation: string, fn: () => Promise<T> | T): Promise<T> {
-    await ensureWalletKitLoaded();
-    requireWalletKit();
-
-    try {
-        return await fn();
-    } catch (error) {
-        logError(`[${operation}] failed:`, error);
-        throw error;
-    }
 }

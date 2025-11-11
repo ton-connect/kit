@@ -58,7 +58,7 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
         const transaction = await wallet.createTransferTonTransaction(args);
 
         let preview: unknown = null;
-        if (typeof wallet.getTransactionPreview === 'function') {
+        if (wallet.getTransactionPreview) {
             try {
                 const previewResult = await wallet.getTransactionPreview(transaction);
                 preview = previewResult?.preview ?? previewResult;
@@ -90,7 +90,7 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
         const transaction = await wallet.createTransferMultiTonTransaction(args);
 
         let preview: unknown = null;
-        if (typeof wallet.getTransactionPreview === 'function') {
+        if (wallet.getTransactionPreview) {
             try {
                 const previewResult = await wallet.getTransactionPreview(transaction);
                 preview = previewResult?.preview ?? previewResult;
