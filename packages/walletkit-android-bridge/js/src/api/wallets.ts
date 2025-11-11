@@ -23,7 +23,7 @@ import type {
     WalletKitAdapter,
     WalletKitSigner,
 } from '../types';
-import { Signer, WalletV4R2Adapter, WalletV5R1Adapter, tonConnectChain, CHAIN } from '../core/moduleLoader';
+import { Signer, WalletV4R2Adapter, WalletV5R1Adapter, CHAIN } from '../core/moduleLoader';
 import { walletKit, currentNetwork } from '../core/state';
 import { normalizeNetworkValue } from '../utils/network';
 import { callBridge } from '../utils/bridgeWrapper';
@@ -36,19 +36,6 @@ function requireModule<T>(moduleRef: T | null, name: string): T {
         throw new Error(`${name} module is not available`);
     }
     return moduleRef;
-}
-
-function resolveChain(network?: string) {
-    const chains = tonConnectChain;
-    if (!chains || !CHAIN) {
-        throw new Error('TON Connect chain constants unavailable');
-    }
-    const networkValue = normalizeNetworkValue(network, CHAIN);
-    const isMainnet = networkValue === CHAIN.MAINNET;
-    return {
-        chain: isMainnet ? chains.MAINNET : chains.TESTNET,
-        isMainnet,
-    };
 }
 
 /**
@@ -174,7 +161,10 @@ export async function createAdapter(args: CreateAdapterArgs) {
             throw new Error(`Signer not found: ${args.signerId}`);
         }
 
-        const { chain } = resolveChain(args.network as string | undefined);
+        if (!CHAIN) {
+            throw new Error('CHAIN constants not loaded');
+        }
+        const network = normalizeNetworkValue(args.network as string | undefined, CHAIN);
 
         const workchain = args.workchain !== undefined ? args.workchain : 0;
         const walletId = args.walletId !== undefined ? args.walletId : undefined;
@@ -184,7 +174,7 @@ export async function createAdapter(args: CreateAdapterArgs) {
             const factory = requireModule(WalletV5R1Adapter, 'WalletV5R1Adapter');
             adapter = (await factory.create(signer, {
                 client: walletKit.getApiClient(),
-                network: chain,
+                network,
                 workchain,
                 ...(walletId !== undefined && { walletId }),
             })) as AdapterInstance;
@@ -192,7 +182,7 @@ export async function createAdapter(args: CreateAdapterArgs) {
             const factory = requireModule(WalletV4R2Adapter, 'WalletV4R2Adapter');
             adapter = (await factory.create(signer, {
                 client: walletKit.getApiClient(),
-                network: chain,
+                network,
                 workchain,
                 ...(walletId !== undefined && { walletId }),
             })) as AdapterInstance;

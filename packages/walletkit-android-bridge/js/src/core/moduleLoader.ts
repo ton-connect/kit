@@ -12,7 +12,6 @@
 import type { TonChainEnum, WalletKitInstance, WalletKitAdapter, WalletKitSigner } from '../types';
 
 const walletKitModulePromise = import('@ton/walletkit');
-const tonCoreModulePromise = import('@ton/core');
 
 type TonWalletKitConstructor = new (options: Record<string, unknown>) => WalletKitInstance;
 
@@ -27,7 +26,6 @@ type AdapterFactory = {
 
 type WalletKitModule = {
     TonWalletKit: TonWalletKitConstructor;
-    createWalletInitConfigMnemonic?: unknown;
     createWalletManifest?: (options: { bridgeUrl: string; name: string; appName: string }) => Record<string, unknown>;
     CreateTonMnemonic?: () => Promise<string[] | string>;
     MnemonicToKeyPair?: (
@@ -44,13 +42,7 @@ type WalletKitModule = {
     CHAIN?: TonChainEnum;
 };
 
-type TonCoreModule = {
-    Address?: unknown;
-    Cell?: unknown;
-};
-
 export let TonWalletKit: TonWalletKitConstructor | null = null;
-export let createWalletInitConfigMnemonic: unknown = null;
 export let createWalletManifest:
     | ((options: { bridgeUrl: string; name: string; appName: string }) => Record<string, unknown>)
     | null = null;
@@ -62,10 +54,7 @@ export let Signer: SignerFactory | null = null;
 export let DefaultSignature: ((data: Uint8Array, secretKey: Uint8Array) => string) | null = null;
 export let WalletV4R2Adapter: AdapterFactory | null = null;
 export let WalletV5R1Adapter: AdapterFactory | null = null;
-export let Address: unknown;
-export let Cell: unknown;
 export let CHAIN: TonChainEnum | null = null;
-export let tonConnectChain: TonChainEnum | null = null;
 
 /**
  * Ensures WalletKit and TON core modules are loaded once and cached.
@@ -73,11 +62,7 @@ export let tonConnectChain: TonChainEnum | null = null;
 export async function ensureWalletKitLoaded(): Promise<void> {
     if (
         TonWalletKit &&
-        createWalletInitConfigMnemonic &&
-        tonConnectChain &&
         CHAIN &&
-        Address &&
-        Cell &&
         Signer &&
         MnemonicToKeyPair &&
         DefaultSignature &&
@@ -89,7 +74,6 @@ export async function ensureWalletKitLoaded(): Promise<void> {
 
     if (
         !TonWalletKit ||
-        !createWalletInitConfigMnemonic ||
         !Signer ||
         !MnemonicToKeyPair ||
         !DefaultSignature ||
@@ -99,29 +83,20 @@ export async function ensureWalletKitLoaded(): Promise<void> {
     ) {
         const module = (await walletKitModulePromise) as WalletKitModule;
         TonWalletKit = module.TonWalletKit;
-        createWalletInitConfigMnemonic = module.createWalletInitConfigMnemonic ?? createWalletInitConfigMnemonic;
         CreateTonMnemonic = module.CreateTonMnemonic ?? CreateTonMnemonic;
         MnemonicToKeyPair = module.MnemonicToKeyPair ?? MnemonicToKeyPair;
         createWalletManifest = module.createWalletManifest ?? createWalletManifest;
         CHAIN = module.CHAIN ?? CHAIN;
-        tonConnectChain = module.CHAIN ?? tonConnectChain;
         Signer = module.Signer ?? Signer;
         DefaultSignature = module.DefaultSignature ?? DefaultSignature;
         WalletV4R2Adapter = module.WalletV4R2Adapter ?? WalletV4R2Adapter;
         WalletV5R1Adapter = module.WalletV5R1Adapter ?? WalletV5R1Adapter;
     }
 
-    if (!Address || !Cell) {
-        const coreModule = (await tonCoreModulePromise) as TonCoreModule;
-        Address = coreModule.Address ?? Address;
-        Cell = coreModule.Cell ?? Cell;
-    }
-
-    if (!tonConnectChain || !CHAIN) {
+    if (!CHAIN) {
         const module = (await walletKitModulePromise) as WalletKitModule;
-        tonConnectChain = module.CHAIN ?? tonConnectChain;
         CHAIN = module.CHAIN ?? CHAIN;
-        if (!tonConnectChain || !CHAIN) {
+        if (!CHAIN) {
             throw new Error('TonWalletKit did not expose CHAIN enum');
         }
     }

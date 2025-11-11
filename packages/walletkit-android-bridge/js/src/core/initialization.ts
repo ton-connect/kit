@@ -12,7 +12,7 @@
 import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent } from '../types';
 import { debugLog, debugWarn } from '../utils/logger';
 import { walletKit, setWalletKit, initialized, setInitialized, setCurrentNetwork, setCurrentApiBase } from './state';
-import { ensureWalletKitLoaded, TonWalletKit, createWalletManifest, CHAIN, tonConnectChain } from './moduleLoader';
+import { ensureWalletKitLoaded, TonWalletKit, createWalletManifest, CHAIN } from './moduleLoader';
 import { normalizeNetworkValue } from '../utils/network';
 import { getInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
 
@@ -83,19 +83,12 @@ export async function initTonWalletKit(
     const network = normalizeNetworkValue(networkRaw, CHAIN);
     setCurrentNetwork(networkRaw); // Store the original string value
 
-    const isMainnet = network === CHAIN.MAINNET;
     // URLs are now set by Android WalletKit core with proper defaults
     const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl;
     const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl;
     if (tonApiUrl) {
         setCurrentApiBase(tonApiUrl);
     }
-
-    const chains = tonConnectChain;
-    if (!chains) {
-        throw new Error('TON Connect chain constants unavailable');
-    }
-    const chain = isMainnet ? chains.MAINNET : chains.TESTNET;
 
     debugLog('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
 
@@ -113,7 +106,7 @@ export async function initTonWalletKit(
     }
 
     const kitOptions: Record<string, unknown> = {
-        network: chain,
+        network,
         apiClient: { url: clientEndpoint },
     };
 
