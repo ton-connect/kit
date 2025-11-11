@@ -34,47 +34,26 @@ type AdapterInstance = WalletKitAdapter;
 
 /**
  * Lists all wallets with metadata.
+ * Returns raw WalletKit wallet objects - Kotlin handles mapping to WalletDescriptor.
  */
-export async function getWallets(): Promise<WalletDescriptor[]> {
+export async function getWallets(): Promise<WalletKitWallet[]> {
     return callBridge('getWallets', async () => {
-        const wallets = (walletKit.getWallets?.() ?? []) as WalletKitWallet[];
-        const network = walletKit.getNetwork?.() ?? 'testnet';
-
-        // PublicKey formatting handled by Kotlin
-        return wallets.map((wallet, index) => ({
-            address: wallet.getAddress(),
-            publicKey: wallet.publicKey,
-            version: typeof wallet.version === 'string' ? wallet.version : 'unknown',
-            index,
-            network,
-        }));
+        return (walletKit.getWallets?.() ?? []) as WalletKitWallet[];
     });
 }
 
 /**
  * Get a single wallet by address.
+ * Returns raw WalletKit wallet object - Kotlin handles mapping to WalletDescriptor.
  */
-export async function getWallet(args: { address: string }): Promise<WalletDescriptor | null> {
+export async function getWallet(args: { address: string }): Promise<WalletKitWallet | null> {
     return callBridge('getWallet', async () => {
         if (!args.address) {
             throw new Error('Wallet address is required');
         }
 
         const wallet = walletKit.getWallet?.(args.address) as WalletKitWallet | undefined;
-        if (!wallet) {
-            return null;
-        }
-
-        const network = walletKit.getNetwork?.() ?? 'testnet';
-
-        // PublicKey formatting handled by Kotlin
-        return {
-            address: wallet.getAddress(),
-            publicKey: wallet.publicKey,
-            version: typeof wallet.version === 'string' ? wallet.version : 'unknown',
-            index: 0,
-            network,
-        };
+        return wallet ?? null;
     });
 }
 
@@ -98,7 +77,8 @@ export async function removeWallet(args: RemoveWalletArgs) {
 }
 
 /**
- * Fetches wallet balance and cached transactions.
+ * Fetches wallet balance.
+ * Returns raw balance value - Kotlin handles conversion to BigInteger.
  */
 export async function getBalance(args: GetBalanceArgs) {
     return callBridge('getBalance', async () => {
@@ -107,11 +87,7 @@ export async function getBalance(args: GetBalanceArgs) {
             throw new Error('Wallet not found');
         }
 
-        // Balance formatting handled by Kotlin
-        const balance = await wallet.getBalance();
-        const balanceStr = String(balance ?? '0');
-
-        return { balance: balanceStr };
+        return await wallet.getBalance();
     });
 }
 
@@ -144,6 +120,7 @@ async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
 
 /**
  * Creates a signer from mnemonic or secret key.
+ * Returns raw signer object - Kotlin generates signerId and extracts publicKey.
  */
 export async function createSigner(args: CreateSignerArgs) {
     return callBridge('createSigner', async () => {
@@ -159,20 +136,18 @@ export async function createSigner(args: CreateSignerArgs) {
             throw new Error('Either mnemonic or secretKey must be provided');
         }
 
-        // ID generation and publicKey formatting handled by Kotlin
-        const signerId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        signerStore.set(signerId, signer);
+        // Store signer with temp ID for Kotlin to retrieve
+        const tempId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        signerStore.set(tempId, signer);
 
-        return {
-            signerId,
-            publicKey: signer.publicKey,
-        };
+        return { _tempId: tempId, signer };
     });
 }
 
 /**
  * Creates a wallet adapter from a signer.
  * Supports both regular signers (from mnemonic/secretKey) and custom signers (hardware wallets).
+ * Returns raw adapter object - Kotlin generates adapterId and extracts address.
  */
 export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
@@ -201,19 +176,17 @@ export async function createAdapter(args: CreateAdapterArgs) {
             throw new Error(`Unsupported wallet version: ${args.walletVersion}`);
         }
 
-        // ID generation handled by Kotlin
-        const adapterId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        adapterStore.set(adapterId, adapter);
+        // Store adapter with temp ID for Kotlin to retrieve
+        const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        adapterStore.set(tempId, adapter);
 
-        return {
-            adapterId,
-            address: adapter.getAddress(),
-        };
+        return { _tempId: tempId, adapter };
     });
 }
 
 /**
  * Adds a wallet to WalletKit using an adapter.
+ * Returns raw wallet object - Kotlin extracts address and publicKey.
  */
 export async function addWallet(args: AddWalletArgs) {
     return callBridge('addWallet', async () => {
@@ -231,10 +204,6 @@ export async function addWallet(args: AddWalletArgs) {
         // Clean up the adapter from store after use
         adapterStore.delete(args.adapterId);
 
-        // PublicKey formatting handled by Kotlin
-        return {
-            address: wallet.getAddress(),
-            publicKey: wallet.publicKey,
-        };
+        return wallet;
     });
 }

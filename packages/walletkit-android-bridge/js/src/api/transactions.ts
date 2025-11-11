@@ -27,7 +27,7 @@ import { debugWarn } from '../utils/logger';
  * Retrieves recent transactions for a wallet.
  * Returns raw WalletKit response - transformation happens in Kotlin TransactionResponseParser.
  */
-export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<{ items: unknown[] }> {
+export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<unknown[]> {
     return callBridge('getRecentTransactions', async () => {
         const wallet = walletKit.getWallet?.(args.address);
         if (!wallet) {
@@ -39,13 +39,13 @@ export async function getRecentTransactions(args: GetRecentTransactionsArgs): Pr
             limit: args.limit || 10,
         });
 
-        return { items: response?.transactions || [] };
+        return response?.transactions || [];
     });
 }
 
 /**
  * Creates a single-recipient TON transfer transaction.
- * Parameter validation and processing handled by Kotlin.
+ * Returns raw transaction and optional preview - Kotlin handles structure.
  */
 export async function createTransferTonTransaction(args: CreateTransferTonTransactionArgs) {
     return callBridge('createTransferTonTransaction', async () => {
@@ -54,26 +54,25 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
             throw new Error(`Wallet not found for address ${args.walletAddress}`);
         }
 
-        // Pass args directly - Kotlin TransactionOperations builds the proper structure
         const transaction = await wallet.createTransferTonTransaction(args);
 
-        let preview: unknown = null;
         if (wallet.getTransactionPreview) {
             try {
                 const previewResult = await wallet.getTransactionPreview(transaction);
-                preview = previewResult?.preview ?? previewResult;
+                const preview = previewResult?.preview ?? previewResult;
+                return { transaction, preview };
             } catch (error) {
                 debugWarn('[walletkitBridge] getTransactionPreview failed', error);
             }
         }
 
-        return { transaction, preview };
+        return { transaction };
     });
 }
 
 /**
  * Creates a multi-recipient TON transfer transaction.
- * Message validation and processing handled by Kotlin.
+ * Returns raw transaction and optional preview - Kotlin handles structure.
  */
 export async function createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs) {
     return callBridge('createTransferMultiTonTransaction', async () => {
@@ -86,20 +85,19 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
             throw new Error('At least one message required');
         }
 
-        // Pass messages directly - Kotlin TransactionOperations builds the proper structure
         const transaction = await wallet.createTransferMultiTonTransaction(args);
 
-        let preview: unknown = null;
         if (wallet.getTransactionPreview) {
             try {
                 const previewResult = await wallet.getTransactionPreview(transaction);
-                preview = previewResult?.preview ?? previewResult;
+                const preview = previewResult?.preview ?? previewResult;
+                return { transaction, preview };
             } catch (error) {
                 debugWarn('[walletkitBridge] getTransactionPreview failed', error);
             }
         }
 
-        return { transaction, preview };
+        return { transaction };
     });
 }
 
@@ -143,6 +141,7 @@ export async function handleNewTransaction(args: TransactionContentArgs) {
 
 /**
  * Sends a transaction to the network.
+ * Returns raw result object with signedBoc.
  */
 export async function sendTransaction(args: TransactionContentArgs) {
     return callBridge('sendTransaction', async () => {
@@ -151,11 +150,8 @@ export async function sendTransaction(args: TransactionContentArgs) {
             throw new Error(`Wallet not found for address ${args.walletAddress}`);
         }
 
-        // Accept object directly (preferred) or parse string (legacy)
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        const result = await wallet.sendTransaction(transaction);
-
-        return { signedBoc: result.signedBoc };
+        return await wallet.sendTransaction(transaction);
     });
 }

@@ -32,22 +32,19 @@ export async function signWithCustomSigner(signerId: string, bytes: Uint8Array):
 
 /**
  * Converts a mnemonic phrase to a key pair (public + secret keys).
+ * Returns raw keyPair object - Kotlin handles Uint8Array to ByteArray conversion.
  *
  * @param args - Mnemonic words and optional type ('ton' or 'bip39').
  */
 export async function mnemonicToKeyPair(args: MnemonicToKeyPairArgs) {
     return callBridge('mnemonicToKeyPair', async () => {
-        const keyPair = await MnemonicToKeyPair!(args.mnemonic, args.mnemonicType ?? 'ton');
-
-        return {
-            publicKey: Array.from(keyPair.publicKey) as number[],
-            secretKey: Array.from(keyPair.secretKey) as number[],
-        };
+        return await MnemonicToKeyPair!(args.mnemonic, args.mnemonicType ?? 'ton');
     });
 }
 
 /**
  * Signs arbitrary data using a secret key.
+ * Returns signature hex string directly.
  *
  * @param args - Data bytes and secret key bytes.
  */
@@ -63,22 +60,19 @@ export async function sign(args: SignArgs) {
         const dataBytes = Uint8Array.from(args.data);
         const secretKeyBytes = Uint8Array.from(args.secretKey);
 
-        // DefaultSignature returns hex string - pass directly to Kotlin
-        const signatureHex = DefaultSignature!(dataBytes, secretKeyBytes);
-
-        return { signature: signatureHex };
+        return DefaultSignature!(dataBytes, secretKeyBytes);
     });
 }
 
 /**
  * Generates a TON mnemonic phrase.
+ * Returns array of words directly.
  *
  * @param _args - Optional generation parameters.
  */
 export async function createTonMnemonic(_args: CreateTonMnemonicArgs = { count: 24 }) {
     return callBridge('createTonMnemonic', async () => {
         const mnemonicResult = await CreateTonMnemonic!();
-        const words = Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
-        return { items: words };
+        return Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
     });
 }
