@@ -16,6 +16,19 @@
 import type { MnemonicToKeyPairArgs, SignArgs, CreateTonMnemonicArgs } from '../types';
 import { CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
 import { callBridge } from '../utils/bridgeWrapper';
+import type { Hex } from '@ton/walletkit';
+
+/**
+ * Signs data using a custom signer stored in Kotlin.
+ * This is called by custom signer wrappers created in createAdapter.
+ */
+export async function signWithCustomSigner(signerId: string, bytes: Uint8Array): Promise<Hex> {
+    const result = await callBridge('signWithCustomSigner', async () => {
+        // Call back to Kotlin's SignerManager
+        return window.WalletKitNative?.signWithCustomSigner?.(signerId, Array.from(bytes));
+    });
+    return result as Hex;
+}
 
 /**
  * Converts a mnemonic phrase to a key pair (public + secret keys).

@@ -12,7 +12,7 @@
  * Simplified bridge for wallet creation, listing, removal, and state retrieval.
  */
 
-import { CHAIN } from '@ton/walletkit';
+import { CHAIN, type Hex } from '@ton/walletkit';
 import type {
     RemoveWalletArgs,
     GetBalanceArgs,
@@ -27,6 +27,7 @@ import type {
 import { Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '../core/moduleLoader';
 import { walletKit } from '../core/state';
 import { callBridge } from '../utils/bridgeWrapper';
+import { signWithCustomSigner } from './cryptography';
 
 type SignerInstance = WalletKitSigner;
 type AdapterInstance = WalletKitAdapter;
@@ -119,6 +120,29 @@ const signerStore = new Map<string, SignerInstance>();
 const adapterStore = new Map<string, AdapterInstance>();
 
 /**
+ * Retrieves or creates a signer instance based on the arguments.
+ * Handles both custom signers (hardware wallets) and regular signers.
+ */
+async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
+    // Handle custom signers (hardware wallets) that live in Kotlin
+    if (args.isCustom && args.publicKey) {
+        return {
+            sign: async (bytes: Iterable<number>): Promise<Hex> => {
+                return await signWithCustomSigner(args.signerId, Uint8Array.from(bytes));
+            },
+            publicKey: args.publicKey as Hex,
+        };
+    }
+
+    // Handle regular signers stored in JavaScript
+    const storedSigner = signerStore.get(args.signerId);
+    if (!storedSigner) {
+        throw new Error(`Signer not found: ${args.signerId}`);
+    }
+    return storedSigner;
+}
+
+/**
  * Creates a signer from mnemonic or secret key.
  */
 export async function createSigner(args: CreateSignerArgs) {
@@ -148,14 +172,11 @@ export async function createSigner(args: CreateSignerArgs) {
 
 /**
  * Creates a wallet adapter from a signer.
+ * Supports both regular signers (from mnemonic/secretKey) and custom signers (hardware wallets).
  */
 export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
-        const signer = signerStore.get(args.signerId);
-        if (!signer) {
-            throw new Error(`Signer not found: ${args.signerId}`);
-        }
-
+        const signer = await getSigner(args);
         const network = args.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
 
         const workchain = args.workchain !== undefined ? args.workchain : 0;

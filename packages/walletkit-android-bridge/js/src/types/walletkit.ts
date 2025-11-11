@@ -34,6 +34,7 @@ export interface AndroidBridgeType {
 
 export interface WalletKitNativeBridgeType {
     postMessage(json: string): void;
+    signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
 export interface WalletKitWallet {
@@ -62,6 +63,7 @@ export interface WalletKitAdapter {
 }
 
 export interface WalletKitSigner {
+    sign?: (bytes: Iterable<number>) => Promise<string>;
     publicKey: string;
 }
 

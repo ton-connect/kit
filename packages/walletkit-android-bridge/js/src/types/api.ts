@@ -41,6 +41,8 @@ export interface CreateAdapterArgs {
     network?: string;
     workchain?: number;
     walletId?: number;
+    publicKey?: string;
+    isCustom?: boolean;
 }
 
 export interface AddWalletArgs {
