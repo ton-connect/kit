@@ -28,6 +28,8 @@ import {
     MnemonicToKeyPair,
     type WalletSigner,
     Uint8ArrayToHex,
+    WalletKitError,
+    ERROR_CODES,
 } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
@@ -35,7 +37,13 @@ import { toast } from 'sonner';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
-import type { PreviewTransaction, LedgerConfig, SavedWallet } from '../../types/wallet';
+import type {
+    PreviewTransaction,
+    LedgerConfig,
+    SavedWallet,
+    QueuedRequest,
+    QueuedRequestData,
+} from '../../types/wallet';
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
@@ -51,6 +59,11 @@ const ENV_TON_API_KEY_TESTNET =
 
 const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
 const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
+
+// Queue management constants
+const MAX_QUEUE_SIZE = 100;
+const MODAL_CLOSE_DELAY = 500; // Delay after modal closes before showing next request
+const REQUEST_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes
 
 // Initialize wallet kit instance
 function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): ITonWalletKit {
@@ -291,6 +304,11 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         publicKey: undefined,
         transactions: [],
         currentWallet: undefined,
+        requestQueue: {
+            items: [],
+            currentRequestId: undefined,
+            isProcessing: false,
+        },
         pendingConnectRequest: undefined,
         isConnectModalOpen: false,
         pendingTransactionRequest: undefined,
@@ -391,8 +409,6 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
 
         // Set up wallet kit event listeners
         const onTransactionRequest = async (event: EventTransactionRequest) => {
-            log.info('Transaction request received:', event);
-
             const wallet = await walletKit.getWallet(event.walletAddress ?? '');
             if (!wallet) {
                 log.error('Wallet not found for transaction request');
@@ -409,7 +425,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 return;
             }
 
-            get().showTransactionRequest(event);
+            get().enqueueRequest({
+                type: 'transaction',
+                request: event,
+            });
         };
 
         walletKit.onConnectRequest((event) => {
@@ -430,14 +449,20 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 );
                 return;
             }
-            get().showConnectRequest(event);
+            get().enqueueRequest({
+                type: 'connect',
+                request: event,
+            });
         });
 
         walletKit.onTransactionRequest(onTransactionRequest);
 
         walletKit.onSignDataRequest((event) => {
             log.info('Sign data request received:', event);
-            get().showSignDataRequest(event);
+            get().enqueueRequest({
+                type: 'signData',
+                request: event,
+            });
         });
 
         walletKit.onDisconnect((event) => {
@@ -1036,6 +1061,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.pendingConnectRequest = undefined;
                 state.wallet.isConnectModalOpen = false;
             });
+
+            state.clearCurrentRequestFromQueue();
         } catch (error) {
             log.error('Failed to approve connect request:', error);
             throw error;
@@ -1060,6 +1087,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.pendingConnectRequest = undefined;
                 state.wallet.isConnectModalOpen = false;
             });
+
+            state.clearCurrentRequestFromQueue();
         } catch (error) {
             log.error('Failed to reject connect request:', error);
             throw error;
@@ -1099,6 +1128,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                         state.wallet.pendingTransactionRequest = undefined;
                         state.wallet.isTransactionModalOpen = false;
                     });
+
+                    // Clear from queue and process next after modal closes
+                    state.clearCurrentRequestFromQueue();
                 }, 3000); // 3 second delay for success animation
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
@@ -1112,6 +1144,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                             state.wallet.pendingTransactionRequest = undefined;
                             state.wallet.isTransactionModalOpen = false;
                         });
+
+                        // Clear from queue and process next after modal closes
+                        state.clearCurrentRequestFromQueue();
                     }, 3000);
                 }
             }
@@ -1139,8 +1174,20 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.pendingTransactionRequest = undefined;
                 state.wallet.isTransactionModalOpen = false;
             });
+
+            state.clearCurrentRequestFromQueue();
         } catch (error) {
             log.error('Failed to reject transaction request:', error);
+            if (error instanceof WalletKitError && error.code === ERROR_CODES.SESSION_NOT_FOUND) {
+                set((state) => {
+                    state.wallet.pendingTransactionRequest = undefined;
+                    state.wallet.isTransactionModalOpen = false;
+                });
+                toast.error('Could not properly reject transaction request: Session not found');
+
+                state.clearCurrentRequestFromQueue();
+                return;
+            }
             throw error;
         }
     },
@@ -1179,6 +1226,9 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                     state.wallet.pendingSignDataRequest = undefined;
                     state.wallet.isSignDataModalOpen = false;
                 });
+
+                // Clear from queue and process next after modal closes
+                state.clearCurrentRequestFromQueue();
             }, 3000); // 3 second delay for success animation
         } catch (error) {
             log.error('Failed to approve sign data request:', error);
@@ -1204,6 +1254,8 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.pendingSignDataRequest = undefined;
                 state.wallet.isSignDataModalOpen = false;
             });
+
+            state.clearCurrentRequestFromQueue();
         } catch (error) {
             log.error('Failed to reject sign data request:', error);
             throw error;
@@ -1249,5 +1301,132 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             return undefined;
         }
         return state.wallet.savedWallets.find((w) => w.id === state.wallet.activeWalletId);
+    },
+
+    // Queue management actions
+    enqueueRequest: (request: QueuedRequestData) => {
+        const state = get();
+
+        // Generate unique ID
+        const requestId = `${request.type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // Check if queue is at max capacity
+        if (state.wallet.requestQueue.items.length >= MAX_QUEUE_SIZE) {
+            log.warn('Queue is full, attempting to clear expired requests');
+
+            // Try to clear expired requests first
+            get().clearExpiredRequests();
+
+            // Check again after clearing
+            const updatedState = get();
+            if (updatedState.wallet.requestQueue.items.length >= MAX_QUEUE_SIZE) {
+                log.error('Queue overflow: cannot add more requests');
+                toast.error(
+                    `Request queue is full (${MAX_QUEUE_SIZE} items). Please approve or reject pending requests.`,
+                );
+                return;
+            }
+        }
+
+        const now = Date.now();
+        const queuedRequest: QueuedRequest = {
+            ...request,
+            id: requestId,
+            timestamp: now,
+            expiresAt: now + REQUEST_EXPIRATION_TIME,
+        };
+
+        set((state) => {
+            state.wallet.requestQueue.items.push(queuedRequest);
+        });
+
+        log.info(`Enqueued ${request.type} request`, {
+            requestId,
+            queueSize: state.wallet.requestQueue.items.length + 1,
+        });
+
+        // Process the request if not currently processing
+        if (!state.wallet.requestQueue.isProcessing) {
+            get().processNextRequest();
+        }
+    },
+
+    processNextRequest: () => {
+        const state = get();
+
+        // Check if already processing
+        if (state.wallet.requestQueue.isProcessing) {
+            log.info('Already processing a request, skipping');
+            return;
+        }
+
+        // Get next request from queue
+        const nextRequest = state.wallet.requestQueue.items[0];
+        if (!nextRequest) {
+            log.info('No more requests in queue');
+            return;
+        }
+
+        // Check if request has expired
+        if (nextRequest.expiresAt < Date.now()) {
+            log.warn('Next request has expired, removing and trying next', { requestId: nextRequest.id });
+            set((state) => {
+                state.wallet.requestQueue.items.shift();
+            });
+            get().processNextRequest();
+            return;
+        }
+
+        log.info(`Processing ${nextRequest.type} request`, { requestId: nextRequest.id });
+
+        // Mark as processing
+        set((state) => {
+            state.wallet.requestQueue.isProcessing = true;
+            state.wallet.requestQueue.currentRequestId = nextRequest.id;
+        });
+
+        // Show the appropriate modal based on request type
+        if (nextRequest.type === 'connect') {
+            get().showConnectRequest(nextRequest.request as EventConnectRequest);
+        } else if (nextRequest.type === 'transaction') {
+            get().showTransactionRequest(nextRequest.request as EventTransactionRequest);
+        } else if (nextRequest.type === 'signData') {
+            get().showSignDataRequest(nextRequest.request as EventSignDataRequest);
+        }
+    },
+
+    clearExpiredRequests: () => {
+        const now = Date.now();
+        set((state) => {
+            const originalLength = state.wallet.requestQueue.items.length;
+            state.wallet.requestQueue.items = state.wallet.requestQueue.items.filter((item) => item.expiresAt > now);
+            const removedCount = originalLength - state.wallet.requestQueue.items.length;
+            if (removedCount > 0) {
+                log.info(`Cleared ${removedCount} expired requests from queue`);
+            }
+        });
+    },
+
+    getCurrentRequest: () => {
+        const state = get();
+        if (!state.wallet.requestQueue.currentRequestId) {
+            return undefined;
+        }
+        return state.wallet.requestQueue.items.find((item) => item.id === state.wallet.requestQueue.currentRequestId);
+    },
+
+    // Helper to clear current request from queue and process next
+    clearCurrentRequestFromQueue: () => {
+        set((state) => {
+            const currentId = state.wallet.requestQueue.currentRequestId;
+            state.wallet.requestQueue.items = state.wallet.requestQueue.items.filter((item) => item.id !== currentId);
+            state.wallet.requestQueue.currentRequestId = undefined;
+            state.wallet.requestQueue.isProcessing = false;
+        });
+
+        // Delay before processing next request
+        setTimeout(() => {
+            get().processNextRequest();
+        }, MODAL_CLOSE_DELAY);
     },
 });

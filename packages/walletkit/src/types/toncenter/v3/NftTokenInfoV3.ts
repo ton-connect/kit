@@ -11,7 +11,17 @@ import { TokenInfo } from '../TokenInfo';
 
 export interface NftTokenInfoV3 {
     description?: string;
-    extra?: { [key: string]: string | NftItemAttribute[] }; // attributes, lottie, uri, _image_big, _image_medium, _image_small
+    extra?: {
+        attributes?: NftItemAttribute[];
+        lottie?: string;
+        uri?: string;
+        _image_big?: string;
+        _image_medium?: string;
+        _image_small?: string;
+        animation_url?: string;
+        content_url?: string;
+        [key: string]: unknown;
+    };
     image?: string;
     lottie?: string;
     name?: string;
@@ -29,6 +39,7 @@ export function toTokenInfo(data: NftTokenInfoV3): TokenInfo {
         description: data.description,
         image: data.image,
         extra: data.extra,
+        animation: data?.extra?.animation_url,
     };
     // Extract lottie from extra if it exists, or use direct lottie field
     if (data.lottie) {
@@ -38,6 +49,12 @@ export function toTokenInfo(data: NftTokenInfoV3): TokenInfo {
         if (typeof lottieValue === 'string') {
             result.lottie = lottieValue;
         }
+    }
+
+    if (data?.extra?.animation_url) {
+        result.animation = data.extra.animation_url;
+    } else if (data?.extra?.content_url && data.extra.content_url.includes('mp4')) {
+        result.animation = data.extra.content_url;
     }
     return result;
 }

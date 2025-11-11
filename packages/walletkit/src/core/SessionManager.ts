@@ -47,7 +47,7 @@ export class SessionManager {
         dAppIconUrl: string,
         dAppDescription: string,
         wallet?: IWallet,
-        { disablePersist = false }: { disablePersist?: boolean } = {},
+        { disablePersist = false, isJsBridge = false }: { disablePersist?: boolean; isJsBridge?: boolean } = {},
     ): Promise<SessionData> {
         const now = new Date();
         // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
@@ -63,6 +63,7 @@ export class SessionManager {
             publicKey: randomKeyPair.publicKey,
             dAppIconUrl: dAppIconUrl,
             dAppDescription: dAppDescription,
+            isJsBridge,
         };
 
         if (disablePersist) {
@@ -87,6 +88,7 @@ export class SessionManager {
             domain: session.domain,
             dAppIconUrl: session.dAppIconUrl,
             dAppDescription: session.dAppDescription,
+            isJsBridge: session.isJsBridge,
         };
     }
 
@@ -109,6 +111,7 @@ export class SessionManager {
                 domain: session.domain,
                 dAppIconUrl: session.dAppIconUrl,
                 dAppDescription: session.dAppDescription,
+                isJsBridge: session.isJsBridge,
             };
         }
         return undefined;
@@ -291,6 +294,7 @@ export class SessionManager {
                 publicKey: session.publicKey,
                 dAppIconUrl: session.dAppIconUrl,
                 dAppDescription: session.dAppDescription,
+                isJsBridge: session.isJsBridge,
             }));
 
             await this.storage.set(this.storageKey, sessionMetadata);

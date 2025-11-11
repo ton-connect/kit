@@ -259,6 +259,7 @@ export class BridgeManager {
         response: any,
         options?: {
             traceId?: string;
+            session?: SessionData;
         },
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
@@ -278,6 +279,29 @@ export class BridgeManager {
             // Default: use chrome extension messaging
             // eslint-disable-next-line no-undef
             await chrome.tabs.sendMessage(parseInt(sessionId), message);
+        }
+
+        // Fire disconnect event on emit (not inside bridge event handler)
+        if (response?.event === 'disconnect' && options?.session) {
+            const session = options.session;
+            const disconnectEvent: RawBridgeEvent = {
+                id: response.id || crypto.randomUUID(),
+                method: 'disconnect',
+                params: response.payload || {},
+                timestamp: Date.now(),
+                from: sessionId,
+                domain: session.domain,
+                isJsBridge: true,
+                walletAddress: session.walletAddress,
+                dAppInfo: {
+                    name: session.dAppName,
+                    description: session.dAppDescription,
+                    url: session.dAppIconUrl,
+                    iconUrl: session.dAppIconUrl,
+                },
+                traceId: options.traceId,
+            };
+            await this.eventRouter.routeEvent(disconnectEvent);
         }
     }
 
@@ -647,11 +671,6 @@ export class BridgeManager {
                 }
 
                 log.info('Event stored durably', { eventId: rawEvent.id, method: rawEvent.method });
-
-                // todo - fire on emit, not inside bridge
-                if (rawEvent.method == 'connect') {
-                    await this.eventRouter.routeEvent(rawEvent);
-                }
             } catch (error) {
                 log.error('Failed to store event durably', {
                     eventId: rawEvent.id,

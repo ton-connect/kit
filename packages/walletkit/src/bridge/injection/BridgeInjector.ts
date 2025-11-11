@@ -59,7 +59,7 @@ function createBridgeConfig(options: JSBridgeInjectOptions): BridgeConfig {
         deviceInfo,
         walletInfo,
         jsBridgeKey,
-        isWalletBrowser: false,
+        isWalletBrowser: options.isWalletBrowser ?? false,
         protocolVersion: SUPPORTED_PROTOCOL_VERSION,
     };
 }

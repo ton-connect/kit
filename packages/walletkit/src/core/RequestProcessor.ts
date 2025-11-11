@@ -108,6 +108,9 @@ export class RequestProcessor {
                     event.preview.manifest?.iconUrl || '',
                     event.preview.manifest?.description || '',
                     wallet,
+                    {
+                        isJsBridge: event.isJsBridge,
+                    },
                 );
                 // Create bridge session
                 await this.bridgeManager.createSession(newSession.sessionId);

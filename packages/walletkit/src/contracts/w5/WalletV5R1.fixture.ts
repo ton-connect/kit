@@ -9,9 +9,10 @@
 import { CHAIN } from '@tonconnect/protocol';
 
 import { mockFn } from '../../../mock.config';
-import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
 import type { FullAccountState, GetResult } from '../../types/toncenter/api';
-import type { ToncenterEmulationResponse, ToncenterResponseJettonWallets, ToncenterTracesResponse } from '../../types';
+import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
+import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
 import { WalletId } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
@@ -92,7 +93,12 @@ export function createMockApiClient(): ApiClient {
         resolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
         backResolveDnsWallet: mockFn().mockResolvedValue({} as string | null),
         jettonsByAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonMasters),
-        jettonsByOwnerAddress: mockFn().mockResolvedValue({} as ToncenterResponseJettonWallets),
+        jettonsByOwnerAddress: mockFn().mockResolvedValue({
+            jettons: [],
+            address_book: {},
+            pagination: { offset: 0, limit: 50 },
+        } as ResponseUserJettons),
+        getEvents: mockFn().mockResolvedValue({} as GetEventsResponse),
     };
 }
 export async function createDummyWallet(walletId?: bigint): Promise<WalletV5R1Adapter> {

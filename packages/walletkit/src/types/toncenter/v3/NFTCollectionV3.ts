@@ -13,7 +13,10 @@ import { Base64ToHex } from '../../../utils/base64';
 export interface NFTCollectionV3 {
     address: string;
     code_hash?: string;
-    collection_content?: { [key: string]: string }; // uri - meta json
+    collection_content?: {
+        uri?: string;
+        [key: string]: unknown;
+    };
     data_hash?: string;
     last_transaction_lt?: string;
     next_item_index: string;
@@ -26,7 +29,14 @@ export interface TokenInfoNFTCollection {
     name: string;
     description: string;
     image: string;
-    extra: { [key: string]: string }; // cover_image, uri, _image_big, _image_medium, _image_small
+    extra: {
+        cover_image?: string;
+        uri?: string;
+        _image_big?: string;
+        _image_medium?: string;
+        _image_small?: string;
+        [key: string]: unknown;
+    };
 }
 
 export function toNftCollection(data: NFTCollectionV3 | null): NftCollection | null {

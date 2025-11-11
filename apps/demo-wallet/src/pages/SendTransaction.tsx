@@ -32,7 +32,7 @@ export const SendTransaction: React.FC = () => {
     const [showTokenSelector, setShowTokenSelector] = useState(false);
 
     const navigate = useNavigate();
-    const { balance, currentWallet } = useWallet();
+    const { balance, currentWallet, address } = useWallet();
     // Get current wallet
     const { userJettons, isLoadingJettons, loadUserJettons, formatJettonAmount } = useJettons();
 
@@ -122,7 +122,7 @@ export const SendTransaction: React.FC = () => {
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
                 // display Preview result.preview in a modal
                 if (walletKit) {
-                    await walletKit.handleNewTransaction(currentWallet, result);
+                    await currentWallet.sendTransaction(result);
                 }
 
                 log.info('TON transfer completed', {
@@ -176,6 +176,12 @@ export const SendTransaction: React.FC = () => {
             if (currentBalance > 0) {
                 setAmount(currentBalance.toString());
             }
+        }
+    };
+
+    const handleSendToSelf = () => {
+        if (address) {
+            setRecipient(address);
         }
     };
 
@@ -342,19 +348,32 @@ export const SendTransaction: React.FC = () => {
                 {/* Send Form */}
                 <Card>
                     <form onSubmit={handleSend} className="space-y-4">
-                        <Input
-                            label="Recipient Address"
-                            value={recipient}
-                            onChange={(e) => setRecipient(e.target.value)}
-                            placeholder="EQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                            required
-                            helperText="Enter the recipient's TON address"
-                        />
+                        <div>
+                            <div className="flex items-center justify-between mb-1">
+                                <label className="block text-sm font-medium text-gray-700">Recipient Address</label>
+                                {address && (
+                                    <button
+                                        type="button"
+                                        onClick={handleSendToSelf}
+                                        className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                                    >
+                                        Use my address
+                                    </button>
+                                )}
+                            </div>
+                            <Input
+                                value={recipient}
+                                onChange={(e) => setRecipient(e.target.value)}
+                                placeholder="EQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                required
+                                helperText="Enter the recipient's TON address"
+                            />
+                        </div>
 
                         <div>
                             <Input
                                 type="number"
-                                step={selectedToken.type === 'TON' ? '0.0001' : '0.000001'}
+                                step={selectedToken.type === 'TON' ? '0.000000001' : '0.000000001'}
                                 min="0"
                                 label={`Amount (${getCurrentTokenSymbol()})`}
                                 value={amount}

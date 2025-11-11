@@ -25,6 +25,8 @@ import {
     NftItemsByOwnerRequest,
     NftItemsRequest,
     TransactionsByAddressRequest,
+    GetEventsResponse,
+    GetEventsRequest,
 } from '../types/toncenter/ApiClient';
 import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
 import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
@@ -34,7 +36,10 @@ import {
     ToncenterResponseJettonWallets,
     ToncenterTracesResponse,
     ToncenterTransactionsResponse,
+    EmulationTokenInfoMasters,
 } from '../types/toncenter/emulation';
+import { ResponseUserJettons } from '../types/export/responses/jettons';
+import { AddressJetton, JettonInfo } from '../types/jettons';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
 import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
@@ -44,6 +49,7 @@ import {
     ROOT_DNS_RESOLVER_MAINNET,
     ROOT_DNS_RESOLVER_TESTNET,
 } from '../types/toncenter/dnsResolve';
+import { toAddressBook, toEvent } from '../types/toncenter/AccountEvent';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -426,12 +432,111 @@ export class ApiClientToncenter implements ApiClient {
         });
     }
 
-    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ToncenterResponseJettonWallets> {
-        return this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
+    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ResponseUserJettons> {
+        const offset = request.offset ?? 0;
+        const limit = request.limit ?? 50;
+        const rawResponse = await this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
             owner_address: request.ownerAddress,
-            offset: request.offset,
-            limit: request.limit,
+            offset,
+            limit,
         });
+
+        return this.mapToResponseUserJettons(rawResponse, offset, limit);
+    }
+
+    private mapToResponseUserJettons(
+        rawResponse: ToncenterResponseJettonWallets,
+        offset: number,
+        limit: number,
+    ): ResponseUserJettons {
+        const userJettons: AddressJetton[] = rawResponse.jetton_wallets.map((wallet) => {
+            const jettonInfo = this.extractJettonInfoFromMetadata(wallet.jetton, rawResponse.metadata);
+            return {
+                address: wallet.jetton,
+                balance: wallet.balance,
+                jettonWalletAddress: wallet.address,
+                usdValue: '0',
+                name: jettonInfo.name,
+                symbol: jettonInfo.symbol,
+                description: jettonInfo.description,
+                decimals: jettonInfo.decimals,
+                image: jettonInfo.image,
+                verification: jettonInfo.verification,
+                metadata: jettonInfo.metadata,
+                totalSupply: jettonInfo.totalSupply,
+                uri: jettonInfo.uri,
+                image_data: jettonInfo.image_data,
+                lastActivity: wallet.last_transaction_lt,
+            };
+        });
+
+        return {
+            jettons: userJettons,
+            address_book: rawResponse.address_book,
+            pagination: {
+                offset,
+                limit,
+            },
+        };
+    }
+
+    private extractJettonInfoFromMetadata(
+        jettonAddress: string,
+        metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }>,
+    ): JettonInfo {
+        const jettonMetadata = metadata[jettonAddress];
+        const metadataJettonInfo = jettonMetadata?.token_info?.find(
+            (info: unknown) =>
+                typeof info === 'object' &&
+                info !== null &&
+                'type' in info &&
+                (info as { type: string }).type === 'jetton_masters',
+        ) as EmulationTokenInfoMasters | undefined;
+
+        if (metadataJettonInfo) {
+            const decimals =
+                typeof metadataJettonInfo.extra.decimals === 'string'
+                    ? parseInt(metadataJettonInfo.extra.decimals, 10)
+                    : ((metadataJettonInfo.extra.decimals as number) ?? 9);
+
+            return {
+                address: jettonAddress,
+                name: metadataJettonInfo.name ?? '',
+                symbol: metadataJettonInfo.symbol ?? '',
+                description: metadataJettonInfo.description ?? '',
+                decimals,
+                image: metadataJettonInfo.image,
+                image_data: metadataJettonInfo.extra.image_data,
+                uri: metadataJettonInfo.extra.uri,
+            };
+        }
+
+        // Return default/empty jetton info if metadata is not available
+        return {
+            address: jettonAddress,
+            name: '',
+            symbol: '',
+            description: '',
+            decimals: 9,
+        };
+    }
+
+    async getEvents(request: GetEventsRequest): Promise<GetEventsResponse> {
+        const account = request.account instanceof Address ? request.account.toString() : request.account;
+        const limit = request.limit ?? 20;
+        const offset = request.offset ?? 0;
+        const query: Record<string, unknown> = {
+            account,
+            limit,
+            offset,
+        };
+        const list = await this.getJson<ToncenterTracesResponse>('/api/v3/traces', query);
+        const out: GetEventsResponse = { events: [], limit, offset };
+        const addressBook = toAddressBook(list.address_book);
+        for (const trace of list.traces) {
+            out.events.push(toEvent(trace, account, addressBook));
+        }
+        return out;
     }
 }
 

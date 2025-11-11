@@ -11,9 +11,9 @@
  */
 
 /**
- * Default timeout for bridge requests (30 seconds)
+ * Default timeout for bridge requests (300 seconds)
  */
-export const DEFAULT_REQUEST_TIMEOUT = 30000;
+export const DEFAULT_REQUEST_TIMEOUT = 300000;
 
 /**
  * Timeout for restoreConnection requests (10 seconds)

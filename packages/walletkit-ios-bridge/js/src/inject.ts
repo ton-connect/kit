@@ -6,26 +6,21 @@
  *
  */
 
-// Content script for TON Wallet Demo extension
-/* eslint-disable no-console */
-import { Buffer } from 'buffer';
+import { Transport, injectBridgeCode } from '@ton/walletkit/bridge';
+import { TONCONNECT_BRIDGE_EVENT } from '../../../walletkit/src/bridge/utils/messageTypes';
+import { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
+import { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from '../../../walletkit/src/bridge/utils/timeouts';
 
-window.Buffer = Buffer;
-if (globalThis && !globalThis.Buffer) {
-    globalThis.Buffer = Buffer;
+declare global {
+    interface Window {
+        id: String,
+        injectWalletKit: (options) => void;
+    }
 }
 
-import { injectBridgeCode } from '@ton/walletkit/bridge';
-
-// import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
-
-function injectTonConnectBridge() {
+window.injectWalletKit = (options) => {
     try {
-        // Inject the simplified bridge that forwards to extension
-        injectBridgeCode(window, {
-            // deviceInfo: getTonConnectDeviceInfo(),
-            // walletInfo: getTonConnectWalletManifest(),
-        });
+        injectBridgeCode(window, options, new SwiftTransport(window));
 
         console.log('TonConnect bridge injected - forwarding to extension');
     } catch (error) {
@@ -33,4 +28,68 @@ function injectTonConnectBridge() {
     }
 }
 
-injectTonConnectBridge();
+window.id = crypto.randomUUID();
+
+class SwiftTransport implements Transport {
+    private readonly window: Window;
+    private eventCallback: ((event: unknown) => void) | null = null;
+    private messageListener: ((event: MessageEvent) => void) | null = null;
+
+    constructor(window: Window) {
+        this.window = window;
+        this.setupMessageListener();
+    }
+
+    private setupMessageListener(): void {
+        this.messageListener = (event: MessageEvent) => {
+            if (event.source !== this.window) return;
+
+            const data = event.data;
+            if (!data || typeof data !== 'object') return;
+
+            if (data.type === TONCONNECT_BRIDGE_EVENT) {
+                this.handleEvent(data.event);
+                return;
+            }
+        };
+
+        this.window.addEventListener('message', this.messageListener);
+    }
+
+    private handleEvent(event: unknown): void {
+        if (this.eventCallback) {
+            try {
+                this.eventCallback(event);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('TonConnect event callback error:', error);
+            }
+        }
+    }
+
+    async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
+        let timeout = request.method === 'restoreConnection' ? RESTORE_CONNECTION_TIMEOUT : DEFAULT_REQUEST_TIMEOUT;
+        let response = await window.webkit.messageHandlers.walletKitInjectionBridge.postMessage(
+            { ...request, frameID: window.id, timeout: timeout }
+        );
+
+        if (response.success) {
+            return Promise.resolve(response.payload);
+        } else {
+            return Promise.reject(response.error);
+        }
+    }
+
+    onEvent(callback: (event: unknown) => void): void {
+        this.eventCallback = callback;
+    }
+
+    isAvailable(): boolean {
+        return true;
+    }
+
+    requestContentScriptInjection(): void {}
+
+    destroy(): void {}
+}
+

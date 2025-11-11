@@ -224,7 +224,8 @@ export class Initializer {
 
             if (components.eventProcessor) {
                 components.eventProcessor.stopRecoveryLoop();
-                await components.eventProcessor.stopNoWalletProcessing();
+                await components.eventProcessor.clearRegisteredWallets();
+                await components.eventProcessor.stopProcessing();
             }
 
             if (components.bridgeManager) {

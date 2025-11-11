@@ -11,7 +11,10 @@ import { AddressFriendly, Hex } from '../primitive';
 export interface NftCollection {
     address: AddressFriendly;
 
-    collectionContent?: { [key: string]: string }; // uri - meta json
+    collectionContent?: {
+        uri?: string;
+        [key: string]: unknown;
+    };
 
     lastTransactionLt?: string;
     name?: string;
@@ -23,5 +26,12 @@ export interface NftCollection {
 
     description?: string;
     image?: string;
-    extra?: { [key: string]: string }; // toncenter fields - cover_image, uri, _image_big, _image_medium, _image_small
+    extra?: {
+        cover_image?: string;
+        uri?: string;
+        _image_big?: string;
+        _image_medium?: string;
+        _image_small?: string;
+        [key: string]: unknown;
+    };
 }

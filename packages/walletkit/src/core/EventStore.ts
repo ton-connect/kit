@@ -160,6 +160,47 @@ export class StorageEventStore implements EventStore {
     }
 
     /**
+     * Increment retry count and update error message for an event
+     */
+    async releaseLock(eventId: string, error?: string): Promise<StoredEvent> {
+        return this.withLock('storage', async () => {
+            const allEvents = await this.getAllEventsFromStorage();
+            const event = allEvents[eventId];
+
+            if (!event) {
+                throw new Error(`Event not found: ${eventId}`);
+            }
+
+            if (event.status !== 'processing') {
+                throw new Error(`Event not in processing status: ${eventId}, current status: ${event.status}`);
+            }
+
+            const addRetryCount = error ? 1 : 0;
+
+            const updatedEvent: StoredEvent = {
+                ...event,
+                retryCount: (event.retryCount || 0) + addRetryCount,
+                lastError: error,
+                status: 'new',
+                lockedBy: undefined,
+                processingStartedAt: undefined,
+            };
+
+            // Save atomically within the lock
+            allEvents[eventId] = updatedEvent;
+            await this.storage.set(this.storageKey, allEvents);
+
+            log.debug('Event retry count incremented', {
+                eventId,
+                retryCount: updatedEvent.retryCount,
+                error,
+            });
+
+            return updatedEvent;
+        });
+    }
+
+    /**
      * Update event status and timestamps with optimistic locking
      */
     async updateEventStatus(eventId: string, status: EventStatus, oldStatus: EventStatus): Promise<StoredEvent> {
@@ -223,10 +264,9 @@ export class StorageEventStore implements EventStore {
                 event.processingStartedAt &&
                 now - event.processingStartedAt > processingTimeoutMs
             ) {
-                // Reset to new status
+                // Reset to processing status (keep retry count) so it can be retried
                 const recoveredEvent: StoredEvent = {
                     ...event,
-                    status: 'new',
                     processingStartedAt: undefined,
                     lockedBy: undefined,
                 };
@@ -238,6 +278,7 @@ export class StorageEventStore implements EventStore {
                     eventId: event.id,
                     lockedBy: event.lockedBy,
                     staleMinutes: Math.round((now - event.processingStartedAt) / 60000),
+                    retryCount: event.retryCount || 0,
                 });
             }
         }
@@ -259,9 +300,13 @@ export class StorageEventStore implements EventStore {
         const eventsToRemove: string[] = [];
 
         for (const event of events) {
-            if (event.status === 'completed' && event.completedAt && event.completedAt < cutoffTime) {
+            // Clean up completed events and errored events
+            if (
+                (event.status === 'completed' && event.completedAt && event.completedAt < cutoffTime) ||
+                (event.status === 'errored' && event.createdAt < cutoffTime)
+            ) {
                 eventsToRemove.push(event.id);
-                log.debug('Marked event for cleanup', { eventId: event.id });
+                log.debug('Marked event for cleanup', { eventId: event.id, status: event.status });
             }
         }
 

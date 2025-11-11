@@ -90,6 +90,7 @@ export class EventRouter {
             }
         } catch (error) {
             log.error('Error routing event', { error });
+            throw error;
         }
     }
 
@@ -171,39 +172,41 @@ export class EventRouter {
     /**
      * Notify connect request callbacks
      */
-    private notifyConnectRequestCallbacks(event: EventConnectRequest | WalletResponseTemplateError): void {
+    private async notifyConnectRequestCallbacks(
+        event: EventConnectRequest | WalletResponseTemplateError,
+    ): Promise<void> {
         if ('error' in event) {
             return;
         }
-        this.connectRequestCallback?.(event);
+        return await this.connectRequestCallback?.(event);
     }
 
     /**
      * Notify transaction request callbacks
      */
     private async notifyTransactionRequestCallbacks(event: EventTransactionRequest): Promise<void> {
-        this.transactionRequestCallback?.(event);
+        return await this.transactionRequestCallback?.(event);
     }
 
     /**
      * Notify sign data request callbacks
      */
-    private notifySignDataRequestCallbacks(event: EventSignDataRequest): void {
-        this.signDataRequestCallback?.(event);
+    private async notifySignDataRequestCallbacks(event: EventSignDataRequest): Promise<void> {
+        return await this.signDataRequestCallback?.(event);
     }
 
     /**
      * Notify disconnect callbacks
      */
-    private notifyDisconnectCallbacks(event: EventDisconnect): void {
-        this.disconnectCallback?.(event);
+    private async notifyDisconnectCallbacks(event: EventDisconnect): Promise<void> {
+        return await this.disconnectCallback?.(event);
     }
 
     /**
      * Notify error callbacks
      */
-    private notifyErrorCallback(event: EventRequestError): void {
-        this.errorCallback?.(event);
+    private async notifyErrorCallback(event: EventRequestError): Promise<void> {
+        return await this.errorCallback?.(event);
     }
 
     /**

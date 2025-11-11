@@ -33,7 +33,7 @@ export interface JettonVerification {
 export interface AddressJetton extends JettonInfo {
     balance: string;
     jettonWalletAddress: string;
-    lastActivity?: number;
+    lastActivity?: string;
     usdValue?: string; // if price data available
 }
 

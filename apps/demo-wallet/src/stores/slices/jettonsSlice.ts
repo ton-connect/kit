@@ -77,16 +77,23 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
             log.info('Loading user jettons', { address });
 
             // Use the jettons API from walletKit
-            const userJettons = await state.wallet.walletKit.jettons.getAddressJettons(address);
+            const jettonsResponse = await state.wallet.currentWallet?.getJettons({
+                limit: 10,
+                offset: 0,
+            });
+
+            if (!jettonsResponse) {
+                throw new Error('Failed to load user jettons');
+            }
 
             set((state) => {
-                state.jettons.userJettons = userJettons;
+                state.jettons.userJettons = jettonsResponse.jettons;
                 state.jettons.lastJettonsUpdate = Date.now();
                 state.jettons.isLoadingJettons = false;
                 state.jettons.error = null;
             });
 
-            log.info('Successfully loaded user jettons', { count: userJettons.length });
+            log.info('Successfully loaded user jettons', { count: jettonsResponse.jettons.length });
         } catch (error) {
             log.error('Failed to load user jettons:', error);
 

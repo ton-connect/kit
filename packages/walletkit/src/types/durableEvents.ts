@@ -13,7 +13,7 @@ import type { RawBridgeEvent, EventType } from './internal';
 /**
  * Event processing states
  */
-export type EventStatus = 'new' | 'processing' | 'completed';
+export type EventStatus = 'new' | 'processing' | 'completed' | 'errored';
 
 /**
  * Stored event with metadata
@@ -48,6 +48,12 @@ export interface StoredEvent {
 
     /** Size of the event in bytes */
     sizeBytes: number;
+
+    /** Number of retry attempts made for this event */
+    retryCount?: number;
+
+    /** Last error message encountered during processing */
+    lastError?: string;
 }
 
 /**
@@ -65,6 +71,12 @@ export interface DurableEventsConfig {
 
     /** How long to retain events in milliseconds */
     retentionMs: number;
+
+    /** Delay between retry attempts in milliseconds */
+    retryDelayMs: number;
+
+    /** Maximum number of retry attempts before marking event as errored */
+    maxRetries: number;
 }
 
 /**
@@ -75,6 +87,8 @@ export const DEFAULT_DURABLE_EVENTS_CONFIG: DurableEventsConfig = {
     processingTimeoutMs: 60 * 1000, // 1 minute
     cleanupIntervalMs: 60 * 1000, // 1 minute
     retentionMs: 60 * 10 * 1000, // 10 minutes
+    retryDelayMs: 500, // 500 milliseconds
+    maxRetries: 20, // 20 retry attempts
 };
 
 /**
@@ -101,6 +115,11 @@ export interface EventStore {
      * Returns true if lock acquired, false if already locked
      */
     acquireLock(eventId: string, walletAddress: string): Promise<StoredEvent | undefined>;
+
+    /**
+     * Release lock on an event and increment retry count if error is provided
+     */
+    releaseLock(eventId: string, error?: string): Promise<StoredEvent>;
 
     /**
      * Update event status and timestamps with optimistic locking
@@ -143,28 +162,6 @@ export interface EventProcessor {
      * Stop processing events for a wallet
      */
     stopProcessing(walletAddress: string): Promise<void>;
-
-    /**
-     * Process next available event for a wallet
-     * Returns true if an event was processed, false if none available
-     */
-    processNextEvent(walletAddress: string): Promise<boolean>;
-
-    /**
-     * Start processing events that don't require a wallet (e.g., connect events)
-     */
-    startNoWalletProcessing(): Promise<void>;
-
-    /**
-     * Stop processing events that don't require a wallet
-     */
-    stopNoWalletProcessing(): Promise<void>;
-
-    /**
-     * Process next available event that doesn't require a wallet
-     * Returns true if an event was processed, false if none available
-     */
-    processNextNoWalletEvent(): Promise<boolean>;
 
     /**
      * Mark an event as completed after successful processing

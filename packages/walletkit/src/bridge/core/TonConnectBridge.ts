@@ -95,6 +95,13 @@ export class TonConnectBridge {
     }
 
     /**
+     * Expose listener count for environments that need to fan-out events across frames.
+     */
+    public hasListeners(): boolean {
+        return this.eventListeners.length > 0;
+    }
+
+    /**
      * Notify all registered listeners of an event
      */
     private notifyListeners(event: unknown): void {

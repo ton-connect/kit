@@ -34,6 +34,9 @@ export interface SessionData {
     dAppDescription: string;
     domain: string;
     dAppIconUrl: string;
+
+    // Bridge type indicator (needed to determine how to send disconnect events)
+    isJsBridge?: boolean; // true if session was created via JS Bridge, false/undefined for HTTP Bridge
 }
 
 export interface BridgeConfig {

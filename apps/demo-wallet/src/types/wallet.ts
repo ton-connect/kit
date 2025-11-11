@@ -50,6 +50,9 @@ export interface WalletState {
         // Walletkit instance and current wallet
         currentWallet?: IWallet;
 
+        // Request queue
+        requestQueue: RequestQueue;
+
         // Connect request state
         pendingConnectRequest?: EventConnectRequest;
         isConnectModalOpen: boolean;
@@ -97,6 +100,37 @@ export interface DisconnectNotification {
     walletAddress: string;
     reason?: string;
     timestamp: number;
+}
+
+export interface QueueRequestBase {
+    id: string; // Unique ID for the request
+    timestamp: number; // When request was added
+    expiresAt: number; // Expiration time
+}
+
+export interface QueuedRequestConnect {
+    type: 'connect';
+    request: EventConnectRequest;
+}
+
+export interface QueuedRequestTransaction {
+    type: 'transaction';
+    request: EventTransactionRequest;
+}
+
+export interface QueuedRequestSignData {
+    type: 'signData';
+    request: EventSignDataRequest;
+}
+
+export type QueuedRequestData = QueuedRequestConnect | QueuedRequestTransaction | QueuedRequestSignData;
+
+export type QueuedRequest = QueueRequestBase & QueuedRequestData;
+
+export interface RequestQueue {
+    items: QueuedRequest[];
+    currentRequestId?: string; // ID of the request currently being shown
+    isProcessing: boolean; // Whether we're currently showing a modal
 }
 
 export interface LedgerConfig {

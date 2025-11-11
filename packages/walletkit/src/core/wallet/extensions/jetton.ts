@@ -17,7 +17,7 @@ import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '
 import { isValidAddress } from '../../../utils/address';
 import { CallForSuccess } from '../../../utils/retry';
 import { ParseStack, SerializeStack } from '../../../utils/tvmStack';
-import { ToncenterResponseJettonWallets } from '../../../types/toncenter/emulation';
+import { ResponseUserJettons } from '../../../types/export/responses/jettons';
 import { GetJettonsByOwnerRequest } from '../../../types/toncenter/ApiClient';
 
 export class WalletJettonClass implements WalletJettonInterface {
@@ -137,7 +137,7 @@ export class WalletJettonClass implements WalletJettonInterface {
     async getJettons(
         this: IWallet,
         params?: Omit<GetJettonsByOwnerRequest, 'ownerAddress'>,
-    ): Promise<ToncenterResponseJettonWallets> {
+    ): Promise<ResponseUserJettons> {
         return this.client.jettonsByOwnerAddress({
             ...params,
 

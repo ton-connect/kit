@@ -76,7 +76,7 @@ export const useStore = create<AppState>()(
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 })) as unknown as any,
                 {
-                    name: 'demo-wallet-app-store', // ✅ one clean key
+                    name: 'demo-wallet-app-store',
                     storage: createJSONStorage(() => localStorage),
                     version: STORE_VERSION,
                     migrate,
@@ -100,6 +100,9 @@ export const useStore = create<AppState>()(
                             hasWallet: state.wallet.hasWallet,
                             savedWallets: state.wallet.savedWallets, // Persist all saved wallets
                             activeWalletId: state.wallet.activeWalletId, // Persist active wallet selection
+
+                            // Persist request queue
+                            requestQueue: state.wallet.requestQueue,
 
                             // Legacy fields for backward compatibility
                             // encryptedMnemonic: state.wallet.encryptedMnemonic,
@@ -144,12 +147,23 @@ export const useStore = create<AppState>()(
                                 state.wallet.savedWallets = [];
                             }
 
+                            // Ensure requestQueue is always initialized
+                            if (!state.wallet.requestQueue) {
+                                state.wallet.requestQueue = {
+                                    items: [],
+                                    currentRequestId: undefined,
+                                    isProcessing: false,
+                                };
+                            }
+
                             // Initialize network if not set (for backward compatibility)
                             if (!state.auth.network) {
                                 state.auth.network = 'testnet';
                                 log.info('Initialized network to default: testnet');
                             }
-
+                            if (!state.wallet.transactions) {
+                                state.wallet.transactions = [];
+                            }
                             // Auto-unlock if password is persisted and available
                             if (
                                 state.auth.persistPassword &&
@@ -161,12 +175,23 @@ export const useStore = create<AppState>()(
                                 state.auth.isUnlocked = true;
                             }
 
-                            if (state.wallet.savedWallets.length > 0) {
-                                state.wallet.hasWallet = true;
+                            // Clear expired requests on rehydration (after auto-unlock)
+                            if (state.clearExpiredRequests) {
+                                state.clearExpiredRequests();
                             }
 
-                            if (!state.wallet.transactions) {
-                                state.wallet.transactions = [];
+                            // Resume processing if there are queued requests (after auto-unlock)
+                            if (
+                                state.wallet.requestQueue.items.length > 0 &&
+                                !state.wallet.requestQueue.isProcessing &&
+                                state.processNextRequest
+                            ) {
+                                log.info('Resuming queue processing after rehydration');
+                                state.processNextRequest();
+                            }
+
+                            if (state.wallet.savedWallets.length > 0) {
+                                state.wallet.hasWallet = true;
                             }
                         }
                     },

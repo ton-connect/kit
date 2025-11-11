@@ -233,7 +233,17 @@ export interface EmulationCallContractDetails {
     extra_currencies: Record<string, string> | null;
 }
 
+export interface EmulationTonTransferDetails {
+    source: string;
+    destination: string;
+    value: string;
+    value_extra_currencies: Record<string, string>;
+    comment: string | null;
+    encrypted: boolean;
+}
+
 export type EmulationActionDetails =
+    | EmulationTonTransferDetails
     | EmulationJettonSwapDetails
     | EmulationCallContractDetails
     | Record<string, unknown>; // fallback for unknown action types
@@ -292,15 +302,14 @@ export interface EmulationTokenInfoMasters extends EmulationTokenInfoBase {
     };
 }
 
-// Toncenter Jetton Wallets API Response Types
-export interface ToncenterResponseJettonWallets {
-    jetton_wallets: ToncenterJettonWallet[];
+export interface ToncenterResponseJettonMasters {
+    jetton_masters: ToncenterJettonWallet[];
     address_book: Record<string, EmulationAddressBookEntry>;
     metadata: Record<string, EmulationAddressMetadata>;
 }
 
-export interface ToncenterResponseJettonMasters {
-    jetton_masters: ToncenterJettonWallet[];
+export interface ToncenterResponseJettonWallets {
+    jetton_wallets: ToncenterJettonWallet[];
     address_book: Record<string, EmulationAddressBookEntry>;
     metadata: Record<string, EmulationAddressMetadata>;
 }
