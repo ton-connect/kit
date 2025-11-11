@@ -13,10 +13,10 @@
  */
 
 import { CHAIN, type Hex } from '@ton/walletkit';
+
 import type {
     RemoveWalletArgs,
     GetBalanceArgs,
-    WalletDescriptor,
     CreateSignerArgs,
     CreateAdapterArgs,
     AddWalletArgs,

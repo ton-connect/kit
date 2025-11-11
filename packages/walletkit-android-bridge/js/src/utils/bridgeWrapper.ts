@@ -18,11 +18,11 @@ import { walletKit } from '../core/state';
  * Unified wrapper for all bridge operations.
  * Handles initialization and ensures WalletKit is ready before executing operation.
  *
- * @param operation - Operation name for error logging
- * @param fn - Function containing the actual business logic
+ * @param _method - Operation name for error logging (unused, kept for API consistency)
+ * @param operation - Function containing the actual business logic
  * @returns Result of the operation
  */
-export async function callBridge<T>(method: string, operation: () => Promise<T>): Promise<T> {
+export async function callBridge<T>(_method: string, operation: () => Promise<T>): Promise<T> {
     if (!walletKit) {
         throw new Error('WalletKit not initialized');
     }

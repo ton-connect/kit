@@ -9,7 +9,7 @@
 /**
  * Diagnostic helpers that forward bridge call checkpoints to the native layer.
  */
-import type { WalletKitApiMethod, DiagnosticStage, CallContext } from '../types';
+import type { WalletKitApiMethod, DiagnosticStage } from '../types';
 import { postToNative } from './nativeBridge';
 
 /**

@@ -10,6 +10,7 @@
  * WalletKit initialization helpers used by the bridge entry point.
  */
 import { CHAIN } from '@ton/walletkit';
+
 import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent } from '../types';
 import { debugLog, debugWarn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
@@ -39,7 +40,7 @@ type NativeStorageBridge = {
     storageSet: (key: string, value: string) => void;
 };
 
-type AndroidBridgeWindow = Window & {
+type _AndroidBridgeWindow = Window & {
     WalletKitNative?: NativeStorageBridge;
 };
 

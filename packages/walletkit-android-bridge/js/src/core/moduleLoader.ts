@@ -54,14 +54,7 @@ export let WalletV5R1Adapter: AdapterFactory | null = null;
  * Ensures WalletKit and TON core modules are loaded once and cached.
  */
 export async function ensureWalletKitLoaded(): Promise<void> {
-    if (
-        TonWalletKit &&
-        Signer &&
-        MnemonicToKeyPair &&
-        DefaultSignature &&
-        WalletV4R2Adapter &&
-        WalletV5R1Adapter
-    ) {
+    if (TonWalletKit && Signer && MnemonicToKeyPair && DefaultSignature && WalletV4R2Adapter && WalletV5R1Adapter) {
         return;
     }
 

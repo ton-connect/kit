@@ -13,10 +13,11 @@
  * JSON.stringify cannot serialize Uint8Array, so we must convert to number arrays
  * for RPC communication between JS and Kotlin layers.
  */
+import type { Hex } from '@ton/walletkit';
+
 import type { MnemonicToKeyPairArgs, SignArgs, CreateTonMnemonicArgs } from '../types';
 import { CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
 import { callBridge } from '../utils/bridgeWrapper';
-import type { Hex } from '@ton/walletkit';
 
 /**
  * Signs data using a custom signer stored in Kotlin.
