@@ -94,6 +94,6 @@ jobs:
 
       - name: Publish NPM package
         run: |
-          pnpm publish --filter="@ton/walletkit" --access=public --tag=alpha
+          pnpm publish --filter="@ton/walletkit" --access=public --tag=alpha --publish-branch=release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
