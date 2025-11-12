@@ -15,7 +15,7 @@
     "whatwg-url": "^14.2.0"
   },
   "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
-  "main": "js/src/main.ts",
+  "main": "src/main.ts",
   "keywords": [
     "ton",
     "blockchain",

@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "node js/build.cjs",
+    "build": "node build.cjs",
     "build:quickjs": "vite build --config vite.config.quickjs.ts",
     "build:all": "pnpm run build && pnpm run build:quickjs",
     "preview": "vite preview",
@@ -20,7 +20,7 @@
     "buffer": "^6.0.3"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
-    "vite": "^5.0.0"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
   }
 }

@@ -7,12 +7,14 @@ const { build } = require('vite');
 
 const libraries = [
     {
-        entry: path.resolve(__dirname, 'js/src/index.ts'),
+        entry: path.resolve(__dirname, 'src/index.ts'),
         fileName: 'walletkit-ios-bridge',
+        description: 'Main WalletKit bridge for RPC communication',
     },
     {
-        entry: path.resolve(__dirname, 'js/src/inject.ts'),
+        entry: path.resolve(__dirname, 'src/inject.ts'),
         fileName: 'inject',
+        description: 'Injection code for internal browser WebView',
     },
 ];
 
@@ -28,11 +30,11 @@ const sharedConfig = {
             },
             {
                 find: 'expo-crypto',
-                replacement: path.resolve(__dirname, 'js/empty.js'),
+                replacement: path.resolve(__dirname, 'src/empty.js'),
             },
             {
                 find: 'react-native-fast-pbkdf2',
-                replacement: path.resolve(__dirname, 'js/pbkdf2.js'),
+                replacement: path.resolve(__dirname, 'src/pbkdf2.js'),
             },
         ],
     },
@@ -55,7 +57,7 @@ async function generateChecksum(filePath) {
  * @param {string} buildDir - Path to the build directory
  */
 async function generateChecksums(buildDir) {
-    console.log('\nGenerating checksums...');
+    console.log('\n🔐 Generating checksums...');
     const files = await fs.promises.readdir(buildDir);
     const checksums = {};
 
@@ -66,38 +68,48 @@ async function generateChecksums(buildDir) {
         if (stats.isFile()) {
             const checksum = await generateChecksum(filePath);
             checksums[file] = checksum;
-            console.log(`  ${file}: ${checksum}`);
+            console.log(`   ${file}: ${checksum}`);
         }
     }
 
     const checksumFile = path.resolve(buildDir, 'checksums.json');
     await fs.promises.writeFile(checksumFile, JSON.stringify(checksums, null, 2));
-    console.log(`\nChecksums saved to ${checksumFile}`);
+    console.log(`\n✅ Checksums saved to ${checksumFile}`);
 }
 
 async function buildAll() {
     // Parse command line arguments
     const shouldGenerateChecksums = true;
 
-    // cleanup output directory (only files inside, dont delete directory itself)
-    const buildDir = path.resolve(__dirname, 'build');
-    if (!fs.existsSync(buildDir)) {
-        await fs.promises.mkdir(buildDir, { recursive: true });
-    }
+    console.log('🏗️  Building iOS WalletKit bundles...\n');
 
-    const files = await fs.promises.readdir(buildDir);
-    for (const file of files) {
-        await fs.promises.unlink(path.resolve(buildDir, file));
+    // Output to package dist directory
+    const buildDir = path.resolve(__dirname, 'dist');
+    if (fs.existsSync(buildDir)) {
+        const files = await fs.promises.readdir(buildDir);
+        for (const file of files) {
+            const filePath = path.resolve(buildDir, file);
+            const stat = await fs.promises.stat(filePath);
+            if (stat.isFile()) {
+                await fs.promises.unlink(filePath);
+            }
+        }
+    } else {
+        await fs.promises.mkdir(buildDir, { recursive: true });
     }
 
     for (let i = 0; i < libraries.length; i++) {
         const lib = libraries[i];
-        console.log(`Building ${lib.fileName}...`);
+        console.log(`📦 Building ${lib.description}...`);
+        console.log(`   Entry: ${path.relative(__dirname, lib.entry)}`);
+        console.log(`   Output: ${lib.fileName}.mjs\n`);
 
         await build({
             ...sharedConfig,
+            configFile: false,
+            root: __dirname,
             build: {
-                outDir: './build',
+                outDir: buildDir,
                 lib: {
                     entry: lib.entry,
                     name: lib.fileName,
@@ -118,9 +130,14 @@ async function buildAll() {
                 emptyOutDir: false,
             },
         });
+
+        console.log(`✅ ${lib.fileName}.mjs built successfully!\n`);
     }
 
-    console.log('Build complete!');
+    console.log('🎉 Build complete!');
+    console.log(`\n📁 Output directory: ${buildDir}`);
+    console.log('   - walletkit-ios-bridge.mjs (Main bridge for RPC)');
+    console.log('   - inject.mjs (Internal browser injection)');
 
     // Generate checksums if requested
     if (shouldGenerateChecksums) {
@@ -129,6 +146,6 @@ async function buildAll() {
 }
 
 buildAll().catch((err) => {
-    console.error('Build failed:', err);
+    console.error('❌ Build failed:', err);
     process.exit(1);
 });
