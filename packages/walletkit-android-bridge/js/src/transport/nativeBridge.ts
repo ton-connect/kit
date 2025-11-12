@@ -6,14 +6,12 @@
  *
  */
 
-/* eslint-disable no-console */
-
 /**
  * Native bridge helpers for posting messages to the Android host.
  */
 import type { BridgePayload } from '../types';
 import { bigIntReplacer } from '../utils/serialization';
-import { resolveGlobalScope } from '../utils/helpers';
+import { debugLog, logError } from '../utils/logger';
 
 /**
  * Resolves WalletKit's native bridge implementation exposed on the global scope.
@@ -59,17 +57,16 @@ export function postToNative(payload: BridgePayload): void {
             value: payload,
             stack: new Error('postToNative non-object payload').stack,
         };
-        console.error('[walletkitBridge] postToNative received non-object payload', diagnostic);
+        logError('[walletkitBridge] postToNative received non-object payload', diagnostic);
         throw new Error('Invalid payload - must be an object');
     }
     const json = JSON.stringify(payload, bigIntReplacer);
-    const scope = resolveGlobalScope();
-    const nativePostMessage = resolveNativeBridge(scope);
+    const nativePostMessage = resolveNativeBridge(window);
     if (nativePostMessage) {
         nativePostMessage(json);
         return;
     }
-    const androidPostMessage = resolveAndroidBridge(scope);
+    const androidPostMessage = resolveAndroidBridge(window);
     if (androidPostMessage) {
         androidPostMessage(json);
         return;
@@ -77,5 +74,5 @@ export function postToNative(payload: BridgePayload): void {
     if (payload.kind === 'event') {
         throw new Error('Native bridge not available - cannot deliver event');
     }
-    console.debug('[walletkitBridge] → native (no handler)', payload);
+    debugLog('[walletkitBridge] → native (no handler)', payload);
 }

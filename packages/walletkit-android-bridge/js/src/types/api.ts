@@ -15,48 +15,45 @@ export interface SetEventsListenersArgs {
     callback?: WalletKitBridgeEventCallback;
 }
 
-export interface DerivePublicKeyFromMnemonicArgs {
+export interface MnemonicToKeyPairArgs {
     mnemonic: string[];
+    mnemonicType?: 'ton' | 'bip39';
 }
 
-export interface SignDataWithMnemonicArgs {
-    words: string[];
+export interface SignArgs {
     data: number[];
-    mnemonicType?: 'ton' | 'bip39';
+    secretKey: number[];
 }
 
 export interface CreateTonMnemonicArgs {
     count?: number;
 }
 
-export interface CreateWalletWithSignerArgs {
-    publicKey: string;
-    network?: string;
+export interface CreateSignerArgs {
+    mnemonic?: string[];
+    secretKey?: string;
+    mnemonicType?: 'ton' | 'bip39';
+}
+
+export interface CreateAdapterArgs {
     signerId: string;
-}
-
-export interface RespondToSignRequestArgs {
-    signerId: string;
-    requestId: string;
-    signature?: number[] | string;
-    error?: string;
-}
-
-export interface CreateWalletUsingMnemonicArgs {
-    mnemonic: string[];
+    walletVersion: 'v4r2' | 'v5r1';
     network?: string;
+    workchain?: number;
+    walletId?: number;
+    publicKey?: string;
+    isCustom?: boolean;
 }
 
-export interface CreateWalletUsingSecretKeyArgs {
-    secretKey: string;
-    network?: string;
+export interface AddWalletArgs {
+    adapterId: string;
 }
 
 export interface RemoveWalletArgs {
     address: string;
 }
 
-export interface GetWalletStateArgs {
+export interface GetBalanceArgs {
     address: string;
 }
 
@@ -89,7 +86,7 @@ export interface CreateTransferMultiTonTransactionArgs {
 
 export interface TransactionContentArgs {
     walletAddress: string;
-    transactionContent: string;
+    transactionContent: unknown; // Can be object (from Kotlin) or string (legacy)
 }
 
 export interface TonConnectRequestEvent extends Record<string, unknown> {
@@ -223,31 +220,16 @@ export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<unknown>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
     removeEventListeners(): PromiseOrValue<{ ok: true }>;
-    derivePublicKeyFromMnemonic(args: DerivePublicKeyFromMnemonicArgs): PromiseOrValue<{ publicKey: string }>;
-    signDataWithMnemonic(args: SignDataWithMnemonicArgs): PromiseOrValue<{ signature: number[] }>;
+    mnemonicToKeyPair(args: MnemonicToKeyPairArgs): PromiseOrValue<{ publicKey: number[]; secretKey: number[] }>;
+    sign(args: SignArgs): PromiseOrValue<{ signature: string }>;
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<{ items: string[] }>;
-    createV4R2WalletWithSigner(
-        args: CreateWalletWithSignerArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletWithSigner(
-        args: CreateWalletWithSignerArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    respondToSignRequest(args: RespondToSignRequestArgs): PromiseOrValue<{ ok: true }>;
-    createV4R2WalletUsingMnemonic(
-        args: CreateWalletUsingMnemonicArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV4R2WalletUsingSecretKey(
-        args: CreateWalletUsingSecretKeyArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletUsingMnemonic(
-        args: CreateWalletUsingMnemonicArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
-    createV5R1WalletUsingSecretKey(
-        args: CreateWalletUsingSecretKeyArgs,
-    ): PromiseOrValue<{ address: string; publicKey: string }>;
+    createSigner(args: CreateSignerArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
+    createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
+    addWallet(args: AddWalletArgs): PromiseOrValue<{ address: string; publicKey: string }>;
     getWallets(): PromiseOrValue<WalletDescriptor[]>;
+    getWallet(args: { address: string }): PromiseOrValue<WalletDescriptor | null>;
     removeWallet(args: RemoveWalletArgs): PromiseOrValue<{ removed: boolean }>;
-    getWalletState(args: GetWalletStateArgs): PromiseOrValue<{ balance: string; transactions: unknown[] }>;
+    getBalance(args: GetBalanceArgs): PromiseOrValue<{ balance: string }>;
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<{ items: unknown[] }>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<unknown>;
     createTransferTonTransaction(

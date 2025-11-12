@@ -30,21 +30,18 @@ const apiImpl: WalletKitBridgeApi = {
     removeEventListeners: initialization.removeEventListeners,
 
     // Cryptography
-    derivePublicKeyFromMnemonic: cryptography.derivePublicKeyFromMnemonic,
-    signDataWithMnemonic: cryptography.signDataWithMnemonic,
+    mnemonicToKeyPair: cryptography.mnemonicToKeyPair,
+    sign: cryptography.sign,
     createTonMnemonic: cryptography.createTonMnemonic,
-    respondToSignRequest: cryptography.respondToSignRequest,
 
     // Wallets
-    createV4R2WalletWithSigner: wallets.createV4R2WalletWithSigner,
-    createV5R1WalletWithSigner: wallets.createV5R1WalletWithSigner,
-    createV4R2WalletUsingMnemonic: wallets.createV4R2WalletUsingMnemonic,
-    createV4R2WalletUsingSecretKey: wallets.createV4R2WalletUsingSecretKey,
-    createV5R1WalletUsingMnemonic: wallets.createV5R1WalletUsingMnemonic,
-    createV5R1WalletUsingSecretKey: wallets.createV5R1WalletUsingSecretKey,
+    createSigner: wallets.createSigner,
+    createAdapter: wallets.createAdapter,
+    addWallet: wallets.addWallet,
     getWallets: wallets.getWallets,
+    getWallet: wallets.getWallet,
     removeWallet: wallets.removeWallet,
-    getWalletState: wallets.getWalletState,
+    getBalance: wallets.getBalance,
 
     // Transactions
     getRecentTransactions: transactions.getRecentTransactions,

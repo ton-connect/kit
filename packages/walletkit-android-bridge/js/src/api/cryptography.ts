@@ -6,152 +6,74 @@
  *
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * Cryptographic helpers backed by WalletKit and custom signer coordination.
+ *
+ * Note: Array.from() conversions for Uint8Array → number[] are necessary glue code.
+ * JSON.stringify cannot serialize Uint8Array, so we must convert to number arrays
+ * for RPC communication between JS and Kotlin layers.
  */
-import type {
-    DerivePublicKeyFromMnemonicArgs,
-    SignDataWithMnemonicArgs,
-    CreateTonMnemonicArgs,
-    RespondToSignRequestArgs,
-    CallContext,
-} from '../types';
-import { ensureWalletKitLoaded, Signer, CreateTonMnemonic } from '../core/moduleLoader';
-import { emitCallCheckpoint } from '../transport/diagnostics';
-import { hexToBytes, bytesToHex, normalizeHex } from '../utils/serialization';
-import { emit } from '../transport/messaging';
+import type { Hex } from '@ton/walletkit';
+
+import type { MnemonicToKeyPairArgs, SignArgs, CreateTonMnemonicArgs } from '../types';
+import { CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
+import { callBridge } from '../utils/bridgeWrapper';
 
 /**
- * Derives the public key from a mnemonic phrase using WalletKit's signer implementation.
- *
- * @param args - Mnemonic words used for derivation.
- * @param context - Diagnostic context for tracing.
+ * Signs data using a custom signer stored in Kotlin.
+ * This is called by custom signer wrappers created in createAdapter.
  */
-export async function derivePublicKeyFromMnemonic(args: DerivePublicKeyFromMnemonicArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'derivePublicKeyFromMnemonic:start');
-    await ensureWalletKitLoaded();
-
-    const signer = await Signer.fromMnemonic(args.mnemonic, { type: 'ton' });
-
-    emitCallCheckpoint(context, 'derivePublicKeyFromMnemonic:complete');
-    return { publicKey: signer.publicKey };
+export async function signWithCustomSigner(signerId: string, bytes: Uint8Array): Promise<Hex> {
+    const result = await callBridge('signWithCustomSigner', async () => {
+        // Call back to Kotlin's SignerManager
+        return window.WalletKitNative?.signWithCustomSigner?.(signerId, Array.from(bytes));
+    });
+    return result as Hex;
 }
 
 /**
- * Signs arbitrary data using a mnemonic phrase.
+ * Converts a mnemonic phrase to a key pair (public + secret keys).
+ * Returns raw keyPair object - Kotlin handles Uint8Array to ByteArray conversion.
  *
- * @param args - Mnemonic words, payload bytes, and optional mnemonic type.
- * @param context - Diagnostic context for tracing.
+ * @param args - Mnemonic words and optional type ('ton' or 'bip39').
  */
-export async function signDataWithMnemonic(args: SignDataWithMnemonicArgs, context?: CallContext) {
-    emitCallCheckpoint(context, 'signDataWithMnemonic:before-ensureWalletKitLoaded');
-    await ensureWalletKitLoaded();
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-ensureWalletKitLoaded');
+export async function mnemonicToKeyPair(args: MnemonicToKeyPairArgs) {
+    return callBridge('mnemonicToKeyPair', async () => {
+        return await MnemonicToKeyPair!(args.mnemonic, args.mnemonicType ?? 'ton');
+    });
+}
 
-    if (!args?.words || args.words.length === 0) {
-        throw new Error('Mnemonic words required for signDataWithMnemonic');
-    }
-    if (!Array.isArray(args.data)) {
-        throw new Error('Data array required for signDataWithMnemonic');
-    }
+/**
+ * Signs arbitrary data using a secret key.
+ * Returns signature hex string directly.
+ *
+ * @param args - Data bytes and secret key bytes.
+ */
+export async function sign(args: SignArgs) {
+    return callBridge('sign', async () => {
+        if (!Array.isArray(args.data)) {
+            throw new Error('Data array required for sign');
+        }
+        if (!Array.isArray(args.secretKey)) {
+            throw new Error('Secret key array required for sign');
+        }
 
-    const signer = await Signer.fromMnemonic(args.words, { type: args.mnemonicType ?? 'ton' });
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-createSigner');
+        const dataBytes = Uint8Array.from(args.data);
+        const secretKeyBytes = Uint8Array.from(args.secretKey);
 
-    const dataBytes = Uint8Array.from(args.data);
-    const signatureResult = await signer.sign(dataBytes);
-    emitCallCheckpoint(context, 'signDataWithMnemonic:after-sign');
-
-    let signatureBytes: Uint8Array;
-    if (typeof signatureResult === 'string') {
-        signatureBytes = hexToBytes(signatureResult);
-    } else if (signatureResult instanceof Uint8Array) {
-        signatureBytes = signatureResult;
-    } else if (Array.isArray(signatureResult)) {
-        signatureBytes = Uint8Array.from(signatureResult);
-    } else {
-        throw new Error('Unsupported signature format from signer');
-    }
-
-    return { signature: Array.from(signatureBytes) };
+        return DefaultSignature!(dataBytes, secretKeyBytes);
+    });
 }
 
 /**
  * Generates a TON mnemonic phrase.
+ * Returns array of words directly.
  *
  * @param _args - Optional generation parameters.
- * @param context - Diagnostic context for tracing.
  */
-export async function createTonMnemonic(_args: CreateTonMnemonicArgs = { count: 24 }, context?: CallContext) {
-    emitCallCheckpoint(context, 'createTonMnemonic:start');
-    await ensureWalletKitLoaded();
-    const mnemonicResult = await CreateTonMnemonic();
-    const words = Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
-    emitCallCheckpoint(context, 'createTonMnemonic:complete');
-    return { items: words };
-}
-
-/**
- * Resolves a pending signer request, delivering either a signature or an error.
- *
- * @param args - Response payload from the native side.
- */
-export async function respondToSignRequest(args: RespondToSignRequestArgs, _context?: CallContext) {
-    const signerRequests = (globalThis as any).__walletKitSignerRequests?.get(args.signerId);
-    if (!signerRequests) {
-        throw new Error('Unknown signer ID: ${args.signerId}');
-    }
-
-    const pending = signerRequests.get(args.requestId);
-    if (!pending) {
-        throw new Error('Unknown sign request ID: ${args.requestId}');
-    }
-
-    signerRequests.delete(args.requestId);
-
-    if (args.error) {
-        pending.reject(new Error(args.error));
-    } else if (typeof args.signature === 'string') {
-        pending.resolve(normalizeHex(args.signature));
-    } else if (Array.isArray(args.signature)) {
-        const signatureHex = bytesToHex(new Uint8Array(args.signature));
-        pending.resolve(signatureHex);
-    } else {
-        pending.reject(new Error('No signature or error provided'));
-    }
-
-    return { ok: true };
-}
-
-/**
- * Registers a map of pending signer requests keyed by signer identifier.
- *
- * @param signerId - Unique signer identifier provided by the native layer.
- * @param pendingSignRequests - Resolver map awaiting signature responses.
- */
-export function registerSignerRequest(
-    signerId: string,
-    pendingSignRequests: Map<string, { resolve: (sig: Uint8Array) => void; reject: (err: Error) => void }>,
-) {
-    if (!(globalThis as any).__walletKitSignerRequests) {
-        (globalThis as any).__walletKitSignerRequests = new Map();
-    }
-    (globalThis as any).__walletKitSignerRequests.set(signerId, pendingSignRequests);
-}
-
-/**
- * Emits a signer request event so the native layer can provide a signature.
- *
- * @param signerId - Signer identifier.
- * @param requestId - Unique request identifier.
- * @param data - Raw bytes that require signing.
- */
-export function emitSignerRequest(signerId: string, requestId: string, data: Uint8Array) {
-    emit('signerSignRequest', {
-        signerId,
-        requestId,
-        data: Array.from(data),
+export async function createTonMnemonic(_args: CreateTonMnemonicArgs = { count: 24 }) {
+    return callBridge('createTonMnemonic', async () => {
+        const mnemonicResult = await CreateTonMnemonic!();
+        return Array.isArray(mnemonicResult) ? mnemonicResult : `${mnemonicResult}`.split(' ').filter(Boolean);
     });
 }

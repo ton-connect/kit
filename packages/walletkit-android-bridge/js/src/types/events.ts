@@ -15,7 +15,6 @@ export type WalletKitBridgeEventType =
     | 'transactionRequest'
     | 'signDataRequest'
     | 'disconnect'
-    | 'signerSignRequest'
     | 'browserPageStarted'
     | 'browserPageFinished'
     | 'browserError'

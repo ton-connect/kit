@@ -6,15 +6,13 @@
  *
  */
 
-/* eslint-disable no-console */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Messaging helpers that mediate between the native bridge and WalletKit APIs.
  */
 import type { WalletKitBridgeEvent, WalletKitBridgeApi, WalletKitApiMethod, CallContext } from '../types';
 import { postToNative } from './nativeBridge';
 import { emitCallDiagnostic } from './diagnostics';
+import { debugLog, logError } from '../utils/logger';
 
 let apiRef: WalletKitBridgeApi | undefined;
 
@@ -37,13 +35,13 @@ export function emit(type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeE
  * @param error - Optional error to report.
  */
 export function respond(id: string, result?: unknown, error?: { message: string }): void {
-    console.log('[walletkitBridge] 🟢 respond() called with:');
-    console.log('[walletkitBridge] 🟢 id:', id);
-    console.log('[walletkitBridge] 🟢 result:', result);
-    console.log('[walletkitBridge] 🟢 error:', error);
-    console.log('[walletkitBridge] 🟢 About to call postToNative...');
+    debugLog('[walletkitBridge] 🟢 respond() called with:');
+    debugLog('[walletkitBridge] 🟢 id:', id);
+    debugLog('[walletkitBridge] 🟢 result:', result);
+    debugLog('[walletkitBridge] 🟢 error:', error);
+    debugLog('[walletkitBridge] 🟢 About to call postToNative...');
     postToNative({ kind: 'response', id, result, error });
-    console.log('[walletkitBridge] 🟢 postToNative completed');
+    debugLog('[walletkitBridge] 🟢 postToNative completed');
 }
 
 /**
@@ -61,21 +59,21 @@ async function invokeApiMethod(
     params: unknown,
     context: CallContext,
 ): Promise<unknown> {
-    console.log(`[walletkitBridge] handleCall ${method}, looking up api[${method}]`);
+    debugLog(`[walletkitBridge] handleCall ${method}, looking up api[${method}]`);
     const fn = api[method];
-    console.log(`[walletkitBridge] fn found:`, typeof fn);
+    debugLog(`[walletkitBridge] fn found:`, typeof fn);
     if (typeof fn !== 'function') {
         throw new Error(`Unknown method ${String(method)}`);
     }
-    console.log(`[walletkitBridge] about to call fn for ${method}`);
+    debugLog(`[walletkitBridge] about to call fn for ${method}`);
     const value = await (fn as (args: unknown, context?: CallContext) => Promise<unknown> | unknown).call(
         api,
         params as never,
         context,
     );
-    console.log(`[walletkitBridge] fn returned for ${method}`);
-    console.log(`[walletkitBridge] 🔵 fn returned value:`, value);
-    console.log(`[walletkitBridge] 🔵 value type:`, typeof value);
+    debugLog(`[walletkitBridge] fn returned for ${method}`);
+    debugLog(`[walletkitBridge] 🔵 fn returned value:`, value);
+    debugLog(`[walletkitBridge] 🔵 value type:`, typeof value);
     return value;
 }
 
@@ -98,10 +96,10 @@ export async function handleCall(id: string, method: WalletKitApiMethod, params?
         respond(id, value);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        console.error(`[walletkitBridge] handleCall error for ${method}:`, err);
-        console.error(`[walletkitBridge] error type:`, typeof err);
-        console.error(`[walletkitBridge] error message:`, message);
-        console.error(`[walletkitBridge] error stack:`, err instanceof Error ? err.stack : 'no stack');
+        logError(`[walletkitBridge] handleCall error for ${method}:`, err);
+        logError(`[walletkitBridge] error type:`, typeof err);
+        logError(`[walletkitBridge] error message:`, message);
+        logError(`[walletkitBridge] error stack:`, err instanceof Error ? err.stack : 'no stack');
         emitCallDiagnostic(id, method, 'error', message);
         respond(id, undefined, { message });
     }
@@ -116,7 +114,7 @@ export function registerNativeCallHandler(): void {
         if (paramsJson && paramsJson !== 'null') {
             try {
                 params = JSON.parse(paramsJson);
-            } catch (err) {
+            } catch {
                 respond(id, undefined, { message: 'Invalid params JSON' });
                 return;
             }

@@ -17,11 +17,9 @@
     "@ton/walletkit": "workspace:*",
     "@tonconnect/bridge-sdk": "^0.2.4",
     "@tonconnect/protocol": "^2.3.0",
-    "buffer": "^6.0.3",
-    "whatwg-url": "^13.0.0"
+    "buffer": "^6.0.3"
   },
   "devDependencies": {
-    "@types/whatwg-url": "^13.0.0",
     "typescript": "^5.4.0",
     "vite": "^5.0.0"
   }

@@ -6,13 +6,10 @@
  *
  */
 
-/* eslint-disable no-console */
-
 import type { WalletKitBridgeApi } from './types';
 import { api } from './api';
 import { setBridgeApi, registerNativeCallHandler } from './transport/messaging';
-import { postToNative } from './transport/nativeBridge';
-import { currentNetwork, currentApiBase } from './core/state';
+import { debugLog } from './utils/logger';
 
 declare global {
     interface Window {
@@ -24,13 +21,7 @@ setBridgeApi(api as WalletKitBridgeApi);
 registerNativeCallHandler();
 
 window.walletkitBridge = api;
-
-postToNative({
-    kind: 'ready',
-    network: currentNetwork,
-    tonApiUrl: currentApiBase,
-});
-console.log('[walletkitBridge] bootstrap complete');
+debugLog('[walletkitBridge] bootstrap complete');
 
 export { api };
 export type { WalletKitBridgeApi } from './types';
