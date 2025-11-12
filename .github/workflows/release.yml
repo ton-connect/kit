@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - release
+      - "dev/publish-release-preparation"
+
+jobs:
+  release:
+    runs-on: [self-hosted, k8s, linux]
+    container:
+      image: node:22-slim
+      options: --user root
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read .nvmrc
+        run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '${{ env.NVMRC }}'
+          cache: 'pnpm'
+      
+      - name: Get current tag
+        id: get_tag
+        run: |
+          # Get the tag for the current commit
+          TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+          if [ -z "$TAG" ]; then
+            echo "Error: No tag found for current commit"
+            exit 1
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Found tag: $TAG"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build everything
+        run: |
+          pnpm build
+
+      - name: Pack packages
+        run: |
+          pnpm pack -r --pack-destination release-artifacts
+      
+      - name: Prepare checksums for release
+        run: |
+          # Copy and rename Android bridge checksums
+          if [ -f "packages/walletkit-android-bridge/dist/checksums.json" ]; then
+            cp packages/walletkit-android-bridge/dist/checksums.json release-artifacts/walletkit-android-bridge.checksums.json
+          else
+            echo "Warning: Android bridge checksums not found at packages/walletkit-android-bridge/dist/checksums.json"
+          fi
+          
+          # Copy and rename iOS bridge checksums
+          if [ -f "packages/walletkit-ios-bridge/dist/checksums.json" ]; then
+            cp packages/walletkit-ios-bridge/dist/checksums.json release-artifacts/walletkit-ios-bridge.checksums.json
+          else
+            echo "Warning: iOS bridge checksums not found"
+          fi
+      
+      - name: Create Release Draft
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          draft: true
+          files: |
+            release-artifacts/ton-walletkit-*.tgz
+            release-artifacts/walletkit-ios-bridge-*.tgz
+            release-artifacts/walletkit-android-bridge-*.tgz
+            release-artifacts/walletkit-android-bridge.checksums.json
+            release-artifacts/walletkit-ios-bridge.checksums.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

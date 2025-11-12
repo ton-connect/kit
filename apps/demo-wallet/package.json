@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "e2e:deps": "playwright install --with-deps",
     "e2e": "playwright test --config e2e.config.ts --retries=3",

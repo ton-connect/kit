@@ -1,9 +1,12 @@
 {
-  "name": "androidkit",
+  "name": "walletkit-android-bridge",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "node build.cjs",
