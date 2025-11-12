@@ -40,6 +40,10 @@ const sharedConfig = {
 async function buildAll() {
     // cleanup output directory (only files inside, dont delete directory itself)
     const buildDir = path.resolve(__dirname, 'build');
+    if (!fs.existsSync(buildDir)) {
+        await fs.promises.mkdir(buildDir, { recursive: true });
+    }
+
     const files = await fs.promises.readdir(buildDir);
     for (const file of files) {
         await fs.promises.unlink(path.resolve(buildDir, file));
