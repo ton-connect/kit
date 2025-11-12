@@ -68,7 +68,7 @@ async function buildAll() {
     console.log('🏗️  Building Android WalletKit bundles...\n');
 
     // Output to package dist directory
-    const buildDir = path.resolve(__dirname, '../dist');
+    const buildDir = path.resolve(__dirname, 'dist');
     if (fs.existsSync(buildDir)) {
         const files = await fs.promises.readdir(buildDir);
         for (const file of files) {

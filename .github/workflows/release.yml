@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - release
-      - "dev/publish-release-preparation"
-
 
 jobs:
   release:
