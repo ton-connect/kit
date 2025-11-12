@@ -25,6 +25,7 @@
     "tonconnect"
   ],
   "devDependencies": {
+    "@types/whatwg-url": "^13.0.0",
     "typescript": "~5.8.3",
     "vite": "^7.1.4"
   }

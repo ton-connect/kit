@@ -30,11 +30,11 @@ const sharedConfig = {
             },
             {
                 find: 'expo-crypto',
-                replacement: path.resolve(__dirname, 'src/empty.js'),
+                replacement: path.resolve(__dirname, 'src/polyfills/expo-crypto.js'),
             },
             {
                 find: 'react-native-fast-pbkdf2',
-                replacement: path.resolve(__dirname, 'src/pbkdf2.js'),
+                replacement: path.resolve(__dirname, 'src/polyfills/pbkdf2.js'),
             },
         ],
     },

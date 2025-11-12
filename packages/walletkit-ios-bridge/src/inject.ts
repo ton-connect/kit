@@ -7,15 +7,19 @@
  */
 
 import { injectBridgeCode } from '@ton/walletkit/bridge';
-import { InjectedToExtensionBridgeRequestPayload, Transport } from '@ton/walletkit';
-
-import { TONCONNECT_BRIDGE_EVENT } from '../../../walletkit/src/bridge/utils/messageTypes';
-import { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from '../../../walletkit/src/bridge/utils/timeouts';
+import {
+    InjectedToExtensionBridgeRequestPayload,
+    Transport,
+    TONCONNECT_BRIDGE_EVENT,
+    RESTORE_CONNECTION_TIMEOUT,
+    DEFAULT_REQUEST_TIMEOUT,
+    JSBridgeInjectOptions,
+} from '@ton/walletkit';
 
 declare global {
     interface Window {
         id: string;
-        injectWalletKit: (options) => void;
+        injectWalletKit: (options: JSBridgeInjectOptions) => void;
         webkit: {
             messageHandlers: {
                 walletKitInjectionBridge: {

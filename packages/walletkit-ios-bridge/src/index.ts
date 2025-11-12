@@ -6,7 +6,7 @@
  *
  */
 
-import textEncoder from './textEncoder';
+import textEncoder from './polyfills/textEncoder';
 if (typeof window !== 'undefined') {
     textEncoder(window);
 }
@@ -30,4 +30,5 @@ if (typeof self !== 'undefined') {
     }
 }
 
-import('./firstPolyfill');
+import('./polyfills/firstPolyfill');
+import('./main');
