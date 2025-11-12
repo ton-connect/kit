@@ -146,14 +146,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
 
             console.log('➕ Bridge: Creating V4R2 wallet using mnemonic');
 
-            const customSigner: WalletSigner = {
-                sign: async (bytes: Iterable<number>) => {
-                    return await signer.sign(bytes);
-                },
-                publicKey: signer.publicKey(),
-            };
-
-            return await WalletV4R2Adapter.create(customSigner, {
+            return await WalletV4R2Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(),
                 network: parameters.network,
             });
@@ -164,16 +157,22 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
 
             console.log('➕ Bridge: Creating V5R1 wallet using mnemonic');
 
-            const customSigner: WalletSigner = {
-                sign: async (bytes: Iterable<number>) => {
-                    return await signer.sign(bytes);
-                },
-                publicKey: signer.publicKey(),
-            };
-            return await WalletV5R1Adapter.create(customSigner, {
+            return await WalletV5R1Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(),
                 network: parameters.network,
             });
+        },
+
+        jsSigner(signer): WalletSigner {
+            if (isSwiftObject(signer)) {
+                return {
+                    sign: async (bytes: Iterable<number>) => {
+                        return await signer.sign(bytes);
+                    },
+                    publicKey: signer.publicKey(),
+                };
+            }
+            return signer;
         },
 
         async processInjectedBridgeRequest(
@@ -190,8 +189,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('➕ Bridge: Adding wallet:');
 
-            const swiftWalletAdapter = new SwiftWalletAdapter(walletAdapter, walletKit.getApiClient());
-            const wallet = await walletKit.addWallet(swiftWalletAdapter);
+            const wallet = await walletKit.addWallet(this.jsWalletAdapter(walletAdapter));
 
             if (wallet) {
                 console.log('✅ Wallet added:', wallet.getAddress());
@@ -199,6 +197,13 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
                 console.log('✅ Wallet added: undefined');
             }
             return wallet;
+        },
+
+        jsWalletAdapter(walletAdapter): IWalletAdapter {
+            if (isSwiftObject(walletAdapter)) {
+                return new SwiftWalletAdapter(walletAdapter, walletKit.getApiClient());
+            }
+            return walletAdapter;
         },
 
         getWallet(address) {
@@ -395,3 +400,25 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
         },
     };
 };
+
+function parseSwiftConstructorPattern(str) {
+    const match = str.match(/^\[object ([A-Za-z_$][A-Za-z0-9_$]*)\.([A-Za-z_$][A-Za-z0-9_$]*)Constructor\]$/);
+
+    if (match) {
+        return {
+            namespace: match[1],
+            className: match[2],
+            fullName: `${match[1]}.${match[2]}`,
+        };
+    }
+
+    return null;
+}
+
+function isSwiftObject(obj) {
+    if (obj && obj.constructor) {
+        const pattern = parseSwiftConstructorPattern(obj.constructor.toString());
+        return pattern !== null;
+    }
+    return false;
+}
