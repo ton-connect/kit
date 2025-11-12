@@ -6,7 +6,6 @@ on:
       - release
       - "dev/publish-release-preparation"
 
-
 jobs:
   release:
     runs-on: [self-hosted, k8s, linux]
