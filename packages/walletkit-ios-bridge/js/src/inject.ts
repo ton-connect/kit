@@ -6,15 +6,23 @@
  *
  */
 
-import { Transport, injectBridgeCode } from '@ton/walletkit/bridge';
+import { injectBridgeCode } from '@ton/walletkit/bridge';
+import { InjectedToExtensionBridgeRequestPayload, Transport } from '@ton/walletkit';
+
 import { TONCONNECT_BRIDGE_EVENT } from '../../../walletkit/src/bridge/utils/messageTypes';
-import { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from '../../../walletkit/src/bridge/utils/timeouts';
 
 declare global {
     interface Window {
-        id: String,
+        id: string;
         injectWalletKit: (options) => void;
+        webkit: {
+            messageHandlers: {
+                walletKitInjectionBridge: {
+                    postMessage: (message: unknown) => Promise<unknown>;
+                };
+            };
+        };
     }
 }
 
@@ -22,11 +30,11 @@ window.injectWalletKit = (options) => {
     try {
         injectBridgeCode(window, options, new SwiftTransport(window));
 
-        console.log('TonConnect bridge injected - forwarding to extension');
-    } catch (error) {
-        console.error('Failed to inject TonConnect bridge:', error);
+        // console.log('TonConnect bridge injected - forwarding to extension');
+    } catch (_error) {
+        // console.error('Failed to inject TonConnect bridge:', error);
     }
-}
+};
 
 window.id = crypto.randomUUID();
 
@@ -69,14 +77,20 @@ class SwiftTransport implements Transport {
 
     async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
         let timeout = request.method === 'restoreConnection' ? RESTORE_CONNECTION_TIMEOUT : DEFAULT_REQUEST_TIMEOUT;
-        let response = await window.webkit.messageHandlers.walletKitInjectionBridge.postMessage(
-            { ...request, frameID: window.id, timeout: timeout }
-        );
+        let response = await window.webkit.messageHandlers.walletKitInjectionBridge.postMessage({
+            ...request,
+            frameID: window.id,
+            timeout: timeout,
+        });
 
-        if (response.success) {
-            return Promise.resolve(response.payload);
+        if (!response || typeof response !== 'object') {
+            return Promise.reject(new Error('Invalid response'));
+        }
+
+        if ((response as { success: boolean }).success) {
+            return Promise.resolve((response as { payload: unknown }).payload);
         } else {
-            return Promise.reject(response.error);
+            return Promise.reject((response as { error: unknown }).error);
         }
     }
 
@@ -92,4 +106,3 @@ class SwiftTransport implements Transport {
 
     destroy(): void {}
 }
-

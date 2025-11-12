@@ -16,7 +16,7 @@ import {
     WalletSigner,
     TonWalletKit,
     BridgeEventMessageInfo,
-    InjectedToExtensionBridgeRequestPayload
+    InjectedToExtensionBridgeRequestPayload,
 } from '@ton/walletkit';
 
 import { SwiftStorageAdapter } from './SwiftStorageAdapter';
@@ -43,8 +43,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
         walletManifest: configuration.walletManifest,
         deviceInfo: configuration.deviceInfo,
         bridge: configuration.bridge,
-        eventProcessor: {
-        },
+        eventProcessor: {},
         apiClient: configuration.apiClient,
 
         storage: storage ? new SwiftStorageAdapter(storage) : new MemoryStorageAdapter({}),
@@ -173,8 +172,8 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
         },
 
         async processInjectedBridgeRequest(
-                messageInfo: BridgeEventMessageInfo,
-                request: InjectedToExtensionBridgeRequestPayload,
+            messageInfo: BridgeEventMessageInfo,
+            request: InjectedToExtensionBridgeRequestPayload,
         ): Promise<unknown> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
