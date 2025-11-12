@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const { build } = require('vite');
 
@@ -23,7 +24,47 @@ const sharedConfig = {
     },
 };
 
+/**
+ * Generate SHA-256 checksum for a file
+ * @param {string} filePath - Path to the file
+ * @returns {Promise<string>} Hex string of the checksum
+ */
+async function generateChecksum(filePath) {
+    const fileBuffer = await fs.promises.readFile(filePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+    return hashSum.digest('hex');
+}
+
+/**
+ * Generate checksums for all files in the build directory
+ * @param {string} buildDir - Path to the build directory
+ */
+async function generateChecksums(buildDir) {
+    console.log('\n🔐 Generating checksums...');
+    const files = await fs.promises.readdir(buildDir);
+    const checksums = {};
+
+    for (const file of files) {
+        const filePath = path.resolve(buildDir, file);
+        const stats = await fs.promises.stat(filePath);
+
+        if (stats.isFile()) {
+            const checksum = await generateChecksum(filePath);
+            checksums[file] = checksum;
+            console.log(`   ${file}: ${checksum}`);
+        }
+    }
+
+    const checksumFile = path.resolve(buildDir, 'checksums.json');
+    await fs.promises.writeFile(checksumFile, JSON.stringify(checksums, null, 2));
+    console.log(`\n✅ Checksums saved to ${checksumFile}`);
+}
+
 async function buildAll() {
+    // Parse command line arguments
+    const shouldGenerateChecksums = true;
+
     console.log('🏗️  Building Android WalletKit bundles...\n');
 
     // Output to package dist directory
@@ -82,6 +123,11 @@ async function buildAll() {
     console.log('   - walletkit-android-bridge.mjs (Main bridge for RPC)');
     console.log('   - inject.mjs (Internal browser injection)');
     console.log('\n💡 Bundles will be copied to Android SDK assets by Gradle task syncWalletKitWebViewAssets');
+
+    // Generate checksums if requested
+    if (shouldGenerateChecksums) {
+        await generateChecksums(buildDir);
+    }
 }
 
 buildAll().catch((err) => {
