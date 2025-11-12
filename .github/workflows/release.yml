@@ -26,10 +26,10 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Fetch tags explicitly
-        run: |
-          git fetch --tags --force
-          git tag -l
+      # - name: Fetch tags explicitly
+      #   run: |
+      #     git fetch --tags --force
+      #     git tag -l
 
       - name: Get current tag
         id: get_tag
