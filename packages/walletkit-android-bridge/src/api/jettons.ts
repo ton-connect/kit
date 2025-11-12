@@ -1,0 +1,76 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/**
+ * jettons.ts – Jetton operations
+ *
+ * Simplified bridge for jetton balance queries and transfer transactions.
+ */
+
+import type {
+    GetJettonsArgs,
+    CreateTransferJettonTransactionArgs,
+    GetJettonBalanceArgs,
+    GetJettonWalletAddressArgs,
+} from '../types';
+import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
+
+/**
+ * Fetches jetton balances for a wallet with optional pagination.
+ */
+export async function getJettons(args: GetJettonsArgs) {
+    return callBridge('getJettons', async () => {
+        const limit =
+            Number.isFinite(args.limit) && (args.limit as number) > 0 ? Math.floor(args.limit as number) : 100;
+        const offset =
+            Number.isFinite(args.offset) && (args.offset as number) >= 0 ? Math.floor(args.offset as number) : 0;
+        return await callOnWalletBridge(args.address, 'getJettons', { limit, offset });
+    });
+}
+
+/**
+ * Builds a jetton transfer transaction.
+ */
+export async function createTransferJettonTransaction(args: CreateTransferJettonTransactionArgs) {
+    return callBridge('createTransferJettonTransaction', async () => {
+        const params = {
+            jettonAddress: args.jettonAddress,
+            amount: args.amount,
+            toAddress: args.toAddress,
+            comment: args.comment,
+        };
+
+        return await callOnWalletBridge(args.address, 'createTransferJettonTransaction', params);
+    });
+}
+
+/**
+ * Retrieves a jetton balance for the specified wallet.
+ */
+export async function getJettonBalance(args: GetJettonBalanceArgs) {
+    return callBridge('getJettonBalance', async () => {
+        if (!args.jettonAddress) {
+            throw new Error('Jetton address is required');
+        }
+
+        return await callOnWalletBridge(args.address, 'getJettonBalance', args.jettonAddress);
+    });
+}
+
+/**
+ * Resolves the jetton wallet address for a specific jetton contract.
+ */
+export async function getJettonWalletAddress(args: GetJettonWalletAddressArgs) {
+    return callBridge('getJettonWalletAddress', async () => {
+        if (!args.jettonAddress) {
+            throw new Error('Jetton address is required');
+        }
+
+        return await callOnWalletBridge(args.address, 'getJettonWalletAddress', args.jettonAddress);
+    });
+}

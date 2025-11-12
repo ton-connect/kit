@@ -28,3 +28,6 @@ apps/androidkit/dist-android-quickjs/
 node.log
 
 packages/walletkit-ios-bridge/build/*
+packages/walletkit-android-bridge/*.sh
+
+release-artifacts

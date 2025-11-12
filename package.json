@@ -17,13 +17,13 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@changesets/cli": "^2.29.6",
+    "@changesets/cli": "^2.29.7",
     "@ton/toolchain": "github:the-ton-tech/toolchain#v1.5.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-license-header": "^0.8.0",
-    "globals": "^16.3.0",
-    "rimraf": "^6.0.1",
-    "turbo": "^2.5.6"
+    "globals": "^16.5.0",
+    "rimraf": "^6.1.0",
+    "turbo": "^2.6.1"
   },
   "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }

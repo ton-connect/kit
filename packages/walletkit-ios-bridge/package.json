@@ -1,10 +1,13 @@
 {
   "name": "walletkit-ios-bridge",
-  "version": "0.2.0",
+  "version": "0.0.1",
   "private": true,
   "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build_": "vite build"
+    "build": "node build.js"
   },
   "dependencies": {
     "@ton/crypto": "^3.3.0",
@@ -12,10 +15,9 @@
     "@ton/walletkit": "workspace:*",
     "buffer": "^6.0.3",
     "url-polyfill": "^1.1.13",
-    "whatwg-url": "^14.2.0"
+    "whatwg-url": "^15.1.0"
   },
   "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
-  "main": "js/src/main.ts",
   "keywords": [
     "ton",
     "blockchain",
@@ -25,7 +27,8 @@
     "tonconnect"
   ],
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "vite": "^7.1.4"
+    "@types/whatwg-url": "^13.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
   }
 }

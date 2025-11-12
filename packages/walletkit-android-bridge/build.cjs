@@ -8,7 +8,7 @@ const { build } = require('vite');
 const libraries = [
     {
         entry: path.resolve(__dirname, 'src/index.ts'),
-        fileName: 'walletkit-ios-bridge',
+        fileName: 'walletkit-android-bridge',
         description: 'Main WalletKit bridge for RPC communication',
     },
     {
@@ -21,22 +21,6 @@ const libraries = [
 const sharedConfig = {
     esbuild: {
         target: 'es2015',
-    },
-    resolve: {
-        alias: [
-            {
-                find: '@ton/crypto-primitives',
-                replacement: require.resolve('@ton/crypto-primitives/dist/native.js'),
-            },
-            {
-                find: 'expo-crypto',
-                replacement: path.resolve(__dirname, 'src/polyfills/expo-crypto.js'),
-            },
-            {
-                find: 'react-native-fast-pbkdf2',
-                replacement: path.resolve(__dirname, 'src/polyfills/pbkdf2.js'),
-            },
-        ],
     },
 };
 
@@ -81,7 +65,7 @@ async function buildAll() {
     // Parse command line arguments
     const shouldGenerateChecksums = true;
 
-    console.log('🏗️  Building iOS WalletKit bundles...\n');
+    console.log('🏗️  Building Android WalletKit bundles...\n');
 
     // Output to package dist directory
     const buildDir = path.resolve(__dirname, 'dist');
@@ -136,8 +120,9 @@ async function buildAll() {
 
     console.log('🎉 Build complete!');
     console.log(`\n📁 Output directory: ${buildDir}`);
-    console.log('   - walletkit-ios-bridge.mjs (Main bridge for RPC)');
+    console.log('   - walletkit-android-bridge.mjs (Main bridge for RPC)');
     console.log('   - inject.mjs (Internal browser injection)');
+    console.log('\n💡 Bundles will be copied to Android SDK assets by Gradle task syncWalletKitWebViewAssets');
 
     // Generate checksums if requested
     if (shouldGenerateChecksums) {

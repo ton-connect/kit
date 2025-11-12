@@ -21,7 +21,7 @@ export class SimpleEncryption {
         return crypto.subtle.deriveKey(
             {
                 name: 'PBKDF2',
-                salt,
+                salt: Uint8Array.from(salt),
                 iterations: 100000,
                 hash: 'SHA-256',
             },
