@@ -29,6 +29,7 @@ jobs:
         id: get_tag
         run: |
           # Check if triggered by tag push
+          git config --global --add safe.directory /__w/kit/kit
           TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
           if [ -z "$TAG" ]; then
             TAG=$(git tag --points-at HEAD | head -n 1)
