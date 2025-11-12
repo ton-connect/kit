@@ -13,7 +13,7 @@
     "copy:demo": "rm -rf AndroidDemo/app/src/main/assets/walletkit && mkdir -p AndroidDemo/app/src/main/assets/walletkit && cp -R dist-android/* AndroidDemo/app/src/main/assets/walletkit/ && mkdir -p AndroidDemo/app/src/main/assets/walletkit/quickjs && cp dist-android-quickjs/walletkit.quickjs.js AndroidDemo/app/src/main/assets/walletkit/quickjs/index.js"
   },
   "dependencies": {
-    "@ton/core": "^0.61.0",
+    "@ton/core": "^0.62.0",
     "@ton/walletkit": "workspace:*",
     "@tonconnect/bridge-sdk": "^0.2.4",
     "@tonconnect/protocol": "^2.3.0",

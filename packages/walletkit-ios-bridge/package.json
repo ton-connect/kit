@@ -12,7 +12,7 @@
     "@ton/walletkit": "workspace:*",
     "buffer": "^6.0.3",
     "url-polyfill": "^1.1.13",
-    "whatwg-url": "^14.2.0"
+    "whatwg-url": "^15.1.0"
   },
   "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
   "main": "src/main.ts",
@@ -26,7 +26,7 @@
   ],
   "devDependencies": {
     "@types/whatwg-url": "^13.0.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.1.4"
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
   }
 }
