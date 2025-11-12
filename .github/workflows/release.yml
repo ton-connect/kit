@@ -25,17 +25,14 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-
-      # - name: Fetch tags explicitly
-      #   run: |
-      #     git fetch --tags --force
-      #     git tag -l
-
       - name: Get current tag
         id: get_tag
         run: |
           # Check if triggered by tag push
           TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+          if [ -z "$TAG" ]; then
+            TAG=$(git tag --points-at HEAD | head -n 1)
+          fi
           if [ -z "$TAG" ]; then
             echo "Error: No tag found for current commit"
             exit 1
