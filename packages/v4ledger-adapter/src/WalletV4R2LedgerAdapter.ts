@@ -96,6 +96,14 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         });
     }
 
+    getPublicKey(): Hex {
+        return this.publicKey;
+    }
+
+    getClient(): ApiClient {
+        return this.client;
+    }
+
     getNetwork(): CHAIN {
         return this.config.network;
     }
@@ -165,23 +173,6 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
             if (transport) {
                 await transport.close();
             }
-        }
-    }
-
-    /**
-     * Get wallet's current balance in nanotons
-     */
-    async getBalance(): Promise<string> {
-        try {
-            const balance = await CallForSuccess(
-                async () => this.client.getBalance(this.walletContract.address),
-                5,
-                1000,
-            );
-            return balance;
-        } catch (error) {
-            log.warn('Failed to get balance', { error });
-            throw error;
         }
     }
 

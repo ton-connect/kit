@@ -88,7 +88,7 @@ export class WalletJettonClass implements WalletJettonInterface {
 
         // Get the jetton wallet contract and query balance
         try {
-            const result = await this.client.runGetMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
+            const result = await this.getClient().runGetMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
 
             // The balance is the first return value from get_wallet_data
             const parsedStack = ParseStack(result.stack);
@@ -107,7 +107,7 @@ export class WalletJettonClass implements WalletJettonInterface {
 
         try {
             // Call get_wallet_address method on jetton master contract
-            const result = await this.client.runGetMethod(
+            const result = await this.getClient().runGetMethod(
                 Address.parse(jettonAddress),
                 'get_wallet_address',
                 SerializeStack([
@@ -138,7 +138,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         this: IWallet,
         params?: Omit<GetJettonsByOwnerRequest, 'ownerAddress'>,
     ): Promise<ResponseUserJettons> {
-        return this.client.jettonsByOwnerAddress({
+        return this.getClient().jettonsByOwnerAddress({
             ...params,
 
             ownerAddress: this.getAddress(),

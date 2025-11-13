@@ -11,7 +11,7 @@ import { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageIn
 import { CHAIN } from '@tonconnect/protocol';
 import { describe, it, expect, beforeEach } from 'vitest';
 
-import { mockFn, clearAllMocks, mocked } from '../../../mock.config';
+import { clearAllMocks, mocked } from '../../../mock.config';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { FullAccountState } from '../../types/toncenter/api';
@@ -61,27 +61,6 @@ describe('WalletV5R1Adapter', () => {
             'gaYAMdlcwx1KGzqAkUn8jUNeVqNfW8zex2xJK/mlRkDD78K/4U2EvwfrD/q94YVFEnPnpWkPhNhhmGsabQbzBw==',
         );
     });
-
-    it('should return wallet balance', async () => {
-        const balance = await wallet.getBalance();
-        expect(balance).toEqual('1000000000');
-        expect(tonClient.getBalance as unknown as ReturnType<typeof mockFn.fn>).toHaveBeenCalledWith(
-            wallet.walletContract.address,
-        );
-    });
-
-    it('should handle balance retrieval errors', async () => {
-        const error = new Error('Balance fetch failed');
-        const signer = await Signer.fromMnemonic(mnemonic);
-        const errorWallet = await WalletV5R1Adapter.create(signer, {
-            client: {
-                ...tonClient,
-                getBalance: mockFn().mockRejectedValue(error),
-            },
-            network: CHAIN.MAINNET,
-        });
-        await expect(errorWallet.getBalance()).rejects.toThrow('Balance fetch failed');
-    }, 10000);
 
     it('should throw error if wallet contract not initialized', async () => {
         const signer = await Signer.fromMnemonic(mnemonic);

@@ -113,7 +113,7 @@ export class WalletManager {
                     return wallet;
                 }
             } catch (error) {
-                log.warn('Failed to get address for wallet', { publicKey: wallet.publicKey, error });
+                log.warn('Failed to get address for wallet', { publicKey: wallet.getPublicKey(), error });
             }
         }
         return null;

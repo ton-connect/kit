@@ -148,7 +148,7 @@ async function createWalletAdapter(params: {
     storedLedgerConfig?: LedgerConfig;
     network: 'mainnet' | 'testnet';
     walletKit: ITonWalletKit;
-    version?: 'v5r1' | 'v4r2';
+    version: 'v5r1' | 'v4r2';
 }): Promise<IWalletAdapter> {
     const {
         mnemonic,
@@ -504,6 +504,10 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.auth.currentPassword,
             );
 
+            if (!version) {
+                throw new Error('Version is required');
+            }
+
             // Create wallet using walletkit
             const network = state.auth.network || 'testnet';
             const walletAdapter = await createWalletAdapter({
@@ -536,7 +540,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             // }
 
             // const balance = await wallet.getBalance();
-            const publicKey = wallet.publicKey;
+            const publicKey = wallet.getPublicKey();
 
             // Create saved wallet entry
             const savedWallet: SavedWallet = {
@@ -547,7 +551,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 encryptedMnemonic,
                 walletType: state.auth.useWalletInterfaceType || 'mnemonic',
                 walletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
-                version: wallet.version as 'v5r1' | 'v4r2',
+                version: version,
                 createdAt: Date.now(),
             };
 
@@ -594,6 +598,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         try {
             const walletId = generateWalletId();
             const walletName = name || generateWalletName(state.wallet.savedWallets, 'ledger');
+            const version = 'v4r2';
 
             // Create wallet using walletkit with Ledger configuration
             const network = state.auth.network || 'testnet';
@@ -603,6 +608,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 storedLedgerConfig: undefined,
                 network,
                 walletKit: state.wallet.walletKit,
+                version: version,
             });
 
             const wallet = await state.wallet.walletKit.addWallet(walletAdapter);
@@ -625,15 +631,15 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             }
 
             const balance = await wallet.getBalance();
-            const publicKey = wallet.publicKey;
+            const publicKey = wallet.getPublicKey();
 
             // Store Ledger configuration
             const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
             const ledgerConfig: LedgerConfig = {
-                publicKey: wallet.publicKey,
+                publicKey: publicKey,
                 path: ledgerPath,
                 walletId: 698983191,
-                version: wallet.version,
+                version: version,
                 network: network,
                 workchain: 0,
                 accountIndex: state.auth.ledgerAccountNumber || 0,
@@ -648,7 +654,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 ledgerConfig,
                 walletType: 'ledger',
                 walletInterfaceType: 'ledger',
-                version: wallet.version as 'v5r1' | 'v4r2',
+                version: version,
                 createdAt: Date.now(),
             };
 
@@ -846,6 +852,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                         storedLedgerConfig: savedWallet.ledgerConfig,
                         network,
                         walletKit: state.wallet.walletKit,
+                        version: savedWallet.version || 'v4r2',
                     });
 
                     await state.wallet.walletKit.addWallet(walletAdapter);
@@ -863,6 +870,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                         storedLedgerConfig: undefined,
                         network,
                         walletKit: state.wallet.walletKit,
+                        version: savedWallet.version || 'v5r1',
                     });
 
                     await state.wallet.walletKit.addWallet(walletAdapter);

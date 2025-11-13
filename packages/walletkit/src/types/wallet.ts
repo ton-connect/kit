@@ -21,7 +21,7 @@ import { ResponseUserJettons } from './export/responses/jettons';
 import type { NftItem } from './toncenter/NftItem';
 import { NftItems } from './toncenter/NftItems';
 import { PrepareSignDataResult } from '../utils/signData/sign';
-import { Hex } from './primitive';
+import { Base64String, Hex } from './primitive';
 import { TonProofParsedMessage } from '../utils/tonProof';
 import { EventTransactionResponse } from './events';
 
@@ -42,25 +42,27 @@ export type WalletSigner = {
  */
 export interface IWalletAdapter {
     /** Unique identifier for this wallet (typically public key) */
-    publicKey: Hex;
+    getPublicKey(): Hex;
 
-    /** Wallet contract version (e.g., 'v4r2', 'v5r1') */
-    version: string;
-
+    /** Get the network the wallet is connected to */
     getNetwork(): CHAIN;
 
-    /** Get wallet's TON address */
+    /** Get the TON client instance */
+    getClient(): ApiClient;
+
+    /** Get the address of the wallet */
     getAddress(options?: { testnet?: boolean }): string;
 
     /** Get state init for wallet deployment base64 encoded boc */
-    getStateInit(): Promise<string>;
+    getStateInit(): Promise<Base64String>;
 
+    /** Get the signed send transaction */
     getSignedSendTransaction(
         input: ConnectTransactionParamContent,
         options?: {
             fakeSignature: boolean;
         },
-    ): Promise<string>; // base64 encoded boc
+    ): Promise<Base64String>;
     getSignedSignData(
         input: PrepareSignDataResult,
         options?: {
@@ -99,8 +101,6 @@ export interface TonTransferParamsComment {
 }
 
 export interface WalletTonInterface {
-    client: ApiClient;
-
     createTransferTonTransaction(params: TonTransferParams): Promise<ConnectTransactionParamContent>;
     createTransferMultiTonTransaction(params: TonTransferManyParams): Promise<ConnectTransactionParamContent>;
 

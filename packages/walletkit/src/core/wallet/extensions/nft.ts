@@ -20,7 +20,7 @@ import { LimitRequest } from '../../../types/toncenter/ApiClient';
 
 export class WalletNftClass implements WalletNftInterface {
     async getNfts(this: IWallet, params: LimitRequest): Promise<NftItems> {
-        const out = await this.client.nftItemsByOwner({
+        const out = await this.getClient().nftItemsByOwner({
             ownerAddress: [this.getAddress()],
             offset: params.offset ?? 0,
             limit: params.limit ?? 100,
@@ -32,7 +32,7 @@ export class WalletNftClass implements WalletNftInterface {
     }
 
     async getNft(this: IWallet, address: Address | string): Promise<NftItem | null> {
-        const result = await this.client.nftItemsByAddress({
+        const result = await this.getClient().nftItemsByAddress({
             address: [address],
         });
         if (result.items.length > 0) {

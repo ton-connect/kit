@@ -97,6 +97,14 @@ export class WalletV4R2Adapter implements IWalletAdapter {
         });
     }
 
+    getPublicKey(): Hex {
+        return this.publicKey;
+    }
+
+    getClient(): ApiClient {
+        return this.client;
+    }
+
     /**
      * Sign raw bytes with wallet's private key
      */
@@ -172,23 +180,6 @@ export class WalletV4R2Adapter implements IWalletAdapter {
             return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64');
         } catch (error) {
             log.warn('Failed to get signed send transaction', { error });
-            throw error;
-        }
-    }
-
-    /**
-     * Get wallet's current balance in nanotons
-     */
-    async getBalance(): Promise<string> {
-        try {
-            const balance = await CallForSuccess(
-                async () => this.client.getBalance(this.walletContract.address),
-                5,
-                1000,
-            );
-            return balance;
-        } catch (error) {
-            log.warn('Failed to get balance', { error });
             throw error;
         }
     }

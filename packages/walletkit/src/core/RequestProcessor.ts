@@ -696,7 +696,7 @@ export class RequestProcessor {
         const walletStateInit = await wallet.getStateInit();
 
         // Get public key as hex string
-        const publicKey = wallet.publicKey.replace('0x', '');
+        const publicKey = wallet.getPublicKey().replace('0x', '');
 
         // Get wallet address
         const address = wallet.getAddress();
