@@ -66,7 +66,7 @@ export function setupNativeBridge() {
 
     // Create a secure storage implementation that redirects to the native bridge
     try {
-        const nativeStorage: Storage = {
+        const nativeStorage = {
             getItem(key: string): string | null {
                 try {
                     const value = bridge.storageGet(key);
@@ -100,19 +100,7 @@ export function setupNativeBridge() {
                     error('[walletkitBridge] Error in WalletKitNativeStorage.clear:', err);
                 }
             },
-
-            get length(): number {
-                // Note: The native bridge doesn't provide a length method
-                // This is a limitation but shouldn't affect most use cases
-                return 0;
-            },
-
-            key(_index: number): string | null {
-                // Note: The native bridge doesn't provide a key enumeration method
-                // This is a limitation but shouldn't affect most use cases
-                return null;
-            },
-        };
+        } as Storage;
 
         // Expose the native storage without clobbering existing properties
         if (typeof scope.WalletKitNativeStorage === 'undefined') {

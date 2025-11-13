@@ -6,11 +6,7 @@
  *
  */
 
-import type {
-    CreateTransferTonTransactionArgs,
-    CreateTransferMultiTonTransactionArgs,
-    WalletKitBridgeApi,
-} from './api';
+import type { IWallet, IWalletAdapter, WalletSigner } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -37,37 +33,11 @@ export interface WalletKitNativeBridgeType {
     signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
-export interface WalletKitWallet {
-    address?: string;
-    publicKey: string;
-    version?: string;
-    getAddress(): string;
-    getBalance(): Promise<unknown>;
-    getTransactions?(limit: number): Promise<unknown[]>;
-    getTransactionPreview?(transaction: unknown): Promise<{ preview?: unknown } | unknown>;
-    createTransferTonTransaction(args: CreateTransferTonTransactionArgs): Promise<unknown>;
-    createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): Promise<unknown>;
-    sendTransaction(transaction: unknown): Promise<{ signedBoc: unknown }>;
-    client: {
-        getAccountTransactions(args: { address: string[]; limit: number }): Promise<
-            | {
-                  transactions?: unknown[];
-              }
-            | undefined
-        >;
-    };
-}
+export type WalletKitWallet = IWallet;
+export type WalletKitAdapter = IWalletAdapter;
+export type WalletKitSigner = WalletSigner;
 
-export interface WalletKitAdapter {
-    getAddress(): string;
-}
-
-export interface WalletKitSigner {
-    sign?: (bytes: Iterable<number>) => Promise<string>;
-    publicKey: string;
-}
-
-export interface WalletKitInstance extends WalletKitBridgeApi {
+export interface WalletKitInstance {
     ensureInitialized?: () => Promise<void>;
     getWallets: () => WalletKitWallet[];
     getWallet(address: string): WalletKitWallet | undefined;

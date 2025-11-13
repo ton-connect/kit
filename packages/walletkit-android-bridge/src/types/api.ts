@@ -209,7 +209,9 @@ export interface EmitBrowserBridgeRequestArgs {
     request: string;
 }
 
-export type HandleTonConnectUrlArgs = unknown;
+export interface HandleTonConnectUrlArgs {
+    url: string;
+}
 
 export interface WalletDescriptor {
     address: string;

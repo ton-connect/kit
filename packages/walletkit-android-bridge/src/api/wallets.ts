@@ -12,7 +12,7 @@
  * Simplified bridge for wallet creation, listing, removal, and state retrieval.
  */
 
-import { CHAIN, type Hex } from '@ton/walletkit';
+import { type Hex } from '@ton/walletkit';
 
 import type {
     RemoveWalletArgs,
@@ -160,25 +160,21 @@ export async function createSigner(args: CreateSignerArgs) {
 export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
         const signer = await getSigner(args);
-        const network = args.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
-
-        const workchain = args.workchain !== undefined ? args.workchain : 0;
-        const walletId = args.walletId !== undefined ? args.walletId : undefined;
 
         let adapter: AdapterInstance;
         if (args.walletVersion === 'v5r1') {
             adapter = (await WalletV5R1Adapter!.create(signer, {
                 client: walletKit.getApiClient(),
-                network,
-                workchain,
-                ...(walletId !== undefined && { walletId }),
+                network: args.network,
+                workchain: args.workchain,
+                walletId: args.walletId,
             })) as AdapterInstance;
         } else if (args.walletVersion === 'v4r2') {
             adapter = (await WalletV4R2Adapter!.create(signer, {
                 client: walletKit.getApiClient(),
-                network,
-                workchain,
-                ...(walletId !== undefined && { walletId }),
+                network: args.network,
+                workchain: args.workchain,
+                walletId: args.walletId,
             })) as AdapterInstance;
         } else {
             throw new Error(`Unsupported wallet version: ${args.walletVersion}`);

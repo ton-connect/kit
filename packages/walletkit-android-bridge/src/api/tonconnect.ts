@@ -23,11 +23,7 @@ import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolv
  */
 export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
     return callBridge('handleTonConnectUrl', async () => {
-        if (!args || typeof args !== 'string') {
-            throw new Error('TON Connect URL string is required');
-        }
-
-        return await walletKit.handleTonConnectUrl(args);
+        return await walletKit.handleTonConnectUrl(args.url);
     });
 }
 
