@@ -30,5 +30,14 @@ if (typeof self !== 'undefined') {
     }
 }
 
-import('./polyfills/firstPolyfill');
-import('./main');
+console.log('🔍 Index started');
+import('./polyfills/firstPolyfill').then(() => {
+    import('./main').then(() => {
+        // do nothing
+    }).catch((error) => {
+        console.error('🔍 Error loading main:', error.toString());
+    });
+}).catch((error) => {
+    console.error('🔍 Error loading polyfills:', error.toString());
+});
+
