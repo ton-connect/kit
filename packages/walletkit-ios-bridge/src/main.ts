@@ -201,7 +201,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
 
         jsWalletAdapter(walletAdapter): IWalletAdapter {
             if (isSwiftObject(walletAdapter)) {
-                return new SwiftWalletAdapter(walletAdapter);
+                return new SwiftWalletAdapter(walletAdapter, walletKit.getApiClient());
             }
             return walletAdapter;
         },

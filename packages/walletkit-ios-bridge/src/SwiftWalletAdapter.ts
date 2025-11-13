@@ -13,22 +13,30 @@ import {
     ConnectTransactionParamContent,
     PrepareSignDataResult,
     TonProofParsedMessage,
+    ApiClient,
 } from '@ton/walletkit';
+
+import { Base64String } from '../../walletkit/dist/cjs/types/primitive';
 
 export class SwiftWalletAdapter implements IWalletAdapter {
     private swiftWalletAdapter;
+    private client: ApiClient;
 
-    publicKey: Hex;
-    version: string;
-
-    constructor(swiftWalletAdapter: IWalletAdapter) {
+    constructor(swiftWalletAdapter: IWalletAdapter, client: ApiClient) {
         this.swiftWalletAdapter = swiftWalletAdapter;
-        this.publicKey = this.swiftWalletAdapter.publicKey;
-        this.version = this.swiftWalletAdapter.version;
+        this.client = client;
+    }
+
+    getPublicKey(): Hex {
+        return this.swiftWalletAdapter.getPublicKey();
     }
 
     getNetwork(): CHAIN {
-        return this.swiftWalletAdapter.getNetwork;
+        return this.swiftWalletAdapter.getNetwork();
+    }
+
+    getClient(): ApiClient {
+        return this.client;
     }
 
     /** Get wallet's TON address */
@@ -37,7 +45,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     /** Get state init for wallet deployment base64 encoded boc */
-    async getStateInit(): Promise<string> {
+    async getStateInit(): Promise<Base64String> {
         return this.swiftWalletAdapter.getStateInit();
     }
 
