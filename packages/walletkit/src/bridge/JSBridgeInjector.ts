@@ -9,6 +9,16 @@
 import type { JSBridgeInjectOptions } from '../types/jsBridge';
 import { injectBridge } from './injection/BridgeInjector';
 import { Transport } from './transport/Transport';
+import { TONCONNECT_BRIDGE_EVENT } from './utils/messageTypes';
+import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from './utils/timeouts';
+
+export {
+    type JSBridgeInjectOptions,
+    Transport,
+    TONCONNECT_BRIDGE_EVENT,
+    RESTORE_CONNECTION_TIMEOUT,
+    DEFAULT_REQUEST_TIMEOUT,
+};
 
 /**
  * Injects a simplified TonConnect JS Bridge that forwards all requests to the parent extension

@@ -6,15 +6,13 @@
  *
  */
 
-import { injectBridgeCode } from '@ton/walletkit/bridge';
 import {
-    InjectedToExtensionBridgeRequestPayload,
-    Transport,
+    injectBridgeCode,
     TONCONNECT_BRIDGE_EVENT,
     RESTORE_CONNECTION_TIMEOUT,
     DEFAULT_REQUEST_TIMEOUT,
-    JSBridgeInjectOptions,
-} from '@ton/walletkit';
+} from '@ton/walletkit/bridge';
+import type { InjectedToExtensionBridgeRequestPayload, Transport, JSBridgeInjectOptions } from '@ton/walletkit';
 
 declare global {
     interface Window {
