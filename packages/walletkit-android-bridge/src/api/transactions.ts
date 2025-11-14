@@ -34,7 +34,7 @@ export async function getRecentTransactions(args: GetRecentTransactionsArgs): Pr
             throw new Error(`Wallet not found for address ${args.address}`);
         }
 
-        const response = await wallet.client.getAccountTransactions({
+        const response = await wallet.getClient().getAccountTransactions({
             address: [args.address],
             limit: args.limit || 10,
         });

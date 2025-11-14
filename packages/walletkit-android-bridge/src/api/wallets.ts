@@ -155,7 +155,7 @@ export async function createSigner(args: CreateSignerArgs) {
 /**
  * Creates a wallet adapter from a signer.
  * Supports both regular signers (from mnemonic/secretKey) and custom signers (hardware wallets).
- * Returns raw adapter object - Kotlin generates adapterId and extracts address.
+ * Returns adapter ID - Kotlin is responsible for all mapping and transformation.
  */
 export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
@@ -184,7 +184,23 @@ export async function createAdapter(args: CreateAdapterArgs) {
         const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         adapterStore.set(tempId, adapter);
 
+        // Return only the temp ID and the raw adapter object
+        // Kotlin is responsible for extracting any needed properties
         return { _tempId: tempId, adapter };
+    });
+}
+/**
+ * Gets the address from a stored adapter by calling its getAddress() method.
+ * This is needed because adapter properties are now methods, not serializable properties.
+ */
+export async function getAdapterAddress(args: { adapterId: string }) {
+    return callBridge('getAdapterAddress', async () => {
+        const adapter = adapterStore.get(args.adapterId);
+        if (!adapter) {
+            throw new Error(`Adapter not found: ${args.adapterId}`);
+        }
+
+        return { address: adapter.getAddress() };
     });
 }
 
