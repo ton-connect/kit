@@ -44,8 +44,8 @@ export interface WalletState {
         balance?: string;
         publicKey?: string;
 
-        // Transaction history for active wallet
-        transactions: PreviewTransaction[];
+        // Event history for active wallet
+        events: unknown[];
 
         // Walletkit instance and current wallet
         currentWallet?: IWallet;
@@ -84,6 +84,7 @@ export interface AuthState {
     };
 }
 
+// Legacy type kept for pending UI assembly; remove when pending traces are events too
 export interface PreviewTransaction {
     id: string;
     messageHash: string;

@@ -129,6 +129,10 @@ export interface WalletSlice extends WalletState {
     loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
+    // Events-based history
+    addEvent: (event: unknown) => void;
+    loadEvents: (limit?: number) => Promise<void>;
+    // Legacy compatibility for older UI/hooks
     addTransaction: (transaction: PreviewTransaction) => void;
     loadTransactions: (limit?: number) => Promise<void>;
 

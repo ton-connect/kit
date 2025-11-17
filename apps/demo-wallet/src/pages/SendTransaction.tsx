@@ -122,7 +122,7 @@ export const SendTransaction: React.FC = () => {
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
                 // display Preview result.preview in a modal
                 if (walletKit) {
-                    await currentWallet.sendTransaction(result);
+                    await walletKit.handleNewTransaction(currentWallet, result);
                 }
 
                 log.info('TON transfer completed', {

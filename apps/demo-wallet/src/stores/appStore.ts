@@ -42,7 +42,7 @@ const migrate = (persistedState: unknown, fromVersion: number): unknown => {
             wallet: {
                 hasWallet: (state.hasWallet as boolean) || false,
                 isAuthenticated: false, // Never persist authentication
-                transactions: (state.transactions as unknown[]) || [],
+                events: (state.events as unknown[]) || [],
                 encryptedMnemonic: state.encryptedMnemonic as string, // Migrate encrypted mnemonic
                 ledgerConfig: undefined, // Initialize ledgerConfig for new installations
                 disconnectedSessions: [], // Always initialize as empty array
@@ -161,9 +161,6 @@ export const useStore = create<AppState>()(
                                 state.auth.network = 'testnet';
                                 log.info('Initialized network to default: testnet');
                             }
-                            if (!state.wallet.transactions) {
-                                state.wallet.transactions = [];
-                            }
                             // Auto-unlock if password is persisted and available
                             if (
                                 state.auth.persistPassword &&
@@ -192,6 +189,12 @@ export const useStore = create<AppState>()(
 
                             if (state.wallet.savedWallets.length > 0) {
                                 state.wallet.hasWallet = true;
+                            }
+
+                            // Ensure history array exists with new events-based model
+                            const walletAny = state.wallet as unknown as { events?: unknown[] };
+                            if (!walletAny.events) {
+                                walletAny.events = [];
                             }
                         }
                     },
@@ -247,7 +250,7 @@ export const useWallet = () =>
             address: state.wallet.address,
             balance: state.wallet.balance,
             publicKey: state.wallet.publicKey,
-            transactions: state.wallet.transactions,
+            events: state.wallet.events,
             currentWallet: state.wallet.currentWallet,
             savedWallets: state.wallet.savedWallets,
             activeWalletId: state.wallet.activeWalletId,
@@ -256,8 +259,9 @@ export const useWallet = () =>
             loadWallet: state.loadWallet,
             clearWallet: state.clearWallet,
             updateBalance: state.updateBalance,
+            addEvent: state.addEvent,
             addTransaction: state.addTransaction,
-            loadTransactions: state.loadTransactions,
+            loadEvents: state.loadEvents,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
             getActiveWallet: state.getActiveWallet,

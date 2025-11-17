@@ -23,7 +23,7 @@ import {
     type ITonWalletKit,
     createDeviceInfo,
     createWalletManifest,
-    type ToncenterTransaction,
+    // type Event, // not used in demo app typings
     SEND_TRANSACTION_ERROR_CODES,
     MnemonicToKeyPair,
     type WalletSigner,
@@ -96,50 +96,7 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
     return walletKit;
 }
 
-// Helper function to transform Toncenter transaction to our Transaction type
-function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransaction {
-    // Determine transaction type based on messages
-    let type: 'send' | 'receive' = 'receive';
-    let amount = '0';
-    let address = '';
-
-    // Check incoming message
-    if (tx.in_msg && tx.in_msg.value) {
-        amount = tx.in_msg.value;
-        address = tx.in_msg.source || '';
-        type = 'receive';
-    }
-
-    // Check outgoing messages - if there are any, it's likely a send transaction
-    if (tx.out_msgs && tx.out_msgs.length > 0) {
-        const mainOutMsg = tx.out_msgs[0];
-        if (mainOutMsg.value) {
-            amount = mainOutMsg.value;
-            address = mainOutMsg.destination;
-            type = 'send';
-        }
-    }
-
-    // Determine status based on transaction description
-    let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
-    if (tx.description.aborted) {
-        status = 'failed';
-    } else if (!tx.description.compute_ph.success) {
-        status = 'failed';
-    }
-
-    return {
-        id: tx.hash,
-        traceId: tx.trace_id || undefined,
-        messageHash: tx.in_msg?.hash || '',
-        type,
-        amount,
-        address,
-        timestamp: tx.now * 1000, // Convert to milliseconds
-        status,
-        externalMessageHash: tx.trace_external_hash || undefined,
-    };
-}
+// Legacy transaction preview transformer removed; events are used instead
 
 async function createWalletAdapter(params: {
     mnemonic?: string[];
@@ -302,7 +259,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         address: undefined,
         balance: undefined,
         publicKey: undefined,
-        transactions: [],
+        events: [],
         currentWallet: undefined,
         requestQueue: {
             items: [],
@@ -753,7 +710,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                 state.wallet.publicKey = savedWallet.publicKey;
                 state.wallet.balance = balance.toString();
                 state.wallet.currentWallet = wallet;
-                state.wallet.transactions = []; // Clear transactions for new wallet
+                state.wallet.events = []; // Clear events for new wallet
             });
 
             // Load transactions for the new wallet
@@ -794,7 +751,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
                     state.wallet.publicKey = undefined;
                     state.wallet.balance = undefined;
                     state.wallet.currentWallet = undefined;
-                    state.wallet.transactions = [];
+                    state.wallet.events = [];
                 }
             }
         });
@@ -952,7 +909,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             state.wallet.address = undefined;
             state.wallet.balance = undefined;
             state.wallet.publicKey = undefined;
-            state.wallet.transactions = [];
+            state.wallet.events = [];
             state.wallet.currentWallet = undefined;
             state.wallet.pendingConnectRequest = undefined;
             state.wallet.isConnectModalOpen = false;
@@ -983,16 +940,24 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
     },
 
-    addTransaction: (transaction: PreviewTransaction) => {
+    // Deprecated: addTransaction kept for compatibility in demo hooks
+    addTransaction: (_transaction: PreviewTransaction) => {
         set((state) => {
-            state.wallet.transactions = [transaction, ...state.wallet.transactions];
+            // No-op for events-based history
+            state.wallet.events = state.wallet.events ?? [];
         });
     },
 
-    loadTransactions: async (limit = 10) => {
+    addEvent: (event: unknown) => {
+        set((state) => {
+            state.wallet.events = [event, ...state.wallet.events];
+        });
+    },
+
+    loadEvents: async (limit = 10) => {
         const state = get();
         if (!state.wallet.address) {
-            log.warn('No wallet address available to load transactions');
+            log.warn('No wallet address available to load events');
             return;
         }
 
@@ -1001,27 +966,28 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
 
         try {
-            log.info('Loading transactions for address:', state.wallet.address);
+            log.info('Loading events for address:', state.wallet.address);
 
-            const response = await state.wallet.walletKit.getApiClient().getAccountTransactions({
-                address: [state.wallet.address],
+            const response = await state.wallet.walletKit.getApiClient().getEvents({
+                account: state.wallet.address,
                 limit,
                 offset: 0,
             });
 
-            const transformedTransactions = response.transactions.map((tx: ToncenterTransaction) =>
-                transformToncenterTransaction(tx),
-            );
-
             set((state) => {
-                state.wallet.transactions = transformedTransactions;
+                state.wallet.events = response.events;
             });
 
-            log.info(`Loaded ${transformedTransactions.length} transactions`);
+            log.info(`Loaded ${response.events.length} events`);
         } catch (error) {
-            log.error('Error loading transactions:', error);
-            throw new Error('Failed to load transactions');
+            log.error('Error loading events:', error);
+            throw new Error('Failed to load events');
         }
+    },
+
+    // Backward compatibility: loadTransactions delegates to loadEvents
+    loadTransactions: async (limit = 10) => {
+        return get().loadEvents(limit);
     },
 
     handleTonConnectUrl: async (url: string) => {

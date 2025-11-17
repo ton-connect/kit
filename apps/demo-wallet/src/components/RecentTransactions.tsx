@@ -8,16 +8,17 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { Base64NormalizeUrl, HexToBase64, type Hex } from '@ton/walletkit';
 
 import { useStore, useWalletKit } from '../stores';
 import type { PreviewTransaction } from '../types/wallet';
 import { TraceRow } from './TraceRow';
 
 export const RecentTransactions: React.FC = memo(() => {
-    const { transactions, loadTransactions, address } = useStore(
+    const { events, loadEvents, address } = useStore(
         useShallow((state) => ({
-            transactions: state.wallet.transactions,
-            loadTransactions: state.loadTransactions,
+            events: state.wallet.events,
+            loadEvents: state.loadEvents,
             address: state.wallet.address,
         })),
     );
@@ -26,52 +27,22 @@ export const RecentTransactions: React.FC = memo(() => {
     const [error, setError] = useState<string | null>(null);
     const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
 
-    // Group transactions by external message hash or generate unique trace ID for completed transactions
-    const groupTransactionsByTrace = (transactions: PreviewTransaction[]) => {
-        const traceGroups = new Map<
-            string,
-            {
-                traceId: string;
-                externalHash?: string;
-                transactions: PreviewTransaction[];
-                timestamp: number;
-                isPending?: boolean;
-            }
-        >();
+    const formatTimestamp = (timestampSeconds: number): string => {
+        return new Date(timestampSeconds * 1000).toLocaleString();
+    };
 
-        transactions.forEach((tx) => {
-            let groupKey: string;
+    const formatAddress = (addr: string): string => {
+        if (!addr) return '';
+        return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+    };
 
-            if (tx.status === 'pending' && tx.messageHash) {
-                // For pending transactions, use message hash as external hash
-                groupKey = `pending_${tx.messageHash}`;
-            } else if (tx.externalMessageHash) {
-                // For completed transactions, use external message hash
-                groupKey = tx.externalMessageHash;
-            } else {
-                // Fallback: use transaction hash as unique identifier
-                groupKey = `tx_${tx.traceId}`;
-            }
-
-            // debugger
-            if (!traceGroups.has(groupKey)) {
-                traceGroups.set(groupKey, {
-                    traceId: tx.id,
-                    externalHash: tx.messageHash ?? tx.externalMessageHash,
-                    transactions: [],
-                    timestamp: tx.timestamp,
-                    isPending: tx.status === 'pending',
-                });
-            }
-
-            const group = traceGroups.get(groupKey)!;
-            group.transactions.push(tx);
-            // Use the earliest timestamp for the group
-            group.timestamp = Math.min(group.timestamp, tx.timestamp);
-        });
-
-        // Convert to array and sort by timestamp (newest first)
-        return Array.from(traceGroups.values()).sort((a, b) => b.timestamp - a.timestamp);
+    const formatNanoTon = (value: bigint | string): string => {
+        const n = typeof value === 'bigint' ? value : BigInt(value || '0');
+        const str = n.toString();
+        const pad = str.padStart(10, '0');
+        const intPart = pad.slice(0, pad.length - 9).replace(/^0+(?=\d)/, '');
+        const fracPart = pad.slice(-9).replace(/0+$/, '');
+        return `${intPart === '' ? '0' : intPart}${fracPart ? '.' + fracPart : ''}`;
     };
 
     // Check for pending transactions
@@ -130,24 +101,24 @@ export const RecentTransactions: React.FC = memo(() => {
         }
     };
 
-    // Load transactions when component mounts or address changes
+    // Load events when component mounts or address changes
     useEffect(() => {
-        const fetchTransactions = async () => {
+        const fetchEvents = async () => {
             if (!address) return;
 
             setIsLoading(true);
             setError(null);
             try {
-                await loadTransactions(10);
+                await loadEvents(10);
             } catch (_err) {
-                setError('Failed to load transactions');
+                setError('Failed to load events');
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchTransactions();
-    }, [address, loadTransactions]);
+        fetchEvents();
+    }, [address, loadEvents]);
 
     // Set up polling for pending transactions
     useEffect(() => {
@@ -171,21 +142,92 @@ export const RecentTransactions: React.FC = memo(() => {
         setIsLoading(true);
         setError(null);
         try {
-            await loadTransactions(10);
+            await loadEvents(10);
         } catch (_err) {
-            setError('Failed to refresh transactions');
+            setError('Failed to refresh events');
         } finally {
             setIsLoading(false);
         }
     };
+    interface EventLike {
+        eventId: string;
+        timestamp: number;
+        actions?: unknown[];
+    }
 
-    const allTransactions = useMemo(() => {
-        return [...pendingTransactions, ...transactions];
-    }, [pendingTransactions, transactions]);
+    interface TonTransferActionLike {
+        id: string;
+        type: 'TonTransfer';
+        TonTransfer: {
+            sender: { address: string };
+            recipient: { address: string };
+            amount: string | bigint;
+            comment?: string;
+        };
+    }
 
-    const traceGroups = useMemo(() => {
-        return groupTransactionsByTrace(allTransactions);
-    }, [allTransactions]);
+    const eventItems = useMemo(() => (events || []) as unknown as EventLike[], [events]);
+
+    const renderTransferRow = (ev: EventLike, action: TonTransferActionLike) => {
+        const my = address || '';
+        const isOutgoing = action.TonTransfer.sender.address === my;
+        const amount = formatNanoTon(action.TonTransfer.amount);
+        const other = isOutgoing ? action.TonTransfer.recipient.address : action.TonTransfer.sender.address;
+        const traceId = Base64NormalizeUrl(HexToBase64(ev.eventId as unknown as Hex));
+
+        return (
+            <a
+                key={`${ev.eventId}`}
+                href={`/wallet/trace/${traceId}`}
+                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
+            >
+                <div className="flex items-center space-x-3">
+                    <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${isOutgoing ? 'bg-red-100' : 'bg-green-100'}`}
+                    >
+                        {isOutgoing ? (
+                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M7 11l5-5m0 0l5 5m-5-5v12"
+                                />
+                            </svg>
+                        ) : (
+                            <svg
+                                className="w-4 h-4 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17 13l-5 5m0 0l-5-5m5 5V6"
+                                />
+                            </svg>
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-gray-900">{isOutgoing ? 'Sent TON' : 'Received TON'}</p>
+                        <p className="text-xs text-gray-500">{formatAddress(other)}</p>
+                        {action.TonTransfer.comment && (
+                            <p className="mt-1 text-xs text-gray-600 break-all">{action.TonTransfer.comment}</p>
+                        )}
+                    </div>
+                </div>
+                <div className="text-right">
+                    <p className={`text-sm font-medium ${isOutgoing ? 'text-red-600' : 'text-green-600'}`}>
+                        {isOutgoing ? '-' : '+'}
+                        {amount} TON
+                    </p>
+                    <p className="text-xs text-gray-400">{formatTimestamp(ev.timestamp)}</p>
+                </div>
+            </a>
+        );
+    };
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
@@ -202,7 +244,7 @@ export const RecentTransactions: React.FC = memo(() => {
                     onClick={handleRefresh}
                     disabled={isLoading}
                     className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                    title="Refresh transactions"
+                    title="Refresh"
                 >
                     <svg
                         className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
@@ -242,7 +284,7 @@ export const RecentTransactions: React.FC = memo(() => {
                         <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
                         <p className="text-gray-500 text-sm">Loading transactions...</p>
                     </div>
-                ) : transactions.length === 0 ? (
+                ) : (eventItems?.length ?? 0) === 0 ? (
                     <div className="text-center py-8">
                         <div className="text-gray-400 mb-2">
                             <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,19 +296,32 @@ export const RecentTransactions: React.FC = memo(() => {
                                 />
                             </svg>
                         </div>
-                        <p className="text-gray-500 text-sm">No transactions yet</p>
-                        <p className="text-gray-400 text-xs mt-1">Your transaction history will appear here</p>
+                        <p className="text-gray-500 text-sm">No activity yet</p>
+                        <p className="text-gray-400 text-xs mt-1">Your history will appear here</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {traceGroups.slice(0, 10).map((group) => (
-                            <TraceRow
-                                key={group.traceId}
-                                traceId={group.traceId}
-                                externalHash={group.externalHash}
-                                isPending={group.isPending}
-                            />
+                        {pendingTransactions.map((p) => (
+                            <TraceRow key={`pending-${p.id}`} traceId={p.id} externalHash={p.messageHash} isPending />
                         ))}
+                        {(eventItems || []).slice(0, 10).map((ev) => {
+                            const tonTransfers = ((ev.actions || []) as unknown as TonTransferActionLike[]).filter(
+                                (a: TonTransferActionLike | { type?: string }) => a.type === 'TonTransfer',
+                            );
+                            if (tonTransfers.length === 0) {
+                                // Fallback to TraceRow when no TonTransfer actions are present
+                                const traceId = Base64NormalizeUrl(HexToBase64(ev.eventId as unknown as Hex));
+                                return <TraceRow key={ev.eventId} traceId={traceId} />;
+                            }
+                            // Choose primary transfer: involving our address if present, otherwise the first one
+                            const primary =
+                                tonTransfers.find(
+                                    (a) =>
+                                        a.TonTransfer.sender.address === (address || '') ||
+                                        a.TonTransfer.recipient.address === (address || ''),
+                                ) || tonTransfers[0];
+                            return renderTransferRow(ev, primary);
+                        })}
                     </div>
                 )}
             </div>
