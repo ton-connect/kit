@@ -11,6 +11,7 @@ import { injectBridge } from './injection/BridgeInjector';
 import { Transport } from './transport/Transport';
 import { TONCONNECT_BRIDGE_EVENT } from './utils/messageTypes';
 import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from './utils/timeouts';
+import { ExtensionTransport } from './transport/ExtensionTransport';
 
 export {
     type JSBridgeInjectOptions,
@@ -18,6 +19,7 @@ export {
     TONCONNECT_BRIDGE_EVENT,
     RESTORE_CONNECTION_TIMEOUT,
     DEFAULT_REQUEST_TIMEOUT,
+    ExtensionTransport,
 };
 
 /**

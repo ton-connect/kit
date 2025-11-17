@@ -34,6 +34,7 @@ import {
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
+import browser from 'webextension-polyfill';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -74,14 +75,19 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
         bridge: {
             bridgeUrl: ENV_BRIDGE_URL,
             disableHttpConnection: DISABLE_HTTP_BRIDGE,
+            jsBridgeTransport: isExtension()
+                ? async (sessionId: string, message: unknown) => {
+                      await browser.tabs.sendMessage(parseInt(sessionId), message);
+                  }
+                : undefined,
         },
 
         network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
         apiClient: {
             key: network === 'mainnet' ? ENV_TON_API_KEY_MAINNET : ENV_TON_API_KEY_TESTNET,
         },
-        // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
-        storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        storage: isExtension() ? new ExtensionStorageAdapter({}, browser.storage.local as any) : undefined,
 
         analytics: {
             enabled: true,

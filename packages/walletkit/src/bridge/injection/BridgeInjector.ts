@@ -6,12 +6,12 @@
  *
  */
 
+import { ERROR_CODES, WalletKitError } from '../../errors';
 import type { JSBridgeInjectOptions } from '../../types/jsBridge';
 import { getDeviceInfoWithDefaults, getWalletInfoWithDefaults } from '../../utils/getDefaultWalletConfig';
 import type { BridgeConfig } from '../core/BridgeConfig';
 import { validateBridgeConfig } from '../core/BridgeConfig';
 import { TonConnectBridge } from '../core/TonConnectBridge';
-import { ExtensionTransport } from '../transport/ExtensionTransport';
 import { Transport } from '../transport/Transport';
 import { SUPPORTED_PROTOCOL_VERSION } from '../utils/timeouts';
 import { IframeWatcher } from './IframeWatcher';
@@ -104,9 +104,7 @@ export function injectBridge(window: Window, options: JSBridgeInjectOptions, arg
     if (argsTransport) {
         transport = argsTransport;
     } else {
-        // const randomId = Math.random().toString(36).substring(2, 15);
-        const source = `${config.jsBridgeKey}-tonconnect`;
-        transport = new ExtensionTransport(window, source);
+        throw new WalletKitError(ERROR_CODES.INVALID_CONFIG, 'Transport is not configured');
     }
 
     // 5. Create bridge instance

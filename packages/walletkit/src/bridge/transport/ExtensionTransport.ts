@@ -6,6 +6,8 @@
  *
  */
 
+import type { Browser } from 'webextension-polyfill';
+
 import type { InjectedToExtensionBridgeRequestPayload } from '../../types/jsBridge';
 import {
     INJECT_CONTENT_SCRIPT,
@@ -23,7 +25,7 @@ interface PendingRequest {
 }
 
 /**
- * Chrome extension transport implementation
+ * Browser extension transport implementation
  * Handles communication between injected bridge and extension background script
  */
 export class ExtensionTransport implements Transport {
@@ -31,12 +33,14 @@ export class ExtensionTransport implements Transport {
     private readonly source: string;
     private readonly window: Window;
     private readonly pendingRequests = new Map<string, PendingRequest>();
+    private readonly browser: Browser;
     private eventCallback: ((event: unknown) => void) | null = null;
     private messageListener: ((event: MessageEvent) => void) | null = null;
 
-    constructor(window: Window, source: string) {
+    constructor(window: Window, source: string, browser: Browser) {
         this.window = window;
         this.source = source;
+        this.browser = browser;
         this.setupMessageListener();
     }
 
@@ -109,7 +113,7 @@ export class ExtensionTransport implements Transport {
      */
     async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
         if (!this.isAvailable()) {
-            throw new Error('Chrome extension transport is not available');
+            throw new Error('Browser extension transport is not available');
         }
 
         return new Promise((resolve, reject) => {
@@ -130,8 +134,7 @@ export class ExtensionTransport implements Transport {
 
             // Send message to extension
             try {
-                // eslint-disable-next-line no-undef
-                chrome.runtime.sendMessage(this.extensionId!, {
+                this.browser.runtime.sendMessage(this.extensionId!, {
                     type: TONCONNECT_BRIDGE_REQUEST,
                     source: this.source,
                     payload: request,
@@ -156,7 +159,7 @@ export class ExtensionTransport implements Transport {
      * Check if transport is available
      */
     isAvailable(): boolean {
-        return typeof chrome !== 'undefined' && this.extensionId !== null;
+        return typeof this.browser !== 'undefined' && this.extensionId !== null;
     }
 
     /**
@@ -166,8 +169,7 @@ export class ExtensionTransport implements Transport {
         if (!this.isAvailable()) return;
 
         try {
-            // eslint-disable-next-line no-undef
-            chrome.runtime.sendMessage(this.extensionId!, {
+            this.browser.runtime.sendMessage(this.extensionId!, {
                 type: INJECT_CONTENT_SCRIPT,
             });
         } catch (error) {

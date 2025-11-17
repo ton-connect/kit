@@ -6,8 +6,6 @@
  *
  */
 
-// Content script for TON Wallet Demo extension
-/* eslint-disable no-console */
 import { Buffer } from 'buffer';
 
 window.Buffer = Buffer;
@@ -15,20 +13,32 @@ if (globalThis && !globalThis.Buffer) {
     globalThis.Buffer = Buffer;
 }
 
-import { injectBridgeCode } from '@ton/walletkit/bridge';
+import { ExtensionTransport, injectBridgeCode } from '@ton/walletkit/bridge';
+import type { Browser } from 'webextension-polyfill';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 
+declare const browser: Browser;
+
 function injectTonConnectBridge() {
+    // eslint-disable-next-line no-undef
+    const browserObj = typeof browser !== 'undefined' ? browser : (chrome as unknown as Browser);
     try {
         // Inject the simplified bridge that forwards to extension
-        injectBridgeCode(window, {
-            deviceInfo: getTonConnectDeviceInfo(),
-            walletInfo: getTonConnectWalletManifest(),
-        });
+        injectBridgeCode(
+            window,
+            {
+                deviceInfo: getTonConnectDeviceInfo(),
+                walletInfo: getTonConnectWalletManifest(),
+            },
 
+            new ExtensionTransport(window, 'tonkeeper-tonconnect', browserObj),
+        );
+
+        // eslint-disable-next-line no-console
         console.log('TonConnect bridge injected - forwarding to extension');
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to inject TonConnect bridge:', error);
     }
 }

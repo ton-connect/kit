@@ -70,6 +70,7 @@ export const ERROR_CODES = {
     CONFIGURATION_ERROR: 7903,
     NETWORK_ERROR: 7904,
     UNKNOWN_EMULATION_ERROR: 7905,
+    INVALID_CONFIG: 7906,
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];

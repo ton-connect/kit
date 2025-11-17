@@ -50,6 +50,7 @@
     "@types/chrome": "^0.1.28",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
+    "@types/webextension-polyfill": "^0.12.4",
     "@vitejs/plugin-react": "^5.1.0",
     "allure-js-commons": "^3.4.2",
     "allure-playwright": "^3.4.2",
@@ -63,6 +64,7 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.2",
     "vite-bundle-analyzer": "^1.2.3",
-    "vite-plugin-web-extension": "^4.5.0"
+    "vite-plugin-web-extension": "^4.5.0",
+    "webextension-polyfill": "^0.12.0"
   }
 }
