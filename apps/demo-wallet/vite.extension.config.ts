@@ -31,7 +31,11 @@ export default defineConfig({
         webExtension({
             disableAutoLaunch: true,
             manifest: generateManifest,
-            additionalInputs: ['src/extension/content.ts', 'src/extension/inject.ts'],
+            additionalInputs: [
+                'src/extension/content.ts',
+                'src/extension/inject.ts',
+                'src/extension/content_script.ts',
+            ],
             browser: process.env.TARGET || 'chrome',
             htmlViteConfig: {
                 build: {

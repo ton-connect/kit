@@ -14,7 +14,8 @@ console.log('TON Wallet Demo extension background script loaded');
 import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import browser from 'webextension-polyfill';
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Runtime } from 'webextension-polyfill';
+import { sendMessage } from 'webext-bridge/background';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 
@@ -34,7 +35,11 @@ async function initializeWalletKit() {
             storage: new ExtensionStorageAdapter({}, browser.storage.local),
             bridge: {
                 jsBridgeTransport: async (sessionId: string, message: unknown) => {
-                    await browser.tabs.sendMessage(parseInt(sessionId), message);
+                    await sendMessage(
+                        'JSBRIDGE_MESSAGE',
+                        JSON.parse(JSON.stringify({ message })),
+                        `window@${sessionId}`,
+                    );
                 },
             },
         });
@@ -66,6 +71,7 @@ function isBridgeRequest(message: unknown): asserts message is InjectedToExtensi
     }
 }
 
+// Handle external messages from injected scripts (via browser.runtime.sendMessage)
 browser.runtime.onMessageExternal.addListener((async (message, sender, sendResponse) => {
     if (typeof message !== 'object' || message === null || !('type' in message)) {
         return false;
@@ -74,7 +80,7 @@ browser.runtime.onMessageExternal.addListener((async (message, sender, sendRespo
         case 'TONCONNECT_BRIDGE_REQUEST':
             isBridgeRequest(message);
             // Handle TonConnect bridge requests through WalletKit
-            handleBridgeRequest(message.messageId, message.payload, sender, sendResponse);
+            handleBridgeRequestExternal(message.messageId, message.payload, sender, sendResponse);
             if (message.payload.method === 'connect' || message.payload.method === 'send') {
                 const views = await browser.runtime.getContexts({
                     contextTypes: ['POPUP'],
@@ -90,7 +96,7 @@ browser.runtime.onMessageExternal.addListener((async (message, sender, sendRespo
                     });
                 }
             }
-            break;
+            return;
         case 'INJECT_CONTENT_SCRIPT':
             if (!sender.tab?.id) {
                 return;
@@ -109,10 +115,10 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
 });
 
-async function handleBridgeRequest(
+async function handleBridgeRequestExternal(
     messageId: string,
     bridgeRequest: InjectedToExtensionBridgeRequestPayload,
-    _sender: browser.Runtime.MessageSender,
+    sender: browser.Runtime.MessageSender,
     sendResponse: (response: { success: boolean; result?: unknown; error?: unknown }) => void,
 ) {
     try {
@@ -131,8 +137,8 @@ async function handleBridgeRequest(
         const result = await walletKit?.processInjectedBridgeRequest(
             {
                 messageId,
-                tabId: _sender.tab?.id?.toString(),
-                domain: getHostFromUrl(_sender.tab?.url),
+                tabId: sender.tab?.id?.toString(),
+                domain: getHostFromUrl(sender.tab?.url),
             },
             {
                 ...bridgeRequest,
@@ -160,6 +166,10 @@ async function injectContentScript(tabId: number) {
         }
         await browser.scripting.executeScript({
             target: { tabId, allFrames: true },
+            files: ['src/extension/content_script.js'],
+        });
+        await browser.scripting.executeScript({
+            target: { tabId, allFrames: true },
             files: ['src/extension/content.js'],
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             world: 'MAIN' as any, // needed to access window
@@ -175,18 +185,6 @@ async function injectContentScript(tabId: number) {
                     },
                     '*',
                 );
-
-                // eslint-disable-next-line no-undef
-                const browserObj = typeof browser !== 'undefined' ? browser : (chrome as unknown as Browser);
-                browserObj.runtime.onMessage.addListener(((message, _sender, _sendResponse) => {
-                    if (typeof message !== 'object') {
-                        return;
-                    }
-                    window.postMessage({
-                        ...message,
-                        sender: _sender,
-                    });
-                }) as Runtime.OnMessageListener);
             },
         });
     } catch (error) {

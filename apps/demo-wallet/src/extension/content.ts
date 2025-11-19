@@ -15,10 +15,20 @@ if (globalThis && !globalThis.Buffer) {
 
 import { ExtensionTransport, injectBridgeCode } from '@ton/walletkit/bridge';
 import type { Browser } from 'webextension-polyfill';
+import { onMessage, setNamespace } from 'webext-bridge/window';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 
 declare const browser: Browser;
+
+setNamespace('x');
+
+// Listen for JSBridge messages from background script
+onMessage('JSBRIDGE_MESSAGE', ({ data }) => {
+    if (data && typeof data === 'object' && 'message' in data) {
+        window.postMessage(data.message, '*');
+    }
+});
 
 function injectTonConnectBridge() {
     // eslint-disable-next-line no-undef

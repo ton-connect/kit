@@ -35,6 +35,7 @@ import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger 
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
 import browser from 'webextension-polyfill';
+import { sendMessage } from 'webext-bridge/popup';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -77,7 +78,15 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
             disableHttpConnection: DISABLE_HTTP_BRIDGE,
             jsBridgeTransport: isExtension()
                 ? async (sessionId: string, message: unknown) => {
-                      await browser.tabs.sendMessage(parseInt(sessionId), message);
+                      try {
+                          await sendMessage(
+                              'JSBRIDGE_MESSAGE',
+                              JSON.parse(JSON.stringify({ message })),
+                              `window@${sessionId}`,
+                          );
+                      } catch (error) {
+                          log.error('Failed to send JSBRIDGE_MESSAGE:', error);
+                      }
                   }
                 : undefined,
         },
