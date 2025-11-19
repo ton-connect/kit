@@ -9,9 +9,14 @@
 import type { JSBridgeInjectOptions } from '../types/jsBridge';
 import { injectBridge } from './injection/BridgeInjector';
 import { Transport } from './transport/Transport';
-import { TONCONNECT_BRIDGE_EVENT } from './utils/messageTypes';
+import {
+    INJECT_CONTENT_SCRIPT,
+    TONCONNECT_BRIDGE_EVENT,
+    TONCONNECT_BRIDGE_REQUEST,
+    TONCONNECT_BRIDGE_RESPONSE,
+} from './utils/messageTypes';
 import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from './utils/timeouts';
-import { ExtensionTransport } from './transport/ExtensionTransport';
+import { ExtensionTransport, type MessageSender, type MessageListener } from './transport/ExtensionTransport';
 
 export {
     type JSBridgeInjectOptions,
@@ -19,6 +24,11 @@ export {
     TONCONNECT_BRIDGE_EVENT,
     RESTORE_CONNECTION_TIMEOUT,
     DEFAULT_REQUEST_TIMEOUT,
+    TONCONNECT_BRIDGE_REQUEST,
+    TONCONNECT_BRIDGE_RESPONSE,
+    INJECT_CONTENT_SCRIPT,
+    type MessageSender,
+    type MessageListener,
     ExtensionTransport,
 };
 

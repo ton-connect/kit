@@ -13,27 +13,26 @@ if (globalThis && !globalThis.Buffer) {
     globalThis.Buffer = Buffer;
 }
 
-import { ExtensionTransport, injectBridgeCode } from '@ton/walletkit/bridge';
-import type { Browser } from 'webextension-polyfill';
-import { onMessage, setNamespace } from 'webext-bridge/window';
+import { ExtensionTransport, injectBridgeCode, type MessageSender, type MessageListener } from '@ton/walletkit/bridge';
+import { sendMessage, onMessage, setNamespace } from 'webext-bridge/window';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 
-declare const browser: Browser;
+import { JS_BRIDGE_MESSAGE_TO_BACKGROUND, JS_BRIDGE_MESSAGE_TO_CONTENT, JS_BRIDGE_NAMESPACE } from '@/lib/constants';
 
-setNamespace('x');
-
-// Listen for JSBridge messages from background script
-onMessage('JSBRIDGE_MESSAGE', ({ data }) => {
-    if (data && typeof data === 'object' && 'message' in data) {
-        window.postMessage(data.message, '*');
-    }
-});
+setNamespace(JS_BRIDGE_NAMESPACE);
 
 function injectTonConnectBridge() {
-    // eslint-disable-next-line no-undef
-    const browserObj = typeof browser !== 'undefined' ? browser : (chrome as unknown as Browser);
     try {
+        // Create webext-bridge adapters
+        const messageSender: MessageSender = async (data: unknown) => {
+            return await sendMessage(JS_BRIDGE_MESSAGE_TO_BACKGROUND, JSON.parse(JSON.stringify(data)), 'background');
+        };
+
+        const messageListener: MessageListener = (callback: (data: unknown) => void) => {
+            onMessage(JS_BRIDGE_MESSAGE_TO_CONTENT, callback);
+        };
+
         // Inject the simplified bridge that forwards to extension
         injectBridgeCode(
             window,
@@ -41,8 +40,7 @@ function injectTonConnectBridge() {
                 deviceInfo: getTonConnectDeviceInfo(),
                 walletInfo: getTonConnectWalletManifest(),
             },
-
-            new ExtensionTransport(window, 'tonkeeper-tonconnect', browserObj),
+            new ExtensionTransport(messageSender, messageListener),
         );
 
         // eslint-disable-next-line no-console

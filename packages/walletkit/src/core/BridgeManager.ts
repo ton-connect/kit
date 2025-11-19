@@ -30,6 +30,7 @@ import { AnalyticsApi } from '../analytics/sender';
 import { getUnixtime } from '../utils/time';
 import { TonWalletKitOptions } from '../types/config';
 import { getEventsSubsystem, getVersion } from '../utils/version';
+import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -263,7 +264,7 @@ export class BridgeManager {
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
         const message = {
-            type: 'TONCONNECT_BRIDGE_RESPONSE',
+            type: TONCONNECT_BRIDGE_RESPONSE,
             source: source,
             messageId: requestId,
             success: true,

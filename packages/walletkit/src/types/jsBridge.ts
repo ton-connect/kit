@@ -10,6 +10,12 @@
 import { type DeviceInfo, type Feature } from '@tonconnect/protocol';
 import { type WalletInfo } from '@tonconnect/sdk';
 
+import {
+    TONCONNECT_BRIDGE_EVENT,
+    TONCONNECT_BRIDGE_RESPONSE,
+    type TONCONNECT_BRIDGE_REQUEST,
+} from '../bridge/utils/messageTypes';
+
 export { type Feature, type DeviceInfo, type WalletInfo };
 
 export interface ConnectRequest {
@@ -100,7 +106,7 @@ export interface JSBridgeInjectOptions {
  * Internal message types for communication between injected bridge and extension
  */
 export interface InjectedToExtensionBridgeRequest {
-    type: 'TONCONNECT_BRIDGE_REQUEST';
+    type: typeof TONCONNECT_BRIDGE_REQUEST;
     messageId: string;
     payload: InjectedToExtensionBridgeRequestPayload;
     source: string;
@@ -115,7 +121,7 @@ export interface InjectedToExtensionBridgeRequestPayload {
 }
 
 export interface BridgeResponse {
-    type: 'TONCONNECT_BRIDGE_RESPONSE';
+    type: typeof TONCONNECT_BRIDGE_RESPONSE;
     source: string;
     messageId: number;
     success: boolean;
@@ -124,7 +130,7 @@ export interface BridgeResponse {
 }
 
 export interface BridgeEvent {
-    type: 'TONCONNECT_BRIDGE_EVENT';
+    type: typeof TONCONNECT_BRIDGE_EVENT;
     source: string;
     event: WalletEvent;
 }

@@ -6,8 +6,6 @@
  *
  */
 
-import type { Browser } from 'webextension-polyfill';
-
 import type { InjectedToExtensionBridgeRequestPayload } from '../../types/jsBridge';
 import {
     INJECT_CONTENT_SCRIPT,
@@ -25,22 +23,28 @@ interface PendingRequest {
 }
 
 /**
+ * Message sender interface for sending messages to background
+ */
+export type MessageSender = (data: unknown) => Promise<unknown>;
+
+/**
+ * Message listener interface for receiving messages from background
+ */
+export type MessageListener = (callback: (data: unknown) => void) => void;
+
+/**
  * Browser extension transport implementation
  * Handles communication between injected bridge and extension background script
  */
 export class ExtensionTransport implements Transport {
-    private extensionId: string | null = null;
-    private readonly source: string;
-    private readonly window: Window;
     private readonly pendingRequests = new Map<string, PendingRequest>();
-    private readonly browser: Browser;
+    private readonly messageSender: MessageSender;
+    private readonly messageListener: MessageListener;
     private eventCallback: ((event: unknown) => void) | null = null;
-    private messageListener: ((event: MessageEvent) => void) | null = null;
 
-    constructor(window: Window, source: string, browser: Browser) {
-        this.window = window;
-        this.source = source;
-        this.browser = browser;
+    constructor(sendMessage: MessageSender, messageListener: MessageListener) {
+        this.messageSender = sendMessage;
+        this.messageListener = messageListener;
         this.setupMessageListener();
     }
 
@@ -48,32 +52,41 @@ export class ExtensionTransport implements Transport {
      * Setup listener for messages from extension
      */
     private setupMessageListener(): void {
-        this.messageListener = (event: MessageEvent) => {
-            if (event.source !== this.window) return;
+        this.messageListener((e) => {
+            if (
+                typeof e !== 'object' ||
+                e === null ||
+                !('data' in e) ||
+                typeof e.data !== 'object' ||
+                e.data === null ||
+                !('message' in e.data)
+            ) {
+                return;
+            }
+            const data = e.data.message;
 
-            const data = event.data;
-            if (!data || typeof data !== 'object') return;
-
-            // Handle extension ID injection
-            if (data.type === 'INJECT_EXTENSION_ID') {
-                this.extensionId = data.extensionId;
+            if (typeof data !== 'object' || data === null || !('type' in data)) {
                 return;
             }
 
-            // Handle bridge responses
-            if (data.type === TONCONNECT_BRIDGE_RESPONSE && data.source === this.source) {
-                this.handleResponse(data);
-                return;
+            if (data.type === TONCONNECT_BRIDGE_RESPONSE) {
+                if (data && typeof data === 'object') {
+                    this.handleResponse(
+                        data as unknown as {
+                            messageId: string;
+                            success: boolean;
+                            payload?: unknown;
+                            error?: unknown;
+                            source: string;
+                        },
+                    );
+                }
+            } else if (data.type === TONCONNECT_BRIDGE_EVENT) {
+                if (data && typeof data === 'object') {
+                    this.handleEvent(data as unknown as unknown);
+                }
             }
-
-            // Handle bridge events
-            if (data.type === TONCONNECT_BRIDGE_EVENT && data.source === this.source) {
-                this.handleEvent(data.event);
-                return;
-            }
-        };
-
-        this.window.addEventListener('message', this.messageListener);
+        });
     }
 
     /**
@@ -133,18 +146,16 @@ export class ExtensionTransport implements Transport {
             this.pendingRequests.set(messageId, { resolve, reject, timeoutId });
 
             // Send message to extension
-            try {
-                this.browser.runtime.sendMessage(this.extensionId!, {
-                    type: TONCONNECT_BRIDGE_REQUEST,
-                    source: this.source,
-                    payload: request,
-                    messageId: messageId,
-                });
-            } catch (error) {
+            this.messageSender({
+                type: TONCONNECT_BRIDGE_REQUEST,
+                // source: this.source,
+                payload: request,
+                messageId: messageId,
+            }).catch((error) => {
                 this.pendingRequests.delete(messageId);
                 clearTimeout(timeoutId);
                 reject(error);
-            }
+            });
         });
     }
 
@@ -159,7 +170,7 @@ export class ExtensionTransport implements Transport {
      * Check if transport is available
      */
     isAvailable(): boolean {
-        return typeof this.browser !== 'undefined' && this.extensionId !== null;
+        return this.messageSender !== null && this.messageListener !== null;
     }
 
     /**
@@ -168,14 +179,12 @@ export class ExtensionTransport implements Transport {
     requestContentScriptInjection(): void {
         if (!this.isAvailable()) return;
 
-        try {
-            this.browser.runtime.sendMessage(this.extensionId!, {
-                type: INJECT_CONTENT_SCRIPT,
-            });
-        } catch (error) {
+        this.messageSender({
+            type: INJECT_CONTENT_SCRIPT,
+        }).catch((error) => {
             // eslint-disable-next-line no-console
             console.error('Failed to request content script injection:', error);
-        }
+        });
     }
 
     /**
@@ -186,13 +195,6 @@ export class ExtensionTransport implements Transport {
         this.pendingRequests.forEach(({ timeoutId }) => clearTimeout(timeoutId));
         this.pendingRequests.clear();
 
-        // Remove message listener
-        if (this.messageListener) {
-            this.window.removeEventListener('message', this.messageListener);
-            this.messageListener = null;
-        }
-
         this.eventCallback = null;
-        this.extensionId = null;
     }
 }

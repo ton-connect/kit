@@ -8,4 +8,6 @@
 
 import { allowWindowMessaging } from 'webext-bridge/content-script';
 
-allowWindowMessaging('x');
+import { JS_BRIDGE_NAMESPACE } from '@/lib/constants';
+
+allowWindowMessaging(JS_BRIDGE_NAMESPACE);

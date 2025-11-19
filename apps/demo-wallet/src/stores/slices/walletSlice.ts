@@ -13,7 +13,6 @@ import {
     type EventTransactionRequest,
     type EventSignDataRequest,
     type EventDisconnect,
-    ExtensionStorageAdapter,
     type IWallet,
     Signer,
     WalletV5R1Adapter,
@@ -34,8 +33,7 @@ import {
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
-import browser from 'webextension-polyfill';
-import { sendMessage } from 'webext-bridge/popup';
+// import browser from 'webextension-polyfill';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -49,6 +47,8 @@ import type {
 import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
+
+import { CreateExtensionStorageAdapter, SendMessageToExtensionContent } from '@/lib/extensionPopup';
 
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
@@ -76,27 +76,15 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
         bridge: {
             bridgeUrl: ENV_BRIDGE_URL,
             disableHttpConnection: DISABLE_HTTP_BRIDGE,
-            jsBridgeTransport: isExtension()
-                ? async (sessionId: string, message: unknown) => {
-                      try {
-                          await sendMessage(
-                              'JSBRIDGE_MESSAGE',
-                              JSON.parse(JSON.stringify({ message })),
-                              `window@${sessionId}`,
-                          );
-                      } catch (error) {
-                          log.error('Failed to send JSBRIDGE_MESSAGE:', error);
-                      }
-                  }
-                : undefined,
+            jsBridgeTransport: isExtension() ? SendMessageToExtensionContent : undefined,
         },
 
         network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
         apiClient: {
             key: network === 'mainnet' ? ENV_TON_API_KEY_MAINNET : ENV_TON_API_KEY_TESTNET,
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        storage: isExtension() ? new ExtensionStorageAdapter({}, browser.storage.local as any) : undefined,
+
+        storage: isExtension() ? CreateExtensionStorageAdapter() : undefined,
 
         analytics: {
             enabled: true,
