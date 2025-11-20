@@ -21,6 +21,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/w
 
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND } from '@/lib/constants';
 import { SendMessageToExtensionContentFromBackground } from '@/lib/extensionBackground';
+import { DISABLE_AUTO_POPUP } from '@/lib/env';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -67,39 +68,36 @@ onMessage(JS_BRIDGE_MESSAGE_TO_BACKGROUND, async (e) => {
     };
 
     if (type === TONCONNECT_BRIDGE_REQUEST) {
-        const { source, payload, messageId } = e.data as unknown as {
-            source: string;
+        const { payload, messageId } = e.data as unknown as {
             payload: InjectedToExtensionBridgeRequestPayload;
             messageId: string;
         };
 
         try {
-            const result = await handleBridgeRequest(messageId, payload, e.sender.tabId);
+            await handleBridgeRequest(messageId, payload, e.sender.tabId);
 
-            if (payload.method === 'connect' || payload.method === 'send') {
-                const views = await browser.runtime.getContexts({
-                    contextTypes: ['POPUP'],
-                });
-
-                // popup is open, ignore event
-                if (views.length === 0) {
-                    await browser.action.openPopup().catch((e) => {
-                        // eslint-disable-next-line no-console
-                        console.error('popup not opened', e);
+            if (!DISABLE_AUTO_POPUP) {
+                if (payload.method === 'connect' || payload.method === 'send') {
+                    const views = await browser.runtime.getContexts({
+                        contextTypes: ['POPUP'],
                     });
+
+                    // popup is open, ignore event
+                    if (views.length === 0) {
+                        await browser.action.openPopup().catch((e) => {
+                            // eslint-disable-next-line no-console
+                            console.error('popup not opened', e);
+                        });
+                    }
                 }
             }
 
-            return { success: true, result, source };
+            return;
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Bridge request failed:', error);
 
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error',
-                source,
-            };
+            return;
         }
     } else if (type === INJECT_CONTENT_SCRIPT) {
         const sender = e.sender;

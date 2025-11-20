@@ -49,18 +49,16 @@ import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
 
 import { CreateExtensionStorageAdapter, SendMessageToExtensionContent } from '@/lib/extensionPopup';
+import {
+    DISABLE_HTTP_BRIDGE,
+    DISABLE_NETWORK_SEND,
+    ENV_BRIDGE_URL,
+    ENV_TON_API_KEY_MAINNET,
+    ENV_TON_API_KEY_TESTNET,
+} from '@/lib/env';
 
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
-
-const ENV_BRIDGE_URL = import.meta.env.VITE_BRIDGE_URL ?? 'https://walletbot.me/tonconnect-bridge/bridge';
-const ENV_TON_API_KEY_MAINNET =
-    import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
-const ENV_TON_API_KEY_TESTNET =
-    import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
-
-const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
-const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
 
 // Queue management constants
 const MAX_QUEUE_SIZE = 100;
