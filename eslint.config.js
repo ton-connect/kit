@@ -28,6 +28,8 @@ module.exports = [
             '**/*stryker*/*',
             '**/*coverage*/*',
             '**/dist-extension/*',
+            '**/dist-extension-chrome/*',
+            '**/dist-extension-firefox/*',
             '**/Packages/TONWalletKit/*',
             '**/TONWalletApp/TONWalletApp/*',
             '**/androidkit/**',

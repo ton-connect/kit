@@ -59,7 +59,7 @@ jobs:
         pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
-        E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension"
+        E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension-chrome"
         E2E_JS_BRIDGE: true
         ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
         ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}

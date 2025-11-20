@@ -16,14 +16,14 @@ This will:
 3. Compile the background service worker (`src/extension/background.ts`)
 4. Compile the content script (`src/extension/content.ts`)
 5. Generate and copy `manifest.json` to the output directory
-6. Create a `dist-extension` folder with all necessary files
+6. Create a `dist-extension-chrome` folder with all necessary files
 
 ## Loading in Chrome
 
 1. Open Chrome and navigate to `chrome://extensions/`
 2. Enable "Developer mode" in the top right
 3. Click "Load unpacked"
-4. Select the `dist-extension` folder from this project
+4. Select the `dist-extension-chrome` folder from this project
 5. The extension will be loaded and available in your browser toolbar
 
 ## Extension Structure

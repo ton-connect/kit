@@ -13,9 +13,10 @@
     "dev": "vite",
     "build": "pnpm build:extension && pnpm build:website",
     "dev:extension": "cross-env VITE_APP_ENV=extension vite build --watch --config vite.extension.config.ts",
-    "build:extension": "cross-env VITE_APP_ENV=extension vite build --config vite.extension.config.ts",
+    "build:extension": "pnpm build:extension:chrome && pnpm build:extension:firefox",
+    "build:extension:chrome": "cross-env VITE_APP_ENV=extension TARGET=chrome vite build --config vite.extension.config.ts",
+    "build:extension:firefox": "cross-env VITE_APP_ENV=extension TARGET=firefox vite build --config vite.extension.config.ts",
     "build:website": "tsc -b && vite build",
-    "copy-extension-files": "node -e \"require('fs').copyFileSync('public/manifest.json', 'dist-extension/manifest.json')\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -27,6 +28,7 @@
     "@ton/crypto": "^3.3.0",
     "@ton/v4ledger-adapter": "workspace:*",
     "@ton/walletkit": "workspace:*",
+    "@truecarry/vite-plugin-web-extension": "^4.5.1",
     "@truecarry/webext-bridge": "^6.0.2",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
@@ -65,7 +67,6 @@
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.2",
     "vite-bundle-analyzer": "^1.2.3",
-    "vite-plugin-web-extension": "^4.5.0",
     "webextension-polyfill": "^0.12.0"
   }
 }

@@ -6,8 +6,7 @@
  *
  */
 
-import type { JsonValue } from 'type-fest';
-import type { GetDataType, Destination } from '@truecarry/webext-bridge';
+import type { sendMessage } from '@truecarry/webext-bridge/background';
 
 import { JS_BRIDGE_MESSAGE_TO_CONTENT } from './constants';
 
@@ -15,11 +14,7 @@ import { createComponentLogger } from '@/utils/logger';
 
 const log = createComponentLogger('Extension');
 
-type SendMessageFunction = <ReturnType extends JsonValue, K extends string = string>(
-    messageID: K,
-    data: GetDataType<K, JsonValue>,
-    destination?: Destination,
-) => Promise<ReturnType>;
+type SendMessageFunction = typeof sendMessage;
 
 export function createSendMessageToExtensionContent(
     sendMessage: SendMessageFunction,

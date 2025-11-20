@@ -6,10 +6,12 @@
  *
  */
 
+import path from 'node:path';
+
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
+import webExtension, { readJsonFile } from '@truecarry/vite-plugin-web-extension';
 // import { analyzer } from 'vite-bundle-analyzer';
 
 function generateManifest() {
@@ -22,6 +24,9 @@ function generateManifest() {
         ...manifest,
     };
 }
+
+const browser = process.env.TARGET || 'chrome';
+const outDir = `dist-extension-${browser}`;
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -39,7 +44,7 @@ export default defineConfig({
             browser: process.env.TARGET || 'chrome',
             htmlViteConfig: {
                 build: {
-                    outDir: 'dist-extension',
+                    outDir,
                 },
             },
             scriptViteConfig: {
@@ -47,10 +52,20 @@ export default defineConfig({
                     // analyzer()
                 ],
                 build: {
-                    outDir: 'dist-extension',
+                    outDir,
                     minify: false,
+                },
+            },
+            manifestViteConfig: {
+                build: {
+                    outDir,
                 },
             },
         }),
     ],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src'),
+        },
+    },
 });

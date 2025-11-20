@@ -45,7 +45,7 @@ DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
 VITE_BRIDGE_URL="http://localhost:8081/bridge" # (optional) use local bridge url in web app
 E2E_SLOW_MO="500" # (optional) Slows down Playwright operations by the specified amount of milliseconds
 # (optional) mode extension
-E2E_WALLET_SOURCE_EXTENSION="apps/demo-wallet/dist-extension"
+E2E_WALLET_SOURCE_EXTENSION="apps/demo-wallet/dist-extension-chrome"
 # (optional) mode web
 E2E_WALLET_SOURCE="http://localhost:5173/"
 ```
