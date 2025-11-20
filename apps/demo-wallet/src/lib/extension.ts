@@ -7,7 +7,7 @@
  */
 
 import type { JsonValue } from 'type-fest';
-import type { GetDataType, Destination } from 'webext-bridge';
+import type { GetDataType, Destination } from '@truecarry/webext-bridge';
 
 import { JS_BRIDGE_MESSAGE_TO_CONTENT } from './constants';
 

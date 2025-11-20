@@ -6,7 +6,7 @@
  *
  */
 
-import { allowWindowMessaging } from 'webext-bridge/content-script';
+import { allowWindowMessaging } from '@truecarry/webext-bridge/content-script';
 
 import { JS_BRIDGE_NAMESPACE } from '@/lib/constants';
 

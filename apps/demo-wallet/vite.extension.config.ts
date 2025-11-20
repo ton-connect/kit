@@ -13,7 +13,7 @@ import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
 // import { analyzer } from 'vite-bundle-analyzer';
 
 function generateManifest() {
-    const manifest = readJsonFile('public/manifest.json');
+    const manifest = readJsonFile('manifest.json');
     const pkg = readJsonFile('package.json');
     return {
         name: pkg.name,

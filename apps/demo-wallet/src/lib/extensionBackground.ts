@@ -6,7 +6,7 @@
  *
  */
 
-import { sendMessage } from 'webext-bridge/background';
+import { sendMessage } from '@truecarry/webext-bridge/background';
 
 import { createSendMessageToExtensionContent } from './extension';
 

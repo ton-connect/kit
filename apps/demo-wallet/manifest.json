@@ -18,9 +18,12 @@
   "host_permissions": [
     "<all_urls>"
   ],
-  "background": {
+  "{{chrome}}.background": {
     "service_worker": "src/extension/background.js",
     "type": "module"
+  },
+  "{{firefox}}.background": {
+    "scripts": ["src/extension/background.js"]
   },
   "web_accessible_resources": [
     {

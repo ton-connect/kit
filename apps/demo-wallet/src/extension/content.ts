@@ -14,7 +14,7 @@ if (globalThis && !globalThis.Buffer) {
 }
 
 import { ExtensionTransport, injectBridgeCode, type MessageSender, type MessageListener } from '@ton/walletkit/bridge';
-import { sendMessage, onMessage, setNamespace } from 'webext-bridge/window';
+import { sendMessage, onMessage, setNamespace } from '@truecarry/webext-bridge/window';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 

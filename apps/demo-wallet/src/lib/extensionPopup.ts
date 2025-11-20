@@ -7,7 +7,7 @@
  */
 
 import browser from 'webextension-polyfill';
-import { sendMessage } from 'webext-bridge/popup';
+import { sendMessage } from '@truecarry/webext-bridge/popup';
 import { ExtensionStorageAdapter } from '@ton/walletkit';
 
 import { createSendMessageToExtensionContent } from './extension';

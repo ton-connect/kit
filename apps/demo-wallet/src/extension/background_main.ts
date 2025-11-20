@@ -14,7 +14,7 @@ console.log('TON Wallet Demo extension background script loaded');
 import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import browser from 'webextension-polyfill';
-import { onMessage } from 'webext-bridge/background';
+import { onMessage } from '@truecarry/webext-bridge/background';
 import { INJECT_CONTENT_SCRIPT, TONCONNECT_BRIDGE_REQUEST } from '@ton/walletkit/bridge';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';

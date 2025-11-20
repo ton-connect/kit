@@ -53,6 +53,9 @@ importers:
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../../packages/walletkit
+      '@truecarry/webext-bridge':
+        specifier: ^6.0.2
+        version: 6.0.2
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -98,9 +101,6 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
-      webext-bridge:
-        specifier: ^6.0.1
-        version: 6.0.1
       zustand:
         specifier: ^5.0.8
         version: 5.0.8(@types/react@19.2.3)(immer@10.2.0)(react@19.2.0)
@@ -1959,6 +1959,9 @@ packages:
     resolution: {integrity: sha512-GKcaS1OdPiy6MH7+l3Y2teFoDIYNcdPNat+PLEQk+1jajB4b8lUy5KBv/nVpxDzCuWUQo+em1lq5Gok9auUZuA==}
     peerDependencies:
       '@ton/core': ^0.56.3
+
+  '@truecarry/webext-bridge@6.0.2':
+    resolution: {integrity: sha512-Q2gmBkfbForHKxvDKI2Ep5LGih7+wEsjluXqNxUHNXW2b8ztNmuI77nZBqNLb83B3AeKGxe0txPnCycPVgYzXA==}
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -5706,9 +5709,6 @@ packages:
     resolution: {integrity: sha512-u/IiZaZ7dHFqTM1MLF27rBy8mS9fEEsqoOKL0u+kQdOLmEioA/0Szp67ADd3WAJZLd8/hO8cFST1IC/YMXKIjQ==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
 
-  webext-bridge@6.0.1:
-    resolution: {integrity: sha512-GruIrN+vNwbxVCi8UW4Dqk5YkcGA9V0ZfJ57jXP9JXHbrsDs5k2N6NNYQR5e+wSCnQpGYOGAGihwUpKlhg8QIw==}
-
   webextension-polyfill@0.10.0:
     resolution: {integrity: sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==}
 
@@ -8201,6 +8201,14 @@ snapshots:
       debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
+
+  '@truecarry/webext-bridge@6.0.2':
+    dependencies:
+      '@types/webextension-polyfill': 0.8.3
+      nanoevents: 6.0.2
+      serialize-error: 9.1.1
+      tiny-uid: 1.1.2
+      webextension-polyfill: 0.9.0
 
   '@tsconfig/node10@1.0.11': {}
 
@@ -12333,14 +12341,6 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
-
-  webext-bridge@6.0.1:
-    dependencies:
-      '@types/webextension-polyfill': 0.8.3
-      nanoevents: 6.0.2
-      serialize-error: 9.1.1
-      tiny-uid: 1.1.2
-      webextension-polyfill: 0.9.0
 
   webextension-polyfill@0.10.0: {}
 
