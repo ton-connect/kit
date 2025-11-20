@@ -78,6 +78,14 @@ onMessage(JS_BRIDGE_MESSAGE_TO_BACKGROUND, async (e) => {
 
             if (!DISABLE_AUTO_POPUP) {
                 if (payload.method === 'connect' || payload.method === 'send') {
+                    if (payload.params && Array.isArray(payload.params)) {
+                        const item = payload.params[0];
+                        if (item && typeof item === 'object' && 'method' in item) {
+                            if (item.method === 'disconnect') {
+                                return;
+                            }
+                        }
+                    }
                     const views = await browser.runtime.getContexts({
                         contextTypes: ['POPUP'],
                     });
