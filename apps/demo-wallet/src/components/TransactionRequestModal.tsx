@@ -186,6 +186,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                 {request.preview.emulationResult && (
                                     <ActionPreviewList
                                         emulationResult={request.preview.emulationResult}
+                                        walletAddress={request.walletAddress || currentWallet?.address}
                                         className="mt-4"
                                         title="Actions:"
                                     />

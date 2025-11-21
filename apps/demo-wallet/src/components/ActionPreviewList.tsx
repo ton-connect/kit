@@ -12,13 +12,17 @@ import { emulationEvent } from '@ton/walletkit';
 
 interface ActionPreviewListProps {
     emulationResult: ToncenterEmulationResponse;
+    walletAddress?: string;
     title?: string;
     className?: string;
 }
 
 export const ActionPreviewList: React.FC<ActionPreviewListProps> = memo(
-    ({ emulationResult, title = 'Actions:', className }) => {
-        const event = useMemo(() => emulationEvent(emulationResult), [emulationResult]);
+    ({ emulationResult, walletAddress, title = 'Actions:', className }) => {
+        if (!walletAddress) {
+            return null;
+        }
+        const event = useMemo(() => emulationEvent(emulationResult, walletAddress), [emulationResult, walletAddress]);
 
         return (
             <div className={className ? className : ''}>

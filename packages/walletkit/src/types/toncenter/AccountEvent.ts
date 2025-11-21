@@ -13,7 +13,7 @@ import {
     ToncenterTraceItem,
     ToncenterTransaction,
 } from './emulation';
-import { AddressFriendly, asAddressFriendly, Hex } from '../primitive';
+import { AddressFriendly, asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
@@ -213,7 +213,7 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
     };
 }
 
-export function emulationEvent(data: ToncenterEmulationResponse): Event {
+export function emulationEvent(data: ToncenterEmulationResponse, account?: string): Event {
     // Build a ToncenterTraceItem from emulation response
     const txEntries = Object.entries(data.transactions) as [string, ToncenterTransaction][];
     const byLtAsc = [...txEntries].sort((a, b) => (BigInt(a[1].lt) < BigInt(b[1].lt) ? -1 : 1));
@@ -263,8 +263,22 @@ export function emulationEvent(data: ToncenterEmulationResponse): Event {
         unknown
     >;
 
-    // Infer primary account as the account of the root transaction
-    const inferredAccount = rootTx?.account ?? '';
+    // Infer primary account as the account of the root transaction,
+    // or fall back to the first transaction's account, or an explicitly provided account
+    let inferredAccount = account && String(account).trim() ? String(account).trim() : undefined;
+    if (!inferredAccount) {
+        inferredAccount = rootTx?.account;
+    }
+    if (!inferredAccount) {
+        inferredAccount =
+            byLtAsc[0]?.[1]?.account ?? (Object.values(data.transactions || {})[0]?.account as string | undefined);
+    }
+    if (!inferredAccount) {
+        // As a last resort, pass empty to toEvent (it will likely fail to parse addresses),
+        // but we try to keep function total. Better: return minimal event with no actions.
+        // However, to keep consistent use-sites, prefer empty string here and let toEvent handle.
+        inferredAccount = '';
+    }
     const addressBook = toAddressBook(data.address_book);
     return toEvent(traceItem, inferredAccount, addressBook);
 }
@@ -292,21 +306,24 @@ export interface Account {
 }
 
 export function toAccount(address: string, addressBook: AddressBook): Account {
+    const friendly = asMaybeAddressFriendly(address);
     const out: Account = {
-        address: asAddressFriendly(address),
+        address: friendly ?? (address ?? ''),
         isScam: false,
-        isWallet: true,
+        isWallet: Boolean(friendly),
     };
-    const record = addressBook[asAddressFriendly(address)];
-    if (record) {
-        if (record.isScam) {
-            out.isScam = record.isScam;
-        }
-        if (record.isWallet) {
-            out.isWallet = record.isWallet;
-        }
-        if (record.domain) {
-            out.name = record.domain;
+    if (friendly) {
+        const record = addressBook[friendly];
+        if (record) {
+            if (record.isScam) {
+                out.isScam = record.isScam;
+            }
+            if (record.isWallet) {
+                out.isWallet = record.isWallet;
+            }
+            if (record.domain) {
+                out.name = record.domain;
+            }
         }
     }
     return out;
