@@ -7,7 +7,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "generate-openapi-spec": "src/api/scripts/generate-openapi-spec.sh"
   },
   "dependencies": {
     "@ton/crypto": "^3.3.0",
