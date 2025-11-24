@@ -66,6 +66,7 @@ jobs:
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
         VITE_DISABLE_HTTP_BRIDGE: true
+        VITE_DISABLE_AUTO_POPUP: true
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
     
     - name: Upload Allure Results
