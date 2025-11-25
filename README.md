@@ -11,6 +11,40 @@
  
 ## Quick start
 
+```bash
+pnpm add @ton/walletkit
+```
+
+```ts
+import { 
+  TonWalletKit,      // Main SDK class
+  Signer,            // Handles cryptographic signing
+  WalletV5R1Adapter, // Latest wallet version (recommended)
+  CHAIN,             // Network constants (MAINNET/TESTNET)
+} from '@ton/walletkit';
+
+const kit = new TonWalletKit({
+  network: CHAIN.MAINNET,
+  bridge: {
+    bridgeUrl: 'https://conmnect.ton.org/bridge',  // TON Connect bridge for dApp communication
+  },
+});
+
+// Wait for initialization to complete
+await kit.waitForReady();
+
+// Add a wallet from mnemonic (24-word seed phrase)
+const signer = await Signer.fromMnemonic(['word1', 'word2', '...'], { type: 'ton' });
+const walletAdapter = await WalletV5R1Adapter.create(signer, {
+  client: kit.getApiClient(),
+  network: CHAIN.MAINNET,
+});
+
+await kit.addWallet(walletAdapter);
+```
+
+See [WalletKit Integration Guide](packages/walletkit/DOCUMENTATION.md#1-initialize-the-kit)
+
 ### Web platform
 
 - [How to initialize the TON Connect's](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/init)
