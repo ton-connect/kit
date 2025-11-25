@@ -365,11 +365,19 @@
   "address_book": {
     "0:78DFE54299FD7B3BB60C779D5F02F3A370C902C38E8DFF724C0A87A01FF643A3": {
       "user_friendly": "EQB43-VCmf17O7YMd51fAvOjcMkCw46N_3JMCoegH_ZDo40e",
-      "domain": null
+      "domain": null,
+      "interfaces": [
+        "dns",
+        "editable",
+        "nft_item"
+      ]
     },
     "0:9DA971AF38D2F03ABDF308D5F91636A97E5A2B07A66C39D71D7CBAE3B032EDDC": {
       "user_friendly": "UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4",
-      "domain": "tolya.ton"
+      "domain": "tolya.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     }
   },
   "metadata": {

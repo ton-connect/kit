@@ -67,7 +67,7 @@ export function parseJettonActions(
                     comment,
                     jetton,
                 },
-                simplePreview: jettonPreview(amount, jetton.name, jetton.decimals, jetton.image, [
+                simplePreview: jettonPreview(amount, jetton.symbol, jetton.decimals, jetton.image, [
                     toAccount(dest, addressBook),
                     toAccount(ownerFriendly, addressBook),
                     toContractAccount(
@@ -113,7 +113,7 @@ export function parseJettonActions(
                         amount,
                         jetton,
                     },
-                    simplePreview: jettonPreview(amount, jetton.name, jetton.decimals, jetton.image, [
+                    simplePreview: jettonPreview(amount, jetton.symbol, jetton.decimals, jetton.image, [
                         toAccount(ownerFriendly, addressBook),
                         toAccount(senderMain, addressBook),
                         toContractAccount(
@@ -168,7 +168,7 @@ function toAddr(raw?: unknown): string {
 
 function jettonPreview(
     amount: bigint,
-    name: string,
+    symbol: string,
     decimals: number,
     image: string | undefined,
     accounts: Account[],
@@ -176,7 +176,7 @@ function jettonPreview(
     let denom = BigInt(1);
     for (let i = 0; i < (decimals || 0); i++) denom = denom * BigInt(10);
     const value = Number(amount) / Number(denom);
-    const human = name ? `${trimAmount(value)} ${name.includes('USD') ? 'USD₮' : name}` : `${trimAmount(value)}`;
+    const human = symbol ? `${trimAmount(value)} ${symbol}` : `${trimAmount(value)}`;
     const preview: SimplePreview = {
         name: 'Jetton Transfer',
         description: `Transferring ${human}`,
@@ -299,7 +299,17 @@ function buildJettonInfo(
     verification: string;
     score: number;
 } {
-    // Find jetton master by wallet in metadata
+    // First, try to find jetton info directly from addressBook using wallet address
+    const walletInfo = addressBook[walletFriendly];
+    if (walletInfo?.jettonWallet?.jettonMaster) {
+        const masterAddress = walletInfo.jettonWallet.jettonMaster;
+        const masterInfo = addressBook[masterAddress];
+        if (masterInfo?.jetton) {
+            return masterInfo.jetton;
+        }
+    }
+
+    // Fallback: scan metadata if addressBook doesn't have complete info
     const metadata = (item as unknown as { metadata?: Record<string, unknown> }).metadata;
     let master: string | undefined;
     if (metadata) {

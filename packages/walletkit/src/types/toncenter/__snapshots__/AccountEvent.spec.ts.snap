@@ -1,0 +1,567 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AccountEvent contract call 1`] = `
+[
+  {
+    "TonTransfer": {
+      "amount": 90000000n,
+      "recipient": {
+        "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+        "isScam": false,
+        "isWallet": false,
+      },
+      "sender": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+    },
+    "baseTransactions": [
+      "0xed0059d3002e0a3738c8d874a98c6cab6647dc055ff904717335f74e21c427cf",
+    ],
+    "id": "0xed0059d3002e0a3738c8d874a98c6cab6647dc055ff904717335f74e21c427cf",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Transferring 0.09 TON",
+      "name": "Ton Transfer",
+      "value": "0.09 TON",
+    },
+    "status": "success",
+    "type": "TonTransfer",
+  },
+  {
+    "SmartContractExec": {
+      "contract": {
+        "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+        "isScam": false,
+        "isWallet": false,
+      },
+      "executor": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "operation": "0x3dc680ae",
+      "payload": "",
+      "tonAttached": 90000000n,
+    },
+    "baseTransactions": [
+      "0xdd3fd249b31515b60d4ff242820e7eda0ceca49d7a42a2c874ac31dcfb43cb9c",
+    ],
+    "id": "0xed0059d3002e0a3738c8d874a98c6cab6647dc055ff904717335f74e21c427cf",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Execution of smart contract",
+      "name": "Smart Contract Execution",
+      "value": "0.09 TON",
+    },
+    "status": "success",
+    "type": "SmartContractExec",
+  },
+  {
+    "ContractDeploy": {
+      "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+      "interfaces": [],
+    },
+    "baseTransactions": [
+      "0xdd3fd249b31515b60d4ff242820e7eda0ceca49d7a42a2c874ac31dcfb43cb9c",
+    ],
+    "id": "0xdd3fd249b31515b60d4ff242820e7eda0ceca49d7a42a2c874ac31dcfb43cb9c",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Deploying a contract",
+      "name": "Contract Deploy",
+      "value": "",
+    },
+    "status": "success",
+    "type": "ContractDeploy",
+  },
+]
+`;
+
+exports[`AccountEvent contract call unknown 1`] = `
+[
+  {
+    "TonTransfer": {
+      "amount": 15000000n,
+      "recipient": {
+        "address": "EQB43-VCmf17O7YMd51fAvOjcMkCw46N_3JMCoegH_ZDo40e",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "sender": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+    },
+    "baseTransactions": [
+      "0xb142f5e55f70cfc21ea19dd43727e675109327d63a0ed8486f30b9143c8a8b34",
+    ],
+    "id": "0xb142f5e55f70cfc21ea19dd43727e675109327d63a0ed8486f30b9143c8a8b34",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQB43-VCmf17O7YMd51fAvOjcMkCw46N_3JMCoegH_ZDo40e",
+          "isScam": false,
+          "isWallet": true,
+        },
+      ],
+      "description": "Transferring 0.015 TON",
+      "name": "Ton Transfer",
+      "value": "0.015 TON",
+    },
+    "status": "success",
+    "type": "TonTransfer",
+  },
+  {
+    "SmartContractExec": {
+      "contract": {
+        "address": "EQB43-VCmf17O7YMd51fAvOjcMkCw46N_3JMCoegH_ZDo40e",
+        "isScam": false,
+        "isWallet": false,
+      },
+      "executor": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "operation": "0x4eb1f0f9",
+      "payload": "",
+      "tonAttached": 15000000n,
+    },
+    "baseTransactions": [
+      "0x4405d2add96306dc732867de45621b3d67bbd04682b1c36be01361106e4c25c1",
+    ],
+    "id": "0xb142f5e55f70cfc21ea19dd43727e675109327d63a0ed8486f30b9143c8a8b34",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQB43-VCmf17O7YMd51fAvOjcMkCw46N_3JMCoegH_ZDo40e",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Execution of smart contract",
+      "name": "Smart Contract Execution",
+      "value": "0.015 TON",
+    },
+    "status": "success",
+    "type": "SmartContractExec",
+  },
+]
+`;
+
+exports[`AccountEvent ft received 1`] = `
+[
+  {
+    "JettonTransfer": {
+      "amount": 3000000n,
+      "jetton": {
+        "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+        "decimals": 6,
+        "image": "https://tether.to/images/logoCircle.png",
+        "name": "Tether USD",
+        "score": 100,
+        "symbol": "USD₮",
+        "verification": "whitelist",
+      },
+      "recipient": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "recipientsWallet": "EQDEBy17BKtMUEzSI9_eQsgDfGqZJy02JK7Cy_8ucrEC3Xiq",
+      "sender": {
+        "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "sendersWallet": "EQCfJ619tsWMv-JMA741dmIJ3KApK7fkVIL4tZEvoRvzAGpu",
+    },
+    "baseTransactions": [
+      "0x63ca0d794bd993043441e0a58108b9004c7bfda04844cb534f1423eebf80173f",
+      "0x37927129a79cdc7461aaeb302f4e60858744aa4b779ee94e97e2de848d5feac2",
+      "0x1f749e3135d21971ad64978a1b5964ad50ea798d174c5a3febab06842af79c14",
+      "0x7e56951504c267cff862abec672eaa4c9b92188422c51b22e45c9653f8254675",
+    ],
+    "id": "0x63ca0d794bd993043441e0a58108b9004c7bfda04844cb534f1423eebf80173f",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+          "isScam": false,
+          "isWallet": true,
+        },
+        {
+          "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Transferring 3 USD₮",
+      "name": "Jetton Transfer",
+      "value": "3 USD₮",
+      "valueImage": "https://tether.to/images/logoCircle.png",
+    },
+    "status": "success",
+    "type": "JettonTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent ft sent 1`] = `
+[
+  {
+    "JettonTransfer": {
+      "amount": 1000000n,
+      "comment": "Hello!",
+      "jetton": {
+        "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+        "decimals": 6,
+        "image": "https://tether.to/images/logoCircle.png",
+        "name": "Tether USD",
+        "score": 100,
+        "symbol": "USD₮",
+        "verification": "whitelist",
+      },
+      "recipient": {
+        "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "recipientsWallet": "EQCfJ619tsWMv-JMA741dmIJ3KApK7fkVIL4tZEvoRvzAGpu",
+      "sender": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "sendersWallet": "EQDEBy17BKtMUEzSI9_eQsgDfGqZJy02JK7Cy_8ucrEC3Xiq",
+    },
+    "baseTransactions": [
+      "0xf61b0d813f307936901292b8e7681b9a44d63825e408efca77e54fd56c68f3a9",
+      "0x027f35335ad0de2d64a62d6ee066f7c85b42bb26667c1e1c922c45bf7060aece",
+      "0x55a1273fb40df01f189902c8ea0a9f49dbc4b5858a0b3e3d88b67e8bbd8f7fd9",
+    ],
+    "id": "0x8d213f8019c3819383f171ba9d6618be1a314164083302354bff2fc91245bb80",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+          "isScam": false,
+          "isWallet": true,
+        },
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Transferring 1 USD₮",
+      "name": "Jetton Transfer",
+      "value": "1 USD₮",
+      "valueImage": "https://tether.to/images/logoCircle.png",
+    },
+    "status": "success",
+    "type": "JettonTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent nft received 1`] = `
+[
+  {
+    "NftItemTransfer": {
+      "nft": "EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ",
+      "recipient": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "sender": {
+        "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+        "isScam": false,
+        "isWallet": true,
+      },
+    },
+    "baseTransactions": [
+      "0x05075fa2c6675d1f8a0c2ac1491d299cd52f0935d90d76658bcdfdf1caf47f10",
+      "0x37c6c0484dcc0737cbea4f6dbf35200b91109f3afc5514caffe15c219b3391ab",
+      "0x58f830603b332a711f6e5d883101f20c87e54f57b9d9ae10e8d1cd2abbb852ea",
+    ],
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+          "isScam": false,
+          "isWallet": true,
+        },
+        {
+          "address": "EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Transferring 1 NFT",
+      "name": "NFT Transfer",
+      "value": "1 NFT",
+    },
+    "status": "success",
+    "type": "NftItemTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent nft sent 1`] = `
+[
+  {
+    "NftItemTransfer": {
+      "nft": "EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ",
+      "recipient": {
+        "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "sender": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+    },
+    "baseTransactions": [
+      "0xa9fbb77b9dea075b459d883d95bf315bda384c71dbe2c4fd38f537fe0531b406",
+      "0x94ca23cd5e1ebea0ec17d818136d38bc6503c8427722c7a7ee277c77bf5adaaf",
+      "0x77dd11723edd46d6dfcbc2ebbb1be915e0851225d9c7d6656a9a917c22460c0c",
+    ],
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+          "isScam": false,
+          "isWallet": true,
+        },
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQDKDP1Rn3YxArW-ydnjr0NZLqNi-3c_oxnqCcTxYsFx4IUQ",
+          "isScam": false,
+          "isWallet": false,
+        },
+      ],
+      "description": "Transferring 1 NFT",
+      "name": "NFT Transfer",
+      "value": "1 NFT",
+    },
+    "status": "success",
+    "type": "NftItemTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent ton received 1`] = `
+[
+  {
+    "TonTransfer": {
+      "amount": 250000000n,
+      "comment": "На покупку Dust",
+      "recipient": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+      "sender": {
+        "address": "EQCLcEJJ4Bj6pZvcNW9GOno0_AIB27-nRBo4e-g-n_-_xDjd",
+        "isScam": false,
+        "isWallet": true,
+        "name": "pumpanddump.ton",
+      },
+    },
+    "baseTransactions": [
+      "0xb4ceb391908f1f57d019aafc268083143d340fecd1b6c6c50d4b0261d0c5303d",
+    ],
+    "id": "0xb4ceb391908f1f57d019aafc268083143d340fecd1b6c6c50d4b0261d0c5303d",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCLcEJJ4Bj6pZvcNW9GOno0_AIB27-nRBo4e-g-n_-_xDjd",
+          "isScam": false,
+          "isWallet": true,
+          "name": "pumpanddump.ton",
+        },
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+      ],
+      "description": "Transferring 0.25 TON",
+      "name": "Ton Transfer",
+      "value": "0.25 TON",
+    },
+    "status": "success",
+    "type": "TonTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent ton received acc2 1`] = `
+[
+  {
+    "TonTransfer": {
+      "amount": 1n,
+      "recipient": {
+        "address": "EQC8G3SPXSa3TYV3mP9N1CUqK3nPUbIyrkG-HxnozZVHtz_q",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "sender": {
+        "address": "EQDLBKHsnNbw95VEXaHSHzRpFMb8vj0-WTLyR3qINHukks7E",
+        "isScam": false,
+        "isWallet": true,
+      },
+    },
+    "baseTransactions": [
+      "0x5c7b1b0f7454e9919a44e3fab6406e8090b0cfddc67fb31e10367a0f284d8b3d",
+    ],
+    "id": "0x5c7b1b0f7454e9919a44e3fab6406e8090b0cfddc67fb31e10367a0f284d8b3d",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQDLBKHsnNbw95VEXaHSHzRpFMb8vj0-WTLyR3qINHukks7E",
+          "isScam": false,
+          "isWallet": true,
+        },
+        {
+          "address": "EQC8G3SPXSa3TYV3mP9N1CUqK3nPUbIyrkG-HxnozZVHtz_q",
+          "isScam": false,
+          "isWallet": true,
+        },
+      ],
+      "description": "Transferring 0.000000001 TON",
+      "name": "Ton Transfer",
+      "value": "0.000000001 TON",
+    },
+    "status": "success",
+    "type": "TonTransfer",
+  },
+]
+`;
+
+exports[`AccountEvent ton sent 1`] = `
+[
+  {
+    "TonTransfer": {
+      "amount": 1000000000n,
+      "recipient": {
+        "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+        "isScam": false,
+        "isWallet": true,
+      },
+      "sender": {
+        "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+        "isScam": false,
+        "isWallet": true,
+        "name": "tolya.ton",
+      },
+    },
+    "baseTransactions": [
+      "0xf5079a2225e581ff140fd6e8963c5ba1cd795ea7da2761165cb7c7f786a9a847",
+    ],
+    "id": "0xf5079a2225e581ff140fd6e8963c5ba1cd795ea7da2761165cb7c7f786a9a847",
+    "simplePreview": {
+      "accounts": [
+        {
+          "address": "EQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3Fy9",
+          "isScam": false,
+          "isWallet": true,
+          "name": "tolya.ton",
+        },
+        {
+          "address": "EQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHYFo",
+          "isScam": false,
+          "isWallet": true,
+        },
+      ],
+      "description": "Transferring 1 TON",
+      "name": "Ton Transfer",
+      "value": "1 TON",
+    },
+    "status": "success",
+    "type": "TonTransfer",
+  },
+]
+`;

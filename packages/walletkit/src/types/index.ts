@@ -92,3 +92,27 @@ export type { NftItem } from './toncenter/NftItem';
 
 export type { NftItems } from './toncenter/NftItems';
 export { emulationEvent } from './toncenter/AccountEvent';
+
+// Account Event types
+export type {
+    Event,
+    Action,
+    TypedAction,
+    TonTransferAction,
+    TonTransfer,
+    SmartContractExecAction,
+    SmartContractExec,
+    JettonSwapAction,
+    JettonSwap,
+    JettonTransferAction,
+    NftItemTransferAction,
+    ContractDeployAction,
+    Account,
+    SimplePreview,
+    AddressBook,
+    AddressBookItem,
+    JettonMasterInfo,
+    JettonWalletInfo,
+    StatusAction,
+    JettonMasterOut,
+} from './toncenter/AccountEvent';

@@ -6,31 +6,111 @@
  *
  */
 
-import { EmulationTraceNode, ToncenterEmulationResponse, ToncenterTraceItem, ToncenterTransaction } from './emulation';
+import {
+    EmulationTraceNode,
+    ToncenterEmulationResponse,
+    ToncenterTraceItem,
+    ToncenterTransaction,
+    EmulationTokenInfoMasters,
+    EmulationTokenInfoWallets,
+} from './emulation';
 import { AddressFriendly, asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
 import { parseJettonActions } from './parsers/Jetton';
 import { parseNftActions } from './parsers/Nft';
-import { AddressBookRowV3 } from './v3/AddressBookRowV3';
+import { MetadataV3 } from './v3/AddressBookRowV3';
+
+export interface JettonMasterInfo {
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    image: string;
+    verification: string;
+    score: number;
+}
+
+export interface JettonWalletInfo {
+    balance: string;
+    jettonMaster: string;
+    owner: string;
+}
 
 export interface AddressBookItem {
     domain?: string;
     isScam?: boolean;
     isWallet?: boolean;
+    jetton?: JettonMasterInfo;
+    jettonWallet?: JettonWalletInfo;
 }
 
 export type AddressBook = Record<AddressFriendly, AddressBookItem>;
 
-export function toAddressBook(data: Record<string, AddressBookRowV3>): AddressBook {
+export function toAddressBook(data: MetadataV3): AddressBook {
     const out: AddressBook = {};
-    for (const item of Object.keys(data)) {
-        const domain = data[item].domain;
-        if (domain) {
-            out[asAddressFriendly(item)] = { domain } as AddressBookItem;
+
+    // Process address_book for domain information
+    for (const [address, bookRow] of Object.entries(data.address_book)) {
+        const friendly = asAddressFriendly(address);
+        if (bookRow.domain) {
+            out[friendly] = { domain: bookRow.domain };
+        }
+        // Check if address is a wallet by looking for "wallet" in interfaces
+        if (bookRow.interfaces && Array.isArray(bookRow.interfaces)) {
+            const hasWalletInterface = bookRow.interfaces.some(
+                (iface) => typeof iface === 'string' && iface.toLowerCase().includes('wallet'),
+            );
+            if (hasWalletInterface) {
+                if (!out[friendly]) {
+                    out[friendly] = {};
+                }
+                out[friendly].isWallet = true;
+            }
         }
     }
+
+    // Process metadata for jetton information
+    for (const [address, meta] of Object.entries(data.metadata)) {
+        const friendly = asAddressFriendly(address);
+        if (!out[friendly]) {
+            out[friendly] = {};
+        }
+
+        if (!meta.token_info) continue;
+
+        for (const tokenInfo of meta.token_info) {
+            if (tokenInfo.type === 'jetton_masters') {
+                const masterInfo = tokenInfo as EmulationTokenInfoMasters;
+                const decimals = masterInfo.extra?.decimals ? parseInt(masterInfo.extra.decimals, 10) : 0;
+                const image =
+                    masterInfo.image ||
+                    masterInfo.extra?._image_small ||
+                    masterInfo.extra?._image_medium ||
+                    masterInfo.extra?._image_big ||
+                    '';
+
+                out[friendly].jetton = {
+                    address: friendly,
+                    name: masterInfo.name || '',
+                    symbol: masterInfo.symbol || '',
+                    decimals,
+                    image,
+                    verification: 'whitelist',
+                    score: 100,
+                };
+            } else if (tokenInfo.type === 'jetton_wallets') {
+                const walletInfo = tokenInfo as EmulationTokenInfoWallets;
+                out[friendly].jettonWallet = {
+                    balance: walletInfo.extra?.balance || '0',
+                    jettonMaster: asAddressFriendly(walletInfo.extra?.jetton || ''),
+                    owner: asAddressFriendly(walletInfo.extra?.owner || ''),
+                };
+            }
+        }
+    }
+
     return out;
 }
 
@@ -274,7 +354,7 @@ export function emulationEvent(data: ToncenterEmulationResponse, account?: strin
         // However, to keep consistent use-sites, prefer empty string here and let toEvent handle.
         inferredAccount = '';
     }
-    const addressBook = toAddressBook(data.address_book);
+    const addressBook = toAddressBook(data);
     return toEvent(traceItem, inferredAccount, addressBook);
 }
 

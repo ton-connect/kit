@@ -46,6 +46,7 @@ export interface WalletState {
 
         // Event history for active wallet
         events: unknown[];
+        hasNextEvents: boolean;
 
         // Walletkit instance and current wallet
         currentWallet?: IWallet;

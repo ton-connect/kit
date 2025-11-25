@@ -260,6 +260,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         balance: undefined,
         publicKey: undefined,
         events: [],
+        hasNextEvents: false,
         currentWallet: undefined,
         requestQueue: {
             items: [],
@@ -954,7 +955,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    loadEvents: async (limit = 10) => {
+    loadEvents: async (limit = 10, offset = 0) => {
         const state = get();
         if (!state.wallet.address) {
             log.warn('No wallet address available to load events');
@@ -966,19 +967,20 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         }
 
         try {
-            log.info('Loading events for address:', state.wallet.address);
+            log.info('Loading events for address:', state.wallet.address, 'limit:', limit, 'offset:', offset);
 
             const response = await state.wallet.walletKit.getApiClient().getEvents({
                 account: state.wallet.address,
                 limit,
-                offset: 0,
+                offset,
             });
 
             set((state) => {
                 state.wallet.events = response.events;
+                state.wallet.hasNextEvents = response.hasNext;
             });
 
-            log.info(`Loaded ${response.events.length} events`);
+            log.info(`Loaded ${response.events.length} events, hasNext: ${response.hasNext}`);
         } catch (error) {
             log.error('Error loading events:', error);
             throw new Error('Failed to load events');

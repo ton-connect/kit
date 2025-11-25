@@ -6,28 +6,24 @@
  *
  */
 
-import { AddressBookRowV3 } from './v3/AddressBookRowV3';
+import { AddressBookRowV3, MetadataV3 } from './v3/AddressBookRowV3';
 
 // Types for Toncenter emulation endpoint response
 
 // Root response
-export interface ToncenterEmulationResponse {
+export interface ToncenterEmulationResponse extends MetadataV3 {
     mc_block_seqno: number;
     trace: EmulationTraceNode;
     transactions: Record<string, ToncenterTransaction>;
     actions: EmulationAction[];
     code_cells: Record<string, string>; // base64-encoded cells by code hash
     data_cells: Record<string, string>; // base64-encoded cells by data hash
-    address_book: Record<string, AddressBookRowV3>;
-    metadata: Record<string, EmulationAddressMetadata>;
     rand_seed: string;
     is_incomplete: boolean;
 }
 
-export interface ToncenterTracesResponse {
+export interface ToncenterTracesResponse extends MetadataV3 {
     traces: ToncenterTraceItem[];
-    address_book: Record<string, AddressBookRowV3>;
-    metadata: Record<string, EmulationAddressMetadata>;
 }
 
 export interface ToncenterTransactionsResponse {

@@ -7,19 +7,10 @@
  */
 
 import React, { memo } from 'react';
+import type { TonTransferAction } from '@ton/walletkit';
 
-import { formatAddress, formatNanoTon, formatTimestamp } from '../../utils';
-
-interface TonTransferAction {
-    id: string;
-    type: 'TonTransfer';
-    TonTransfer: {
-        sender: { address: string };
-        recipient: { address: string };
-        amount: string | bigint;
-        comment?: string;
-    };
-}
+import { formatAddress, formatTimestamp } from '../../utils';
+import { formatTon } from '../../utils/units';
 
 interface TonTransferCardProps {
     action: TonTransferAction;
@@ -35,7 +26,7 @@ interface TonTransferCardProps {
 export const TonTransferCard: React.FC<TonTransferCardProps> = memo(
     ({ action, myAddress, eventId, timestamp, traceLink }) => {
         const isOutgoing = action.TonTransfer.sender.address === myAddress;
-        const amount = formatNanoTon(action.TonTransfer.amount);
+        const amount = formatTon(action.TonTransfer.amount);
         const otherAddress = isOutgoing ? action.TonTransfer.recipient.address : action.TonTransfer.sender.address;
 
         return (
@@ -92,5 +83,3 @@ export const TonTransferCard: React.FC<TonTransferCardProps> = memo(
         );
     },
 );
-
-TonTransferCard.displayName = 'TonTransferCard';

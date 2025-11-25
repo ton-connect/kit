@@ -24,17 +24,3 @@ export const formatAddress = (addr: string): string => {
     if (!addr) return '';
     return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
 };
-
-/**
- * Formats nanoTON to TON with proper decimal handling
- * @param value - Amount in nanoTON (bigint or string)
- * @returns Formatted TON amount as string
- */
-export const formatNanoTon = (value: bigint | string): string => {
-    const n = typeof value === 'bigint' ? value : BigInt(value || '0');
-    const str = n.toString();
-    const pad = str.padStart(10, '0');
-    const intPart = pad.slice(0, pad.length - 9).replace(/^0+(?=\d)/, '');
-    const fracPart = pad.slice(-9).replace(/0+$/, '');
-    return `${intPart === '' ? '0' : intPart}${fracPart ? '.' + fracPart : ''}`;
-};
