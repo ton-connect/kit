@@ -521,6 +521,39 @@ export class ApiClientToncenter implements ApiClient {
         };
     }
 
+    async getPendingEvents(request: GetPendingTraceRequest): Promise<GetEventsResponse> {
+        const list = await this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
+            ext_msg_hash: request.externalMessageHash,
+        });
+        const out: GetEventsResponse = { events: [], limit: list.traces.length, offset: 0, hasNext: false };
+
+        // Check if traces exist and have transactions
+        if (!list.traces || list.traces.length === 0) {
+            return out;
+        }
+
+        const addressBook = toAddressBook(list);
+
+        // Find first transaction with account
+        let account: string | undefined;
+        for (const trace of list.traces) {
+            if (trace.transactions && Object.keys(trace.transactions).length > 0) {
+                const firstTx = Object.values(trace.transactions)[0];
+                if (firstTx?.account) {
+                    account = firstTx.account;
+                    break;
+                }
+            }
+        }
+
+        if (account) {
+            for (const trace of list.traces) {
+                out.events.push(toEvent(trace, account, addressBook));
+            }
+        }
+        return out;
+    }
+
     async getEvents(request: GetEventsRequest): Promise<GetEventsResponse> {
         const account = request.account instanceof Address ? request.account.toString() : request.account;
         const limit = request.limit ?? 20;

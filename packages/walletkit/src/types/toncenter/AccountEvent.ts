@@ -263,8 +263,17 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
                 return out as unknown as Action;
             });
         }
+        // For pending traces, trace_id might be empty, so use external_hash or first tx hash as fallback
+        const eventId = data.trace_id
+            ? Base64ToHex(data.trace_id)
+            : data.external_hash
+              ? Base64ToHex(data.external_hash)
+              : data.transactions_order?.[0]
+                ? data.transactions_order[0]
+                : '0x0000000000000000000000000000000000000000000000000000000000000000';
+
         return {
-            eventId: Base64ToHex(data.trace_id),
+            eventId: eventId as Hex,
             account: toAccount(account, addressBook),
             timestamp: data.start_utime,
             actions: filtered,
@@ -275,8 +284,18 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
             transactions: data.transactions,
         };
     }
+
+    // For pending traces, trace_id might be empty, so use external_hash or first tx hash as fallback
+    const eventId = data.trace_id
+        ? Base64ToHex(data.trace_id)
+        : data.external_hash
+          ? Base64ToHex(data.external_hash)
+          : data.transactions_order?.[0]
+            ? data.transactions_order[0]
+            : '0x0000000000000000000000000000000000000000000000000000000000000000';
+
     return {
-        eventId: Base64ToHex(data.trace_id),
+        eventId: eventId as Hex,
         account: toAccount(account, addressBook),
         timestamp: data.start_utime,
         actions,

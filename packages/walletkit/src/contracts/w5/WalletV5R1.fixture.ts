@@ -98,6 +98,7 @@ export function createMockApiClient(): ApiClient {
             address_book: {},
             pagination: { offset: 0, limit: 50 },
         } as ResponseUserJettons),
+        getPendingEvents: mockFn().mockResolvedValue({} as GetEventsResponse),
         getEvents: mockFn().mockResolvedValue({} as GetEventsResponse),
     };
 }

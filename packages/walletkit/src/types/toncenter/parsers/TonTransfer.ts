@@ -114,16 +114,16 @@ export function computeStatus(tx: ToncenterTransaction): StatusAction {
  */
 function computeIncomingTonTransferStatus(tx: ToncenterTransaction, defaultStatus: StatusAction): StatusAction {
     const description = tx.description as unknown as Record<string, unknown>;
-    
+
     // Check if credit phase exists and has credited funds
     const creditPh = description?.credit_ph as Record<string, unknown> | undefined;
     const credit = creditPh?.credit as string | undefined;
-    
+
     // If funds were credited (credit > 0), consider incoming transfer successful
     if (credit && Number(credit) > 0) {
         return 'success';
     }
-    
+
     // Otherwise use the default computed status
     return defaultStatus;
 }

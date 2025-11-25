@@ -10,8 +10,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { Base64NormalizeUrl, HexToBase64, type Event, type Action } from '@ton/walletkit';
 
-import { useStore, useWalletKit } from '../stores';
-import type { PreviewTransaction } from '../types/wallet';
+import { useStore } from '../stores';
 import { TraceRow } from './TraceRow';
 import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
 
@@ -28,68 +27,11 @@ export const RecentTransactions: React.FC = memo(() => {
             hasNextEvents: state.wallet.hasNextEvents,
         })),
     );
-    const walletKit = useWalletKit();
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [limit] = useState(10);
-
-    // Check for pending transactions
-    const checkPendingTransactions = async () => {
-        if (!address || !walletKit) return;
-
-        try {
-            const apiClient = walletKit.getApiClient();
-            const pendingResponse = await apiClient.getPendingTransactions({
-                accounts: [address],
-            });
-
-            if (pendingResponse.transactions && pendingResponse.transactions.length > 0) {
-                const pendingTxs: PreviewTransaction[] = pendingResponse.transactions.map((tx) => {
-                    // Determine transaction type and amount
-                    let type: 'send' | 'receive' = 'receive';
-                    let amount = '0';
-                    let targetAddress = '';
-
-                    // Check incoming message
-                    if (tx.in_msg && tx.in_msg.value) {
-                        amount = tx.in_msg.value;
-                        targetAddress = tx.in_msg.source || '';
-                        type = 'receive';
-                    }
-
-                    // Check outgoing messages - if there are any, it's likely a send transaction
-                    if (tx.out_msgs && tx.out_msgs.length > 0) {
-                        const mainOutMsg = tx.out_msgs[0];
-                        if (mainOutMsg.value) {
-                            amount = mainOutMsg.value;
-                            targetAddress = mainOutMsg.destination;
-                            type = 'send';
-                        }
-                    }
-
-                    return {
-                        id: tx.hash,
-                        messageHash: tx.in_msg?.hash || '',
-                        type,
-                        amount,
-                        address: targetAddress,
-                        timestamp: tx.now * 1000, // Convert to milliseconds
-                        status: 'pending' as const,
-                    };
-                });
-
-                setPendingTransactions(pendingTxs);
-            } else {
-                setPendingTransactions([]);
-            }
-        } catch (_err) {
-            // Silently handle errors to avoid spamming the user
-            setPendingTransactions([]);
-        }
-    };
 
     // Load events when component mounts, address changes, or page changes
     useEffect(() => {
@@ -98,13 +40,13 @@ export const RecentTransactions: React.FC = memo(() => {
 
             // Determine if this is initial load or pagination
             const isInitial = currentPage === 0 && eventItems.length === 0;
-            
+
             if (isInitial) {
                 setIsInitialLoading(true);
             } else {
                 setIsPaginating(true);
             }
-            
+
             setError(null);
             try {
                 const offset = currentPage * limit;
@@ -119,22 +61,6 @@ export const RecentTransactions: React.FC = memo(() => {
 
         fetchEvents();
     }, [address, loadEvents, currentPage, limit]);
-
-    // Set up polling for pending transactions
-    useEffect(() => {
-        if (!address) return;
-
-        // Start polling immediately
-        checkPendingTransactions();
-
-        // Set up interval for polling every 5000ms
-        const interval = setInterval(checkPendingTransactions, 5000);
-
-        // Cleanup interval on unmount or address change
-        return () => {
-            clearInterval(interval);
-        };
-    }, [address]);
 
     const handleRefresh = async () => {
         if (!address) return;
@@ -165,15 +91,21 @@ export const RecentTransactions: React.FC = memo(() => {
 
     const eventItems = useMemo(() => (events || []) as Event[], [events]);
 
+    // Count pending events for the header badge
+    // The API returns events with inProgress flag for pending transactions
+    const pendingEvents = useMemo(() => {
+        return (eventItems || []).filter((ev) => ev.inProgress);
+    }, [eventItems]);
+
     return (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
-                    {pendingTransactions.length > 0 && (
+                    {pendingEvents.length > 0 && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            {pendingTransactions.length} pending
+                            {pendingEvents.length} pending
                         </span>
                     )}
                 </div>
@@ -241,14 +173,11 @@ export const RecentTransactions: React.FC = memo(() => {
                                 </div>
                             </div>
                         )}
-                        
-                        <div className={`space-y-3 transition-opacity duration-200 ${isPaginating ? 'opacity-50' : 'opacity-100'}`}>
-                            {/* Pending transactions */}
-                            {pendingTransactions.map((p) => (
-                                <TraceRow key={`pending-${p.id}`} traceId={p.id} externalHash={p.messageHash} isPending />
-                            ))}
 
-                            {/* Confirmed transactions */}
+                        <div
+                            className={`space-y-3 transition-opacity duration-200 ${isPaginating ? 'opacity-50' : 'opacity-100'}`}
+                        >
+                            {/* All events (both pending and confirmed) */}
                             {(eventItems || []).map((ev) => {
                                 const traceId = Base64NormalizeUrl(HexToBase64(ev.eventId));
 
@@ -257,8 +186,7 @@ export const RecentTransactions: React.FC = memo(() => {
                                     return <TraceRow key={ev.eventId} traceId={traceId} />;
                                 }
 
-                                // For events with multiple actions, show them all or just the first one
-                                // For simplicity, we'll show the first action that involves the user's address
+                                // For events with multiple actions, show the first action that involves the user's address
                                 const relevantAction =
                                     ev.actions.find((a: Action) =>
                                         a.simplePreview?.accounts?.some((acc) => acc.address === (address || '')),
@@ -271,6 +199,7 @@ export const RecentTransactions: React.FC = memo(() => {
                                         myAddress={address || ''}
                                         timestamp={ev.timestamp}
                                         traceLink={`/wallet/trace/${traceId}`}
+                                        isPending={ev.inProgress}
                                     />
                                 );
                             })}
@@ -310,12 +239,7 @@ export const RecentTransactions: React.FC = memo(() => {
                                     />
                                 </svg>
                             ) : (
-                                <svg
-                                    className="w-4 h-4 mr-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -330,9 +254,7 @@ export const RecentTransactions: React.FC = memo(() => {
                         <div />
                     )}
 
-                    <div className="text-sm text-gray-700">
-                        Page {currentPage + 1}
-                    </div>
+                    <div className="text-sm text-gray-700">Page {currentPage + 1}</div>
 
                     {hasNextEvents ? (
                         <button
@@ -363,12 +285,7 @@ export const RecentTransactions: React.FC = memo(() => {
                                     />
                                 </svg>
                             ) : (
-                                <svg
-                                    className="w-4 h-4 ml-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"

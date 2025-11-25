@@ -117,5 +117,6 @@ export interface ApiClient {
     jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters>;
     jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ResponseUserJettons>;
 
+    getPendingEvents(request: GetPendingTraceRequest): Promise<GetEventsResponse>;
     getEvents(request: GetEventsRequest): Promise<GetEventsResponse>;
 }
