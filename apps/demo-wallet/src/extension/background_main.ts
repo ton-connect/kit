@@ -135,7 +135,7 @@ async function handleBridgeRequest(
             const tab = await browser.tabs.get(tabId);
             if (tab.url) {
                 const urlObj = new URL(tab.url);
-                return urlObj.host;
+                return `${urlObj.protocol}//${urlObj.host}`;
             }
         } catch {
             return undefined;

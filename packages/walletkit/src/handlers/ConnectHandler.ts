@@ -143,16 +143,13 @@ export class ConnectHandler
         const eventManifest = event.params?.manifest;
         const manifest = fetchedManifest || eventManifest;
 
-        const dAppUrl = manifest?.url || '';
+        const dAppUrl = (event?.domain || manifest?.url?.toString() || '').trim();
 
         const sanitizedManifest = manifest && {
             name: manifest.name?.toString()?.trim() || '',
             description: manifest.description?.toString()?.trim() || '',
-            url: manifest.url?.toString()?.trim() || '',
+            url: dAppUrl,
             iconUrl: manifest.iconUrl?.toString()?.trim() || '',
-
-            dAppName: this.extractDAppName(event, manifest),
-            dAppUrl: dAppUrl,
 
             manifestUrl: manifestUrl || '',
         };

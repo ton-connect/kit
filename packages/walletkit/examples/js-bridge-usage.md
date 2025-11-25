@@ -165,7 +165,7 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
         const messageInfo = {
             messageId: message.messageId,
             tabId: sender.tab?.id?.toString(),
-            domain: sender.tab?.url ? new URL(sender.tab.url).hostname : undefined
+            domain: sender.tab?.url ? new URL(sender.tab.url).host : undefined
         };
 
         // Process through WalletKit
