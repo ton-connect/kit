@@ -9,25 +9,25 @@ This guide shows how to build a browser extension wallet using WalletKit's JS Br
 The JS Bridge uses a three-layer architecture to securely connect dApps with your wallet extension:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Web Page (dApp)                                            │
+┌────────────────────────────────────────────────────────────┐
+│  Web Page (dApp)                                           │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  window.ton.tonconnect                         │  │
+│  │  window.ton.tonconnect                               │  │
 │  │  - connect()                                         │  │
 │  │  - send()                                            │  │
 │  │  - restoreConnection()                               │  │
 │  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
                          ↕ chrome.runtime.sendMessage
-┌─────────────────────────────────────────────────────────────┐
-│  Extension Background Script                                 │
+┌────────────────────────────────────────────────────────────┐
+│  Extension Background Script                               │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  TonWalletKit                                        │  │
 │  │  - processInjectedBridgeRequest()                    │  │
 │  │  - onConnectRequest()                                │  │
 │  │  - onTransactionRequest()                            │  │
 │  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
 ```
 
 **Flow:**
