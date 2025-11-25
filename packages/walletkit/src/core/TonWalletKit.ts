@@ -54,6 +54,7 @@ import { EventRequestError, EventSignDataResponse, EventTransactionResponse } fr
 import { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { ApiClientToncenter } from './ApiClientToncenter';
+import { CallForSuccess } from '../utils/retry';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -304,40 +305,31 @@ export class TonWalletKit implements ITonWalletKit {
             // Get session to check if it's a JS bridge session
             const session = await this.sessionManager.getSession(sessionId);
 
-            if (session?.isJsBridge) {
-                // For JS bridge sessions, send disconnect to specific session
-                await this.bridgeManager.sendJsBridgeResponse(
-                    sessionId, // Use sessionId to route to correct WebView
-                    true,
-                    null,
-                    {
-                        event: 'disconnect',
-                        id: Date.now(),
-                        payload: {
-                            items: [sessionId],
-                        },
-                    },
-                    {
-                        traceId: undefined,
-                        session: session, // Pass session for disconnect event routing on emit
-                    },
-                );
-            } else if (session) {
-                // For HTTP bridge sessions, send as a response
-                await this.bridgeManager.sendResponse(
-                    {
-                        sessionId: sessionId,
-                        isJsBridge: false,
-                        id: Date.now(),
-                        from: sessionId,
-                    } as unknown as BridgeEventBase,
-                    {
-                        event: 'disconnect',
-                        id: Date.now(),
-                        payload: {},
-                    } as DisconnectEvent,
-                    session,
-                );
+            if (session) {
+                try {
+                    // For HTTP bridge sessions, send as a response
+                    await CallForSuccess(
+                        () =>
+                            this.bridgeManager.sendResponse(
+                                {
+                                    sessionId: sessionId,
+                                    isJsBridge: session?.isJsBridge,
+                                    id: Date.now(),
+                                    from: sessionId,
+                                } as unknown as BridgeEventBase,
+                                {
+                                    event: 'disconnect',
+                                    id: Date.now(),
+                                    payload: {},
+                                } as DisconnectEvent,
+                                session,
+                            ),
+                        10,
+                        100,
+                    );
+                } catch (error) {
+                    log.error('Failed to send disconnect to bridge', { sessionId, error });
+                }
             }
 
             await this.sessionManager.removeSession(sessionId);
