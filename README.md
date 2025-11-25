@@ -5,6 +5,18 @@
 - **[WalletKit Integration Guide](packages/walletkit/DOCUMENTATION.md)** - Getting started with `@ton/walletkit` - setup, handling requests, and basic operations
 - **[Browser Extension Build](apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+- **[npm @ton/walletkit](https://www.npmjs.com/package/@ton/walletkit)** - provides npm package everything needed to integrate TON Connect into your wallet
+- **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
+- **[Android WalletKit ](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
+ 
+## Quick start
+
+### Web platform
+
+- [How to initialize the TON Connect's](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/init)
+- [How to manage TON wallets](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/wallets)
+- [How to handle connections](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/connections)
+- [How to handle other events](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/events)
 
 ## Testing
 
