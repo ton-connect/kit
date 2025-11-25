@@ -38,8 +38,8 @@ export type MessageListener = (callback: (data: unknown) => void) => void;
  */
 export class ExtensionTransport implements Transport {
     private readonly pendingRequests = new Map<string, PendingRequest>();
-    private readonly messageSender: MessageSender;
-    private readonly messageListener: MessageListener;
+    private messageSender: MessageSender;
+    private messageListener: MessageListener;
     private eventCallback: ((event: unknown) => void) | null = null;
 
     constructor(sendMessage: MessageSender, messageListener: MessageListener) {
@@ -48,10 +48,18 @@ export class ExtensionTransport implements Transport {
         this.setupMessageListener();
     }
 
+    setMessageSender(sendMessage: MessageSender): void {
+        this.messageSender = sendMessage;
+    }
+
+    setMessageListener(messageListener: MessageListener): void {
+        this.messageListener = messageListener;
+    }
+
     /**
      * Setup listener for messages from extension
      */
-    private setupMessageListener(): void {
+    setupMessageListener(): void {
         this.messageListener((e) => {
             if (
                 typeof e !== 'object' ||

@@ -12,15 +12,24 @@ window.Buffer = Buffer;
 if (globalThis && !globalThis.Buffer) {
     globalThis.Buffer = Buffer;
 }
-
 import { ExtensionTransport, injectBridgeCode, type MessageSender, type MessageListener } from '@ton/walletkit/bridge';
-import { sendMessage, onMessage, setNamespace } from '@truecarry/webext-bridge/window';
+import { onMessage, sendMessage, setNamespace } from '@truecarry/webext-bridge/window';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
 
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND, JS_BRIDGE_MESSAGE_TO_CONTENT, JS_BRIDGE_NAMESPACE } from '@/lib/constants';
 
-setNamespace(JS_BRIDGE_NAMESPACE);
+try {
+    setNamespace(JS_BRIDGE_NAMESPACE);
+} catch {
+    // do nothing
+}
+
+declare global {
+    interface Window {
+        __extensionTransport: ExtensionTransport | null;
+    }
+}
 
 function injectTonConnectBridge() {
     try {
@@ -30,8 +39,18 @@ function injectTonConnectBridge() {
         };
 
         const messageListener: MessageListener = (callback: (data: unknown) => void) => {
-            onMessage(JS_BRIDGE_MESSAGE_TO_CONTENT, callback);
+            onMessage(JS_BRIDGE_MESSAGE_TO_CONTENT, (data) => {
+                return callback(data);
+            });
         };
+
+        if (!window.__extensionTransport) {
+            window.__extensionTransport = new ExtensionTransport(messageSender, messageListener);
+        } else {
+            window.__extensionTransport.setMessageSender(messageSender);
+            window.__extensionTransport.setMessageListener(messageListener);
+            window.__extensionTransport.setupMessageListener();
+        }
 
         // Inject the simplified bridge that forwards to extension
         injectBridgeCode(
@@ -40,7 +59,7 @@ function injectTonConnectBridge() {
                 deviceInfo: getTonConnectDeviceInfo(),
                 walletInfo: getTonConnectWalletManifest(),
             },
-            new ExtensionTransport(messageSender, messageListener),
+            window.__extensionTransport,
         );
 
         // eslint-disable-next-line no-console

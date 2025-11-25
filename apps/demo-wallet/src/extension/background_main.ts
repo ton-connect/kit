@@ -166,10 +166,12 @@ async function injectContentScript(tabId: number) {
         if (tab.url?.startsWith('chrome://')) {
             return;
         }
+        // Bridge between background and window
         await browser.scripting.executeScript({
             target: { tabId, allFrames: true },
             files: ['src/extension/content_script.js'],
         });
+        // Window script
         await browser.scripting.executeScript({
             target: { tabId, allFrames: true },
             files: ['src/extension/content.js'],

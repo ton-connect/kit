@@ -60,35 +60,6 @@ export type TestCaseData = {
     expectedResult: string;
     isPositiveCase: boolean;
 };
-/**
- * Получает информацию о тест-кейсе по allureId
- * @param config - Конфигурация Allure TestOps
- * @param allureId - ID тест-кейса в Allure
- * @returns Promise с данными тест-кейса
- */
-export async function getTestCaseByAllureId(config: AllureConfig, allureId: string): Promise<TestCaseData> {
-    const { baseUrl } = config;
-    const token = await getAllureToken(config);
-
-    try {
-        const response = await fetch(`${baseUrl}/api/rs/testcase/allureId/${allureId}`, {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to get test case: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        throw new Error(`Error getting test case: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
 
 /**
  * Создает конфигурацию Allure TestOps из переменных окружения

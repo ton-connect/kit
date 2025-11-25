@@ -72,7 +72,11 @@ function createBridgeConfig(options: JSBridgeInjectOptions): BridgeConfig {
  * @param options - Configuration options
  * @returns Cleanup function to remove bridge and stop watching
  */
-export function injectBridge(window: Window, options: JSBridgeInjectOptions, argsTransport?: Transport): void {
+export function injectBridge(
+    window: Window,
+    options: JSBridgeInjectOptions,
+    argsTransport?: Transport | (() => Transport),
+): void {
     // 1. Create and validate configuration
     const config = createBridgeConfig(options);
     validateBridgeConfig(config);
@@ -102,7 +106,7 @@ export function injectBridge(window: Window, options: JSBridgeInjectOptions, arg
 
     let transport: Transport;
     if (argsTransport) {
-        transport = argsTransport;
+        transport = typeof argsTransport === 'function' ? argsTransport() : argsTransport;
     } else {
         throw new WalletKitError(ERROR_CODES.INVALID_CONFIG, 'Transport is not configured');
     }

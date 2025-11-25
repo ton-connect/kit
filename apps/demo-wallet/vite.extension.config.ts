@@ -37,8 +37,7 @@ export default defineConfig({
             disableAutoLaunch: true,
             manifest: generateManifest,
             additionalInputs: [
-                'src/extension/content.ts',
-                'src/extension/inject.ts',
+                'src/extension/content.ts', // window script
                 'src/extension/content_script.ts',
             ],
             browser: process.env.TARGET || 'chrome',

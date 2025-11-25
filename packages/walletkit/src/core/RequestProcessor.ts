@@ -293,7 +293,12 @@ export class RequestProcessor {
                     disablePersist: true,
                 },
             );
-            await this.bridgeManager.sendResponse(event, response, newSession);
+
+            try {
+                await this.bridgeManager.sendResponse(event, response, newSession);
+            } catch (error) {
+                log.error('Failed to send connect request rejection response', { error });
+            }
 
             this.analyticsApi?.sendEvents([
                 {

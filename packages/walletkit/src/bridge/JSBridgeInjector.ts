@@ -39,6 +39,10 @@ export {
  * @param window - Window object to inject bridge into
  * @param options - Configuration options for the bridge
  */
-export function injectBridgeCode(window: Window, options: JSBridgeInjectOptions, transport?: Transport): void {
+export function injectBridgeCode(
+    window: Window,
+    options: JSBridgeInjectOptions,
+    transport?: Transport | (() => Transport),
+): void {
     injectBridge(window, options, transport);
 }
