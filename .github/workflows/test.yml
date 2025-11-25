@@ -7,11 +7,11 @@ on:
 jobs:
   unit:
     name: unit
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, k8s, linux]
-    container:
-      image: node:22-slim
-      options: --user root
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, k8s, linux]
+    # container:
+    #   image: node:22-slim
+    #   options: --user root
 
     steps:
 

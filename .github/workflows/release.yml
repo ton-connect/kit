@@ -7,17 +7,18 @@ on:
 
 jobs:
   release:
-    runs-on: [self-hosted, k8s, linux]
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, k8s, linux]
     environment: Release
-    container:
-      image: node:22-slim
-      options: --user root
+    # container:
+    #   image: node:22-slim
+    #   options: --user root
     
     steps:
-      - name: Install git
-        run: |
-          apt-get update
-          apt-get install -y git
+      # - name: Install git
+      #   run: |
+      #     apt-get update
+      #     apt-get install -y git
 
       - name: Checkout code
         uses: actions/checkout@v5
