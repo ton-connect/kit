@@ -209,7 +209,7 @@ if (typeof window !== 'undefined') {
     const persistedNetwork = store.auth.network || 'testnet';
     log.info(`Initializing WalletKit with persisted network: ${persistedNetwork}`);
 
-    store.initializeWalletKit(persistedNetwork);
+    await store.initializeWalletKit(persistedNetwork);
 }
 
 // Hook for accessing WalletKit instance
