@@ -100,7 +100,7 @@ export class RequestProcessor {
 
                 // Create session for this connection'
                 const url = new URL(event.preview.manifest?.url || '');
-                const domain = url.hostname;
+                const domain = url.host;
                 const newSession = await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     event.preview.manifest?.name || '',
@@ -183,7 +183,7 @@ export class RequestProcessor {
 
                 // If event is EventConnectApproval, we need to send response to dApp and create session
                 const url = new URL(event.result.dAppUrl);
-                const domain = url.hostname;
+                const domain = url.host;
                 await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     event.result.dAppName,
@@ -293,7 +293,12 @@ export class RequestProcessor {
                     disablePersist: true,
                 },
             );
-            await this.bridgeManager.sendResponse(event, response, newSession);
+
+            try {
+                await this.bridgeManager.sendResponse(event, response, newSession);
+            } catch (error) {
+                log.error('Failed to send connect request rejection response', { error });
+            }
 
             this.analyticsApi?.sendEvents([
                 {

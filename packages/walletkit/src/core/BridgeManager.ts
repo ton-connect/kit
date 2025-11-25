@@ -30,6 +30,7 @@ import { AnalyticsApi } from '../analytics/sender';
 import { getUnixtime } from '../utils/time';
 import { TonWalletKitOptions } from '../types/config';
 import { getEventsSubsystem, getVersion } from '../utils/version';
+import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -93,12 +94,11 @@ export class BridgeManager {
         this.eventRouter = eventRouter;
         this.analyticsApi = analyticsApi;
         this.walletKitConfig = walletKitConfig;
-        this.jsBridgeTransport =
-            config?.jsBridgeTransport ??
-            (async (sessionId: string, message: unknown) => {
-                // eslint-disable-next-line no-undef
-                await chrome.tabs.sendMessage(parseInt(sessionId), message);
-            });
+        this.jsBridgeTransport = config?.jsBridgeTransport;
+
+        if (!this.jsBridgeTransport && config?.enableJsBridge) {
+            throw new WalletKitError(ERROR_CODES.INVALID_CONFIG, 'JS Bridge transport is not configured');
+        }
     }
 
     /**
@@ -264,7 +264,7 @@ export class BridgeManager {
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
         const message = {
-            type: 'TONCONNECT_BRIDGE_RESPONSE',
+            type: TONCONNECT_BRIDGE_RESPONSE,
             source: source,
             messageId: requestId,
             success: true,
@@ -272,37 +272,39 @@ export class BridgeManager {
             traceId: options?.traceId,
         };
 
-        // Use custom transport if provided, otherwise use default chrome.tabs.sendMessage
         if (this.jsBridgeTransport) {
-            await this.jsBridgeTransport(sessionId, message);
+            try {
+                await this.jsBridgeTransport(sessionId, message);
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to send response through JS Bridge', { error: e });
+            }
         } else {
-            // Default: use chrome extension messaging
-            // eslint-disable-next-line no-undef
-            await chrome.tabs.sendMessage(parseInt(sessionId), message);
+            throw new WalletKitError(ERROR_CODES.INVALID_CONFIG, 'JS Bridge transport is not configured');
         }
 
         // Fire disconnect event on emit (not inside bridge event handler)
-        if (response?.event === 'disconnect' && options?.session) {
-            const session = options.session;
-            const disconnectEvent: RawBridgeEvent = {
-                id: response.id || crypto.randomUUID(),
-                method: 'disconnect',
-                params: response.payload || {},
-                timestamp: Date.now(),
-                from: sessionId,
-                domain: session.domain,
-                isJsBridge: true,
-                walletAddress: session.walletAddress,
-                dAppInfo: {
-                    name: session.dAppName,
-                    description: session.dAppDescription,
-                    url: session.dAppIconUrl,
-                    iconUrl: session.dAppIconUrl,
-                },
-                traceId: options.traceId,
-            };
-            await this.eventRouter.routeEvent(disconnectEvent);
-        }
+        // if (response?.event === 'disconnect' && options?.session) {
+        //     const session = options.session;
+        //     const disconnectEvent: RawBridgeEvent = {
+        //         id: response.id || crypto.randomUUID(),
+        //         method: 'disconnect',
+        //         params: response.payload || {},
+        //         timestamp: Date.now(),
+        //         from: sessionId,
+        //         domain: session.domain,
+        //         isJsBridge: true,
+        //         walletAddress: session.walletAddress,
+        //         dAppInfo: {
+        //             name: session.dAppName,
+        //             description: session.dAppDescription,
+        //             url: session.dAppIconUrl,
+        //             iconUrl: session.dAppIconUrl,
+        //         },
+        //         traceId: options.traceId,
+        //     };
+        //     await this.eventRouter.routeEvent(disconnectEvent);
+        // }
     }
 
     /**

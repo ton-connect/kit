@@ -13,7 +13,6 @@ import {
     type EventTransactionRequest,
     type EventSignDataRequest,
     type EventDisconnect,
-    ExtensionStorageAdapter,
     type IWallet,
     Signer,
     WalletV5R1Adapter,
@@ -34,6 +33,7 @@ import {
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { toast } from 'sonner';
+// import browser from 'webextension-polyfill';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
@@ -48,17 +48,17 @@ import type { SetState, WalletSliceCreator } from '../../types/store';
 import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
 
+import { CreateExtensionStorageAdapter, SendMessageToExtensionContent } from '@/lib/extensionPopup';
+import {
+    DISABLE_HTTP_BRIDGE,
+    DISABLE_NETWORK_SEND,
+    ENV_BRIDGE_URL,
+    ENV_TON_API_KEY_MAINNET,
+    ENV_TON_API_KEY_TESTNET,
+} from '@/lib/env';
+
 // Create logger for wallet slice
 const log = createComponentLogger('WalletSlice');
-
-const ENV_BRIDGE_URL = import.meta.env.VITE_BRIDGE_URL ?? 'https://walletbot.me/tonconnect-bridge/bridge';
-const ENV_TON_API_KEY_MAINNET =
-    import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
-const ENV_TON_API_KEY_TESTNET =
-    import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
-
-const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
-const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
 
 // Queue management constants
 const MAX_QUEUE_SIZE = 100;
@@ -74,14 +74,15 @@ function createWalletKitInstance(network: 'mainnet' | 'testnet' = 'testnet'): IT
         bridge: {
             bridgeUrl: ENV_BRIDGE_URL,
             disableHttpConnection: DISABLE_HTTP_BRIDGE,
+            jsBridgeTransport: isExtension() ? SendMessageToExtensionContent : undefined,
         },
 
         network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
         apiClient: {
             key: network === 'mainnet' ? ENV_TON_API_KEY_MAINNET : ENV_TON_API_KEY_TESTNET,
         },
-        // eslint-disable-next-line no-undef, @typescript-eslint/no-explicit-any
-        storage: isExtension() ? new ExtensionStorageAdapter({}, chrome.storage.local as any) : undefined,
+
+        storage: isExtension() ? CreateExtensionStorageAdapter() : undefined,
 
         analytics: {
             enabled: true,

@@ -98,6 +98,7 @@ jobs:
         ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
         ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+        VITE_DISABLE_AUTO_POPUP: true
         VITE_DISABLE_NETWORK_SEND: true
 
     - name: Upload Allure Results

@@ -22,11 +22,11 @@ interface DAppInfoProps {
 }
 
 export const DAppInfo: React.FC<DAppInfoProps> = ({ name, description, url, iconUrl, className = '' }) => {
-    let hostname;
+    let host;
     try {
-        hostname = url ? new URL(url).hostname : undefined;
+        host = url ? new URL(url).host : undefined;
     } catch (_error) {
-        hostname = url;
+        host = url;
     }
 
     return (
@@ -58,7 +58,7 @@ export const DAppInfo: React.FC<DAppInfoProps> = ({ name, description, url, icon
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900 truncate">{name || 'Unknown dApp'}</h3>
                     {description && <p className="text-sm text-gray-600 mt-1 line-clamp-2">{description}</p>}
-                    {hostname && <p className="text-xs text-gray-500 mt-1 truncate">{hostname}</p>}
+                    {host && <p className="text-xs text-gray-500 mt-1 truncate">{host}</p>}
                 </div>
             </div>
         </div>

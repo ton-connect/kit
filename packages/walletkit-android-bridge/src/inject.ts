@@ -7,7 +7,7 @@
  */
 
 // Bridge injection for Android internal browser
-import { injectBridgeCode } from '@ton/walletkit/bridge';
+import { injectBridgeCode, TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_REQUEST } from '@ton/walletkit/bridge';
 import type { InjectedToExtensionBridgeRequestPayload, JSBridgeInjectOptions } from '@ton/walletkit';
 import type { Transport } from '@ton/walletkit';
 
@@ -164,7 +164,7 @@ class AndroidWebViewTransport implements Transport {
                 const eventStr = bridge.pullEvent(frameId);
                 if (eventStr) {
                     const data = JSON.parse(eventStr) as { type?: string; event?: unknown };
-                    if (data.type === 'TONCONNECT_BRIDGE_EVENT' && data.event) {
+                    if (data.type === TONCONNECT_BRIDGE_EVENT && data.event) {
                         this.eventCallbacks.forEach((callback) => {
                             try {
                                 callback(data.event);
@@ -189,7 +189,7 @@ class AndroidWebViewTransport implements Transport {
 
         bridge.postMessage(
             JSON.stringify({
-                type: 'TONCONNECT_BRIDGE_REQUEST',
+                type: TONCONNECT_BRIDGE_REQUEST,
                 messageId,
                 method: request.method || 'unknown',
                 params: request.params || {},

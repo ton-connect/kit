@@ -16,6 +16,8 @@
         "**/bower_components": true,
         "**/tmp": true,
         "**/dist": true,
-        "**/dist-extension": true
+        "**/dist-extension": true,
+        "**/dist-extension-chrome": true,
+        "**/dist-extension-firefox": true,
     },
 }
