@@ -568,10 +568,12 @@ export class RequestProcessor {
                     );
                     throw error;
                 }
+
+                const domainUrl = new URL(event.domain);
                 // Sign data with wallet
                 const signData = PrepareTonConnectData({
                     payload: event.request,
-                    domain: event.domain,
+                    domain: domainUrl.host,
                     address: event.walletAddress,
                 });
                 const signature = await wallet.getSignedSignData(signData);
