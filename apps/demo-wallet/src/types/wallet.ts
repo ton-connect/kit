@@ -31,6 +31,7 @@ export interface WalletState {
     wallet: {
         // WalletKit instance
         walletKit: ITonWalletKit | null;
+        walletKitInitializer: Promise<void> | null;
 
         isAuthenticated: boolean;
         hasWallet: boolean;

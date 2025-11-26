@@ -304,6 +304,7 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     wallet: {
         // Initial state
         walletKit: null,
+        walletKitInitializer: null,
         isAuthenticated: false,
         hasWallet: false,
         savedWallets: [],
@@ -416,83 +417,100 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
         // Create new instance
         const walletKit = createWalletKitInstance(network);
 
-        walletKit.then(async (walletKit) => {
-            // Set up wallet kit event listeners
-            const onTransactionRequest = async (event: EventTransactionRequest) => {
-                const wallet = await walletKit.getWallet(event.walletAddress ?? '');
-                if (!wallet) {
-                    log.error('Wallet not found for transaction request');
-                    return;
-                }
-
-                const balance = await wallet.getBalance();
-                const minNeededBalance = event.request.messages.reduce(
-                    (acc, message) => acc + BigInt(message.amount),
-                    0n,
-                );
-                if (BigInt(balance) < minNeededBalance) {
-                    await walletKit.rejectTransactionRequest(event, {
-                        code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                        message: 'Insufficient balance',
-                    });
-                    return;
-                }
-
-                get().enqueueRequest({
-                    type: 'transaction',
-                    request: event,
-                });
-            };
-            walletKit.onConnectRequest((event) => {
-                log.info('Connect request received:', event);
-                if (event?.preview?.manifestFetchErrorCode) {
-                    log.error(
-                        'Connect request received with manifest fetch error:',
-                        event?.preview?.manifestFetchErrorCode,
-                    );
-                    walletKit.rejectConnectRequest(
-                        event,
-                        event?.preview?.manifestFetchErrorCode == 2
-                            ? 'App manifest not found'
-                            : event?.preview?.manifestFetchErrorCode == 3
-                              ? 'App manifest content error'
-                              : undefined,
-                        event.preview.manifestFetchErrorCode,
-                    );
-                    return;
-                }
-                get().enqueueRequest({
-                    type: 'connect',
-                    request: event,
-                });
-            });
-
-            walletKit.onTransactionRequest(onTransactionRequest);
-
-            walletKit.onSignDataRequest((event) => {
-                log.info('Sign data request received:', event);
-                get().enqueueRequest({
-                    type: 'signData',
-                    request: event,
-                });
-            });
-
-            walletKit.onDisconnect((event) => {
-                log.info('Disconnect event received:', event);
-                get().handleDisconnectEvent(event);
-            });
-
-            log.info('WalletKit listeners initialized');
-
-            set((state) => {
-                state.wallet.walletKit = walletKit;
-            });
-
-            // Load all saved wallets into the WalletKit instance
-            await get().loadSavedWalletsIntoKit(walletKit);
-
-            return walletKit;
+        let initResolve: () => void;
+        let initReject: (error: Error) => void;
+        let initializer = new Promise<void>((resolve, reject) => {
+            initResolve = resolve;
+            initReject = reject;
         });
+
+        set((state) => {
+            state.wallet.walletKitInitializer = initializer;
+        });
+        walletKit
+            .then(async (walletKit) => {
+                // Set up wallet kit event listeners
+                const onTransactionRequest = async (event: EventTransactionRequest) => {
+                    const wallet = await walletKit.getWallet(event.walletAddress ?? '');
+                    if (!wallet) {
+                        log.error('Wallet not found for transaction request');
+                        return;
+                    }
+
+                    const balance = await wallet.getBalance();
+                    const minNeededBalance = event.request.messages.reduce(
+                        (acc, message) => acc + BigInt(message.amount),
+                        0n,
+                    );
+                    if (BigInt(balance) < minNeededBalance) {
+                        await walletKit.rejectTransactionRequest(event, {
+                            code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                            message: 'Insufficient balance',
+                        });
+                        return;
+                    }
+
+                    get().enqueueRequest({
+                        type: 'transaction',
+                        request: event,
+                    });
+                };
+                walletKit.onConnectRequest((event) => {
+                    log.info('Connect request received:', event);
+                    if (event?.preview?.manifestFetchErrorCode) {
+                        log.error(
+                            'Connect request received with manifest fetch error:',
+                            event?.preview?.manifestFetchErrorCode,
+                        );
+                        walletKit.rejectConnectRequest(
+                            event,
+                            event?.preview?.manifestFetchErrorCode == 2
+                                ? 'App manifest not found'
+                                : event?.preview?.manifestFetchErrorCode == 3
+                                  ? 'App manifest content error'
+                                  : undefined,
+                            event.preview.manifestFetchErrorCode,
+                        );
+                        return;
+                    }
+                    get().enqueueRequest({
+                        type: 'connect',
+                        request: event,
+                    });
+                });
+
+                walletKit.onTransactionRequest(onTransactionRequest);
+
+                walletKit.onSignDataRequest((event) => {
+                    log.info('Sign data request received:', event);
+                    get().enqueueRequest({
+                        type: 'signData',
+                        request: event,
+                    });
+                });
+
+                walletKit.onDisconnect((event) => {
+                    log.info('Disconnect event received:', event);
+                    get().handleDisconnectEvent(event);
+                });
+
+                log.info('WalletKit listeners initialized');
+
+                set((state) => {
+                    state.wallet.walletKit = walletKit;
+                });
+
+                // Load all saved wallets into the WalletKit instance
+                await get().loadSavedWalletsIntoKit(walletKit);
+
+                return walletKit;
+            })
+            .then(() => {
+                initResolve();
+            })
+            .catch((error) => {
+                initReject(error);
+            });
     },
 
     // Create a new wallet
@@ -832,11 +850,29 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
     },
 
     loadAllWallets: async () => {
-        const state = get();
+        let state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
         }
 
+        if (!state.wallet.walletKit) {
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(undefined);
+                }, 1000);
+            });
+        }
+
+        state = get();
+        if (state.wallet.walletKitInitializer) {
+            await state.wallet.walletKitInitializer;
+        }
+
+        state = get();
+
+        if (!state.auth.currentPassword) {
+            throw new Error('User not authenticated');
+        }
         if (!state.wallet.walletKit) {
             throw new Error('WalletKit not initialized');
         }
@@ -908,11 +944,6 @@ export const createWalletSlice: WalletSliceCreator = (set: SetState, get) => ({
             log.error('Error loading wallets:', error);
             throw new Error('Failed to load wallets');
         }
-    },
-
-    // Legacy method for backward compatibility
-    loadWallet: async () => {
-        await get().loadAllWallets();
     },
 
     getDecryptedMnemonic: async (walletId?: string): Promise<string[] | null> => {

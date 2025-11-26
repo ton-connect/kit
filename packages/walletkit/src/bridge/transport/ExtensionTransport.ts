@@ -6,6 +6,7 @@
  *
  */
 
+import { globalLogger } from '../../core/Logger';
 import type { InjectedToExtensionBridgeRequestPayload } from '../../types/jsBridge';
 import {
     INJECT_CONTENT_SCRIPT,
@@ -15,6 +16,8 @@ import {
 } from '../utils/messageTypes';
 import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from '../utils/timeouts';
 import type { Transport } from './Transport';
+
+const log = globalLogger.createChild('ExtensionTransport');
 
 interface PendingRequest {
     resolve: (value: unknown) => void;
@@ -38,18 +41,18 @@ export type MessageListener = (callback: (data: unknown) => void) => void;
  */
 export class ExtensionTransport implements Transport {
     private readonly pendingRequests = new Map<string, PendingRequest>();
-    private messageSender: MessageSender;
+    private messageSenders: MessageSender[];
     private messageListener: MessageListener;
     private eventCallback: ((event: unknown) => void) | null = null;
 
     constructor(sendMessage: MessageSender, messageListener: MessageListener) {
-        this.messageSender = sendMessage;
+        this.messageSenders = [sendMessage];
         this.messageListener = messageListener;
         this.setupMessageListener();
     }
 
     setMessageSender(sendMessage: MessageSender): void {
-        this.messageSender = sendMessage;
+        this.messageSenders.push(sendMessage);
     }
 
     setMessageListener(messageListener: MessageListener): void {
@@ -153,17 +156,20 @@ export class ExtensionTransport implements Transport {
             // Store pending request
             this.pendingRequests.set(messageId, { resolve, reject, timeoutId });
 
-            // Send message to extension
-            this.messageSender({
-                type: TONCONNECT_BRIDGE_REQUEST,
-                // source: this.source,
-                payload: request,
-                messageId: messageId,
-            }).catch((error) => {
-                this.pendingRequests.delete(messageId);
-                clearTimeout(timeoutId);
-                reject(error);
-            });
+            for (const sender of this.messageSenders) {
+                // Send message to extension
+                sender({
+                    type: TONCONNECT_BRIDGE_REQUEST,
+                    // source: this.source,
+                    payload: request,
+                    messageId: messageId,
+                }).catch((error) => {
+                    log.error('Failed to send message to extension:', error);
+                    this.pendingRequests.delete(messageId);
+                    clearTimeout(timeoutId);
+                    reject(error);
+                });
+            }
         });
     }
 
@@ -178,7 +184,7 @@ export class ExtensionTransport implements Transport {
      * Check if transport is available
      */
     isAvailable(): boolean {
-        return this.messageSender !== null && this.messageListener !== null;
+        return this.messageSenders !== null && this.messageListener !== null;
     }
 
     /**
@@ -187,12 +193,13 @@ export class ExtensionTransport implements Transport {
     requestContentScriptInjection(): void {
         if (!this.isAvailable()) return;
 
-        this.messageSender({
-            type: INJECT_CONTENT_SCRIPT,
-        }).catch((error) => {
-            // eslint-disable-next-line no-console
-            console.error('Failed to request content script injection:', error);
-        });
+        for (const sender of this.messageSenders) {
+            sender({
+                type: INJECT_CONTENT_SCRIPT,
+            }).catch((error) => {
+                log.error('Failed to request content script injection:', error);
+            });
+        }
     }
 
     /**

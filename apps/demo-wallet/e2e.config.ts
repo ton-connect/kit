@@ -12,17 +12,22 @@ import { defineConfig, devices } from '@playwright/test';
 // Загружаем переменные окружения из .env файла
 config({ quiet: true });
 
+const workersCount = process.env.WORKERS_COUNT ? parseInt(process.env.WORKERS_COUNT) : undefined;
+const timeout = process.env.TIMEOUT ? parseInt(process.env.TIMEOUT) : 60_000;
+const headless =
+    process.env.ENABLE_HEADLESS === 'true' ? true : process.env.ENABLE_HEADLESS === 'false' ? false : undefined;
+
 export default defineConfig({
     testDir: './e2e',
-    timeout: 60_000,
+    timeout: timeout,
     expect: {
-        timeout: 60_000,
+        timeout: timeout,
     },
     fullyParallel: true,
     reporter: process.env.CI
         ? [['list'], ['html'], ['allure-playwright']]
         : [['list'], ['html'], ['allure-playwright']],
-    workers: process.env.WORKERS_COUNT ? parseInt(process.env.WORKERS_COUNT) : undefined,
+    workers: workersCount,
     use: {
         screenshot: 'only-on-failure',
         trace: 'retain-on-failure',
@@ -39,8 +44,7 @@ export default defineConfig({
                 '--disable-permissions-api',
             ],
         },
-        headless:
-            process.env.ENABLE_HEADLESS === 'true' ? true : process.env.ENABLE_HEADLESS === 'false' ? false : undefined,
+        headless: headless,
     },
     projects: process.env.E2E_WALLET_SOURCE_EXTENSION
         ? [

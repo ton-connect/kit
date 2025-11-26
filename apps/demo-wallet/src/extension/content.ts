@@ -47,9 +47,9 @@ function injectTonConnectBridge() {
         if (!window.__extensionTransport) {
             window.__extensionTransport = new ExtensionTransport(messageSender, messageListener);
         } else {
-            window.__extensionTransport.setMessageSender(messageSender);
             window.__extensionTransport.setMessageListener(messageListener);
             window.__extensionTransport.setupMessageListener();
+            window.__extensionTransport.setMessageSender(messageSender);
         }
 
         // Inject the simplified bridge that forwards to extension

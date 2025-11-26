@@ -19,7 +19,7 @@ export const UnlockWallet: React.FC = () => {
 
     const navigate = useNavigate();
     const { unlock, reset } = useAuth();
-    const { loadWallet } = useWallet();
+    const { loadAllWallets } = useWallet();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +33,7 @@ export const UnlockWallet: React.FC = () => {
             }
 
             // Load wallet data after successful unlock
-            await loadWallet();
+            await loadAllWallets();
 
             // Navigate to wallet
             navigate('/wallet');
