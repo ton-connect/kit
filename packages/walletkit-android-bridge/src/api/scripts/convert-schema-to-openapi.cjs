@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const fs = require('fs');
 
 // Load the conversion library
@@ -31,52 +32,52 @@ function fixNumberTypes(obj) {
     if (obj === null || typeof obj !== 'object') {
         return obj;
     }
-    
+
     if (Array.isArray(obj)) {
         return obj.map(fixNumberTypes);
     }
-    
+
     const result = {};
     for (const [key, value] of Object.entries(obj)) {
         result[key] = fixNumberTypes(value);
     }
-    
+
     // Fix: type: number with format: int32/int64 should be type: integer
     if (result.type === 'number' && (result.format === 'int32' || result.format === 'int64')) {
         result.type = 'integer';
     }
-    
+
     return result;
 }
 
 try {
     const schemaContent = fs.readFileSync(schemaFile, 'utf8');
     const schema = JSON.parse(schemaContent);
-    
+
     // Extract definitions/schemas
     let schemas = schema.definitions || schema.$defs || {};
-    
+
     // Convert each schema to OpenAPI format and fix number types
     const openapiSchemas = {};
     for (const [name, schemaObj] of Object.entries(schemas)) {
         const converted = convertFn(schemaObj);
         openapiSchemas[name] = fixNumberTypes(converted);
     }
-    
+
     // Create OpenAPI spec
     const openapi = {
         openapi: '3.0.0',
         info: {
             title: 'Generated API from TypeScript',
             version: '1.0.0',
-            description: 'Auto-generated OpenAPI specification from TypeScript models'
+            description: 'Auto-generated OpenAPI specification from TypeScript models',
         },
         paths: {},
         components: {
-            schemas: openapiSchemas
-        }
+            schemas: openapiSchemas,
+        },
     };
-    
+
     fs.writeFileSync(outputFile, JSON.stringify(openapi, null, 2));
     console.log('✅ OpenAPI spec created: ' + outputFile);
 } catch (error) {
