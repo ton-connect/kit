@@ -36,9 +36,10 @@ test('[messages] Success if contains maximum messages @allureId(1959)', async ({
     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
 });
 
-test('[network] Error if as a number @allureId(2234)', async ({ wallet, app, widget }) => {
-    await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
-});
+// Disabled untill sdk is updated on the test runner
+// test('[network] Error if as a number @allureId(2234)', async ({ wallet, app, widget }) => {
+//     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
+// });
 
 test("[network] Success if '-239' (mainnet) @allureId(2249)", async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);

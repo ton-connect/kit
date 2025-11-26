@@ -9,7 +9,7 @@
 import { chromium, type Fixtures, type TestType } from '@playwright/test';
 import { mergeTests, test as base } from '@playwright/test';
 
-export function launchPersistentContext(extensionPath: string, slowMo = 0) {
+export async function launchPersistentContext(extensionPath: string, slowMo = 0) {
     const args = [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -29,11 +29,13 @@ export function launchPersistentContext(extensionPath: string, slowMo = 0) {
         args.push('--headless=new');
     }
     slowMo = process.env.CI ? 0 : (parseInt(process.env.E2E_SLOW_MO || '0') ?? slowMo);
-    return chromium.launchPersistentContext('', {
+    const browserContext = await chromium.launchPersistentContext('', {
         args,
         headless: false,
         slowMo,
     });
+
+    return browserContext;
 }
 
 export function testWith<CustomFixtures extends Fixtures>(

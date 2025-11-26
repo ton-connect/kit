@@ -54,7 +54,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
 
             // Load existing wallet if available
             if (walletStore.hasWallet && authStore.isUnlocked) {
-                await walletStore.loadWallet();
+                await walletStore.loadAllWallets();
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';

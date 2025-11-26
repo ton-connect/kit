@@ -126,7 +126,6 @@ export interface WalletSlice extends WalletState {
     loadSavedWalletsIntoKit: (walletKit: ITonWalletKit) => Promise<void>;
 
     // Legacy actions (for backward compatibility)
-    loadWallet: () => Promise<void>;
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
     addTransaction: (transaction: PreviewTransaction) => void;
