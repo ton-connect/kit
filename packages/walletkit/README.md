@@ -1,10 +1,8 @@
 # @ton/walletkit
 
-A production-ready wallet-side integration layer for TON Connect. Clean architecture, TypeScript-first, designed for building TON wallets at scale.
+A production-ready wallet-side integration layer for TON Connect, designed for building TON wallets at scale
 
 ## Overview
-
-`@ton/walletkit` provides everything needed to integrate TON Connect into your wallet application:
 
 - 🔗 **TON Connect Protocol** - Handle connect/disconnect/transaction/sign-data requests
 - 💼 **Wallet Management** - Multi-wallet support with persistent storage
@@ -12,192 +10,415 @@ A production-ready wallet-side integration layer for TON Connect. Clean architec
 - 🎨 **Previews for actions** - Transaction emulation with money flow analysis
 - 🪙 **Asset Support** - TON, Jettons, NFTs with metadata
 
-For detailed SDK usage and API reference, see [DOCUMENTATION.md](./DOCUMENTATION.md).
+**Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
-## Quick Install
+This guide shows how to integrate `@ton/walletkit` into your app with minimal boilerplate, it abstracts TON Connect and wallet implementation details behind a clean API and UI-friendly events
 
-```bash
-pnpm add @ton/walletkit
-```
+After you complete this guide, you'll have your wallet fully integrated with the TON ecosystem, you'll be able to interact with dApps, NFTs, and jettons
 
-## Development
-
-### Setup
+## Quick start
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build packages
-pnpm build
-
-# Watch mode for development
-pnpm dev
+npm install @ton/walletkit
 ```
 
-### Project Structure
+## Initialize the kit
 
-```
-src/
-├── core/                    # Core business logic
-│   ├── TonWalletKit.ts     # Main orchestration class
-│   ├── BridgeManager.ts    # Bridge connection management
-│   ├── WalletManager.ts    # Wallet CRUD operations
-│   └── SessionManager.ts   # Session lifecycle tracking
-├── handlers/                # Event-specific handlers
-│   ├── ConnectHandler.ts   # Connection requests
-│   ├── TransactionHandler.ts # Transaction requests
-│   └── SignDataHandler.ts  # Data signing requests
-├── contracts/               # Smart contract wrappers
-│   ├── JettonMaster.ts     # Jetton operations
-│   └── NftItem.ts          # NFT operations
-├── utils/                   # Utilities and helpers
-├── types/                   # TypeScript type definitions
-└── index.ts                # Public exports
-```
+```ts
+import { 
+  TonWalletKit,      // Main SDK class
+  Signer,            // Handles cryptographic signing
+  WalletV5R1Adapter, // Latest wallet version (recommended) or for legacy use WalletV4R2Adapter
+  CHAIN,             // Network constants (MAINNET/TESTNET)
+} from '@ton/walletkit';
 
-### Testing
+const kit = new TonWalletKit({
+  network: CHAIN.MAINNET,
+  // Optional API configuration
+  apiClient: {
+    key: 'your-api-key',  // Optional API key for Toncenter get on https://t.me/toncenter
+    // or use self-hosted from https://github.com/toncenter/ton-http-api
+    // url: 'https://toncenter-self-hosted.com',
+  },
+  bridge: {
+    bridgeUrl: 'https://conmnect.ton.org/bridge', // TON Connect bridge for dApp communication 
+    // or use self-hosted from https://github.com/ton-connect/bridge
+  },
+});
 
-```bash
-# Run all tests
-pnpm test
+// Wait for initialization to complete
+await kit.waitForReady();
 
-# Run tests with coverage
-pnpm test:coverage
+// Add a wallet from mnemonic (24-word seed phrase) ton or bip39
+const signer = await Signer.fromMnemonic(['word1', 'word2', '...'], { type: 'ton' });
+const walletAdapter = await WalletV5R1Adapter.create(signer, {
+  client: kit.getApiClient(),
+  network: CHAIN.MAINNET,
+});
 
-# Run mutation tests (quality check)
-pnpm test:mutation
-
-# View coverage report
-# Open coverage/index.html in browser
-```
-
-### Code Quality
-
-```bash
-# Lint code
-pnpm lint
-
-# Fix linting issues
-pnpm lint:fix
-
-# Quality gate (coverage + checks)
-pnpm quality
+await kit.addWallet(walletAdapter);
 ```
 
-### Building
+**Other wallet creation options:**
 
-```bash
-# Clean build artifacts
-pnpm build:clean
+```ts
+import { Signer, WalletV4R2Adapter, CHAIN } from '@ton/walletkit';
 
-# Build CommonJS
-pnpm build:cjs
+// From private key (hex string)
+const signer = await Signer.fromPrivateKey('0x...');
 
-# Build ES Modules
-pnpm build:esm
+// Using Wallet V4R2 (for compatibility with older wallets)
+const walletAdapter = await WalletV4R2Adapter.create(signer, {
+  client: kit.getApiClient(),
+  network: CHAIN.MAINNET,
+});
 
-# Build both (recommended)
-pnpm build
+await kit.addWallet(walletAdapter);
 ```
 
-## Architecture Principles
+## Understanding previews (for your UI)
 
-### Modular Design
+Before handling requests, it's helpful to understand the preview data that the kit provides for each request type, these previews help you display user-friendly confirmation dialogs
 
-Each component has a single responsibility and can be tested in isolation:
+- **ConnectPreview (`req.preview`)**: Information about the dApp asking to connect, includes `manifest` (name, description, icon), `requestedItems`, and `permissions` your UI can show before approval
+- **TransactionPreview (`tx.preview`)**: Human-readable transaction summary, on success, `preview.moneyFlow.ourTransfers` contains an array of net asset changes (TON and jettons) with positive amounts for incoming and negative for outgoing `preview.moneyFlow.inputs` and `preview.moneyFlow.outputs` show raw TON flow, and `preview.emulationResult` has low-level emulation details. On error, `preview.result === 'error'` with an `emulationError`
+- **SignDataPreview (`sd.preview`)**: Shape of the data to sign `kind` is `'text' | 'binary' | 'cell'` use this to render a safe preview
 
-- **TonWalletKit** - Orchestration layer that coordinates managers
-- **Managers** - Core business logic (wallets, sessions, bridge)
-- **Handlers** - Event processing (connect, transaction, sign-data)
-- **Utils** - Pure functions (validation, storage, crypto)
+You can display these previews directly in your confirmation modals
 
-### Type Safety
+## Listen for requests from dApps
 
-- Full TypeScript coverage with strict mode
-- Runtime validation matches compile-time types
+Register callbacks that show UI and then approve or reject via kit methods, note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic
 
-### Testing Strategy
+```ts
+// Connect requests - triggered when a dApp wants to connect
+kit.onConnectRequest(async (req) => {
+  try {
+    // Use req.preview to display dApp info in your UI
+    const name = req.dAppInfo?.name;
+    if (confirm(`Connect to ${name}?`)) {
+      // Set wallet address on the request before approving
+      req.walletAddress = getSelectedWalletAddress(); // Your wallet selection logic
+      await kit.approveConnectRequest(req);
+    } else {
+      await kit.rejectConnectRequest(req, 'User rejected');
+    }
+  } catch (error) {
+    console.error('Connect request failed:', error);
+    await kit.rejectConnectRequest(req, 'Error processing request');
+  }
+});
 
-- **Unit Tests** - Test individual components in isolation
-- **Integration Tests** - Test component interactions
-- **Mutation Tests** - Verify test suite quality with Stryker
+// Transaction requests - triggered when a dApp wants to execute a transaction
+kit.onTransactionRequest(async (tx) => {
+  try {
+    // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
+    // Each transfer shows positive amounts for incoming, negative for outgoing
+    if (confirm('Do you confirm this transaction?')) {
+      await kit.approveTransactionRequest(tx);
+    } else {
+      await kit.rejectTransactionRequest(tx, 'User rejected');
+    }
+  } catch (error) {
+    console.error('Transaction request failed:', error);
+    await kit.rejectTransactionRequest(tx, 'Error processing request');
+  }
+});
 
-## Contributing
+// Sign data requests - triggered when a dApp wants to sign arbitrary data
+kit.onSignDataRequest(async (sd) => {
+  try {
+    // Use sd.preview.kind to determine how to display the data
+    if (confirm('Sign this data?')) {
+      await kit.signDataRequest(sd);
+    } else {
+      await kit.rejectSignDataRequest(sd, 'User rejected');
+    }
+  } catch (error) {
+    console.error('Sign data request failed:', error);
+    await kit.rejectSignDataRequest(sd, 'Error processing request');
+  }
+});
 
-### Adding Features
-
-1. **Identify the module** - Find the right place in the architecture
-2. **Write tests first** - TDD approach with unit tests
-3. **Implement the feature** - Follow existing patterns
-4. **Update types** - Ensure TypeScript types are up to date
-5. **Document** - Update DOCUMENTATION.md for public APIs
-
-### Pull Request Process
-
-1. Create a feature branch
-2. Write tests for your changes
-3. Ensure all tests pass: `pnpm test`
-4. Fix any linting issues: `pnpm lint:fix`
-5. Submit PR with clear description
-
-## Demo Wallet
-
-The `apps/demo-wallet` directory contains a reference implementation showing how to integrate walletkit:
-
-```bash
-cd apps/demo-wallet
-pnpm install
-pnpm dev
+// Disconnect events - triggered when a dApp disconnects
+kit.onDisconnect((evt) => {
+  // Clean up any UI state related to this connection
+  console.log(`Disconnected from wallet: ${evt.walletAddress}`);
+});
 ```
 
-Key files to review:
-- `src/stores/slices/walletSlice.ts` - Kit initialization and event handlers
-- `src/components/modals/` - UI for connect/transaction approvals
-- `src/pages/SendTransaction.tsx` - Programmatic transaction creation
+### Handle TON Connect links
 
-## Debugging
+When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit, this will trigger your `onConnectRequest` callback
 
-### Enable Debug Logging
-
-Set the environment variable before running:
-
-```bash
-DEBUG=walletkit:* pnpm dev
+```ts
+// Example: from a QR scanner, deep link, or URL parameter
+async function onTonConnectLink(url: string) {
+  // url format: tc://connect?...
+  await kit.handleTonConnectUrl(url);
+}
 ```
 
-### Common Issues
+### Basic wallet operations
 
-**Bridge Connection Fails**
-- Check `bridgeUrl` is correct
-- Verify network connectivity
-- Inspect browser console for errors
+```ts
+// Get wallet instance (getSelectedWalletAddress is your own logic)
+const address = getSelectedWalletAddress();
+const current = kit.getWallet(address);
+if (!current) return;
 
-**Transaction Preview Empty**
-- Ensure wallet has TON balance for fees
-- Check transaction BOC is valid
-- Look for emulation errors in preview
+// Query balance
+const balance = await current.getBalance();
+console.log(address, balance.toString());
+```
 
-**Wallet Not Found**
-- Verify wallet address format
-- Check wallet was added via `addWallet()`
-- Confirm storage adapter is working
+### Rendering previews (reference)
 
-## Release Process
+The snippets below mirror how the demo wallet renders previews in its modals, adapt them to your UI framework
 
-1. Update version in `package.json`
-2. Run `pnpm build` to create fresh build
-3. Run `pnpm test` to verify all tests pass
-4. Run `pnpm quality` to check coverage
-5. Commit changes and tag release
-6. Publish to npm: `npm publish`
+Render Connect preview:
+
+```ts
+function renderConnectPreview(req: EventConnectRequest) {
+  const name = req.preview.manifest?.name ?? req.dAppInfo?.name;
+  const description = req.preview.manifest?.description;
+  const iconUrl = req.preview.manifest?.iconUrl;
+  const permissions = req.preview.permissions ?? [];
+
+  return {
+    title: `Connect to ${name}?`,
+    iconUrl,
+    description,
+    permissions: permissions.map((p) => ({ title: p.title, description: p.description })),
+  };
+}
+```
+
+Render Transaction preview (money flow overview):
+
+```ts
+import type { MoneyFlowSelf } from '@ton/walletkit';
+
+function summarizeTransaction(preview: TransactionPreview) {
+  if (preview.result === 'error') {
+    return { kind: 'error', message: preview.emulationError.message } as const;
+  }
+
+  // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
+  const transfers = preview.moneyFlow.ourTransfers; // Array of MoneyFlowSelf
+
+  // Each transfer has:
+  // - type: 'ton' | 'jetton'
+  // - amount: string (positive for incoming, negative for outgoing)
+  // - jetton?: string (jetton master address, if type === 'jetton')
+
+  return {
+    kind: 'success' as const,
+    transfers: transfers.map((transfer) => ({
+      type: transfer.type,
+      jettonAddress: transfer.type === 'jetton' ? transfer.jetton : 'TON',
+      amount: transfer.amount, // string, can be positive or negative
+      isIncoming: BigInt(transfer.amount) >= 0n,
+    })),
+  };
+}
+```
+
+Example UI rendering:
+
+```tsx
+function renderMoneyFlow(transfers: MoneyFlowSelf[]) {
+  if (transfers.length === 0) {
+    return <div>This transaction doesn't involve any token transfers</div>;
+  }
+
+  return transfers.map((transfer) => {
+    const amount = BigInt(transfer.amount);
+    const isIncoming = amount >= 0n;
+    const jettonAddress = transfer.type === 'jetton' ? transfer.jetton : 'TON';
+
+    return (
+      <div key={jettonAddress}>
+        <span>{isIncoming ? '+' : ''}{transfer.amount}</span>
+        <span>{jettonAddress}</span>
+      </div>
+    );
+  });
+}
+```
+
+Render Sign-Data preview:
+
+```ts
+function renderSignDataPreview(preview: SignDataPreview) {
+  switch (preview.kind) {
+    case 'text':
+      return { type: 'text', content: preview.content };
+    case 'binary':
+      return { type: 'binary', content: preview.content };
+    case 'cell':
+      return {
+        type: 'cell',
+        content: preview.content,
+        schema: preview.schema,
+        parsed: preview.parsed,
+      };
+  }
+}
+```
+
+Tip: For jetton names/symbols and images in transaction previews, you can enrich the UI using:
+
+```ts
+const info = kit.jettons.getJettonInfo(jettonAddress);
+// info?.name, info?.symbol, info?.image
+```
+
+## Sending assets programmatically
+
+You can create transactions from your wallet app (not from dApps) and feed them into the regular approval flow via `handleNewTransaction`. This triggers your `onTransactionRequest` callback, allowing the same UI confirmation flow for both dApp and wallet-initiated transactions.
+
+### Send TON
+
+```ts
+import type { TonTransferParams } from '@ton/walletkit';
+
+const from = kit.getWallet(getSelectedWalletAddress());
+if (!from) throw new Error('No wallet');
+
+const tonTransfer: TonTransferParams = {
+  toAddress: 'EQC...recipient...',
+  amount: (1n * 10n ** 9n).toString(), // 1 TON in nanotons
+  // Optional comment OR body (base64 BOC), not both
+  comment: 'Thanks!'
+};
+
+// 1) Build transaction content
+const tx = await from.createTransferTonTransaction(tonTransfer);
+
+// 2) Route into the normal flow (triggers onTransactionRequest)
+await kit.handleNewTransaction(from, tx);
+```
+
+### Send Jettons (fungible tokens)
+
+```ts
+import type { JettonTransferParams } from '@ton/walletkit';
+
+const wallet = kit.getWallet(getSelectedWalletAddress());
+if (!wallet) throw new Error('No wallet');
+
+const jettonTransfer: JettonTransferParams = {
+  toAddress: 'EQC...recipient...',
+  jettonAddress: 'EQD...jetton-master...',
+  amount: '1000000000', // raw amount per token decimals
+  comment: 'Payment'
+};
+
+const tx = await wallet.createTransferJettonTransaction(jettonTransfer);
+await kit.handleNewTransaction(wallet, tx);
+```
+
+Notes:
+- `amount` is the raw integer amount (apply jetton decimals yourself).
+- The transaction includes TON for gas automatically.
+
+### Send NFTs
+
+```ts
+import type { NftTransferParamsHuman } from '@ton/walletkit';
+
+const wallet = kit.getWallet(getSelectedWalletAddress());
+if (!wallet) throw new Error('No wallet');
+
+const nftTransfer: NftTransferParamsHuman = {
+  nftAddress: 'EQD...nft-item...',
+  toAddress: 'EQC...recipient...',
+  transferAmount: 10000000n, // TON used to invoke NFT transfer (nanotons)
+  comment: 'Gift'
+};
+
+const tx = await wallet.createTransferNftTransaction(nftTransfer);
+await kit.handleNewTransaction(wallet, tx);
+```
+
+Fetching NFTs:
+
+```ts
+const items = await wallet.getNfts({ offset: 0, limit: 50 });
+// items.items is an array of NftItem
+```
+
+## Example: minimal UI state wiring
+
+```ts
+type AppState = {
+  connectModal?: { request: any };
+  txModal?: { request: any };
+};
+
+const state: AppState = {};
+
+kit.onConnectRequest((req) => {
+  state.connectModal = { request: req };
+});
+
+kit.onTransactionRequest((tx) => {
+  state.txModal = { request: tx };
+});
+
+async function approveConnect() {
+  if (!state.connectModal) return;
+  const address = getSelectedWalletAddress();
+  const wallet = kit.getWallet(address);
+  if (!wallet) return;
+  // Set wallet address on the request
+  state.connectModal.request.walletAddress = wallet.getAddress();
+  await kit.approveConnectRequest(state.connectModal.request);
+  state.connectModal = undefined;
+}
+
+async function rejectConnect() {
+  if (!state.connectModal) return;
+  await kit.rejectConnectRequest(state.connectModal.request, 'User rejected');
+  state.connectModal = undefined;
+}
+
+async function approveTx() {
+  if (!state.txModal) return;
+  await kit.approveTransactionRequest(state.txModal.request);
+  state.txModal = undefined;
+}
+
+async function rejectTx() {
+  if (!state.txModal) return;
+  await kit.rejectTransactionRequest(state.txModal.request, 'User rejected');
+  state.txModal = undefined;
+}
+```
+
+## Error handling tips
+
+- Wrap approvals in try/catch to surface actionable messages (see examples in Section 3).
+- Validate there is at least one wallet before approving a connect.
+- Surface preview data to users: `req.preview`, `tx.preview.moneyFlow`, `sd.preview`.
+
+## Demo wallet reference
+
+**Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
+
+See `apps/demo-wallet` for the full implementation. the store slice [stores/slices/walletSlice.ts](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/src/stores/slices/walletSlice.ts) shows how to:
+
+- Initialize the kit and add a wallet from mnemonic
+- Wire `onConnectRequest` and `onTransactionRequest` to open modals
+- Approve or reject requests using the kit methods
 
 ## Resources
 
-- [DOCUMENTATION.md](./DOCUMENTATION.md) - Complete SDK usage guide
-- [Demo Wallet](../apps/demo-wallet/) - Reference implementation
 - [TON Connect Protocol](https://github.com/ton-connect/docs) - Official protocol docs
+- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](https://github.com/ton-connect/kit/tree/main/apps/demo-wallet)
+- [Complete development guide](https://github.com/ton-connect/kit/blob/main/packages/walletkit/DOCUMENTATION.md)
 
 ## License
 
-ISC License - see LICENSE file for details.
+ISC License - see LICENSE file for details
