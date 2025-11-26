@@ -55,8 +55,8 @@ export async function disconnectSession(args?: DisconnectSessionArgs) {
  */
 export async function processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs) {
     return callBridge('processInternalBrowserRequest', async () => {
-        // Extract domain from URL if provided, otherwise use default
-        const domain = args.url ? new URL(args.url).host : 'internal-browser';
+        // Extract origin (with scheme) from URL - SessionManager.getSessionByDomain expects a parseable URL
+        const domain = args.url ? new URL(args.url).origin : 'internal-browser';
 
         const messageInfo = {
             messageId: args.messageId,
