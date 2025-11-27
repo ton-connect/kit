@@ -12,10 +12,21 @@ export * from './appStore';
 // Export main store
 export { useStore } from './appStore';
 
-// Individual slice creators (for testing or advanced usage)
+// Individual slice creators
 export { createAuthSlice } from './slices/authSlice';
-export { createWalletSlice } from './slices/walletSlice';
+export { createWalletCoreSlice } from './slices/walletCoreSlice';
+export { createWalletManagementSlice } from './slices/walletManagementSlice';
+export { createTonConnectSlice } from './slices/tonConnectSlice';
+export { createJettonsSlice } from './slices/jettonsSlice';
 export { createNftsSlice } from './slices/nftsSlice';
 
 // Types
-export type { AppState, AuthSlice, WalletSlice, NftsSlice } from '../types/store';
+export type {
+    AppState,
+    AuthSlice,
+    WalletCoreSlice,
+    WalletManagementSlice,
+    TonConnectSlice,
+    JettonsSlice,
+    NftsSlice,
+} from '../types/store';

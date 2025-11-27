@@ -16,9 +16,9 @@ import { TraceRow } from './TraceRow';
 export const RecentTransactions: React.FC = memo(() => {
     const { transactions, loadTransactions, address } = useStore(
         useShallow((state) => ({
-            transactions: state.wallet.transactions,
+            transactions: state.walletManagement.transactions,
             loadTransactions: state.loadTransactions,
-            address: state.wallet.address,
+            address: state.walletManagement.address,
         })),
     );
     const walletKit = useWalletKit();
