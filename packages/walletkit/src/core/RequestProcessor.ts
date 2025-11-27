@@ -569,11 +569,17 @@ export class RequestProcessor {
                     throw error;
                 }
 
-                const domainUrl = new URL(event.domain);
+                let domainUrl = event.domain;
+                try {
+                    domainUrl = new URL(event.domain).host;
+                } catch {
+                    //
+                }
+
                 // Sign data with wallet
                 const signData = PrepareTonConnectData({
                     payload: event.request,
-                    domain: domainUrl.host,
+                    domain: domainUrl,
                     address: event.walletAddress,
                 });
                 const signature = await wallet.getSignedSignData(signData);
