@@ -24,6 +24,9 @@
     },
     "e2e": {
       "dependsOn": ["build", "^e2e"]
+    },
+    "generate-openapi-spec": {
+      "dependsOn": ["^generate-openapi-spec"]
     }
   }
 }

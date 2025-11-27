@@ -10,7 +10,8 @@
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "quality": "turbo quality",
-    "e2e": "turbo e2e"
+    "e2e": "turbo e2e",
+    "generate-openapi-spec": "turbo generate-openapi-spec"
   },
   "prettier": "@ton/toolchain/prettier",
   "keywords": [],

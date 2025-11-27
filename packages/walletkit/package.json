@@ -39,7 +39,8 @@
     "test:mutation": "stryker run stryker.config.js",
     "quality": "pnpm test:coverage",
     "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --max-warnings 0 --fix"
+    "lint:fix": "eslint . --max-warnings 0 --fix",
+    "generate-openapi-spec": "src/api/scripts/generate-openapi-spec.sh"
   },
   "keywords": [
     "ton",
