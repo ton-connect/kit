@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "kit": "pnpm --filter @ton/walletkit",
+    "demo-wallet": "pnpm --filter demo-wallet",
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "eslint . --max-warnings 0",

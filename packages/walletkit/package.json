@@ -47,8 +47,11 @@
     "connect",
     "tonconnect"
   ],
-  "author": "",
+  "author": "TON Tech",
   "files": [
+    "DEVELOPMENT.md",
+    "README.md",
+    "LICENSE",
     "dist"
   ],
   "dependencies": {

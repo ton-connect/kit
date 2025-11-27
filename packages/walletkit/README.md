@@ -1,6 +1,12 @@
-# @ton/walletkit
+# TonWalletKit
 
 A production-ready wallet-side integration layer for TON Connect, designed for building TON wallets at scale
+
+![npm @ton/walletkit version](https://img.shields.io/npm/v/@ton/walletkit)
+[![Release](https://github.com/ton-connect/kit/actions/workflows/release.yml/badge.svg)](https://github.com/ton-connect/kit/actions/workflows/release.yml)
+[![Basic build and tests](https://github.com/ton-connect/kit/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/test.yml)
+[![e2e extension](https://github.com/ton-connect/kit/actions/workflows/e2e_extension.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/e2e_extension.yml)
+[![e2e web](https://github.com/ton-connect/kit/actions/workflows/e2e_web.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/e2e_web.yml)
 
 ## Overview
 
@@ -12,11 +18,27 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
+## Documentation
+
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-ton--connect%2Fkit-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/ton-connect/kit)
+
+- **[Browser Extension Build](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
+- **[JS Bridge Usage](https://github.com/ton-connect/kit/blob/main/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+- **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
+- **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
+
+### Tutorials
+
+- [How to initialize the TON Connect's](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/init)
+- [How to manage TON wallets](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/wallets)
+- [How to handle connections](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/connections)
+- [How to handle other events](https://docs.ton.org/ecosystem/ton-connect/walletkit/web/events)
+
+## Quick start
+
 This guide shows how to integrate `@ton/walletkit` into your app with minimal boilerplate, it abstracts TON Connect and wallet implementation details behind a clean API and UI-friendly events
 
 After you complete this guide, you'll have your wallet fully integrated with the TON ecosystem, you'll be able to interact with dApps, NFTs, and jettons
-
-## Quick start
 
 ```bash
 npm install @ton/walletkit
@@ -28,7 +50,7 @@ npm install @ton/walletkit
 import { 
   TonWalletKit,      // Main SDK class
   Signer,            // Handles cryptographic signing
-  WalletV5R1Adapter, // Latest wallet version (recommended) or for legacy use WalletV4R2Adapter
+  WalletV5R1Adapter, // Latest wallet version (recommended)
   CHAIN,             // Network constants (MAINNET/TESTNET)
 } from '@ton/walletkit';
 
@@ -36,12 +58,14 @@ const kit = new TonWalletKit({
   network: CHAIN.MAINNET,
   // Optional API configuration
   apiClient: {
-    key: 'your-api-key',  // Optional API key for Toncenter get on https://t.me/toncenter
+    // Optional API key for Toncenter get on https://t.me/toncenter
+    key: process.env.APP_TONCENTER_KEY,
+    url: 'https://toncenter.com', // default
     // or use self-hosted from https://github.com/toncenter/ton-http-api
-    // url: 'https://toncenter-self-hosted.com',
   },
   bridge: {
-    bridgeUrl: 'https://conmnect.ton.org/bridge', // TON Connect bridge for dApp communication 
+    // TON Connect bridge for dApp communication
+    bridgeUrl: 'https://connect.ton.org/bridge',
     // or use self-hosted from https://github.com/ton-connect/bridge
   },
 });
@@ -50,30 +74,40 @@ const kit = new TonWalletKit({
 await kit.waitForReady();
 
 // Add a wallet from mnemonic (24-word seed phrase) ton or bip39
-const signer = await Signer.fromMnemonic(['word1', 'word2', '...'], { type: 'ton' });
-const walletAdapter = await WalletV5R1Adapter.create(signer, {
+const mnemonic = process.env.APP_MNEMONIC!.split(' ');
+const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
+
+const walletV5R1Adapter = await WalletV5R1Adapter.create(signer, {
   client: kit.getApiClient(),
   network: CHAIN.MAINNET,
 });
 
-await kit.addWallet(walletAdapter);
+const walletV5R1 = await kit.addWallet(walletV5R1Adapter);
+if (walletV5R1) {
+  console.log('V5R1 Address:', walletV5R1.getAddress());
+  console.log('V5R1 Balance:', await walletV5R1.getBalance());
+}
 ```
 
-**Other wallet creation options:**
+**Legacy wallet creation options:**
 
 ```ts
 import { Signer, WalletV4R2Adapter, CHAIN } from '@ton/walletkit';
 
-// From private key (hex string)
-const signer = await Signer.fromPrivateKey('0x...');
+// From private key (hex string) format '0xab...' or 'ab...' 
+const signer2 = await Signer.fromPrivateKey(process.env.APP_TONCENTER_KEY!);
 
 // Using Wallet V4R2 (for compatibility with older wallets)
-const walletAdapter = await WalletV4R2Adapter.create(signer, {
+const walletV4R2Adapter = await WalletV4R2Adapter.create(signer2, {
   client: kit.getApiClient(),
   network: CHAIN.MAINNET,
 });
 
-await kit.addWallet(walletAdapter);
+const walletV4R2 = await kit.addWallet(walletV4R2Adapter);
+if (walletV4R2) {
+  console.log('V4R2 Address:', walletV4R2.getAddress());
+  console.log('V4R2 Balance:', await walletV4R2.getBalance());
+}
 ```
 
 ## Understanding previews (for your UI)

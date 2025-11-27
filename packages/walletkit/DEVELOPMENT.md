@@ -3,67 +3,61 @@
 ## Setup
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Watch mode for development
-??pnpm dev
+pnpm install         # Install dependencies
+pnpm build           # Build all packages
+pnpm kit dev         # Watch mode for development kit
+pnpm demo-wallet dev # Watch mode for development demo wallet and use kit
 ```
 
 ## Project Structure
 
 ```
 src/
-├── core/                     # Core business logic
-│   ├── TonWalletKit.ts       # Main orchestration class
-│   ├── BridgeManager.ts      # Bridge connection management
-│   ├── WalletManager.ts      # Wallet CRUD operations
-│   └── SessionManager.ts     # Session lifecycle tracking
-├── handlers/                 # Event-specific handlers
-│   ├── ConnectHandler.ts     # Connection requests
-│   ├── TransactionHandler.ts # Transaction requests
-│   └── SignDataHandler.ts    # Data signing requests
-├── contracts/                # Smart contract wrappers
-│   ├── JettonMaster.ts       # Jetton operations
-│   └── NftItem.ts            # NFT operations
-├── utils/                    # Utilities and helpers
-├── types/                    # TypeScript type definitions
-└── index.ts                  # Public exports
-```
-
-## Testing
-
-```bash
-pnpm test # Run all tests
-
-pnpm test:coverage # Run tests with coverage
-
-pnpm test:mutation # Run mutation tests (quality check)
+├── analytics/                     # Analytics and telemetry
+├── bridge/                        # Bridge communication layer
+├── contracts/                     # Smart contract wrappers
+│   ├── v4r2/                      # Wallet V4R2 implementation
+│   └── w5/                        # Wallet V5 implementation
+├── core/
+│   ├── TonWalletKit.ts            # Main orchestration class
+│   ├── BridgeManager.ts           # Bridge connection management
+│   ├── WalletManager.ts           # Wallet CRUD operations
+│   ├── SessionManager.ts          # Session lifecycle tracking
+│   ├── EventRouter.ts             # Event routing
+│   ├── EventProcessor.ts          # Event processing
+│   ├── EventStore.ts              # Event storage
+│   ├── EventEmitter.ts            # Event emission
+│   ├── RequestProcessor.ts        # Request processing
+│   ├── Initializer.ts             # Initialization logic
+│   ├── JettonsManager.ts          # Jettons management
+│   ├── ApiClientToncenter.ts      # Toncenter API client
+│   ├── Logger.ts                  # Logging utilities
+│   └── wallet/
+│       └── extensions/            # Wallet-specific extensions
+│           ├── jetton.ts          # Jetton operations
+│           ├── nft.ts             # NFT operations
+│           └── ton.ts             # TON operations
+├── errors/                        # Error handling
+├── handlers/                      # Event-specific handlers
+├── storage/                       # Storage abstraction and adapters LocalStorage, In-memory, Extension
+└── examples/                      # Examples
 ```
 
 ## Code Quality
 
+The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](packages/walletkit/quality.config.js). `jest` is also used for better IDE compatibility.
+
 ```bash
-pnpm lint # Lint code
-
-pnpm lint:fix # Fix linting issues
-
-pnpm quality # Quality gate (coverage + checks)
+pnpm lint          # lint all packages
+pnpm lint:fix      # lint and auto-fix issues
+pnpm quality       # tests with coverage
+pnpm test:mutation # Run mutation tests (quality check)
 ```
 
 ## Building
 
 ```bash
-pnpm build:clean # Clean build artifacts
-
-pnpm build:cjs # Build CommonJS
-
-pnpm build:esm # Build ES Modules
-
-pnpm build # Build both (recommended)
+pnpm build
 ```
 
 ## Architecture Principles
@@ -97,7 +91,7 @@ Each component has a single responsibility and can be tested in isolation:
 
 1. Create a feature branch
 2. Write tests for your changes
-3. Ensure all tests pass: `pnpm test`
+3. Ensure all tests pass: `pnpm quality`
 4. Fix any linting issues: `pnpm lint:fix`
 5. Submit PR with clear description
 
@@ -106,14 +100,11 @@ Each component has a single responsibility and can be tested in isolation:
 The `apps/demo-wallet` directory contains a reference implementation showing how to integrate walletkit:
 
 ```bash
-cd apps/demo-wallet
-pnpm install
-pnpm dev
+pnpm demo-wallet dev
 ```
 
 Key files to review:
 - `src/stores/slices/walletSlice.ts` - Kit initialization and event handlers
-- `src/components/modals/` - UI for connect/transaction approvals
 - `src/pages/SendTransaction.tsx` - Programmatic transaction creation
 
 ## Debugging
@@ -143,11 +134,47 @@ DEBUG=walletkit:* pnpm dev
 - Check wallet was added via `addWallet()`
 - Confirm storage adapter is working
 
+## E2E testing
+
+### (optional) Run TON Connect Bridge local
+```bash
+docker compose -f docker-compose.bridge.yml up -d
+# check
+curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics
+```
+
+### Install and build deps
+```bash
+pnpm install
+pnpm --filter demo-wallet e2e:deps
+# (optional) use local bridge url in extension
+export VITE_BRIDGE_URL="http://localhost:8081/bridge"
+pnpm build
+```
+
+### Setup `.env`
+
+```dotenv
+WALLET_MNEMONIC=".."
+DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
+VITE_BRIDGE_URL="http://localhost:8081/bridge" # (optional) use local bridge url in web app
+E2E_SLOW_MO="500" # (optional) Slows down Playwright operations by the specified amount of milliseconds
+# (optional) mode extension
+E2E_WALLET_SOURCE_EXTENSION="apps/demo-wallet/dist-extension-chrome"
+# (optional) mode web
+E2E_WALLET_SOURCE="http://localhost:5173/"
+```
+
+### Run test specs
+```bash
+pnpm demo-wallet e2e
+# or
+xvfb-run pnpm demo-wallet e2e
+```
+
 ## Release Process
 
 1. Update version in `package.json`
-2. Run `pnpm build` to create fresh build
-3. Run `pnpm test` to verify all tests pass
-4. Run `pnpm quality` to check coverage
-5. Commit changes and tag release
-6. Publish to npm: `npm publish`
+2. See Code Quality and E2E testing
+3. Commit changes and tag release
+4. Publish to npm: `npm publish`
