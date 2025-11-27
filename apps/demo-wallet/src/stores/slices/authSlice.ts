@@ -137,7 +137,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         await state.initializeWalletKit(network);
 
         // Reload wallet if authenticated
-        if (state.wallet.isAuthenticated && state.wallet.hasWallet) {
+        if (state.walletManagement.isAuthenticated && state.walletManagement.hasWallet) {
             await state.loadAllWallets();
         }
     },

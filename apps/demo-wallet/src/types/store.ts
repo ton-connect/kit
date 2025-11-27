@@ -22,16 +22,16 @@ import type {
 
 import type {
     AuthState,
-    WalletState,
     PreviewTransaction,
     SavedWallet,
     QueuedRequest,
     QueuedRequestData,
+    RequestQueue,
+    DisconnectNotification,
 } from './wallet';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
-    // Actions
     setPassword: (password: string) => Promise<void>;
     unlock: (password: string) => Promise<boolean>;
     lock: () => void;
@@ -43,93 +43,64 @@ export interface AuthSlice extends AuthState {
     setNetwork: (network: 'mainnet' | 'testnet') => Promise<void>;
 }
 
-// Jettons slice interface
-export interface JettonsSlice {
-    jettons: {
-        // Data
-        userJettons: AddressJetton[];
-        jettonTransfers: JettonTransfer[];
-        popularJettons: JettonInfo[];
-
-        // Loading states
-        isLoadingJettons: boolean;
-        isLoadingTransfers: boolean;
-        isLoadingPopular: boolean;
-        isRefreshing: boolean;
-
-        // Error states
-        error: string | null;
-        transferError: string | null;
-
-        // Last update timestamps
-        lastJettonsUpdate: number;
-        lastTransfersUpdate: number;
-        lastPopularUpdate: number;
+// Wallet Core slice - WalletKit initialization and instance management
+export interface WalletCoreSlice {
+    walletCore: {
+        walletKit: ITonWalletKit | null;
+        walletKitInitializer: Promise<void> | null;
     };
 
-    // Actions
-    loadUserJettons: (userAddress?: string) => Promise<void>;
-    refreshJettons: (userAddress?: string) => Promise<void>;
-    validateJettonAddress: (address: string) => boolean;
-    clearJettons: () => void;
-
-    // Utility methods
-    getJettonByAddress: (jettonAddress: string) => AddressJetton | undefined;
-    formatJettonAmount: (amount: string, decimals: number) => string;
-}
-
-// NFTs slice interface
-export interface NftsSlice {
-    nfts: {
-        // Data
-        userNfts: NftItem[];
-
-        // Loading states
-        isLoadingNfts: boolean;
-        isRefreshing: boolean;
-
-        // Error states
-        error: string | null;
-
-        // Last update timestamp
-        lastNftsUpdate: number;
-
-        // Pagination
-        hasMore: boolean;
-        offset: number;
-    };
-
-    // Actions
-    loadUserNfts: (userAddress?: string, limit?: number) => Promise<void>;
-    refreshNfts: (userAddress?: string) => Promise<void>;
-    loadMoreNfts: (userAddress?: string) => Promise<void>;
-    clearNfts: () => void;
-
-    // Utility methods
-    getNftByAddress: (address: string) => NftItem | undefined;
-    formatNftIndex: (index: string) => string;
-}
-
-// Wallet slice interface
-export interface WalletSlice extends WalletState {
-    // WalletKit initialization
     initializeWalletKit: (network?: 'mainnet' | 'testnet') => Promise<void>;
+}
+
+// Wallet Management slice - Wallet CRUD and data
+export interface WalletManagementSlice {
+    walletManagement: {
+        savedWallets: SavedWallet[];
+        activeWalletId?: string;
+        address?: string;
+        balance?: string;
+        publicKey?: string;
+        transactions: PreviewTransaction[];
+        currentWallet?: IWallet;
+        hasWallet: boolean;
+        isAuthenticated: boolean;
+    };
 
     // Multi-wallet actions
-    createWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>; // Returns wallet ID
-    importWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>; // Returns wallet ID
-    createLedgerWallet: (name?: string) => Promise<string>; // Returns wallet ID
+    createWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>;
+    importWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>;
+    createLedgerWallet: (name?: string) => Promise<string>;
     switchWallet: (walletId: string) => Promise<void>;
     removeWallet: (walletId: string) => void;
     renameWallet: (walletId: string, newName: string) => void;
     loadAllWallets: () => Promise<void>;
     loadSavedWalletsIntoKit: (walletKit: ITonWalletKit) => Promise<void>;
 
-    // Legacy actions (for backward compatibility)
+    // Wallet state actions
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
     addTransaction: (transaction: PreviewTransaction) => void;
     loadTransactions: (limit?: number) => Promise<void>;
+
+    // Getters
+    getDecryptedMnemonic: (walletId?: string) => Promise<string[] | null>;
+    getAvailableWallets: () => IWallet[];
+    getActiveWallet: () => SavedWallet | undefined;
+}
+
+// TON Connect slice - Connection requests, transactions, signing
+export interface TonConnectSlice {
+    tonConnect: {
+        requestQueue: RequestQueue;
+        pendingConnectRequest?: EventConnectRequest;
+        isConnectModalOpen: boolean;
+        pendingTransactionRequest?: EventTransactionRequest;
+        isTransactionModalOpen: boolean;
+        pendingSignDataRequest?: EventSignDataRequest;
+        isSignDataModalOpen: boolean;
+        disconnectedSessions: DisconnectNotification[];
+    };
 
     // TON Connect actions
     handleTonConnectUrl: (url: string) => Promise<void>;
@@ -159,22 +130,74 @@ export interface WalletSlice extends WalletState {
     processNextRequest: () => void;
     clearExpiredRequests: () => void;
     getCurrentRequest: () => QueuedRequest | undefined;
-
-    // Getters
-    getDecryptedMnemonic: (walletId?: string) => Promise<string[] | null>;
-    getAvailableWallets: () => IWallet[];
-    getActiveWallet: () => SavedWallet | undefined;
-
     clearCurrentRequestFromQueue: () => void;
+
+    // Setup listeners
+    setupTonConnectListeners: (walletKit: ITonWalletKit) => void;
+}
+
+// Jettons slice interface
+export interface JettonsSlice {
+    jettons: {
+        userJettons: AddressJetton[];
+        jettonTransfers: JettonTransfer[];
+        popularJettons: JettonInfo[];
+        isLoadingJettons: boolean;
+        isLoadingTransfers: boolean;
+        isLoadingPopular: boolean;
+        isRefreshing: boolean;
+        error: string | null;
+        transferError: string | null;
+        lastJettonsUpdate: number;
+        lastTransfersUpdate: number;
+        lastPopularUpdate: number;
+    };
+
+    loadUserJettons: (userAddress?: string) => Promise<void>;
+    refreshJettons: (userAddress?: string) => Promise<void>;
+    validateJettonAddress: (address: string) => boolean;
+    clearJettons: () => void;
+    getJettonByAddress: (jettonAddress: string) => AddressJetton | undefined;
+    formatJettonAmount: (amount: string, decimals: number) => string;
+}
+
+// NFTs slice interface
+export interface NftsSlice {
+    nfts: {
+        userNfts: NftItem[];
+        isLoadingNfts: boolean;
+        isRefreshing: boolean;
+        error: string | null;
+        lastNftsUpdate: number;
+        hasMore: boolean;
+        offset: number;
+    };
+
+    loadUserNfts: (userAddress?: string, limit?: number) => Promise<void>;
+    refreshNfts: (userAddress?: string) => Promise<void>;
+    loadMoreNfts: (userAddress?: string) => Promise<void>;
+    clearNfts: () => void;
+    getNftByAddress: (address: string) => NftItem | undefined;
+    formatNftIndex: (index: string) => string;
 }
 
 // Combined app state
-export interface AppState extends AuthSlice, WalletSlice, JettonsSlice, NftsSlice {}
+export interface AppState
+    extends AuthSlice,
+        WalletCoreSlice,
+        WalletManagementSlice,
+        TonConnectSlice,
+        JettonsSlice,
+        NftsSlice {}
 
 // Slice creator types
 export type AuthSliceCreator = StateCreator<AppState, [], [], AuthSlice>;
 
-export type WalletSliceCreator = StateCreator<AppState, [], [], WalletSlice>;
+export type WalletCoreSliceCreator = StateCreator<AppState, [], [], WalletCoreSlice>;
+
+export type WalletManagementSliceCreator = StateCreator<AppState, [], [], WalletManagementSlice>;
+
+export type TonConnectSliceCreator = StateCreator<AppState, [], [], TonConnectSlice>;
 
 export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
 
@@ -187,12 +210,6 @@ export interface MigrationState {
 }
 
 export type MigrationFunction = (persistedState: unknown, version: number) => unknown;
-
-// type DeepPartial<T> = T extends object
-//     ? {
-//           [P in keyof T]?: DeepPartial<T[P]>;
-//       }
-//     : T;
 
 export type SetState = {
     (state: AppState | Partial<AppState>): void;
