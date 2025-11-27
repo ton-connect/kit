@@ -46,7 +46,7 @@ const migrate = (persistedState: unknown, fromVersion: number): unknown => {
                 activeWalletId: walletState.activeWalletId,
                 hasWallet: walletState.hasWallet || false,
                 isAuthenticated: false,
-                transactions: [],
+                events: [],
             },
             tonConnect: {
                 requestQueue: walletState.requestQueue || {
@@ -252,8 +252,9 @@ export const useWallet = () =>
             importWallet: state.importWallet,
             clearWallet: state.clearWallet,
             updateBalance: state.updateBalance,
+            addEvent: state.addEvent,
             addTransaction: state.addTransaction,
-            loadTransactions: state.loadTransactions,
+            loadEvents: state.loadEvents,
             getDecryptedMnemonic: state.getDecryptedMnemonic,
             getAvailableWallets: state.getAvailableWallets,
             getActiveWallet: state.getActiveWallet,

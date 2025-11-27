@@ -365,11 +365,17 @@
   "address_book": {
     "0:8B704249E018FAA59BDC356F463A7A34FC0201DBBFA7441A387BE83E9FFFBFC4": {
       "user_friendly": "UQCLcEJJ4Bj6pZvcNW9GOno0_AIB27-nRBo4e-g-n_-_xGUY",
-      "domain": "pumpanddump.ton"
+      "domain": "pumpanddump.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     },
     "0:9DA971AF38D2F03ABDF308D5F91636A97E5A2B07A66C39D71D7CBAE3B032EDDC": {
       "user_friendly": "UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4",
-      "domain": "tolya.ton"
+      "domain": "tolya.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     }
   },
   "metadata": {}

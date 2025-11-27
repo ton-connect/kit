@@ -10,6 +10,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import type { EventTransactionRequest, JettonInfo, MoneyFlowSelf } from '@ton/walletkit';
 import { Address } from '@ton/core';
 
+import { ActionPreviewList } from './ActionPreviewList';
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
@@ -181,6 +182,15 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                         )}
                                     </div>
                                 </div>
+                                {/* Parsed Actions from Emulation */}
+                                {request.preview.emulationResult && (
+                                    <ActionPreviewList
+                                        emulationResult={request.preview.emulationResult}
+                                        walletAddress={request.walletAddress || currentWallet?.address}
+                                        className="mt-4"
+                                        title="Actions:"
+                                    />
+                                )}
                             </>
                         )}
 
@@ -383,3 +393,5 @@ export const JettonFlow = memo(function JettonFlow({ transfers }: { transfers: M
         </div>
     );
 });
+
+// no-op

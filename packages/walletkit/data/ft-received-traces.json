@@ -985,19 +985,31 @@
   "address_book": {
     "0:4E3664FAEE814FBDB6C1CB36D72BAC52D15E186C11ECD664FE1B3F1A7CFD801D": {
       "user_friendly": "UQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHdyt",
-      "domain": null
+      "domain": null,
+      "interfaces": [
+        "wallet_v3r2"
+      ]
     },
     "0:9DA971AF38D2F03ABDF308D5F91636A97E5A2B07A66C39D71D7CBAE3B032EDDC": {
       "user_friendly": "UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4",
-      "domain": "tolya.ton"
+      "domain": "tolya.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     },
     "0:9F27AD7DB6C58CBFE24C03BE35766209DCA0292BB7E45482F8B5912FA11BF300": {
       "user_friendly": "EQCfJ619tsWMv-JMA741dmIJ3KApK7fkVIL4tZEvoRvzAGpu",
-      "domain": null
+      "domain": null,
+      "interfaces": [
+        "jetton_wallet_governed"
+      ]
     },
     "0:C4072D7B04AB4C504CD223DFDE42C8037C6A99272D3624AEC2CBFF2E72B102DD": {
       "user_friendly": "EQDEBy17BKtMUEzSI9_eQsgDfGqZJy02JK7Cy_8ucrEC3Xiq",
-      "domain": null
+      "domain": null,
+      "interfaces": [
+        "jetton_wallet_governed"
+      ]
     }
   },
   "metadata": {

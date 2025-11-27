@@ -7,13 +7,13 @@
  */
 
 import { AddressJetton } from '../../jettons';
-import { EmulationAddressBookEntry } from '../../toncenter/emulation';
 import { Pagination } from '../../toncenter/Pagination';
+import { AddressBookRowV3 } from '../../toncenter/v3/AddressBookRowV3';
 
 // Toncenter Jetton Wallets API Response Types
 export interface ResponseUserJettons {
     jettons: AddressJetton[];
-    address_book: Record<string, EmulationAddressBookEntry>;
+    address_book: Record<string, AddressBookRowV3>;
 
     pagination: Pagination;
 }

@@ -531,8 +531,8 @@ export class ApiClientToncenter implements ApiClient {
             offset,
         };
         const list = await this.getJson<ToncenterTracesResponse>('/api/v3/traces', query);
-        const out: GetEventsResponse = { events: [], limit, offset };
-        const addressBook = toAddressBook(list.address_book);
+        const out: GetEventsResponse = { events: [], limit, offset, hasNext: list.traces.length >= limit };
+        const addressBook = toAddressBook(list);
         for (const trace of list.traces) {
             out.events.push(toEvent(trace, account, addressBook));
         }

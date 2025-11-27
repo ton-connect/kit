@@ -80,6 +80,10 @@ export interface WalletManagementSlice {
     // Wallet state actions
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
+    // Events-based history
+    addEvent: (event: unknown) => void;
+    loadEvents: (limit?: number, offset?: number) => Promise<void>;
+    // Legacy compatibility for older UI/hooks
     addTransaction: (transaction: PreviewTransaction) => void;
     loadTransactions: (limit?: number) => Promise<void>;
 

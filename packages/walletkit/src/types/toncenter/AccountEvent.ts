@@ -6,30 +6,111 @@
  *
  */
 
-import { EmulationAddressBookEntry, EmulationTraceNode, ToncenterTraceItem, ToncenterTransaction } from './emulation';
-import { AddressFriendly, asAddressFriendly, Hex } from '../primitive';
+import {
+    EmulationTraceNode,
+    ToncenterEmulationResponse,
+    ToncenterTraceItem,
+    ToncenterTransaction,
+    EmulationTokenInfoMasters,
+    EmulationTokenInfoWallets,
+} from './emulation';
+import { AddressFriendly, asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
 import { parseJettonActions } from './parsers/Jetton';
 import { parseNftActions } from './parsers/Nft';
+import { MetadataV3 } from './v3/AddressBookRowV3';
+
+export interface JettonMasterInfo {
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    image: string;
+    verification: string;
+    score: number;
+}
+
+export interface JettonWalletInfo {
+    balance: string;
+    jettonMaster: string;
+    owner: string;
+}
 
 export interface AddressBookItem {
     domain?: string;
     isScam?: boolean;
     isWallet?: boolean;
+    jetton?: JettonMasterInfo;
+    jettonWallet?: JettonWalletInfo;
 }
 
 export type AddressBook = Record<AddressFriendly, AddressBookItem>;
 
-export function toAddressBook(data: Record<string, EmulationAddressBookEntry>): AddressBook {
+export function toAddressBook(data: MetadataV3): AddressBook {
     const out: AddressBook = {};
-    for (const item of Object.keys(data)) {
-        const domain = data[item].domain;
-        if (domain) {
-            out[asAddressFriendly(item)] = { domain } as AddressBookItem;
+
+    // Process address_book for domain information
+    for (const [address, bookRow] of Object.entries(data.address_book)) {
+        const friendly = asAddressFriendly(address);
+        if (bookRow.domain) {
+            out[friendly] = { domain: bookRow.domain };
+        }
+        // Check if address is a wallet by looking for "wallet" in interfaces
+        if (bookRow.interfaces && Array.isArray(bookRow.interfaces)) {
+            const hasWalletInterface = bookRow.interfaces.some(
+                (iface) => typeof iface === 'string' && iface.toLowerCase().includes('wallet'),
+            );
+            if (hasWalletInterface) {
+                if (!out[friendly]) {
+                    out[friendly] = {};
+                }
+                out[friendly].isWallet = true;
+            }
         }
     }
+
+    // Process metadata for jetton information
+    for (const [address, meta] of Object.entries(data.metadata)) {
+        const friendly = asAddressFriendly(address);
+        if (!out[friendly]) {
+            out[friendly] = {};
+        }
+
+        if (!meta.token_info) continue;
+
+        for (const tokenInfo of meta.token_info) {
+            if (tokenInfo.type === 'jetton_masters') {
+                const masterInfo = tokenInfo as EmulationTokenInfoMasters;
+                const decimals = masterInfo.extra?.decimals ? parseInt(masterInfo.extra.decimals, 10) : 0;
+                const image =
+                    masterInfo.image ||
+                    masterInfo.extra?._image_small ||
+                    masterInfo.extra?._image_medium ||
+                    masterInfo.extra?._image_big ||
+                    '';
+
+                out[friendly].jetton = {
+                    address: friendly,
+                    name: masterInfo.name || '',
+                    symbol: masterInfo.symbol || '',
+                    decimals,
+                    image,
+                    verification: 'whitelist',
+                    score: 100,
+                };
+            } else if (tokenInfo.type === 'jetton_wallets') {
+                const walletInfo = tokenInfo as EmulationTokenInfoWallets;
+                out[friendly].jettonWallet = {
+                    balance: walletInfo.extra?.balance || '0',
+                    jettonMaster: asAddressFriendly(walletInfo.extra?.jetton || ''),
+                    owner: asAddressFriendly(walletInfo.extra?.owner || ''),
+                };
+            }
+        }
+    }
+
     return out;
 }
 
@@ -138,14 +219,51 @@ export type Action =
     | ContractDeployAction
     | JettonSwapAction;
 
+/**
+ * Helper: Build Event structure from parsed data
+ */
+function buildEvent(data: ToncenterTraceItem, account: string, actions: Action[], addressBook: AddressBook): Event {
+    return {
+        eventId: Base64ToHex(data.trace_id),
+        account: toAccount(account, addressBook),
+        timestamp: data.start_utime,
+        actions,
+        isScam: false,
+        lt: Number(data.start_lt),
+        inProgress: data.is_incomplete,
+        trace: data.trace,
+        transactions: data.transactions,
+    };
+}
+
+/**
+ * Helper: Filter actions based on priority (Jetton/NFT take precedence over TON transfers)
+ */
+function filterActionsByPriority(actions: Action[]): Action[] {
+    const hasJetton = actions.some((a) => a.type === 'JettonTransfer');
+    const hasNft = actions.some((a) => a.type === 'NftItemTransfer');
+
+    // If high-priority actions exist, filter out low-level TON transfer noise
+    if (hasJetton || hasNft) {
+        const keepTypes = hasJetton ? ['JettonTransfer'] : ['NftItemTransfer'];
+        return actions.filter((a) => keepTypes.includes(a.type));
+    }
+
+    return actions;
+}
+
+/**
+ * Parse trace item into structured Event with typed actions
+ */
 export function toEvent(data: ToncenterTraceItem, account: string, addressBook: AddressBook = {}): Event {
-    const actions: Action[] = [];
     const accountFriendly = asAddressFriendly(account);
     const transactions: Record<string, ToncenterTransaction> = data.transactions || {};
+    const actions: Action[] = [];
+
+    // Parse TON transfers from owner's transactions
     for (const txHash of Object.keys(transactions)) {
         const tx = transactions[txHash];
-        const txAccount = asAddressFriendly(tx.account);
-        if (txAccount !== accountFriendly) {
+        if (asAddressFriendly(tx.account) !== accountFriendly) {
             continue;
         }
         const status = computeStatus(tx);
@@ -154,57 +272,88 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
             ...parseIncomingTonTransfers(tx, addressBook, status),
         );
     }
-    // Smart-contract related actions (exec + deploy)
-    actions.push(...parseContractActions(accountFriendly, transactions, addressBook));
-    // Jetton transfers (sent/received)
-    actions.push(...parseJettonActions(accountFriendly, data, addressBook));
-    // NFT transfers (sent/received)
-    actions.push(...parseNftActions(accountFriendly, data, addressBook));
 
-    // If jetton actions exist, drop TonTransfer/SmartContractExec noise tied to same flow
-    const hasJetton = actions.some((a) => a.type === 'JettonTransfer');
-    const hasNft = actions.some((a) => a.type === 'NftItemTransfer');
-    if (hasJetton || hasNft) {
-        const keepTypes: string[] = hasJetton ? ['JettonTransfer'] : ['NftItemTransfer'];
-        let filtered: Action[] = actions.filter((a) => keepTypes.includes(a.type));
-        if (hasNft && !hasJetton) {
-            // Drop id field from NFT actions to match expected output shape
-            filtered = filtered.map((a) => {
-                if (a.type !== 'NftItemTransfer') return a;
-                const nft = a as NftItemTransferAction;
-                const out: Omit<NftItemTransferAction, 'id'> = {
-                    type: 'NftItemTransfer',
-                    status: nft.status,
-                    NftItemTransfer: nft.NftItemTransfer,
-                    simplePreview: nft.simplePreview,
-                    baseTransactions: nft.baseTransactions,
-                };
-                return out as unknown as Action;
-            });
-        }
-        return {
-            eventId: Base64ToHex(data.trace_id),
-            account: toAccount(account, addressBook),
-            timestamp: data.start_utime,
-            actions: filtered,
-            isScam: false,
-            lt: Number(data.start_lt),
-            inProgress: data.is_incomplete,
-            trace: data.trace,
-            transactions: data.transactions,
-        };
-    }
-    return {
-        eventId: Base64ToHex(data.trace_id),
-        account: toAccount(account, addressBook),
-        timestamp: data.start_utime,
-        actions,
-        isScam: false, // TODO implement detect isScam for Event
-        lt: Number(data.start_lt),
-        inProgress: data.is_incomplete,
+    // Parse contract interactions, jettons, and NFTs
+    actions.push(
+        ...parseContractActions(accountFriendly, transactions, addressBook),
+        ...parseJettonActions(accountFriendly, data, addressBook),
+        ...parseNftActions(accountFriendly, data, addressBook),
+    );
+
+    // Filter by priority: Jetton/NFT actions hide underlying TON transfers
+    const filteredActions = filterActionsByPriority(actions);
+
+    return buildEvent(data, account, filteredActions, addressBook);
+}
+
+export function emulationEvent(data: ToncenterEmulationResponse, account?: string): Event {
+    // Build a ToncenterTraceItem from emulation response
+    const txEntries = Object.entries(data.transactions) as [string, ToncenterTransaction][];
+    const byLtAsc = [...txEntries].sort((a, b) => (BigInt(a[1].lt) < BigInt(b[1].lt) ? -1 : 1));
+    const transactions_order = byLtAsc.map(([hash]) => hash);
+
+    const start_lt = byLtAsc[0]?.[1].lt ?? '0';
+    const end_lt = byLtAsc[byLtAsc.length - 1]?.[1].lt ?? '0';
+    const start_utime =
+        byLtAsc.length > 0 ? Math.min(...byLtAsc.map(([, tx]) => tx.now)) : Math.floor(Date.now() / 1000);
+    const end_utime = byLtAsc.length > 0 ? Math.max(...byLtAsc.map(([, tx]) => tx.now)) : start_utime;
+    const mcSeqnos = byLtAsc.map(([, tx]) => tx.mc_block_seqno);
+    const mc_seqno_start = mcSeqnos.length > 0 ? String(Math.min(...mcSeqnos)) : '0';
+    const mc_seqno_end = mcSeqnos.length > 0 ? String(Math.max(...mcSeqnos)) : '0';
+    const trace_id = transactions_order[0] ?? '';
+    const rootTx = trace_id ? data.transactions[trace_id] : undefined;
+    const external_hash =
+        ((rootTx?.in_msg as unknown as { hash_norm?: string })?.hash_norm as string | undefined) ||
+        ((rootTx?.in_msg as unknown as { hash?: string })?.hash as string | undefined) ||
+        '';
+
+    const traceItem: ToncenterTraceItem = {
+        actions: data.actions,
+        end_lt,
+        end_utime,
+        external_hash,
+        is_incomplete: data.is_incomplete,
+        mc_seqno_end,
+        mc_seqno_start,
+        start_lt,
+        start_utime,
         trace: data.trace,
+        trace_id,
+        trace_info: {
+            classification_state: 'emulated',
+            messages: byLtAsc.reduce((sum, [, tx]) => sum + (tx.in_msg ? 1 : 0) + (tx.out_msgs?.length ?? 0), 0),
+            pending_messages: 0,
+            trace_state: 'complete',
+            transactions: transactions_order.length,
+        },
         transactions: data.transactions,
+        transactions_order,
+        warning: '',
     };
+    // Provide metadata for parsers that utilize it (jettons/NFTs)
+    (traceItem as unknown as { metadata?: Record<string, unknown> }).metadata = data.metadata as unknown as Record<
+        string,
+        unknown
+    >;
+
+    // Infer primary account as the account of the root transaction,
+    // or fall back to the first transaction's account, or an explicitly provided account
+    let inferredAccount = account && String(account).trim() ? String(account).trim() : undefined;
+    if (!inferredAccount) {
+        inferredAccount = rootTx?.account;
+    }
+    if (!inferredAccount) {
+        inferredAccount =
+            byLtAsc[0]?.[1]?.account ?? (Object.values(data.transactions || {})[0]?.account as string | undefined);
+    }
+    if (!inferredAccount) {
+        // As a last resort, pass empty to toEvent (it will likely fail to parse addresses),
+        // but we try to keep function total. Better: return minimal event with no actions.
+        // However, to keep consistent use-sites, prefer empty string here and let toEvent handle.
+        inferredAccount = '';
+    }
+    const addressBook = toAddressBook(data);
+    return toEvent(traceItem, inferredAccount, addressBook);
 }
 
 export interface TonTransfer {
@@ -230,21 +379,24 @@ export interface Account {
 }
 
 export function toAccount(address: string, addressBook: AddressBook): Account {
+    const friendly = asMaybeAddressFriendly(address);
     const out: Account = {
-        address: asAddressFriendly(address),
+        address: friendly ?? address ?? '',
         isScam: false,
-        isWallet: true,
+        isWallet: Boolean(friendly),
     };
-    const record = addressBook[asAddressFriendly(address)];
-    if (record) {
-        if (record.isScam) {
-            out.isScam = record.isScam;
-        }
-        if (record.isWallet) {
-            out.isWallet = record.isWallet;
-        }
-        if (record.domain) {
-            out.name = record.domain;
+    if (friendly) {
+        const record = addressBook[friendly];
+        if (record) {
+            if (record.isScam) {
+                out.isScam = record.isScam;
+            }
+            if (record.isWallet) {
+                out.isWallet = record.isWallet;
+            }
+            if (record.domain) {
+                out.name = record.domain;
+            }
         }
     }
     return out;

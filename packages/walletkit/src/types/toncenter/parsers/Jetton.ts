@@ -19,10 +19,13 @@ import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
 import { asAddressFriendly, Hex } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
+import { OpCode } from './opcodes';
 
 //
+// This parser has been refactored with new architecture support
+// Legacy function maintained for backwards compatibility
+// New handlers available in ./handlers/JettonHandler.ts
 
-// TODO it need will be refactored
 export function parseJettonActions(
     ownerFriendly: string,
     item: ToncenterTraceItem,
@@ -67,7 +70,7 @@ export function parseJettonActions(
                     comment,
                     jetton,
                 },
-                simplePreview: jettonPreview(amount, jetton.name, jetton.decimals, jetton.image, [
+                simplePreview: jettonPreview(amount, jetton.symbol, jetton.decimals, jetton.image, [
                     toAccount(dest, addressBook),
                     toAccount(ownerFriendly, addressBook),
                     toContractAccount(
@@ -113,7 +116,7 @@ export function parseJettonActions(
                         amount,
                         jetton,
                     },
-                    simplePreview: jettonPreview(amount, jetton.name, jetton.decimals, jetton.image, [
+                    simplePreview: jettonPreview(amount, jetton.symbol, jetton.decimals, jetton.image, [
                         toAccount(ownerFriendly, addressBook),
                         toAccount(senderMain, addressBook),
                         toContractAccount(
@@ -168,7 +171,7 @@ function toAddr(raw?: unknown): string {
 
 function jettonPreview(
     amount: bigint,
-    name: string,
+    symbol: string,
     decimals: number,
     image: string | undefined,
     accounts: Account[],
@@ -176,7 +179,7 @@ function jettonPreview(
     let denom = BigInt(1);
     for (let i = 0; i < (decimals || 0); i++) denom = denom * BigInt(10);
     const value = Number(amount) / Number(denom);
-    const human = name ? `${trimAmount(value)} ${name.includes('USD') ? 'USD₮' : name}` : `${trimAmount(value)}`;
+    const human = symbol ? `${trimAmount(value)} ${symbol}` : `${trimAmount(value)}`;
     const preview: SimplePreview = {
         name: 'Jetton Transfer',
         description: `Transferring ${human}`,
@@ -218,7 +221,7 @@ function getTraceRootId(item: ToncenterTraceItem): Hex | null {
 function findRecipientJettonWalletFromOut(tx: ToncenterTransaction): string | null {
     for (const m of tx.out_msgs || []) {
         const d = getDecoded(m) as Record<string, unknown> | null;
-        if (m.opcode === '0x178d4519' || (d && d['@type'] === 'jetton_internal_transfer')) {
+        if (m.opcode === OpCode.JettonInternalTransfer || (d && d['@type'] === 'jetton_internal_transfer')) {
             return asAddressFriendly(m.destination);
         }
     }
@@ -276,10 +279,10 @@ function getTxType(tx: ToncenterTransaction): string | '' {
         fromBody || tx.in_msg?.opcode || '',
         ['jetton_transfer', 'jetton_internal_transfer', 'jetton_notify', 'excess'],
         {
-            '0x0f8a7ea5': 'jetton_transfer',
-            '0x178d4519': 'jetton_internal_transfer',
-            '0x7362d09c': 'jetton_notify',
-            '0xd53276db': 'excess',
+            [OpCode.JettonTransfer]: 'jetton_transfer',
+            [OpCode.JettonInternalTransfer]: 'jetton_internal_transfer',
+            [OpCode.JettonNotify]: 'jetton_notify',
+            [OpCode.Excess]: 'excess',
         },
     );
 }
@@ -299,7 +302,17 @@ function buildJettonInfo(
     verification: string;
     score: number;
 } {
-    // Find jetton master by wallet in metadata
+    // First, try to find jetton info directly from addressBook using wallet address
+    const walletInfo = addressBook[walletFriendly];
+    if (walletInfo?.jettonWallet?.jettonMaster) {
+        const masterAddress = walletInfo.jettonWallet.jettonMaster;
+        const masterInfo = addressBook[masterAddress];
+        if (masterInfo?.jetton) {
+            return masterInfo.jetton;
+        }
+    }
+
+    // Fallback: scan metadata if addressBook doesn't have complete info
     const metadata = (item as unknown as { metadata?: Record<string, unknown> }).metadata;
     let master: string | undefined;
     if (metadata) {

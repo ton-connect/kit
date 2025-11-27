@@ -71,6 +71,10 @@ export function parseIncomingTonTransfers(
     const recipient = msg.destination;
     const amount = BigInt(valueNum);
 
+    // For incoming TON transfers, if funds were credited (credit_ph exists and has credit),
+    // consider it successful even if compute phase failed (no_gas, etc.)
+    const incomingStatus = computeIncomingTonTransferStatus(tx, status);
+
     const recipientAccount = msg.init_state
         ? toContractAccount(recipient, addressBook)
         : toAccount(recipient, addressBook);
@@ -78,7 +82,7 @@ export function parseIncomingTonTransfers(
     actions.push({
         type: 'TonTransfer',
         id: Base64ToHex(tx.hash),
-        status,
+        status: incomingStatus,
         TonTransfer: {
             sender: toAccount(sender, addressBook),
             recipient: recipientAccount,
@@ -101,6 +105,27 @@ export function computeStatus(tx: ToncenterTransaction): StatusAction {
     const computeSuccess = Boolean(tx.description?.compute_ph?.success);
     const actionSuccess = Boolean(tx.description?.action?.success);
     return !aborted && computeSuccess && actionSuccess ? 'success' : 'failure';
+}
+
+/**
+ * Compute status specifically for incoming TON transfers.
+ * For incoming transfers, if funds were credited (credit_ph has credit > 0),
+ * it's considered successful even if compute phase failed.
+ */
+function computeIncomingTonTransferStatus(tx: ToncenterTransaction, defaultStatus: StatusAction): StatusAction {
+    const description = tx.description as unknown as Record<string, unknown>;
+
+    // Check if credit phase exists and has credited funds
+    const creditPh = description?.credit_ph as Record<string, unknown> | undefined;
+    const credit = creditPh?.credit as string | undefined;
+
+    // If funds were credited (credit > 0), consider incoming transfer successful
+    if (credit && Number(credit) > 0) {
+        return 'success';
+    }
+
+    // Otherwise use the default computed status
+    return defaultStatus;
 }
 
 function toPositiveNumber(value: string | null): number | null {
