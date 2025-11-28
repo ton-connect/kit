@@ -6,7 +6,7 @@
  *
  */
 
-// npx ts-node examples/ton-events.ts
+// npx tsx examples/ton-events.ts
 import 'dotenv/config';
 import { replacer } from '@ton-community/tlb-runtime';
 

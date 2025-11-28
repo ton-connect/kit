@@ -6,6 +6,7 @@
  *
  */
 
+// npx tsx examples/ton-dns.ts
 import { ApiClientToncenter, CHAIN } from '../src';
 
 // eslint-disable-next-line no-console

@@ -6,11 +6,19 @@
  *
  */
 
-// npx ts-node examples/ton-client.ts
+// npx tsx examples/ton-client.ts
 import 'dotenv/config';
 import util from 'util';
 
-import { ApiClientToncenter, ConnectTransactionParamMessage, CHAIN, Signer, WalletV5R1Adapter } from '../src';
+import {
+    ApiClientToncenter,
+    ConnectTransactionParamMessage,
+    CHAIN,
+    Signer,
+    WalletV5R1Adapter,
+    wrapWalletInterface,
+    IWallet,
+} from '../src';
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -24,7 +32,7 @@ const apiKey = process.env[`TON_API_KEY_${networkName}`];
 const mnemonic = process.env[`TON_MNEMONIC_${networkName}`]!.trim().split(' ');
 const client = new ApiClientToncenter({ apiKey, network });
 
-async function logWallet(wallet: WalletV5R1Adapter) {
+async function logWallet(wallet: IWallet) {
     return {
         address: wallet.getAddress(),
         balance: await wallet.getBalance(),
@@ -33,7 +41,8 @@ async function logWallet(wallet: WalletV5R1Adapter) {
 
 async function main() {
     const signer = await Signer.fromMnemonic(mnemonic);
-    const existAccount = await WalletV5R1Adapter.create(signer, { client, network });
+    const walletAdapter = await WalletV5R1Adapter.create(signer, { client, network });
+    const existAccount = await wrapWalletInterface(walletAdapter, client);
     logInfo('exist account', util.inspect(await logWallet(existAccount), { colors: true, depth: 6 }));
     const message: ConnectTransactionParamMessage = {
         address: existAccount.getAddress(),
