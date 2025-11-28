@@ -8,7 +8,7 @@
 
 // Event routing and handler coordination
 
-import { WalletResponseTemplateError } from '@tonconnect/protocol';
+import { WalletResponseTemplateError, ConnectEventError } from '@tonconnect/protocol';
 
 import type {
     EventConnectRequest,
@@ -75,6 +75,8 @@ export class EventRouter {
             for (const handler of this.handlers) {
                 if (handler.canHandle(event)) {
                     const result = await handler.handle(event);
+
+                    // Check for transaction/signData error format: { error: {...}, id }
                     if ('error' in result) {
                         this.notifyErrorCallback({ incomingEvent: event, result: result });
                         try {
@@ -84,6 +86,36 @@ export class EventRouter {
                         }
                         return;
                     }
+
+                    // Check for connect error format: { event: 'connect_error', payload: {...} }
+                    if ('event' in result && (result as ConnectEventError).event === 'connect_error') {
+                        const connectError = result as ConnectEventError;
+                        log.warn('Connect request auto-rejected', {
+                            code: connectError.payload.code,
+                            message: connectError.payload.message,
+                        });
+                        this.notifyErrorCallback({
+                            incomingEvent: event,
+                            result: result as unknown as WalletResponseTemplateError,
+                        });
+                        try {
+                            // Create a temporary non-persisted session for sending the error response
+                            const tempSession = await this.sessionManager.createSession(
+                                event.from || '',
+                                '',
+                                '',
+                                '',
+                                '',
+                                undefined,
+                                { disablePersist: true },
+                            );
+                            await this.bridgeManager.sendResponse(event, connectError, tempSession);
+                        } catch (error) {
+                            log.error('Error sending connect error response', { error, event, connectError });
+                        }
+                        return;
+                    }
+
                     await handler.notify(result as BridgeEventBase);
                     break;
                 }
