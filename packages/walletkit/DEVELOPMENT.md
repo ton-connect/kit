@@ -143,26 +143,35 @@ docker compose -f docker-compose.bridge.yml up -d
 curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics
 ```
 
+### Setup `.env`
+
+```dotenv
+DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
+WALLET_MNEMONIC="word1 word2 ..." # mnemonic for main wallet for test
+ALLURE_API_TOKEN="" # accsess for alllure for gettint test data
+ALLURE_PROJECT_ID="100" # id project alllure
+ALLURE_BASE_URL="https://ton-connect-test-runner.tapps.ninja/api/v1/allure-proxy"
+E2E_SLOW_MO="0" # (optional) Slows down Playwright operations by the specified amount of milliseconds
+CI="true" # (optional)
+TIMEOUT="30000" # (optional) default 60000
+WORKERS_COUNT="16" # (optional) default not set
+
+E2E_WALLET_SOURCE_EXTENSION="../../dist-extension-chrome" # (optional) mode extension alternative to the web mode
+E2E_JS_BRIDGE="true" # (optional) switch from http bridge to js bridge used whith mode extension
+E2E_WALLET_SOURCE="http://localhost:5173/" # (optional) default mode web alternative to the extension mode
+
+VITE_DISABLE_NETWORK_SEND="true" # (optional) defaul false enable if you want to test Web Wallet1
+VITE_DISABLE_HTTP_BRIDGE="true" # (optional) defaul false
+VITE_DISABLE_AUTO_POPUP="true" # (optional) defaul false
+
+VITE_BRIDGE_URL="https://connect.ton.org/bridge" # (optional) use custom url bridge in web app
+```
+
 ### Install and build deps
 ```bash
 pnpm install
 pnpm --filter demo-wallet e2e:deps
-# (optional) use local bridge url in extension
-export VITE_BRIDGE_URL="http://localhost:8081/bridge"
 pnpm build
-```
-
-### Setup `.env`
-
-```dotenv
-WALLET_MNEMONIC=".."
-DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
-VITE_BRIDGE_URL="http://localhost:8081/bridge" # (optional) use local bridge url in web app
-E2E_SLOW_MO="500" # (optional) Slows down Playwright operations by the specified amount of milliseconds
-# (optional) mode extension
-E2E_WALLET_SOURCE_EXTENSION="apps/demo-wallet/dist-extension-chrome"
-# (optional) mode web
-E2E_WALLET_SOURCE="http://localhost:5173/"
 ```
 
 ### Run test specs
