@@ -22,8 +22,8 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-ton--connect%2Fkit-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/ton-connect/kit)
 
-- **[Browser Extension Build](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
-- **[JS Bridge Usage](https://github.com/ton-connect/kit/blob/main/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+- **[Browser Extension Build](apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
+- **[JS Bridge Usage](packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
 
@@ -36,9 +36,9 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 ## Quick start
 
-This guide shows how to integrate `@ton/walletkit` into your app with minimal boilerplate, it abstracts TON Connect and wallet implementation details behind a clean API and UI-friendly events
+This guide shows how to integrate `@ton/walletkit` into your app with minimal boilerplate. It abstracts TON Connect and wallet implementation details behind a clean API and UI-friendly events.
 
-After you complete this guide, you'll have your wallet fully integrated with the TON ecosystem, you'll be able to interact with dApps, NFTs, and jettons
+After you complete this guide, you'll have your wallet fully integrated with the TON ecosystem. You'll be able to interact with dApps, NFTs, and jettons.
 
 ```bash
 npm install @ton/walletkit
@@ -66,7 +66,7 @@ const kit = new TonWalletKit({
   bridge: {
     // TON Connect bridge for dApp communication
     bridgeUrl: 'https://connect.ton.org/bridge',
-    // or use self-hosted from https://github.com/ton-connect/bridge
+    // or use self-hosted bridge from https://github.com/ton-connect/bridge
   },
 });
 
@@ -89,40 +89,19 @@ if (walletV5R1) {
 }
 ```
 
-**Legacy wallet creation options:**
-
-```ts
-import { Signer, WalletV4R2Adapter, CHAIN } from '@ton/walletkit';
-
-// From private key (hex string) format '0xab...' or 'ab...' 
-const signer2 = await Signer.fromPrivateKey(process.env.APP_TONCENTER_KEY!);
-
-// Using Wallet V4R2 (for compatibility with older wallets)
-const walletV4R2Adapter = await WalletV4R2Adapter.create(signer2, {
-  client: kit.getApiClient(),
-  network: CHAIN.MAINNET,
-});
-
-const walletV4R2 = await kit.addWallet(walletV4R2Adapter);
-if (walletV4R2) {
-  console.log('V4R2 Address:', walletV4R2.getAddress());
-  console.log('V4R2 Balance:', await walletV4R2.getBalance());
-}
-```
-
 ## Understanding previews (for your UI)
 
-Before handling requests, it's helpful to understand the preview data that the kit provides for each request type, these previews help you display user-friendly confirmation dialogs
+Before handling requests, it's helpful to understand the preview data that the kit provides for each request type. These previews help you display user-friendly confirmation dialogs.
 
-- **ConnectPreview (`req.preview`)**: Information about the dApp asking to connect, includes `manifest` (name, description, icon), `requestedItems`, and `permissions` your UI can show before approval
-- **TransactionPreview (`tx.preview`)**: Human-readable transaction summary, on success, `preview.moneyFlow.ourTransfers` contains an array of net asset changes (TON and jettons) with positive amounts for incoming and negative for outgoing `preview.moneyFlow.inputs` and `preview.moneyFlow.outputs` show raw TON flow, and `preview.emulationResult` has low-level emulation details. On error, `preview.result === 'error'` with an `emulationError`
-- **SignDataPreview (`sd.preview`)**: Shape of the data to sign `kind` is `'text' | 'binary' | 'cell'` use this to render a safe preview
+- **ConnectPreview (`req.preview`)**: Information about the dApp asking to connect. Includes `manifest` (name, description, icon), `requestedItems`, and `permissions` your UI can show before approval.
+- **TransactionPreview (`tx.preview`)**: Human-readable transaction summary. On success, `preview.moneyFlow.ourTransfers` contains an array of net asset changes (TON and jettons) with positive amounts for incoming and negative for outgoing. `preview.moneyFlow.inputs` and `preview.moneyFlow.outputs` show raw TON flow, and `preview.emulationResult` has low-level emulation details. On error, `preview.result === 'error'` with an `emulationError`.
+- **SignDataPreview (`sd.preview`)**: Shape of the data to sign. `kind` is `'text' | 'binary' | 'cell'`. Use this to render a safe preview.
 
-You can display these previews directly in your confirmation modals
+You can display these previews directly in your confirmation modals.
 
 ## Listen for requests from dApps
 
-Register callbacks that show UI and then approve or reject via kit methods, note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic
+Register callbacks that show UI and then approve or reject via kit methods. Note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic.
 
 ```ts
 // Connect requests - triggered when a dApp wants to connect
@@ -183,7 +162,7 @@ kit.onDisconnect((evt) => {
 
 ### Handle TON Connect links
 
-When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit, this will trigger your `onConnectRequest` callback
+When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit. This will trigger your `onConnectRequest` callback.
 
 ```ts
 // Example: from a QR scanner, deep link, or URL parameter
@@ -208,7 +187,7 @@ console.log(address, balance.toString());
 
 ### Rendering previews (reference)
 
-The snippets below mirror how the demo wallet renders previews in its modals, adapt them to your UI framework
+The snippets below mirror how the demo wallet renders previews in its modals. Adapt them to your UI framework.
 
 Render Connect preview:
 
@@ -301,7 +280,7 @@ function renderSignDataPreview(preview: SignDataPreview) {
 }
 ```
 
-Tip: For jetton names/symbols and images in transaction previews, you can enrich the UI using:
+**Tip:** For jetton names/symbols and images in transaction previews, you can enrich the UI using:
 
 ```ts
 const info = kit.jettons.getJettonInfo(jettonAddress);
@@ -353,9 +332,9 @@ const tx = await wallet.createTransferJettonTransaction(jettonTransfer);
 await kit.handleNewTransaction(wallet, tx);
 ```
 
-Notes:
-- `amount` is the raw integer amount (apply jetton decimals yourself).
-- The transaction includes TON for gas automatically.
+**Notes:**
+- `amount` is the raw integer amount (apply jetton decimals yourself)
+- The transaction includes TON for gas automatically
 
 ### Send NFTs
 
@@ -376,7 +355,7 @@ const tx = await wallet.createTransferNftTransaction(nftTransfer);
 await kit.handleNewTransaction(wallet, tx);
 ```
 
-Fetching NFTs:
+**Fetching NFTs:**
 
 ```ts
 const items = await wallet.getNfts({ offset: 0, limit: 50 });
@@ -431,17 +410,11 @@ async function rejectTx() {
 }
 ```
 
-## Error handling tips
-
-- Wrap approvals in try/catch to surface actionable messages (see examples in Section 3).
-- Validate there is at least one wallet before approving a connect.
-- Surface preview data to users: `req.preview`, `tx.preview.moneyFlow`, `sd.preview`.
-
 ## Demo wallet reference
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
-See `apps/demo-wallet` for the full implementation. the store slice [stores/slices/walletSlice.ts](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/src/stores/slices/walletSlice.ts) shows how to:
+See `apps/demo-wallet` for the full implementation. The store slices [stores/slices/walletCoreSlice.ts](apps/demo-wallet/src/stores/slices/walletCoreSlice.ts) and [stores/slices/tonConnectSlice.ts](apps/demo-wallet/src/stores/slices/tonConnectSlice.ts) show how to:
 
 - Initialize the kit and add a wallet from mnemonic
 - Wire `onConnectRequest` and `onTransactionRequest` to open modals
@@ -449,10 +422,10 @@ See `apps/demo-wallet` for the full implementation. the store slice [stores/slic
 
 ## Resources
 
-- [TON Connect Protocol](https://github.com/ton-connect/docs) - Official protocol docs
-- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](https://github.com/ton-connect/kit/tree/main/apps/demo-wallet)
-- [Complete development guide](https://github.com/ton-connect/kit/blob/main/packages/walletkit/DOCUMENTATION.md)
+- [TON Connect Protocol](https://github.com/ton-blockchain/ton-connect) - Official TON Connect protocol specification
+- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](apps/demo-wallet)
+- [Complete development guide](packages/walletkit/DEVELOPMENT.md)
 
 ## License
 
-ISC License - see LICENSE file for details
+MIT License - see LICENSE file for details
