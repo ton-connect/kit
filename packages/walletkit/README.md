@@ -414,7 +414,7 @@ async function rejectTx() {
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
-See `apps/demo-wallet` for the full implementation. The store slices [stores/slices/walletCoreSlice.ts](apps/demo-wallet/src/stores/slices/walletCoreSlice.ts) and [stores/slices/tonConnectSlice.ts](apps/demo-wallet/src/stores/slices/tonConnectSlice.ts) show how to:
+See `apps/demo-wallet` for the full implementation. The store slices [stores/slices/walletCoreSlice.ts](../apps/demo-wallet/src/stores/slices/walletCoreSlice.ts) and [stores/slices/tonConnectSlice.ts](/apps/demo-wallet/src/stores/slices/tonConnectSlice.ts) show how to:
 
 - Initialize the kit and add a wallet from mnemonic
 - Wire `onConnectRequest` and `onTransactionRequest` to open modals
@@ -423,8 +423,8 @@ See `apps/demo-wallet` for the full implementation. The store slices [stores/sli
 ## Resources
 
 - [TON Connect Protocol](https://github.com/ton-blockchain/ton-connect) - Official TON Connect protocol specification
-- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](apps/demo-wallet)
-- [Complete development guide](packages/walletkit/DEVELOPMENT.md)
+- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](../../apps/demo-wallet)
+- [Complete development guide](DEVELOPMENT.md)
 
 ## License
 
