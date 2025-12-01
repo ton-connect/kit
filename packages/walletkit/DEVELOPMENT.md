@@ -45,7 +45,7 @@ src/
 
 ## Code Quality
 
-The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](packages/walletkit/quality.config.js). `jest` is also used for better IDE compatibility.
+The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](/packages/walletkit/quality.config.js). `jest` can also be used for better IDE compatibility.
 
 ```bash
 pnpm lint          # lint all packages
@@ -85,7 +85,7 @@ Each component has a single responsibility and can be tested in isolation:
 2. **Write tests first** - TDD approach with unit tests
 3. **Implement the feature** - Follow existing patterns
 4. **Update types** - Ensure TypeScript types are up to date
-5. **Document** - Update DOCUMENTATION.md for public APIs
+5. **Document** - Update README.md and docs.ton.org for public APIs
 
 ### Pull Request Process
 
@@ -102,10 +102,6 @@ The `apps/demo-wallet` directory contains a reference implementation showing how
 ```bash
 pnpm demo-wallet dev
 ```
-
-Key files to review:
-- `src/stores/slices/walletSlice.ts` - Kit initialization and event handlers
-- `src/pages/SendTransaction.tsx` - Programmatic transaction creation
 
 ## Debugging
 
@@ -134,9 +130,9 @@ DEBUG=walletkit:* pnpm dev
 - Check wallet was added via `addWallet()`
 - Confirm storage adapter is working
 
-## E2E testing
+## E2E Testing
 
-### (optional) Run TON Connect Bridge local
+### (Optional) Run TON Connect Bridge Locally
 ```bash
 docker compose -f docker-compose.bridge.yml up -d
 # check
@@ -148,33 +144,39 @@ curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics
 ```dotenv
 DAPP_URL="https://allure-test-runner.vercel.app/e2e" # (optional) target app url
 WALLET_MNEMONIC="word1 word2 ..." # mnemonic for main wallet for test
-ALLURE_API_TOKEN="" # accsess for alllure for gettint test data
-ALLURE_PROJECT_ID="100" # id project alllure
+ALLURE_API_TOKEN="" # Access token for Allure for getting test data
+ALLURE_PROJECT_ID="100" # Allure project ID
 ALLURE_BASE_URL="https://ton-connect-test-runner.tapps.ninja/api/v1/allure-proxy"
 E2E_SLOW_MO="0" # (optional) Slows down Playwright operations by the specified amount of milliseconds
-CI="true" # (optional)
+CI="1" # (optional) allows headless mode
 TIMEOUT="30000" # (optional) default 60000
 WORKERS_COUNT="16" # (optional) default not set
 
-E2E_WALLET_SOURCE_EXTENSION="../../dist-extension-chrome" # (optional) mode extension alternative to the web mode
-E2E_JS_BRIDGE="true" # (optional) switch from http bridge to js bridge used whith mode extension
-E2E_WALLET_SOURCE="http://localhost:5173/" # (optional) default mode web alternative to the extension mode
+## <!-- Env for testing extension start -->
+E2E_WALLET_SOURCE_EXTENSION="../../dist-extension-chrome" # (optional) path to the extension
+E2E_JS_BRIDGE="true" # (optional) enables js bridge test mode for the e2e tests
+VITE_DISABLE_NETWORK_SEND="true" # (optional) defaults to false, disables broadcast to the blockchain
+VITE_DISABLE_HTTP_BRIDGE="true" # (optional) defaults to false, allows to load walletkit without http bridge
+VITE_DISABLE_AUTO_POPUP="true" # (optional) defaults to false, disables auto open for extension popup
+## <!-- Env for testing extension end -->
 
-VITE_DISABLE_NETWORK_SEND="true" # (optional) defaul false enable if you want to test Web Wallet1
-VITE_DISABLE_HTTP_BRIDGE="true" # (optional) defaul false
-VITE_DISABLE_AUTO_POPUP="true" # (optional) defaul false
+## <!-- Env for testing webapp start -->
+E2E_WALLET_SOURCE="http://localhost:5173/" # (optional) custom url for the web mode
 
+VITE_DISABLE_NETWORK_SEND="true" # (optional) defaults to false, disables broadcast to the blockchain
+VITE_DISABLE_AUTO_POPUP="true" # (optional) defaults to false, disables auto open for extension popup
 VITE_BRIDGE_URL="https://connect.ton.org/bridge" # (optional) use custom url bridge in web app
+## <!-- Env for testing webapp end -->
 ```
 
-### Install and build deps
+### Install and Build Dependencies
 ```bash
 pnpm install
 pnpm --filter demo-wallet e2e:deps
 pnpm build
 ```
 
-### Run test specs
+### Run Test Specs
 ```bash
 pnpm demo-wallet e2e
 # or
@@ -184,6 +186,6 @@ xvfb-run pnpm demo-wallet e2e
 ## Release Process
 
 1. Update version in `package.json`
-2. See Code Quality and E2E testing
+2. See Code Quality and E2E Testing sections
 3. Commit changes and tag release
 4. Publish to npm: `npm publish`
