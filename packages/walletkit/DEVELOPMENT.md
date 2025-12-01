@@ -45,7 +45,7 @@ src/
 
 ## Code Quality
 
-The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](packages/walletkit/quality.config.js). `jest` can also be used for better IDE compatibility.
+The testing environment uses `vitest` for faster test execution and includes mutation testing to verify test effectiveness. Expected coverage and quality parameters are stored in [packages/walletkit/quality.config.js](/packages/walletkit/quality.config.js). `jest` can also be used for better IDE compatibility.
 
 ```bash
 pnpm lint          # lint all packages
