@@ -1,6 +1,5 @@
 import { DAppInfo } from "../core/DAppInfo";
 
-
 export interface SignDataRequestEvent {
     /**
      * Preview information for UI display
