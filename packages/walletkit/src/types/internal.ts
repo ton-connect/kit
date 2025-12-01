@@ -14,6 +14,7 @@ import {
     SignDataRpcRequest,
     WalletResponseError as _WalletResponseError,
     WalletResponseTemplateError,
+    ConnectEventError,
 } from '@tonconnect/protocol';
 
 import { DAppInfo } from './events';
@@ -167,8 +168,11 @@ export type RawBridgeEvent =
 // Internal event routing types
 export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
 
+// Handler error response types - either RPC error format or connect error format
+export type HandlerErrorResponse = WalletResponseTemplateError | ConnectEventError;
+
 export interface EventHandler<T extends BridgeEventBase = BridgeEventBase, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;
-    handle(event: V): Promise<T | WalletResponseTemplateError>;
+    handle(event: V): Promise<T | HandlerErrorResponse>;
     notify(event: T): Promise<void>;
 }

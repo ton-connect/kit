@@ -8,7 +8,7 @@
 
 // Connect request handler
 
-import { CONNECT_EVENT_ERROR_CODES, ConnectItem } from '@tonconnect/protocol';
+import { CONNECT_EVENT_ERROR_CODES, ConnectItem, ConnectEventError } from '@tonconnect/protocol';
 
 import type { ConnectPreview, EventConnectRequest, TonWalletKitOptions } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
@@ -42,11 +42,11 @@ export class ConnectHandler
         return event.method === 'connect';
     }
 
-    async handle(event: RawBridgeEventConnect): Promise<EventConnectRequest> {
+    async handle(event: RawBridgeEventConnect): Promise<EventConnectRequest | ConnectEventError> {
         // Extract manifest information
         const manifestUrl = this.extractManifestUrl(event);
         let manifest = null;
-        let manifestFetchErrorCode = undefined;
+        let manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES | undefined = undefined;
 
         // Try to fetch manifest if URL is available
         if (manifestUrl) {
@@ -56,7 +56,30 @@ export class ConnectHandler
                 manifestFetchErrorCode = result.manifestFetchErrorCode;
             } catch (error) {
                 log.warn('Failed to fetch manifest', { error });
+                manifestFetchErrorCode = CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
             }
+        } else {
+            // No manifest URL provided
+            manifestFetchErrorCode = CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR;
+        }
+
+        // Auto-reject if manifest fetch failed - don't bother the wallet app
+        if (manifestFetchErrorCode) {
+            log.warn('Manifest fetch failed, auto-rejecting connect request', {
+                manifestUrl,
+                errorCode: manifestFetchErrorCode,
+            });
+            return {
+                event: 'connect_error',
+                id: parseInt(event.id) || 0,
+                payload: {
+                    code: manifestFetchErrorCode,
+                    message:
+                        manifestFetchErrorCode === CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+                            ? 'Manifest not found'
+                            : 'Manifest content error',
+                },
+            } as ConnectEventError;
         }
 
         const preview = this.createPreview(event, manifestUrl, manifest, manifestFetchErrorCode);
@@ -224,6 +247,25 @@ export class ConnectHandler
                 // );
             }
             const result = await response.json();
+
+            // Validate manifest content - check if url field is a valid URL with proper host
+            if (result?.url) {
+                try {
+                    const manifestAppUrl = new URL(result.url);
+                    if (manifestAppUrl.host.indexOf('.') === -1) {
+                        return {
+                            manifest: null,
+                            manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
+                        };
+                    }
+                } catch (_) {
+                    return {
+                        manifest: null,
+                        manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
+                    };
+                }
+            }
+
             return {
                 manifest: result,
                 manifestFetchErrorCode: undefined,

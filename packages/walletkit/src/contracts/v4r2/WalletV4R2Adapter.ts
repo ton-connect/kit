@@ -146,18 +146,25 @@ export class WalletV4R2Adapter implements IWalletAdapter {
             : Math.floor(Date.now() / 1000) + 60;
 
         try {
-            const messages: MessageRelaxed[] = input.messages.map((m) =>
-                internal({
+            const messages: MessageRelaxed[] = input.messages.map((m) => {
+                // Check if address is non-bounceable
+                let bounce = true;
+                const parsedAddress = Address.parseFriendly(m.address);
+                if (parsedAddress.isBounceable === false) {
+                    bounce = false;
+                }
+
+                return internal({
                     to: Address.parse(m.address),
                     value: BigInt(m.amount),
-                    bounce: true,
+                    bounce: bounce,
                     extracurrency: m.extraCurrency
                         ? Object.fromEntries(Object.entries(m.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
                         : undefined,
                     body: m.payload ? Cell.fromBase64(m.payload) : undefined,
                     init: m.stateInit ? loadStateInit(Cell.fromBase64(m.stateInit).asSlice()) : undefined,
-                }),
-            );
+                });
+            });
             const data = this.walletContract.createTransfer({
                 seqno: seqno,
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
