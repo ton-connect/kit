@@ -115,9 +115,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 state.auth.currentPassword,
             );
 
-            if (!version) {
-                throw new Error('Version is required');
-            }
+            const walletVersion = version || 'v5r1';
 
             const network = state.auth.network || 'testnet';
             const walletAdapter = await createWalletAdapter({
@@ -127,7 +125,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 storedLedgerConfig: undefined,
                 network,
                 walletKit: state.walletCore.walletKit,
-                version,
+                version: walletVersion,
             });
 
             const wallet = await state.walletCore.walletKit.addWallet(walletAdapter);
@@ -147,7 +145,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 encryptedMnemonic,
                 walletType: state.auth.useWalletInterfaceType || 'mnemonic',
                 walletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
-                version: version,
+                version: walletVersion,
                 createdAt: Date.now(),
             };
 
