@@ -65,6 +65,7 @@ export const AppWrapper: FC<PropsWithChildren> = ({ children }) => {
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line no-undef
         let timeout: NodeJS.Timeout;
 
         if ((isFontsLoaded || isFontsError) && isStatusBarReady) {

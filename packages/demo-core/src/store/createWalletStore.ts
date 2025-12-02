@@ -55,8 +55,11 @@ const createLogger = (customLogger?: CreateWalletStoreOptions['logger']) => {
     if (customLogger) return customLogger;
 
     return {
+        // eslint-disable-next-line no-console
         info: (...args: unknown[]) => console.log('[WalletStore]', ...args),
+        // eslint-disable-next-line no-console
         warn: (...args: unknown[]) => console.warn('[WalletStore]', ...args),
+        // eslint-disable-next-line no-console
         error: (...args: unknown[]) => console.error('[WalletStore]', ...args),
     };
 };

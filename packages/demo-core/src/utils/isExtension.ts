@@ -10,5 +10,6 @@
  * Checks if the code is running in a browser extension environment
  */
 export function isExtension(): boolean {
+    // eslint-disable-next-line no-undef
     return typeof chrome !== 'undefined' && typeof chrome.runtime !== 'undefined' && !!chrome.runtime.id;
 }

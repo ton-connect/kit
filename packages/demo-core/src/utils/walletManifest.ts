@@ -19,7 +19,7 @@ export function getTonConnectWalletManifest(): WalletInfo {
         // supported platforms for wallet
         platforms: ['ios', 'android', 'macos', 'windows', 'linux', 'chrome', 'firefox', 'safari'],
         jsBridgeKey: 'tonkeeper', // window key for wallet bridge
-        injected: isExtension() ? true : false, // if wallet is injected
+        injected: isExtension(), // if wallet is injected
         embedded: false, // if wallet is embedded (from wallet browser)
         tondns: 'tonkeeper.ton', // tondns for wallet
         bridgeUrl: 'https://bridge.tonapi.io/bridge', // url for wallet bridge

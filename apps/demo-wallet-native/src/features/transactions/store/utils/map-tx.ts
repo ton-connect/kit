@@ -6,24 +6,9 @@
  *
  */
 
-import { Address } from '@ton/ton';
 import type { ToncenterTransaction } from '@ton/walletkit';
 
 import type { Transaction } from '@/features/transactions';
-
-const toUserFriendlyAddress = (rawAddress: string): string => {
-    if (!rawAddress) return '';
-    try {
-        // Если адрес уже в user-friendly формате (начинается с EQ или UQ), возвращаем как есть
-        if (rawAddress.startsWith('EQ') || rawAddress.startsWith('UQ')) {
-            return rawAddress;
-        }
-        // Конвертируем raw адрес в user-friendly с bounceable: true
-        return Address.parse(rawAddress).toString({ bounceable: true, testOnly: false });
-    } catch {
-        return rawAddress;
-    }
-};
 
 export const mapTx = (tx: ToncenterTransaction): Transaction => {
     let type: 'send' | 'receive' = 'receive';

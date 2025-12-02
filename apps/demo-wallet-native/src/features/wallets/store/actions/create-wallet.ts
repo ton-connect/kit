@@ -6,7 +6,7 @@
  *
  */
 
-import { mnemonicToWalletKey, mnemonicNew, keyPairFromSeed, deriveEd25519Path } from '@ton/crypto';
+import { mnemonicNew } from '@ton/crypto';
 
 import { tempStorage } from '../../storages/temp-storage';
 import { useWalletStore } from '../store';

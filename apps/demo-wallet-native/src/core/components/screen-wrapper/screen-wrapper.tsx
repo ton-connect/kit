@@ -10,9 +10,7 @@ import type { FC, PropsWithChildren } from 'react';
 import { ScrollView, type ScrollViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-interface Props extends ScrollViewProps {}
-
-export const ScreenWrapper: FC<PropsWithChildren<Props>> = ({ style, children, ...props }) => {
+export const ScreenWrapper: FC<PropsWithChildren<ScrollViewProps>> = ({ style, children, ...props }) => {
     return (
         <ScrollView showsVerticalScrollIndicator={false} style={[styles.container, style]} {...props}>
             {children}

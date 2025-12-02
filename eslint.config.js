@@ -44,4 +44,10 @@ module.exports = [
             'license-header/header': ['error', './resources/license-header.js'],
         },
     },
+    {
+        files: ['apps/demo-wallet-native/**/*.ts', 'apps/demo-wallet-native/**/*.tsx'],
+        rules: {
+            '@typescript-eslint/no-require-imports': 'off',
+        },
+    },
 ];

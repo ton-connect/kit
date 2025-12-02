@@ -19,8 +19,11 @@ export function createComponentLogger(component: string): Logger {
     const prefix = `[${component}]`;
 
     return {
+        // eslint-disable-next-line no-console
         info: (...args: unknown[]) => console.log(prefix, ...args),
+        // eslint-disable-next-line no-console
         warn: (...args: unknown[]) => console.warn(prefix, ...args),
+        // eslint-disable-next-line no-console
         error: (...args: unknown[]) => console.error(prefix, ...args),
     };
 }
