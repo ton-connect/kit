@@ -10,13 +10,6 @@ import { createComponentLogger } from '../src/utils/logger';
 
 const log = createComponentLogger('Allure');
 
-interface TokenResponse {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    scope: string;
-}
-
 interface AllureConfig {
     baseUrl: string;
     projectId: number;
@@ -53,12 +46,10 @@ export class AllureApiClient {
         this.config = config;
     }
 
-    
     /**
      * Выполняет авторизованный запрос к Allure API
      */
     private async makeRequest(endpoint: string, options: { headers?: Record<string, string> } = {}): Promise<Response> {
-
         const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
             ...options,
             headers: {
