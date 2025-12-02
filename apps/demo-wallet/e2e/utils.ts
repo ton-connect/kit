@@ -102,7 +102,6 @@ export class AllureApiClient {
         });
 
         if (!response.ok) {
-            console.error(response);
             throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
 
