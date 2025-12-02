@@ -22,12 +22,6 @@ interface AllureConfig {
     projectId: number;
 }
 
-/**
- * Получает JWT токен для Allure TestOps API
- * @param config - Конфигурация Allure TestOps
- * @returns Promise с JWT токеном
- */
-
 export type TestCaseData = {
     precondition: string;
     expectedResult: string;
