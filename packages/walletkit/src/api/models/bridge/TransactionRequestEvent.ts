@@ -1,5 +1,5 @@
 import { DAppInfo } from "../core/DAppInfo";
-import { TransactionPreview } from "../transactions/TransactionPreview";
+import { TransactionPreview } from "../transactions/emulation/TransactionPreview";
 import { TransactionRequest } from "../transactions/TransactionRequest";
 
 export interface TransactionRequestEvent {
@@ -15,6 +15,6 @@ export interface TransactionRequestEventPreview {
      * Decentralized Application information
      */
     dAppInfo?: DAppInfo;
-    
+
     data: TransactionPreview;
 }

@@ -7,18 +7,41 @@ import {
 import { SendMode } from "../core/SendMode";
 import { TokenAmount } from "../core/TokenAmount";
 
-export interface TransactionMessage {
-    address: Address;
-    amount: TokenAmount;
-    payload?: Base64String;
-    stateInit?: Base64String;
-    extraCurrency?: ExtraCurrencies;
-    mode?: SendMode;
-}
-
 export interface TransactionRequest {
-    messages: TransactionMessage[];
+    messages: TransactionRequestMessage[];
     network?: Network;
     validUntil?: number;
-    from?: Address;
+    fromAddress?: Address;
+}
+    
+export interface TransactionRequestMessage {
+    /**
+     * Recipient address
+     */
+    recipientAddress: Address;
+
+    /**
+     * Amount to transfer in nanounits
+     */
+    transferAmount: TokenAmount;
+
+    /**
+     * Optional send mode
+     */
+    mode?: SendMode;
+
+    /**
+     * Optional extra currency to send
+     */
+    extraCurrency?: ExtraCurrencies;
+
+    /**
+     * Optional state init in base64 format
+     */
+    stateInit?: Base64String;
+    
+    /**
+     * Optional payload in base64 format
+     */
+    payload?: Base64String;
 }

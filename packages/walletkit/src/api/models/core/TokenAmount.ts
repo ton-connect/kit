@@ -1,2 +1,2 @@
 
-export type TokenAmount = string; // Amount represented as a string
+export type TokenAmount = string;
