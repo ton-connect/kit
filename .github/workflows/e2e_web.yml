@@ -11,11 +11,11 @@ on:
 jobs:
   base:
     name: e2e web
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, k8s, linux]
-    container:
-      image: node:22
-      options: --user root
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, k8s, linux]
+    # container:
+    #   image: node:22
+    #   options: --user root
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
@@ -98,6 +98,7 @@ jobs:
         ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
         ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+        VITE_DISABLE_AUTO_POPUP: true
         VITE_DISABLE_NETWORK_SEND: true
 
     - name: Upload Allure Results

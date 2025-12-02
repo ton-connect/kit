@@ -6,81 +6,32 @@
  *
  */
 
-import type {
-    EventConnectRequest,
-    EventTransactionRequest,
-    EventSignDataRequest,
-    IWallet,
-    ITonWalletKit,
-} from '@ton/walletkit';
+import type { EventConnectRequest, EventTransactionRequest, EventSignDataRequest } from '@ton/walletkit';
 
 export interface SavedWallet {
-    id: string; // Unique identifier
-    name: string; // User-friendly name
+    id: string;
+    name: string;
     address: string;
     publicKey: string;
-    encryptedMnemonic?: string; // For mnemonic-based wallets
-    ledgerConfig?: LedgerConfig; // For Ledger wallets
+    encryptedMnemonic?: string;
+    ledgerConfig?: LedgerConfig;
     walletType: 'mnemonic' | 'signer' | 'ledger';
-    walletInterfaceType: 'signer' | 'mnemonic' | 'ledger'; // How the wallet interfaces with signing
-    version?: 'v5r1' | 'v4r2'; // Wallet version
+    walletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
+    version?: 'v5r1' | 'v4r2';
     createdAt: number;
-}
-
-export interface WalletState {
-    wallet: {
-        // WalletKit instance
-        walletKit: ITonWalletKit | null;
-
-        isAuthenticated: boolean;
-        hasWallet: boolean;
-
-        // Multiple saved wallets
-        savedWallets: SavedWallet[];
-        activeWalletId?: string; // ID of currently active wallet
-
-        // Active wallet info (computed from savedWallets[activeWalletId])
-        address?: string;
-        balance?: string;
-        publicKey?: string;
-
-        // Transaction history for active wallet
-        transactions: PreviewTransaction[];
-
-        // Walletkit instance and current wallet
-        currentWallet?: IWallet;
-
-        // Request queue
-        requestQueue: RequestQueue;
-
-        // Connect request state
-        pendingConnectRequest?: EventConnectRequest;
-        isConnectModalOpen: boolean;
-
-        // Transaction request state
-        pendingTransactionRequest?: EventTransactionRequest;
-        isTransactionModalOpen: boolean;
-
-        // Sign data request state
-        pendingSignDataRequest?: EventSignDataRequest;
-        isSignDataModalOpen: boolean;
-
-        // Disconnect notifications
-        disconnectedSessions: DisconnectNotification[];
-    };
 }
 
 export interface AuthState {
     auth: {
         currentPassword?: string;
-        passwordHash?: number[]; // Store password hash in state
+        passwordHash?: number[];
         isPasswordSet?: boolean;
         isUnlocked?: boolean;
-        persistPassword?: boolean; // Setting to persist password between reloads
-        holdToSign?: boolean; // Setting to require holding button to sign transactions
-        useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger'; // Setting for wallet interface type
-        ledgerAccountNumber?: number; // Account number for Ledger derivation path
-        network?: 'mainnet' | 'testnet'; // Network selection (mainnet or testnet)
+        persistPassword?: boolean;
+        holdToSign?: boolean;
+        useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger';
+        ledgerAccountNumber?: number;
+        network?: 'mainnet' | 'testnet';
     };
 }
 
@@ -103,9 +54,9 @@ export interface DisconnectNotification {
 }
 
 export interface QueueRequestBase {
-    id: string; // Unique ID for the request
-    timestamp: number; // When request was added
-    expiresAt: number; // Expiration time
+    id: string;
+    timestamp: number;
+    expiresAt: number;
 }
 
 export interface QueuedRequestConnect {
@@ -129,16 +80,16 @@ export type QueuedRequest = QueueRequestBase & QueuedRequestData;
 
 export interface RequestQueue {
     items: QueuedRequest[];
-    currentRequestId?: string; // ID of the request currently being shown
-    isProcessing: boolean; // Whether we're currently showing a modal
+    currentRequestId?: string;
+    isProcessing: boolean;
 }
 
 export interface LedgerConfig {
-    publicKey: string; // Store as number array for JSON serialization
+    publicKey: string;
     path: number[];
     walletId: number;
     version: string;
-    network: string; // Store as string for JSON serialization
+    network: string;
     workchain: number;
     accountIndex: number;
 }

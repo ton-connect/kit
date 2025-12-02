@@ -122,8 +122,14 @@ export class SessionManager {
         // if (session) {
         //     return this.getSession(session.sessionId);
         // }
+        let host;
+        try {
+            host = new URL(domain).host;
+        } catch {
+            return undefined;
+        }
         for (const session of this.sessions.values()) {
-            if (session.domain === domain) {
+            if (session.domain === host) {
                 return this.getSession(session.sessionId);
             }
         }

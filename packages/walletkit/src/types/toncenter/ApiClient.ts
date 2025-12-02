@@ -87,6 +87,7 @@ export interface GetEventsResponse {
     events: Event[];
     offset: number;
     limit: number;
+    hasNext: boolean;
 }
 
 export interface ApiClient {

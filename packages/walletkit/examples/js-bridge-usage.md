@@ -9,25 +9,25 @@ This guide shows how to build a browser extension wallet using WalletKit's JS Br
 The JS Bridge uses a three-layer architecture to securely connect dApps with your wallet extension:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Web Page (dApp)                                            │
+┌────────────────────────────────────────────────────────────┐
+│  Web Page (dApp)                                           │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  window.ton.tonconnect                         │  │
+│  │  window.ton.tonconnect                               │  │
 │  │  - connect()                                         │  │
 │  │  - send()                                            │  │
 │  │  - restoreConnection()                               │  │
 │  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
                          ↕ chrome.runtime.sendMessage
-┌─────────────────────────────────────────────────────────────┐
-│  Extension Background Script                                 │
+┌────────────────────────────────────────────────────────────┐
+│  Extension Background Script                               │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  TonWalletKit                                        │  │
 │  │  - processInjectedBridgeRequest()                    │  │
 │  │  - onConnectRequest()                                │  │
 │  │  - onTransactionRequest()                            │  │
 │  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
 ```
 
 **Flow:**
@@ -146,7 +146,7 @@ function isBridgeRequest(message: unknown): asserts message is InjectedToExtensi
         typeof message !== 'object' ||
         message === null ||
         !('type' in message) ||
-        message.type !== 'TONCONNECT_BRIDGE_REQUEST'
+        message.type !== TONCONNECT_BRIDGE_REQUEST
     ) {
         throw new Error('Invalid bridge request');
     }
@@ -154,7 +154,7 @@ function isBridgeRequest(message: unknown): asserts message is InjectedToExtensi
 
 // Listen for messages from injected bridge
 chrome.runtime.onMessageExternal.addListener(async (message, sender, sendResponse) => {
-    if (message.type !== 'TONCONNECT_BRIDGE_REQUEST') {
+    if (message.type !== TONCONNECT_BRIDGE_REQUEST) {
         return;
     }
 
@@ -165,7 +165,7 @@ chrome.runtime.onMessageExternal.addListener(async (message, sender, sendRespons
         const messageInfo = {
             messageId: message.messageId,
             tabId: sender.tab?.id?.toString(),
-            domain: sender.tab?.url ? new URL(sender.tab.url).hostname : undefined
+            domain: sender.tab?.url ? new URL(sender.tab.url).host : undefined
         };
 
         // Process through WalletKit
@@ -259,18 +259,6 @@ async function injectContentScript(tabId: number) {
             files: ['content.js'],
             world: 'MAIN' as any  // Access to window object
         });
-
-        // Inject extension ID so bridge can communicate
-        await chrome.scripting.executeScript({
-            target: { tabId, allFrames: true },
-            args: [chrome.runtime.id],
-            func: (extensionId) => {
-                window.postMessage({
-                    type: 'INJECT_EXTENSION_ID',
-                    extensionId
-                }, '*');
-            }
-        });
     } catch (error) {
         console.error('Error injecting script:', error);
     }
@@ -339,40 +327,7 @@ All communication uses Chrome's message passing with:
 - Request/response matching via messageId
 - Built-in timeouts (30s for connect, 10s for restore, 60s for send)
 
-### 3. Extension ID Injection
-
-The extension ID is securely passed to the injected code so it knows where to send messages:
-
-```typescript
-// Background injects the extension ID
-window.postMessage({
-    type: 'INJECT_EXTENSION_ID',
-    extensionId: chrome.runtime.id
-}, '*');
-
-// Injected bridge receives and stores it
-if (data.type === 'INJECT_EXTENSION_ID') {
-    extensionId = data.extensionId;
-}
-```
-
 ## Troubleshooting
-
-### Extension ID not available
-
-**Problem:** Injected code can't send messages because `extensionId` is undefined.
-
-**Solution:** Ensure the extension ID is injected before any dApp tries to use the bridge:
-
-```typescript
-// Wait for extension ID
-let extensionId: string | undefined;
-window.addEventListener('message', (event) => {
-    if (event.data.type === 'INJECT_EXTENSION_ID') {
-        extensionId = event.data.extensionId;
-    }
-});
-```
 
 ### Content script not injecting
 

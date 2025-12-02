@@ -47,8 +47,11 @@
     "connect",
     "tonconnect"
   ],
-  "author": "",
+  "author": "TON Tech",
   "files": [
+    "DEVELOPMENT.md",
+    "README.md",
+    "LICENSE",
     "dist"
   ],
   "dependencies": {
@@ -71,6 +74,7 @@
     "@types/chrome": "^0.1.28",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
+    "@types/webextension-polyfill": "^0.12.4",
     "@vitest/coverage-v8": "4.0.8",
     "@vitest/ui": "^4.0.8",
     "dotenv": "^17.2.3",

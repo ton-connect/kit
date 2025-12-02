@@ -28,7 +28,6 @@ interface UseTonWalletReturn {
     createNewWallet: () => Promise<string[]>;
     createLedgerWallet: () => Promise<void>;
     importWallet: (mnemonic: string[], version?: 'v5r1' | 'v4r2') => Promise<void>;
-    sendTransaction: (to: string, amount: string) => Promise<void>;
 }
 
 export const useTonWallet = (): UseTonWalletReturn => {
@@ -54,7 +53,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
 
             // Load existing wallet if available
             if (walletStore.hasWallet && authStore.isUnlocked) {
-                await walletStore.loadWallet();
+                await walletStore.loadAllWallets();
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -121,39 +120,6 @@ export const useTonWallet = (): UseTonWalletReturn => {
         [tonKit, walletStore],
     );
 
-    const sendTransaction = useCallback(
-        async (to: string, amount: string): Promise<void> => {
-            if (!tonKit) throw new Error('TON Kit not initialized');
-
-            try {
-                setError(null);
-
-                // Get mnemonic from store
-                const mnemonic = await walletStore.getDecryptedMnemonic();
-                if (!mnemonic) throw new Error('No wallet available');
-
-                // Mock transaction sending - just simulate it
-                await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
-
-                // Add transaction to history
-                walletStore.addTransaction({
-                    id: Date.now().toString(),
-                    messageHash: '',
-                    type: 'send',
-                    amount,
-                    address: to,
-                    timestamp: Date.now(),
-                    status: 'confirmed', // Mock as confirmed immediately
-                });
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Failed to send transaction';
-                setError(errorMessage);
-                throw new Error(errorMessage);
-            }
-        },
-        [tonKit, walletStore],
-    );
-
     // Auto-initialize when component mounts
     useEffect(() => {
         if (!isInitialized) {
@@ -169,6 +135,5 @@ export const useTonWallet = (): UseTonWalletReturn => {
         createNewWallet,
         createLedgerWallet,
         importWallet,
-        sendTransaction,
     };
 };

@@ -6,7 +6,7 @@
  *
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { EventConnectRequest, IWallet } from '@ton/walletkit';
 
 import { Button } from './Button';
@@ -39,6 +39,19 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     const [selectedWallet, setSelectedWallet] = useState<IWallet | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
     const [showAllWallets, setShowAllWallets] = useState(false);
+
+    // Auto-select first wallet if selectedWallet is null
+    useEffect(() => {
+        if (selectedWallet !== null) return;
+
+        const intervalId = setInterval(() => {
+            if (availableWallets[0]) {
+                setSelectedWallet(availableWallets[0]);
+            }
+        }, 100);
+
+        return () => clearInterval(intervalId);
+    }, [selectedWallet, availableWallets]);
 
     // Create a map of wallet addresses to SavedWallet data
     const walletDataMap = useMemo(() => {

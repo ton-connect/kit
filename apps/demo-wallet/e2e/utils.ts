@@ -35,11 +35,13 @@ export type TestCaseData = {
  */
 export async function getTestCaseByAllureId(config: AllureConfig, allureId: string): Promise<TestCaseData> {
     const { baseUrl } = config;
+    const token = await getAllureToken(config);
 
     try {
         const response = await fetch(`${baseUrl}/api/rs/testcase/allureId/${allureId}`, {
             method: 'GET',
             headers: {
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
@@ -177,11 +179,6 @@ export async function getTestCaseData(
         };
     } catch (error) {
         log.error('Error getting test case data:', error);
-        // Возвращаем дефолтные значения, чтобы тесты могли выполняться без ALLURE_API_TOKEN
-        return {
-            precondition: '',
-            expectedResult: '',
-            isPositiveCase: true,
-        };
+        throw error;
     }
 }

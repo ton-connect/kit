@@ -28,3 +28,6 @@ export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';
 export { WalletPreview } from './WalletPreview';
 export { WalletSwitcher } from './WalletSwitcher';
+
+// Transaction components
+export * from './transactions';

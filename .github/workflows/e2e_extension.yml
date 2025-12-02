@@ -11,11 +11,11 @@ on:
 jobs:
   base:
     name: e2e extension
-    # runs-on: ubuntu-latest
-    runs-on: [self-hosted, k8s, linux]
-    container:
-      image: node:22
-      options: --user root
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, k8s, linux]
+    # container:
+    #   image: node:22
+    #   options: --user root
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
@@ -59,13 +59,14 @@ jobs:
         pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
-        E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension"
+        E2E_WALLET_SOURCE_EXTENSION: "${{ github.workspace }}/apps/demo-wallet/dist-extension-chrome"
         E2E_JS_BRIDGE: true
         ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
         ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}
         ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
         VITE_DISABLE_NETWORK_SEND: true
         VITE_DISABLE_HTTP_BRIDGE: true
+        VITE_DISABLE_AUTO_POPUP: true
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
     
     - name: Upload Allure Results

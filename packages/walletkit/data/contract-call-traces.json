@@ -384,11 +384,15 @@
   "address_book": {
     "0:0E7AF74228AB4FBCD0AF55DD4CF2BA8B718111ACC498DFD8E8BB953F810757C0": {
       "user_friendly": "EQAOevdCKKtPvNCvVd1M8rqLcYERrMSY39jou5U_gQdXwCne",
-      "domain": null
+      "domain": null,
+      "interfaces": null
     },
     "0:9DA971AF38D2F03ABDF308D5F91636A97E5A2B07A66C39D71D7CBAE3B032EDDC": {
       "user_friendly": "UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4",
-      "domain": "tolya.ton"
+      "domain": "tolya.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     }
   },
   "metadata": {}

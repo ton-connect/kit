@@ -360,11 +360,17 @@
   "address_book": {
     "0:4E3664FAEE814FBDB6C1CB36D72BAC52D15E186C11ECD664FE1B3F1A7CFD801D": {
       "user_friendly": "UQBONmT67oFPvbbByzbXK6xS0V4YbBHs1mT-Gz8afP2AHdyt",
-      "domain": null
+      "domain": null,
+      "interfaces": [
+        "wallet_v3r2"
+      ]
     },
     "0:9DA971AF38D2F03ABDF308D5F91636A97E5A2B07A66C39D71D7CBAE3B032EDDC": {
       "user_friendly": "UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4",
-      "domain": "tolya.ton"
+      "domain": "tolya.ton",
+      "interfaces": [
+        "wallet_v4r2"
+      ]
     }
   },
   "metadata": {}

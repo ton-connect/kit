@@ -8,71 +8,33 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { Base64NormalizeUrl, HexToBase64, type Event, type Action } from '@ton/walletkit';
 
 import { useStore, useWalletKit } from '../stores';
 import type { PreviewTransaction } from '../types/wallet';
 import { TraceRow } from './TraceRow';
+import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
 
+/**
+ * Recent Transactions component
+ * Displays a list of recent blockchain transactions for the current wallet
+ */
 export const RecentTransactions: React.FC = memo(() => {
-    const { transactions, loadTransactions, address } = useStore(
+    const { events, loadEvents, address, hasNextEvents } = useStore(
         useShallow((state) => ({
-            transactions: state.wallet.transactions,
-            loadTransactions: state.loadTransactions,
-            address: state.wallet.address,
+            events: state.walletManagement.events,
+            loadEvents: state.loadEvents,
+            address: state.walletManagement.address,
+            hasNextEvents: state.walletManagement.hasNextEvents,
         })),
     );
     const walletKit = useWalletKit();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [isPaginating, setIsPaginating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [pendingTransactions, setPendingTransactions] = useState<PreviewTransaction[]>([]);
-
-    // Group transactions by external message hash or generate unique trace ID for completed transactions
-    const groupTransactionsByTrace = (transactions: PreviewTransaction[]) => {
-        const traceGroups = new Map<
-            string,
-            {
-                traceId: string;
-                externalHash?: string;
-                transactions: PreviewTransaction[];
-                timestamp: number;
-                isPending?: boolean;
-            }
-        >();
-
-        transactions.forEach((tx) => {
-            let groupKey: string;
-
-            if (tx.status === 'pending' && tx.messageHash) {
-                // For pending transactions, use message hash as external hash
-                groupKey = `pending_${tx.messageHash}`;
-            } else if (tx.externalMessageHash) {
-                // For completed transactions, use external message hash
-                groupKey = tx.externalMessageHash;
-            } else {
-                // Fallback: use transaction hash as unique identifier
-                groupKey = `tx_${tx.traceId}`;
-            }
-
-            // debugger
-            if (!traceGroups.has(groupKey)) {
-                traceGroups.set(groupKey, {
-                    traceId: tx.id,
-                    externalHash: tx.messageHash ?? tx.externalMessageHash,
-                    transactions: [],
-                    timestamp: tx.timestamp,
-                    isPending: tx.status === 'pending',
-                });
-            }
-
-            const group = traceGroups.get(groupKey)!;
-            group.transactions.push(tx);
-            // Use the earliest timestamp for the group
-            group.timestamp = Math.min(group.timestamp, tx.timestamp);
-        });
-
-        // Convert to array and sort by timestamp (newest first)
-        return Array.from(traceGroups.values()).sort((a, b) => b.timestamp - a.timestamp);
-    };
+    const [currentPage, setCurrentPage] = useState(0);
+    const [limit] = useState(10);
 
     // Check for pending transactions
     const checkPendingTransactions = async () => {
@@ -125,29 +87,38 @@ export const RecentTransactions: React.FC = memo(() => {
             }
         } catch (_err) {
             // Silently handle errors to avoid spamming the user
-            // Failed to check pending transactions
             setPendingTransactions([]);
         }
     };
 
-    // Load transactions when component mounts or address changes
+    // Load events when component mounts, address changes, or page changes
     useEffect(() => {
-        const fetchTransactions = async () => {
+        const fetchEvents = async () => {
             if (!address) return;
 
-            setIsLoading(true);
+            // Determine if this is initial load or pagination
+            const isInitial = currentPage === 0 && eventItems.length === 0;
+
+            if (isInitial) {
+                setIsInitialLoading(true);
+            } else {
+                setIsPaginating(true);
+            }
+
             setError(null);
             try {
-                await loadTransactions(10);
+                const offset = currentPage * limit;
+                await loadEvents(limit, offset);
             } catch (_err) {
-                setError('Failed to load transactions');
+                setError('Failed to load events');
             } finally {
-                setIsLoading(false);
+                setIsInitialLoading(false);
+                setIsPaginating(false);
             }
         };
 
-        fetchTransactions();
-    }, [address, loadTransactions]);
+        fetchEvents();
+    }, [address, loadEvents, currentPage, limit]);
 
     // Set up polling for pending transactions
     useEffect(() => {
@@ -168,27 +139,35 @@ export const RecentTransactions: React.FC = memo(() => {
     const handleRefresh = async () => {
         if (!address) return;
 
-        setIsLoading(true);
+        setIsPaginating(true);
         setError(null);
         try {
-            await loadTransactions(10);
+            const offset = currentPage * limit;
+            await loadEvents(limit, offset);
         } catch (_err) {
-            setError('Failed to refresh transactions');
+            setError('Failed to refresh events');
         } finally {
-            setIsLoading(false);
+            setIsPaginating(false);
         }
     };
 
-    const allTransactions = useMemo(() => {
-        return [...pendingTransactions, ...transactions];
-    }, [pendingTransactions, transactions]);
+    const handleNextPage = () => {
+        if (hasNextEvents && !isPaginating) {
+            setCurrentPage((prev) => prev + 1);
+        }
+    };
 
-    const traceGroups = useMemo(() => {
-        return groupTransactionsByTrace(allTransactions);
-    }, [allTransactions]);
+    const handlePreviousPage = () => {
+        if (currentPage > 0 && !isPaginating) {
+            setCurrentPage((prev) => prev - 1);
+        }
+    };
+
+    const eventItems = useMemo(() => (events || []) as Event[], [events]);
 
     return (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
+            {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                     <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
@@ -200,12 +179,12 @@ export const RecentTransactions: React.FC = memo(() => {
                 </div>
                 <button
                     onClick={handleRefresh}
-                    disabled={isLoading}
+                    disabled={isPaginating}
                     className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
-                    title="Refresh transactions"
+                    title="Refresh"
                 >
                     <svg
-                        className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`}
+                        className={`w-4 h-4 ${isPaginating ? 'animate-spin' : ''}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -219,57 +198,188 @@ export const RecentTransactions: React.FC = memo(() => {
                     </svg>
                 </button>
             </div>
-            <div className="p-6">
+
+            {/* Content */}
+            <div className="p-6 relative">
                 {error ? (
+                    <TransactionErrorState error={error} onRetry={handleRefresh} />
+                ) : isInitialLoading ? (
+                    <TransactionLoadingState />
+                ) : (eventItems?.length ?? 0) === 0 && currentPage === 0 ? (
+                    <TransactionEmptyState />
+                ) : (eventItems?.length ?? 0) === 0 && currentPage > 0 ? (
                     <div className="text-center py-8">
-                        <div className="text-red-400 mb-2">
-                            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                            </svg>
-                        </div>
-                        <p className="text-red-500 text-sm">{error}</p>
-                        <button onClick={handleRefresh} className="mt-2 text-blue-500 text-sm hover:text-blue-600">
-                            Try again
-                        </button>
-                    </div>
-                ) : isLoading ? (
-                    <div className="text-center py-8">
-                        <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                        <p className="text-gray-500 text-sm">Loading transactions...</p>
-                    </div>
-                ) : transactions.length === 0 ? (
-                    <div className="text-center py-8">
-                        <div className="text-gray-400 mb-2">
-                            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                                />
-                            </svg>
-                        </div>
-                        <p className="text-gray-500 text-sm">No transactions yet</p>
-                        <p className="text-gray-400 text-xs mt-1">Your transaction history will appear here</p>
+                        <p className="text-gray-500">No transactions on this page</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {traceGroups.slice(0, 10).map((group) => (
-                            <TraceRow
-                                key={group.traceId}
-                                traceId={group.traceId}
-                                externalHash={group.externalHash}
-                                isPending={group.isPending}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        {/* Loading overlay during pagination */}
+                        {isPaginating && (
+                            <div className="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10 rounded-lg">
+                                <div className="flex items-center space-x-2">
+                                    <svg
+                                        className="animate-spin h-5 w-5 text-gray-600"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            className="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            strokeWidth="4"
+                                        />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        />
+                                    </svg>
+                                    <span className="text-sm text-gray-600">Loading...</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <div
+                            className={`space-y-3 transition-opacity duration-200 ${isPaginating ? 'opacity-50' : 'opacity-100'}`}
+                        >
+                            {/* Pending transactions */}
+                            {pendingTransactions.map((p) => (
+                                <TraceRow
+                                    key={`pending-${p.id}`}
+                                    traceId={p.id}
+                                    externalHash={p.messageHash}
+                                    isPending
+                                />
+                            ))}
+
+                            {/* Confirmed transactions */}
+                            {(eventItems || []).map((ev) => {
+                                const traceId = Base64NormalizeUrl(HexToBase64(ev.eventId));
+
+                                // If no actions, fallback to TraceRow
+                                if (!ev.actions || ev.actions.length === 0) {
+                                    return <TraceRow key={ev.eventId} traceId={traceId} />;
+                                }
+
+                                // For events with multiple actions, show them all or just the first one
+                                // For simplicity, we'll show the first action that involves the user's address
+                                const relevantAction =
+                                    ev.actions.find((a: Action) =>
+                                        a.simplePreview?.accounts?.some((acc) => acc.address === (address || '')),
+                                    ) || ev.actions[0];
+
+                                return (
+                                    <ActionCard
+                                        key={ev.eventId}
+                                        action={relevantAction}
+                                        myAddress={address || ''}
+                                        timestamp={ev.timestamp}
+                                        traceLink={`/wallet/trace/${traceId}`}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </>
                 )}
             </div>
+
+            {/* Pagination controls */}
+            {!error && !isInitialLoading && (currentPage > 0 || (eventItems?.length ?? 0) > 0) && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    {currentPage > 0 ? (
+                        <button
+                            onClick={handlePreviousPage}
+                            disabled={isPaginating}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            {isPaginating ? (
+                                <svg
+                                    className="animate-spin h-4 w-4 mr-1"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 19l-7-7 7-7"
+                                    />
+                                </svg>
+                            )}
+                            Previous
+                        </button>
+                    ) : (
+                        <div />
+                    )}
+
+                    <div className="text-sm text-gray-700">Page {currentPage + 1}</div>
+
+                    {hasNextEvents ? (
+                        <button
+                            onClick={handleNextPage}
+                            disabled={isPaginating}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        >
+                            Next
+                            {isPaginating ? (
+                                <svg
+                                    className="animate-spin h-4 w-4 ml-1"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                            ) : (
+                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 5l7 7-7 7"
+                                    />
+                                </svg>
+                            )}
+                        </button>
+                    ) : (
+                        <div />
+                    )}
+                </div>
+            )}
         </div>
     );
 });
+
+RecentTransactions.displayName = 'RecentTransactions';

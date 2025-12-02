@@ -6,7 +6,15 @@
  *
  */
 
+import { EmulationAddressMetadata } from '../emulation';
+
+export interface MetadataV3 {
+    address_book: Record<string, AddressBookRowV3>;
+    metadata: Record<string, EmulationAddressMetadata>;
+}
+
 export interface AddressBookRowV3 {
     domain: string | null;
     user_friendly: string;
+    interfaces: string[];
 }

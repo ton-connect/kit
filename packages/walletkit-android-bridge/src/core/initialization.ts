@@ -9,7 +9,8 @@
 /**
  * WalletKit initialization helpers used by the bridge entry point.
  */
-import { CHAIN } from '@ton/walletkit';
+import { CHAIN, TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
+import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
 import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent } from '../types';
 import { log, warn } from '../utils/logger';
@@ -97,13 +98,13 @@ export async function initTonWalletKit(
                 let bridgeMessage: JsBridgeMessage = message;
 
                 if (
-                    bridgeMessage.type === 'TONCONNECT_BRIDGE_RESPONSE' &&
+                    bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE &&
                     bridgeMessage.payload?.event === 'disconnect' &&
                     !bridgeMessage.messageId
                 ) {
                     log('[walletkitBridge] 🔄 Transforming disconnect response to event');
                     bridgeMessage = {
-                        type: 'TONCONNECT_BRIDGE_EVENT',
+                        type: TONCONNECT_BRIDGE_EVENT,
                         source: bridgeMessage.source,
                         event: bridgeMessage.payload,
                         traceId: bridgeMessage.traceId,
@@ -124,7 +125,7 @@ export async function initTonWalletKit(
                     }
                 }
 
-                if (bridgeMessage.type === 'TONCONNECT_BRIDGE_EVENT') {
+                if (bridgeMessage.type === TONCONNECT_BRIDGE_EVENT) {
                     log('[walletkitBridge] 📤 Sending event to WebView for session:', sessionId);
                     deps.postToNative({
                         kind: 'jsBridgeEvent',
@@ -155,7 +156,7 @@ export async function initTonWalletKit(
     setWalletKit(new TonWalletKit(kitOptions));
 
     if (walletKit.ensureInitialized) {
-        await walletKit.ensureInitialized();
+        await walletKit?.ensureInitialized();
     }
 
     deps.emit('ready', { network: networkRaw, tonApiUrl, tonClientEndpoint: clientEndpoint });

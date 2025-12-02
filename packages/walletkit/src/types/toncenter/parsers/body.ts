@@ -8,40 +8,56 @@
 
 /**
  * Common helpers for extracting decoded body and operation types from messages
+ * Refactored to use centralized opcode registry and message decoder
  */
 
 import { EmulationMessage } from '../emulation';
+import { getDecodedBody, getDecodedType } from './messageDecoder';
+import { resolveOpCode, MessageType, matchesDecodedType } from './opcodes';
 
 type Json = Record<string, unknown>;
 
+/**
+ * Get decoded body from message
+ * @deprecated Use getDecodedBody from messageDecoder instead
+ */
 export function getDecoded(msg?: EmulationMessage | null): Json | null {
-    if (!msg) return null;
-    const mc = msg.message_content as unknown;
-    if (isRecord(mc)) {
-        const d = (mc as Json).decoded as unknown;
-        return isRecord(d) ? (d as Json) : null;
-    }
-    return null;
+    return getDecodedBody(msg);
 }
 
+/**
+ * Extract operation type from message body
+ * @deprecated Use getDecodedType from messageDecoder instead
+ */
 export function extractOpFromBody(msg?: EmulationMessage | null): string | null {
-    if (!msg) return null;
-    const decoded = getDecoded(msg);
-    if (isRecord(decoded)) {
-        const t = decoded['@type'];
-        if (typeof t === 'string' && t.length > 0) return t;
-        const val = decoded['value'];
-        if (isRecord(val) && typeof val['@type'] === 'string') return val['@type'] as string;
-    }
-    return null;
+    return getDecodedType(msg);
 }
 
+/**
+ * Match operation code with type mapping
+ * Now uses centralized opcode registry
+ */
 export function matchOpWithMap(op: string, types: string[], mapping: Record<string, string>): string | '' {
     if (!op) return '';
+
+    // First try the new resolver
+    const messageType = resolveOpCode(op);
+    if (messageType !== MessageType.Unknown) {
+        const typeString = messageType as string;
+        if (types.includes(typeString)) {
+            return typeString;
+        }
+    }
+
+    // Fallback to legacy mapping for backwards compatibility
     const normalized = mapping[op] ?? op;
     return types.includes(normalized) ? normalized : '';
 }
 
-function isRecord(v: unknown): v is Json {
-    return typeof v === 'object' && v !== null;
+/**
+ * Match decoded @type with expected types
+ */
+export function matchDecodedType(decodedType: string, types: string[]): string | '' {
+    const matched = matchesDecodedType(decodedType, types as MessageType[]);
+    return matched ? (matched as string) : '';
 }

@@ -26,11 +26,6 @@ export const TONCONNECT_BRIDGE_RESPONSE = 'TONCONNECT_BRIDGE_RESPONSE';
 export const TONCONNECT_BRIDGE_EVENT = 'TONCONNECT_BRIDGE_EVENT';
 
 /**
- * Message to inject extension ID into page context
- */
-export const INJECT_EXTENSION_ID = 'INJECT_EXTENSION_ID';
-
-/**
  * Message to trigger content script injection into iframes
  */
 export const INJECT_CONTENT_SCRIPT = 'INJECT_CONTENT_SCRIPT';
@@ -42,7 +37,6 @@ export const MESSAGE_TYPES = {
     TONCONNECT_BRIDGE_REQUEST,
     TONCONNECT_BRIDGE_RESPONSE,
     TONCONNECT_BRIDGE_EVENT,
-    INJECT_EXTENSION_ID,
     INJECT_CONTENT_SCRIPT,
 } as const;
 

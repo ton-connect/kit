@@ -88,7 +88,6 @@ export type {
     Feature,
     InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
-export { validateWalletName, sanitizeWalletName, isValidWalletName } from './utils/walletNameValidation';
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';

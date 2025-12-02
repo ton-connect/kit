@@ -12,6 +12,7 @@ import { asAddressFriendly, Hex } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
+import { OpCode } from './opcodes';
 
 type Json = Record<string, unknown>;
 
@@ -134,10 +135,10 @@ function collectBaseTransactionsForSent(
 function getNftType(tx: ToncenterTransaction): string | '' {
     const t = extractOpFromBody(tx.in_msg) || tx.in_msg?.opcode || '';
     return matchOpWithMap(t, ['nft_transfer', 'nft_ownership_assigned', 'nft_owner_changed', 'excess'], {
-        '0x5fcc3d14': 'nft_transfer',
-        '0x05138d91': 'nft_ownership_assigned',
-        '0x7bdd97de': 'nft_owner_changed',
-        '0xd53276db': 'excess',
+        [OpCode.NftTransfer]: 'nft_transfer',
+        [OpCode.NftOwnershipAssigned]: 'nft_ownership_assigned',
+        [OpCode.NftOwnerChanged]: 'nft_owner_changed',
+        [OpCode.Excess]: 'excess',
     });
 }
 
