@@ -32,7 +32,6 @@ export interface Jetton {
      * The number of decimal places used by the token
      */
     decimalsNumber?: number;
-    verification?: JettonVerification;
 
     /**
      * Additional metadata related to the jetton
@@ -43,17 +42,4 @@ export interface Jetton {
      * Additional arbitrary data related to the jetton
      */
     extra?: { [key: string]: unknown };
-}
-
-export interface JettonVerification {
-    isVerified?: boolean;
-    source?: JettonVerificationSource;
-    warnings?: string[];
-}
-
-// Check source of jetton verification in some wallet JSON using toncenter api
-export declare enum JettonVerificationSource {
-    toncenter = 'toncenter',
-    community = 'community',
-    manual = 'manual',
 }

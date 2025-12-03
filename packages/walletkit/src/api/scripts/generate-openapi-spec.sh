@@ -53,7 +53,7 @@ ts-json-schema-generator \
 echo "✅ JSON Schema generated: $TEMP_SCHEMA"
 
 # Step 4: Convert JSON Schema to OpenAPI spec
-echo "📝 Converting JSON Schema to OpenAPI spec..."
+echo "📝 Step 1: Converting JSON Schema to OpenAPI spec..."
 
 # Check if @openapi-contrib/json-schema-to-openapi-schema is available
 npx --yes @openapi-contrib/json-schema-to-openapi-schema --help &> /dev/null || {
@@ -61,113 +61,22 @@ npx --yes @openapi-contrib/json-schema-to-openapi-schema --help &> /dev/null || 
     npm install -g @openapi-contrib/json-schema-to-openapi-schema
 }
 
-# Create temporary conversion script
-CONVERT_SCRIPT=$(mktemp)
-cat > "$CONVERT_SCRIPT" << 'EOF'
-const fs = require('fs');
-
-// Load the conversion library
-let convertFn;
-try {
-    const pkg = require('@openapi-contrib/json-schema-to-openapi-schema');
-    // Use synchronous version for simplicity
-    convertFn = pkg.convertSync || pkg.convert || pkg.default;
-    if (typeof convertFn !== 'function') {
-        throw new Error('Could not find conversion function in package');
-    }
-} catch (e) {
-    console.error('❌ Could not load @openapi-contrib/json-schema-to-openapi-schema');
-    console.error('Error:', e.message);
-    console.error('Please install: npm install -g @openapi-contrib/json-schema-to-openapi-schema');
-    process.exit(1);
-}
-
-const [schemaFile, outputFile] = process.argv.slice(2);
-
-// Integer format patterns
-const INTEGER_FORMATS = ['int', 'int8', 'int16', 'int32', 'int64', 'uint', 'uint8', 'uint16', 'uint32', 'uint64'];
-
-// Function to fix number types with integer formats
-function fixIntegerTypes(obj) {
-    if (typeof obj !== 'object' || obj === null) {
-        return obj;
-    }
-    
-    // Handle arrays
-    if (Array.isArray(obj)) {
-        return obj.map(fixIntegerTypes);
-    }
-    
-    // Check if this is a number type with integer format
-    if (obj.type === 'number' && obj.format && INTEGER_FORMATS.includes(obj.format)) {
-        obj.type = 'integer';
-    }
-    
-    // Check if this is an array with number items that have integer format
-    if (obj.type === 'array' && obj.items) {
-        if (obj.items.type === 'number' && obj.format && INTEGER_FORMATS.includes(obj.format)) {
-            obj.items.type = 'integer';
-        }
-    }
-    
-    // Recursively process all properties
-    for (const key in obj) {
-        if (obj.hasOwnProperty(key) && typeof obj[key] === 'object') {
-            obj[key] = fixIntegerTypes(obj[key]);
-        }
-    }
-    
-    return obj;
-}
-
-try {
-    const schemaContent = fs.readFileSync(schemaFile, 'utf8');
-    const schema = JSON.parse(schemaContent);
-    
-    // Extract definitions/schemas
-    let schemas = schema.definitions || schema.$defs || {};
-    
-    // Fix integer types in all schemas before conversion
-    schemas = fixIntegerTypes(schemas);
-    
-    // Convert each schema to OpenAPI format
-    const openapiSchemas = {};
-    for (const [name, schemaObj] of Object.entries(schemas)) {
-        openapiSchemas[name] = convertFn(schemaObj);
-    }
-    
-    // Create OpenAPI spec
-    const openapi = {
-        openapi: '3.0.0',
-        info: {
-            title: 'Generated API from TypeScript',
-            version: '1.0.0',
-            description: 'Auto-generated OpenAPI specification from TypeScript models'
-        },
-        paths: {},
-        components: {
-            schemas: openapiSchemas
-        }
-    };
-    
-    fs.writeFileSync(outputFile, JSON.stringify(openapi, null, 2));
-    console.log('✅ OpenAPI spec created: ' + outputFile);
-} catch (error) {
-    console.error('❌ Error converting schema:', error.message);
-    console.error(error.stack);
-    process.exit(1);
-}
-EOF
-
-NODE_PATH=$(npm root -g) node "$CONVERT_SCRIPT" "$TEMP_SCHEMA" "$OUTPUT_FILE" || {
+# Run the conversion script
+NODE_PATH=$(npm root -g) node "$SCRIPT_DIR/json-schema-to-openapi-spec.js" "$TEMP_SCHEMA" "$OUTPUT_FILE" || {
     echo "❌ Failed to convert JSON Schema to OpenAPI"
-    rm -f "$CONVERT_SCRIPT"
+    rm -f "$TEMP_SCHEMA"
+    exit 1
+}
+
+# Step 5: Post-process OpenAPI spec (fix integer types, enrich discriminated unions)
+echo "📝 Step 2: Post-processing OpenAPI spec..."
+node "$SCRIPT_DIR/postprocess-openapi-spec.js" "$OUTPUT_FILE" "$OUTPUT_FILE" || {
+    echo "❌ Failed to post-process OpenAPI spec"
     rm -f "$TEMP_SCHEMA"
     exit 1
 }
 
 # Cleanup
-rm -f "$CONVERT_SCRIPT"
 rm -f "$TEMP_SCHEMA"
 
 echo ""

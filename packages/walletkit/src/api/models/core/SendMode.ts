@@ -1,9 +1,10 @@
 
 export declare enum SendMode {
-    carryAllRemainingBalance,
-    carryAllRemainingIncomingValue,
-    destroyAccountIfZero,
-    payGasSeparately,
-    ignoreErrors,
-    none
+    CARRY_ALL_REMAINING_BALANCE = 128,
+    CARRY_ALL_REMAINING_INCOMING_VALUE = 64,
+    DESTROY_ACCOUNT_IF_ZERO = 32,
+    BOUNCE_IF_FAILURE = 16,
+    PAY_GAS_SEPARATELY = 1,
+    IGNORE_ERRORS = 2,
+    NONE = 0
 }

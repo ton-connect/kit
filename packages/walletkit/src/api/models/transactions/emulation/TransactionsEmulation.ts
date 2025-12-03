@@ -50,6 +50,12 @@ export interface TransactionEmulationActionBase {
     accounts: string[];
 }
 
+export type TransactionEmulationActionDetails = 
+    | { type: 'jettonSwap', value: TransactionEmulationJettonSwapDetails }
+    | { type: 'callContract', value: TransactionEmulationCallContractDetails }
+    | { type: 'tonTransfer', value: TransactionEmulationTonTransferDetails }
+    | { type: 'unknown', value: { [key: string]: unknown } };
+
 export interface TransactionEmulationJettonSwapDetails {
     dex: string; // e.g. "stonfi"
     sender: Address; // address
@@ -86,12 +92,6 @@ export interface TransactionEmulationTonTransferDetails {
     isEncrypted: boolean;
 }
 
-export type TransactionEmulationActionDetails =
-    | TransactionEmulationTonTransferDetails
-    | TransactionEmulationJettonSwapDetails
-    | TransactionEmulationCallContractDetails
-    | { [key: string]: unknown }; // fallback for unknown action types
-
 export interface TransactionEmulationAction extends TransactionEmulationActionBase {
     details: TransactionEmulationActionDetails;
 }
@@ -102,26 +102,24 @@ export interface TransactionEmulationAddressMetadata {
     tokenInfo?: TransactionEmulationTokenInfo[];
 }
 
-export type TransactionEmulationTokenInfo =
-    | TransactionEmulationTokenInfoJettonWallets
-    | TransactionEmulationTokenInfoJettonMasters
-    | (TransactionEmulationTokenInfoBase);
+export type TransactionEmulationTokenInfo = 
+    | { type: 'jetton_wallets', value: TransactionEmulationTokenInfoJettonWallets }
+    | { type: 'jetton_masters', value: TransactionEmulationTokenInfoJettonMasters }
+    | { type: 'unknown', value: TransactionEmulationTokenInfoBase };
 
-export interface TransactionEmulationTokenInfoBase {
+export type TransactionEmulationTokenInfoBase {
     isValid: boolean;
     type: string;
     extra: { [key: string]: unknown };
 }
 
 export interface TransactionEmulationTokenInfoJettonWallets extends TransactionEmulationTokenInfoBase {
-    type: 'jetton_wallets';
     balance: TokenAmount;
     jetton: Address; // jetton master address
     owner: Address;
 }
 
 export interface TransactionEmulationTokenInfoJettonMasters extends TransactionEmulationTokenInfoBase {
-    type: 'jetton_masters';
     name: string;
     symbol: string;
     description: string;

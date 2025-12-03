@@ -5,7 +5,6 @@ import {
 } from "../core/Primitives";
 import { ExtraCurrencies } from "../core/ExtraCurrencies";
 import { TokenAmount } from "../core/TokenAmount";
-import { TokenImage } from "../core/TokenImage";
 
 export interface Transaction {
     /**
@@ -73,12 +72,12 @@ export interface Transaction {
     /**
      * Original status of the transaction
      */
-    origStatus?: AccountStatus | string;
+    origStatus?: AccountStatus;
 
     /**
      * End status of the transaction
      */
-    endStatus?: AccountStatus | string;
+    endStatus?: AccountStatus;
 
     /**
      * Total fees of the transaction
@@ -111,11 +110,14 @@ export interface Transaction {
     isEmulated: boolean;
 }
 
-export declare enum AccountStatus {
-    active = 'active',
-    frozen = 'frozen',
-    uninit = 'uninitialized'
-}
+/**
+ * Status of the account
+ */
+export type AccountStatus = 
+  | { type: 'active' }
+  | { type: 'frozen' }
+  | { type: 'uninitialized' }
+  | { type: 'unknown'; value: string };
 
 export interface AccountState {
     /**
@@ -136,7 +138,7 @@ export interface AccountState {
     /**
      * The status of the account
      */
-    accountStatus: AccountStatus | string;
+    accountStatus: AccountStatus;
 
     /**
      * The hash of the frozen account state, if the account is frozen

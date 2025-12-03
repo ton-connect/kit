@@ -1,4 +1,4 @@
-import { Error, Result } from "../../core/Primitives";
+import { ResultError, Result } from "../../core/Primitives";
 import { Transaction } from "../Transaction";
 
 export interface TransactionPreview {
@@ -10,10 +10,10 @@ export interface TransactionPreview {
     /**
      * Emulation error
      */
-    error?: Error;
+    error?: ResultError;
 
     /**
      * Emulated transaction
      */
-    emulatedTransaction?: Transaction;
+    transaction?: Transaction;
 }

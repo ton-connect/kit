@@ -9,7 +9,7 @@ export declare enum Result {
     failure = 'failure',
 }
 
-export interface Error {
+export interface ResultError {
     /**
      * Error code representing the type of error
      */

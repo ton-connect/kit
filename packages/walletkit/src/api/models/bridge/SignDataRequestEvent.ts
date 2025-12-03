@@ -1,4 +1,5 @@
 import { DAppInfo } from "../core/DAppInfo";
+import { SignData } from "../core/SignData";
 
 export interface SignDataRequestEvent {
     /**
@@ -13,38 +14,8 @@ export interface SignDataRequestEventPreview {
      */
     dAppInfo?: DAppInfo;
 
-    data: SignDataPreview;
-}
-
-
-export interface SignDataPreviewText {
     /**
-     * @const text
+     * Data to be signed
      */
-    kind: 'text';
-    content: string;
+    data: SignData;
 }
-
-export interface SignDataPreviewBinary {
-    /**
-     * @const binary
-     */
-    kind: 'binary';
-    content: string;
-}
-
-export interface SignDataPreviewCell {
-    /**
-     * @const cell
-     */
-    kind: 'cell';
-    content: string;
-    schema?: string;
-}
-
-/**
- * Preview data for signing
- * @oneOf
- * @discriminator kind
- */
-export type SignDataPreview = SignDataPreviewText | SignDataPreviewBinary | SignDataPreviewCell;
