@@ -9,6 +9,9 @@
 import { type FC, useCallback, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { CreateTonMnemonic } from '@ton/walletkit';
+import { router } from 'expo-router';
+import { useWallet } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppText } from '@/core/components/app-text';
@@ -16,29 +19,41 @@ import { InfoBlock } from '@/core/components/info-block';
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';
 import { getErrorMessage } from '@/core/utils/errors/get-error-message';
-import { createWallet, MnemonicView, saveWallet, useWalletStore } from '@/features/wallets';
+import { MnemonicView } from '@/features/wallets';
 
 const CreateMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState<string[]>([]);
     const [isWarningShown, setIsWarningShown] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const isLoading = useWalletStore((state) => state.isLoading);
+    const { createWallet } = useWallet();
 
     const { theme } = useUnistyles();
 
     const handleGenerateMnemonic = useCallback(async () => {
         try {
             setIsWarningShown(false);
-            const words = await createWallet();
+            setIsLoading(true);
+            const words = await CreateTonMnemonic();
             setMnemonic(words);
         } catch (err) {
             setIsWarningShown(true);
             Alert.alert('Error', getErrorMessage(err));
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     const handleContinue = async () => {
-        await saveWallet();
+        try {
+            setIsLoading(true);
+            await createWallet(mnemonic);
+            router.replace('/(auth)/(tabs)/wallet');
+        } catch (err) {
+            Alert.alert('Error', getErrorMessage(err));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

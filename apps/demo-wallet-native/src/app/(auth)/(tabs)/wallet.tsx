@@ -12,6 +12,7 @@ import { router } from 'expo-router';
 import { type FC, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { useWallet } from '@ton/demo-core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppButton } from '@/core/components/app-button';
@@ -19,12 +20,13 @@ import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';
 import { noop } from '@/core/utils/noop';
 import { getBalance, JettonList, TonBalanceCard } from '@/features/balances';
-import { useWalletStore } from '@/features/wallets';
+import { WalletSwitcher } from '@/features/wallets';
 
 const WalletHomeScreen: FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
-    const address = useWalletStore((state) => state.address);
+    const { address, savedWallets, activeWalletId, switchWallet, removeWallet, renameWallet, updateBalance } =
+        useWallet();
 
     const { theme } = useUnistyles();
 
@@ -44,8 +46,33 @@ const WalletHomeScreen: FC = () => {
 
     const refreshBalance = async () => {
         setIsRefreshing(true);
+        await updateBalance().catch(noop);
         await getBalance().catch(noop);
         setIsRefreshing(false);
+    };
+
+    const handleSwitchWallet = async (walletId: string) => {
+        try {
+            await switchWallet(walletId);
+        } catch (err) {
+            console.error('Failed to switch wallet:', err);
+        }
+    };
+
+    const handleRemoveWallet = (walletId: string) => {
+        try {
+            removeWallet(walletId);
+        } catch (err) {
+            console.error('Failed to remove wallet:', err);
+        }
+    };
+
+    const handleRenameWallet = (walletId: string, newName: string) => {
+        try {
+            renameWallet(walletId, newName);
+        } catch (err) {
+            console.error('Failed to rename wallet:', err);
+        }
     };
 
     return (
@@ -59,6 +86,15 @@ const WalletHomeScreen: FC = () => {
                     </ActiveTouchAction>
                 </ScreenHeader.RightSide>
             </ScreenHeader.Container>
+
+            {/* Wallet Switcher */}
+            <WalletSwitcher
+                activeWalletId={activeWalletId}
+                onRemoveWallet={handleRemoveWallet}
+                onRenameWallet={handleRenameWallet}
+                onSwitchWallet={handleSwitchWallet}
+                savedWallets={savedWallets}
+            />
 
             <TonBalanceCard style={styles.tonBalance} />
 

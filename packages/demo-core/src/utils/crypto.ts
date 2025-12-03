@@ -8,31 +8,20 @@
 
 import { Buffer } from 'buffer';
 
+import { pbkdf2_sha512 } from '@ton/crypto';
+
 // Simple encryption using built-in crypto API
 export class SimpleEncryption {
     private static encoder = new TextEncoder();
     private static decoder = new TextDecoder();
 
     static async deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
-        const baseKey = await crypto.subtle.importKey('raw', this.encoder.encode(password), 'PBKDF2', false, [
-            'deriveKey',
-        ]);
+        const keyMaterial = await pbkdf2_sha512(password, Buffer.from(salt), 100000, 32);
 
-        return crypto.subtle.deriveKey(
-            {
-                name: 'PBKDF2',
-                salt: Uint8Array.from(salt),
-                iterations: 100000,
-                hash: 'SHA-256',
-            },
-            baseKey,
-            {
-                name: 'AES-GCM',
-                length: 256,
-            },
-            false,
-            ['encrypt', 'decrypt'],
-        );
+        return await crypto.subtle.importKey('raw', new Uint8Array(keyMaterial), { name: 'AES-GCM' }, false, [
+            'encrypt',
+            'decrypt',
+        ]);
     }
 
     static async encrypt(data: string, password: string): Promise<string> {

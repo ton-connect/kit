@@ -17,7 +17,6 @@ config.resolver.extraNodeModules = {
     buffer: require.resolve('@craftzdog/react-native-buffer'),
 };
 
-// Force @ton/crypto-primitives to use Node.js implementation instead of native
 config.resolver.resolveRequest = (context, moduleName, platform) => {
     if (moduleName === '@ton/crypto-primitives') {
         return {
@@ -26,7 +25,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
         };
     }
 
-    // Default resolver
+    if (moduleName === 'eventsource' || moduleName.startsWith('eventsource/')) {
+        return {
+            filePath: require.resolve(__dirname, 'lib/polyfills/eventsource.js'),
+            type: 'sourceFile',
+        };
+    }
+
     return context.resolveRequest(context, moduleName, platform);
 };
 

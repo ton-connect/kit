@@ -192,7 +192,9 @@ export interface AppState
         WalletManagementSlice,
         TonConnectSlice,
         JettonsSlice,
-        NftsSlice {}
+        NftsSlice {
+    isHydrated: boolean;
+}
 
 // Slice creator types
 export type AuthSliceCreator = StateCreator<AppState, [], [], AuthSlice>;

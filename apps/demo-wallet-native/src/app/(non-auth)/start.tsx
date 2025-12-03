@@ -10,20 +10,39 @@ import { useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useWalletStore } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppLogo } from '@/core/components/app-logo';
 import { AppText } from '@/core/components/app-text';
 
 const StartScreen: FC = () => {
+    const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
+
     const router = useRouter();
 
     const handleCreateNew = () => {
-        router.push('/(non-auth)/create-mnemonic');
+        if (isPasswordSet) {
+            router.push('/(non-auth)/create-mnemonic');
+            return;
+        }
+
+        router.push({
+            pathname: '/(non-auth)/new-password',
+            params: { type: 'create' },
+        });
     };
 
     const handleImport = () => {
-        router.push('/(non-auth)/import-mnemonic');
+        if (isPasswordSet) {
+            router.push('/(non-auth)/import-mnemonic');
+            return;
+        }
+
+        router.push({
+            pathname: '/(non-auth)/new-password',
+            params: { type: 'import' },
+        });
     };
 
     return (

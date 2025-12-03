@@ -129,6 +129,7 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
             subscribeWithSelector(
                 persist(
                     immer((...a) => ({
+                        isHydrated: false,
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         ...createAuthSlice(...a),
@@ -229,6 +230,9 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                             }
 
                             log.info('Store rehydrated successfully');
+
+                            // Set hydration flag
+                            state.isHydrated = true;
 
                             // Call actions after rehydration
                             if (state.clearExpiredRequests) {

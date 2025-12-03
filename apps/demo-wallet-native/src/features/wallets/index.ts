@@ -8,5 +8,6 @@
 
 export { AddressQrcode } from './components/address-qrcode';
 export { MnemonicView } from './components/mnemonic-view';
+export { WalletSwitcher } from './components/wallet-switcher/wallet-switcher';
 export * from './store/actions';
 export { useWalletStore } from './store/store';

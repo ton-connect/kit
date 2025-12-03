@@ -10,59 +10,27 @@ import { hideAsync, preventAutoHideAsync } from 'expo-splash-screen';
 import { type FC, type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useWalletStore } from '@ton/demo-core';
+import { useInitialRedirect } from 'src/features/settings/hooks/use-initial-redirect';
 
 import { useAppFonts } from '../../hooks/use-app-fonts';
-import { useAuthRedirect } from '../../hooks/use-auth-redirect';
 import { useTheme } from '../../hooks/use-theme';
 import { setIsAppReady } from '../../store/actions/is-app-ready';
 
 import { LoaderCircle } from '@/core/components/loader-circle';
-import { getBalance } from '@/features/balances';
-import { loadTransactions } from '@/features/transactions';
-import { initWalletState, useWalletStore } from '@/features/wallets';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 void preventAutoHideAsync();
 
 export const AppWrapper: FC<PropsWithChildren> = ({ children }) => {
-    const [isInitializing, setIsInitializing] = useState(false);
-
-    const isAuthInitialized = useWalletStore((state) => state.isInitialized);
+    const isStoreHydrated = useWalletStore((state) => state.isHydrated);
 
     const { isFontsError, isFontsLoaded } = useAppFonts();
     const isStatusBarReady = useTheme();
 
-    const isLoaderShown = !(isAuthInitialized && (isFontsLoaded || isFontsError)) || isInitializing;
+    const isLoaderShown = !(isFontsLoaded || isFontsError) || !isStoreHydrated;
 
-    const appInit = useCallback(async () => {
-        try {
-            setIsInitializing(true);
-            const isAuth = await initWalletState();
-
-            if (isAuth) {
-                await Promise.allSettled([getBalance(), loadTransactions()]);
-            }
-
-            setIsInitializing(false);
-        } catch (_e) {
-            setIsInitializing(false);
-        }
-    }, []);
-
-    useAuthRedirect(isLoaderShown);
-
-    useEffect(() => {
-        void appInit();
-    }, [appInit]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            void getBalance();
-            void loadTransactions();
-        }, 10_000);
-
-        return (): void => clearInterval(interval);
-    }, []);
+    useInitialRedirect(isLoaderShown);
 
     useEffect(() => {
         // eslint-disable-next-line no-undef

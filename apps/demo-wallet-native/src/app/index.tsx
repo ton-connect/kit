@@ -6,9 +6,8 @@
  *
  */
 
-import { Redirect } from 'expo-router';
 import type { FC } from 'react';
 
-const Index: FC = () => <Redirect href="/(auth)/wallet" />;
+const Index: FC = () => null;
 
 export default Index;

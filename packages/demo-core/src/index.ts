@@ -10,6 +10,9 @@
 export { createWalletStore } from './store/createWalletStore';
 export type { CreateWalletStoreOptions } from './store/createWalletStore';
 
+// Storages
+export { AsyncStorageAdapter, ExtensionStorageAdapter, LocalStorageAdapter } from './adapters/storage';
+
 // Provider
 export { WalletProvider, WalletStoreContext } from './providers/WalletProvider';
 export type { WalletProviderProps } from './providers/WalletProvider';

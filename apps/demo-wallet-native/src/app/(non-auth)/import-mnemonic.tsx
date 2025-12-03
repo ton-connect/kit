@@ -9,6 +9,8 @@
 import { type FC, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { router } from 'expo-router';
+import { useWallet } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -16,13 +18,15 @@ import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';
-import { importWallet, saveWallet, useWalletStore } from '@/features/wallets';
 
 const regexp = /\s+/;
 
 const ImportMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState('');
-    const { isLoading, error } = useWalletStore();
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const { importWallet } = useWallet();
 
     const handleImport = async () => {
         if (!mnemonic.trim()) {
@@ -31,11 +35,17 @@ const ImportMnemonicScreen: FC = () => {
         }
 
         try {
-            await importWallet(mnemonic);
-            await saveWallet();
-            Alert.alert('Success', 'Wallet imported successfully');
-        } catch (_err) {
-            Alert.alert('Error', error || 'Failed to import wallet');
+            setIsLoading(true);
+            setError('');
+            const words = mnemonic.trim().toLowerCase().split(regexp).filter(Boolean);
+            await importWallet(words);
+            router.replace('/(auth)/(tabs)/wallet');
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'Failed to import wallet';
+            setError(errorMessage);
+            Alert.alert('Error', errorMessage);
+        } finally {
+            setIsLoading(false);
         }
     };
 
