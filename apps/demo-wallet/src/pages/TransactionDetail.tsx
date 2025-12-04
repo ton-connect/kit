@@ -8,8 +8,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Base64Normalize, type ToncenterTransaction } from '@ton/walletkit';
-import { useWalletKit } from '@ton/demo-core';
+import { Base64Normalize, CHAIN, type ToncenterTransaction } from '@ton/walletkit';
+import { useWalletKit, useWalletStore } from '@ton/demo-core';
 
 interface TransactionDetailData {
     hash: string;
@@ -38,8 +38,8 @@ interface TransactionDetailData {
 
 export const TransactionDetail: React.FC = () => {
     const walletKit = useWalletKit();
-    const savedWallets = useStore((state) => state.walletManagement.savedWallets);
-    const activeWalletId = useStore((state) => state.walletManagement.activeWalletId);
+    const savedWallets = useWalletStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
     const { hash } = useParams<{ hash: string }>();
     const navigate = useNavigate();
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);

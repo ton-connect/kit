@@ -21,10 +21,9 @@ export const useWalletInitialization = (): WalletInitializationState => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isInitializing, setIsInitializing] = useState(true);
 
-    const { network, initializeWalletKit, loadAllWallets, updateBalance, refreshJettons } = useWalletStore(
+    const { initializeWalletKit, loadAllWallets, updateBalance, refreshJettons } = useWalletStore(
         useShallow((state) => ({
             isHydrated: state.isHydrated,
-            network: state.auth.network || 'testnet',
             initializeWalletKit: state.initializeWalletKit,
             loadAllWallets: state.loadAllWallets,
             updateBalance: state.updateBalance,
@@ -38,7 +37,7 @@ export const useWalletInitialization = (): WalletInitializationState => {
 
         try {
             console.log('Initializing wallet...');
-            await initializeWalletKit(network);
+            await initializeWalletKit();
             console.log('Loading wallets...');
             await loadAllWallets();
             console.log('Updating balances...');
@@ -55,7 +54,7 @@ export const useWalletInitialization = (): WalletInitializationState => {
             setIsInitializing(false);
             throw err;
         }
-    }, [network, initializeWalletKit, loadAllWallets, updateBalance, refreshJettons]);
+    }, [initializeWalletKit, loadAllWallets, updateBalance, refreshJettons]);
 
     return {
         isInitializing,

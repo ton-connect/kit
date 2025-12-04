@@ -10,7 +10,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { CHAIN, type EventTransactionRequest, type JettonInfo, type MoneyFlowSelf } from '@ton/walletkit';
 import { Address } from '@ton/core';
 import type { SavedWallet } from '@ton/demo-core';
-import { useWalletKit, useAuth } from '@ton/demo-core';
+import { useWalletKit, useAuth, useWalletStore } from '@ton/demo-core';
 
 import { ActionPreviewList } from './ActionPreviewList';
 import { Button } from './Button';
@@ -261,8 +261,8 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 };
 
 function useActiveWalletNetwork(): 'mainnet' | 'testnet' {
-    const savedWallets = useStore((state) => state.walletManagement.savedWallets);
-    const activeWalletId = useStore((state) => state.walletManagement.activeWalletId);
+    const savedWallets = useWalletStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
     return activeWallet?.network || 'testnet';
 }

@@ -7,7 +7,6 @@
  */
 
 import React from 'react';
-import { useAuth } from '@ton/demo-core';
 
 import { SettingsDropdown } from './SettingsDropdown';
 

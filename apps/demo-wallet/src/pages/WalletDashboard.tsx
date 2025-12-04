@@ -8,14 +8,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-    useWallet,
-    useWalletKit,
-    useTonConnect,
-    useTransactionRequests,
-    useSignDataRequests,
-    useAuth,
-} from '@ton/demo-core';
+import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@ton/demo-core';
 
 import {
     Layout,

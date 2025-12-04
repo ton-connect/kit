@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { Base64NormalizeUrl, CHAIN } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
-import { useWalletKit } from '@ton/demo-core';
+import { useWalletKit, useWalletStore } from '@ton/demo-core';
 
 import { log } from '@/utils/logger';
 
@@ -47,7 +47,7 @@ interface TraceRowProps {
 
 export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, isPending = false }) => {
     const walletKit = useWalletKit();
-    const { savedWallets, activeWalletId } = useStore(
+    const { savedWallets, activeWalletId } = useWalletStore(
         useShallow((state) => ({
             savedWallets: state.walletManagement.savedWallets,
             activeWalletId: state.walletManagement.activeWalletId,

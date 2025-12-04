@@ -12,6 +12,7 @@ import type {
     EventSignDataRequest,
     JSBridgeTransportFunction,
     StorageAdapter as KitStorageAdapter,
+    NetworkAdapters,
 } from '@ton/walletkit';
 
 export interface SavedWallet {
@@ -103,6 +104,7 @@ export interface LedgerConfig {
 }
 
 export interface WalletKitConfig {
+    networks?: NetworkAdapters;
     storage?: KitStorageAdapter;
     jsBridgeTransport?: JSBridgeTransportFunction;
     disableHttpBridge?: boolean;
