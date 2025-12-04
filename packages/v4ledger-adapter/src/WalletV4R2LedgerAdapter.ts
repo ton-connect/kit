@@ -34,6 +34,8 @@ import {
     HexToBigInt,
     Uint8ArrayToHex,
     HexToUint8Array,
+    createWalletId,
+    WalletId,
 } from '@ton/walletkit';
 
 import { WalletV4R2, WalletV4R2Config } from './WalletV4R2';
@@ -113,6 +115,10 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
      */
     getAddress(options?: { testnet?: boolean }): string {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
+    }
+
+    getWalletId(): WalletId {
+        return createWalletId(this.getNetwork(), this.getAddress());
     }
 
     async getSignedSendTransaction(

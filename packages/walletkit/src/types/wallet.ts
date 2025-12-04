@@ -24,6 +24,7 @@ import { PrepareSignDataResult } from '../utils/signData/sign';
 import { Base64String, Hex } from './primitive';
 import { TonProofParsedMessage } from '../utils/tonProof';
 import { EventTransactionResponse } from './events';
+import { WalletId } from '../utils/walletId';
 
 /**
  * TON network types
@@ -52,6 +53,9 @@ export interface IWalletAdapter {
 
     /** Get the address of the wallet */
     getAddress(options?: { testnet?: boolean }): string;
+
+    /** Get the wallet ID */
+    getWalletId(): WalletId;
 
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<Base64String>;

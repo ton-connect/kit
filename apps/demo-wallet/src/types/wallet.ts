@@ -18,7 +18,10 @@ export interface SavedWallet {
     walletType: 'mnemonic' | 'signer' | 'ledger';
     walletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
     version?: 'v5r1' | 'v4r2';
+    network: 'mainnet' | 'testnet';
     createdAt: number;
+    /** WalletKit wallet ID */
+    kitWalletId?: string;
 }
 
 export interface AuthState {
@@ -31,7 +34,6 @@ export interface AuthState {
         holdToSign?: boolean;
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger';
         ledgerAccountNumber?: number;
-        network?: 'mainnet' | 'testnet';
     };
 }
 

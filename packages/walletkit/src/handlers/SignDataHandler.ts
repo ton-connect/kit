@@ -22,6 +22,8 @@ import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
+import { WalletManager } from '../core/WalletManager';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -31,14 +33,17 @@ export class SignDataHandler
 {
     private analyticsApi?: AnalyticsApi;
     private walletKitConfig: TonWalletKitOptions;
+    private walletManager: WalletManager;
 
     constructor(
         notify: (event: EventSignDataRequest) => void,
         walletKitConfig: TonWalletKitOptions,
+        walletManager: WalletManager,
         analyticsApi?: AnalyticsApi,
     ) {
         super(notify);
         this.walletKitConfig = walletKitConfig;
+        this.walletManager = walletManager;
         this.analyticsApi = analyticsApi;
     }
 
@@ -47,14 +52,18 @@ export class SignDataHandler
     }
 
     async handle(event: RawBridgeEventSignData): Promise<EventSignDataRequest> {
-        if (!event.walletAddress) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_REQUIRED,
-                'No wallet address found in sign data event',
-                undefined,
-                { eventId: event.id },
-            );
+        // Support both walletId (new) and walletAddress (legacy)
+        const walletId = event.walletId;
+        const walletAddress = event.walletAddress ?? (walletId ? getAddressFromWalletId(walletId) : undefined);
+
+        if (!walletId && !walletAddress) {
+            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'No wallet ID found in sign data event', undefined, {
+                eventId: event.id,
+            });
         }
+
+        // Try to get wallet by walletId first, fall back to address search
+        const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
 
         const data = this.parseDataToSign(event);
         if (!data) {
@@ -79,7 +88,8 @@ export class SignDataHandler
             request: data,
             preview,
             dAppInfo: event.dAppInfo ?? {},
-            walletAddress: event.walletAddress,
+            walletId: walletId ?? (wallet ? this.walletManager.getWalletId(wallet) : ''),
+            walletAddress: walletAddress ?? wallet?.getAddress() ?? '',
         };
 
         // Send wallet-sign-data-request-received event
@@ -90,11 +100,11 @@ export class SignDataHandler
                 client_environment: 'wallet',
                 subsystem: getEventsSubsystem(),
                 client_id: event.from,
-                wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                 client_timestamp: getUnixtime(),
                 dapp_name: event.dAppInfo?.name,
                 version: getVersion(),
-                network_id: this.walletKitConfig.network,
+                network_id: wallet?.getNetwork(),
                 wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
                 wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
                 event_id: uuidv7(),

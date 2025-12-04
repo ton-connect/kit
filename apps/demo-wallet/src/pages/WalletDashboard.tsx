@@ -22,7 +22,7 @@ import {
     JettonsCard,
     WalletSwitcher,
 } from '../components';
-import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
+import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests } from '../stores';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
@@ -40,7 +40,6 @@ export const WalletDashboard: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false);
     const navigate = useNavigate();
 
-    const { network } = useAuth();
     const {
         balance,
         address,
@@ -51,7 +50,10 @@ export const WalletDashboard: React.FC = () => {
         switchWallet,
         removeWallet,
         renameWallet,
+        getActiveWallet,
     } = useWallet();
+    const activeWallet = getActiveWallet();
+    const network = activeWallet?.network || 'testnet';
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -195,7 +197,7 @@ export const WalletDashboard: React.FC = () => {
                                     <img src="https://tonscan.org/favicon.ico" alt="TONScan" className="w-6 h-6" />
                                 </a>
                                 <a
-                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonviewer.com/address/${address}`}
+                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonviewer.com/${address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all hover:scale-110"

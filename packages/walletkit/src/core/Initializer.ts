@@ -8,8 +8,6 @@
 
 // Initialization and setup logic
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import { TonWalletKitOptions, IWallet, DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
 import type { StorageAdapter, StorageConfig } from '../storage';
 import { createStorageAdapter, Storage } from '../storage';
@@ -26,8 +24,8 @@ import { IWalletAdapter } from '../types/wallet';
 import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
-import { ApiClient } from '../types/toncenter/ApiClient';
 import { AnalyticsApi } from '../analytics/sender';
+import { NetworkManager } from './NetworkManager';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -49,7 +47,7 @@ export interface InitializationResult {
  */
 export class Initializer {
     private config: TonWalletKitOptions;
-    private tonClient!: ApiClient;
+    private networkManager!: NetworkManager;
     private eventEmitter: EventEmitter;
     private analyticsApi?: AnalyticsApi;
 
@@ -62,11 +60,11 @@ export class Initializer {
     /**
      * Initialize all components
      */
-    async initialize(options: TonWalletKitOptions, tonClient: ApiClient): Promise<InitializationResult> {
+    async initialize(options: TonWalletKitOptions, networkManager: NetworkManager): Promise<InitializationResult> {
         try {
             log.info('Initializing TonWalletKit...');
 
-            this.tonClient = tonClient;
+            this.networkManager = networkManager;
 
             // 2. Initialize storage adapter
             const storage = this.initializeStorage(options);
@@ -205,8 +203,6 @@ export class Initializer {
             sessionManager,
             bridgeManager,
             walletManager,
-            this.tonClient,
-            this.config.network === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
             this.analyticsApi,
         );
 
@@ -243,8 +239,12 @@ export class Initializer {
     }
 }
 
-// using proxy api to make wallet extension modular
-export async function wrapWalletInterface(wallet: IWalletAdapter, _tonClient: ApiClient): Promise<IWallet> {
+/**
+ * Wrap wallet adapter with extension interfaces (Ton, Jetton, NFT)
+ * Uses proxy API to make wallet extension modular
+ * The wallet adapter already contains its own ApiClient for its network
+ */
+export async function wrapWalletInterface(wallet: IWalletAdapter): Promise<IWallet> {
     const ourClassesToExtend = [WalletTonClass, WalletJettonClass, WalletNftClass];
     const newProxy = new Proxy(wallet, {
         get: (target, prop) => {

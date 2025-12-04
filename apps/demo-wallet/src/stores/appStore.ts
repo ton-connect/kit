@@ -109,7 +109,6 @@ export const useStore = create<AppState>()(
                             holdToSign: state.auth.holdToSign,
                             useWalletInterfaceType: state.auth.useWalletInterfaceType,
                             ledgerAccountNumber: state.auth.ledgerAccountNumber,
-                            network: state.auth.network,
                             ...(state.auth.persistPassword && {
                                 currentPassword: state.auth.currentPassword,
                             }),
@@ -139,7 +138,6 @@ export const useStore = create<AppState>()(
                             auth: {
                                 ...currentState.auth,
                                 ...persisted?.auth,
-                                network: persisted?.auth?.network || 'testnet',
                                 // Auto-unlock if password is persisted
                                 isUnlocked:
                                     persisted?.auth?.persistPassword &&
@@ -203,9 +201,8 @@ export const useStore = create<AppState>()(
 // Initialize wallet kit on first load
 if (typeof window !== 'undefined') {
     const store = useStore.getState();
-    const persistedNetwork = store.auth.network || 'testnet';
-    log.info(`Initializing WalletKit with persisted network: ${persistedNetwork}`);
-    await store.initializeWalletKit(persistedNetwork);
+    log.info('Initializing WalletKit');
+    await store.initializeWalletKit();
 }
 
 // Hook for accessing WalletKit instance
@@ -221,7 +218,6 @@ export const useAuth = () =>
             holdToSign: state.auth.holdToSign,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
             ledgerAccountNumber: state.auth.ledgerAccountNumber,
-            network: state.auth.network,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
@@ -230,7 +226,6 @@ export const useAuth = () =>
             setHoldToSign: state.setHoldToSign,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
             setLedgerAccountNumber: state.setLedgerAccountNumber,
-            setNetwork: state.setNetwork,
             createLedgerWallet: state.createLedgerWallet,
         })),
     );

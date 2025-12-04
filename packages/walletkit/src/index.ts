@@ -22,13 +22,14 @@ export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './core/ApiClientToncenter';
+export { NetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
 export { ConnectHandler } from './handlers/ConnectHandler';
 export { TransactionHandler } from './handlers/TransactionHandler';
 export { SignDataHandler } from './handlers/SignDataHandler';
 export { DisconnectHandler } from './handlers/DisconnectHandler';
-export { WalletV5, WalletId, Opcodes } from './contracts/w5/WalletV5R1';
+export { WalletV5, WalletV5R1Id, Opcodes } from './contracts/w5/WalletV5R1';
 export type { WalletV5Config } from './contracts/w5/WalletV5R1';
 export { WalletV5R1CodeCell, WalletV5R1CodeBoc } from './contracts/w5/WalletV5R1.source';
 export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
@@ -46,6 +47,14 @@ export type { ApiClient } from './types/toncenter/ApiClient';
 export type { MoneyFlow, MoneyFlowSelf, MoneyFlowRow } from './utils/toncenterEmulation';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
+export {
+    createWalletId,
+    parseWalletId,
+    getAddressFromWalletId,
+    getNetworkFromWalletId,
+    isWalletId,
+} from './utils/walletId';
+export type { WalletId } from './utils/walletId';
 export {
     Base64Normalize,
     Base64NormalizeUrl,

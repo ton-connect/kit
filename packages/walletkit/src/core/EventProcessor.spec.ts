@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { CHAIN } from '@tonconnect/sdk';
 
 import { StorageEventProcessor } from './EventProcessor';
 import { StorageEventStore } from './EventStore';
@@ -18,6 +19,7 @@ import type { EventEmitter } from './EventEmitter';
 import type { RawBridgeEvent } from '../types/internal';
 import { Storage } from '../storage/Storage';
 import { MemoryStorageAdapter } from '../storage/adapters/memory';
+import { createWalletId } from '../utils/walletId';
 
 describe('EventProcessor with Real EventStore', () => {
     let eventStore: StorageEventStore;
@@ -40,7 +42,7 @@ describe('EventProcessor with Real EventStore', () => {
             getSessionsForAPI: vi.fn().mockReturnValue([
                 {
                     sessionId: 'session-1',
-                    walletAddress: 'wallet-1',
+                    walletId: createWalletId(CHAIN.MAINNET, 'wallet-1'),
                     dAppName: 'Test DApp',
                     dAppUrl: 'https://test.com',
                     dAppIconUrl: 'https://test.com/icon.png',
@@ -104,7 +106,7 @@ describe('EventProcessor with Real EventStore', () => {
 
             // Register wallet for processing
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
 
@@ -118,6 +120,7 @@ describe('EventProcessor with Real EventStore', () => {
                 method: 'sendTransaction',
                 from: 'session-1',
                 params: [''],
+                walletId: createWalletId(CHAIN.MAINNET, 'wallet-1'),
                 walletAddress: 'wallet-1',
             });
 
@@ -138,7 +141,7 @@ describe('EventProcessor with Real EventStore', () => {
             const storedEvent = await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
 
@@ -151,6 +154,7 @@ describe('EventProcessor with Real EventStore', () => {
                 method: 'signData',
                 from: 'session-1',
                 params: ['sample-data-to-sign'],
+                walletId: createWalletId(CHAIN.MAINNET, 'wallet-1'),
                 walletAddress: 'wallet-1',
             });
 
@@ -177,7 +181,7 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(event2);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
 
@@ -212,7 +216,7 @@ describe('EventProcessor with Real EventStore', () => {
             const storedEvent = await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockRejectedValue(new Error('Network timeout'));
 
@@ -238,7 +242,7 @@ describe('EventProcessor with Real EventStore', () => {
             const storedEvent = await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockRejectedValue(new Error('Persistent failure'));
 
@@ -269,7 +273,7 @@ describe('EventProcessor with Real EventStore', () => {
             const storedEvent = await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             // First attempt fails
             vi.mocked(eventRouter.routeEvent).mockRejectedValueOnce(new Error('Temporary failure'));
@@ -312,6 +316,7 @@ describe('EventProcessor with Real EventStore', () => {
                 id: '8',
                 method: 'connect',
                 from: 'session-new',
+                walletId: 'no-wallet',
                 walletAddress: 'no-wallet',
             });
         });
@@ -365,7 +370,7 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(newerEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
 
@@ -405,7 +410,7 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(event2);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             // First event fails
             vi.mocked(eventRouter.routeEvent).mockRejectedValueOnce(new Error('Failed'));
@@ -432,14 +437,14 @@ describe('EventProcessor with Real EventStore', () => {
             vi.mocked(sessionManager.getSessionsForAPI).mockReturnValue([
                 {
                     sessionId: 'session-1',
-                    walletAddress: 'wallet-1',
+                    walletId: createWalletId(CHAIN.MAINNET, 'wallet-1'),
                     dAppName: 'Test DApp 1',
                     dAppUrl: 'https://test1.com',
                     dAppIconUrl: 'https://test1.com/icon.png',
                 },
                 {
                     sessionId: 'session-2',
-                    walletAddress: 'wallet-2',
+                    walletId: createWalletId(CHAIN.MAINNET, 'wallet-2'),
                     dAppName: 'Test DApp 2',
                     dAppUrl: 'https://test2.com',
                     dAppIconUrl: 'https://test2.com/icon.png',
@@ -468,9 +473,9 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(wallet2Event);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-2');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-2'));
 
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
 
@@ -527,7 +532,7 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(walletEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             vi.mocked(eventRouter.getEnabledEventTypes).mockReturnValue(['sendTransaction', 'connect']);
             vi.mocked(eventRouter.routeEvent).mockResolvedValue();
@@ -541,6 +546,7 @@ describe('EventProcessor with Real EventStore', () => {
                 id: '16',
                 method: 'connect',
                 from: 'session-new',
+                walletId: 'no-wallet',
                 walletAddress: 'no-wallet',
             });
 
@@ -565,7 +571,7 @@ describe('EventProcessor with Real EventStore', () => {
     describe('Error Handling', () => {
         it('should return false when no events are available for processing', async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = await (processor as any).processNextAvailableEvent();
@@ -584,7 +590,7 @@ describe('EventProcessor with Real EventStore', () => {
             const storedEvent = await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             // Try to acquire lock twice concurrently
             const lock1Promise = eventStore.acquireLock(storedEvent.id, 'wallet-1');
@@ -607,7 +613,7 @@ describe('EventProcessor with Real EventStore', () => {
             await eventStore.storeEvent(rawEvent);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (processor as any).registeredWallets.add('wallet-1');
+            (processor as any).registeredWallets.add(createWalletId(CHAIN.MAINNET, 'wallet-1'));
 
             // Make routing fail
             vi.mocked(eventRouter.routeEvent).mockRejectedValue(new Error('Processing error'));

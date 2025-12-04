@@ -40,6 +40,7 @@ async function initializeWalletKit() {
             bridge: {
                 jsBridgeTransport: SendMessageToExtensionContentFromBackground,
             },
+            networks: {},
         });
 
         // Wait for WalletKit to be ready

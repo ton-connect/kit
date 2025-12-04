@@ -7,7 +7,7 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import type { EventTransactionRequest, JettonInfo, MoneyFlowSelf } from '@ton/walletkit';
+import { CHAIN, type EventTransactionRequest, type JettonInfo, type MoneyFlowSelf } from '@ton/walletkit';
 import { Address } from '@ton/core';
 
 import { ActionPreviewList } from './ActionPreviewList';
@@ -19,7 +19,7 @@ import { HoldToSignButton } from './HoldToSignButton';
 import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 import { formatUnits } from '../utils/units';
-import { useWalletKit, useAuth } from '../stores';
+import { useWalletKit, useAuth, useStore } from '../stores';
 // Create logger for transaction request modal
 const log = createComponentLogger('TransactionRequestModal');
 
@@ -260,9 +260,19 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     );
 };
 
+function useActiveWalletNetwork(): 'mainnet' | 'testnet' {
+    const savedWallets = useStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useStore((state) => state.walletManagement.activeWalletId);
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    return activeWallet?.network || 'testnet';
+}
+
 function useJettonInfo(jettonAddress: Address | string | null) {
     const walletKit = useWalletKit();
+    const network = useActiveWalletNetwork();
     const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
+    const chainNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+
     useEffect(() => {
         if (!jettonAddress) {
             setJettonInfo(null);
@@ -272,11 +282,11 @@ function useJettonInfo(jettonAddress: Address | string | null) {
             if (!jettonAddress) {
                 return;
             }
-            const jettonInfo = await walletKit?.jettons?.getJettonInfo(jettonAddress.toString());
+            const jettonInfo = await walletKit?.jettons?.getJettonInfo(jettonAddress.toString(), chainNetwork);
             setJettonInfo(jettonInfo ?? null);
         }
         updateJettonInfo();
-    }, [jettonAddress, walletKit]);
+    }, [jettonAddress, walletKit, chainNetwork]);
     return jettonInfo;
 }
 

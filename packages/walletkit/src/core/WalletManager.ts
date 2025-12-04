@@ -8,16 +8,19 @@
 
 // Wallet management with validation and persistence
 
+import { CHAIN } from '@tonconnect/protocol';
+
 import type { IWallet } from '../types';
 import { Storage } from '../storage';
 import { IWalletAdapter } from '../types/wallet';
 import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
+import { createWalletId, WalletId } from '../utils/walletId';
 
-const log = globalLogger.createChild('WalletManager');
+const _log = globalLogger.createChild('WalletManager');
 
 export class WalletManager {
-    private wallets: Map<string, IWallet> = new Map();
+    private wallets: Map<WalletId, IWallet> = new Map();
     private storage: Storage;
     // private storageKey = 'wallets';
 
@@ -40,36 +43,50 @@ export class WalletManager {
     }
 
     /**
-     * Get wallet by public key
+     * Get wallet by wallet ID (network:address format)
      */
-    getWallet(address: string): IWallet | undefined {
-        return this.wallets.get(address) || undefined;
+    getWallet(walletId: WalletId): IWallet | undefined {
+        return this.wallets.get(walletId) || undefined;
+    }
+
+    /**
+     * Get wallet by address and network (convenience method)
+     */
+    getWalletByAddressAndNetwork(address: string, network: CHAIN): IWallet | undefined {
+        const walletId = createWalletId(network, address);
+        return this.getWallet(walletId);
     }
 
     /**
      * Add a wallet with validation
      */
-    async addWallet(wallet: IWallet): Promise<boolean> {
+    async addWallet(wallet: IWallet): Promise<WalletId> {
         const validation = validateWallet(wallet);
         if (!validation.isValid) {
             throw new Error(`Invalid wallet: ${validation.errors.join(', ')}`);
         }
 
-        if (this.wallets.has(wallet.getAddress())) {
-            return true;
+        const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
+        if (this.wallets.has(walletId)) {
+            return walletId;
         }
 
-        this.wallets.set(wallet.getAddress(), wallet);
-        return true;
+        this.wallets.set(walletId, wallet);
+        return walletId;
     }
 
     /**
-     * Remove wallet by public key
+     * Remove wallet by wallet ID or wallet adapter
      */
-    async removeWallet(addressOrWallet: string | IWalletAdapter): Promise<boolean> {
-        const address = typeof addressOrWallet === 'string' ? addressOrWallet : addressOrWallet.getAddress();
+    async removeWallet(walletIdOrAdapter: WalletId | IWalletAdapter): Promise<boolean> {
+        let walletId: WalletId;
+        if (typeof walletIdOrAdapter === 'string') {
+            walletId = walletIdOrAdapter;
+        } else {
+            walletId = createWalletId(walletIdOrAdapter.getNetwork(), walletIdOrAdapter.getAddress());
+        }
 
-        const removed = this.wallets.delete(address);
+        const removed = this.wallets.delete(walletId);
         // if (removed) {
         //     await this.persistWallets();
         // }
@@ -81,8 +98,9 @@ export class WalletManager {
      * Update existing wallet
      */
     async updateWallet(wallet: IWallet): Promise<void> {
-        if (!this.wallets.has(wallet.getAddress())) {
-            throw new Error(`Wallet with address ${wallet.getAddress()} not found`);
+        const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
+        if (!this.wallets.has(walletId)) {
+            throw new Error(`Wallet with ID ${walletId} not found`);
         }
 
         const validation = validateWallet(wallet);
@@ -90,7 +108,7 @@ export class WalletManager {
             throw new Error(`Invalid wallet: ${validation.errors.join(', ')}`);
         }
 
-        this.wallets.set(wallet.getAddress(), wallet);
+        this.wallets.set(walletId, wallet);
         // await this.persistWallets();
     }
 
@@ -103,23 +121,6 @@ export class WalletManager {
     }
 
     /**
-     * Find wallet by address (async since getAddress is async)
-     */
-    async findWalletByAddress(address: string): Promise<IWallet | null> {
-        for (const wallet of this.wallets.values()) {
-            try {
-                const walletAddress = wallet.getAddress();
-                if (walletAddress === address) {
-                    return wallet;
-                }
-            } catch (error) {
-                log.warn('Failed to get address for wallet', { publicKey: wallet.getPublicKey(), error });
-            }
-        }
-        return null;
-    }
-
-    /**
      * Get wallet count
      */
     getWalletCount(): number {
@@ -127,47 +128,16 @@ export class WalletManager {
     }
 
     /**
-     * Check if wallet exists
+     * Check if wallet exists by wallet ID
      */
-    hasWallet(publicKey: string): boolean {
-        return this.wallets.has(publicKey);
+    hasWallet(walletId: WalletId): boolean {
+        return this.wallets.has(walletId);
     }
 
     /**
-     * Load wallets from storage
+     * Get wallet ID for a wallet adapter
      */
-    // private async loadWallets(): Promise<void> {
-    //     try {
-    //         // Note: We can't persist actual WalletInterface instances since they contain functions
-    //         // This is a placeholder for wallet metadata storage
-    //         // In practice, you'd store wallet identifiers and reconstruct WalletInterface instances
-    //         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //         const walletData = await this.storageAdapter.get<any[]>(this.storageKey);
-
-    //         if (walletData && Array.isArray(walletData)) {
-    //             // TODO: Implement wallet reconstruction from stored metadata
-    //             logger.debug('Loaded wallet metadata', { count: walletData.length });
-    //         }
-    //     } catch (error) {
-    //         logger.warn('Failed to load wallets from storage', { error });
-    //     }
-    // }
-
-    /**
-     * Persist wallet metadata to storage
-     */
-    // private async persistWallets(): Promise<void> {
-    //     try {
-    //         // Store wallet metadata (not the actual functions)
-    //         const walletMetadata = this.getWallets().map((wallet) => ({
-    //             publicKey: wallet.publicKey,
-    //             version: wallet.version,
-    //             // Add other serializable properties as needed
-    //         }));
-
-    //         await this.storageAdapter.set(this.storageKey, walletMetadata);
-    //     } catch (error) {
-    //         logger.warn('Failed to persist wallets to storage', { error });
-    //     }
-    // }
+    getWalletId(wallet: IWalletAdapter): WalletId {
+        return createWalletId(wallet.getNetwork(), wallet.getAddress());
+    }
 }

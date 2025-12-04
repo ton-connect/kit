@@ -31,6 +31,7 @@ export class DemoWallet extends WalletApp {
         await app.getByTestId('subtitle').filter({ hasText: 'Setup Your Wallet', visible: true });
         await app.getByTestId('import-wallet').click();
         await app.getByTestId('subtitle').filter({ hasText: 'Import Wallet', visible: true });
+        await app.getByTestId('network-select-mainnet').click();
         await app.getByTestId('paste-all').click();
         await app.getByTestId('mnemonic').fill(mnemonic);
         await app.getByTestId('mnemonic-process').click();
@@ -41,7 +42,6 @@ export class DemoWallet extends WalletApp {
         await app.getByTestId('auto-lock').click();
         await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
         await app.getByTestId('hold-to-sign').click();
-        await app.getByTestId('network-select').selectOption('mainnet');
         await this.close();
     }
 

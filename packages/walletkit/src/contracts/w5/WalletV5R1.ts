@@ -54,9 +54,9 @@ export const Opcodes = {
     auth_signed_internal: 0x73696e74,
 };
 
-export class WalletId {
-    static deserialize(walletId: number): WalletId {
-        return new WalletId({
+export class WalletV5R1Id {
+    static deserialize(walletId: number): WalletV5R1Id {
+        return new WalletV5R1Id({
             subwalletNumber: walletId,
         });
     }
@@ -200,10 +200,10 @@ export class WalletV5 implements Contract {
         });
     }
 
-    get walletId(): Promise<WalletId> {
+    get walletId(): Promise<WalletV5R1Id> {
         if (this.subwalletId !== undefined) {
             return new Promise((resolve) => {
-                resolve(WalletId.deserialize(this.subwalletId!));
+                resolve(WalletV5R1Id.deserialize(this.subwalletId!));
             });
         } else {
             return this.client.runGetMethod(this.address, 'get_subwallet_id').then((data) => {
@@ -214,9 +214,9 @@ export class WalletV5 implements Contract {
                     } else {
                         throw new Error('Stack is not an int');
                     }
-                    return WalletId.deserialize(this.subwalletId);
+                    return WalletV5R1Id.deserialize(this.subwalletId);
                 } else {
-                    return WalletId.deserialize(defaultWalletIdV5R1);
+                    return WalletV5R1Id.deserialize(defaultWalletIdV5R1);
                 }
             });
         }
