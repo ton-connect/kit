@@ -38,11 +38,18 @@ interface TransactionDetailData {
 
 export const TransactionDetail: React.FC = () => {
     const walletKit = useWalletKit();
+    const savedWallets = useStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useStore((state) => state.walletManagement.activeWalletId);
     const { hash } = useParams<{ hash: string }>();
     const navigate = useNavigate();
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
@@ -89,7 +96,7 @@ export const TransactionDetail: React.FC = () => {
                 }
 
                 // Use the walletKit's API client to get transaction by hash
-                const apiClient = walletKit.getApiClient();
+                const apiClient = walletKit.getApiClient(chainNetwork);
                 const base64Hash = Base64Normalize(hash);
                 const response = await apiClient.getTransactionsByHash({ msgHash: base64Hash });
 
@@ -168,7 +175,7 @@ export const TransactionDetail: React.FC = () => {
         };
 
         fetchTransactionDetail();
-    }, [hash]);
+    }, [hash, chainNetwork]);
 
     if (isLoading) {
         return (

@@ -10,7 +10,6 @@
 
 import { Address } from '@ton/core';
 import {
-    CHAIN,
     CONNECT_EVENT_ERROR_CODES,
     ConnectEventError,
     ConnectEventSuccess,
@@ -36,7 +35,6 @@ import { globalLogger } from './Logger';
 import { createTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
 import { PrepareTonConnectData } from '../utils/signData/sign';
-import { ApiClient } from '../types/toncenter/ApiClient';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
 import { IWallet } from '../types';
@@ -53,6 +51,7 @@ import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -65,10 +64,32 @@ export class RequestProcessor {
         private sessionManager: SessionManager,
         private bridgeManager: BridgeManager,
         private walletManager: WalletManager,
-        private client: ApiClient,
-        private network: CHAIN,
+
         private analyticsApi?: AnalyticsApi,
     ) {}
+
+    /**
+     * Helper to get wallet from event, supporting both walletId and walletAddress
+     */
+    private getWalletFromEvent(event: { walletId?: string }): IWallet | undefined {
+        if (event.walletId) {
+            return this.walletManager.getWallet(event.walletId);
+        }
+        return undefined;
+    }
+
+    /**
+     * Helper to get wallet address from event
+     */
+    private getWalletAddressFromEvent(event: { walletId?: string; walletAddress?: string }): string | undefined {
+        if (event.walletAddress) {
+            return event.walletAddress;
+        }
+        if (event.walletId) {
+            return getAddressFromWalletId(event.walletId);
+        }
+        return undefined;
+    }
 
     /**
      * Process connect request approval
@@ -77,7 +98,9 @@ export class RequestProcessor {
         try {
             // If event is EventConnectRequest, we need to create approval ourself
             if ('preview' in event && 'request' in event) {
-                if (!event.walletAddress) {
+                const walletId = event.walletId;
+
+                if (!walletId) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
                         'Wallet is required for connect request approval',
@@ -87,13 +110,13 @@ export class RequestProcessor {
                     throw error;
                 }
 
-                const wallet = this.walletManager.getWallet(event.walletAddress);
+                const wallet = this.getWalletFromEvent(event);
                 if (!wallet) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for connect request',
                         undefined,
-                        { walletAddress: event.walletAddress, eventId: event.id },
+                        { walletId, eventId: event.id },
                     );
                     throw error;
                 }
@@ -125,7 +148,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         event_id: uuidv7(),
@@ -154,13 +177,15 @@ export class RequestProcessor {
                         manifest_json_url: event.preview.manifest?.url,
                         proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     },
                 ]);
             } else if ('result' in event) {
-                if (!event.walletAddress) {
+                const walletId = event.walletId;
+
+                if (!walletId) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
                         'Wallet is required for connect approval result',
@@ -170,13 +195,13 @@ export class RequestProcessor {
                     throw error;
                 }
 
-                const wallet = this.walletManager.getWallet(event.walletAddress);
+                const wallet = this.getWalletFromEvent(event);
                 if (!wallet) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for connect approval result',
                         undefined,
-                        { walletAddress: event.walletAddress, eventId: event.id },
+                        { walletId, eventId: event.id },
                     );
                     throw error;
                 }
@@ -199,7 +224,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         event_id: uuidv7(),
@@ -236,7 +261,7 @@ export class RequestProcessor {
                             ) as TonProofItemReplySuccess
                         )?.proof?.payload?.length,
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     },
@@ -312,7 +337,6 @@ export class RequestProcessor {
                     event_id: uuidv7(),
                     client_timestamp: getUnixtime(),
                     version: getVersion(),
-                    network_id: this.walletKitOptions.network,
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
@@ -331,7 +355,6 @@ export class RequestProcessor {
                     event_id: uuidv7(),
                     client_timestamp: getUnixtime(),
                     version: getVersion(),
-                    network_id: this.walletKitOptions.network,
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     is_ton_addr: event.request.some((item) => item.name === 'ton_addr'),
@@ -356,7 +379,9 @@ export class RequestProcessor {
         try {
             if ('result' in event) {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
-                    await CallForSuccess(() => this.client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
+                    // Get the client for the wallet's network
+                    const client = this.getClientForWallet(event.walletId);
+                    await CallForSuccess(() => client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
                 }
 
                 // Send approval response
@@ -372,7 +397,9 @@ export class RequestProcessor {
                 const signedBoc = await this.signTransaction(event);
 
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
-                    await CallForSuccess(() => this.client.sendBoc(Buffer.from(signedBoc, 'base64')));
+                    // Get the client for the wallet's network
+                    const client = this.getClientForWallet(event.walletId);
+                    await CallForSuccess(() => client.sendBoc(Buffer.from(signedBoc, 'base64')));
                 }
 
                 // Send approval response
@@ -405,6 +432,8 @@ export class RequestProcessor {
         event: EventTransactionRequest | EventTransactionApproval,
         signedBoc: string,
     ): void {
+        const wallet = this.getWalletFromEvent(event);
+        const walletAddress = this.getWalletAddressFromEvent(event);
         this.analyticsApi?.sendEvents([
             {
                 event_name: 'wallet-transaction-accepted',
@@ -414,11 +443,11 @@ export class RequestProcessor {
                 event_id: uuidv7(),
                 client_timestamp: getUnixtime(),
                 version: getVersion(),
-                network_id: this.walletKitOptions.network,
+                network_id: wallet?.getNetwork(),
                 wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                 wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                 client_id: event.from,
-                wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                 dapp_name: 'dAppInfo' in event ? event.dAppInfo?.name : undefined,
                 origin_url: 'dAppInfo' in event ? event.dAppInfo?.url : undefined,
             },
@@ -428,7 +457,7 @@ export class RequestProcessor {
                 client_environment: 'wallet',
                 subsystem: getEventsSubsystem(),
                 event_id: uuidv7(),
-                network_id: this.walletKitOptions.network,
+                network_id: wallet?.getNetwork(),
                 wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                 wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                 version: getVersion(),
@@ -462,6 +491,8 @@ export class RequestProcessor {
                       };
 
             await this.bridgeManager.sendResponse(event, response);
+            const wallet = this.getWalletFromEvent(event);
+            const walletAddress = this.getWalletAddressFromEvent(event);
             this.analyticsApi?.sendEvents([
                 {
                     event_name: 'wallet-transaction-declined',
@@ -471,10 +502,10 @@ export class RequestProcessor {
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
                     event_id: uuidv7(),
-                    network_id: this.walletKitOptions.network,
+                    network_id: wallet?.getNetwork(),
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                    wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                    wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                     version: getVersion(),
                     client_timestamp: getUnixtime(),
                     client_id: event.from,
@@ -506,6 +537,8 @@ export class RequestProcessor {
                 };
 
                 await this.bridgeManager.sendResponse(event, response);
+                const wallet = this.getWalletFromEvent(event);
+                const walletAddress = this.getWalletAddressFromEvent(event);
                 this.analyticsApi?.sendEvents([
                     {
                         event_name: 'wallet-sign-data-accepted',
@@ -513,10 +546,10 @@ export class RequestProcessor {
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet?.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                         version: getVersion(),
                         client_timestamp: getUnixtime(),
                         client_id: event.from,
@@ -527,10 +560,10 @@ export class RequestProcessor {
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet?.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                         version: getVersion(),
                         client_timestamp: getUnixtime(),
                         client_id: event.from,
@@ -548,23 +581,26 @@ export class RequestProcessor {
                     throw error;
                 }
 
-                if (!event.walletAddress) {
+                const walletId = event.walletId;
+                const walletAddress = this.getWalletAddressFromEvent(event);
+
+                if (!walletId && !walletAddress) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_REQUIRED,
-                        'Wallet address is required for sign data request',
+                        'Wallet ID is required for sign data request',
                         undefined,
                         { eventId: event.id },
                     );
                     throw error;
                 }
 
-                const wallet = this.walletManager.getWallet(event.walletAddress);
+                const wallet = this.getWalletFromEvent(event);
                 if (!wallet) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
                         'Wallet not found for sign data request',
                         undefined,
-                        { walletAddress: event.walletAddress, eventId: event.id },
+                        { walletId, walletAddress, eventId: event.id },
                     );
                     throw error;
                 }
@@ -580,7 +616,7 @@ export class RequestProcessor {
                 const signData = PrepareTonConnectData({
                     payload: event.request,
                     domain: domainUrl,
-                    address: event.walletAddress,
+                    address: walletAddress ?? wallet.getAddress(),
                 });
                 const signature = await wallet.getSignedSignData(signData);
                 const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
@@ -607,10 +643,10 @@ export class RequestProcessor {
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                         version: getVersion(),
                         client_timestamp: getUnixtime(),
                         client_id: event.from,
@@ -623,10 +659,10 @@ export class RequestProcessor {
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
                         event_id: uuidv7(),
-                        network_id: this.walletKitOptions.network,
+                        network_id: wallet.getNetwork(),
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                        wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                        wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                         version: getVersion(),
                         client_timestamp: getUnixtime(),
                         client_id: event.from,
@@ -657,6 +693,8 @@ export class RequestProcessor {
             };
 
             await this.bridgeManager.sendResponse(event, response);
+            const wallet = this.getWalletFromEvent(event);
+            const walletAddress = this.getWalletAddressFromEvent(event);
             this.analyticsApi?.sendEvents([
                 {
                     event_name: 'wallet-sign-data-declined',
@@ -666,10 +704,10 @@ export class RequestProcessor {
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
                     event_id: uuidv7(),
-                    network_id: this.walletKitOptions.network,
+                    network_id: wallet?.getNetwork(),
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
-                    wallet_id: event.walletAddress ? Base64Normalize(event.walletAddress) : undefined,
+                    wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
                     version: getVersion(),
                     client_timestamp: getUnixtime(),
                     client_id: event.from,
@@ -686,22 +724,24 @@ export class RequestProcessor {
      * Create connect approval response
      */
     private async createConnectApprovalResponse(event: EventConnectRequest): Promise<{ result: ConnectEventSuccess }> {
-        const walletAddress = event.walletAddress;
-        if (!walletAddress) {
+        const walletId = event.walletId;
+        const walletAddress = this.getWalletAddressFromEvent(event);
+
+        if (!walletId && !walletAddress) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_REQUIRED,
-                'Wallet address is required for connect approval response',
+                'Wallet ID is required for connect approval response',
                 undefined,
                 { eventId: event.id },
             );
         }
-        const wallet = this.walletManager.getWallet(walletAddress);
+        const wallet = this.getWalletFromEvent(event);
         if (!wallet) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_NOT_FOUND,
                 'Wallet not found for connect approval response',
                 undefined,
-                { walletAddress, eventId: event.id },
+                { walletId, walletAddress, eventId: event.id },
             );
         }
 
@@ -714,6 +754,9 @@ export class RequestProcessor {
         // Get wallet address
         const address = wallet.getAddress();
 
+        // Get the wallet's network
+        const walletNetwork = wallet.getNetwork();
+
         // Create base response data
         const connectResponse: ConnectEventSuccess = {
             event: 'connect',
@@ -724,7 +767,7 @@ export class RequestProcessor {
                     {
                         name: 'ton_addr',
                         address: Address.parse(address).toRawString(),
-                        network: this.network,
+                        network: walletNetwork,
                         walletStateInit,
                         publicKey,
                     },
@@ -787,24 +830,44 @@ export class RequestProcessor {
      * Sign transaction and return BOC
      */
     private async signTransaction(event: EventTransactionRequest): Promise<string> {
-        if (!event.walletAddress) {
+        const walletId = event.walletId;
+        const walletAddress = this.getWalletAddressFromEvent(event);
+
+        if (!walletId && !walletAddress) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_REQUIRED,
-                'Wallet address is required for transaction signing',
+                'Wallet ID is required for transaction signing',
                 undefined,
                 { eventId: event.id },
             );
         }
-        const wallet = this.walletManager.getWallet(event.walletAddress);
+        const wallet = this.getWalletFromEvent(event);
         if (!wallet) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_NOT_FOUND,
                 'Wallet not found for transaction signing',
                 undefined,
-                { walletAddress: event.walletAddress, eventId: event.id },
+                { walletId, walletAddress, eventId: event.id },
             );
         }
         return await signTransactionInternal(wallet, event.request);
+    }
+
+    /**
+     * Get API client for a wallet's network
+     * Uses the wallet's network to get the appropriate client from NetworkManager
+     */
+    private getClientForWallet(walletId: string | undefined) {
+        if (!walletId) {
+            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'Wallet address is required to get API client');
+        }
+
+        const wallet = this.walletManager.getWallet(walletId);
+        if (!wallet) {
+            throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, `Wallet not found: ${walletId}`);
+        }
+
+        return wallet.getClient();
     }
 }
 

@@ -18,13 +18,14 @@ import {
 
 import { DAppInfo } from './events';
 import { JSBridgeTransportFunction } from './jsBridge';
+import { WalletId } from '../utils/walletId';
 
 // import type { WalletInterface } from './wallet';
 
 export interface SessionData {
     sessionId: string;
 
-    walletAddress: string;
+    walletId: WalletId;
     createdAt: string; // date
     lastActivityAt: string; // date
     privateKey: string;
@@ -69,6 +70,7 @@ export interface EventCallback<T = any> {
 export type BridgeEventBase = {
     id?: string;
     from?: string;
+    walletId?: string;
     walletAddress?: string;
     domain?: string;
 
@@ -88,7 +90,8 @@ export type EventApprovalBase = {
     id: string;
     from: string;
     sessionId: string;
-    walletAddress: string;
+    walletId: string;
+    walletAddress?: string;
 
     messageId?: string;
 

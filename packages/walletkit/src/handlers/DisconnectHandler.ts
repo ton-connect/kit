@@ -13,6 +13,7 @@ import type { EventDisconnect } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 export class DisconnectHandler
     extends BasicHandler<EventDisconnect>
@@ -30,20 +31,22 @@ export class DisconnectHandler
     }
 
     async handle(event: RawBridgeEventDisconnect): Promise<EventDisconnect> {
-        if (!event.walletAddress) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_REQUIRED,
-                'No wallet address found in disconnect event',
-                undefined,
-                { eventId: event.id },
-            );
+        // Support both walletId (new) and walletAddress (legacy)
+        const walletId = event.walletId;
+        const walletAddress = event.walletAddress ?? (walletId ? getAddressFromWalletId(walletId) : undefined);
+
+        if (!walletId && !walletAddress) {
+            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'No wallet ID found in disconnect event', undefined, {
+                eventId: event.id,
+            });
         }
 
         const reason = this.extractDisconnectReason(event);
 
         const disconnectEvent: EventDisconnect = {
             reason,
-            walletAddress: event.walletAddress,
+            walletId: walletId ?? '',
+            walletAddress: walletAddress,
             dAppInfo: event.dAppInfo ?? {},
         };
 

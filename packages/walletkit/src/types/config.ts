@@ -17,14 +17,40 @@ import { BridgeConfig } from './internal';
 import { ApiClient } from './toncenter/ApiClient';
 
 /**
+ * API client configuration options
+ */
+export interface ApiClientConfig {
+    url?: string; // default 'https://toncenter.com' for mainnet, 'https://testnet.toncenter.com' for testnet
+    key?: string; // key for better RPS limits
+}
+
+/**
+ * Network configuration for a specific chain
+ */
+export interface NetworkConfig {
+    /** API client configuration or instance */
+    apiClient?: ApiClientConfig | ApiClient;
+}
+
+/**
+ * Multi-network configuration keyed by chain ID
+ * Example: { [CHAIN.MAINNET]: { apiClient: {...} }, [CHAIN.TESTNET]: { apiClient: {...} } }
+ */
+export type NetworkAdapters = {
+    [K in CHAIN]?: NetworkConfig;
+};
+
+/**
  * Main configuration options for TonWalletKit
  */
 export interface TonWalletKitOptions {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
 
-    /** Network */
-    network?: CHAIN;
+    /**
+     * Network configuration
+     */
+    networks?: NetworkAdapters;
 
     /** Bridge settings */
     bridge?: BridgeConfig;
@@ -37,13 +63,6 @@ export interface TonWalletKitOptions {
     };
     /** Event processor settings */
     eventProcessor?: EventProcessorConfig;
-
-    apiClient?:
-        | {
-              url?: string; // default 'https://toncenter.com'
-              key?: string; // key for better RPS limits
-          }
-        | ApiClient;
 
     analytics?: AnalyticsConfig;
 

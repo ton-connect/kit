@@ -25,6 +25,8 @@ export const RecentTransactions: React.FC = memo(() => {
             loadEvents: state.loadEvents,
             address: state.walletManagement.address,
             hasNextEvents: state.walletManagement.hasNextEvents,
+            savedWallets: state.walletManagement.savedWallets,
+            activeWalletId: state.walletManagement.activeWalletId,
         })),
     );
     const walletKit = useWalletKit();
@@ -35,12 +37,17 @@ export const RecentTransactions: React.FC = memo(() => {
     const [currentPage, setCurrentPage] = useState(0);
     const [limit] = useState(10);
 
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+
     // Check for pending transactions
     const checkPendingTransactions = async () => {
         if (!address || !walletKit) return;
 
         try {
-            const apiClient = walletKit.getApiClient();
+            const apiClient = walletKit.getApiClient(chainNetwork);
             const pendingResponse = await apiClient.getPendingTransactions({
                 accounts: [address],
             });

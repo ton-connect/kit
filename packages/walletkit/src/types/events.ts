@@ -95,7 +95,9 @@ export interface EventDisconnect extends BridgeEventBase {
     /** Optional disconnect reason */
     reason?: string;
 
-    walletAddress: string;
+    /** Wallet ID in format "network:address" (e.g., "-239:EQD...") */
+    walletId: string;
+    walletAddress?: string;
 
     /** dApp information */
     dAppInfo: DAppInfo;

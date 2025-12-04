@@ -90,14 +90,12 @@ export class ConnectHandler
                 is_ton_proof: event.params?.items?.some((item) => item.name === 'ton_proof') || false,
                 client_timestamp: getUnixtime(),
                 event_id: uuidv7(),
-                // network_id: event.network,
                 version: getVersion(),
                 proof_payload_size: event.params?.items?.some((item) => item.name === 'ton_proof')
                     ? event.params?.items?.find((item) => item.name === 'ton_proof')?.payload?.length
                     : 0,
                 wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
                 wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
-                network_id: this.walletKitConfig.network,
             },
         ]);
 

@@ -31,6 +31,7 @@ import { getUnixtime } from '../utils/time';
 import { TonWalletKitOptions } from '../types/config';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -381,7 +382,6 @@ export class BridgeManager {
                     bridge_url: this.config.bridgeUrl,
                     client_timestamp: getUnixtime(),
                     event_id: uuidv7(),
-                    network_id: this.walletKitConfig.network,
                     trace_id: connectTraceId,
                     version: getVersion(),
                 },
@@ -408,7 +408,6 @@ export class BridgeManager {
                             client_id: error?.clientId,
                             client_timestamp: getUnixtime(),
                             error_code: error?.errorCode,
-                            network_id: this.walletKitConfig.network,
                         },
                     ]);
                 },
@@ -430,7 +429,6 @@ export class BridgeManager {
                     bridge_url: this.config.bridgeUrl,
                     client_timestamp: getUnixtime(),
                     event_id: uuidv7(),
-                    network_id: this.walletKitConfig.network,
                     trace_id: connectTraceId,
                     version: getVersion(),
                 },
@@ -453,7 +451,6 @@ export class BridgeManager {
                     client_id: error?.clientId,
                     client_timestamp: getUnixtime(),
                     error_code: error?.errorCode,
-                    network_id: this.walletKitConfig.network,
                 },
             ]);
 
@@ -625,8 +622,9 @@ export class BridgeManager {
                 const session = await this.sessionManager.getSession(rawEvent.from);
                 rawEvent.domain = session?.domain || '';
                 if (session) {
-                    if (session?.walletAddress) {
-                        rawEvent.walletAddress = session.walletAddress;
+                    if (session?.walletId) {
+                        rawEvent.walletId = session.walletId;
+                        rawEvent.walletAddress = getAddressFromWalletId(session.walletId);
                     }
 
                     rawEvent.dAppInfo = {
@@ -638,8 +636,9 @@ export class BridgeManager {
                 }
             } else if (rawEvent.domain) {
                 const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
-                if (session?.walletAddress) {
-                    rawEvent.walletAddress = session.walletAddress;
+                if (session?.walletId) {
+                    rawEvent.walletId = session.walletId;
+                    rawEvent.walletAddress = getAddressFromWalletId(session.walletId);
                 }
 
                 if (session?.sessionId) {

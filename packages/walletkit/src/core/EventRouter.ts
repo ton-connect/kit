@@ -164,7 +164,12 @@ export class EventRouter {
                 this.walletManager,
                 this.analyticsApi,
             ),
-            new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this), this.config, this.analyticsApi),
+            new SignDataHandler(
+                this.notifySignDataRequestCallbacks.bind(this),
+                this.config,
+                this.walletManager,
+                this.analyticsApi,
+            ),
             new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this), this.sessionManager),
         ];
     }

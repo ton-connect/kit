@@ -192,6 +192,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                                 publicKey: '',
                                                                 walletType: 'mnemonic',
                                                                 walletInterfaceType: 'mnemonic',
+                                                                network: 'mainnet',
                                                                 createdAt: Date.now(),
                                                             }
                                                         }
@@ -224,6 +225,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                         publicKey: '',
                                                         walletType: 'mnemonic',
                                                         walletInterfaceType: 'mnemonic',
+                                                        network: 'mainnet',
                                                         createdAt: Date.now(),
                                                     }
                                                 }

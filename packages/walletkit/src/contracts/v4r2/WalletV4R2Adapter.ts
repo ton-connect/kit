@@ -37,6 +37,7 @@ import { Hex } from '../../types/primitive';
 import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
 import { globalLogger } from '../../core/Logger';
 import { WalletV4R2AdapterConfig } from './types';
+import { createWalletId, WalletId } from '../../utils/walletId';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
 
@@ -121,6 +122,10 @@ export class WalletV4R2Adapter implements IWalletAdapter {
      */
     getAddress(options?: { testnet?: boolean }): string {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
+    }
+
+    getWalletId(): WalletId {
+        return createWalletId(this.getNetwork(), this.getAddress());
     }
 
     async getSignedSendTransaction(

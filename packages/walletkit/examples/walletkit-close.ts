@@ -38,6 +38,7 @@ async function main() {
         storage: {
             allowMemory: true, // Use memory storage for Node.js environment
         },
+        networks: {},
     });
     logInfo('✓ WalletKit instance created\n');
 
@@ -45,7 +46,7 @@ async function main() {
     await kit.waitForReady();
     logInfo('✓ WalletKit is ready');
     logInfo(`Status: ${JSON.stringify(kit.getStatus())}`);
-    logInfo(`Network: ${kit.getNetwork()}\n`);
+    logInfo(`Configured networks: ${kit.getConfiguredNetworks().join(', ')}\n`);
 
     logInfo('Step 3: Closing WalletKit...');
     await kit.close();

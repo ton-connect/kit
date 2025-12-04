@@ -39,7 +39,6 @@ export interface AuthSlice extends AuthState {
     setHoldToSign: (enabled: boolean) => void;
     setUseWalletInterfaceType: (interfaceType: 'signer' | 'mnemonic' | 'ledger') => void;
     setLedgerAccountNumber: (accountNumber: number) => void;
-    setNetwork: (network: 'mainnet' | 'testnet') => Promise<void>;
 }
 
 // Wallet Core slice - WalletKit initialization and instance management
@@ -71,8 +70,18 @@ export interface WalletManagementSlice {
     };
 
     // Multi-wallet actions
-    createWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>;
-    importWallet: (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => Promise<string>;
+    createWallet: (
+        mnemonic: string[],
+        name?: string,
+        version?: 'v5r1' | 'v4r2',
+        network?: 'mainnet' | 'testnet',
+    ) => Promise<string>;
+    importWallet: (
+        mnemonic: string[],
+        name?: string,
+        version?: 'v5r1' | 'v4r2',
+        network?: 'mainnet' | 'testnet',
+    ) => Promise<string>;
     createLedgerWallet: (name?: string) => Promise<string>;
     switchWallet: (walletId: string) => Promise<void>;
     removeWallet: (walletId: string) => void;
