@@ -43,12 +43,7 @@ const walletKitConfig: WalletKitConfig = {
 
 function App() {
     return (
-        <WalletProvider
-            defaultNetwork="mainnet"
-            storage={localStorage}
-            walletKitConfig={walletKitConfig}
-            enableDevtools={false}
-        >
+        <WalletProvider storage={localStorage} walletKitConfig={walletKitConfig} enableDevtools={false}>
             <AppRouter />
             <Toaster />
         </WalletProvider>

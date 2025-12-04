@@ -468,9 +468,9 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         });
 
         walletKit.onTransactionRequest(async (event: EventTransactionRequest) => {
-            const wallet = await walletKit.getWallet(event.walletAddress ?? '');
+            const wallet = await walletKit.getWallet(event.walletId ?? '');
             if (!wallet) {
-                log.error('Wallet not found for transaction request');
+                log.error('Wallet not found for transaction request', { walletId: event.walletId });
                 return;
             }
 

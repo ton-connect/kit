@@ -43,7 +43,6 @@ export const useAuth = () => {
             holdToSign: state.auth.holdToSign,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
             ledgerAccountNumber: state.auth.ledgerAccountNumber,
-            network: state.auth.network,
             setPassword: state.setPassword,
             unlock: state.unlock,
             lock: state.lock,
@@ -52,7 +51,6 @@ export const useAuth = () => {
             setHoldToSign: state.setHoldToSign,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
             setLedgerAccountNumber: state.setLedgerAccountNumber,
-            setNetwork: state.setNetwork,
             createLedgerWallet: state.createLedgerWallet,
         })),
     );

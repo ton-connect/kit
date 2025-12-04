@@ -8,9 +8,10 @@
 
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Base64NormalizeUrl } from '@ton/walletkit';
+import { useShallow } from 'zustand/react/shallow';
+import { Base64NormalizeUrl, CHAIN } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
-import { useWalletKit } from '@ton/demo-core';
+import { useWalletKit, useWalletStore } from '@ton/demo-core';
 
 import { log } from '@/utils/logger';
 
@@ -46,10 +47,21 @@ interface TraceRowProps {
 
 export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, isPending = false }) => {
     const walletKit = useWalletKit();
+    const { savedWallets, activeWalletId } = useWalletStore(
+        useShallow((state) => ({
+            savedWallets: state.walletManagement.savedWallets,
+            activeWalletId: state.walletManagement.activeWalletId,
+        })),
+    );
     const [trace, setTrace] = useState<ToncenterTraceItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
@@ -233,7 +245,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
-                const apiClient = walletKit.getApiClient();
+                const apiClient = walletKit.getApiClient(chainNetwork);
                 let response;
 
                 try {

@@ -16,13 +16,13 @@ import type { WalletKitConfig } from '../../types/wallet';
 
 const log = createComponentLogger('WalletCoreSlice');
 
+const ENV_TON_API_KEY_MAINNET = '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
+const ENV_TON_API_KEY_TESTNET = 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
+
 /**
  * Creates a WalletKit instance with the specified network configuration
  */
-async function createWalletKitInstance(
-    network: 'mainnet' | 'testnet' = 'testnet',
-    walletKitConfig?: WalletKitConfig,
-): Promise<ITonWalletKit> {
+async function createWalletKitInstance(walletKitConfig?: WalletKitConfig): Promise<ITonWalletKit> {
     const walletKit = new TonWalletKit({
         deviceInfo: createDeviceInfo(getTonConnectDeviceInfo()),
         walletManifest: createWalletManifest(getTonConnectWalletManifest()),
@@ -33,9 +33,19 @@ async function createWalletKitInstance(
             jsBridgeTransport: walletKitConfig?.jsBridgeTransport,
         },
 
-        network: network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
-        apiClient: {
-            key: network === 'mainnet' ? walletKitConfig?.tonApiKeyMainnet : walletKitConfig?.tonApiKeyTestnet,
+        networks: {
+            [CHAIN.MAINNET]: {
+                apiClient: {
+                    url: 'https:/toncenter.com',
+                    key: ENV_TON_API_KEY_MAINNET,
+                },
+            },
+            [CHAIN.TESTNET]: {
+                apiClient: {
+                    url: 'https://testnet.toncenter.com',
+                    key: ENV_TON_API_KEY_TESTNET,
+                },
+            },
         },
 
         storage: walletKitConfig?.storage,
@@ -49,7 +59,7 @@ async function createWalletKitInstance(
         },
     }) as ITonWalletKit;
 
-    log.info(`WalletKit initialized with network: ${network} ${isExtension() ? 'extension' : 'web'}`);
+    log.info(`WalletKit initialized with network: ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;
 }
 
@@ -66,15 +76,8 @@ export const createWalletCoreSlice =
 
             // Check if we need to reinitialize
             if (state.walletCore.walletKit) {
-                const currentNetwork = state.walletCore.walletKit.getNetwork();
-                const targetNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
-
-                if (currentNetwork === targetNetwork) {
-                    log.info(`WalletKit already initialized with network: ${network}`);
-                    return Promise.resolve();
-                }
-
                 log.info(`Reinitializing WalletKit to ${network}`);
+
                 try {
                     const existingWallets = state.walletCore.walletKit.getWallets();
                     log.info(`Clearing ${existingWallets.length} existing wallets before reinitialization`);
@@ -96,7 +99,7 @@ export const createWalletCoreSlice =
             });
 
             // Create new WalletKit instance
-            const walletKitPromise = createWalletKitInstance(network, walletKitConfig);
+            const walletKitPromise = createWalletKitInstance(walletKitConfig);
 
             walletKitPromise
                 .then(async (walletKit) => {

@@ -43,6 +43,7 @@ import { getEventsSubsystem, getVersion } from '../utils/version';
 import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { Base64Normalize } from '../utils/base64';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -71,24 +72,29 @@ export class TransactionHandler
     }
 
     async handle(event: RawBridgeEventTransaction): Promise<EventTransactionRequest | WalletResponseTemplateError> {
-        if (!event.walletAddress) {
-            log.error('Wallet address not found', { event });
+        // Support both walletId (new) and walletAddress (legacy)
+        const walletId = event.walletId;
+        const walletAddress = event.walletAddress ?? (walletId ? getAddressFromWalletId(walletId) : undefined);
+
+        if (!walletId && !walletAddress) {
+            log.error('Wallet ID not found', { event });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet address not found',
+                    message: 'Wallet ID not found',
                 },
                 id: event.id,
             } as SendTransactionRpcResponseError;
         }
 
-        const wallet = this.walletManager.getWallet(event.walletAddress);
+        // Try to get wallet by walletId first, fall back to address search
+        const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
         if (!wallet) {
-            log.error('Wallet not found', { event });
+            log.error('Wallet not found', { event, walletId, walletAddress });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet address not found',
+                    message: 'Wallet not found',
                 },
                 id: event.id,
             } as SendTransactionRpcResponseError;
@@ -136,7 +142,8 @@ export class TransactionHandler
             request,
             preview,
             dAppInfo: event.dAppInfo ?? {},
-            walletAddress: event.walletAddress,
+            walletId: walletId ?? this.walletManager.getWalletId(wallet),
+            walletAddress: walletAddress ?? wallet.getAddress(),
         };
 
         // Send wallet-transaction-request-received event
@@ -151,14 +158,14 @@ export class TransactionHandler
                 client_timestamp: getUnixtime(),
                 dapp_name: event.dAppInfo?.name,
                 version: getVersion(),
-                network_id: this.walletKitConfig.network,
+                network_id: wallet.getNetwork(),
                 wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
                 wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
                 event_id: uuidv7(),
                 // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
 
-                wallet_id: Base64Normalize(event.walletAddress),
+                wallet_id: Base64Normalize(walletAddress ?? wallet.getAddress()),
             },
         ]);
 

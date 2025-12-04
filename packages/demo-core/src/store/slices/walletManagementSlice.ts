@@ -6,7 +6,7 @@
  *
  */
 
-import { type IWallet, type ITonWalletKit } from '@ton/walletkit';
+import { type IWallet, type ITonWalletKit, CHAIN } from '@ton/walletkit';
 import { createLedgerPath } from '@ton/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
@@ -46,18 +46,24 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         }
 
         log.info(`Loading ${savedWallets.length} saved wallets into WalletKit`);
-        const network = state.auth.network || 'testnet';
 
         for (const savedWallet of savedWallets) {
             try {
+                // Check if wallet already loaded using kitWalletId
+                if (savedWallet.kitWalletId && walletKit.getWallet(savedWallet.kitWalletId)) {
+                    log.info(`Wallet ${savedWallet.name} already loaded`);
+                    continue;
+                }
+
                 let walletAdapter;
+                const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger' && savedWallet.ledgerConfig) {
                     walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig.accountIndex,
                         storedLedgerConfig: savedWallet.ledgerConfig,
-                        network,
+                        network: walletNetwork,
                         walletKit,
                         version: savedWallet.version || 'v4r2',
                     });
@@ -73,7 +79,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         useWalletInterfaceType: savedWallet.walletInterfaceType,
                         ledgerAccountNumber: state.auth.ledgerAccountNumber,
                         storedLedgerConfig: undefined,
-                        network,
+                        network: walletNetwork,
                         walletKit,
                         version: savedWallet.version || 'v5r1',
                     });
@@ -91,7 +97,12 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
     },
 
     // Create a new wallet
-    createWallet: async (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => {
+    createWallet: async (
+        mnemonic: string[],
+        name?: string,
+        version?: 'v5r1' | 'v4r2',
+        network?: 'mainnet' | 'testnet',
+    ) => {
         const state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
@@ -117,19 +128,18 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
 
             const walletVersion = version || 'v5r1';
 
-            const network = state.auth.network || 'testnet';
+            const walletNetwork = network || 'testnet';
             const walletAdapter = await createWalletAdapter({
                 mnemonic,
                 useWalletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: undefined,
-                network,
+                network: walletNetwork,
                 walletKit: state.walletCore.walletKit,
                 version: walletVersion,
             });
 
             const wallet = await state.walletCore.walletKit.addWallet(walletAdapter);
-
             if (!wallet) {
                 throw new Error('Failed to find created wallet');
             }
@@ -146,7 +156,9 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 walletType: state.auth.useWalletInterfaceType || 'mnemonic',
                 walletInterfaceType: state.auth.useWalletInterfaceType || 'mnemonic',
                 version: walletVersion,
+                network: walletNetwork,
                 createdAt: Date.now(),
+                kitWalletId: wallet.getWalletId(),
             };
 
             set((state) => {
@@ -168,8 +180,13 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         }
     },
 
-    importWallet: async (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2') => {
-        return get().createWallet(mnemonic, name, version);
+    importWallet: async (
+        mnemonic: string[],
+        name?: string,
+        version?: 'v5r1' | 'v4r2',
+        network?: 'mainnet' | 'testnet',
+    ) => {
+        return get().createWallet(mnemonic, name, version, network);
     },
 
     createLedgerWallet: async (name?: string) => {
@@ -191,12 +208,11 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             const walletName = name || generateWalletName(state.walletManagement.savedWallets, 'ledger');
             const version = 'v4r2';
 
-            const network = state.auth.network || 'testnet';
             const walletAdapter = await createWalletAdapter({
                 useWalletInterfaceType: 'ledger',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: undefined,
-                network,
+                network: 'mainnet',
                 walletKit: state.walletCore.walletKit,
                 version: version,
             });
@@ -212,7 +228,6 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             const existingWallet = state.walletManagement.savedWallets.find((w) => w.address === address);
             if (existingWallet) {
                 log.warn(`Wallet with address ${address} already exists`);
-                state.walletCore.walletKit.removeWallet(wallet);
                 throw new Error('A wallet with this address already exists');
             }
 
@@ -225,7 +240,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 path: ledgerPath,
                 walletId: 698983191,
                 version: version,
-                network: network,
+                network: 'mainnet',
                 workchain: 0,
                 accountIndex: state.auth.ledgerAccountNumber || 0,
             };
@@ -239,7 +254,9 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 walletType: 'ledger',
                 walletInterfaceType: 'ledger',
                 version: version,
+                network: 'mainnet',
                 createdAt: Date.now(),
+                kitWalletId: wallet.getWalletId(),
             };
 
             set((state) => {
@@ -279,17 +296,19 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         try {
             log.info(`Switching to wallet ${walletId} (${savedWallet.name})`);
 
-            let wallet = state.walletCore.walletKit.getWallets().find((w) => w.getAddress() === savedWallet.address);
+            let wallet = savedWallet.kitWalletId
+                ? state.walletCore.walletKit.getWallet(savedWallet.kitWalletId)
+                : undefined;
 
             if (!wallet) {
-                const network = state.auth.network || 'testnet';
+                const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger') {
                     const walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
                         storedLedgerConfig: savedWallet.ledgerConfig,
-                        network,
+                        network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v4r2',
                     });
@@ -307,15 +326,13 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         useWalletInterfaceType: savedWallet.walletInterfaceType,
                         ledgerAccountNumber: state.auth.ledgerAccountNumber,
                         storedLedgerConfig: undefined,
-                        network,
+                        network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v5r1',
                     });
 
                     await state.walletCore.walletKit.addWallet(walletAdapter);
                 }
-
-                wallet = state.walletCore.walletKit.getWallets().find((w) => w.getAddress() === savedWallet.address);
             }
 
             if (!wallet) {
@@ -413,23 +430,24 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             log.info(`Loading ${state.walletManagement.savedWallets.length} saved wallets`);
 
             for (const savedWallet of state.walletManagement.savedWallets) {
-                const existingWallet = state.walletCore.walletKit
-                    .getWallets()
-                    .find((w) => w.getAddress() === savedWallet.address);
+                // Check if wallet already loaded using kitWalletId or address fallback
+                const existingWallet = savedWallet.kitWalletId
+                    ? state.walletCore.walletKit.getWallet(savedWallet.kitWalletId)
+                    : undefined;
 
                 if (existingWallet) {
                     log.info(`Wallet ${savedWallet.id} already loaded`);
                     continue;
                 }
 
-                const network = state.auth.network || 'testnet';
+                const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger') {
                     const walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
                         storedLedgerConfig: savedWallet.ledgerConfig,
-                        network,
+                        network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v4r2',
                     });
@@ -447,7 +465,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         useWalletInterfaceType: savedWallet.walletInterfaceType,
                         ledgerAccountNumber: state.auth.ledgerAccountNumber,
                         storedLedgerConfig: undefined,
-                        network,
+                        network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v5r1',
                     });
@@ -568,11 +586,18 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         try {
             log.info('Loading events for address:', state.walletManagement.address, 'limit:', limit, 'offset:', offset);
 
-            const response = await state.walletCore.walletKit.getApiClient().getEvents({
-                account: state.walletManagement.address,
-                limit,
-                offset,
-            });
+            const activeWallet = state.walletManagement.savedWallets.find(
+                (w) => w.id === state.walletManagement.activeWalletId,
+            );
+            const walletNetwork = activeWallet?.network || 'testnet';
+
+            const response = await state.walletCore.walletKit
+                .getApiClient(walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET)
+                .getEvents({
+                    account: state.walletManagement.address,
+                    limit,
+                    offset,
+                });
 
             set((state) => {
                 state.walletManagement.events = response.events;

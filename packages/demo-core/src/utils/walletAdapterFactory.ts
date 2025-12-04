@@ -76,12 +76,12 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 
             if (version === 'v5r1') {
                 return await WalletV5R1Adapter.create(customSigner, {
-                    client: walletKit.getApiClient(),
+                    client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
                 });
             } else {
                 return await WalletV4R2Adapter.create(customSigner, {
-                    client: walletKit.getApiClient(),
+                    client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
                 });
             }
@@ -95,12 +95,12 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 
             if (version === 'v5r1') {
                 return await WalletV5R1Adapter.create(signer, {
-                    client: walletKit.getApiClient(),
+                    client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
                 });
             } else {
                 return await WalletV4R2Adapter.create(signer, {
-                    client: walletKit.getApiClient(),
+                    client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
                 });
             }
@@ -125,7 +125,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                             accountIndex: storedLedgerConfig.accountIndex,
                         }),
                         {
-                            tonClient: walletKit.getApiClient(),
+                            tonClient: walletKit.getApiClient(chainNetwork),
                         },
                     );
                 }
@@ -142,7 +142,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                         accountIndex: ledgerAccountNumber,
                     }),
                     {
-                        tonClient: walletKit.getApiClient(),
+                        tonClient: walletKit.getApiClient(chainNetwork),
                     },
                 );
             } catch (error) {

@@ -47,7 +47,7 @@ describe('WalletV5R1Adapter', () => {
         expect(wallet.getAddress()).toEqual(addressV5r1.bounceableNot);
         expect(wallet.getAddress({ testnet: true })).toEqual(addressV5r1Test.bounceableNot);
         expect(await wallet.getStateInit()).toEqual(stateInit);
-        expect(await wallet.getWalletId()).toEqual(walletId);
+        expect(await wallet.getWalletV5R1Id()).toEqual(walletId);
         expect(wallet.client).toEqual(tonClient);
         const contract = wallet.walletContract;
         expect(contract.address.toString()).toEqual(addressV5r1.bounceable);
@@ -101,7 +101,7 @@ describe('WalletV5R1Adapter', () => {
                 throw new Error('WalletId fetch failed');
             },
         });
-        const walletId = await wallet.getWalletId();
+        const walletId = await wallet.getWalletV5R1Id();
         expect(walletId).toBeDefined();
         expect(walletId.subwalletNumber).toEqual(0);
     });

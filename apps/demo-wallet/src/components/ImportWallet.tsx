@@ -11,7 +11,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './Button';
 
 interface ImportWalletProps {
-    onImport: (mnemonic: string[], interfaceType: 'signer' | 'mnemonic', version?: 'v5r1' | 'v4r2') => Promise<void>;
+    onImport: (
+        mnemonic: string[],
+        interfaceType: 'signer' | 'mnemonic',
+        version?: 'v5r1' | 'v4r2',
+        network?: 'mainnet' | 'testnet',
+    ) => Promise<void>;
     onBack: () => void;
     isLoading: boolean;
     error: string;
@@ -24,6 +29,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     const [pasteText, setPasteText] = useState('');
     const [interfaceType, setInterfaceType] = useState<'signer' | 'mnemonic'>('mnemonic');
     const [walletVersion, setWalletVersion] = useState<'v5r1' | 'v4r2'>('v5r1');
+    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Initialize refs array
@@ -105,7 +111,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     const handleSubmit = () => {
         const nonEmptyWords = words.filter((word) => word.trim() !== '');
         if (nonEmptyWords.length >= 12) {
-            onImport(nonEmptyWords, interfaceType, walletVersion);
+            onImport(nonEmptyWords, interfaceType, walletVersion, network);
         }
     };
 
@@ -165,6 +171,48 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
                     {walletVersion === 'v5r1'
                         ? 'Latest wallet version with enhanced features and security.'
                         : 'Legacy wallet version for compatibility with older wallets.'}
+                </p>
+            </div>
+
+            {/* Network Selector */}
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Network</label>
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        type="button"
+                        data-testid="network-select-testnet"
+                        onClick={() => setNetwork('testnet')}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
+                            network === 'testnet'
+                                ? 'bg-blue-50 text-blue-700 border-blue-500'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                        <div className="flex flex-col items-center space-y-1">
+                            <span className="font-semibold">Testnet</span>
+                            <span className="text-xs text-gray-500">For development</span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        data-testid="network-select-mainnet"
+                        onClick={() => setNetwork('mainnet')}
+                        className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
+                            network === 'mainnet'
+                                ? 'bg-blue-50 text-blue-700 border-blue-500'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                        }`}
+                    >
+                        <div className="flex flex-col items-center space-y-1">
+                            <span className="font-semibold">Mainnet</span>
+                            <span className="text-xs text-gray-500">Real transactions</span>
+                        </div>
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                    {network === 'testnet'
+                        ? 'Use testnet for development and testing with test TON.'
+                        : 'Use mainnet for real transactions with real TON.'}
                 </p>
             </div>
 

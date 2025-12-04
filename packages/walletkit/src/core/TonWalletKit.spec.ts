@@ -6,6 +6,8 @@
  *
  */
 
+import { CHAIN } from '@tonconnect/protocol';
+
 import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config';
 import { TonWalletKit } from './TonWalletKit';
 import type { TonWalletKitOptions } from '../types';
@@ -31,15 +33,16 @@ describe('TonWalletKit', () => {
 
     const createKit = async () => {
         const options: TonWalletKitOptions = {
-            apiKey: 'test',
-            config: {
-                bridge: {
-                    enableJsBridge: false,
-                    bridgeName: 'test',
-                },
-                eventProcessor: {
-                    disableEvents: true,
-                },
+            // Use networks config (required) - MAINNET to match the dummy wallet fixture
+            networks: {
+                [CHAIN.MAINNET]: {},
+            },
+            bridge: {
+                enableJsBridge: false,
+                // bridgeName: 'test',
+            },
+            eventProcessor: {
+                disableEvents: true,
             },
             // Ensure we have storage in node env
             storage: {
@@ -48,7 +51,7 @@ describe('TonWalletKit', () => {
                 remove: mockFn().mockResolvedValue(undefined),
                 clear: mockFn().mockResolvedValue(undefined),
             },
-        } as unknown as TonWalletKitOptions;
+        };
         const kit = new TonWalletKit(options);
         await kit.waitForReady();
         return kit;

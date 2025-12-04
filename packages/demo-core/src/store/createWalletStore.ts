@@ -31,11 +31,6 @@ export interface CreateWalletStoreOptions {
     storage?: StorageAdapter;
 
     /**
-     * Network to use (mainnet or testnet)
-     */
-    defaultNetwork?: 'mainnet' | 'testnet';
-
-    /**
      * Enable Redux DevTools
      */
     enableDevtools?: boolean;
@@ -115,13 +110,7 @@ const migrate = (persistedState: unknown, fromVersion: number, log: ReturnType<t
  * Creates a Zustand store for wallet management
  */
 export function createWalletStore(options: CreateWalletStoreOptions = {}) {
-    const {
-        storage,
-        defaultNetwork = 'testnet',
-        enableDevtools = true,
-        logger: customLogger,
-        walletKitConfig,
-    } = options;
+    const { storage, enableDevtools = true, logger: customLogger, walletKitConfig } = options;
 
     const log = createLogger(customLogger);
 
@@ -164,7 +153,6 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                 holdToSign: state.auth.holdToSign,
                                 useWalletInterfaceType: state.auth.useWalletInterfaceType,
                                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
-                                network: state.auth.network,
                                 ...(state.auth.persistPassword && {
                                     currentPassword: state.auth.currentPassword,
                                 }),
@@ -193,7 +181,6 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                 auth: {
                                     ...currentState.auth,
                                     ...persisted?.auth,
-                                    network: persisted?.auth?.network || defaultNetwork,
                                     isUnlocked:
                                         persisted?.auth?.persistPassword &&
                                         persisted?.auth?.currentPassword &&
@@ -265,9 +252,8 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
     // Initialize wallet kit on first load (browser/mobile only)
     if (!isExtension()) {
         const storeState = store.getState();
-        const persistedNetwork = storeState.auth.network || defaultNetwork;
-        log.info(`Initializing WalletKit with network: ${persistedNetwork}`);
-        storeState.initializeWalletKit(persistedNetwork);
+        log.info(`Initializing WalletKit`);
+        storeState.initializeWalletKit();
     }
 
     return store;

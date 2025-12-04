@@ -22,7 +22,7 @@ import {
 import { external, internal } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 
-import { WalletV5, WalletId } from './WalletV5R1';
+import { WalletV5, WalletV5R1Id } from './WalletV5R1';
 import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
 import { WalletKitError, ERROR_CODES } from '../../errors';
@@ -37,6 +37,7 @@ import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
 import { PrepareSignDataResult } from '../../utils/signData/sign';
 import { Hex } from '../../types/primitive';
 import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
+import { createWalletId, WalletId } from '../../utils/walletId';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -146,6 +147,10 @@ export class WalletV5R1Adapter implements IWalletAdapter {
      */
     getAddress(options?: { testnet?: boolean }): string {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
+    }
+
+    getWalletId(): WalletId {
+        return createWalletId(this.getNetwork(), this.getAddress());
     }
 
     async getSignedSendTransaction(
@@ -278,14 +283,14 @@ export class WalletV5R1Adapter implements IWalletAdapter {
     /**
      * Get wallet ID
      */
-    async getWalletId(): Promise<WalletId> {
+    async getWalletV5R1Id(): Promise<WalletV5R1Id> {
         try {
             return this.walletContract.walletId;
         } catch (error) {
             log.warn('Failed to get wallet ID', { error });
             const walletId = this.config.walletId;
             const subwalletNumber = typeof walletId === 'bigint' ? Number(walletId) : walletId || 0;
-            return new WalletId({ subwalletNumber });
+            return new WalletV5R1Id({ subwalletNumber });
         }
     }
 

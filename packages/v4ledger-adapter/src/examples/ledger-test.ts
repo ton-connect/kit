@@ -59,7 +59,7 @@ async function createLedgerWallet(
         // Create Ledger wallet
         const wallet = await createWalletV4R2Ledger(ledgerConfig, { tonClient });
 
-        return wrapWalletInterface(wallet, tonClient);
+        return wrapWalletInterface(wallet);
     } catch (error) {
         logError('❌ Failed to connect to Ledger device:', error);
         throw error;

@@ -31,10 +31,14 @@ import { ApiClient } from './toncenter/ApiClient';
  * All implementations must conform to this interface.
  */
 export interface ITonWalletKit {
-    /** Get the API client */
-    getApiClient(): ApiClient;
+    /**
+     * Get API client for a specific network
+     * @param chainId - The chain ID (CHAIN.MAINNET or CHAIN.TESTNET)
+     */
+    getApiClient(chainId: CHAIN): ApiClient;
 
-    getNetwork(): CHAIN;
+    /** Get all configured networks */
+    getConfiguredNetworks(): CHAIN[];
 
     isReady(): boolean;
 
@@ -43,14 +47,17 @@ export interface ITonWalletKit {
     /** Get all registered wallets */
     getWallets(): IWallet[];
 
-    /** Get wallet by address */
-    getWallet(address: string): IWallet | undefined;
+    /** Get wallet by wallet ID (network:address format) */
+    getWallet(walletId: string): IWallet | undefined;
 
-    /** Add a new wallet */
+    /** Get wallet by address and network */
+    getWalletByAddressAndNetwork(address: string, network: CHAIN): IWallet | undefined;
+
+    /** Add a new wallet, returns wallet ID */
     addWallet(adapter: IWalletAdapter): Promise<IWallet | undefined>;
 
-    /** Remove a wallet */
-    removeWallet(wallet: IWalletAdapter): Promise<void>;
+    /** Remove a wallet by wallet ID or adapter */
+    removeWallet(walletIdOrAdapter: string | IWalletAdapter): Promise<void>;
 
     /** Clear all wallets */
     clearWallets(): Promise<void>;
@@ -143,8 +150,8 @@ export interface SessionInfo {
     /** Connected dApp icon URL */
     dAppIconUrl: string;
 
-    /** Associated wallet */
-    walletAddress: string;
+    /** Wallet ID */
+    walletId: string;
 
     /** Session creation time */
     createdAt?: Date;

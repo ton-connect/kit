@@ -15,7 +15,7 @@ import type { WalletManager } from '../core/WalletManager';
 import type { SessionData } from '../types/internal';
 import { Storage } from '../storage';
 import { globalLogger } from './Logger';
-import { IWalletAdapter } from '../types/wallet';
+import { createWalletId, WalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('SessionManager');
 
@@ -39,6 +39,7 @@ export class SessionManager {
 
     /**
      * Create new session
+     * @param wallet - The wallet to associate with this session (optional for connect requests before wallet selection)
      */
     async createSession(
         sessionId: string,
@@ -52,11 +53,15 @@ export class SessionManager {
         const now = new Date();
         // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
         const randomKeyPair = new SessionCrypto().stringifyKeypair();
+
+        // Create walletId from wallet if provided
+        const walletId = wallet ? createWalletId(wallet.getNetwork(), wallet.getAddress()) : '';
+
         const sessionData: SessionData = {
             sessionId,
             dAppName,
             domain,
-            walletAddress: wallet?.getAddress() ?? '',
+            walletId,
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
@@ -79,8 +84,7 @@ export class SessionManager {
         return {
             sessionId: session.sessionId,
             dAppName: session.dAppName,
-            walletAddress: session.walletAddress,
-            // wallet: thiscc.walletManager.getWallet(session.walletAddress),
+            walletId: session.walletId,
             privateKey: session.privateKey,
             publicKey: session.publicKey,
             createdAt: session.createdAt,
@@ -103,7 +107,7 @@ export class SessionManager {
             return {
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
-                walletAddress: session.walletAddress,
+                walletId: session.walletId,
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
                 createdAt: session.createdAt,
@@ -144,10 +148,10 @@ export class SessionManager {
     }
 
     /**
-     * Get sessions for specific wallet
+     * Get sessions for specific wallet by wallet ID
      */
-    getSessionsForWallet(wallet: IWalletAdapter): SessionData[] {
-        return this.getSessions().filter((session) => session.walletAddress === wallet.getAddress());
+    getSessionsForWallet(walletId: WalletId): SessionData[] {
+        return this.getSessions().filter((session) => session.walletId === walletId);
     }
 
     /**
@@ -173,10 +177,14 @@ export class SessionManager {
     }
 
     /**
-     * Remove all sessions for a wallet
+     * Remove all sessions for a wallet by wallet ID or wallet adapter
      */
-    async removeSessionsForWallet(wallet: IWalletAdapter): Promise<number> {
-        const sessionsToRemove = this.getSessionsForWallet(wallet);
+    async removeSessionsForWallet(walletOrId: WalletId | IWallet): Promise<number> {
+        const walletId =
+            typeof walletOrId === 'string'
+                ? walletOrId
+                : createWalletId(walletOrId.getNetwork(), walletOrId.getAddress());
+        const sessionsToRemove = this.getSessionsForWallet(walletId);
 
         let removedCount = 0;
         for (const session of sessionsToRemove) {
@@ -248,7 +256,7 @@ export class SessionManager {
         return this.getSessions().map((session) => ({
             sessionId: session.sessionId,
             dAppName: session.dAppName,
-            walletAddress: session.walletAddress,
+            walletId: session.walletId,
             dAppUrl: session.domain,
             dAppIconUrl: session.dAppIconUrl,
         }));
@@ -262,19 +270,10 @@ export class SessionManager {
             const sessionData = await this.storage.get<SessionData[]>(this.storageKey);
 
             if (sessionData && Array.isArray(sessionData)) {
-                // TODO: Implement session reconstruction from stored data
-                // This is challenging because sessions contain wallet references
-                // You'd need to coordinate with WalletManager to reconstruct properly
                 for (const session of sessionData) {
-                    // const wallet = this.walletManager.getWallet(session.walletAddress);
-                    // if (wallet) {
                     this.sessions.set(session.sessionId, {
                         ...session,
-                        // wallet,
-                        // createdAt: session.createdAt,
-                        // lastActivityAt: session.lastActivityAt,
                     });
-                    // }
                 }
                 log.debug('Loaded session metadata', { count: sessionData.length });
             }
@@ -293,7 +292,7 @@ export class SessionManager {
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
                 domain: session.domain,
-                walletAddress: session.walletAddress,
+                walletId: session.walletId,
                 createdAt: session.createdAt,
                 lastActivityAt: session.lastActivityAt,
                 privateKey: session.privateKey,

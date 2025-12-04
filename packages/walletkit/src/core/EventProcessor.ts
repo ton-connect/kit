@@ -20,6 +20,7 @@ import type { SessionManager } from './SessionManager';
 import type { EventRouter } from './EventRouter';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
+import { getAddressFromWalletId, WalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('EventProcessor');
 
@@ -42,7 +43,7 @@ export class StorageEventProcessor implements IEventProcessor {
     private wakeUpResolver?: () => void;
 
     // Track which wallets are registered for processing
-    private registeredWallets: Set<string> = new Set();
+    private registeredWallets: Set<WalletId> = new Set();
 
     // Recovery and cleanup timeouts
     private recoveryTimeoutId?: number;
@@ -80,17 +81,17 @@ export class StorageEventProcessor implements IEventProcessor {
     /**
      * Start processing events for a wallet
      */
-    async startProcessing(walletAddress?: string): Promise<void> {
+    async startProcessing(walletId?: string): Promise<void> {
         if (this.processorConfig.disableEvents) {
             return;
         }
 
-        if (walletAddress) {
-            if (this.registeredWallets.has(walletAddress)) {
-                log.debug('Processing already registered for wallet', { walletAddress });
+        if (walletId) {
+            if (this.registeredWallets.has(walletId)) {
+                log.debug('Processing already registered for wallet', { walletId });
             } else {
-                this.registeredWallets.add(walletAddress);
-                log.info('Registered wallet for event processing', { walletAddress });
+                this.registeredWallets.add(walletId);
+                log.info('Registered wallet for event processing', { walletId });
             }
         }
 
@@ -108,18 +109,18 @@ export class StorageEventProcessor implements IEventProcessor {
     /**
      * Stop processing events for a wallet
      */
-    async stopProcessing(walletAddress?: string): Promise<void> {
+    async stopProcessing(walletId?: WalletId): Promise<void> {
         if (this.processorConfig.disableEvents) {
             return;
         }
 
-        if (walletAddress) {
-            this.registeredWallets.delete(walletAddress);
-            log.info('Unregistered wallet from event processing', { walletAddress });
+        if (walletId) {
+            this.registeredWallets.delete(walletId);
+            log.info('Unregistered wallet from event processing', { walletId });
         }
 
         // If no more wallets registered, stop the global loop
-        if (this.registeredWallets.size === 0 && this.isProcessing && !walletAddress) {
+        if (this.registeredWallets.size === 0 && this.isProcessing && !walletId) {
             this.isProcessing = false;
             if (this.wakeUpResolver) {
                 this.wakeUpResolver();
@@ -144,7 +145,7 @@ export class StorageEventProcessor implements IEventProcessor {
             const allLocalSessions = this.sessionManager.getSessionsForAPI();
 
             const allSessions = allLocalSessions.filter(
-                (session) => session.walletAddress && this.registeredWallets.has(session.walletAddress),
+                (session) => session.walletId && this.registeredWallets.has(session.walletId),
             );
 
             // Get enabled event types
@@ -156,18 +157,12 @@ export class StorageEventProcessor implements IEventProcessor {
             // Get wallet events if we have active sessions
             if (allSessions.length > 0) {
                 // Get wallet addresses for all sessions
-                const walletAddresses = Array.from(new Set(allSessions.map((s) => s.walletAddress).filter(Boolean)));
+                const walletIds = Array.from(new Set(allSessions.map((s) => s.walletId).filter(Boolean)));
 
                 // Get events for all wallets
-                for (const walletAddress of walletAddresses) {
-                    const walletSessionIds = allSessions
-                        .filter((s) => s.walletAddress === walletAddress)
-                        .map((s) => s.sessionId);
-                    const events = await this.eventStore.getEventsForWallet(
-                        walletAddress,
-                        walletSessionIds,
-                        enabledEventTypes,
-                    );
+                for (const walletId of walletIds) {
+                    const walletSessionIds = allSessions.filter((s) => s.walletId === walletId).map((s) => s.sessionId);
+                    const events = await this.eventStore.getEventsForWallet(walletSessionIds, enabledEventTypes);
                     allEvents.push(...events);
                 }
             }
@@ -188,11 +183,10 @@ export class StorageEventProcessor implements IEventProcessor {
 
             // Try to acquire lock on the first (oldest) event
             const eventToUse = allEvents[0];
-            const walletAddress =
-                allSessions.find((s) => s.sessionId === eventToUse.sessionId)?.walletAddress || 'no-wallet';
+            const walletId = allSessions.find((s) => s.sessionId === eventToUse.sessionId)?.walletId || 'no-wallet';
 
             // Process the event
-            const processed = await this.processEvent(eventToUse, walletAddress);
+            const processed = await this.processEvent(eventToUse, walletId);
             return processed;
         } catch (error) {
             log.error('Error in processNextAvailableEvent', {
@@ -288,11 +282,11 @@ export class StorageEventProcessor implements IEventProcessor {
      * Process a single event with retry logic
      * Returns true if event was processed successfully, false otherwise
      */
-    private async processEvent(event: StoredEvent, walletAddress: string): Promise<boolean> {
-        const acquiredEvent = await this.eventStore.acquireLock(event.id, walletAddress);
+    private async processEvent(event: StoredEvent, walletId: WalletId): Promise<boolean> {
+        const acquiredEvent = await this.eventStore.acquireLock(event.id, walletId);
 
         if (!acquiredEvent) {
-            log.debug('Failed to acquire lock on event', { eventId: event.id, walletAddress });
+            log.debug('Failed to acquire lock on event', { eventId: event.id, walletId });
             return false;
         }
 
@@ -320,7 +314,7 @@ export class StorageEventProcessor implements IEventProcessor {
         log.info('Processing event', {
             eventId: event.id,
             eventType: event.eventType,
-            walletAddress,
+            walletId,
             sessionId: event.sessionId,
             retryCount,
         });
@@ -329,7 +323,7 @@ export class StorageEventProcessor implements IEventProcessor {
         try {
             await this.eventRouter.routeEvent({
                 ...event.rawEvent,
-                ...(walletAddress ? { walletAddress } : {}),
+                ...(walletId ? { walletId, walletAddress: getAddressFromWalletId(walletId) } : {}),
             });
 
             // Mark as completed

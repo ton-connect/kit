@@ -83,11 +83,7 @@ export class StorageEventStore implements EventStore {
     /**
      * Get events for a wallet that are ready for processing
      */
-    async getEventsForWallet(
-        _walletAddress: string,
-        sessionIds: string[],
-        eventTypes: EventType[],
-    ): Promise<StoredEvent[]> {
+    async getEventsForWallet(sessionIds: string[], eventTypes: EventType[]): Promise<StoredEvent[]> {
         const events = await this.getAllEvents();
 
         return events

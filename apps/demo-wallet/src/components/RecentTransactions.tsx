@@ -8,8 +8,8 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { Base64NormalizeUrl, HexToBase64, type Event, type Action } from '@ton/walletkit';
 import { useWalletStore, useWalletKit, type PreviewTransaction } from '@ton/demo-core';
+import { Base64NormalizeUrl, HexToBase64, type Event, type Action, CHAIN } from '@ton/walletkit';
 
 import { TraceRow } from './TraceRow';
 import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
@@ -19,12 +19,14 @@ import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, 
  * Displays a list of recent blockchain transactions for the current wallet
  */
 export const RecentTransactions: React.FC = memo(() => {
-    const { events, loadEvents, address, hasNextEvents } = useWalletStore(
+    const { events, loadEvents, address, hasNextEvents, savedWallets, activeWalletId } = useWalletStore(
         useShallow((state) => ({
             events: state.walletManagement.events,
             loadEvents: state.loadEvents,
             address: state.walletManagement.address,
             hasNextEvents: state.walletManagement.hasNextEvents,
+            savedWallets: state.walletManagement.savedWallets,
+            activeWalletId: state.walletManagement.activeWalletId,
         })),
     );
     const walletKit = useWalletKit();
@@ -35,12 +37,17 @@ export const RecentTransactions: React.FC = memo(() => {
     const [currentPage, setCurrentPage] = useState(0);
     const [limit] = useState(10);
 
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+
     // Check for pending transactions
     const checkPendingTransactions = async () => {
         if (!address || !walletKit) return;
 
         try {
-            const apiClient = walletKit.getApiClient();
+            const apiClient = walletKit.getApiClient(chainNetwork);
             const pendingResponse = await apiClient.getPendingTransactions({
                 accounts: [address],
             });

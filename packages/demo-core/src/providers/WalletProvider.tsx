@@ -37,7 +37,7 @@ export interface WalletProviderProps extends CreateWalletStoreOptions {
 export function WalletProvider({ children, ...options }: WalletProviderProps) {
     const store = useMemo(
         () => createWalletStore(options),
-        [options.storage, options.defaultNetwork, options.enableDevtools, options.walletKitConfig],
+        [options.storage, options.enableDevtools, options.walletKitConfig],
     );
 
     return <WalletStoreContext.Provider value={store}>{children}</WalletStoreContext.Provider>;
