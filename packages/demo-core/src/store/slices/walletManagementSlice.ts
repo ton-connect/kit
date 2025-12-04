@@ -394,11 +394,6 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             throw new Error('User not authenticated');
         }
 
-        if (!state.walletCore.walletKit) {
-            log.info('WalletKit not initialized, waiting for it to be initialized');
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-
         state = get();
         if (state.walletCore.walletKitInitializer) {
             await state.walletCore.walletKitInitializer;
@@ -409,6 +404,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
         }
+
         if (!state.walletCore.walletKit) {
             throw new Error('WalletKit not initialized');
         }

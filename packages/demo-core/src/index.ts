@@ -30,6 +30,8 @@ export {
     useNfts,
     useJettons,
 } from './hooks/useWalletStore';
+export { useWalletInitialization } from './hooks/useWalletInitialization';
+export type { WalletInitializationState } from './hooks/useWalletInitialization';
 
 // Types
 export type {

@@ -61,7 +61,7 @@ export const createWalletCoreSlice =
             walletKitInitializer: null,
         },
 
-        initializeWalletKit: async (network: 'mainnet' | 'testnet' = 'testnet') => {
+        initializeWalletKit: (network: 'mainnet' | 'testnet' = 'testnet'): Promise<void> => {
             const state = get();
 
             // Check if we need to reinitialize
@@ -71,7 +71,7 @@ export const createWalletCoreSlice =
 
                 if (currentNetwork === targetNetwork) {
                     log.info(`WalletKit already initialized with network: ${network}`);
-                    return;
+                    return Promise.resolve();
                 }
 
                 log.info(`Reinitializing WalletKit to ${network}`);
@@ -118,5 +118,7 @@ export const createWalletCoreSlice =
                 .catch((error) => {
                     initReject(error);
                 });
+
+            return initializer;
         },
     });

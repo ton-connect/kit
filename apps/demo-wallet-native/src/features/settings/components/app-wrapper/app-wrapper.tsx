@@ -7,7 +7,7 @@
  */
 
 import { hideAsync, preventAutoHideAsync } from 'expo-splash-screen';
-import { type FC, type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { type FC, type PropsWithChildren, useEffect } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { useWalletStore } from '@ton/demo-core';
@@ -15,6 +15,7 @@ import { useInitialRedirect } from 'src/features/settings/hooks/use-initial-redi
 
 import { useAppFonts } from '../../hooks/use-app-fonts';
 import { useTheme } from '../../hooks/use-theme';
+import { useWalletDataUpdater } from '../../hooks/use-wallet-data-updater';
 import { setIsAppReady } from '../../store/actions/is-app-ready';
 
 import { LoaderCircle } from '@/core/components/loader-circle';
@@ -31,6 +32,7 @@ export const AppWrapper: FC<PropsWithChildren> = ({ children }) => {
     const isLoaderShown = !(isFontsLoaded || isFontsError) || !isStoreHydrated;
 
     useInitialRedirect(isLoaderShown);
+    useWalletDataUpdater();
 
     useEffect(() => {
         // eslint-disable-next-line no-undef

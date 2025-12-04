@@ -10,13 +10,11 @@ import React, { type FC, useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useAuth, useWallet } from '@ton/demo-core';
+import { useAuth, useWalletInitialization, useWallet, useJettons } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
 import { AppText } from '@/core/components/app-text';
-import { ScreenHeader } from '@/core/components/screen-header';
-import { ScreenWrapper } from '@/core/components/screen-wrapper';
 import { AppLogo } from '@/core/components/app-logo';
 import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scroll-view';
 
@@ -26,7 +24,7 @@ const UnlockWalletScreen: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const { unlock, reset } = useAuth();
-    const { loadAllWallets } = useWallet();
+    const { initialize } = useWalletInitialization();
 
     const handleSubmit = async () => {
         setError('');
@@ -38,8 +36,7 @@ const UnlockWalletScreen: FC = () => {
                 throw new Error('Invalid password');
             }
 
-            // Load wallet data after successful unlock
-            await loadAllWallets();
+            await initialize();
 
             // Navigate to wallet
             // navigate('/wallet');
