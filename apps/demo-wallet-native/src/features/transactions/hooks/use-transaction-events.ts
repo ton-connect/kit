@@ -6,7 +6,7 @@
  *
  */
 
-import { useWallet, useWalletStore } from '@ton/demo-core';
+import { useWalletStore } from '@ton/demo-core';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -47,7 +47,7 @@ export const useTransactionEvents = (limit = 20) => {
             }
         };
 
-        fetchEvents();
+        void fetchEvents();
     }, [address, loadEvents, currentPage, limit]);
 
     const handleRefresh = async () => {

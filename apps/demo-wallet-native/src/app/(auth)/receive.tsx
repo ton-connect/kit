@@ -10,14 +10,15 @@ import { router } from 'expo-router';
 import type { FC } from 'react';
 import { Dimensions } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useWallet } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';
-import { AddressQrcode, useWalletStore } from '@/features/wallets';
+import { AddressQrcode } from '@/features/wallets';
 
 const ReceiveAddressScreen: FC = () => {
-    const address = useWalletStore((state) => state.address);
+    const { address } = useWallet();
 
     const handleBack = (): void => {
         if (router.canGoBack()) router.back();

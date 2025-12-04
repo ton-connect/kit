@@ -37,20 +37,14 @@ export const useWalletInitialization = (): WalletInitializationState => {
         setErrorMessage(null);
 
         try {
-            console.log('Initializing wallet...');
             await initializeWalletKit(network);
-            console.log('Loading wallets...');
             await loadAllWallets();
-            console.log('Updating balances...');
             await updateBalance();
-            console.log('Refreshing jettons...');
             await refreshJettons();
-            console.log('Wallet initialized successfully');
 
             setIsInitializing(false);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Initialization failed';
-            console.error(message);
             setErrorMessage(message);
             setIsInitializing(false);
             throw err;

@@ -24,7 +24,7 @@ const regexp = /\s+/;
 const ImportMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [, setError] = useState('');
 
     const { importWallet } = useWallet();
 

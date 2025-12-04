@@ -57,6 +57,7 @@ const WalletHomeScreen: FC = () => {
         try {
             await switchWallet(walletId);
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.error('Failed to switch wallet:', err);
         }
     };
@@ -65,6 +66,7 @@ const WalletHomeScreen: FC = () => {
         try {
             removeWallet(walletId);
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.error('Failed to remove wallet:', err);
         }
     };
@@ -73,6 +75,7 @@ const WalletHomeScreen: FC = () => {
         try {
             renameWallet(walletId, newName);
         } catch (err) {
+            // eslint-disable-next-line no-console
             console.error('Failed to rename wallet:', err);
         }
     };

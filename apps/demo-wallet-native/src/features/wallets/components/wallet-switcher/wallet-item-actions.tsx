@@ -18,7 +18,7 @@ interface WalletItemActionsProps {
     onRemove: () => void;
 }
 
-export const WalletItemActions: FC<WalletItemActionsProps> = ({ onEdit, onRemove }) => {
+export const WalletItemActions: FC<WalletItemActionsProps> = ({ onRemove }) => {
     const { theme } = useUnistyles();
 
     return (

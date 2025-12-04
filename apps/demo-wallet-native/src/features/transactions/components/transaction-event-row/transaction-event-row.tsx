@@ -10,6 +10,7 @@ import type { Event, Action } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import { type FC, memo } from 'react';
+import { Image, View } from 'react-native';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -17,7 +18,6 @@ import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { Column, Row } from '@/core/components/grid';
-import { TextAmount } from '@/core/components/text-amount';
 
 interface TransactionEventRowProps {
     event: Event;
@@ -29,122 +29,92 @@ interface TransactionEventRowProps {
 export const TransactionEventRow: FC<TransactionEventRowProps> = memo(({ event, myAddress, onPress, style }) => {
     const { theme } = useUnistyles();
 
-    const formatAddress = (addr: string): string => {
-        if (!addr) return '';
-        return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+    // Get the most relevant action from the event
+    const getRelevantAction = (): Action | null => {
+        if (!event.actions || event.actions.length === 0) {
+            return null;
+        }
+
+        // Find action that involves the user's address, or fallback to first action
+        return (
+            event.actions.find((a: Action) => a.simplePreview?.accounts?.some((acc) => acc.address === myAddress)) ||
+            event.actions[0]
+        );
     };
 
-    // Determine transaction type and details from the event
-    const getTransactionDetails = () => {
-        if (!event.actions || event.actions.length === 0) {
+    const action = getRelevantAction();
+
+    if (!action) {
+        return null;
+    }
+
+    const { simplePreview, status } = action;
+    const { description, value, accounts, valueImage } = simplePreview;
+
+    // Determine if this is an outgoing action by checking if myAddress is the first account (sender)
+    const isOutgoing = accounts.length > 0 && accounts[0]?.address === myAddress;
+    const isFailed = status === 'failure';
+
+    // Determine icon and colors based on action type and status
+    const getIconAndColor = () => {
+        if (isFailed) {
             return {
-                type: 'unknown' as const,
-                amount: '0',
-                address: '',
-                description: 'Unknown transaction',
+                bgColor: theme.colors.error.foreground,
+                iconColor: theme.colors.error.default,
+                iconName: 'close-outline' as const,
             };
         }
 
-        // Find the most relevant action
-        const relevantAction =
-            event.actions.find((a: Action) =>
-                a.simplePreview?.accounts?.some((acc) => acc.address === myAddress),
-            ) || event.actions[0];
-
-        // Determine transaction type based on action
-        const actionType = relevantAction.type;
-        let type: 'send' | 'receive' | 'unknown' = 'unknown';
-        let amount = '0';
-        let address = '';
-        let description = relevantAction.simplePreview?.description || 'Transaction';
-
-        // Handle TonTransfer action
-        if (actionType === 'TonTransfer') {
-            const tonTransfer = relevantAction as any;
-            amount = tonTransfer.tonTransfer?.amount || '0';
-            
-            const sender = tonTransfer.tonTransfer?.sender?.address;
-            const recipient = tonTransfer.tonTransfer?.recipient?.address;
-
-            if (sender === myAddress) {
-                type = 'send';
-                address = recipient || '';
-            } else if (recipient === myAddress) {
-                type = 'receive';
-                address = sender || '';
-            }
+        if (isOutgoing) {
+            return {
+                bgColor: theme.colors.background.block,
+                iconColor: theme.colors.error.default,
+                iconName: 'arrow-up-outline' as const,
+            };
         }
 
-        // Handle JettonTransfer action
-        if (actionType === 'JettonTransfer') {
-            const jettonTransfer = relevantAction as any;
-            amount = jettonTransfer.jettonTransfer?.amount || '0';
-            
-            const sender = jettonTransfer.jettonTransfer?.sender?.address;
-            const recipient = jettonTransfer.jettonTransfer?.recipient?.address;
-
-            if (sender === myAddress) {
-                type = 'send';
-                address = recipient || '';
-            } else if (recipient === myAddress) {
-                type = 'receive';
-                address = sender || '';
-            }
-        }
-
-        return { type, amount, address, description };
+        return {
+            bgColor: theme.colors.background.block,
+            iconColor: theme.colors.success.default,
+            iconName: 'arrow-down-outline' as const,
+        };
     };
 
-    const { type, amount, address, description } = getTransactionDetails();
-    const isSend = type === 'send';
-    const isReceive = type === 'receive';
-
-    const iconName = isSend ? 'arrow-up-outline' : isReceive ? 'arrow-down-outline' : 'swap-horizontal-outline';
-    const iconColor = theme.colors.text.secondary;
+    const { bgColor, iconColor, iconName } = getIconAndColor();
+    const valueColor = isFailed || isOutgoing ? theme.colors.error.default : theme.colors.success.default;
 
     return (
         <ActiveTouchAction disabled={!onPress} onPress={onPress} scaling={0.98}>
             <Block style={[styles.container, style]}>
                 <Row style={styles.leftSide}>
-                    <Ionicons color={iconColor} name={iconName} size={24} style={styles.icon} />
+                    <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
+                        <Ionicons color={iconColor} name={iconName} size={18} />
+                    </View>
 
                     <Column style={styles.typeColumn}>
-                        <AppText style={styles.title} textType="body1">
+                        <AppText style={styles.title} textType="body1" numberOfLines={2}>
                             {description}
                         </AppText>
-
-                        <AppText textType="caption2">{dayjs(event.timestamp * 1000).format('DD MMM, HH:mm')}</AppText>
                     </Column>
                 </Row>
 
                 <Column style={styles.rightSide}>
-                    {address && (
-                        <AppText style={styles.address} textType="caption2">
-                            {formatAddress(address)}
+                    <Row style={styles.valueRow}>
+                        {valueImage && (
+                            <Image source={{ uri: valueImage }} style={styles.valueImage} resizeMode="cover" />
+                        )}
+                        <AppText style={[styles.value, { color: valueColor }]} textType="body1">
+                            {!isFailed && (isOutgoing ? '-' : '+')}
+                            {value}
                         </AppText>
-                    )}
+                    </Row>
 
-                    {amount !== '0' && (
-                        <AppText numberOfLines={1} style={styles.balances}>
-                            {isSend && (
-                                <AppText style={styles.sign} textType="body1">
-                                    -
-                                </AppText>
-                            )}
-                            {isReceive && (
-                                <AppText style={styles.sign} textType="body1">
-                                    +
-                                </AppText>
-                            )}
-                            <TextAmount
-                                amount={amount}
-                                decimals={9}
-                                style={styles.cryptoBalance}
-                                textType="body1"
-                                tokenCode="TON"
-                            />
-                        </AppText>
-                    )}
+                    <AppText
+                        style={[styles.timestamp, status !== 'success' && { color: theme.colors.error.default }]}
+                        textType="caption2"
+                    >
+                        {status === 'success' ? dayjs(event.timestamp * 1000).format('DD MMM, HH:mm') : 'Failed'}
+                    </AppText>
                 </Column>
             </Block>
         </ActiveTouchAction>
@@ -164,41 +134,44 @@ const styles = StyleSheet.create(({ colors }) => ({
     },
     leftSide: {
         flex: 1,
-        maxWidth: '60%',
+        maxWidth: '55%',
         marginRight: 6,
         alignItems: 'center',
+    },
+    iconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 10,
     },
     typeColumn: {
         flex: 1,
     },
     rightSide: {
         flex: 1,
-        maxWidth: '40%',
+        maxWidth: '45%',
         alignItems: 'flex-end',
-    },
-    icon: {
-        marginRight: 10,
     },
     title: {
         color: colors.text.highlight,
-        marginBottom: 2,
     },
-    address: {
+    valueRow: {
+        alignItems: 'center',
+        gap: 6,
+    },
+    valueImage: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+    },
+    value: {
+        textAlign: 'right',
+    },
+    timestamp: {
         color: colors.text.secondary,
         textAlign: 'right',
-        marginBottom: 2,
-    },
-    balances: {
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        textAlign: 'right',
-    },
-    cryptoBalance: {
-        color: colors.text.highlight,
-        textAlign: 'right',
-    },
-    sign: {
-        color: colors.text.highlight,
-        textAlign: 'right',
+        marginTop: 2,
     },
 }));

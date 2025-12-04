@@ -16,12 +16,13 @@ export function isExtension(): boolean {
         return false;
     }
 
-    // Check for Chrome/Edge extension
+    // eslint-disable-next-line no-undef
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
         return true;
     }
 
     // @ts-expect-error check for Firefox extension
+    // eslint-disable-next-line no-undef
     if (typeof browser !== 'undefined' && browser.runtime && browser.runtime.id) {
         return true;
     }

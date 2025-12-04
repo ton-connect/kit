@@ -14,7 +14,6 @@ import { router } from 'expo-router';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppText } from '@/core/components/app-text';
-import { AppButton } from '@/core/components/app-button';
 
 export const AddWalletButton: FC = () => {
     const { theme } = useUnistyles();
@@ -46,7 +45,7 @@ export const AddWalletButton: FC = () => {
     );
 };
 
-const styles = StyleSheet.create(({ colors, sizes }) => ({
+const styles = StyleSheet.create(({ sizes }) => ({
     container: {
         marginTop: sizes.space.vertical * 2,
         gap: sizes.space.vertical * 2,

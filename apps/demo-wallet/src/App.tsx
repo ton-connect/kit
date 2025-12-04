@@ -6,12 +6,11 @@
  *
  */
 
-import { WalletProvider, type WalletKitConfig } from '@ton/demo-core';
+import { WalletProvider, type WalletKitConfig, isExtension } from '@ton/demo-core';
 
 import { AppRouter } from './components';
 
 import { Toaster } from '@/components/ui/sonner';
-import { isExtension } from '@/utils/isExtension';
 import {
     DISABLE_HTTP_BRIDGE,
     DISABLE_NETWORK_SEND,

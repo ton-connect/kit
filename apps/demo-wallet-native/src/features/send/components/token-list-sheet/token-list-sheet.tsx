@@ -11,7 +11,6 @@ import type { FC } from 'react';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useJettons, useWallet } from '@ton/demo-core';
-
 import type { AddressJetton } from '@ton/walletkit';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
@@ -34,13 +33,7 @@ interface TokenListSheetProps {
     selectedToken: SelectedToken;
 }
 
-export const TokenListSheet: FC<TokenListSheetProps> = ({
-    isOpen,
-    onClose,
-    onSelectTon,
-    onSelectJetton,
-    selectedToken,
-}) => {
+export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSelectTon, onSelectJetton }) => {
     const { balance: tonBalance } = useWallet();
     const { userJettons } = useJettons();
 
