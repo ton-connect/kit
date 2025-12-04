@@ -12,6 +12,8 @@ import { ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useJettons, useWallet } from '@ton/demo-core';
 
+import type { AddressJetton } from '@ton/walletkit';
+
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppLogo } from '@/core/components/app-logo';
 import { AppModal } from '@/core/components/app-modal';
@@ -19,24 +21,38 @@ import { AppText } from '@/core/components/app-text';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
 
+interface SelectedToken {
+    type: 'TON' | 'JETTON';
+    data?: AddressJetton;
+}
+
 interface TokenListSheetProps {
     isOpen: boolean;
     onClose: () => void;
+    onSelectTon: () => void;
+    onSelectJetton: (jetton: AddressJetton) => void;
+    selectedToken: SelectedToken;
 }
 
-export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose }) => {
+export const TokenListSheet: FC<TokenListSheetProps> = ({
+    isOpen,
+    onClose,
+    onSelectTon,
+    onSelectJetton,
+    selectedToken,
+}) => {
     const { balance: tonBalance } = useWallet();
     const { userJettons } = useJettons();
 
     const { theme } = useUnistyles();
 
     const handleSelectTon = () => {
-        // useSendTransactionStore.setState({ selectedToken: 'TON', amount: '' });
+        onSelectTon();
         onClose();
     };
 
-    const handleSelectJetton = (jetton: (typeof userJettons)[0]) => {
-        // useSendTransactionStore.setState({ selectedToken: jetton, amount: '' });
+    const handleSelectJetton = (jetton: AddressJetton) => {
+        onSelectJetton(jetton);
         onClose();
     };
 

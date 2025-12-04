@@ -28,7 +28,7 @@ export const useWalletDataUpdater = () => {
         const timeout = setInterval(() => {
             void updateBalance();
             void loadUserJettons();
-        }, 10_000);
+        }, 30_000);
 
         return () => {
             clearInterval(timeout);

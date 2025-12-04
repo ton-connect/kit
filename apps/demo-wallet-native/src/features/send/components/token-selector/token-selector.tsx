@@ -7,10 +7,11 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import type { AddressJetton } from '@ton/walletkit';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useJettons, useWallet } from '@ton/demo-core';
+import { useJettons } from '@ton/demo-core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppText } from '@/core/components/app-text';
@@ -18,39 +19,42 @@ import { Block } from '@/core/components/block';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
 
-interface TokenSelectorProps {
-    onSelectToken: () => void;
+interface SelectedToken {
+    type: 'TON' | 'JETTON';
+    data?: AddressJetton;
 }
 
-export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken }) => {
-    const { balance: tonBalance } = useWallet();
+interface TokenSelectorProps {
+    onSelectToken: () => void;
+    selectedToken: SelectedToken;
+    tonBalance: string;
+}
+
+export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken, selectedToken, tonBalance }) => {
     const { userJettons } = useJettons();
 
     const { theme } = useUnistyles();
-    // const selectedToken = useSendTransactionStore((state) => state.selectedToken);
-    // const tonBalance = useBalancesStore((state) => state.tonBalance);
-    // const jettonBalances = useBalancesStore((state) => state.jettonBalances);
 
     const getTokenInfo = () => {
-        // if (selectedToken === 'TON') {
-        //     return {
-        //         name: 'TON',
-        //         symbol: 'TON',
-        //         balance: tonBalance,
-        //         decimals: 9,
-        //         image: require('assets/logo.png'),
-        //     };
-        // }
-        //
-        // if (selectedToken) {
-        //     return {
-        //         name: selectedToken.name,
-        //         symbol: selectedToken.symbol,
-        //         balance: selectedToken.balance,
-        //         decimals: selectedToken.decimals,
-        //         image: selectedToken.image,
-        //     };
-        // }
+        if (selectedToken.type === 'TON') {
+            return {
+                name: 'TON',
+                symbol: 'TON',
+                balance: tonBalance || '0',
+                decimals: 9,
+                image: null,
+            };
+        }
+
+        if (selectedToken.data) {
+            return {
+                name: selectedToken.data.name || selectedToken.data.symbol,
+                symbol: selectedToken.data.symbol,
+                balance: selectedToken.data.balance,
+                decimals: selectedToken.data.decimals,
+                image: selectedToken.data.image ? { uri: selectedToken.data.image } : null,
+            };
+        }
 
         return null;
     };

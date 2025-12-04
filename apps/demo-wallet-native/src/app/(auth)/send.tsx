@@ -7,10 +7,12 @@
  */
 
 import { Address } from '@ton/ton';
+import type { AddressJetton, TonTransferParams } from '@ton/walletkit';
 import { router } from 'expo-router';
 import { type FC, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useWallet, useJettons, useWalletKit } from '@ton/demo-core';
 
 import { AmountInput } from '@/core/components/amount-input';
 import { AppButton } from '@/core/components/app-button';
@@ -19,37 +21,50 @@ import { AppText } from '@/core/components/app-text';
 import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scroll-view';
 import { ScreenHeader } from '@/core/components/screen-header';
 import { getErrorMessage } from '@/core/utils/errors/get-error-message';
-import { validateAmount } from '@/core/utils/validators/validate-amount';
-import { useBalancesStore } from '@/features/balances';
-import { sendJetton, sendTon, TokenListSheet, TokenSelector, useSendTransactionStore } from '@/features/send';
+import { TokenListSheet, TokenSelector } from '@/features/send';
+import { fromMinorUnit } from '@/core/utils/amount/minor-unit';
+
+interface SelectedToken {
+    type: 'TON' | 'JETTON';
+    data?: AddressJetton;
+}
 
 const SendScreen: FC = () => {
     const [showTokenSelector, setShowTokenSelector] = useState(false);
+    const [recipient, setRecipient] = useState('');
+    const [amount, setAmount] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedToken, setSelectedToken] = useState<SelectedToken>({ type: 'TON' });
 
-    const selectedToken = useSendTransactionStore((state) => state.selectedToken);
-    const recipient = useSendTransactionStore((state) => state.recipient);
-    const amount = useSendTransactionStore((state) => state.amount);
-    const isSending = useSendTransactionStore((state) => state.isSending);
-    const tonBalance = useBalancesStore((state) => state.tonBalance);
+    const walletKit = useWalletKit();
+    const { balance, currentWallet } = useWallet();
+    const { formatJettonAmount } = useJettons();
+
+    const formatTonBalance = (bal: string): string => {
+        return fromMinorUnit(bal || '0', 9).toString();
+    };
+
+    const getCurrentTokenBalance = (): string => {
+        if (selectedToken.type === 'TON') {
+            return formatTonBalance(balance || '0');
+        } else if (selectedToken.data) {
+            return formatJettonAmount(selectedToken.data.balance, selectedToken.data.decimals);
+        }
+        return '0';
+    };
+
+    const getTokenSymbol = (): string => {
+        if (selectedToken.type === 'TON') {
+            return 'TON';
+        } else if (selectedToken.data) {
+            return selectedToken.data.symbol;
+        }
+        return '';
+    };
 
     const handleSend = async () => {
         if (!recipient.trim()) {
             Alert.alert('Error', 'Please enter recipient address');
-            return;
-        }
-
-        if (!selectedToken) {
-            Alert.alert('Error', 'Please select token');
-            return;
-        }
-
-        const balance = selectedToken === 'TON' ? tonBalance : selectedToken.balance;
-        const decimals = selectedToken === 'TON' ? 9 : selectedToken.decimals;
-
-        try {
-            validateAmount(amount, balance, decimals);
-        } catch (_err) {
-            Alert.alert('Error', 'Invalid amount');
             return;
         }
 
@@ -58,26 +73,74 @@ const SendScreen: FC = () => {
             return;
         }
 
+        const inputAmount = parseFloat(amount);
+        if (isNaN(inputAmount) || inputAmount <= 0) {
+            Alert.alert('Error', 'Amount must be greater than 0');
+            return;
+        }
+
+        const currentBalance = parseFloat(getCurrentTokenBalance());
+        if (inputAmount > currentBalance) {
+            Alert.alert('Error', 'Insufficient balance');
+            return;
+        }
+
+        if (!currentWallet) {
+            Alert.alert('Error', 'No wallet available');
+            return;
+        }
+
+        setIsLoading(true);
+
         try {
-            if (selectedToken === 'TON') {
-                await sendTon();
-            } else {
-                await sendJetton(selectedToken);
+            if (selectedToken.type === 'TON') {
+                const nanoTonAmount = Math.floor(inputAmount * 1_000_000_000).toString();
+
+                const tonTransferParams: TonTransferParams = {
+                    toAddress: recipient,
+                    amount: nanoTonAmount,
+                };
+
+                const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
+                if (walletKit) {
+                    await walletKit.handleNewTransaction(currentWallet, result);
+                }
+            } else if (selectedToken.data) {
+                const jettonAmount = Math.floor(inputAmount * Math.pow(10, selectedToken.data.decimals)).toString();
+
+                const jettonTransaction = await currentWallet.createTransferJettonTransaction({
+                    toAddress: recipient,
+                    jettonAddress: selectedToken.data.address,
+                    amount: jettonAmount,
+                });
+
+                if (walletKit) {
+                    await walletKit.handleNewTransaction(currentWallet, jettonTransaction);
+                }
             }
 
             Alert.alert('Success', 'Transaction sent successfully');
             router.back();
         } catch (err) {
             Alert.alert('Error', getErrorMessage(err, 'Failed to send transaction'));
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const getTokenSymbol = () => {
-        if (selectedToken === 'TON') return 'TON';
-        return selectedToken?.symbol || '';
+    const handleAmountChange = (text: string) => {
+        setAmount(text.replace(',', '.'));
     };
 
-    const setAmount = (text: string) => useSendTransactionStore.setState({ amount: text.replace(',', '.') });
+    const handleSelectTon = () => {
+        setSelectedToken({ type: 'TON' });
+        setAmount('');
+    };
+
+    const handleSelectJetton = (jetton: AddressJetton) => {
+        setSelectedToken({ type: 'JETTON', data: jetton });
+        setAmount('');
+    };
 
     return (
         <AppKeyboardAwareScrollView contentContainerStyle={styles.containerContent} style={styles.container}>
@@ -88,15 +151,19 @@ const SendScreen: FC = () => {
                 <ScreenHeader.Title>Send {getTokenSymbol()}</ScreenHeader.Title>
             </ScreenHeader.Container>
 
-            <TokenSelector onSelectToken={() => setShowTokenSelector(true)} />
+            <TokenSelector
+                onSelectToken={() => setShowTokenSelector(true)}
+                selectedToken={selectedToken}
+                tonBalance={balance || '0'}
+            />
 
             <AmountInput.Container style={styles.amountInput}>
-                <AmountInput.WithTicker amount={amount} onChangeAmount={setAmount} ticker={getTokenSymbol()} />
+                <AmountInput.WithTicker amount={amount} onChangeAmount={handleAmountChange} ticker={getTokenSymbol()} />
 
                 <AmountInput.Percents
                     amount={amount}
-                    balance={selectedToken === 'TON' ? tonBalance : selectedToken?.balance}
-                    onChangeAmount={setAmount}
+                    balance={getCurrentTokenBalance()}
+                    onChangeAmount={handleAmountChange}
                 />
             </AmountInput.Container>
 
@@ -109,7 +176,7 @@ const SendScreen: FC = () => {
                     autoCapitalize="none"
                     autoComplete="off"
                     autoCorrect={false}
-                    onChangeText={(text) => useSendTransactionStore.setState({ recipient: text })}
+                    onChangeText={setRecipient}
                     placeholder="EQ..."
                     style={styles.addressInput}
                     value={recipient}
@@ -118,13 +185,19 @@ const SendScreen: FC = () => {
 
             <AppButton.Container
                 colorScheme="primary"
-                disabled={isSending || !recipient || !amount}
+                disabled={isLoading || !recipient || !amount}
                 onPress={handleSend}
             >
-                <AppButton.Text>{isSending ? 'Sending...' : 'Send'}</AppButton.Text>
+                <AppButton.Text>{isLoading ? 'Sending...' : 'Send'}</AppButton.Text>
             </AppButton.Container>
 
-            <TokenListSheet isOpen={showTokenSelector} onClose={() => setShowTokenSelector(false)} />
+            <TokenListSheet
+                isOpen={showTokenSelector}
+                onClose={() => setShowTokenSelector(false)}
+                onSelectTon={handleSelectTon}
+                onSelectJetton={handleSelectJetton}
+                selectedToken={selectedToken}
+            />
         </AppKeyboardAwareScrollView>
     );
 };
