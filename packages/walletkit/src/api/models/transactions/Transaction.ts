@@ -53,7 +53,7 @@ export interface Transaction {
      * Masterchain block sequence number
      * @format int
      */
-    masterchainBlockSeqno: number;
+    msBlockSeqno: number;
 
     /**
      * External hash of the trace

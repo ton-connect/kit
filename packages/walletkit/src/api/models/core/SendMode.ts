@@ -7,36 +7,43 @@
  */
 
 /**
- * Send mode flags for TON message sending.
- * These flags can be combined using bitwise OR to control message behavior.
+ * This mode determines how the message is sent, including whether to pay for gas separately and how to handle errors.
  */
-export declare enum SendMode {
+export interface SendMode {
+    base: SendModeBase;
+    flags: SendModeFlag[];
+}
+
+export enum SendModeBase {
     /**
-     * Transfer the entire remaining balance of the sender account
+     * Ordinary message
      */
-    CARRY_ALL_REMAINING_BALANCE = 128,
+    ORDINARY = 0,
     /**
-     * Carry all remaining value from the incoming message
+     * Carry all the remaining value of the inbound message in addition to the value initially indicated in the new message
      */
     CARRY_ALL_REMAINING_INCOMING_VALUE = 64,
     /**
-     * Destroy the sender account if its balance becomes zero after the transaction
+     * Carry all the remaining balance of the current smart contract instead of the value originally indicated in the message
+     */
+    CARRY_ALL_REMAINING_BALANCE = 128,
+}
+
+export enum SendModeFlag {
+    /**
+     * Destroy the current account if its resulting balance is zero (often used with Mode 128)
      */
     DESTROY_ACCOUNT_IF_ZERO = 32,
     /**
-     * Bounce the message back to sender if the action fails
+     * In the case of action failure, bounce the transaction. No effect if +2 is used.
      */
     BOUNCE_IF_FAILURE = 16,
     /**
-     * Pay gas fees from a separate balance, not from the message value
-     */
-    PAY_GAS_SEPARATELY = 1,
-    /**
-     * Ignore any errors during action phase execution
+     * Ignore some errors arising while processing this message during the action phase
      */
     IGNORE_ERRORS = 2,
     /**
-     * No special flags, default behavior
+     * Pay transfer fees separately from the message value
      */
-    NONE = 0,
+    PAY_GAS_SEPARATELY = 1,
 }
