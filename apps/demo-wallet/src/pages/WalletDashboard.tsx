@@ -270,7 +270,7 @@ export const WalletDashboard: React.FC = () => {
                             >
                                 Refresh
                             </Button>
-                            <Button onClick={() => navigate('/send')} className="flex-1">
+                            <Button onClick={() => navigate('/send')} className="flex-1" data-testid="send-button">
                                 Send
                             </Button>
                         </div>

@@ -101,4 +101,34 @@ export class DemoWallet extends WalletApp {
         await modal.waitFor({ state: 'detached' });
         await this.close();
     }
+
+    /**
+     * Send TON to own address (not via TonConnect)
+     * This tests the handleNewTransaction flow with walletId
+     */
+    async sendTonToSelf(amount: string, confirm: boolean = true): Promise<void> {
+        const app = await this.open();
+
+        // Navigate to send page
+        await app.getByTestId('send-button').click();
+
+        // Click "Use my address" button
+        await app.getByTestId('use-my-address').click();
+
+        // Fill in amount
+        await app.getByTestId('amount-input').fill(amount);
+
+        // Click send button
+        await app.getByTestId('send-submit').click();
+
+        // Wait for transaction request modal
+        const modal = app.getByTestId('request').filter({ hasText: 'Transaction Request' });
+        await modal.waitFor({ state: 'visible' });
+
+        // Approve or reject
+        const chose = app.getByTestId(confirm ? 'send-transaction-approve' : 'send-transaction-reject');
+        await chose.waitFor({ state: 'attached' });
+        await chose.click();
+        await modal.waitFor({ state: 'detached' });
+    }
 }
