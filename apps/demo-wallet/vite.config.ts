@@ -19,7 +19,6 @@ export default defineConfig({
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
     },
     build: {
-        outDir,
         rollupOptions: {
             output: {
                 inlineDynamicImports: true,
