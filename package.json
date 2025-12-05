@@ -14,7 +14,10 @@
     "quality": "turbo quality",
     "e2e": "turbo e2e",
     "clean": "git clean -xdf node_modules",
-    "clean:workspaces": "turbo run clean"
+    "clean:workspaces": "turbo run clean",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "prettier": "@ton/toolchain/prettier",
   "keywords": [],
