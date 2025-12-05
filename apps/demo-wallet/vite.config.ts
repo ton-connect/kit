@@ -18,6 +18,14 @@ export default defineConfig({
     server: {
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
     },
+    build: {
+        outDir,
+        rollupOptions: {
+            output: {
+                inlineDynamicImports: true,
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
