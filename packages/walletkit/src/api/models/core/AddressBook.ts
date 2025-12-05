@@ -11,7 +11,7 @@ import { UserFriendlyAddress } from './Primitives';
 /**
  * Map of raw addresses to their metadata entries.
  */
-export type AddressBook = { [key: string]: AddressBookEntry };
+export type AddressBook = { [key: UserFriendlyAddress]: AddressBookEntry };
 
 export interface AddressBookEntry {
     /**

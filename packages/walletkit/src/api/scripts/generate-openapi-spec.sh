@@ -49,14 +49,6 @@ NODE_PATH=$(npm root -g) node "$SCRIPT_DIR/json-schema-to-openapi-spec.js" "$TEM
     exit 1
 }
 
-# Step 4: Post-process OpenAPI spec (fix integer types, enrich discriminated unions)
-echo "📝 Step 3: Post-processing OpenAPI spec..."
-node "$SCRIPT_DIR/postprocess-openapi-spec.js" "$OUTPUT_FILE" "$OUTPUT_FILE" || {
-    echo "❌ Failed to post-process OpenAPI spec"
-    rm -f "$TEMP_SCHEMA"
-    exit 1
-}
-
 # Cleanup
 rm -f "$TEMP_SCHEMA"
 

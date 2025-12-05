@@ -39,7 +39,7 @@ export interface TransactionTrace {
     /**
      * Random seed used for emulation
      */
-    randSeed: Base64String;
+    randSeed: Hex;
 
     /**
      * Whether the trace is incomplete due to limits or errors
@@ -153,9 +153,6 @@ export interface TransactionTraceActionJettonSwapDetails {
      * Address of the account initiating the swap
      */
     sender: UserFriendlyAddress;
-
-    assetIn: string;
-    assetOut: string;
 
     /**
      * Transfer details for tokens sent to the DEX
