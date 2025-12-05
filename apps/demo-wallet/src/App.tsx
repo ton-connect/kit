@@ -6,7 +6,7 @@
  *
  */
 
-import { WalletProvider, type WalletKitConfig, isExtension } from '@ton/demo-core';
+import { WalletProvider, type WalletKitConfig } from '@ton/demo-core';
 
 import { AppRouter } from './components';
 
@@ -18,6 +18,7 @@ import {
     ENV_TON_API_KEY_MAINNET,
     ENV_TON_API_KEY_TESTNET,
 } from '@/lib/env';
+import { isExtension } from '@/utils/isExtension';
 
 import './App.css';
 import './storePatch';
