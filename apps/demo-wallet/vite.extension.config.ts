@@ -12,7 +12,7 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import webExtension, { readJsonFile } from '@truecarry/vite-plugin-web-extension';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+// import { nodePolyfills } from 'vite-plugin-node-polyfills';
 // import { analyzer } from 'vite-bundle-analyzer';
 
 function generateManifest() {
@@ -44,16 +44,21 @@ export default defineConfig({
             browser: process.env.TARGET || 'chrome',
             htmlViteConfig: {
                 plugins: [
-                    nodePolyfills({
-                        include: ['buffer'],
-                        globals: { Buffer: true },
-                        overrides: {
-                            buffer: 'buffer',
-                        },
-                    }),
+                    // nodePolyfills({
+                    //     include: ['buffer'],
+                    //     globals: { Buffer: true },
+                    //     overrides: {
+                    //         buffer: 'buffer',
+                    //     },
+                    // }),
                 ],
                 build: {
                     outDir,
+                    rollupOptions: {
+                        output: {
+                            inlineDynamicImports: true,
+                        },
+                    },
                 },
             },
             scriptViteConfig: {
