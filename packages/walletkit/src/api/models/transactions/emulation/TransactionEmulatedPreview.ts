@@ -8,7 +8,7 @@
 
 import { ResultError, Result } from '../../core/Primitives';
 import { TransactionEmulatedTrace } from './TransactionEmulatedTrace';
-import { TransactionMoneyFlow } from '../../TransactionMoneyFlow';
+import { TransactionMoneyFlow } from '../TransactionMoneyFlow';
 
 /**
  * Preview of an emulated transaction showing expected outcome.
