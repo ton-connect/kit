@@ -516,6 +516,7 @@ export class TonWalletKit implements ITonWalletKit {
         data.valid_until ??= Math.floor(Date.now() / 1000) + 300;
         data.network ??= wallet.getNetwork();
 
+        const walletId = wallet.getWalletId();
         const bridgeEvent: RawBridgeEventTransaction = {
             id: Date.now().toString(),
             method: 'sendTransaction',
@@ -523,6 +524,7 @@ export class TonWalletKit implements ITonWalletKit {
             from: '',
             domain: '',
             isLocal: true,
+            walletId,
             walletAddress: wallet.getAddress().toString(),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
