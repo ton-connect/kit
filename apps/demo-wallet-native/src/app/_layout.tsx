@@ -46,6 +46,7 @@ const RootLayout: FC = () => {
                             storage={walletProviderStorage}
                             walletKitConfig={{
                                 storage: walletKitStorage,
+                                bridgeUrl: 'https://walletbot.me/tonconnect-bridge/bridge',
                                 tonApiKeyMainnet: ENV_TON_API_KEY_MAINNET,
                                 tonApiKeyTestnet: ENV_TON_API_KEY_TESTNET,
                             }}

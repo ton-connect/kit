@@ -11,7 +11,7 @@ import {
     BottomSheetModal,
     BottomSheetScrollView,
     BottomSheetView,
-    type BottomSheetProps as InitialBottomSheetProps,
+    type BottomSheetModalProps as InitialBottomSheetProps,
 } from '@gorhom/bottom-sheet';
 import { ImpactFeedbackStyle, impactAsync } from 'expo-haptics';
 import { type FC, type PropsWithChildren, useCallback, useEffect, useRef } from 'react';
@@ -42,6 +42,9 @@ export const AppBottomSheet: FC<Props> = ({
     children,
     withCloseButton,
     title,
+    keyboardBehavior = 'interactive',
+    keyboardBlurBehavior = 'restore',
+    android_keyboardInputMode = 'adjustResize',
     ...rest
 }) => {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -98,8 +101,11 @@ export const AppBottomSheet: FC<Props> = ({
             handleIndicatorStyle={styles.indicator}
             onDismiss={handleClose}
             ref={bottomSheetRef}
-            stackBehavior="replace"
+            stackBehavior="push"
             topInset={top}
+            keyboardBehavior={keyboardBehavior}
+            keyboardBlurBehavior={keyboardBlurBehavior}
+            android_keyboardInputMode={android_keyboardInputMode}
             {...rest}
         >
             {isScrollable === false && (

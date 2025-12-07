@@ -72,13 +72,7 @@ export const AddressQrcode: FC<Props> = ({ address, style, ...props }) => {
                 }}
                 size={qrCodeSize}
                 value={address}
-            >
-                <RadialGradient
-                    c={{ x: qrCodeSize / 2, y: qrCodeSize / 2 }}
-                    colors={[theme.colors.accent.primary, theme.colors.text.highlight]}
-                    r={100}
-                />
-            </QRCode>
+            />
         </Block>
     );
 };

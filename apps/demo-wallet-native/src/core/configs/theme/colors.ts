@@ -10,12 +10,14 @@ export const lightColors = {
     accent: {
         primary: '#0088CC',
         secondary: '#61bffa',
+        primaryLight: 'rgba(0, 136, 204, 0.1)',
     },
     background: {
         main: '#FFFFFF',
         block: '#F8F8F8',
         modal: '#FFFFFF',
         toast: '#FFFFFF',
+        secondary: '#F8F8F8',
         semiTransparent: 'rgba(255, 255, 255, 0.15)',
         divider: 'rgba(137, 144, 147, 0.2)',
     },
@@ -72,6 +74,17 @@ export const lightColors = {
     error: {
         default: '#E45A47',
         foreground: 'rgba(255, 31, 0, 0.15)',
+    },
+    status: {
+        success: '#29C379',
+        successBackground: 'rgba(41, 195, 121, 0.1)',
+        warning: '#ffd400',
+        warningBackground: 'rgba(255,212,0,0.1)',
+        error: '#E45A47',
+        errorBackground: 'rgba(228, 90, 71, 0.1)',
+    },
+    border: {
+        default: 'rgba(137, 144, 147, 0.2)',
     },
 
     white: '#FFF',

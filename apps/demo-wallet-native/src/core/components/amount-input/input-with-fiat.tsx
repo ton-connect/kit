@@ -85,7 +85,7 @@ export const InputWithFiat: FC<Props> = ({ amount, onChangeAmount, fiatRate, sty
                     decimals={fiatAmount === '0' ? 1 : undefined}
                     isDecimalsFixed={fiatAmount === '0' ? true : undefined}
                     isFiat
-                    isIconShown
+                    isSymbolShown
                     style={styles.fiatAmount}
                 />
             )}

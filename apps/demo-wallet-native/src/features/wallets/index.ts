@@ -9,3 +9,5 @@
 export { AddressQrcode } from './components/address-qrcode';
 export { MnemonicView } from './components/mnemonic-view';
 export { WalletSwitcher } from './components/wallet-switcher';
+export { WalletInfoBlock } from './components/wallet-info-block';
+export { WalletSelectorModal } from './components/wallet-selector-modal';

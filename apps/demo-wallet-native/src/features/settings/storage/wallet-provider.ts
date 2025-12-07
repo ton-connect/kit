@@ -7,16 +7,16 @@
  */
 
 import type { CreateWalletStoreOptions } from '@ton/demo-core';
-import { setItemAsync, deleteItemAsync, getItemAsync } from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const walletProviderStorage: CreateWalletStoreOptions['storage'] = {
     getItem: async (key) => {
-        return getItemAsync(key);
+        return AsyncStorage.getItem(key);
     },
     setItem: async (key, value) => {
-        await setItemAsync(key, value);
+        await AsyncStorage.setItem(key, value);
     },
     removeItem: async (key) => {
-        await deleteItemAsync(key);
+        await AsyncStorage.removeItem(key);
     },
 };
