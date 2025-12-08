@@ -6,7 +6,7 @@
  *
  */
 
-import type { SavedWallet } from '@ton/demo-core';
+import { type SavedWallet } from '@ton/demo-core';
 import { type FC, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -77,10 +77,6 @@ export const WalletSwitcher: FC<WalletSwitcherProps> = ({
         onClose();
     };
 
-    const formatAddress = (address: string) => {
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    };
-
     if (savedWallets.length === 0) {
         return null;
     }
@@ -92,7 +88,6 @@ export const WalletSwitcher: FC<WalletSwitcherProps> = ({
                     <WalletItem
                         key={wallet.id}
                         editingName={editingName}
-                        formatAddress={formatAddress}
                         isActive={wallet.id === activeWalletId}
                         isEditing={editingWalletId === wallet.id}
                         onCancelEdit={handleCancelEdit}

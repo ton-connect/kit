@@ -14,6 +14,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 type IconRenderer = (args: { focused: boolean; color: string; size: number }) => ReactNode;
 
 const renderWalletIcon: IconRenderer = ({ color, size }) => <Ionicons color={color} name="wallet" size={size} />;
+const renderNftIcon: IconRenderer = ({ color, size }) => <Ionicons color={color} name="images" size={size} />;
 const renderHistoryIcon: IconRenderer = ({ color, size }) => <Ionicons color={color} name="time" size={size} />;
 const renderSettingsIcon: IconRenderer = ({ color, size }) => <Ionicons color={color} name="settings" size={size} />;
 
@@ -33,6 +34,7 @@ const TabsStack: FC = () => {
             }}
         >
             <Tabs.Screen name="wallet" options={{ tabBarIcon: renderWalletIcon, tabBarLabel: 'Wallet' }} />
+            <Tabs.Screen name="nft" options={{ tabBarIcon: renderNftIcon, tabBarLabel: 'NFTs' }} />
             <Tabs.Screen name="history" options={{ tabBarIcon: renderHistoryIcon, tabBarLabel: 'History' }} />
             <Tabs.Screen name="settings" options={{ tabBarIcon: renderSettingsIcon, tabBarLabel: 'Settings' }} />
         </Tabs>

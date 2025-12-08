@@ -78,6 +78,21 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
         return null;
     };
 
+    const getCollectionName = (item: NftItem): string => {
+        if (item.collection && item.collection.name) {
+            return item.collection.name;
+        }
+
+        if (
+            item.collection?.collectionContent &&
+            typeof (item.collection.collectionContent as Record<string, unknown>).name === 'string'
+        ) {
+            return (item.collection.collectionContent as Record<string, unknown>).name as string;
+        }
+
+        return 'Unknown Collection';
+    };
+
     // Show top 3 NFTs
     const topNfts = userNfts.slice(0, 3);
     const totalNfts = userNfts.length;
@@ -292,14 +307,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
                                 {selectedNft.collection && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Collection</label>
-                                        <p className="text-sm text-gray-900">
-                                            {selectedNft.collection.collectionContent &&
-                                            typeof (selectedNft.collection.collectionContent as Record<string, unknown>)
-                                                .name === 'string'
-                                                ? ((selectedNft.collection.collectionContent as Record<string, unknown>)
-                                                      .name as string)
-                                                : 'Unknown Collection'}
-                                        </p>
+                                        <p className="text-sm text-gray-900">{getCollectionName(selectedNft)}</p>
                                         {selectedNft.collection.collectionContent &&
                                             typeof (selectedNft.collection.collectionContent as Record<string, unknown>)
                                                 .description === 'string' && (

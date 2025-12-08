@@ -21,13 +21,11 @@ export const useWalletInitialization = (): WalletInitializationState => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isInitializing, setIsInitializing] = useState(true);
 
-    const { initializeWalletKit, loadAllWallets, updateBalance, refreshJettons } = useWalletStore(
+    const { initializeWalletKit, loadAllWallets } = useWalletStore(
         useShallow((state) => ({
             isHydrated: state.isHydrated,
             initializeWalletKit: state.initializeWalletKit,
             loadAllWallets: state.loadAllWallets,
-            updateBalance: state.updateBalance,
-            refreshJettons: state.refreshJettons,
         })),
     );
 
@@ -38,8 +36,6 @@ export const useWalletInitialization = (): WalletInitializationState => {
         try {
             await initializeWalletKit();
             await loadAllWallets();
-            await updateBalance();
-            await refreshJettons();
 
             setIsInitializing(false);
         } catch (err) {
@@ -48,7 +44,7 @@ export const useWalletInitialization = (): WalletInitializationState => {
             setIsInitializing(false);
             throw err;
         }
-    }, [initializeWalletKit, loadAllWallets, updateBalance, refreshJettons]);
+    }, [initializeWalletKit, loadAllWallets]);
 
     return {
         isInitializing,
