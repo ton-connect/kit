@@ -6,57 +6,57 @@
  *
  */
 
-import { TokenAmount } from '../core/TokenAmount';
-import { UserFriendlyAddress } from '../core/Primitives';
-import { AssetType } from '../core/AssetType';
+import { TokenAmount } from "../core/TokenAmount";
+import { UserFriendlyAddress } from "../core/Primitives";
+import { AssetType } from "../core/AssetType";
 
 /**
  * Summary of token flows for a transaction.
  */
 export interface TransactionMoneyFlow {
-    /**
-     * List of incoming token transfers
-     */
-    incoming: TransactionMoneyFlowItem[];
+  /**
+   * List of incoming token transfers
+   */
+  incoming: TransactionMoneyFlowItem[];
 
-    /**
-     * List of outgoing token transfers
-     */
-    outgoing: TransactionMoneyFlowItem[];
+  /**
+   * List of outgoing token transfers
+   */
+  outgoing: TransactionMoneyFlowItem[];
 }
 
 /**
  * Individual token flow item.
  */
 export interface TransactionMoneyFlowItem {
-    /**
-     * Type of asset being transferred
-     */
-    assetType: AssetType;
+  /**
+   * Type of asset being transferred
+   */
+  assetType: AssetType;
 
-    /**
-     * Amount being transferred (for TON/Jetton)
-     */
-    amount?: TokenAmount;
+  /**
+   * Amount being transferred (for TON/Jetton)
+   */
+  amount?: TokenAmount;
 
-    /**
-     * Address of the token contract (for Jetton/NFT)
-     */
-    tokenAddress?: UserFriendlyAddress;
+  /**
+   * Address of the token contract (for Jetton/NFT)
+   */
+  tokenAddress?: UserFriendlyAddress;
 
-    /**
-     * Counterparty address (sender for incoming, recipient for outgoing)
-     */
-    address: UserFriendlyAddress;
+  /**
+   * Counterparty address (sender for incoming, recipient for outgoing)
+   */
+  address: UserFriendlyAddress;
 
-    /**
-     * Human-readable token symbol (e.g., "TON", "USDT")
-     */
-    symbol?: string;
+  /**
+   * Human-readable token symbol (e.g., "TON", "USDT")
+   */
+  symbol?: string;
 
-    /**
-     * Number of decimal places for display
-     * @format int
-     */
-    decimals?: number;
+  /**
+   * Number of decimal places for display
+   * @format int
+   */
+  decimals?: number;
 }

@@ -6,14 +6,14 @@
  *
  */
 
-import { Pagination } from '../core/Primitives';
+import { Pagination } from "../core/Primitives";
 
 /**
  * Request parameters for fetching NFT tokens.
  */
 export interface NFTsRequest {
-    /**
-     * Pagination information
-     */
-    pagination: Pagination;
+  /**
+   * Pagination information
+   */
+  pagination: Pagination;
 }

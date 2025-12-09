@@ -6,31 +6,31 @@
  *
  */
 
-import { ResultError, Result } from '../../core/Primitives';
-import { TransactionEmulatedTrace } from './TransactionEmulatedTrace';
-import { TransactionMoneyFlow } from '../TransactionMoneyFlow';
+import { ResultError, Result } from "../../core/Primitives";
+import { TransactionEmulatedTrace } from "./TransactionEmulatedTrace";
+import { TransactionMoneyFlow } from "../TransactionMoneyFlow";
 
 /**
  * Preview of an emulated transaction showing expected outcome.
  */
 export interface TransactionEmulatedPreview {
-    /**
-     * Result status of the emulation (success or failure)
-     */
-    result: Result;
+  /**
+   * Result status of the emulation (success or failure)
+   */
+  result: Result;
 
-    /**
-     * Error details if the emulation failed
-     */
-    error?: ResultError;
+  /**
+   * Error details if the emulation failed
+   */
+  error?: ResultError;
 
-    /**
-     * Full execution trace if emulation succeeded
-     */
-    trace?: TransactionEmulatedTrace;
+  /**
+   * Full execution trace if emulation succeeded
+   */
+  trace?: TransactionEmulatedTrace;
 
-    /**
-     * Summary of token flows (incoming/outgoing) for the transaction
-     */
-    moneyFlow?: TransactionMoneyFlow;
+  /**
+   * Summary of token flows (incoming/outgoing) for the transaction
+   */
+  moneyFlow?: TransactionMoneyFlow;
 }

@@ -6,65 +6,65 @@
  *
  */
 
-import { DAppInfo } from '../core/DAppInfo';
-import { BridgeEvent } from './BridgeEvent';
+import { DAppInfo } from "../core/DAppInfo";
+import { BridgeEvent } from "./BridgeEvent";
 
 /**
  * Event containing a connection request from a dApp via TON Connect.
  */
 export interface ConnectionRequestEvent extends BridgeEvent {
-    /**
-     * Preview information for UI display
-     */
-    preview: ConnectionRequestEventPreview;
+  /**
+   * Preview information for UI display
+   */
+  preview: ConnectionRequestEventPreview;
 }
 
 /**
  * Preview data for displaying connection request in the wallet UI.
  */
 export interface ConnectionRequestEventPreview {
-    /**
-     * Items requested by the dApp (e.g., wallet address, proof)
-     */
-    requestedItems: ConnectionRequestEventPreviewRequestedItem[];
-    /**
-     * Permissions requested by the dApp
-     */
-    permissions: ConnectionRequestEventPreviewPermission[];
-    /**
-     * Information about the requesting dApp
-     */
-    dAppInfo?: DAppInfo;
+  /**
+   * Items requested by the dApp (e.g., wallet address, proof)
+   */
+  requestedItems: ConnectionRequestEventPreviewRequestedItem[];
+  /**
+   * Permissions requested by the dApp
+   */
+  permissions: ConnectionRequestEventPreviewPermission[];
+  /**
+   * Information about the requesting dApp
+   */
+  dAppInfo?: DAppInfo;
 }
 
 /**
  * Item requested by a dApp during connection.
  */
 export interface ConnectionRequestEventPreviewRequestedItem {
-    /**
-     * Identifier name of the requested item
-     */
-    name: string;
-    /**
-     * Human-readable description of the requested item
-     */
-    description?: string;
+  /**
+   * Identifier name of the requested item
+   */
+  name: string;
+  /**
+   *
+   */
+  payload?: string;
 }
 
 /**
  * Permission requested by a dApp during connection.
  */
 export interface ConnectionRequestEventPreviewPermission {
-    /**
-     * Identifier name of the permission
-     */
-    name?: string;
-    /**
-     * Human-readable title of the permission
-     */
-    title?: string;
-    /**
-     * Detailed description of what the permission allows
-     */
-    description?: string;
+  /**
+   * Identifier name of the permission
+   */
+  name?: string;
+  /**
+   * Human-readable title of the permission
+   */
+  title?: string;
+  /**
+   * Detailed description of what the permission allows
+   */
+  description?: string;
 }

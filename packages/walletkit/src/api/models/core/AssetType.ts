@@ -10,16 +10,16 @@
  * Types of assets supported on the TON blockchain.
  */
 export enum AssetType {
-    /**
-     * Native TON cryptocurrency
-     */
-    ton = 'ton',
-    /**
-     * Jetton fungible token (TEP-74 standard)
-     */
-    jetton = 'jetton',
-    /**
-     * Non-fungible token (TEP-62 standard)
-     */
-    nft = 'nft',
+  /**
+   * Native TON cryptocurrency
+   */
+  ton = "ton",
+  /**
+   * Jetton fungible token (TEP-74 standard)
+   */
+  jetton = "jetton",
+  /**
+   * Non-fungible token (TEP-62 standard)
+   */
+  nft = "nft",
 }

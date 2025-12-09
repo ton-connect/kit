@@ -6,50 +6,50 @@
  *
  */
 
-import { UserFriendlyAddress, Hex } from '../core/Primitives';
-import { Network } from './Network';
-import { SignData } from './SignData';
+import { UserFriendlyAddress, Hex } from "../core/Primitives";
+import { Network } from "./Network";
+import { SignData } from "./SignData";
 
 /**
  * Prepared sign data ready for signing by the wallet.
  */
 export interface PreparedSignData {
-    /**
-     * Wallet address that will sign the data
-     */
-    address: UserFriendlyAddress;
-    /**
-     * Unix timestamp when the sign request was created
-     */
-    timestamp: number;
-    /**
-     * Domain requesting the signature (e.g., "example.com")
-     */
-    domain: string;
-    /**
-     * Payload containing the data to be signed
-     */
-    payload: PreparedSignDataPayload;
-    /**
-     * Hash of the prepared sign data for verification
-     */
-    hash: Hex;
+  /**
+   * Wallet address that will sign the data
+   */
+  address: UserFriendlyAddress;
+  /**
+   * Unix timestamp when the sign request was created
+   */
+  timestamp: number;
+  /**
+   * Domain requesting the signature (e.g., "example.com")
+   */
+  domain: string;
+  /**
+   * Payload containing the data to be signed
+   */
+  payload: PreparedSignDataPayload;
+  /**
+   * Hash of the prepared sign data for verification
+   */
+  hash: Hex;
 }
 
 /**
  * Payload structure for prepared sign data.
  */
 export interface PreparedSignDataPayload {
-    /**
-     * Network where the signing will occur
-     */
-    network: Network;
-    /**
-     * Optional sender address
-     */
-    from?: UserFriendlyAddress;
-    /**
-     * Optional sign data content to be signed
-     */
-    data?: SignData;
+  /**
+   * Network where the signing will occur
+   */
+  network: Network;
+  /**
+   * Optional sender address
+   */
+  from?: UserFriendlyAddress;
+  /**
+   * Optional sign data content to be signed
+   */
+  data?: SignData;
 }

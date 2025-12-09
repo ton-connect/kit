@@ -6,27 +6,27 @@
  *
  */
 
-import { Address } from '@ton/core';
-import { SignDataPayload } from '@tonconnect/protocol';
+import { Address } from "@ton/core";
+import { SignDataPayload } from "@tonconnect/protocol";
 
-import { createTextBinaryHash, createCellHash } from './hash';
-import { Hex } from '../../types/primitive';
-import { Uint8ArrayToHex } from '../base64';
-import { EventSignDataResponse } from '../../types/events';
+import { createTextBinaryHash, createCellHash } from "./hash";
+import { Hex } from "../../types/primitive";
+import { Uint8ArrayToHex } from "../base64";
+import { EventSignDataResponse } from "../../types/events";
 
 export interface SignDataParams {
-    payload: SignDataPayload;
-    domain: string;
-    // privateKey: Buffer;
-    address: string;
+  payload: SignDataPayload;
+  domain: string;
+  // privateKey: Buffer;
+  address: string;
 }
 
 export interface PrepareSignDataResult {
-    address: string;
-    timestamp: number;
-    domain: string;
-    payload: SignDataPayload;
-    hash: Hex;
+  address: string;
+  timestamp: number;
+  domain: string;
+  payload: SignDataPayload;
+  hash: Hex;
 }
 
 export type SignDataResult = PrepareSignDataResult & EventSignDataResponse;
@@ -42,22 +42,24 @@ export type SignDataResult = PrepareSignDataResult & EventSignDataResponse;
  * @param params Signing parameters
  * @returns Signed data with base64 signature
  */
-export function PrepareTonConnectData(params: SignDataParams): PrepareSignDataResult {
-    const { payload, domain, address } = params;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const parsedAddr = Address.parse(address);
+export function PrepareTonConnectData(
+  params: SignDataParams,
+): PrepareSignDataResult {
+  const { payload, domain, address } = params;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const parsedAddr = Address.parse(address);
 
-    // Create hash based on payload type
-    const finalHash =
-        payload.type === 'cell'
-            ? createCellHash(payload, parsedAddr, domain, timestamp)
-            : createTextBinaryHash(payload, parsedAddr, domain, timestamp);
+  // Create hash based on payload type
+  const finalHash =
+    payload.type === "cell"
+      ? createCellHash(payload, parsedAddr, domain, timestamp)
+      : createTextBinaryHash(payload, parsedAddr, domain, timestamp);
 
-    return {
-        address,
-        timestamp,
-        domain,
-        payload,
-        hash: Uint8ArrayToHex(finalHash),
-    };
+  return {
+    address,
+    timestamp,
+    domain,
+    payload,
+    hash: Uint8ArrayToHex(finalHash),
+  };
 }

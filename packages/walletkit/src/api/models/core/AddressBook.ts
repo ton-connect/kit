@@ -6,7 +6,7 @@
  *
  */
 
-import { UserFriendlyAddress } from './Primitives';
+import { UserFriendlyAddress } from "./Primitives";
 
 /**
  * Map of raw addresses to their metadata entries.
@@ -14,13 +14,13 @@ import { UserFriendlyAddress } from './Primitives';
 export type AddressBook = { [key: UserFriendlyAddress]: AddressBookEntry };
 
 export interface AddressBookEntry {
-    /**
-     * The human-readable representation of the blockchain address
-     */
-    userFriendly?: UserFriendlyAddress;
+  /**
+   * The human-readable representation of the blockchain address
+   */
+  userFriendly?: UserFriendlyAddress;
 
-    /**
-     * The domain name associated with the address if available
-     */
-    domain?: string;
+  /**
+   * The domain name associated with the address if available
+   */
+  domain?: string;
 }

@@ -6,60 +6,55 @@
  *
  */
 
-import { TokenImage } from '../core/TokenImage';
-import { UserFriendlyAddress, Hex } from '../core/Primitives';
+import { TokenImage } from "../core/TokenImage";
+import { UserFriendlyAddress, Hex } from "../core/Primitives";
 
 /**
  * NFT collection on the TON blockchain (TEP-62 standard).
  */
 export interface NFTCollection {
-    /**
-     * The blockchain address of the NFT collection contract
-     */
-    address: UserFriendlyAddress;
+  /**
+   * The blockchain address of the NFT collection contract
+   */
+  address: UserFriendlyAddress;
 
-    /**
-     * The name of the NFT collection
-     */
-    name?: string;
+  /**
+   * The name of the NFT collection
+   */
+  name?: string;
 
-    /**
-     * The image representing the NFT collection
-     */
-    image?: TokenImage;
+  /**
+   * The image representing the NFT collection
+   */
+  image?: TokenImage;
 
-    /**
-     * A brief description of the NFT collection
-     */
-    description?: string;
+  /**
+   * A brief description of the NFT collection
+   */
+  description?: string;
 
-    /**
-     * The index value for the next item to be minted in the collection
-     */
-    nextItemIndex?: string;
+  /**
+   * The index value for the next item to be minted in the collection
+   */
+  nextItemIndex?: string;
 
-    /**
-     * The hash of the collection's smart contract code
-     */
-    codeHash?: Hex;
+  /**
+   * The hash of the collection's smart contract code
+   */
+  codeHash?: Hex;
 
-    /**
-     * The hash of the collection's data in the blockchain
-     */
-    dataHash?: Hex;
+  /**
+   * The hash of the collection's data in the blockchain
+   */
+  dataHash?: Hex;
 
-    /**
-     * The blockchain address of the collection owner
-     */
-    ownerAddress?: UserFriendlyAddress;
+  /**
+   * The blockchain address of the collection owner
+   */
+  ownerAddress?: UserFriendlyAddress;
 
-    /**
-     * The content metadata of the collection
-     */
-    metadata?: { [key: string]: string };
-
-    /**
-     * Additional arbitrary data related to the NFT collection
-     */
-    extra?: { [key: string]: unknown };
+  /**
+   * Additional arbitrary data related to the NFT collection
+   */
+  extra?: { [key: string]: unknown };
 }

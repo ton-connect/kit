@@ -6,40 +6,40 @@
  *
  */
 
-import { TokenImage } from './TokenImage';
-import { TokenAnimation } from './TokenAnimation';
+import { TokenImage } from "./TokenImage";
+import { TokenAnimation } from "./TokenAnimation";
 
 /**
  * Display information for a token (TON, Jetton, or NFT).
  */
 export interface TokenInfo {
-    /**
-     * Display name of the token
-     */
-    name?: string;
+  /**
+   * Display name of the token
+   */
+  name?: string;
 
-    /**
-     * Human-readable description of the token
-     */
-    description?: string;
+  /**
+   * Human-readable description of the token
+   */
+  description?: string;
 
-    /**
-     * Token image in various sizes
-     */
-    image?: TokenImage;
+  /**
+   * Token image in various sizes
+   */
+  image?: TokenImage;
 
-    /**
-     * Animated media associated with the token
-     */
-    animation?: TokenAnimation;
+  /**
+   * Animated media associated with the token
+   */
+  animation?: TokenAnimation;
 
-    /**
-     * Ticker symbol of the token (e.g., "TON", "USDT")
-     */
-    symbol?: string;
+  /**
+   * Ticker symbol of the token (e.g., "TON", "USDT")
+   */
+  symbol?: string;
 
-    /**
-     * Whether the token metadata has been verified
-     */
-    isValid?: boolean;
+  /**
+   * Whether the token metadata has been verified
+   */
+  isValid?: boolean;
 }

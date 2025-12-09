@@ -6,14 +6,14 @@
  *
  */
 
-import { Hex } from '../core/Primitives';
+import { Hex } from "../core/Primitives";
 
 /**
  * Response after user approves a sign data request.
  */
 export interface SignDataApprovalResponse {
-    /**
-     * Cryptographic signature of the signed data in hexadecimal format
-     */
-    signature: Hex;
+  /**
+   * Cryptographic signature of the signed data in hexadecimal format
+   */
+  signature: Hex;
 }

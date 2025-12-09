@@ -10,26 +10,26 @@
  * TON blockchain network identifier.
  */
 export interface Network {
-    /**
-     * Chain ID of the network (e.g., "-239" for mainnet, "-3" for testnet)
-     */
-    chainId: string;
+  /**
+   * Chain ID of the network (e.g., "-239" for mainnet, "-3" for testnet)
+   */
+  chainId: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const Network = {
-    /**
-     * TON Mainnet (chain ID: -239)
-     */
-    mainnet: (): Network => ({ chainId: '-239' }),
+  /**
+   * TON Mainnet (chain ID: -239)
+   */
+  mainnet: (): Network => ({ chainId: "-239" }),
 
-    /**
-     * TON Testnet (chain ID: -3)
-     */
-    testnet: (): Network => ({ chainId: '-3' }),
+  /**
+   * TON Testnet (chain ID: -3)
+   */
+  testnet: (): Network => ({ chainId: "-3" }),
 
-    /**
-     * Custom network with specified chain ID
-     */
-    custom: (chainId: string): Network => ({ chainId }),
+  /**
+   * Custom network with specified chain ID
+   */
+  custom: (chainId: string): Network => ({ chainId }),
 };

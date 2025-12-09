@@ -6,14 +6,14 @@
  *
  */
 
-import { Pagination } from '../core/Primitives';
+import { Pagination } from "../core/Primitives";
 
 /**
  * Request parameters for fetching Jetton tokens.
  */
 export interface JettonsRequest {
-    /**
-     * Pagination information
-     */
-    pagination: Pagination;
+  /**
+   * Pagination information
+   */
+  pagination: Pagination;
 }

@@ -6,14 +6,14 @@
  *
  */
 
-import { Jetton } from './Jetton';
+import { Jetton } from "./Jetton";
 
 /**
  * Response containing a list of Jetton tokens.
  */
 export interface JettonsResponse {
-    /**
-     * List of Jettons
-     */
-    jettons: Jetton[];
+  /**
+   * List of Jettons
+   */
+  jettons: Jetton[];
 }

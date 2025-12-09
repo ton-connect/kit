@@ -10,9 +10,9 @@
  * Token animation URL for displaying animated media.
  */
 export interface TokenAnimation {
-    /**
-     * URL to the animation file (e.g., GIF, MP4, Lottie)
-     * @format url
-     */
-    url?: string;
+  /**
+   * URL to the animation file (e.g., GIF, MP4, Lottie)
+   * @format url
+   */
+  url?: string;
 }

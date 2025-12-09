@@ -30,47 +30,47 @@ export type LogicalTime = string;
  * Generic result status for operations.
  */
 export enum Result {
-    /**
-     * Operation completed successfully
-     */
-    success = 'success',
-    /**
-     * Operation failed
-     */
-    failure = 'failure',
+  /**
+   * Operation completed successfully
+   */
+  success = "success",
+  /**
+   * Operation failed
+   */
+  failure = "failure",
 }
 
 /**
  * Error information returned when an operation fails.
  */
 export interface ResultError {
-    /**
-     * Error code representing the type of error
-     * @format int
-     */
-    code?: number;
+  /**
+   * Error code representing the type of error
+   * @format int
+   */
+  code?: number;
 
-    /**
-     * Human-readable error message
-     */
-    message?: string;
+  /**
+   * Human-readable error message
+   */
+  message?: string;
 
-    /**
-     * Additional error data
-     */
-    data?: { [key: string]: unknown };
+  /**
+   * Additional error data
+   */
+  data?: { [key: string]: unknown };
 }
 
 export interface Pagination {
-    /**
-     * Maximum number of items to return
-     * @format int
-     */
-    limit?: number;
+  /**
+   * Maximum number of items to return
+   * @format int
+   */
+  limit?: number;
 
-    /**
-     * Number of items to skip before starting to collect the result set
-     * @format int
-     */
-    offset?: number;
+  /**
+   * Number of items to skip before starting to collect the result set
+   * @format int
+   */
+  offset?: number;
 }

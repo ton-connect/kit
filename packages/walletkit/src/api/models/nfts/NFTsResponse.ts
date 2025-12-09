@@ -6,14 +6,14 @@
  *
  */
 
-import { NFT } from './NFT';
+import { NFT } from "./NFT";
 
 /**
  * Response containing a list of NFT tokens.
  */
 export interface NFTsResponse {
-    /**
-     * List of NFTs
-     */
-    nfts: NFT[];
+  /**
+   * List of NFTs
+   */
+  nfts: NFT[];
 }

@@ -10,31 +10,25 @@
  * Information about a decentralized application (dApp) connecting via TON Connect.
  */
 export interface DAppInfo {
-    /**
-     * Display name of the dApp
-     */
-    name?: string;
+  /**
+   * Display name of the dApp
+   */
+  name?: string;
 
-    /**
-     * Brief description of the dApp's purpose
-     */
-    description?: string;
+  /**
+   * Brief description of the dApp's purpose
+   */
+  description?: string;
 
-    /**
-     * Main website URL of the dApp
-     * @format url
-     */
-    url?: string;
+  /**
+   * Main website URL of the dApp
+   * @format url
+   */
+  url?: string;
 
-    /**
-     * Icon/logo URL of the dApp
-     * @format url
-     */
-    iconUrl?: string;
-
-    /**
-     * TON Connect manifest URL containing dApp metadata
-     * @format url
-     */
-    manifestUrl?: string;
+  /**
+   * Icon/logo URL of the dApp
+   * @format url
+   */
+  iconUrl?: string;
 }
