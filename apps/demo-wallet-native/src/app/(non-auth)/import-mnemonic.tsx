@@ -78,6 +78,7 @@ const ImportMnemonicScreen: FC = () => {
 
                 <View style={styles.inputContainer}>
                     <AppInput
+                        testID="mnemonic-input"
                         autoCapitalize="none"
                         autoComplete="off"
                         autoCorrect={false}
@@ -108,6 +109,7 @@ const ImportMnemonicScreen: FC = () => {
 
             <View style={styles.buttons}>
                 <AppButton.Container
+                    testID="import-wallet-button"
                     colorScheme="primary"
                     disabled={isLoading || (wordCount !== 12 && wordCount !== 24)}
                     onPress={handleImport}

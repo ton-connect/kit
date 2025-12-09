@@ -35,6 +35,7 @@ export const TabControl = <T extends string>({
         <View style={[styles.container, style]}>
             {options.map((option) => (
                 <TouchableWithoutFeedback
+                    testID={`tab-control-${option.value}`}
                     accessibilityRole="button"
                     key={option.value}
                     onPress={() => onOptionPress?.(option.value)}

@@ -52,6 +52,7 @@ export const TonConnectLinkInput: FC<TonConnectLinkInputProps> = ({
 
             <View style={styles.inputContainer}>
                 <AppInput
+                    testID="tonconnect-url"
                     style={styles.input}
                     placeholder={placeholder}
                     placeholderTextColor={theme.colors.text.secondary}
@@ -63,7 +64,7 @@ export const TonConnectLinkInput: FC<TonConnectLinkInputProps> = ({
                     autoCorrect={false}
                 />
 
-                <ActiveTouchAction onPress={handlePasteFromClipboard} style={styles.pasteButton}>
+                <ActiveTouchAction onPress={handlePasteFromClipboard} style={styles.pasteButton} testID="paste-button">
                     <Ionicons name="clipboard-outline" size={20} color={theme.colors.accent.primary} />
                 </ActiveTouchAction>
             </View>

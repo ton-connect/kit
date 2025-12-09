@@ -137,6 +137,8 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     onPrimaryPress={handleApprove}
                     onSecondaryPress={handleReject}
                     isLoading={isLoading}
+                    primaryTestID="send-transaction-approve"
+                    secondaryTestID="send-transaction-reject"
                 />
             </View>
         </AppBottomSheet>

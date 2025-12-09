@@ -17,6 +17,7 @@ export interface ActiveTouchActionProps extends PropsWithChildren {
     disabled?: boolean;
     scaling?: number;
     hitSlop?: number;
+    testID?: string;
 }
 
 export const ActiveTouchAction: FC<ActiveTouchActionProps> = ({
@@ -27,6 +28,7 @@ export const ActiveTouchAction: FC<ActiveTouchActionProps> = ({
     scaling = 0.96,
     children,
     hitSlop,
+    testID,
 }) => {
     const pressed = useSharedValue(false);
 
@@ -48,6 +50,7 @@ export const ActiveTouchAction: FC<ActiveTouchActionProps> = ({
 
     return (
         <TouchableWithoutFeedback
+            testID={testID}
             accessibilityRole="button"
             disabled={disabled}
             hitSlop={hitSlop}

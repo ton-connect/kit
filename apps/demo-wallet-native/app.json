@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.heyllog.tonwallet"
+      "bundleIdentifier": "org.ton.wallet"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.heyllog.tonwallet"
+      "package": "org.ton.wallet"
     },
     "web": {
       "favicon": "./assets/favicon.png"

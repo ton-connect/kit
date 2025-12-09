@@ -138,6 +138,8 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
                         onSecondaryPress={handleReject}
                         isLoading={isLoading}
                         isPrimaryDisabled={!selectedWallet}
+                        primaryTestID="connect-approve"
+                        secondaryTestID="connect-reject"
                     />
                 </View>
             </AppBottomSheet>

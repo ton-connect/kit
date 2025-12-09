@@ -182,6 +182,8 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
                     onPrimaryPress={handleApprove}
                     onSecondaryPress={handleReject}
                     isLoading={isLoading}
+                    primaryTestID="sign-data-approve"
+                    secondaryTestID="sign-data-reject"
                 />
             </View>
         </AppBottomSheet>

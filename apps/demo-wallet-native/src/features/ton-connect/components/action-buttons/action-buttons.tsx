@@ -19,6 +19,8 @@ interface ActionButtonsProps {
     onSecondaryPress: () => void;
     isLoading?: boolean;
     isPrimaryDisabled?: boolean;
+    primaryTestID?: string;
+    secondaryTestID?: string;
 }
 
 export const ActionButtons: FC<ActionButtonsProps> = ({
@@ -28,10 +30,13 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
     onSecondaryPress,
     isLoading = false,
     isPrimaryDisabled = false,
+    primaryTestID,
+    secondaryTestID,
 }) => {
     return (
         <View style={styles.actions}>
             <AppButton.Container
+                testID={primaryTestID}
                 onPress={onPrimaryPress}
                 disabled={isLoading || isPrimaryDisabled}
                 style={styles.button}
@@ -40,6 +45,7 @@ export const ActionButtons: FC<ActionButtonsProps> = ({
             </AppButton.Container>
 
             <AppButton.Container
+                testID={secondaryTestID}
                 colorScheme="secondary"
                 onPress={onSecondaryPress}
                 disabled={isLoading}
