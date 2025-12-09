@@ -1,0 +1,62 @@
+appId: org.ton.wallet
+env:
+    PASSWORD: 1111
+    DAPP_URL: https://allure-test-runner.vercel.app/e2e
+---
+- launchApp
+
+- runFlow:
+    file: flows/unlock-wallet.yaml
+    env:
+        PASSWORD: ${PASSWORD}
+
+- openLink:
+    link: ${DAPP_URL}
+    browser: true
+
+- assertVisible:
+    text: "Connect Wallet"
+    enabled: true
+
+- tapOn: "Connect Wallet"
+
+# Подождать появления модального окна с QR/URL
+- assertVisible:
+    text: "Copy Link"
+
+# === ШАГ 3: Скопировать tonconnect URL ===
+- tapOn: "Copy Link"
+
+# === ШАГ 4: Вернуться в кошелёк ===
+- launchApp:
+    appId: org.ton.wallet
+    stopApp: false
+
+# === ШАГ 5: Открыть экран Connect dApp ===
+- tapOn:
+    id: scan-button
+
+# Подождать экран Connect to dApp
+- assertVisible:
+    id: tonconnect-url
+
+# === ШАГ 6: Вставить URL из буфера обмена ===
+- tapOn:
+    id: paste-button
+
+# === ШАГ 7: Нажать Connect ===
+- tapOn:
+    id: tonconnect-process
+
+# === ШАГ 8: Подтвердить подключение ===
+- assertVisible:
+    id: connect-approve
+- tapOn:
+    id: connect-approve
+
+# === ШАГ 9: Проверить успешное подключение ===
+# Вернуться в браузер и проверить что кнопка изменилась
+- openLink:
+    link: ${DAPP_URL}
+    browser: true
+- assertNotVisible: "Connect Wallet"

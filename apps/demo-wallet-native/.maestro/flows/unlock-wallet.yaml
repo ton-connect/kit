@@ -1,0 +1,24 @@
+# Unlock Wallet Flow
+# Переиспользуемый flow для разблокировки кошелька
+#
+# Использование в других тестах:
+# - runFlow:
+#     file: flows/unlock-wallet.yaml
+#     env:
+#       PASSWORD: ${PASSWORD}
+
+appId: org.ton.wallet
+---
+# Ввести пароль
+- tapOn:
+    id: unlock-password-input
+- inputText: ${PASSWORD}
+- hideKeyboard
+
+# Нажать Continue
+- tapOn:
+    id: unlock-submit-button
+
+# Дождаться главного экрана
+- assertVisible:
+    id: ton-balance-card

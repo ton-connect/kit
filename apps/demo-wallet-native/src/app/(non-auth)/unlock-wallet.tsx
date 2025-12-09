@@ -92,6 +92,7 @@ const UnlockWalletScreen: FC = () => {
                 <AppText style={styles.subtitle}>Enter your password to unlock your wallet.</AppText>
 
                 <AppInput
+                    testID="unlock-password-input"
                     autoCapitalize="none"
                     autoComplete="off"
                     autoCorrect={false}
@@ -107,11 +108,11 @@ const UnlockWalletScreen: FC = () => {
             </View>
 
             <View style={styles.buttons}>
-                <AppButton.Container colorScheme="primary" disabled={isLoading} onPress={handleSubmit}>
+                <AppButton.Container testID="unlock-submit-button" colorScheme="primary" disabled={isLoading} onPress={handleSubmit}>
                     <AppButton.Text>Continue</AppButton.Text>
                 </AppButton.Container>
 
-                <AppButton.Container colorScheme="secondary" disabled={isLoading} onPress={handleReset}>
+                <AppButton.Container testID="unlock-reset-button" colorScheme="secondary" disabled={isLoading} onPress={handleReset}>
                     <AppButton.Text>Reset Wallet</AppButton.Text>
                 </AppButton.Container>
             </View>
