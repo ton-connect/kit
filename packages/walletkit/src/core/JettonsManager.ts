@@ -17,14 +17,15 @@ import { globalLogger } from './Logger';
 import { EventEmitter } from './EventEmitter';
 import { JettonInfo, AddressJetton, JettonError, JettonErrorCode, JettonsAPI } from '../types/jettons';
 import { NetworkManager } from './NetworkManager';
+import { Jetton, Network } from '../api/models';
 
 const log = globalLogger.createChild('JettonsManager');
 
 /**
  * Creates a cache key that includes the network ID
  */
-function createCacheKey(network: CHAIN, address: string): string {
-    return `${network}:${address}`;
+function createCacheKey(network: Network, address: string): string {
+    return `${network.chainId}:${address}`;
 }
 
 /**
@@ -63,7 +64,7 @@ export class JettonsManager implements JettonsAPI {
             ) {
                 const network = (emulationResult as { network: CHAIN }).network;
                 this.addJettonsFromEmulationMetadata(
-                    network,
+                    Network.custom(network),
                     (emulationResult as { metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }> })
                         .metadata,
                 );
@@ -74,7 +75,7 @@ export class JettonsManager implements JettonsAPI {
     /**
      * Add TON native token to cache for a specific network
      */
-    private addTonToCache(network: CHAIN): void {
+    private addTonToCache(network: Network): void {
         const cacheKey = createCacheKey(network, 'TON');
         this.cache.set(cacheKey, {
             address: 'TON',
@@ -96,7 +97,7 @@ export class JettonsManager implements JettonsAPI {
      * @param jettonAddress - The jetton master address
      * @param network - The network to query (required)
      */
-    async getJettonInfo(jettonAddress: string, network: CHAIN): Promise<JettonInfo | null> {
+    async getJettonInfo(jettonAddress: string, network: Network): Promise<JettonInfo | null> {
         const targetNetwork = network;
 
         try {
@@ -162,10 +163,10 @@ export class JettonsManager implements JettonsAPI {
      */
     async getAddressJettons(
         userAddress: string,
-        network: CHAIN,
+        network: Network,
         offset: number = 0,
         limit: number = 50,
-    ): Promise<AddressJetton[]> {
+    ): Promise<Jetton[]> {
         const targetNetwork = network;
 
         try {
@@ -188,7 +189,7 @@ export class JettonsManager implements JettonsAPI {
                 return [];
             }
 
-            const addressJettons: AddressJetton[] = [];
+            const addressJettons: Jetton[] = [];
 
             for (const item of response.jettons) {
                 addressJettons.push(item);
@@ -209,7 +210,7 @@ export class JettonsManager implements JettonsAPI {
     /**
      * Add jetton info to cache from emulation data for a specific network
      */
-    addJettonFromEmulation(network: CHAIN, jettonAddress: string, emulationInfo: EmulationTokenInfoMasters): void {
+    addJettonFromEmulation(network: Network, jettonAddress: string, emulationInfo: EmulationTokenInfoMasters): void {
         try {
             const normalizedAddress = this.normalizeAddress(jettonAddress);
             const cacheKey = createCacheKey(network, normalizedAddress);
@@ -243,7 +244,7 @@ export class JettonsManager implements JettonsAPI {
      * Add multiple jettons from emulation metadata for a specific network
      */
     addJettonsFromEmulationMetadata(
-        network: CHAIN,
+        network: Network,
         metadata: Record<
             string,
             {
@@ -286,6 +287,7 @@ export class JettonsManager implements JettonsAPI {
     /**
      * Normalize jetton address for consistent caching
      */
+    // ????
     private normalizeAddress(address: string): string {
         if (address === 'TON') {
             return 'TON';
@@ -323,11 +325,11 @@ export class JettonsManager implements JettonsAPI {
     /**
      * Clear the jetton cache for all networks or a specific network
      */
-    clearCache(network?: CHAIN): void {
+    clearCache(network?: Network): void {
         if (network) {
             // Clear only entries for the specific network
             for (const key of this.cache.keys()) {
-                if (key.startsWith(`${network}:`)) {
+                if (key.startsWith(`${network.chainId}:`)) {
                     this.cache.delete(key);
                 }
             }

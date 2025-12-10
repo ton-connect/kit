@@ -12,11 +12,11 @@ export { AssetType } from './core/AssetType';
 export type { DAppInfo } from './core/DAppInfo';
 export type { ExtraCurrencies } from './core/ExtraCurrencies';
 export { Network } from './core/Network';
-export type { PreparedSignData, SignDataPayload } from './core/PreparedSignData';
+export type { PreparedSignData, SignDataPayload, UnpreparedSignData } from './core/PreparedSignData';
 export type { UserFriendlyAddress, Hex, Base64String, LogicalTime, ResultError, Pagination } from './core/Primitives';
 export { Result } from './core/Primitives';
 export type { ProofMessage } from './core/ProofMessage';
-export { SendMode, SendModeFlag, SendModeBase } from './core/SendMode';
+export { SendMode, SendModeFlag, SendModeBase, SendModeToValue, SendModeFromValue } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
 export type { TokenAnimation } from './core/TokenAnimation';
@@ -59,10 +59,14 @@ export type { TONTransferRequest } from './tons/TONTransferRequest';
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
-export type { TransactionMoneyFlow } from './transactions/TransactionMoneyFlow';
+export type { TransactionTraceMoneyFlow as TransactionMoneyFlow } from './transactions/TransactionTraceMoneyFlow';
 export type { TransactionRequest, TransactionRequestMessage } from './transactions/TransactionRequest';
 export * from './transactions/TransactionTrace';
 export type { TransactionEmulatedPreview } from './transactions/emulation/TransactionEmulatedPreview';
 export type { TransactionEmulatedTrace } from './transactions/emulation/TransactionEmulatedTrace';
 export type { SendTransactionResponse } from './transactions/SendTransactionResponse';
 export type { TransactionsResponse } from './transactions/TransactionsResponse';
+export type {
+    TransactionTraceMoneyFlow,
+    TransactionTraceMoneyFlowItem,
+} from './transactions/TransactionTraceMoneyFlow';

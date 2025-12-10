@@ -23,7 +23,7 @@ import {
     TransactionEmulatedTrace,
     TransactionsResponse,
 } from '../../api/models';
-import { asAddressFriendly, asHex, asMaybeAddressFriendly } from '../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../primitive';
 import { AddressBookRowV3, MetadataV3, toAddressBook } from './v3/AddressBookRowV3';
 // Types for Toncenter emulation endpoint response
 

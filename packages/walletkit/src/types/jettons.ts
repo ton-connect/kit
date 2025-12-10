@@ -8,7 +8,7 @@
 
 // Jettons API types based on JETTONS.md specification
 
-import { CHAIN } from '@tonconnect/protocol';
+import { Jetton, Network } from '../api/models';
 
 // === Core Jetton Information ===
 export interface JettonInfo {
@@ -149,7 +149,7 @@ export interface JettonsAPI {
      * @param jettonAddress - The jetton master address
      * @param network - The network to query (required)
      */
-    getJettonInfo(jettonAddress: string, network: CHAIN): Promise<JettonInfo | null>;
+    getJettonInfo(jettonAddress: string, network: Network): Promise<JettonInfo | null>;
 
     /**
      * Get all jettons for a user address
@@ -158,7 +158,7 @@ export interface JettonsAPI {
      * @param offset - Pagination offset
      * @param limit - Pagination limit
      */
-    getAddressJettons(userAddress: string, network: CHAIN, offset?: number, limit?: number): Promise<AddressJetton[]>;
+    getAddressJettons(userAddress: string, network: Network, offset?: number, limit?: number): Promise<Jetton[]>;
 
     // === Validation ===
     /** Validate jetton address format */

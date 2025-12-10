@@ -9,13 +9,24 @@
 import { Address, Cell } from '@ton/core';
 import { parseInternal } from '@truecarry/tlb-abi';
 
-import { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
+import {
+    EmulationTokenInfoWallets,
+    ToncenterEmulationResponse,
+    toTransactionEmulatedTrace,
+} from '../types/toncenter/emulation';
 import { ErrorInfo } from '../errors/WalletKitError';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
-import { Result, TransactionEmulatedPreview, TransactionRequest } from '../api/models';
+import {
+    Result,
+    TransactionEmulatedPreview,
+    TransactionTraceMoneyFlow,
+    TransactionTraceMoneyFlowItem,
+    TransactionRequest,
+    SendModeToValue,
+    AssetType,
+} from '../api/models';
 import { Wallet } from '../api/interfaces';
-import { SendModeValue } from '../api/models/core/SendMode';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -27,33 +38,6 @@ export interface ToncenterMessage {
     body: string;
 }
 
-export type Asset =
-    | {
-          type: 'ton';
-      }
-    | {
-          type: 'jetton';
-          jetton: string;
-      };
-
-export type MoneyFlowRow = Asset & {
-    from: string; // address
-    to: string; // address
-    amount: string;
-};
-
-export type MoneyFlowSelf = Asset & {
-    amount: string;
-};
-
-export interface MoneyFlow {
-    outputs: string; // amount of TON our account lost
-    inputs: string; // amount of TON our account gained
-    allJettonTransfers: MoneyFlowRow[]; // all jetton transfers
-    ourTransfers: MoneyFlowSelf[];
-    ourAddress: string | null;
-}
-
 export type ToncenterEmulationResult =
     | {
           result: 'success';
@@ -63,14 +47,6 @@ export type ToncenterEmulationResult =
           result: 'error';
           emulationError: ErrorInfo;
       };
-
-// ????
-export interface ToncenterEmulationHook {
-    emulation: ToncenterEmulationResult;
-    moneyFlow: MoneyFlow;
-    isCorrect: boolean;
-    error: string | null;
-}
 
 const TON_PROXY_ADDRESSES = [
     '0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C',
@@ -102,7 +78,7 @@ export function createToncenterMessage(
                 payload: m.payload,
                 stateInit: m.stateInit,
                 extraCurrency: m.extraCurrency,
-                mode: m.mode ? SendModeValue(m.mode) : undefined,
+                mode: m.mode ? SendModeToValue(m.mode) : undefined,
             })),
         }),
     };
@@ -146,14 +122,14 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
 /**
  * Processes toncenter emulation result to extract money flow
  */
-export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): MoneyFlow {
+export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): TransactionTraceMoneyFlow {
     if (!emulation || !emulation.transactions) {
         return {
             outputs: '0',
             inputs: '0',
             allJettonTransfers: [],
             ourTransfers: [],
-            ourAddress: null,
+            ourAddress: undefined,
         };
     }
 
@@ -186,7 +162,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         .toString();
 
     // Process jetton transfers
-    const jettonTransfers: MoneyFlowRow[] = [];
+    const jettonTransfers: TransactionTraceMoneyFlowItem[] = [];
 
     for (const t of Object.values(emulation.transactions)) {
         if (!t.in_msg?.source) {
@@ -222,22 +198,22 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         const jettonAddress = Address.parse(tokenInfo.extra.jetton);
 
         jettonTransfers.push({
-            from: from.toRawString().toUpperCase(),
-            to: to.toRawString().toUpperCase(),
-            jetton: jettonAddress.toRawString().toUpperCase(),
+            fromAddress: from.toString(),
+            toAddress: to.toString(),
+            tokenAddress: jettonAddress.toRawString().toUpperCase(),
             amount: jettonAmount.toString(),
-            type: 'jetton',
+            assetType: AssetType.jetton,
         });
     }
 
     const ourAddress = Address.parse(firstTx.account);
 
-    const selfTransfers: MoneyFlowSelf[] = [];
+    const selfTransfers: TransactionTraceMoneyFlowItem[] = [];
     const ourJettonTransfersByAddress = jettonTransfers.reduce<Record<string, bigint>>((acc, transfer) => {
-        if (transfer.type !== 'jetton') {
+        if (transfer.assetType !== AssetType.jetton) {
             return acc;
         }
-        const jettonKey = transfer.jetton?.toString() || 'unknown';
+        const jettonKey = transfer.tokenAddress?.toString() || 'unknown';
 
         // TON Proxy
         if (TON_PROXY_ADDRESSES.includes(jettonKey)) {
@@ -251,23 +227,25 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
 
         // Add to balance if receiving tokens (to our address)
         // Subtract from balance if sending tokens (from our address)
-        if (ourAddress && transfer.to === ourAddress.toRawString().toUpperCase()) {
+        if (ourAddress && transfer.toAddress === ourAddress.toString()) {
             acc[rawKey] += BigInt(transfer.amount);
         }
-        if (ourAddress && transfer.from === ourAddress.toRawString().toUpperCase()) {
+        if (ourAddress && transfer.fromAddress === ourAddress.toString()) {
             acc[rawKey] -= BigInt(transfer.amount);
         }
 
         return acc;
     }, {});
 
-    const ourJettonTransfers = Object.entries(ourJettonTransfersByAddress).map(([jettonKey, amount]) => ({
-        type: 'jetton' as const,
-        jetton: Address.parse(jettonKey).toRawString().toUpperCase(),
-        amount: amount.toString(),
-    }));
+    const ourJettonTransfers: TransactionTraceMoneyFlowItem[] = Object.entries(ourJettonTransfersByAddress).map(
+        ([jettonKey, amount]) => ({
+            assetType: AssetType.jetton,
+            tokenAddress: Address.parse(jettonKey).toRawString().toUpperCase(),
+            amount: amount.toString(),
+        }),
+    );
     selfTransfers.push({
-        type: 'ton',
+        assetType: AssetType.ton,
         amount: (BigInt(inputs) - BigInt(outputs)).toString(),
     });
     selfTransfers.push(...ourJettonTransfers);
@@ -318,7 +296,7 @@ export async function createTransactionPreview(
 
     return {
         result: Result.success,
-        emulationResult: emulationResult,
+        trace: toTransactionEmulatedTrace(emulationResult),
         moneyFlow,
     };
 }

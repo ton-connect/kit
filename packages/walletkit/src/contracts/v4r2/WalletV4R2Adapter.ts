@@ -235,7 +235,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address);
+            const state = await this.client.getAccountState(this.walletContract.address.toString);
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });

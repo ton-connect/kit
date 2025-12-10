@@ -37,7 +37,6 @@ import { createTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
 import { WalletManager } from './WalletManager';
-import { IWallet } from '../types';
 import {
     EventConnectApproval,
     EventSignDataResponse,
@@ -52,8 +51,9 @@ import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize, Base64ToHex } from '../utils/base64';
 import { getAddressFromWalletId } from '../utils/walletId';
-import { PreparedSignData } from '../api/models';
+import { PreparedSignData, TransactionRequest } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
+import { Wallet } from '../api/interfaces';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -73,7 +73,7 @@ export class RequestProcessor {
     /**
      * Helper to get wallet from event, supporting both walletId and walletAddress
      */
-    private getWalletFromEvent(event: { walletId?: string }): IWallet | undefined {
+    private getWalletFromEvent(event: { walletId?: string }): Wallet | undefined {
         if (event.walletId) {
             return this.walletManager.getWallet(event.walletId);
         }
@@ -383,7 +383,7 @@ export class RequestProcessor {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
                     const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
+                    await CallForSuccess(() => client.sendBoc(event.result.signedBoc));
                 }
 
                 // Send approval response
@@ -401,7 +401,7 @@ export class RequestProcessor {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
                     const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(Buffer.from(signedBoc, 'base64')));
+                    await CallForSuccess(() => client.sendBoc(signedBoc));
                 }
 
                 // Send approval response
@@ -615,15 +615,11 @@ export class RequestProcessor {
                 }
 
                 // Sign data with wallet
-
-                const tonConnectData = PrepareSignData(event.request, wallet.getAddress(), domainUrl);
-                const signData: PreparedSignData = {
+                const signData = PrepareSignData({
                     payload: event.request,
                     domain: domainUrl,
-                    address: walletAddress ?? wallet.getAddress(),
-                    timestamp: Math.floor(Date.now() / 1000),
-                    hash: '',
-                };
+                    address: wallet.getAddress(),
+                });
                 const signature = await wallet.getSignedSignData(signData);
                 const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
 
@@ -881,18 +877,15 @@ export class RequestProcessor {
 /**
  * Internal helper to sign transaction
  */
-export async function signTransactionInternal(
-    wallet: IWallet,
-    request: ConnectTransactionParamContent,
-): Promise<string> {
+export async function signTransactionInternal(wallet: Wallet, request: TransactionRequest): Promise<string> {
     const signedBoc = await wallet.getSignedSendTransaction(request, {
         fakeSignature: false,
     });
 
     log.debug('Signing transaction', {
-        messagesCount: request.messages.length,
-        from: request.from,
-        validUntil: request.valid_until,
+        messagesNumber: request.messages.length,
+        fromAddress: request.fromAddress,
+        validUntil: request.validUntil,
     });
 
     return signedBoc;

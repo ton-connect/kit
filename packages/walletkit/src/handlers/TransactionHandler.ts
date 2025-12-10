@@ -15,11 +15,12 @@ import {
 } from '@tonconnect/protocol';
 
 import type { EventTransactionRequest, TransactionPreview, ValidationResult, TonWalletKitOptions } from '../types';
-import type {
-    RawBridgeEvent,
-    EventHandler,
-    RawBridgeEventTransaction,
-    ConnectTransactionParamContent,
+import {
+    type RawBridgeEvent,
+    type EventHandler,
+    type RawBridgeEventTransaction,
+    type ConnectTransactionParamContent,
+    toTransactionRequest,
 } from '../types/internal';
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
@@ -39,7 +40,7 @@ import { getUnixtime } from '../utils/time';
 import { Base64Normalize } from '../utils/base64';
 import { getAddressFromWalletId } from '../utils/walletId';
 import { Wallet } from '../api/interfaces';
-import { TransactionEmulatedPreview } from '../api/models';
+import { Network, Result, TransactionEmulatedPreview, TransactionRequest } from '../api/models';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -115,9 +116,9 @@ export class TransactionHandler
         try {
             preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
             // Emit emulation result event for jetton caching and other components
-            if (preview.result === 'success' && preview.emulationResult) {
+            if (preview.result === 'success' && preview.trace) {
                 try {
-                    this.eventEmitter.emit('emulation:result', preview.emulationResult);
+                    this.eventEmitter.emit('emulation:result', preview.trace);
                 } catch (error) {
                     log.warn('Error emitting emulation result event', { error });
                 }
@@ -125,12 +126,12 @@ export class TransactionHandler
         } catch (error) {
             log.error('Failed to create transaction preview', { error });
             preview = {
-                emulationError: {
+                error: {
                     code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
                     message: 'Unknown emulation error',
                 },
-                result: 'error',
-            } as TransactionPreviewEmulationError;
+                result: Result.failure,
+            };
         }
 
         const txEvent: EventTransactionRequest = {
@@ -176,7 +177,7 @@ export class TransactionHandler
         event: RawBridgeEventTransaction,
         wallet: Wallet,
     ): {
-        result: ConnectTransactionParamContent | undefined;
+        result: TransactionRequest | undefined;
         validation: ValidationResult;
     } {
         let errors: string[] = [];
@@ -219,7 +220,7 @@ export class TransactionHandler
             }
 
             return {
-                result: params,
+                result: toTransactionRequest(params),
                 validation: { isValid: errors.length === 0, errors: errors },
             };
         } catch (error) {
