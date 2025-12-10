@@ -12,17 +12,30 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { Row } from '../grid';
 
-export const ScreenHeaderContainer: FC<ViewProps> = ({ style, ...props }) => {
-    return <Row style={[styles.container, style]} {...props} />;
+interface Props extends ViewProps {
+    type?: 'screen' | 'modal';
+}
+
+export const ScreenHeaderContainer: FC<Props> = ({ style, type = 'screen', ...props }) => {
+    return (
+        <Row
+            style={[styles.container, type === 'screen' && styles.screen, type === 'modal' && styles.modal, style]}
+            {...props}
+        />
+    );
 };
 
 const styles = StyleSheet.create(({ sizes }) => ({
     container: {
-        width: '100%',
         position: 'relative',
-        height: 40,
+        height: 45,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: sizes.space.vertical,
+    },
+    screen: {},
+    modal: {
+        marginTop: sizes.page.paddingTop * 2,
+        marginHorizontal: sizes.page.paddingHorizontal,
     },
 }));

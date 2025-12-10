@@ -1,4 +1,4 @@
-appId: org.ton.wallet
+appId: org.ton.demowallet
 env:
     PASSWORD: 1111
     DAPP_URL: https://allure-test-runner.vercel.app/e2e
@@ -21,25 +21,14 @@ env:
 - tapOn: "Connect Wallet"
 
 - assertVisible:
-    text: "Copy Link"
+    text: "Tonkeeper"
 
-- tapOn: "Copy Link"
-
-- launchApp:
-    appId: org.ton.wallet
-    stopApp: false
-
-- tapOn:
-    id: scan-button
+- tapOn: "Tonkeeper"
 
 - assertVisible:
-    id: tonconnect-url
+    text: "Open"
 
-- tapOn:
-    id: paste-button
-
-- tapOn:
-    id: tonconnect-process
+- tapOn: "Open"
 
 - assertVisible:
     id: connect-approve
@@ -49,4 +38,8 @@ env:
 - openLink:
     link: ${DAPP_URL}
     browser: true
-- assertNotVisible: "Connect Wallet"
+
+- scrollUntilVisible:
+    element: "Disconnect Wallet"
+
+- tapOn: "Disconnect Wallet"

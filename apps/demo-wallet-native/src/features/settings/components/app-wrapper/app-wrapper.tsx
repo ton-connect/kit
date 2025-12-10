@@ -14,6 +14,7 @@ import { useWalletStore } from '@ton/demo-core';
 import { useInitialRedirect } from 'src/features/settings/hooks/use-initial-redirect';
 
 import { useAppFonts } from '../../hooks/use-app-fonts';
+import { useDeepLinkHandler } from '../../hooks/use-deep-link-handler';
 import { useTheme } from '../../hooks/use-theme';
 import { useWalletDataUpdater } from '../../hooks/use-wallet-data-updater';
 import { setIsAppReady } from '../../store/actions/is-app-ready';
@@ -34,6 +35,7 @@ export const AppWrapper: FC<PropsWithChildren> = ({ children }) => {
 
     useInitialRedirect(isLoaderShown);
     useWalletDataUpdater();
+    useDeepLinkHandler();
 
     useEffect(() => {
         // eslint-disable-next-line no-undef

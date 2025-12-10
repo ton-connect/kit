@@ -1,4 +1,4 @@
-appId: org.ton.wallet
+appId: org.ton.demowallet
 ---
 - tapOn:
     id: unlock-password-input

@@ -9,7 +9,7 @@
 import type { EventConnectRequest, IWallet } from '@ton/walletkit';
 import { type SavedWallet, useWallet } from '@ton/demo-core';
 import { type FC, useState, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { DAppInfo } from '../dapp-info';
@@ -18,8 +18,9 @@ import { SectionTitle } from '../section-title';
 import { ActionButtons } from '../action-buttons';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
-import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
+import { AppModal } from '@/core/components/app-modal';
 import { AppText } from '@/core/components/app-text';
+import { ScreenHeader } from '@/core/components/screen-header';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock, WalletSelectorModal } from '@/features/wallets';
 
@@ -83,8 +84,13 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
 
     return (
         <>
-            <AppBottomSheet isOpened={isOpen} onClose={handleReject} title="Connect Request" stackBehavior="push">
-                <View style={styles.container}>
+            <AppModal visible={isOpen} onRequestClose={handleReject}>
+                <ScreenHeader.Container type="modal">
+                    <ScreenHeader.Title>Connect Request</ScreenHeader.Title>
+                    <ScreenHeader.CloseButton onPress={handleReject} />
+                </ScreenHeader.Container>
+
+                <ScrollView contentContainerStyle={styles.contentContainer}>
                     <DAppInfo
                         name={request.dAppInfo?.name}
                         description={request.dAppInfo?.description}
@@ -109,13 +115,15 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
                     {selectedWallet && (
                         <View style={styles.walletSection}>
                             <View style={styles.walletHeader}>
-                                <SectionTitle>Wallet:</SectionTitle>
+                                <SectionTitle>Wallet</SectionTitle>
 
-                                <ActiveTouchAction onPress={() => setShowWalletSelector(true)}>
-                                    <AppText style={styles.changeWalletText} textType="caption1">
-                                        Change wallet
-                                    </AppText>
-                                </ActiveTouchAction>
+                                {availableWallets.length > 1 && (
+                                    <ActiveTouchAction onPress={() => setShowWalletSelector(true)}>
+                                        <AppText style={styles.changeWalletText} textType="caption1">
+                                            Change wallet
+                                        </AppText>
+                                    </ActiveTouchAction>
+                                )}
                             </View>
 
                             {selectedWallet && (
@@ -141,25 +149,28 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
                         primaryTestID="connect-approve"
                         secondaryTestID="connect-reject"
                     />
-                </View>
-            </AppBottomSheet>
+                </ScrollView>
 
-            <WalletSelectorModal
-                isOpen={showWalletSelector}
-                onClose={() => setShowWalletSelector(false)}
-                wallets={availableWallets}
-                selectedWallet={selectedWallet}
-                onSelectWallet={setSelectedWallet}
-                title="Select Wallet"
-            />
+                <WalletSelectorModal
+                    isOpen={showWalletSelector}
+                    onClose={() => setShowWalletSelector(false)}
+                    wallets={availableWallets}
+                    selectedWallet={selectedWallet}
+                    onSelectWallet={setSelectedWallet}
+                    title="Select Wallet"
+                />
+            </AppModal>
         </>
     );
 };
 
-const styles = StyleSheet.create(({ colors, sizes }) => ({
-    container: {
+const styles = StyleSheet.create(({ colors, sizes }, runtime) => ({
+    contentContainer: {
+        paddingBottom: runtime.insets.bottom + sizes.page.paddingBottom,
+        paddingHorizontal: sizes.page.paddingHorizontal,
+        marginLeft: runtime.insets.left,
+        marginRight: runtime.insets.right,
         gap: sizes.space.vertical,
-        paddingBottom: sizes.space.vertical,
     },
     permissionsSection: {
         gap: sizes.space.vertical / 2,

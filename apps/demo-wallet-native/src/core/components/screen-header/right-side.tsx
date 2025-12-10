@@ -22,7 +22,7 @@ const styles = StyleSheet.create(({ sizes }) => ({
         alignItems: 'center',
         position: 'absolute',
         right: 0,
-        height: 40,
+        height: 45,
         gap: sizes.space.horizontal / 2,
     },
 }));

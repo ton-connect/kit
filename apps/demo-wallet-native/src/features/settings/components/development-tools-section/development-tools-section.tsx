@@ -33,6 +33,12 @@ export const DevelopmentToolsSection: FC = () => {
         }
     }, [walletKit]);
 
+    const handleLogAllSessions = useCallback(async () => {
+        if (!walletKit) return;
+
+        console.log('sessions', await walletKit.listSessions());
+    }, [walletKit]);
+
     return (
         <View>
             <AppText style={styles.sectionTitle} textType="h3">
@@ -49,6 +55,10 @@ export const DevelopmentToolsSection: FC = () => {
                 </View>
                 <AppButton.Container colorScheme="secondary" onPress={handleTestDisconnectAll}>
                     <AppButton.Text>Disconnect All</AppButton.Text>
+                </AppButton.Container>
+
+                <AppButton.Container colorScheme="secondary" onPress={handleLogAllSessions}>
+                    <AppButton.Text>Log Sessions</AppButton.Text>
                 </AppButton.Container>
             </Block>
         </View>

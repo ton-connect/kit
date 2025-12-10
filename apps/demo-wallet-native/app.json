@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ton Wallet",
     "slug": "ton-wallet",
-    "scheme": "ton-wallet",
+    "scheme": "tonkeeper",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "org.ton.wallet"
+      "bundleIdentifier": "org.ton.demowallet"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "org.ton.wallet"
+      "package": "org.ton.demowallet"
     },
     "web": {
       "favicon": "./assets/favicon.png"

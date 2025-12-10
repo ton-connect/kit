@@ -1,4 +1,4 @@
-appId: org.ton.wallet
+appId: org.ton.demowallet
 env:
     MNEMONIC: ${MNEMONIC || "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"}
     PASSWORD: 1111

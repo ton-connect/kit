@@ -34,12 +34,6 @@ const HistoryScreen: FC = () => {
         setSelectedEvent(null);
     }, []);
 
-    const renderHeader = () => (
-        <ScreenHeader.Container>
-            <ScreenHeader.Title>Transactions</ScreenHeader.Title>
-        </ScreenHeader.Container>
-    );
-
     const renderContent = () => {
         if (error) {
             return <TransactionErrorState error={error} onRetry={handleRefresh} />;
@@ -59,12 +53,14 @@ const HistoryScreen: FC = () => {
     return (
         <View style={styles.container}>
             <TransactionList<Event>
-                contentContainerStyle={styles.list}
                 data={events as Event[]}
                 keyExtractor={(item) => item.eventId}
                 ListHeaderComponent={
                     <>
-                        {renderHeader()}
+                        <ScreenHeader.Container>
+                            <ScreenHeader.Title>Transactions</ScreenHeader.Title>
+                        </ScreenHeader.Container>
+
                         {renderContent()}
                     </>
                 }
@@ -96,8 +92,6 @@ const styles = StyleSheet.create(({ sizes }, runtime) => ({
         marginTop: runtime.insets.top,
         marginLeft: runtime.insets.left,
         marginRight: runtime.insets.right,
-    },
-    list: {
         paddingTop: sizes.page.paddingTop,
         paddingBottom: sizes.page.paddingBottom,
         paddingHorizontal: sizes.page.paddingHorizontal,

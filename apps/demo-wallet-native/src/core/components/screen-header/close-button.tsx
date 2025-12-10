@@ -26,37 +26,10 @@ export const ScreenHeaderCloseButton: FC<Props> = ({ style, onClose, ...props })
     );
 };
 
-const styles = StyleSheet.create(({ colors, sizes }) => ({
-    container: {
-        width: '100%',
-        position: 'relative',
-        height: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: sizes.space.vertical,
-    },
-    backButton: {
-        position: 'absolute',
-        left: 1,
-        top: 8,
-    },
-    title: {
-        color: colors.text.highlight,
-        textAlign: 'center',
-    },
+const styles = StyleSheet.create(() => ({
     closeButton: {
         position: 'absolute',
         top: 6,
-        right: 12,
-    },
-    cancelButton: {
-        position: 'absolute',
-        top: 3,
-        right: 0,
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-    },
-    cancelButtonText: {
-        color: colors.text.highlight,
+        right: 6,
     },
 }));

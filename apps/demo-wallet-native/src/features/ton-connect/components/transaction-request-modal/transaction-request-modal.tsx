@@ -8,7 +8,7 @@
 
 import type { EventTransactionRequest } from '@ton/walletkit';
 import { type FC, useState, useMemo, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { useWallet } from '@ton/demo-core';
 import { useWalletKit } from '@ton/demo-core';
@@ -19,8 +19,9 @@ import { SectionTitle } from '../section-title';
 import { ActionButtons } from '../action-buttons';
 import { SuccessView } from '../success-view';
 
-import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
+import { AppModal } from '@/core/components/app-modal';
 import { AppText } from '@/core/components/app-text';
+import { ScreenHeader } from '@/core/components/screen-header';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
 
@@ -70,15 +71,20 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
 
     if (showSuccess) {
         return (
-            <AppBottomSheet isOpened={isOpen} onClose={() => {}} isDisabledClose isScrollable={false}>
+            <AppModal visible={isOpen} onRequestClose={() => {}}>
                 <SuccessView subtitle="Transaction signed successfully" />
-            </AppBottomSheet>
+            </AppModal>
         );
     }
 
     return (
-        <AppBottomSheet isOpened={isOpen} onClose={handleReject} title="Transaction Request" enableDynamicSizing>
-            <View style={styles.container}>
+        <AppModal visible={isOpen} onRequestClose={handleReject}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>Transaction Request</ScreenHeader.Title>
+                <ScreenHeader.CloseButton onPress={handleReject} />
+            </ScreenHeader.Container>
+
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
                 <DAppInfo
                     name={request.dAppInfo?.name}
                     description={request.dAppInfo?.description}
@@ -140,14 +146,18 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     primaryTestID="send-transaction-approve"
                     secondaryTestID="send-transaction-reject"
                 />
-            </View>
-        </AppBottomSheet>
+            </ScrollView>
+        </AppModal>
     );
 };
 
 const styles = StyleSheet.create(({ colors, sizes }) => ({
+    scrollView: {
+        flex: 1,
+    },
     container: {
         gap: sizes.space.vertical,
+        paddingHorizontal: sizes.page.paddingHorizontal,
         paddingBottom: sizes.space.vertical,
     },
     walletSection: {
