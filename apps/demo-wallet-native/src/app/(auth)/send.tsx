@@ -102,6 +102,7 @@ const SendScreen: FC = () => {
                 };
 
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
+
                 if (walletKit) {
                     await walletKit.handleNewTransaction(currentWallet, result);
                 }
@@ -151,11 +152,7 @@ const SendScreen: FC = () => {
                 <ScreenHeader.Title>Send {getTokenSymbol()}</ScreenHeader.Title>
             </ScreenHeader.Container>
 
-            <TokenSelector
-                onSelectToken={() => setShowTokenSelector(true)}
-                selectedToken={selectedToken}
-                tonBalance={balance || '0'}
-            />
+            <TokenSelector onSelectToken={() => setShowTokenSelector(true)} selectedToken={selectedToken} />
 
             <AmountInput.Container style={styles.amountInput}>
                 <AmountInput.WithTicker amount={amount} onChangeAmount={handleAmountChange} ticker={getTokenSymbol()} />
@@ -221,6 +218,7 @@ const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
         borderBottomColor: colors.navigation.default,
         paddingVertical: sizes.space.vertical,
         marginBottom: sizes.space.vertical * 2,
+        color: colors.text.highlight,
     },
     addressLabel: {
         color: colors.text.secondary,

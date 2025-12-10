@@ -32,7 +32,7 @@ export const DangerZoneSection: FC = () => {
                     style: 'destructive',
                     onPress: () => {
                         clearWallet();
-                        router.replace('/(non-auth)/welcome');
+                        router.replace('/(non-auth)/new-password');
                     },
                 },
             ],

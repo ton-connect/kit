@@ -10,17 +10,19 @@ import type { FC } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Column } from '../grid';
+import { Row } from '../grid';
 
 export const ScreenHeaderRightSide: FC<ViewProps> = ({ style, ...props }) => {
-    return <Column style={[styles.container, style]} {...props} />;
+    return <Row style={[styles.container, style]} {...props} />;
 };
 
-const styles = StyleSheet.create(() => ({
+const styles = StyleSheet.create(({ sizes }) => ({
     container: {
         justifyContent: 'center',
+        alignItems: 'center',
         position: 'absolute',
         right: 0,
         height: 40,
+        gap: sizes.space.horizontal / 2,
     },
 }));

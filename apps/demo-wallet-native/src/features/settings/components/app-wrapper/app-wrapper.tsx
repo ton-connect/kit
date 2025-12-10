@@ -19,6 +19,7 @@ import { useWalletDataUpdater } from '../../hooks/use-wallet-data-updater';
 import { setIsAppReady } from '../../store/actions/is-app-ready';
 
 import { LoaderCircle } from '@/core/components/loader-circle';
+import { TonConnectHandler } from '@/features/ton-connect';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 void preventAutoHideAsync();
@@ -54,7 +55,13 @@ export const AppWrapper: FC<PropsWithChildren> = ({ children }) => {
     return (
         <View style={[styles.container, isLoaderShown && styles.loaderContainer]}>
             {isLoaderShown && <LoaderCircle size={54} />}
-            {!isLoaderShown && children}
+            {!isLoaderShown && (
+                <>
+                    {children}
+
+                    <TonConnectHandler />
+                </>
+            )}
         </View>
     );
 };

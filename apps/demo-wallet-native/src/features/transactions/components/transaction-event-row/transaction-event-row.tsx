@@ -10,7 +10,7 @@ import type { Event, Action } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 import { type FC, memo } from 'react';
-import { Image, View } from 'react-native';
+import { Image } from 'react-native';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
@@ -18,6 +18,7 @@ import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { Column, Row } from '@/core/components/grid';
+import { isOutgoingTx } from '@/features/transactions/utils';
 
 interface TransactionEventRowProps {
     event: Event;
@@ -52,44 +53,39 @@ export const TransactionEventRow: FC<TransactionEventRowProps> = memo(({ event, 
     const { description, value, accounts, valueImage } = simplePreview;
 
     // Determine if this is an outgoing action by checking if myAddress is the first account (sender)
-    const isOutgoing = accounts.length > 0 && accounts[0]?.address === myAddress;
+    const isOutgoing = isOutgoingTx(accounts, myAddress);
     const isFailed = status === 'failure';
 
     // Determine icon and colors based on action type and status
     const getIconAndColor = () => {
         if (isFailed) {
             return {
-                bgColor: theme.colors.error.foreground,
-                iconColor: theme.colors.error.default,
+                iconColor: theme.colors.text.secondary,
                 iconName: 'close-outline' as const,
             };
         }
 
         if (isOutgoing) {
             return {
-                bgColor: theme.colors.background.block,
-                iconColor: theme.colors.error.default,
+                iconColor: theme.colors.text.secondary,
                 iconName: 'arrow-up-outline' as const,
             };
         }
 
         return {
-            bgColor: theme.colors.background.block,
-            iconColor: theme.colors.success.default,
+            iconColor: theme.colors.text.secondary,
             iconName: 'arrow-down-outline' as const,
         };
     };
 
-    const { bgColor, iconColor, iconName } = getIconAndColor();
+    const { iconColor, iconName } = getIconAndColor();
     const valueColor = isFailed || isOutgoing ? theme.colors.error.default : theme.colors.success.default;
 
     return (
         <ActiveTouchAction disabled={!onPress} onPress={onPress} scaling={0.98}>
             <Block style={[styles.container, style]}>
                 <Row style={styles.leftSide}>
-                    <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
-                        <Ionicons color={iconColor} name={iconName} size={18} />
-                    </View>
+                    <Ionicons style={styles.icon} color={iconColor} name={iconName} size={18} />
 
                     <Column style={styles.typeColumn}>
                         <AppText style={styles.title} textType="body1" numberOfLines={2}>
@@ -138,12 +134,7 @@ const styles = StyleSheet.create(({ colors }) => ({
         marginRight: 6,
         alignItems: 'center',
     },
-    iconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
+    icon: {
         marginRight: 10,
     },
     typeColumn: {

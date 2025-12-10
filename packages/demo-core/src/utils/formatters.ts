@@ -18,9 +18,11 @@ export const formatTimestamp = (timestampSeconds: number): string => {
 /**
  * Formats a blockchain address to a shortened form (first 6 and last 6 characters)
  * @param addr - Full blockchain address
+ * @param count - Number of characters to show from the start and end of the address
  * @returns Shortened address (e.g., "EQAbc...xyz123")
  */
-export const formatAddress = (addr: string): string => {
+export const formatAddress = (addr: string, count = 6): string => {
     if (!addr) return '';
-    return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+
+    return `${addr.slice(0, count)}...${addr.slice(-count)}`;
 };

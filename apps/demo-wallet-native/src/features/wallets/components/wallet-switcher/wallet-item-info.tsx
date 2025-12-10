@@ -6,7 +6,7 @@
  *
  */
 
-import type { SavedWallet } from '@ton/demo-core';
+import { formatAddress, type SavedWallet } from '@ton/demo-core';
 import { type FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -15,10 +15,9 @@ import { AppText } from '@/core/components/app-text';
 
 interface WalletItemInfoProps {
     wallet: SavedWallet;
-    formatAddress: (address: string) => string;
 }
 
-export const WalletItemInfo: FC<WalletItemInfoProps> = ({ wallet, formatAddress }) => {
+export const WalletItemInfo: FC<WalletItemInfoProps> = ({ wallet }) => {
     const networkLabel = wallet.network === 'mainnet' ? 'Mainnet' : 'Testnet';
 
     return (

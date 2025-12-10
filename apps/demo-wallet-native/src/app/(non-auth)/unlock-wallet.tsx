@@ -10,7 +10,7 @@ import React, { type FC, useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useAuth, useWalletInitialization } from '@ton/demo-core';
+import { useAuth, useWalletInitialization, useWallet, useJettons } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -24,6 +24,8 @@ const UnlockWalletScreen: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const { unlock, reset } = useAuth();
+    const { savedWallets, updateBalance } = useWallet();
+    const { refreshJettons } = useJettons();
     const { initialize } = useWalletInitialization();
 
     const handleSubmit = async () => {
@@ -37,9 +39,14 @@ const UnlockWalletScreen: FC = () => {
             }
 
             await initialize();
+            void Promise.allSettled([updateBalance(), refreshJettons()]);
 
-            // Navigate to wallet
-            // navigate('/wallet');
+            if (savedWallets.length === 0) {
+                router.push('/(non-auth)/add-new-wallet');
+
+                return;
+            }
+
             router.push('/(auth)/(tabs)/wallet');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to unlock wallet');

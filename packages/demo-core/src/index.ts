@@ -30,6 +30,7 @@ export {
     useNfts,
     useJettons,
 } from './hooks/useWalletStore';
+export { useFormattedTonBalance, useFormattedAmount } from './hooks/useFormattedBalance';
 export { useWalletInitialization } from './hooks/useWalletInitialization';
 export type { WalletInitializationState } from './hooks/useWalletInitialization';
 

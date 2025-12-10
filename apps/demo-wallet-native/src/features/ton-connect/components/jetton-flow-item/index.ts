@@ -6,4 +6,4 @@
  *
  */
 
-export { TransactionRow } from './transaction-row';
+export { JettonFlowItem } from './jetton-flow-item';

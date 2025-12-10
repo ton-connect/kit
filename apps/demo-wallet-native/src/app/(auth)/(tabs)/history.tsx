@@ -7,7 +7,7 @@
  */
 
 import type { Event } from '@ton/walletkit';
-import { type FC } from 'react';
+import { type FC, useCallback, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -18,11 +18,21 @@ import {
     TransactionEmptyState,
     TransactionLoadingState,
     TransactionErrorState,
+    TransactionDetailsModal,
     useTransactionEvents,
 } from '@/features/transactions';
 
 const HistoryScreen: FC = () => {
     const { events, isInitialLoading, isRefreshing, error, address, handleRefresh } = useTransactionEvents(20);
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+
+    const handleEventPress = useCallback((event: Event) => {
+        setSelectedEvent(event);
+    }, []);
+
+    const handleCloseModal = useCallback(() => {
+        setSelectedEvent(null);
+    }, []);
 
     const renderHeader = () => (
         <ScreenHeader.Container>
@@ -59,7 +69,20 @@ const HistoryScreen: FC = () => {
                     </>
                 }
                 refreshControl={<RefreshControl onRefresh={handleRefresh} refreshing={isRefreshing} />}
-                renderItem={(event) => <TransactionEventRow event={event} myAddress={address || ''} />}
+                renderItem={(event) => (
+                    <TransactionEventRow
+                        event={event}
+                        myAddress={address || ''}
+                        onPress={() => handleEventPress(event)}
+                    />
+                )}
+            />
+
+            <TransactionDetailsModal
+                event={selectedEvent}
+                myAddress={address || ''}
+                visible={selectedEvent !== null}
+                onClose={handleCloseModal}
             />
         </View>
     );

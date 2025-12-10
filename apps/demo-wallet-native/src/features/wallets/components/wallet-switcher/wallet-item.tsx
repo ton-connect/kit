@@ -29,7 +29,6 @@ interface WalletItemProps {
     onChangeEditName: (name: string) => void;
     onSwitch: () => void;
     onRemove: () => void;
-    formatAddress: (address: string) => string;
 }
 
 export const WalletItem: FC<WalletItemProps> = ({
@@ -43,7 +42,6 @@ export const WalletItem: FC<WalletItemProps> = ({
     onChangeEditName,
     onSwitch,
     onRemove,
-    formatAddress,
 }) => {
     return (
         <ActiveTouchAction onPress={onSwitch} disabled={isActive}>
@@ -58,7 +56,7 @@ export const WalletItem: FC<WalletItemProps> = ({
                         />
                     ) : (
                         <>
-                            <WalletItemInfo formatAddress={formatAddress} wallet={wallet} />
+                            <WalletItemInfo wallet={wallet} />
                             <WalletItemActions onEdit={onStartEdit} onRemove={onRemove} />
                         </>
                     )}

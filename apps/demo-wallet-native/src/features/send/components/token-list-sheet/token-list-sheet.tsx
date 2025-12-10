@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useJettons, useWallet } from '@ton/demo-core';
+import { useFormattedTonBalance, useJettons } from '@ton/demo-core';
 import type { AddressJetton } from '@ton/walletkit';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
@@ -34,8 +34,8 @@ interface TokenListSheetProps {
 }
 
 export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSelectTon, onSelectJetton }) => {
-    const { balance: tonBalance } = useWallet();
-    const { userJettons } = useJettons();
+    const { userJettons, formatJettonAmount } = useJettons();
+    const tonBalance = useFormattedTonBalance();
 
     const { theme } = useUnistyles();
 
@@ -106,7 +106,7 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
                         </View>
                         <View style={styles.tokenBalance}>
                             <TextAmount
-                                amount={jetton.balance}
+                                amount={formatJettonAmount(jetton.balance, jetton.decimals)}
                                 decimals={jetton.decimals}
                                 style={styles.balanceAmount}
                             />

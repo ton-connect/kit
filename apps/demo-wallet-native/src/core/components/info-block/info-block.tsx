@@ -74,7 +74,7 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
         alignItems: 'center',
     },
     icon: {
-        marginBottom: sizes.space.vertical * 2,
+        marginBottom: sizes.space.vertical,
     },
     title: {
         color: colors.text.highlight,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
     },
     subtitle: {
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: sizes.space.vertical * 1.5,
         color: colors.text.secondary,
     },
     bottomText: {
@@ -100,6 +100,6 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
         justifyContent: 'center',
         borderRadius: sizes.borderRadius.rounded,
         backgroundColor: colors.text.secondary,
-        marginBottom: sizes.space.vertical * 2,
+        marginBottom: sizes.space.vertical * 1.5,
     },
 }));

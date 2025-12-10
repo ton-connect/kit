@@ -6,11 +6,11 @@
  *
  */
 
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { openURL } from 'expo-linking';
 import { router } from 'expo-router';
 import { type FC, useState } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { RefreshControl, View, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useJettons, useWallet } from '@ton/demo-core';
 
@@ -97,8 +97,15 @@ const WalletHomeScreen: FC = () => {
                 </ActiveTouchAction>
 
                 <ScreenHeader.RightSide>
+                    <ActiveTouchAction onPress={() => router.push('/connect-dapp')}>
+                        <AntDesign color={theme.colors.text.secondary} name="scan" size={20} />
+                    </ActiveTouchAction>
+
                     <ActiveTouchAction onPress={handleOpenExplorer}>
-                        <Ionicons color={theme.colors.text.secondary} name="open-outline" size={20} />
+                        <Image
+                            source={{ uri: 'https://tonviewer.com/android-chrome-192x192.png' }}
+                            style={styles.explorerIcon}
+                        />
                     </ActiveTouchAction>
                 </ScreenHeader.RightSide>
             </ScreenHeader.Container>
@@ -165,5 +172,10 @@ const styles = StyleSheet.create(({ sizes }) => ({
         maxWidth: 150,
         gap: sizes.space.horizontal / 2,
         marginHorizontal: 0,
+    },
+    explorerIcon: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
     },
 }));

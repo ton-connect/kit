@@ -17,23 +17,23 @@ export interface TextAmountProps extends AppTextProps {
     amount: string;
     decimals?: number;
     tokenCode?: string;
-    isIconShown?: boolean;
+    isSymbolShown?: boolean;
     isDecimalsFixed?: boolean;
     hideIfLessThanCent?: boolean;
     isFiat?: boolean;
+    symbol?: string;
 }
-
-const symbol = '$';
 
 export const TextAmount: FC<TextAmountProps> = ({
     amount,
     tokenCode,
-    isIconShown,
+    isSymbolShown,
     style,
     decimals: initialDecimals,
     isDecimalsFixed,
     hideIfLessThanCent,
     isFiat,
+    symbol = '$',
     ...props
 }) => {
     const decimals = useMemo(() => {
@@ -57,8 +57,8 @@ export const TextAmount: FC<TextAmountProps> = ({
         isFiatToken: isFiat,
     });
 
-    const showIcon = isIconShown;
-    const showTokenCode = tokenCode && !showIcon;
+    const showIcon = isSymbolShown;
+    const showTokenCode = !!tokenCode;
 
     return (
         <AppText style={style as TextStyle} {...props}>
