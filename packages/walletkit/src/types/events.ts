@@ -18,16 +18,12 @@ import type {
 
 import {
     BridgeEventBase,
-    ConnectTransactionParamContent,
     EventApprovalBase,
     RawBridgeEventSignData,
     RawBridgeEventTransaction,
     RawBridgeEvent,
 } from './internal';
-import { MoneyFlow } from '../utils/toncenterEmulation';
-import { ToncenterEmulationResponse } from './toncenter/emulation';
 import { Base64String, Hex } from './primitive';
-import { ErrorInfo } from '../errors';
 import { SignDataPayload, TransactionEmulatedPreview, TransactionRequest } from '../api/models';
 
 // export type EventConnectRequest = ConnectRequest;
@@ -169,24 +165,6 @@ export interface ConnectPreview {
     manifestFetchErrorCode?:
         | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
         | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
-}
-
-/**
- * Transaction preview for UI display
- */
-export type TransactionPreview = TransactionPreviewEmulationError | TransactionPreviewEmulationResult;
-
-export interface TransactionPreviewEmulationError {
-    result: 'error';
-    emulationError: ErrorInfo;
-}
-
-export interface TransactionPreviewEmulationResult {
-    result: 'success';
-    /** Estimated total fees */
-    moneyFlow: MoneyFlow;
-    /** Emulation result */
-    emulationResult: ToncenterEmulationResponse;
 }
 
 export type SignDataPreviewText = {

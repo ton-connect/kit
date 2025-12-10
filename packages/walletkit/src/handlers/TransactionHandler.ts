@@ -30,7 +30,6 @@ import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
 import { WalletManager } from '../core/WalletManager';
-import { TransactionPreviewEmulationError } from '../types/events';
 import { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { AnalyticsApi } from '../analytics/sender';
@@ -40,7 +39,7 @@ import { getUnixtime } from '../utils/time';
 import { Base64Normalize } from '../utils/base64';
 import { getAddressFromWalletId } from '../utils/walletId';
 import { Wallet } from '../api/interfaces';
-import { Network, Result, TransactionEmulatedPreview, TransactionRequest } from '../api/models';
+import { Result, TransactionEmulatedPreview, TransactionRequest } from '../api/models';
 
 const log = globalLogger.createChild('TransactionHandler');
 

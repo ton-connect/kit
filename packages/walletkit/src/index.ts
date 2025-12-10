@@ -44,7 +44,6 @@ export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';
 export { Storage } from './storage/Storage';
 export type { ApiClient } from './types/toncenter/ApiClient';
-export type { MoneyFlow, MoneyFlowSelf, MoneyFlowRow } from './utils/toncenterEmulation';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
 export {
