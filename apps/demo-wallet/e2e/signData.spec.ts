@@ -8,9 +8,10 @@
 
 import { config } from 'dotenv';
 
-import { AllureApiClient, createAllureConfig } from './utils';
+import { AllureApiClient, createAllureConfig, preloadTestCases } from './utils';
 import { testWithDemoWalletFixture } from './demo-wallet';
 import { runSignDataTest } from './runTest';
+import { collectAllAllureIds } from './testCasePreloader';
 
 config();
 
@@ -24,6 +25,10 @@ test.beforeAll(async () => {
     try {
         const config = createAllureConfig();
         allureClient = new AllureApiClient(config);
+
+        // Preload all test cases data in parallel
+        const allureIds = collectAllAllureIds();
+        await preloadTestCases(allureClient, allureIds);
     } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Error creating allure client:', error);

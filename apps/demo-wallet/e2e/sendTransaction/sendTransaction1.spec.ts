@@ -6,9 +6,10 @@
  *
  */
 
-import { AllureApiClient, createAllureConfig } from '../utils';
+import { AllureApiClient, createAllureConfig, preloadTestCases } from '../utils';
 import { testWithDemoWalletFixture } from '../demo-wallet';
 import { runSendTransactionTest } from '../runTest';
+import { collectAllAllureIds } from '../testCasePreloader';
 
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
@@ -21,6 +22,10 @@ test.beforeAll(async () => {
     try {
         const config = createAllureConfig();
         allureClient = new AllureApiClient(config);
+
+        // Preload all test cases data in parallel
+        const allureIds = collectAllAllureIds();
+        await preloadTestCases(allureClient, allureIds);
     } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Error creating allure client:', error);

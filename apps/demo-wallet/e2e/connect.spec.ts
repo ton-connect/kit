@@ -12,8 +12,9 @@ import { config } from 'dotenv';
 config({ quiet: true });
 
 import { testWithDemoWalletFixture } from './demo-wallet';
-import { AllureApiClient, createAllureConfig } from './utils';
+import { AllureApiClient, createAllureConfig, preloadTestCases } from './utils';
 import { runConnectTest } from './runTest';
+import { collectAllAllureIds } from './testCasePreloader';
 
 const test = testWithDemoWalletFixture({
     appUrl: process.env.DAPP_URL ?? 'https://allure-test-runner.vercel.app/e2e',
@@ -24,6 +25,10 @@ let allureClient: AllureApiClient;
 test.beforeAll(async () => {
     const config = createAllureConfig();
     allureClient = new AllureApiClient(config);
+
+    // Preload all test cases data in parallel
+    const allureIds = collectAllAllureIds();
+    await preloadTestCases(allureClient, allureIds);
 });
 
 test('Successful Connect @allureId(2294)', async ({ wallet, app, widget }) => {

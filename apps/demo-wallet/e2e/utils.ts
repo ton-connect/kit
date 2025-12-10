@@ -163,7 +163,46 @@ export class AllureApiClient {
         const response = await this.makeRequest(`/api/testcase/${id}`);
         return await response.json();
     }
+
+    /**
+     * Получает информацию о нескольких тест-кейсах параллельно
+     * @param ids - массив ID тест-кейсов
+     * @returns Promise с объектом, где ключ - ID, значение - данные тест-кейса
+     */
+    async getTestCasesByIdBatch(ids: string[]): Promise<Record<string, unknown>> {
+        log.info(`Fetching ${ids.length} test cases in parallel...`);
+        const startTime = Date.now();
+
+        const promises = ids.map(async (id) => {
+            try {
+                const data = await this.getTestCaseById(id);
+                return { id, data };
+            } catch (error) {
+                log.error(`Error fetching test case ${id}:`, error);
+                return { id, data: null };
+            }
+        });
+
+        const results = await Promise.all(promises);
+        const duration = Date.now() - startTime;
+        log.info(`Fetched ${ids.length} test cases in ${duration}ms`);
+
+        return results.reduce(
+            (acc, { id, data }) => {
+                if (data) {
+                    acc[id] = data;
+                }
+                return acc;
+            },
+            {} as Record<string, unknown>,
+        );
+    }
 }
+
+/**
+ * Глобальный кэш для хранения данных тест-кейсов
+ */
+const testCasesCache: Record<string, TestCaseData> = {};
 
 /**
  * Извлекает allureId из названия теста
@@ -176,7 +215,64 @@ export function extractAllureId(testTitle: string): string | null {
 }
 
 /**
+ * Устанавливает данные тест-кейса в кэш
+ * @param allureId - ID тест-кейса
+ * @param data - данные тест-кейса
+ */
+export function setTestCaseCache(allureId: string, data: TestCaseData): void {
+    testCasesCache[allureId] = data;
+}
+
+/**
+ * Получает данные тест-кейса из кэша
+ * @param allureId - ID тест-кейса
+ * @returns данные тест-кейса или undefined
+ */
+export function getTestCaseCache(allureId: string): TestCaseData | undefined {
+    return testCasesCache[allureId];
+}
+
+/**
+ * Предварительная загрузка тест-кейсов в кэш
+ * @param allureClient - клиент Allure API
+ * @param allureIds - массив ID тест-кейсов
+ */
+export async function preloadTestCases(allureClient: AllureApiClient, allureIds: string[]): Promise<void> {
+    if (allureIds.length === 0) {
+        return;
+    }
+
+    try {
+        const testCasesData = await allureClient.getTestCasesByIdBatch(allureIds);
+
+        for (const [id, rawData] of Object.entries(testCasesData)) {
+            if (typeof rawData !== 'object' || rawData === null || !('name' in rawData)) {
+                log.warn(`Invalid test case data for ID ${id}`);
+                continue;
+            }
+
+            const testCaseName = String(rawData.name);
+            const isPositiveCase = !testCaseName.toLowerCase().includes('error');
+
+            const testCaseData: TestCaseData = {
+                ...(rawData as { precondition: string; expectedResult: string }),
+                isPositiveCase,
+                name: testCaseName,
+            };
+
+            setTestCaseCache(id, testCaseData);
+        }
+
+        log.info(`Preloaded ${Object.keys(testCasesData).length} test cases into cache`);
+    } catch (error) {
+        log.warn('Failed to preload test cases in batch, tests will fetch data individually:', error);
+        // Fallback: tests will fetch data individually as needed
+    }
+}
+
+/**
  * Получает данные тест-кейса и извлекает precondition и expectedResult
+ * Сначала проверяет кэш, затем делает запрос к API если данных нет в кэше
  * @param allureClient - клиент Allure API
  * @param allureId - ID тест-кейса
  * @returns Promise с объектом содержащим preconditions и expectedResult
@@ -190,6 +286,13 @@ export async function getTestCaseData(
     isPositiveCase: boolean;
     name?: string;
 }> {
+    // Проверяем кэш
+    const cachedData = getTestCaseCache(allureId);
+    if (cachedData) {
+        return cachedData;
+    }
+
+    // Если нет в кэше, делаем запрос
     try {
         const testCaseData = await allureClient.getTestCaseById(allureId);
         if (typeof testCaseData !== 'object' || testCaseData === null || !('name' in testCaseData)) {
@@ -197,7 +300,7 @@ export async function getTestCaseData(
         }
         const testCaseName = String(testCaseData.name);
         const isPositiveCase = !testCaseName.toLowerCase().includes('error');
-        return {
+        const result = {
             ...testCaseData,
             isPositiveCase,
             name: testCaseName,
@@ -207,6 +310,11 @@ export async function getTestCaseData(
             isPositiveCase: boolean;
             name?: string;
         };
+
+        // Сохраняем в кэш для последующего использования
+        setTestCaseCache(allureId, result);
+
+        return result;
     } catch (error) {
         log.error('Error getting test case data:', error);
         throw error;
