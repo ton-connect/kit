@@ -284,7 +284,6 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
 /**
  * Creates a transaction preview by emulating the transaction
  */
-// ????
 export async function createTransactionPreview(
     request: TransactionRequest,
     wallet?: Wallet,

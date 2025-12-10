@@ -6,8 +6,19 @@
  *
  */
 
+import {
+    AccountState,
+    AccountStatus,
+    Transaction,
+    TransactionTraceNode,
+    TransactionTraceAction,
+    TransactionTraceActionDetails,
+    TransactionTraceActionJettonSwapDetails,
+    TransactionTraceActionCallContractDetails,
+    TransactionTraceActionTONTransferDetails,
+} from '../../api/models';
+import { asAddressFriendly, asHex } from '../primitive';
 import { AddressBookRowV3, MetadataV3 } from './v3/AddressBookRowV3';
-
 // Types for Toncenter emulation endpoint response
 
 // Root response
@@ -20,6 +31,14 @@ export interface ToncenterEmulationResponse extends MetadataV3 {
     data_cells: Record<string, string>; // base64-encoded cells by data hash
     rand_seed: string;
     is_incomplete: boolean;
+}
+
+function toTransactionTraceNode(node: EmulationTraceNode): TransactionTraceNode {
+    return {
+        txHash: asHex(node.tx_hash),
+        inMsgHash: node.in_msg_hash ? asHex(node.in_msg_hash) : undefined,
+        children: node.children.map(toTransactionTraceNode),
+    };
 }
 
 export interface ToncenterTracesResponse extends MetadataV3 {
@@ -90,6 +109,17 @@ export interface ToncenterTransaction {
 
 export type EmulationAccountStatus = 'active' | 'frozen' | 'uninit';
 
+function toAccountStatus(status: EmulationAccountStatus | string): AccountStatus {
+    if (status === 'active') {
+        return { type: 'active' };
+    } else if (status === 'frozen') {
+        return { type: 'frozen' };
+    } else if (status === 'uninit') {
+        return { type: 'uninit' };
+    } else {
+        return { type: 'unknown', value: status };
+    }
+}
 export interface EmulationBlockRef {
     workchain: number;
     shard: string;
@@ -179,6 +209,18 @@ export interface EmulationAccountState {
     code_hash: string | null;
 }
 
+function toAccountState(state: EmulationAccountState): AccountState {
+    return {
+        hash: asHex(state.hash),
+        balance: state.balance,
+        extraCurrencies: state.extra_currencies ?? undefined,
+        accountStatus: toAccountStatus(state.account_status),
+        frozenHash: state.frozen_hash ? asHex(state.frozen_hash) : undefined,
+        dataHash: state.data_hash ? asHex(state.data_hash) : undefined,
+        codeHash: state.code_hash ? asHex(state.code_hash) : undefined,
+    };
+}
+
 // Actions
 export type EmulationActionType = 'jetton_swap' | 'call_contract' | string;
 
@@ -248,6 +290,108 @@ export type EmulationActionDetails =
 
 export interface EmulationAction extends EmulationActionBase {
     details: EmulationActionDetails;
+}
+
+function toTransactionTraceAction(action: EmulationAction): TransactionTraceAction {
+    return {
+        traceId: action.trace_id ?? undefined,
+        actionId: action.action_id,
+        startLt: action.start_lt,
+        endLt: action.end_lt,
+        startUtime: action.start_utime,
+        endUtime: action.end_utime,
+        traceEndLt: action.trace_end_lt,
+        traceEndUtime: action.trace_end_utime,
+        traceMcSeqnoEnd: action.trace_mc_seqno_end,
+        transactions: action.transactions.map(asHex),
+        isSuccess: action.success,
+        traceExternalHash: asHex(action.trace_external_hash),
+        accounts: action.accounts.map(asAddressFriendly),
+        details: toTransactionTraceActionDetails(action),
+    };
+}
+
+function toTransactionTraceActionDetails(action: EmulationAction): TransactionTraceActionDetails {
+    if (action.type === 'jetton_swap') {
+        return {
+            type: 'jetton_swap',
+            value: toTransactionTraceActionJettonSwapDetails(action.details as EmulationJettonSwapDetails),
+        };
+    } else if (action.type === 'call_contract') {
+        return {
+            type: 'call_contract',
+            value: toTransactionTraceActionCallContractDetails(action.details as EmulationCallContractDetails),
+        };
+    } else if (action.type === 'ton_transfer') {
+        return {
+            type: 'ton_transfer',
+            value: toTransactionTraceActionTONTransferDetails(action.details as EmulationTonTransferDetails),
+        };
+    } else {
+        return {
+            type: 'unknown',
+            value: action.details as Record<string, unknown>,
+        };
+    }
+}
+
+function toTransactionTraceActionJettonSwapDetails(
+    details: EmulationJettonSwapDetails,
+): TransactionTraceActionJettonSwapDetails {
+    return {
+        dex: details.dex,
+        sender: asAddressFriendly(details.sender),
+        dexIncomingTransfer: {
+            asset: toUserFriendlyAddress(details.dex_incoming_transfer.asset),
+            source: toUserFriendlyAddress(details.dex_incoming_transfer.source),
+            destination: toUserFriendlyAddress(details.dex_incoming_transfer.destination),
+            sourceJettonWallet: details.dex_incoming_transfer.source_jetton_wallet
+                ? toUserFriendlyAddress(details.dex_incoming_transfer.source_jetton_wallet)
+                : undefined,
+            destinationJettonWallet: details.dex_incoming_transfer.destination_jetton_wallet
+                ? toUserFriendlyAddress(details.dex_incoming_transfer.destination_jetton_wallet)
+                : undefined,
+            amount: details.dex_incoming_transfer.amount,
+        },
+        dexOutgoingTransfer: {
+            asset: toUserFriendlyAddress(details.dex_outgoing_transfer.asset),
+            source: toUserFriendlyAddress(details.dex_outgoing_transfer.source),
+            destination: toUserFriendlyAddress(details.dex_outgoing_transfer.destination),
+            sourceJettonWallet: details.dex_outgoing_transfer.source_jetton_wallet
+                ? toUserFriendlyAddress(details.dex_outgoing_transfer.source_jetton_wallet)
+                : undefined,
+            destinationJettonWallet: details.dex_outgoing_transfer.destination_jetton_wallet
+                ? toUserFriendlyAddress(details.dex_outgoing_transfer.destination_jetton_wallet)
+                : undefined,
+            amount: details.dex_outgoing_transfer.amount,
+        },
+        peerSwaps: details.peer_swaps,
+    };
+}
+
+function toTransactionTraceActionCallContractDetails(
+    details: EmulationCallContractDetails,
+): TransactionTraceActionCallContractDetails {
+    return {
+        opcode: details.opcode,
+        source: toUserFriendlyAddress(details.source),
+        destination: toUserFriendlyAddress(details.destination),
+        value: details.value,
+        valueExtraCurrencies: details.extra_currencies ?? undefined,
+    };
+}
+
+function toTransactionTraceActionTONTransferDetails(
+    details: EmulationTonTransferDetails,
+): TransactionTraceActionTONTransferDetails {
+    return {
+        source: toUserFriendlyAddress(details.source),
+        destination: toUserFriendlyAddress(details.destination),
+        value: details.value,
+        valueExtraCurrencies: details.value_extra_currencies,
+        comment: details.comment ?? undefined,
+        isEncrypted: details.encrypted,
+    };
 }
 
 // Metadata by address

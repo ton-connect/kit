@@ -122,7 +122,7 @@ export interface Transaction {
 export type AccountStatus =
     | { type: 'active' }
     | { type: 'frozen' }
-    | { type: 'uninitialized' }
+    | { type: 'uninit' }
     | { type: 'unknown'; value: string };
 
 /**
@@ -132,7 +132,7 @@ export interface AccountState {
     /**
      * The state hash of the account
      */
-    hash: string;
+    hash: Hex;
 
     /**
      * The account's balance in nanotons
@@ -152,17 +152,17 @@ export interface AccountState {
     /**
      * The hash of the frozen account state, if the account is frozen
      */
-    frozenHash?: string;
+    frozenHash?: Hex;
 
     /**
      * The hash of the contract's data section
      */
-    dataHash?: string;
+    dataHash?: Hex;
 
     /**
      * The hash of the smart contract code
      */
-    codeHash?: string;
+    codeHash?: Hex;
 }
 
 /**
