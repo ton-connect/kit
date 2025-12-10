@@ -633,7 +633,7 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async signDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse> {
+    async approveSignDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse> {
         await this.ensureInitialized();
         return this.requestProcessor.approveSignDataRequest(event);
     }
