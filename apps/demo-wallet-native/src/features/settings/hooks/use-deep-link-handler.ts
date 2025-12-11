@@ -37,7 +37,6 @@ export const useDeepLinkHandler = (): void => {
             if (!url || isProcessingRef.current) return;
 
             const tonConnectUrl = extractTonConnectUrl(url);
-            console.log('tonConnectUrl', tonConnectUrl);
 
             if (!tonConnectUrl) {
                 return;

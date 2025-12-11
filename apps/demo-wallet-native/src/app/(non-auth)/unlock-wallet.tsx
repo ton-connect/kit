@@ -108,11 +108,21 @@ const UnlockWalletScreen: FC = () => {
             </View>
 
             <View style={styles.buttons}>
-                <AppButton.Container testID="unlock-submit-button" colorScheme="primary" disabled={isLoading} onPress={handleSubmit}>
+                <AppButton.Container
+                    testID="unlock-submit-button"
+                    colorScheme="primary"
+                    disabled={isLoading}
+                    onPress={handleSubmit}
+                >
                     <AppButton.Text>Continue</AppButton.Text>
                 </AppButton.Container>
 
-                <AppButton.Container testID="unlock-reset-button" colorScheme="secondary" disabled={isLoading} onPress={handleReset}>
+                <AppButton.Container
+                    testID="unlock-reset-button"
+                    colorScheme="secondary"
+                    disabled={isLoading}
+                    onPress={handleReset}
+                >
                     <AppButton.Text>Reset Wallet</AppButton.Text>
                 </AppButton.Container>
             </View>

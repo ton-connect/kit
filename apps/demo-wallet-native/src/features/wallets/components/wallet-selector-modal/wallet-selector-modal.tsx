@@ -9,12 +9,11 @@
 import type { IWallet } from '@ton/walletkit';
 import { useWallet } from '@ton/demo-core';
 import type { FC } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { WalletInfoBlock } from '../wallet-info-block';
 
-import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppModal } from '@/core/components/app-modal';
 import { ScreenHeader } from '@/core/components/screen-header';

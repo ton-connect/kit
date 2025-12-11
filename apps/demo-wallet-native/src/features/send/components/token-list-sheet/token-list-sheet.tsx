@@ -6,10 +6,9 @@
  *
  */
 
-import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
 import { ScrollView, View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { useFormattedTonBalance, useJettons } from '@ton/demo-core';
 import type { AddressJetton } from '@ton/walletkit';
 
