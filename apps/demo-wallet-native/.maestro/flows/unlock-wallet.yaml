@@ -1,7 +1,11 @@
 appId: org.ton.demowallet
 ---
+- assertVisible:
+    id: unlock-password-input
+
 - tapOn:
     id: unlock-password-input
+
 - inputText: ${PASSWORD}
 - hideKeyboard
 

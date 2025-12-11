@@ -1,15 +1,8 @@
 appId: org.ton.demowallet
 env:
-    PASSWORD: 1111
     DAPP_URL: https://allure-test-runner.vercel.app/e2e
 ---
-- launchApp
-
-- runFlow:
-    file: flows/unlock-wallet.yaml
-    env:
-        PASSWORD: ${PASSWORD}
-
+# Open dApp and connect
 - openLink:
     link: ${DAPP_URL}
     browser: true
@@ -30,16 +23,9 @@ env:
 
 - tapOn: "Open"
 
+# Approve connection in wallet
 - assertVisible:
     id: connect-approve
+
 - tapOn:
     id: connect-approve
-
-- openLink:
-    link: ${DAPP_URL}
-    browser: true
-
-- scrollUntilVisible:
-    element: "Disconnect Wallet"
-
-- tapOn: "Disconnect Wallet"
