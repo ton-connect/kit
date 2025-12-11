@@ -38,7 +38,7 @@ export interface Jetton {
      * The number of decimal places used by the token
      * @format int
      */
-    decimalsNumber?: number;
+    decimalsNumber: number;
 
     /**
      * Additional arbitrary data related to the jetton
