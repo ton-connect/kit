@@ -26,7 +26,7 @@ const log = globalLogger.createChild('NetworkManager');
  * At least one network must be configured.
  */
 export class NetworkManager {
-    private clients: Map<Network, ApiClient> = new Map();
+    private clients: Map<string, ApiClient> = new Map();
 
     constructor(options: TonWalletKitOptions) {
         this.initializeClients(options);
@@ -58,7 +58,7 @@ export class NetworkManager {
             if (!networkConfig) continue;
 
             const client = this.createClient(network, networkConfig.apiClient, options);
-            this.clients.set(network, client);
+            this.clients.set(network.chainId, client);
 
             log.info('Initialized network client', { chainId });
         }
@@ -114,7 +114,7 @@ export class NetworkManager {
      * @throws WalletKitError if no client is configured for the network
      */
     getClient(network: Network): ApiClient {
-        const client = this.clients.get(network);
+        const client = this.clients.get(network.chainId);
         if (!client) {
             throw new WalletKitError(
                 ERROR_CODES.NETWORK_NOT_CONFIGURED,
@@ -133,21 +133,21 @@ export class NetworkManager {
      * Check if a network is configured
      */
     hasNetwork(network: Network): boolean {
-        return this.clients.has(network);
+        return this.clients.has(network.chainId);
     }
 
     /**
      * Get all configured networks
      */
     getConfiguredNetworks(): Network[] {
-        return Array.from(this.clients.keys());
+        return Array.from(this.clients.keys()).map((chainId) => Network.custom(chainId));
     }
 
     /**
      * Add or update a network client dynamically
      */
     setClient(network: Network, client: ApiClient): void {
-        this.clients.set(network, client);
+        this.clients.set(network.chainId, client);
         log.info('Added/updated network client', { network });
     }
 }
