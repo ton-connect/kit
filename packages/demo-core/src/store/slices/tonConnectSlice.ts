@@ -253,7 +253,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         try {
-            await state.walletCore.walletKit.signDataRequest(state.tonConnect.pendingSignDataRequest);
+            await state.walletCore.walletKit.approveSignDataRequest(state.tonConnect.pendingSignDataRequest);
 
             setTimeout(() => {
                 set((state) => {
