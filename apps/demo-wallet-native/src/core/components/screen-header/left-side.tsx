@@ -21,6 +21,6 @@ const styles = StyleSheet.create(() => ({
         justifyContent: 'center',
         position: 'absolute',
         left: 0,
-        height: 40,
+        height: 45,
     },
 }));

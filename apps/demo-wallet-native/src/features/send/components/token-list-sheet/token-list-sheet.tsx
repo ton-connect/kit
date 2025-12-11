@@ -6,10 +6,9 @@
  *
  */
 
-import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
 import { ScrollView, View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import { useFormattedTonBalance, useJettons } from '@ton/demo-core';
 import type { AddressJetton } from '@ton/walletkit';
 
@@ -19,6 +18,7 @@ import { AppModal } from '@/core/components/app-modal';
 import { AppText } from '@/core/components/app-text';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
+import { ScreenHeader } from '@/core/components/screen-header';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
@@ -37,8 +37,6 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
     const { userJettons, formatJettonAmount } = useJettons();
     const tonBalance = useFormattedTonBalance();
 
-    const { theme } = useUnistyles();
-
     const handleSelectTon = () => {
         onSelectTon();
         onClose();
@@ -51,17 +49,15 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
 
     return (
         <AppModal onRequestClose={onClose} visible={isOpen}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>Select</ScreenHeader.Title>
+
+                <ScreenHeader.RightSide>
+                    <ScreenHeader.CloseButton onClose={onClose} />
+                </ScreenHeader.RightSide>
+            </ScreenHeader.Container>
+
             <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
-                <View style={styles.header}>
-                    <AppText style={styles.title} textType="h3">
-                        Select
-                    </AppText>
-
-                    <ActiveTouchAction onPress={onClose} style={styles.closeButton}>
-                        <Ionicons color={theme.colors.text.default} name="close-outline" size={24} />
-                    </ActiveTouchAction>
-                </View>
-
                 <ActiveTouchAction onPress={handleSelectTon} style={styles.tokenItem}>
                     <View style={styles.tokenInfo}>
                         <AppLogo />
@@ -124,22 +120,7 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
 const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
     container: {
         paddingHorizontal: sizes.page.paddingHorizontal,
-        paddingVertical: sizes.block.paddingVertical,
-        marginBottom: runtime.insets.bottom * 2,
-    },
-    header: {
-        position: 'relative',
-        marginTop: 10,
-        marginBottom: 20,
-    },
-    title: {
-        color: colors.text.highlight,
-        textAlign: 'center',
-    },
-    closeButton: {
-        position: 'absolute',
-        top: 0,
-        right: 12,
+        paddingBottom: runtime.insets.bottom + sizes.block.paddingVertical,
     },
     tokenItem: {
         flexDirection: 'row',

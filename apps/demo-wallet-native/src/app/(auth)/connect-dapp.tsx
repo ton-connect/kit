@@ -74,6 +74,7 @@ const ConnectDAppScreen: FC = () => {
                 <TonConnectLinkInput value={tonConnectUrl} onChangeText={setTonConnectUrl} />
 
                 <AppButton.Container
+                    testID="tonconnect-process"
                     onPress={() => handleConnect(tonConnectUrl)}
                     disabled={!tonConnectUrl.trim() || isConnecting}
                     style={styles.connectButton}

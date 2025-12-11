@@ -58,11 +58,11 @@ const StartScreen: FC = () => {
                 </View>
 
                 <View style={styles.buttons}>
-                    <AppButton.Container colorScheme="primary" onPress={handleCreateNew}>
+                    <AppButton.Container testID="start-create-button" colorScheme="primary" onPress={handleCreateNew}>
                         <AppButton.Text>Create New Wallet</AppButton.Text>
                     </AppButton.Container>
 
-                    <AppButton.Container colorScheme="secondary" onPress={handleImport}>
+                    <AppButton.Container testID="start-import-button" colorScheme="secondary" onPress={handleImport}>
                         <AppButton.Text>Import Wallet</AppButton.Text>
                     </AppButton.Container>
                 </View>

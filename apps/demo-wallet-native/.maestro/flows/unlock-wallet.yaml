@@ -1,0 +1,16 @@
+appId: org.ton.demowallet
+---
+- assertVisible:
+    id: unlock-password-input
+
+- tapOn:
+    id: unlock-password-input
+
+- inputText: ${PASSWORD}
+- hideKeyboard
+
+- tapOn:
+    id: unlock-submit-button
+
+- assertVisible:
+    id: ton-balance-card

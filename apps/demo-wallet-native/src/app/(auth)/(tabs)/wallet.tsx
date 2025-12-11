@@ -97,7 +97,7 @@ const WalletHomeScreen: FC = () => {
                 </ActiveTouchAction>
 
                 <ScreenHeader.RightSide>
-                    <ActiveTouchAction onPress={() => router.push('/connect-dapp')}>
+                    <ActiveTouchAction onPress={() => router.push('/connect-dapp')} testID="scan-button">
                         <AntDesign color={theme.colors.text.secondary} name="scan" size={20} />
                     </ActiveTouchAction>
 
@@ -121,7 +121,7 @@ const WalletHomeScreen: FC = () => {
                 savedWallets={savedWallets}
             />
 
-            <TonBalanceCard style={styles.tonBalance} />
+            <TonBalanceCard style={styles.tonBalance} testID="ton-balance-card" />
 
             <View style={styles.actions}>
                 <AppButton.Container onPress={handleSend} style={styles.sendButton}>

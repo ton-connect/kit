@@ -86,7 +86,7 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
     container: {
         width: '100%',
         position: 'relative',
-        height: 40,
+        height: 45,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: sizes.space.vertical,

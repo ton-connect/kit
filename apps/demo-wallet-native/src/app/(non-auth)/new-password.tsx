@@ -85,6 +85,7 @@ const NewPasswordScreen: FC = () => {
                 </AppText>
 
                 <AppInput
+                    testID="password-input"
                     autoCapitalize="none"
                     autoComplete="off"
                     autoCorrect={false}
@@ -97,6 +98,7 @@ const NewPasswordScreen: FC = () => {
                 />
 
                 <AppInput
+                    testID="confirm-password-input"
                     autoCapitalize="none"
                     autoComplete="off"
                     autoCorrect={false}
@@ -118,7 +120,12 @@ const NewPasswordScreen: FC = () => {
             </View>
 
             <View style={styles.buttons}>
-                <AppButton.Container colorScheme="primary" disabled={isLoading} onPress={handleSetPassword}>
+                <AppButton.Container
+                    testID="submit-new-password"
+                    colorScheme="primary"
+                    disabled={isLoading}
+                    onPress={handleSetPassword}
+                >
                     <AppButton.Text>Continue</AppButton.Text>
                 </AppButton.Container>
             </View>

@@ -1,0 +1,79 @@
+appId: org.ton.demowallet
+env:
+    PASSWORD: 1111
+    DAPP_URL: https://allure-test-runner.vercel.app/e2e
+    PRECONDITION: ${PRECONDITION}
+    EXPECTED_RESULT: ${EXPECTED_RESULT}
+---
+# Launch app and unlock wallet
+- launchApp
+
+- runFlow:
+    file: ../flows/unlock-wallet.yaml
+    env:
+        PASSWORD: ${PASSWORD}
+
+- runFlow:
+    file: ../flows/connect-wallet.yaml
+    env:
+        DAPP_URL: ${DAPP_URL}
+
+# Go back to dApp, fill precondition/expectedResult, and trigger Sign Data
+- openLink:
+    link: ${DAPP_URL}
+    browser: true
+
+# Fill precondition field if provided
+- scrollUntilVisible:
+    element: "Sign Data"
+- tapOn:
+    text: "Precondition (JSON)"
+    below: "Sign Data Test"
+- waitForAnimationToEnd:
+    timeout: 1000
+- longPressOn:
+    text: "Precondition (JSON)"
+    below: "Sign Data Test"
+- tapOn: 'Select All'
+- eraseText
+- inputText: ${PRECONDITION}
+- hideKeyboard
+
+# Fill expected result field (the one after Sign Data Test)
+- scrollUntilVisible:
+    element: "Sign Data"
+- tapOn:
+    text: "Expected Result (JSON)"
+    below: "Sign Data Test"
+- longPressOn:
+    text: "Expected Result (JSON)"
+    below: "Sign Data Test"
+- tapOn: 'Select All'
+- eraseText
+- inputText: ${EXPECTED_RESULT}
+- hideKeyboard
+
+- scrollUntilVisible:
+    element: "Sign Data"
+
+- tapOn: "Sign Data"
+
+- launchApp:
+    stopApp: false
+
+# Approve sign data in wallet
+- assertVisible:
+    id: sign-data-approve
+
+- tapOn:
+    id: sign-data-approve
+
+- launchApp:
+    appId: com.apple.mobilesafari
+    stopApp: false
+
+- scrollUntilVisible:
+    element: "Validation Passed"
+
+- assertVisible:
+    text: "Validation Passed"

@@ -63,15 +63,15 @@ export const NftDetailsModal: FC<NftDetailsModalProps> = ({ nft, visible, onClos
 
     return (
         <AppModal visible={visible} onRequestClose={onClose}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>{nftName}</ScreenHeader.Title>
+
+                <ScreenHeader.RightSide>
+                    <ScreenHeader.CloseButton onClose={onClose} />
+                </ScreenHeader.RightSide>
+            </ScreenHeader.Container>
+
             <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-                <ScreenHeader.Container>
-                    <ScreenHeader.Title>{nftName}</ScreenHeader.Title>
-
-                    <ScreenHeader.RightSide>
-                        <ScreenHeader.CloseButton onClose={onClose} />
-                    </ScreenHeader.RightSide>
-                </ScreenHeader.Container>
-
                 <Block style={styles.block}>
                     <View style={styles.imageContainer}>
                         {nftImage ? (
@@ -136,7 +136,6 @@ export const NftDetailsModal: FC<NftDetailsModalProps> = ({ nft, visible, onClos
 const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
     contentContainer: {
         paddingBottom: runtime.insets.bottom + sizes.page.paddingBottom,
-        paddingVertical: sizes.block.paddingVertical,
         paddingHorizontal: sizes.page.paddingHorizontal,
         marginLeft: runtime.insets.left,
         marginRight: runtime.insets.right,

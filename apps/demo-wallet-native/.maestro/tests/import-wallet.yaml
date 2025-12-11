@@ -1,0 +1,53 @@
+appId: org.ton.demowallet
+env:
+    MNEMONIC: ${MNEMONIC || "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon"}
+    PASSWORD: 1111
+    DAPP_URL: https://allure-test-runner.vercel.app/e2e
+---
+- launchApp:
+    clearState: true
+
+# Start screen
+- assertVisible:
+    id: start-import-button
+- assertVisible:
+    id: start-create-button
+
+# Tap Import Wallet
+- tapOn:
+    id: start-import-button
+
+# Password screen
+- assertVisible:
+    id: password-input
+- tapOn:
+    id: password-input
+- inputText: ${PASSWORD}
+- tapOn:
+    id: confirm-password-input
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: submit-new-password
+
+# Import Mnemonic screen
+- assertVisible: Import Wallet
+- assertVisible: Enter Recovery Phrase
+
+# Enter mnemonic
+- tapOn:
+    id: mnemonic-input
+- inputText: ${MNEMONIC}
+- hideKeyboard
+
+# Select network
+- tapOn:
+    id: tab-control-mainnet
+
+# Import
+- tapOn:
+    id: import-wallet-button
+
+# Should navigate to wallet screen
+- assertVisible:
+    id: ton-balance-card

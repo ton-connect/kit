@@ -17,11 +17,12 @@ import { SectionTitle } from '../section-title';
 import { ActionButtons } from '../action-buttons';
 import { SuccessView } from '../success-view';
 
-import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
+import { AppModal } from '@/core/components/app-modal';
 import { AppText } from '@/core/components/app-text';
+import { Block } from '@/core/components/block';
+import { ScreenHeader } from '@/core/components/screen-header';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
-import { Block } from '@/core/components/block';
 
 interface SignDataRequestModalProps {
     request: EventSignDataRequest;
@@ -144,15 +145,20 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
 
     if (showSuccess) {
         return (
-            <AppBottomSheet isOpened={isOpen} onClose={() => {}} isDisabledClose isScrollable={false}>
+            <AppModal visible={isOpen} onRequestClose={() => {}}>
                 <SuccessView subtitle="Data signed successfully" />
-            </AppBottomSheet>
+            </AppModal>
         );
     }
 
     return (
-        <AppBottomSheet isOpened={isOpen} onClose={handleReject} title="Sign Data Request" enableDynamicSizing>
-            <View style={styles.container}>
+        <AppModal visible={isOpen} onRequestClose={handleReject}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>Sign Data Request</ScreenHeader.Title>
+                <ScreenHeader.CloseButton onPress={handleReject} />
+            </ScreenHeader.Container>
+
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
                 <DAppInfo
                     name={request.dAppInfo?.name}
                     description={request.dAppInfo?.description}
@@ -182,15 +188,21 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
                     onPrimaryPress={handleApprove}
                     onSecondaryPress={handleReject}
                     isLoading={isLoading}
+                    primaryTestID="sign-data-approve"
+                    secondaryTestID="sign-data-reject"
                 />
-            </View>
-        </AppBottomSheet>
+            </ScrollView>
+        </AppModal>
     );
 };
 
 const styles = StyleSheet.create(({ colors, sizes }) => ({
+    scrollView: {
+        flex: 1,
+    },
     container: {
         gap: sizes.space.vertical,
+        paddingHorizontal: sizes.page.paddingHorizontal,
         paddingBottom: sizes.space.vertical,
     },
     walletSection: {

@@ -9,13 +9,14 @@
 import type { IWallet } from '@ton/walletkit';
 import { useWallet } from '@ton/demo-core';
 import type { FC } from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { WalletInfoBlock } from '../wallet-info-block';
 
-import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
+import { AppModal } from '@/core/components/app-modal';
+import { ScreenHeader } from '@/core/components/screen-header';
 
 interface WalletSelectorModalProps {
     isOpen: boolean;
@@ -43,15 +44,20 @@ export const WalletSelectorModal: FC<WalletSelectorModalProps> = ({
     };
 
     return (
-        <AppBottomSheet isOpened={isOpen} onClose={onClose} title={title}>
-            <View style={styles.list}>
+        <AppModal visible={isOpen} onRequestClose={onClose}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>{title}</ScreenHeader.Title>
+                <ScreenHeader.CloseButton onPress={onClose} />
+            </ScreenHeader.Container>
+
+            <ScrollView style={styles.contentContainer}>
                 {wallets.map((wallet, index) => {
                     const address = wallet.getAddress();
                     const savedWallet = savedWallets.find((w) => w.address === address);
                     const isSelected = selectedWallet === wallet;
 
                     return (
-                        <ActiveTouchAction onPress={() => handleSelect(wallet)}>
+                        <ActiveTouchAction key={wallet.getWalletId()} onPress={() => handleSelect(wallet)}>
                             <WalletInfoBlock
                                 key={index}
                                 style={isSelected && styles.selected}
@@ -61,13 +67,17 @@ export const WalletSelectorModal: FC<WalletSelectorModalProps> = ({
                         </ActiveTouchAction>
                     );
                 })}
-            </View>
-        </AppBottomSheet>
+            </ScrollView>
+        </AppModal>
     );
 };
 
-const styles = StyleSheet.create(({ sizes, colors }) => ({
-    list: {
+const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
+    contentContainer: {
+        paddingBottom: runtime.insets.bottom + sizes.page.paddingBottom,
+        paddingHorizontal: sizes.page.paddingHorizontal,
+        marginLeft: runtime.insets.left,
+        marginRight: runtime.insets.right,
         gap: sizes.space.vertical / 2,
     },
     selected: {

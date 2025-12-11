@@ -99,15 +99,15 @@ export const TransactionDetailsModal: FC<TransactionDetailsModalProps> = ({ even
 
     return (
         <AppModal visible={visible} onRequestClose={onClose}>
+            <ScreenHeader.Container type="modal">
+                <ScreenHeader.Title>Transaction Details</ScreenHeader.Title>
+
+                <ScreenHeader.RightSide>
+                    <ScreenHeader.CloseButton onClose={onClose} />
+                </ScreenHeader.RightSide>
+            </ScreenHeader.Container>
+
             <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
-                <ScreenHeader.Container>
-                    <ScreenHeader.Title>Transaction Details</ScreenHeader.Title>
-
-                    <ScreenHeader.RightSide>
-                        <ScreenHeader.CloseButton onClose={onClose} />
-                    </ScreenHeader.RightSide>
-                </ScreenHeader.Container>
-
                 <Block style={styles.overviewBlock}>
                     <Row style={styles.overviewRow}>
                         {valueImage ? (
@@ -246,7 +246,6 @@ export const TransactionDetailsModal: FC<TransactionDetailsModalProps> = ({ even
 const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
     contentContainer: {
         paddingBottom: runtime.insets.bottom + sizes.page.paddingBottom,
-        paddingVertical: sizes.block.paddingVertical,
         paddingHorizontal: sizes.page.paddingHorizontal,
         marginLeft: runtime.insets.left,
         marginRight: runtime.insets.right,

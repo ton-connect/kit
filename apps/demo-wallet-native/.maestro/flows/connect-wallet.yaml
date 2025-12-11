@@ -1,0 +1,31 @@
+appId: org.ton.demowallet
+env:
+    DAPP_URL: https://allure-test-runner.vercel.app/e2e
+---
+# Open dApp and connect
+- openLink:
+    link: ${DAPP_URL}
+    browser: true
+
+- assertVisible:
+    text: "Connect Wallet"
+    enabled: true
+
+- tapOn: "Connect Wallet"
+
+- assertVisible:
+    text: "Tonkeeper"
+
+- tapOn: "Tonkeeper"
+
+- assertVisible:
+    text: "Open"
+
+- tapOn: "Open"
+
+# Approve connection in wallet
+- assertVisible:
+    id: connect-approve
+
+- tapOn:
+    id: connect-approve

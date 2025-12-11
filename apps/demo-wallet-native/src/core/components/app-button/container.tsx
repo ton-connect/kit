@@ -20,6 +20,7 @@ export interface AppButtonContainerProps extends PressableProps {
     href?: string;
     onPress?: () => Promise<void> | void;
     disabled?: boolean;
+    testID?: string;
 }
 
 export const ButtonContainer: FC<PropsWithChildren & AppButtonContainerProps> = ({
@@ -30,6 +31,7 @@ export const ButtonContainer: FC<PropsWithChildren & AppButtonContainerProps> = 
     colorScheme = 'primary',
     variant = 'standard',
     disabled = false,
+    testID,
 }) => {
     styles.useVariants({ variant, colorScheme });
 
@@ -49,6 +51,7 @@ export const ButtonContainer: FC<PropsWithChildren & AppButtonContainerProps> = 
     return (
         <AppButtonContext.Provider value={context}>
             <ActiveTouchAction
+                testID={testID}
                 disabled={disabled}
                 onPress={handlePress}
                 style={[styles.button, disabled && styles.disabledButton, style as ViewStyle]}
