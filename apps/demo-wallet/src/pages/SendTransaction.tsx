@@ -38,10 +38,8 @@ export const SendTransaction: React.FC = () => {
 
     // Load jettons on mount
     useEffect(() => {
-        if (userJettons.length === 0 && !isLoadingJettons) {
-            loadUserJettons();
-        }
-    }, [userJettons.length, isLoadingJettons, loadUserJettons]);
+        loadUserJettons();
+    }, []);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
@@ -356,6 +354,7 @@ export const SendTransaction: React.FC = () => {
                                         type="button"
                                         onClick={handleSendToSelf}
                                         className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                                        data-testid="use-my-address"
                                     >
                                         Use my address
                                     </button>
@@ -367,6 +366,7 @@ export const SendTransaction: React.FC = () => {
                                 placeholder="EQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                                 required
                                 helperText="Enter the recipient's TON address"
+                                data-testid="recipient-input"
                             />
                         </div>
 
@@ -380,6 +380,7 @@ export const SendTransaction: React.FC = () => {
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.0000"
                                 required
+                                data-testid="amount-input"
                                 helperText={
                                     selectedToken.type === 'TON'
                                         ? 'Minimum transaction: 0.0001 TON'
@@ -466,6 +467,7 @@ export const SendTransaction: React.FC = () => {
                             isLoading={isLoading}
                             disabled={!recipient || !amount || parseFloat(amount) <= 0}
                             className="w-full"
+                            data-testid="send-submit"
                         >
                             {isLoading ? `Sending ${getCurrentTokenSymbol()}...` : `Send ${getCurrentTokenSymbol()}`}
                         </Button>

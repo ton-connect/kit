@@ -46,44 +46,50 @@ export default defineConfig({
         },
         headless: headless,
     },
-    projects: process.env.E2E_WALLET_SOURCE_EXTENSION
-        ? [
-              // extension mode
-              {
-                  name: 'chromium',
-                  use: {
-                      ...devices['Desktop Chrome'],
+    projects:
+        process.env.E2E_WALLET_SOURCE_EXTENSION &&
+        process.env.E2E_WALLET_SOURCE_EXTENSION !== 'false' &&
+        process.env.E2E_WALLET_SOURCE_EXTENSION !== '0'
+            ? [
+                  // extension mode
+                  {
+                      name: 'chromium',
+                      use: {
+                          ...devices['Desktop Chrome'],
+                      },
                   },
-              },
-          ]
-        : [
-              // web mode
-              {
-                  name: 'chromium',
-                  use: {
-                      ...devices['Desktop Chrome'],
+              ]
+            : [
+                  // web mode
+                  {
+                      name: 'chromium',
+                      use: {
+                          ...devices['Desktop Chrome'],
+                      },
                   },
+                  // FIXME on firefox error: browser.newContext: Unknown permission: clipboard-read
+                  // {
+                  //     name: 'firefox',
+                  //     use: {
+                  //         ...devices['Desktop Firefox'],
+                  //     },
+                  // },
+                  // FIXME on webkit
+                  // {
+                  //     name: 'safari',
+                  //     use: {
+                  //         ...devices['Desktop Safari'],
+                  //     },
+                  // },
+              ],
+    webServer:
+        process.env.E2E_WALLET_SOURCE_EXTENSION &&
+        process.env.E2E_WALLET_SOURCE_EXTENSION !== 'false' &&
+        process.env.E2E_WALLET_SOURCE_EXTENSION !== '0'
+            ? undefined
+            : {
+                  command: 'pnpm --filter demo-wallet dev',
+                  url: 'http://localhost:5173/',
+                  reuseExistingServer: true,
               },
-              // FIXME on firefox error: browser.newContext: Unknown permission: clipboard-read
-              // {
-              //     name: 'firefox',
-              //     use: {
-              //         ...devices['Desktop Firefox'],
-              //     },
-              // },
-              // FIXME on webkit
-              // {
-              //     name: 'safari',
-              //     use: {
-              //         ...devices['Desktop Safari'],
-              //     },
-              // },
-          ],
-    webServer: process.env.E2E_WALLET_SOURCE_EXTENSION
-        ? undefined
-        : {
-              command: 'pnpm --filter demo-wallet dev',
-              url: 'http://localhost:5173/',
-              reuseExistingServer: true,
-          },
 });

@@ -38,6 +38,7 @@ export async function runSendTransactionTest(
     let precondition: string = '';
     let expectedResult: string = '';
     let isPositiveCase: boolean = true;
+    let testCaseName: string = '';
 
     if (testAllureId && allureClient) {
         try {
@@ -45,6 +46,7 @@ export async function runSendTransactionTest(
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
             isPositiveCase = testCaseData.isPositiveCase;
+            testCaseName = testCaseData.name || '';
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);
@@ -67,7 +69,23 @@ export async function runSendTransactionTest(
     await app.getByTestId('sendTxExpectedResult').fill(expectedResult);
     await app.getByTestId('send-transaction-button').click();
 
-    await wallet.sendTransaction(isPositiveCase, true, waitBeforeApprove);
+    // Check for decline in test title, Allure test case name, precondition, or expectedResult
+    const titleLower = testInfo.title.toLowerCase();
+    const nameLower = testCaseName.toLowerCase();
+    const preconditionLower = (precondition || '').toLowerCase();
+    const expectedResultLower = (expectedResult || '').toLowerCase();
+    const shouldDecline =
+        titleLower.includes('declined') ||
+        titleLower.includes('reject') ||
+        nameLower.includes('declined') ||
+        nameLower.includes('reject') ||
+        preconditionLower.includes('declined') ||
+        preconditionLower.includes('reject') ||
+        expectedResultLower.includes('declined') ||
+        expectedResultLower.includes('reject');
+    const shouldConfirm = !shouldDecline;
+
+    await wallet.sendTransaction(isPositiveCase, shouldConfirm, waitBeforeApprove);
 
     await expect(app.getByTestId('sendTransactionValidation')).toHaveText('Validation Passed');
 }
@@ -88,12 +106,14 @@ export async function runSignDataTest(
 
     let precondition: string = '';
     let expectedResult: string = '';
+    let testCaseName: string = '';
 
     if (testAllureId && allureClient) {
         try {
             const testCaseData = await getTestCaseData(allureClient, testAllureId);
             precondition = testCaseData.precondition;
             expectedResult = testCaseData.expectedResult;
+            testCaseName = testCaseData.name || '';
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Error getting test case data:', error);
@@ -113,11 +133,26 @@ export async function runSignDataTest(
         await expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
     }
 
-    await app.getByTestId('signDataPrecondition').fill(precondition);
-    await app.getByTestId('signDataExpectedResult').fill(expectedResult);
+    await app.getByTestId('signDataPrecondition').fill(precondition || '');
+    await app.getByTestId('signDataExpectedResult').fill(expectedResult || '');
     await app.getByTestId('sign-data-button').click();
 
-    await wallet.signData(true);
+    // Check for decline in test title, Allure test case name, precondition, or expectedResult
+    const titleLower = testInfo.title.toLowerCase();
+    const nameLower = testCaseName.toLowerCase();
+    const preconditionLower = (precondition || '').toLowerCase();
+    const expectedResultLower = (expectedResult || '').toLowerCase();
+    const shouldDecline =
+        titleLower.includes('declined') ||
+        titleLower.includes('reject') ||
+        nameLower.includes('declined') ||
+        nameLower.includes('reject') ||
+        preconditionLower.includes('declined') ||
+        preconditionLower.includes('reject') ||
+        expectedResultLower.includes('declined') ||
+        expectedResultLower.includes('reject');
+
+    await wallet.signData(!shouldDecline);
     await expect(app.getByTestId('signDataValidation')).toHaveText('Validation Passed');
 }
 
@@ -137,26 +172,44 @@ export async function runConnectTest(
 
     let precondition: string = '';
     let expectedResult: string = '';
+    let testCaseName: string = '';
 
     if (testAllureId && allureClient) {
         const testCaseData = await getTestCaseData(allureClient, testAllureId);
         precondition = testCaseData.precondition;
         expectedResult = testCaseData.expectedResult;
+        testCaseName = testCaseData.name || '';
     }
 
     const shouldSkipConnect = testInfo.title.includes('[ERROR]');
+
+    // Check for decline in test title, Allure test case name, precondition, or expectedResult
+    const titleLower = testInfo.title.toLowerCase();
+    const nameLower = testCaseName.toLowerCase();
+    const preconditionLower = (precondition || '').toLowerCase();
+    const expectedResultLower = (expectedResult || '').toLowerCase();
+    const shouldDecline =
+        titleLower.includes('declined') ||
+        titleLower.includes('reject') ||
+        nameLower.includes('declined') ||
+        nameLower.includes('reject') ||
+        preconditionLower.includes('declined') ||
+        preconditionLower.includes('reject') ||
+        expectedResultLower.includes('declined') ||
+        expectedResultLower.includes('reject');
+
     await app.getByTestId('connectPrecondition').fill(precondition || '');
-    await app.getByTestId('connectExpectedResult').fill(expectedResult);
+    await app.getByTestId('connectExpectedResult').fill(expectedResult || '');
     await expect(app.getByTestId('connect-button')).toHaveText('Connect Wallet');
 
     if (isExtension) {
         app.getByTestId('connect-button').click();
         widget.connectWallet('Tonkeeper', true);
-        wallet.connect(true, shouldSkipConnect);
+        wallet.connect(!shouldDecline, shouldSkipConnect);
     } else {
         const connectUrl = await widget.connectUrl(await app.getByTestId('connect-button'));
-        await wallet.connectBy(connectUrl, shouldSkipConnect);
-        if (!shouldSkipConnect) {
+        await wallet.connectBy(connectUrl, shouldSkipConnect, !shouldDecline);
+        if (!shouldSkipConnect && !shouldDecline) {
             expect(widget.connectButtonText).not.toHaveText('Connect Wallet');
         }
     }

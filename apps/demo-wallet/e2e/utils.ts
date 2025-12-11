@@ -188,20 +188,24 @@ export async function getTestCaseData(
     precondition: string;
     expectedResult: string;
     isPositiveCase: boolean;
+    name?: string;
 }> {
     try {
         const testCaseData = await allureClient.getTestCaseById(allureId);
         if (typeof testCaseData !== 'object' || testCaseData === null || !('name' in testCaseData)) {
             throw new Error('Test case data is not an object');
         }
-        const isPositiveCase = !String(testCaseData.name).toLowerCase().includes('error');
+        const testCaseName = String(testCaseData.name);
+        const isPositiveCase = !testCaseName.toLowerCase().includes('error');
         return {
-            isPositiveCase,
             ...testCaseData,
+            isPositiveCase,
+            name: testCaseName,
         } as unknown as {
             precondition: string;
             expectedResult: string;
             isPositiveCase: boolean;
+            name?: string;
         };
     } catch (error) {
         log.error('Error getting test case data:', error);

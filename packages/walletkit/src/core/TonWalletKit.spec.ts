@@ -10,7 +10,7 @@ import { CHAIN } from '@tonconnect/protocol';
 
 import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config';
 import { TonWalletKit } from './TonWalletKit';
-import type { TonWalletKitOptions } from '../types';
+import type { TonTransferParams, TonWalletKitOptions } from '../types';
 import { createDummyWallet, createMockApiClient } from '../contracts/w5/WalletV5R1.fixture';
 import { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 
@@ -91,6 +91,38 @@ describe('TonWalletKit', () => {
             undefined as unknown as InjectedToExtensionBridgeRequestPayload,
         );
         expect(result).toBeUndefined();
+        await kit.close();
+    });
+
+    it('handleNewTransaction triggers onTransactionRequest callback with walletId', async () => {
+        const kit = await createKit();
+        const wallet = await kit.addWallet(await createDummyWallet(1n));
+
+        expect(wallet).toBeDefined();
+
+        if (!wallet) {
+            throw new Error('Wallet not created');
+        }
+
+        let receivedWalletId: string | undefined;
+        let receivedWalletAddress: string | undefined;
+
+        kit.onTransactionRequest((event) => {
+            receivedWalletId = event.walletId;
+            receivedWalletAddress = event.walletAddress;
+        });
+
+        const tonTransferParams: TonTransferParams = {
+            toAddress: wallet.getAddress(),
+            amount: '1000000000',
+        };
+        const result = await wallet.createTransferTonTransaction(tonTransferParams);
+
+        await kit.handleNewTransaction(wallet, result);
+
+        expect(receivedWalletId).toBe(wallet.getWalletId());
+        expect(receivedWalletAddress).toBe(wallet.getAddress().toString());
+
         await kit.close();
     });
 });

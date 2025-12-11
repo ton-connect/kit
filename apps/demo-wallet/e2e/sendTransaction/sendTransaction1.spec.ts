@@ -66,3 +66,7 @@ test('Send merkle update @allureId(2257)', async ({ wallet, app, widget }) => {
 test('Minting Jetton with Deployed Contract @allureId(1898)', async ({ wallet, app, widget }) => {
     await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
 });
+
+test('User declined the transaction @allureId(1908)', async ({ wallet, app, widget }) => {
+    await runSendTransactionTest({ wallet, app, widget }, test.info(), allureClient);
+});
