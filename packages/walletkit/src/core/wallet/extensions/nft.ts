@@ -6,8 +6,7 @@
  *
  */
 
-import { NftTransferMessage, storeNftTransferMessage } from '@ton-community/assets-sdk';
-import { Address, beginCell, Cell, SendMode } from '@ton/core';
+import { Address, beginCell, Builder, Cell, SendMode } from '@ton/core';
 
 import { IWallet } from '../../../types';
 import { WalletNftInterface } from '../../../types/wallet';
@@ -17,6 +16,41 @@ import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '
 import type { NftItem } from '../../../types/toncenter/NftItem';
 import { NftItems } from '../../../types/toncenter/NftItems';
 import { LimitRequest } from '../../../types/toncenter/ApiClient';
+
+export const NFT_MINT_OPCODE = 1;
+export const NFT_BATCH_MINT_OPCODE = 2;
+export const NFT_CHANGE_ADMIN_OPCODE = 3;
+export const NFT_CHANGE_CONTENT_OPCODE = 4;
+export const NFT_TRANSFER_OPCODE = 0x5fcc3d14;
+export const NFT_OWNER_ASSIGNED_OPCODE = 0x05138d91;
+export const NFT_GET_STATIC_DATA_OPCODE = 0x2fcb26a2;
+export const NFT_REPORT_STATIC_DATA_OPCODE = 0x8b771735;
+export const NFT_EXCESSES_OPCODE = 0xd53276db;
+
+// transfer query_id:uint64 new_owner:MsgAddress response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+//          forward_amount:(VarUInteger 16) forward_payload:(Either Cell ^Cell)  = InternalMsgBody;
+export type NftTransferMessage = {
+    queryId: bigint;
+    newOwner: Address;
+    responseDestination: Address | null;
+    customPayload: Cell | null;
+    forwardAmount: bigint;
+    forwardPayload: Cell | null;
+};
+
+export function storeNftTransferMessage(message: NftTransferMessage): (builder: Builder) => void {
+    return (builder) => {
+        const { queryId, newOwner, responseDestination, customPayload, forwardAmount, forwardPayload } = message;
+        builder
+            .storeUint(NFT_TRANSFER_OPCODE, 32)
+            .storeUint(queryId, 64)
+            .storeAddress(newOwner)
+            .storeAddress(responseDestination)
+            .storeMaybeRef(customPayload)
+            .storeCoins(forwardAmount)
+            .storeMaybeRef(forwardPayload);
+    };
+}
 
 export class WalletNftClass implements WalletNftInterface {
     async getNfts(this: IWallet, params: LimitRequest): Promise<NftItems> {

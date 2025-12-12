@@ -6,8 +6,7 @@
  *
  */
 
-import { storeJettonTransferMessage } from '@ton-community/assets-sdk';
-import { Address, beginCell, SendMode } from '@ton/core';
+import { Address, beginCell, Builder, SendMode, Cell } from '@ton/core';
 
 import { IWallet } from '../../../types';
 import { WalletJettonInterface } from '../../../types/wallet';
@@ -19,6 +18,43 @@ import { CallForSuccess } from '../../../utils/retry';
 import { ParseStack, SerializeStack } from '../../../utils/tvmStack';
 import { ResponseUserJettons } from '../../../types/export/responses/jettons';
 import { GetJettonsByOwnerRequest } from '../../../types/toncenter/ApiClient';
+
+export const JETTON_MINT_OPCODE = 21;
+export const JETTON_INTERNAL_TRANSFER_OPCODE = 0x178d4519;
+export const JETTON_CHANGE_ADMIN_OPCODE = 3;
+export const JETTON_CHANGE_CONTENT_OPCODE = 4;
+export const JETTON_TRANSFER_OPCODE = 0x0f8a7ea5;
+export const JETTON_TRANSFER_NOTIFICATION_OPCODE = 0x7362d09c;
+export const JETTON_BURN_OPCODE = 0x595f07bc;
+export const JETTON_BURN_NOTIFICATION_OPCODE = 0x7bdd97de;
+export const JETTON_EXCESSES_OPCODE = 0xd53276db;
+
+// transfer#0f8a7ea5 query_id:uint64 amount:(VarUInteger 16) destination:MsgAddress
+//                  response_destination:MsgAddress custom_payload:(Maybe ^Cell)
+//                  forward_ton_amount:(VarUInteger 16) forward_payload:(Either Cell ^Cell)
+//                  = InternalMsgBody;
+export interface JettonTransferMessage {
+    queryId: bigint;
+    amount: bigint;
+    destination: Address;
+    responseDestination: Address | null;
+    customPayload: Cell | null;
+    forwardAmount: bigint;
+    forwardPayload: Cell | null;
+}
+
+export function storeJettonTransferMessage(src: JettonTransferMessage) {
+    return (builder: Builder) => {
+        builder.storeUint(JETTON_TRANSFER_OPCODE, 32);
+        builder.storeUint(src.queryId, 64);
+        builder.storeCoins(src.amount);
+        builder.storeAddress(src.destination);
+        builder.storeAddress(src.responseDestination);
+        builder.storeMaybeRef(src.customPayload);
+        builder.storeCoins(src.forwardAmount ?? 0);
+        builder.storeMaybeRef(src.forwardPayload);
+    };
+}
 
 export class WalletJettonClass implements WalletJettonInterface {
     async createTransferJettonTransaction(
