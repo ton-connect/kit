@@ -58,7 +58,6 @@
   ],
   "dependencies": {
     "@noble/curves": "^1.9.7",
-    "@ton-community/assets-sdk": "^0.0.5",
     "@ton-community/tlb-runtime": "1.0.0-alpha.3",
     "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0",
