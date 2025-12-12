@@ -6,12 +6,17 @@
  *
  */
 
+import { AddressBook } from '../core/AddressBook';
 import { Jetton } from './Jetton';
 
 /**
  * Response containing a list of Jetton tokens.
  */
 export interface JettonsResponse {
+    /**
+     * Address book mapping
+     */
+    addressBook: AddressBook;
     /**
      * List of Jettons
      */

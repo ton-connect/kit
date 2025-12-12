@@ -12,15 +12,10 @@ import { ed25519 } from '@noble/curves/ed25519';
 import type { Wallet } from '@tonconnect/sdk';
 import type { TonProofItemReplySuccess } from '@tonconnect/protocol';
 
-import {
-    SignatureVerify,
-    CreateTonProofMessageBytes,
-    ConvertTonProofMessage,
-    createTonProofMessage,
-    TonProofParsedMessage,
-} from './tonProof';
+import { SignatureVerify, CreateTonProofMessageBytes, ConvertTonProofMessage, createTonProofMessage } from './tonProof';
 import { Uint8ArrayToHex } from './base64';
 import { asHex } from '../types/primitive';
+import { ProofMessage } from '../api/models';
 
 describe('tonProof', () => {
     describe('SignatureVerify', () => {
@@ -55,10 +50,10 @@ describe('tonProof', () => {
     });
 
     describe('CreateTonProofMessageBytes', () => {
-        const testMessage: TonProofParsedMessage = {
+        const testMessage: ProofMessage = {
             workchain: 0,
-            address: asHex('0x' + '00'.repeat(32)),
-            timstamp: 1700000000,
+            addressHash: asHex('0x' + '00'.repeat(32)),
+            timestamp: 1700000000,
             domain: {
                 lengthBytes: 11,
                 value: 'example.com',
@@ -168,14 +163,14 @@ describe('tonProof', () => {
             expect(result.domain.lengthBytes).toBe(11);
             expect(result.domain.value).toBe('example.com');
             expect(result.payload).toBe('test-payload');
-            expect(result.timstamp).toBe(1700000000);
+            expect(result.timestamp).toBe(1700000000);
             expect(result.stateInit).toBe(mockWallet.account.walletStateInit);
         });
 
         it('should parse address correctly', () => {
             const result = ConvertTonProofMessage(mockWallet, mockTonProof);
 
-            expect(result.address).toMatch(/^0x[0-9a-f]{64}$/);
+            expect(result.addressHash).toMatch(/^0x[0-9a-f]{64}$/);
         });
 
         it('should convert signature to hex', () => {
@@ -217,12 +212,12 @@ describe('tonProof', () => {
             });
 
             expect(result.workchain).toBe(testAddress.workChain);
-            expect(result.address).toBe(Uint8ArrayToHex(testAddress.hash));
+            expect(result.addressHash).toBe(Uint8ArrayToHex(testAddress.hash));
             expect(result.domain.lengthBytes).toBe(testDomain.lengthBytes);
             expect(result.domain.value).toBe(testDomain.value);
             expect(result.payload).toBe(testPayload);
             expect(result.stateInit).toBe(testStateInit);
-            expect(result.timstamp).toBe(testTimestamp);
+            expect(result.timestamp).toBe(testTimestamp);
         });
 
         it('should not include signature field', () => {

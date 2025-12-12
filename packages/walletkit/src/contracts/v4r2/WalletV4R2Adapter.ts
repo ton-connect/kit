@@ -21,30 +21,28 @@ import {
     MessageRelaxed,
     internal,
 } from '@ton/core';
-import { CHAIN } from '@tonconnect/protocol';
 
 import { WalletV4R2, WalletV4R2Config } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
 import { defaultWalletIdV4R2 } from './constants';
-import { IWalletAdapter, WalletSigner } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
 import { formatWalletAddress } from '../../utils/address';
-import { ConnectTransactionParamContent } from '../../types/internal';
 import { CallForSuccess } from '../../utils/retry';
-import { PrepareSignDataResult } from '../../utils/signData/sign';
-import { Hex } from '../../types/primitive';
-import { CreateTonProofMessageBytes, TonProofParsedMessage } from '../../utils/tonProof';
+import { asHex, Hex } from '../../types/primitive';
+import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import { globalLogger } from '../../core/Logger';
 import { WalletV4R2AdapterConfig } from './types';
 import { createWalletId, WalletId } from '../../utils/walletId';
+import { WalletAdapter, WalletSigner } from '../../api/interfaces';
+import { Network, PreparedSignData, ProofMessage, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
 
 /**
  * WalletV4R2 adapter that implements WalletInterface for WalletV4R2 contracts
  */
-export class WalletV4R2Adapter implements IWalletAdapter {
+export class WalletV4R2Adapter implements WalletAdapter {
     private signer: WalletSigner;
     private config: WalletV4R2AdapterConfig;
 
@@ -62,14 +60,14 @@ export class WalletV4R2Adapter implements IWalletAdapter {
         signer: WalletSigner,
         options: {
             client: ApiClient;
-            network: CHAIN;
+            network: Network;
             walletId?: number | bigint;
             workchain?: number;
         },
     ): Promise<WalletV4R2Adapter> {
         return new WalletV4R2Adapter({
             signer,
-            publicKey: signer.publicKey,
+            publicKey: asHex(signer.publicKey),
             tonClient: options.client,
             network: options.network,
             walletId: typeof options.walletId === 'bigint' ? Number(options.walletId) : options.walletId,
@@ -110,17 +108,17 @@ export class WalletV4R2Adapter implements IWalletAdapter {
      * Sign raw bytes with wallet's private key
      */
     async sign(bytes: Iterable<number>): Promise<Hex> {
-        return await this.signer.sign(bytes);
+        return asHex(await this.signer.sign(bytes));
     }
 
-    getNetwork(): CHAIN {
+    getNetwork(): Network {
         return this.config.network;
     }
 
     /**
      * Get wallet's TON address
      */
-    getAddress(options?: { testnet?: boolean }): string {
+    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
     }
 
@@ -128,10 +126,7 @@ export class WalletV4R2Adapter implements IWalletAdapter {
         return createWalletId(this.getNetwork(), this.getAddress());
     }
 
-    async getSignedSendTransaction(
-        input: ConnectTransactionParamContent,
-        _options: { fakeSignature: boolean },
-    ): Promise<string> {
+    async getSignedSendTransaction(input: TransactionRequest, _options: { fakeSignature: boolean }): Promise<string> {
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -146,8 +141,8 @@ export class WalletV4R2Adapter implements IWalletAdapter {
             //
         }
 
-        const timeout = input.valid_until
-            ? Math.min(input.valid_until, Math.floor(Date.now() / 1000) + 600)
+        const timeout = input.validUntil
+            ? Math.min(input.validUntil, Math.floor(Date.now() / 1000) + 600)
             : Math.floor(Date.now() / 1000) + 60;
 
         try {
@@ -239,7 +234,7 @@ export class WalletV4R2Adapter implements IWalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address);
+            const state = await this.client.getAccountState(this.walletContract.address.toString());
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });
@@ -247,12 +242,12 @@ export class WalletV4R2Adapter implements IWalletAdapter {
         }
     }
 
-    async getSignedSignData(input: PrepareSignDataResult): Promise<Hex> {
-        const signature = await this.sign(HexToUint8Array(input.hash));
+    async getSignedSignData(input: PreparedSignData): Promise<Hex> {
+        const signature = await this.sign(HexToUint8Array(asHex(input.hash)));
         return signature;
     }
 
-    async getSignedTonProof(input: TonProofParsedMessage): Promise<Hex> {
+    async getSignedTonProof(input: ProofMessage): Promise<Hex> {
         const message = await CreateTonProofMessageBytes(input);
         const signature = await this.sign(message);
 

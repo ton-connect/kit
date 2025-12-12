@@ -7,22 +7,22 @@
  */
 
 import {
-    IWalletAdapter,
+    WalletAdapter,
     Hex,
-    CHAIN,
-    ConnectTransactionParamContent,
-    PrepareSignDataResult,
-    TonProofParsedMessage,
     ApiClient,
+    UserFriendlyAddress,
+    Base64String,
+    Network,
+    TransactionRequest,
+    PreparedSignData,
+    ProofMessage,
 } from '@ton/walletkit';
 
-import { Base64String } from '../../walletkit/dist/cjs/types/primitive';
-
-export class SwiftWalletAdapter implements IWalletAdapter {
-    private swiftWalletAdapter;
+export class SwiftWalletAdapter implements WalletAdapter {
+    private swiftWalletAdapter: WalletAdapter;
     private client: ApiClient;
 
-    constructor(swiftWalletAdapter: IWalletAdapter, client: ApiClient) {
+    constructor(swiftWalletAdapter: WalletAdapter, client: ApiClient) {
         this.swiftWalletAdapter = swiftWalletAdapter;
         this.client = client;
     }
@@ -31,7 +31,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
         return this.swiftWalletAdapter.getPublicKey();
     }
 
-    getNetwork(): CHAIN {
+    getNetwork(): Network {
         return this.swiftWalletAdapter.getNetwork();
     }
 
@@ -40,7 +40,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     /** Get wallet's TON address */
-    getAddress(options?: { testnet?: boolean }): string {
+    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
         return this.swiftWalletAdapter.getAddress(options);
     }
 
@@ -50,7 +50,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     async getSignedSendTransaction(
-        input: ConnectTransactionParamContent,
+        input: TransactionRequest,
         options?: {
             fakeSignature: boolean;
         },
@@ -59,7 +59,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     async getSignedSignData(
-        input: PrepareSignDataResult,
+        input: PreparedSignData,
         options?: {
             fakeSignature: boolean;
         },
@@ -68,7 +68,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     async getSignedTonProof(
-        input: TonProofParsedMessage,
+        input: ProofMessage,
         options?: {
             fakeSignature: boolean;
         },

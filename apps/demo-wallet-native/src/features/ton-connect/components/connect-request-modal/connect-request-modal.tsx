@@ -6,7 +6,7 @@
  *
  */
 
-import type { EventConnectRequest, IWallet } from '@ton/walletkit';
+import type { EventConnectRequest, Wallet } from '@ton/walletkit';
 import { type SavedWallet, useWallet } from '@ton/demo-core';
 import { type FC, useState, useMemo, useEffect } from 'react';
 import { View } from 'react-native';
@@ -26,15 +26,15 @@ import { WalletInfoBlock, WalletSelectorModal } from '@/features/wallets';
 interface ConnectRequestModalProps {
     request: EventConnectRequest;
     isOpen: boolean;
-    onApprove: (selectedWallet: IWallet) => void;
+    onApprove: (selectedWallet: Wallet) => void;
     onReject: (reason?: string) => void;
 }
 
 export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
     const { savedWallets, getAvailableWallets } = useWallet();
 
-    const [availableWallets, setAvailableWallets] = useState<IWallet[]>(getAvailableWallets());
-    const [selectedWallet, setSelectedWallet] = useState<IWallet | null>(availableWallets[0] || null);
+    const [availableWallets, setAvailableWallets] = useState<Wallet[]>(getAvailableWallets());
+    const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
     const [showWalletSelector, setShowWalletSelector] = useState(false);
 

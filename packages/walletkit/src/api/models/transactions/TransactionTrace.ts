@@ -95,6 +95,7 @@ export interface TransactionTraceAction {
     startUtime: number;
     /**
      * Unix time when the action ended
+     * @format timestamp
      */
     endUtime: number;
     /**
@@ -103,6 +104,7 @@ export interface TransactionTraceAction {
     traceEndLt: LogicalTime;
     /**
      * Unix time when the trace ended
+     * @format timestamp
      */
     traceEndUtime: number;
     /**
@@ -137,7 +139,7 @@ export interface TransactionTraceAction {
 export type TransactionTraceActionDetails =
     | { type: 'jetton_swap'; value: TransactionTraceActionJettonSwapDetails }
     | { type: 'call_contract'; value: TransactionTraceActionCallContractDetails }
-    | { type: 'ton_transfer'; value: TransactionTraceActionTonTransferDetails }
+    | { type: 'ton_transfer'; value: TransactionTraceActionTONTransferDetails }
     | { type: 'unknown'; value: { [key: string]: unknown } };
 
 /**
@@ -229,7 +231,7 @@ export interface TransactionTraceActionCallContractDetails {
     valueExtraCurrencies?: ExtraCurrencies;
 }
 
-export interface TransactionTraceActionTonTransferDetails {
+export interface TransactionTraceActionTONTransferDetails {
     /**
      * Address of the sender account.
      */

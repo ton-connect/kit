@@ -19,6 +19,8 @@ import {
 import { DAppInfo } from './events';
 import { JSBridgeTransportFunction } from './jsBridge';
 import { WalletId } from '../utils/walletId';
+import { ExtraCurrencies, TransactionRequest, TransactionRequestMessage } from '../api/models';
+import { SendModeFromValue } from '../api/models/core/SendMode';
 
 // import type { WalletInterface } from './wallet';
 
@@ -140,11 +142,39 @@ export interface ConnectTransactionParamMessage {
     extraCurrency?: ConnectExtraCurrency;
     mode?: number;
 }
+
+export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefined): ExtraCurrencies | undefined {
+    if (!extraCurrency) {
+        return undefined;
+    }
+    return extraCurrency as ExtraCurrencies;
+}
+
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
     network?: string;
     valid_until?: number; // unixtime
     from?: string;
+}
+
+export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {
+    return {
+        address: msg.address,
+        amount: msg.amount,
+        payload: msg.payload,
+        stateInit: msg.stateInit,
+        extraCurrency: toExtraCurrencies(msg.extraCurrency),
+        mode: msg.mode ? SendModeFromValue(msg.mode) : undefined,
+    };
+}
+
+export function toTransactionRequest(params: ConnectTransactionParamContent): TransactionRequest {
+    return {
+        messages: params.messages.map(toTransactionRequestMessage),
+        network: params.network ? { chainId: params.network } : undefined,
+        validUntil: params.valid_until,
+        fromAddress: params.from,
+    };
 }
 
 export type RawBridgeEventTransaction = BridgeEventBase & SendTransactionRpcRequest;

@@ -8,22 +8,6 @@
 
 // Type definitions module exports
 
-// Wallet types
-export type {
-    IWallet,
-    WalletMetadata,
-    WalletVersion,
-    TonTransferParams,
-    TonTransferManyParams,
-    TonTransferParamsBody,
-    TonTransferParamsComment,
-    WalletTonInterface,
-    WalletJettonInterface,
-    WalletNftInterface,
-    IWalletAdapter,
-    WalletSigner,
-} from './wallet';
-
 // Transaction types (from validation module)
 export type { HumanReadableTx } from '../validation/transaction';
 export type { ValidationResult } from '../validation/types';
@@ -38,7 +22,6 @@ export type {
     EventDisconnect,
     EventRequestError,
     ConnectPreview,
-    TransactionPreview,
     SignDataPreview,
 } from './events';
 
@@ -109,10 +92,4 @@ export type {
     ContractDeployAction,
     Account,
     SimplePreview,
-    AddressBook,
-    AddressBookItem,
-    JettonMasterInfo,
-    JettonWalletInfo,
-    StatusAction,
-    JettonMasterOut,
 } from './toncenter/AccountEvent';

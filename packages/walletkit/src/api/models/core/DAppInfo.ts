@@ -31,10 +31,4 @@ export interface DAppInfo {
      * @format url
      */
     iconUrl?: string;
-
-    /**
-     * TON Connect manifest URL containing dApp metadata
-     * @format url
-     */
-    manifestUrl?: string;
 }

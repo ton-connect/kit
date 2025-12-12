@@ -6,7 +6,7 @@
  *
  */
 
-import { CHAIN, type JettonInfo } from '@ton/walletkit';
+import { type JettonInfo, Network } from '@ton/walletkit';
 import { Address } from '@ton/core';
 import { type FC, useState, useEffect, memo } from 'react';
 import { View, Image } from 'react-native';
@@ -43,7 +43,7 @@ export const JettonFlowItem: FC<JettonFlowItemProps> = memo(({ jettonAddress, am
             : jettonAddress;
 
     const network = activeWallet?.network || 'testnet';
-    const chainNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const chainNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     useEffect(() => {
         if (!resolvedAddress) {

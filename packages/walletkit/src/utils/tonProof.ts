@@ -13,8 +13,9 @@ import { Address } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 import { ed25519 } from '@noble/curves/ed25519';
 
-import { Hex } from '../types/primitive';
+import { asHex, Hex } from '../types/primitive';
 import { Base64ToHex, HexToUint8Array, Uint8ArrayToHex } from './base64';
+import { Base64String, ProofMessage } from '../api/models';
 
 interface Domain {
     lengthBytes: number; // uint32 `json:"lengthBytes"`
@@ -39,12 +40,12 @@ export function SignatureVerify(pubkey: Uint8Array, message: Uint8Array, signatu
 const tonProofPrefix = 'ton-proof-item-v2/';
 const tonConnectPrefix = 'ton-connect';
 
-export async function CreateTonProofMessageBytes(message: TonProofParsedMessage): Promise<Uint8Array> {
+export async function CreateTonProofMessageBytes(message: ProofMessage): Promise<Uint8Array> {
     const wc = Buffer.alloc(4);
     wc.writeUInt32BE(message.workchain);
 
     const ts = Buffer.alloc(8);
-    ts.writeBigUInt64LE(BigInt(message.timstamp));
+    ts.writeBigUInt64LE(BigInt(message.timestamp));
 
     const dl = Buffer.alloc(4);
     dl.writeUInt32LE(message.domain.lengthBytes);
@@ -52,7 +53,7 @@ export async function CreateTonProofMessageBytes(message: TonProofParsedMessage)
     const m = Buffer.concat([
         Buffer.from(tonProofPrefix),
         wc,
-        HexToUint8Array(message.address),
+        HexToUint8Array(asHex(message.addressHash)),
         dl,
         Buffer.from(message.domain.value),
         ts,
@@ -66,12 +67,12 @@ export async function CreateTonProofMessageBytes(message: TonProofParsedMessage)
     return Buffer.from(res);
 }
 
-export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReplySuccess): TonProofParsedMessage {
+export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReplySuccess): ProofMessage {
     const address = Address.parse(walletInfo.account.address);
 
-    const res: TonProofParsedMessage = {
+    const res: ProofMessage = {
         workchain: address.workChain,
-        address: Uint8ArrayToHex(address.hash),
+        addressHash: Uint8ArrayToHex(address.hash),
         domain: {
             lengthBytes: tp.proof.domain.lengthBytes,
             value: tp.proof.domain.value,
@@ -79,7 +80,7 @@ export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReply
         signature: Base64ToHex(tp.proof.signature),
         payload: tp.proof.payload,
         stateInit: walletInfo.account.walletStateInit,
-        timstamp: tp.proof.timestamp,
+        timestamp: tp.proof.timestamp,
     };
     return res;
 }
@@ -94,19 +95,19 @@ export function createTonProofMessage({
     address: Address;
     domain: Domain;
     payload: string;
-    stateInit: string; // base64 boc
+    stateInit: Base64String; // base64 boc
     timestamp: number; // unixtime
-}): TonProofParsedMessage {
-    const res: TonProofParsedMessage = {
+}): ProofMessage {
+    const res: ProofMessage = {
         workchain: address.workChain,
-        address: Uint8ArrayToHex(address.hash),
+        addressHash: Uint8ArrayToHex(address.hash),
         domain: {
             lengthBytes: domain.lengthBytes,
             value: domain.value,
         },
         payload: payload,
         stateInit: stateInit,
-        timstamp: timestamp,
+        timestamp: timestamp,
     };
     return res;
 }

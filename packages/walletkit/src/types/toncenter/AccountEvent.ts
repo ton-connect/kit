@@ -14,13 +14,14 @@ import {
     EmulationTokenInfoMasters,
     EmulationTokenInfoWallets,
 } from './emulation';
-import { AddressFriendly, asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
 import { parseJettonActions } from './parsers/Jetton';
 import { parseNftActions } from './parsers/Nft';
 import { MetadataV3 } from './v3/AddressBookRowV3';
+import { UserFriendlyAddress } from '../../api/models';
 
 export interface JettonMasterInfo {
     address: string;
@@ -46,7 +47,7 @@ export interface AddressBookItem {
     jettonWallet?: JettonWalletInfo;
 }
 
-export type AddressBook = Record<AddressFriendly, AddressBookItem>;
+export type AddressBook = Record<UserFriendlyAddress, AddressBookItem>;
 
 export function toAddressBook(data: MetadataV3): AddressBook {
     const out: AddressBook = {};

@@ -11,7 +11,7 @@ import {
     type EventTransactionRequest,
     type EventSignDataRequest,
     type EventDisconnect,
-    type IWallet,
+    type Wallet,
     SEND_TRANSACTION_ERROR_CODES,
     WalletKitError,
     ERROR_CODES,
@@ -69,7 +69,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         });
     },
 
-    approveConnectRequest: async (selectedWallet: IWallet) => {
+    approveConnectRequest: async (selectedWallet: Wallet) => {
         const state = get();
         if (!state.tonConnect.pendingConnectRequest) {
             log.error('No pending connect request to approve');

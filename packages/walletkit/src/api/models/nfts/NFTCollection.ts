@@ -54,11 +54,6 @@ export interface NFTCollection {
     ownerAddress?: UserFriendlyAddress;
 
     /**
-     * The content metadata of the collection
-     */
-    metadata?: { [key: string]: string };
-
-    /**
      * Additional arbitrary data related to the NFT collection
      */
     extra?: { [key: string]: unknown };

@@ -8,7 +8,6 @@
 
 import { Cell, loadMessage } from '@ton/core';
 import { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
-import { CHAIN } from '@tonconnect/protocol';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { clearAllMocks, mocked } from '../../../mock.config';
@@ -26,6 +25,7 @@ import {
     stateInit,
     walletId,
 } from './WalletV5R1.fixture';
+import { Network } from '../../api/models';
 
 describe('WalletV5R1Adapter', () => {
     let tonClient: ApiClient;
@@ -37,7 +37,7 @@ describe('WalletV5R1Adapter', () => {
         const signer = await Signer.fromMnemonic(mnemonic);
         wallet = await WalletV5R1Adapter.create(signer, {
             client: tonClient,
-            network: CHAIN.MAINNET,
+            network: Network.mainnet(),
         });
     });
 
@@ -66,7 +66,7 @@ describe('WalletV5R1Adapter', () => {
         const signer = await Signer.fromMnemonic(mnemonic);
         const walletWithoutInit = await WalletV5R1Adapter.create(signer, {
             client: tonClient,
-            network: CHAIN.MAINNET,
+            network: Network.mainnet(),
         });
         Object.defineProperty(walletWithoutInit, 'walletContract', {
             value: { ...walletWithoutInit.walletContract, init: undefined },

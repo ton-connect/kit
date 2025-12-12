@@ -53,7 +53,7 @@ export interface Transaction {
      * Masterchain block sequence number
      * @format int
      */
-    msBlockSeqno: number;
+    mcBlockSeqno: number;
 
     /**
      * External hash of the trace
@@ -113,7 +113,7 @@ export interface Transaction {
     /**
      * Emulated state of the transaction
      */
-    isEmulated: AccountStatus;
+    isEmulated: boolean;
 }
 
 /**
@@ -122,7 +122,7 @@ export interface Transaction {
 export type AccountStatus =
     | { type: 'active' }
     | { type: 'frozen' }
-    | { type: 'uninitialized' }
+    | { type: 'uninit' }
     | { type: 'unknown'; value: string };
 
 /**
@@ -238,9 +238,8 @@ export interface TransactionMessage {
 
     /**
      * The opcode included in the message payload
-     * @format int
      */
-    opcode?: number;
+    opcode?: string;
 
     /**
      * IHR(Immediate hypercube routing) enabled/disabled
@@ -272,11 +271,6 @@ export interface TransactionMessage {
      * The content body of the message
      */
     messageContent?: TransactionMessageContent;
-
-    /**
-     * The initial state of the contract, if provided by the message
-     */
-    initState?: TransactionMessageContent;
 }
 
 /**
@@ -514,7 +508,7 @@ export interface TransactionAction {
      * The number of messages created in the action phase
      * @format int
      */
-    messagesCreatedCount: number;
+    messagesCreatedNumber: number;
 
     /**
      * The hash of the action list

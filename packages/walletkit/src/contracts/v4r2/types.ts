@@ -6,11 +6,10 @@
  *
  */
 
-import type { CHAIN } from '@tonconnect/protocol';
-
-import { WalletSigner } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { Hex } from '../../types/primitive';
+import { Network } from '../../api/models';
+import { WalletSigner } from '../../api/interfaces';
 
 /**
  * Configuration for creating a WalletV4R2 adapter
@@ -25,7 +24,7 @@ export interface WalletV4R2AdapterConfig {
     /** Shared TON client instance */
     tonClient: ApiClient;
     /** Network */
-    network: CHAIN;
+    network: Network;
     /** Workchain */
     workchain?: number;
 }

@@ -8,7 +8,7 @@
 
 import { ResultError, Result } from '../../core/Primitives';
 import { TransactionEmulatedTrace } from './TransactionEmulatedTrace';
-import { TransactionMoneyFlow } from '../TransactionMoneyFlow';
+import { TransactionTraceMoneyFlow } from '../TransactionTraceMoneyFlow';
 
 /**
  * Preview of an emulated transaction showing expected outcome.
@@ -32,5 +32,5 @@ export interface TransactionEmulatedPreview {
     /**
      * Summary of token flows (incoming/outgoing) for the transaction
      */
-    moneyFlow?: TransactionMoneyFlow;
+    moneyFlow?: TransactionTraceMoneyFlow;
 }

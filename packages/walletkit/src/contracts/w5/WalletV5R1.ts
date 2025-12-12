@@ -147,7 +147,7 @@ export class WalletV5 implements Contract {
     }
 
     get publicKey(): Promise<bigint> {
-        return this.client.runGetMethod(this.address, 'get_public_key').then((data) => {
+        return this.client.runGetMethod(this.address.toString(), 'get_public_key').then((data) => {
             if (data.exitCode === 0) {
                 const parsedStack = ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
@@ -167,11 +167,11 @@ export class WalletV5 implements Contract {
     }
 
     get status(): Promise<AccountStatus> {
-        return this.client.getAccountState(this.address).then((state) => state.status);
+        return this.client.getAccountState(this.address.toString()).then((state) => state.status);
     }
 
     get seqno() {
-        return this.client.runGetMethod(this.address, 'seqno').then((data) => {
+        return this.client.runGetMethod(this.address.toString(), 'seqno').then((data) => {
             if (data.exitCode === 0) {
                 const parsedStack = ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
@@ -186,7 +186,7 @@ export class WalletV5 implements Contract {
     }
 
     get isSignatureAuthAllowed(): Promise<boolean> {
-        return this.client.runGetMethod(this.address, 'is_signature_allowed').then((data) => {
+        return this.client.runGetMethod(this.address.toString(), 'is_signature_allowed').then((data) => {
             if (data.exitCode === 0) {
                 const parsedStack = ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
@@ -206,7 +206,7 @@ export class WalletV5 implements Contract {
                 resolve(WalletV5R1Id.deserialize(this.subwalletId!));
             });
         } else {
-            return this.client.runGetMethod(this.address, 'get_subwallet_id').then((data) => {
+            return this.client.runGetMethod(this.address.toString(), 'get_subwallet_id').then((data) => {
                 if (data.exitCode === 0) {
                     const parsedStack = ParseStack(data.stack);
                     if (parsedStack[0]?.type === 'int') {

@@ -37,9 +37,4 @@ export interface TokenInfo {
      * Ticker symbol of the token (e.g., "TON", "USDT")
      */
     symbol?: string;
-
-    /**
-     * Whether the token metadata has been verified
-     */
-    isValid?: boolean;
 }

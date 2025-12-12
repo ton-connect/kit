@@ -8,7 +8,7 @@
 
 import { keyPairFromSeed, sign } from '@ton/crypto';
 
-import { ISigner } from '../types/wallet';
+import { ISigner } from '../api/interfaces';
 import { Uint8ArrayToHex } from './base64';
 import { Hex } from '../types/primitive';
 

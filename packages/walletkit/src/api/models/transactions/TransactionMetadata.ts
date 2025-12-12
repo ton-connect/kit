@@ -13,7 +13,9 @@ import { UserFriendlyAddress } from '../core/Primitives';
 /**
  * Metadata about addresses, including indexing and associated token info.
  */
-export type TransactionAddressMetadata = { [key: UserFriendlyAddress]: TransactionAddressMetadataEntry };
+export type TransactionAddressMetadata = {
+    [key: UserFriendlyAddress]: TransactionAddressMetadataEntry;
+};
 
 /**
  * Metadata entry for a specific address in a transaction.

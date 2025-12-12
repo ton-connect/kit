@@ -19,7 +19,8 @@
     "build:website": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean": "git clean -xdf .cache .turbo dist dist-extension-chrome dist-extension-firefox node_modules"
+    "clean": "git clean -xdf .cache .turbo dist dist-extension-chrome dist-extension-firefox node_modules",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
     "@ledgerhq/hw-transport-webhid": "^6.30.9",

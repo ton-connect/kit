@@ -29,7 +29,7 @@ export interface PreparedSignData {
     /**
      * Payload containing the data to be signed
      */
-    payload: PreparedSignDataPayload;
+    payload: SignDataPayload;
     /**
      * Hash of the prepared sign data for verification
      */
@@ -39,17 +39,23 @@ export interface PreparedSignData {
 /**
  * Payload structure for prepared sign data.
  */
-export interface PreparedSignDataPayload {
+export interface SignDataPayload {
     /**
      * Network where the signing will occur
      */
-    network: Network;
+    network?: Network;
     /**
      * Optional sender address
      */
-    from?: UserFriendlyAddress;
+    fromAddress?: UserFriendlyAddress;
     /**
-     * Optional sign data content to be signed
+     * Sign data content to be signed
      */
-    data?: SignData;
+    data: SignData;
+}
+
+export interface UnpreparedSignData {
+    payload: SignDataPayload;
+    domain: string;
+    address: UserFriendlyAddress;
 }

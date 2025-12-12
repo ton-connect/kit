@@ -14,6 +14,8 @@ import { Card } from './Card';
 import { JettonRow } from './JettonRow';
 import { createComponentLogger } from '../utils/logger';
 
+import { getJettonsName } from '@/utils/jetton';
+
 const log = createComponentLogger('JettonsCard');
 
 interface JettonsCardProps {
@@ -22,8 +24,7 @@ interface JettonsCardProps {
 
 export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
     const { address } = useWallet();
-    const { lastJettonsUpdate, userJettons, isLoadingJettons, error, loadUserJettons, formatJettonAmount } =
-        useJettons();
+    const { lastJettonsUpdate, userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
 
     // Load jettons on mount if none are loaded
     useEffect(() => {
@@ -54,9 +55,10 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
     const topJettons = userJettons.slice(0, 3);
 
     const totalJettons = userJettons.length;
-    const totalValue = userJettons.reduce((sum, jetton) => {
-        return sum + (jetton.usdValue ? parseFloat(jetton.usdValue) : 0);
-    }, 0);
+    // const totalValue = userJettons.reduce((sum, jetton) => {
+    //     return sum + (jetton.usdValue ? parseFloat(jetton.usdValue) : 0);
+    // }, 0);
+    const totalValue = 0;
 
     if (error) {
         return (
@@ -132,11 +134,10 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
                             <JettonRow
                                 key={jetton.address}
                                 jetton={jetton}
-                                formatJettonAmount={formatJettonAmount}
                                 formatAddress={formatAddress}
                                 onClick={() => {
                                     // TODO: Handle jetton row click - navigate to jetton details
-                                    log.info('Jetton clicked:', jetton.name || jetton.symbol);
+                                    log.info('Jetton clicked:', getJettonsName(jetton));
                                 }}
                             />
                         ))}

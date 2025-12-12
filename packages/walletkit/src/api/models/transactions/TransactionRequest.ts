@@ -44,12 +44,12 @@ export interface TransactionRequestMessage {
     /**
      * Recipient wallet address
      */
-    recipientAddress: UserFriendlyAddress;
+    address: UserFriendlyAddress;
 
     /**
-     * Amount to transfer in nanotons
+     * Amount to transfer in nanos
      */
-    transferAmount: TokenAmount;
+    amount: TokenAmount;
 
     /**
      * Send mode flags controlling message behavior

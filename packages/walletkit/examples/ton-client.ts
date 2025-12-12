@@ -17,7 +17,7 @@ import {
     Signer,
     WalletV5R1Adapter,
     wrapWalletInterface,
-    IWallet,
+    Wallet,
 } from '../src';
 
 // eslint-disable-next-line no-console
@@ -32,7 +32,7 @@ const apiKey = process.env[`TON_API_KEY_${networkName}`];
 const mnemonic = process.env[`TON_MNEMONIC_${networkName}`]!.trim().split(' ');
 const client = new ApiClientToncenter({ apiKey, network });
 
-async function logWallet(wallet: IWallet) {
+async function logWallet(wallet: Wallet) {
     return {
         address: wallet.getAddress(),
         balance: await wallet.getBalance(),

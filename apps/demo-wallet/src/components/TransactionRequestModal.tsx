@@ -7,7 +7,12 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import { CHAIN, type EventTransactionRequest, type JettonInfo, type MoneyFlowSelf } from '@ton/walletkit';
+import {
+    Network,
+    type EventTransactionRequest,
+    type JettonInfo,
+    type TransactionTraceMoneyFlowItem,
+} from '@ton/walletkit';
 import { Address } from '@ton/core';
 import { useWalletKit, useAuth, useWalletStore, type SavedWallet } from '@ton/demo-core';
 
@@ -169,7 +174,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                 <div>
                                     <div className="space-y-3">
                                         {/* No transfers message */}
-                                        {request.preview.moneyFlow.outputs === '0' &&
+                                        {request.preview.moneyFlow?.outputs === '0' &&
                                         request.preview.moneyFlow.inputs === '0' &&
                                         request.preview.moneyFlow.ourTransfers.length === 0 ? (
                                             <div className="border rounded-lg p-3 bg-gray-50">
@@ -178,12 +183,12 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                                 </p>
                                             </div>
                                         ) : (
-                                            <JettonFlow transfers={request.preview.moneyFlow.ourTransfers} />
+                                            <JettonFlow transfers={request.preview.moneyFlow?.ourTransfers || []} />
                                         )}
                                     </div>
                                 </div>
                                 {/* Parsed Actions from Emulation */}
-                                {request.preview.emulationResult && (
+                                {request.preview.result && (
                                     <ActionPreviewList
                                         emulationResult={request.preview.emulationResult}
                                         walletAddress={request.walletAddress || currentWallet?.address}
@@ -194,10 +199,10 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             </>
                         )}
 
-                        {request.preview.result === 'error' && (
+                        {(request.preview.result === 'failure' || request.preview.error) && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                 <p className="text-sm text-red-800">
-                                    <strong>Error:</strong> {request.preview.emulationError.message}
+                                    <strong>Error:</strong> {request.preview.error?.message}
                                 </p>
                             </div>
                         )}
@@ -271,7 +276,7 @@ function useJettonInfo(jettonAddress: Address | string | null) {
     const walletKit = useWalletKit();
     const network = useActiveWalletNetwork();
     const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
-    const chainNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const chainNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     useEffect(() => {
         if (!jettonAddress) {
@@ -374,7 +379,7 @@ const JettonFlowItem = memo(function JettonFlowItem({
         </div>
     );
 });
-export const JettonFlow = memo(function JettonFlow({ transfers }: { transfers: MoneyFlowSelf[] }) {
+export const JettonFlow = memo(function JettonFlow({ transfers }: { transfers: TransactionTraceMoneyFlowItem[] }) {
     return (
         <div className="mt-2">
             <div className="font-semibold mb-1">Money Flow:</div>
@@ -382,16 +387,16 @@ export const JettonFlow = memo(function JettonFlow({ transfers }: { transfers: M
                 {/* <JettonFlowItem jettonAddress={'TON'} amount={tonDifference} /> */}
                 {transfers?.length > 0 ? (
                     transfers.map((transfer) =>
-                        transfer.type === 'jetton' ? (
+                        transfer.assetType === 'jetton' ? (
                             <JettonFlowItem
-                                key={transfer.jetton.toString()}
-                                jettonAddress={transfer.jetton}
+                                key={transfer.tokenAddress}
+                                jettonAddress={transfer.tokenAddress}
                                 amount={transfer.amount}
                             />
                         ) : (
                             <JettonFlowItem
-                                key={transfer.type.toString()}
-                                jettonAddress={transfer.type.toLocaleUpperCase()}
+                                key={`${transfer.assetType.toString()}-${transfer.tokenAddress}`}
+                                jettonAddress={transfer.assetType.toLocaleUpperCase()}
                                 amount={transfer.amount}
                             />
                         ),

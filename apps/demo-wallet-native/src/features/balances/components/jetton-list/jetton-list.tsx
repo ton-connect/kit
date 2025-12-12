@@ -18,9 +18,10 @@ import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
 import { LoaderCircle } from '@/core/components/loader-circle';
 import { RowCenter } from '@/core/components/grid';
+import { getFormattedJettonInfo } from '@/core/utils/jetton';
 
 export const JettonList: FC = () => {
-    const { userJettons, isLoadingJettons, error, loadUserJettons, formatJettonAmount } = useJettons();
+    const { userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
     const { theme } = useUnistyles();
 
     // Load jettons on mount if none are loaded
@@ -85,11 +86,8 @@ export const JettonList: FC = () => {
             </AppText>
 
             {userJettons.map((jetton) => {
-                const name = jetton.name || jetton.symbol;
-                const symbol = jetton.symbol;
-                const image = jetton.image;
-                const decimals = jetton.decimals;
-                const isVerified = jetton.verification?.verified;
+                const { image, name, symbol, decimals, balance } = getFormattedJettonInfo(jetton);
+                const isVerified = false;
 
                 return (
                     <Block key={jetton.address} style={styles.jettonItem}>
@@ -100,7 +98,7 @@ export const JettonList: FC = () => {
                                 </CircleLogo.Container>
                             ) : (
                                 <View style={styles.jettonImagePlaceholder}>
-                                    <AppText style={styles.jettonImagePlaceholderText}>{symbol.slice(0, 2)}</AppText>
+                                    <AppText style={styles.jettonImagePlaceholderText}>{symbol?.slice(0, 2)}</AppText>
                                 </View>
                             )}
 
@@ -120,11 +118,7 @@ export const JettonList: FC = () => {
                         </View>
 
                         <View style={styles.jettonBalance}>
-                            <TextAmount
-                                style={styles.jettonBalanceAmount}
-                                amount={formatJettonAmount(jetton.balance, decimals)}
-                                decimals={decimals}
-                            />
+                            <TextAmount style={styles.jettonBalanceAmount} amount={balance} decimals={decimals} />
                             <AppText style={styles.jettonBalanceSymbol}>{symbol}</AppText>
                         </View>
                     </Block>

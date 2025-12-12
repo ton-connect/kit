@@ -88,5 +88,5 @@ export interface NFT {
     /**
      * Off-chain metadata of the NFT (key-value pairs)
      */
-    metadata?: { [key: string]: string };
+    extra?: { [key: string]: unknown };
 }

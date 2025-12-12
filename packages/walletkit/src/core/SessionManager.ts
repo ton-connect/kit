@@ -10,12 +10,13 @@
 
 import { SessionCrypto } from '@tonconnect/protocol';
 
-import type { SessionInfo, IWallet } from '../types';
+import type { SessionInfo } from '../types';
 import type { WalletManager } from '../core/WalletManager';
 import type { SessionData } from '../types/internal';
 import { Storage } from '../storage';
 import { globalLogger } from './Logger';
 import { createWalletId, WalletId } from '../utils/walletId';
+import { Wallet } from '../api/interfaces';
 
 const log = globalLogger.createChild('SessionManager');
 
@@ -47,7 +48,7 @@ export class SessionManager {
         domain: string,
         dAppIconUrl: string,
         dAppDescription: string,
-        wallet?: IWallet,
+        wallet?: Wallet,
         { disablePersist = false, isJsBridge = false }: { disablePersist?: boolean; isJsBridge?: boolean } = {},
     ): Promise<SessionData> {
         const now = new Date();
@@ -179,7 +180,7 @@ export class SessionManager {
     /**
      * Remove all sessions for a wallet by wallet ID or wallet adapter
      */
-    async removeSessionsForWallet(walletOrId: WalletId | IWallet): Promise<number> {
+    async removeSessionsForWallet(walletOrId: WalletId | Wallet): Promise<number> {
         const walletId =
             typeof walletOrId === 'string'
                 ? walletOrId

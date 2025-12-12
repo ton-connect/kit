@@ -21,7 +21,7 @@ export interface JettonsTransferRequest {
     /**
      * Amount to transfer in Jetton's smallest unit
      */
-    transferAmount?: TokenAmount;
+    transferAmount: TokenAmount;
 
     /**
      * Recipient wallet address

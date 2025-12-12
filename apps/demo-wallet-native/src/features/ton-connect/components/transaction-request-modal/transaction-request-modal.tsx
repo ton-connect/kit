@@ -23,6 +23,7 @@ import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
 import { AppText } from '@/core/components/app-text';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
+import { getErrorMessage } from '@/core/utils/errors/get-error-message';
 
 interface TransactionRequestModalProps {
     request: EventTransactionRequest;
@@ -97,7 +98,7 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     <View style={styles.moneyFlowSection}>
                         <SectionTitle>Money Flow</SectionTitle>
 
-                        {request.preview.moneyFlow.outputs === '0' &&
+                        {request.preview.moneyFlow?.outputs === '0' &&
                         request.preview.moneyFlow.inputs === '0' &&
                         request.preview.moneyFlow.ourTransfers.length === 0 ? (
                             <View style={styles.noTransfers}>
@@ -107,11 +108,13 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                             </View>
                         ) : (
                             <View style={styles.transfersList}>
-                                {request.preview.moneyFlow.ourTransfers.map((transfer, index) => (
+                                {request.preview.moneyFlow?.ourTransfers.map((transfer, index) => (
                                     <JettonFlowItem
                                         key={index}
                                         jettonAddress={
-                                            transfer.type === 'jetton' ? transfer.jetton : transfer.type.toUpperCase()
+                                            transfer.assetType === 'jetton'
+                                                ? transfer.tokenAddress
+                                                : transfer.assetType.toUpperCase()
                                         }
                                         amount={transfer.amount}
                                         activeWallet={currentWallet}
@@ -123,8 +126,8 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     </View>
                 )}
 
-                {request.preview.result === 'error' && (
-                    <WarningBox variant="error">Error: {request.preview.emulationError.message}</WarningBox>
+                {(request.preview.result === 'failure' || request.preview.error) && (
+                    <WarningBox variant="error">Error: {getErrorMessage(request.preview)}</WarningBox>
                 )}
 
                 <WarningBox variant="error">

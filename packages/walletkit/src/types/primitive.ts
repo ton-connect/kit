@@ -8,6 +8,8 @@
 
 import { Address, beginCell, Cell } from '@ton/core';
 
+import { UserFriendlyAddress } from '../api/models';
+
 declare const hashBrand: unique symbol;
 
 export type Hex = `0x${string}` & { readonly [hashBrand]: never };
@@ -20,9 +22,7 @@ export function asHex(data: string): Hex {
     return data as Hex;
 }
 
-export type AddressFriendly = string;
-
-export function asMaybeAddressFriendly(data?: string | null): AddressFriendly | null {
+export function asMaybeAddressFriendly(data?: string | null): UserFriendlyAddress | null {
     try {
         return asAddressFriendly(data);
     } catch {
@@ -31,7 +31,7 @@ export function asMaybeAddressFriendly(data?: string | null): AddressFriendly | 
     return null;
 }
 
-export function asAddressFriendly(data?: string | null): AddressFriendly {
+export function asAddressFriendly(data?: string | null): UserFriendlyAddress {
     try {
         if (data) return Address.parse(data).toString();
     } catch {

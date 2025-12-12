@@ -46,9 +46,9 @@ export interface ConnectionRequestEventPreviewRequestedItem {
      */
     name: string;
     /**
-     * Human-readable description of the requested item
+     *
      */
-    description?: string;
+    payload?: string;
 }
 
 /**

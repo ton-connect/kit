@@ -6,12 +6,12 @@
  *
  */
 
+import { UserFriendlyAddress } from '../../api/models';
 import { AddressBookRow } from './AddressBookRow';
-import { AddressFriendly } from '../primitive';
 import { NftItems } from './NftItems';
 import { NftMetadata } from './NftMetadata';
 
 export interface NftItemsResponse extends NftItems {
-    addressBook: { [key: AddressFriendly]: AddressBookRow };
+    addressBook: { [key: UserFriendlyAddress]: AddressBookRow };
     metadata: NftMetadata;
 }
