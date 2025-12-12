@@ -117,7 +117,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                         createWalletInitConfigLedger({
                             createTransport: async () => await TransportWebHID.create(),
                             path: storedLedgerConfig.path,
-                            publicKey: Uint8Array.from(storedLedgerConfig.publicKey),
+                            publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
                             network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
                             workchain: storedLedgerConfig.workchain,
@@ -130,7 +130,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                     );
                 }
 
-                const path = createLedgerPath(false, 0, ledgerAccountNumber);
+                const path = createLedgerPath(chainNetwork === CHAIN.TESTNET, 0, ledgerAccountNumber);
 
                 return createWalletV4R2Ledger(
                     createWalletInitConfigLedger({

@@ -23,6 +23,7 @@ export const SetupWallet: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showMnemonic, setShowMnemonic] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [ledgerNetwork, setLedgerNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
 
     const navigate = useNavigate();
     const { createNewWallet, createLedgerWallet, importWallet } = useTonWallet();
@@ -34,6 +35,8 @@ export const SetupWallet: React.FC = () => {
         setIsLoading(true);
 
         try {
+            setUseWalletInterfaceType('mnemonic');
+
             const newMnemonic = await createNewWallet();
             setMnemonic(newMnemonic);
             setMode('create');
@@ -78,7 +81,7 @@ export const SetupWallet: React.FC = () => {
             // Set wallet interface type to ledger
             setUseWalletInterfaceType('ledger');
 
-            await createLedgerWallet();
+            await createLedgerWallet(ledgerNetwork);
             navigate('/wallet');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create Ledger wallet');
@@ -245,6 +248,19 @@ export const SetupWallet: React.FC = () => {
 
                     <Card>
                         <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Network</label>
+                                <p className="text-xs text-gray-500">Select the network for your Ledger wallet</p>
+                                <select
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    value={ledgerNetwork}
+                                    onChange={(e) => setLedgerNetwork(e.target.value as 'mainnet' | 'testnet')}
+                                >
+                                    <option value="mainnet">Mainnet</option>
+                                    <option value="testnet">Testnet</option>
+                                </select>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700">Account Number</label>
                                 <p className="text-xs text-gray-500">

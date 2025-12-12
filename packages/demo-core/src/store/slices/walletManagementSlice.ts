@@ -189,7 +189,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         return get().createWallet(mnemonic, name, version, network);
     },
 
-    createLedgerWallet: async (name?: string) => {
+    createLedgerWallet: async (name?: string, network?: 'mainnet' | 'testnet') => {
         const state = get();
         if (!state.auth.currentPassword) {
             throw new Error('User not authenticated');
@@ -204,15 +204,16 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         }
 
         try {
-            const walletId = generateWalletId();
+            const getneratedWalletId = generateWalletId();
             const walletName = name || generateWalletName(state.walletManagement.savedWallets, 'ledger');
             const version = 'v4r2';
+            const walletNetwork = network || 'mainnet';
 
             const walletAdapter = await createWalletAdapter({
                 useWalletInterfaceType: 'ledger',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                 storedLedgerConfig: undefined,
-                network: 'mainnet',
+                network: walletNetwork,
                 walletKit: state.walletCore.walletKit,
                 version: version,
             });
@@ -224,29 +225,34 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             }
 
             const address = wallet.getAddress();
+            const kitWalletId = wallet.getWalletId();
 
-            const existingWallet = state.walletManagement.savedWallets.find((w) => w.address === address);
+            const existingWallet = state.walletManagement.savedWallets.find((w) => w.kitWalletId === kitWalletId);
             if (existingWallet) {
-                log.warn(`Wallet with address ${address} already exists`);
-                throw new Error('A wallet with this address already exists');
+                log.warn(`Wallet with walletId ${kitWalletId} already exists`);
+                throw new Error('A wallet with this walletId already exists');
             }
 
             const balance = await wallet.getBalance();
             const publicKey = wallet.getPublicKey();
 
-            const ledgerPath = createLedgerPath(false, 0, state.auth.ledgerAccountNumber || 0);
+            const ledgerPath = createLedgerPath(
+                wallet.getNetwork() === CHAIN.TESTNET,
+                0,
+                state.auth.ledgerAccountNumber || 0,
+            );
             const ledgerConfig: LedgerConfig = {
                 publicKey: publicKey,
                 path: ledgerPath,
                 walletId: 698983191,
                 version: version,
-                network: 'mainnet',
+                network: walletNetwork,
                 workchain: 0,
                 accountIndex: state.auth.ledgerAccountNumber || 0,
             };
 
             const savedWallet: SavedWallet = {
-                id: walletId,
+                id: getneratedWalletId,
                 name: walletName,
                 address,
                 publicKey,
@@ -254,7 +260,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 walletType: 'ledger',
                 walletInterfaceType: 'ledger',
                 version: version,
-                network: 'mainnet',
+                network: walletNetwork,
                 createdAt: Date.now(),
                 kitWalletId: wallet.getWalletId(),
             };
@@ -263,15 +269,15 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 state.walletManagement.savedWallets.push(savedWallet);
                 state.walletManagement.hasWallet = true;
                 state.walletManagement.isAuthenticated = true;
-                state.walletManagement.activeWalletId = walletId;
+                state.walletManagement.activeWalletId = getneratedWalletId;
                 state.walletManagement.address = address;
                 state.walletManagement.publicKey = publicKey;
                 state.walletManagement.balance = balance.toString();
                 state.walletManagement.currentWallet = wallet;
             });
 
-            log.info(`Created Ledger wallet ${walletId} (${walletName})`);
-            return walletId;
+            log.info(`Created Ledger wallet ${getneratedWalletId} (${walletName})`);
+            return getneratedWalletId;
         } catch (error) {
             log.error('Error creating Ledger wallet:', error);
             throw error instanceof Error ? error : new Error('Failed to create Ledger wallet');

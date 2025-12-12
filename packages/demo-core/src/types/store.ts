@@ -82,7 +82,7 @@ export interface WalletManagementSlice {
         version?: 'v5r1' | 'v4r2',
         network?: 'mainnet' | 'testnet',
     ) => Promise<string>;
-    createLedgerWallet: (name?: string) => Promise<string>;
+    createLedgerWallet: (name?: string, network?: 'mainnet' | 'testnet') => Promise<string>;
     switchWallet: (walletId: string) => Promise<void>;
     removeWallet: (walletId: string) => void;
     renameWallet: (walletId: string, newName: string) => void;
