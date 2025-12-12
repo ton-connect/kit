@@ -4,6 +4,24 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/react':
+      specifier: 19.1.17
+      version: 19.1.17
+    '@types/react-dom':
+      specifier: 19.1.7
+      version: 19.1.7
+    react:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-dom:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-native:
+      specifier: 0.81.5
+      version: 0.81.5
+
 importers:
 
   .:
@@ -432,15 +450,6 @@ importers:
       '@noble/curves':
         specifier: ^1.9.7
         version: 1.9.7
-      '@ton-community/tlb-runtime':
-        specifier: 1.0.0-alpha.3
-        version: 1.0.0-alpha.3
-      '@ton/core':
-        specifier: ^0.62.0
-        version: 0.62.0(@ton/crypto@3.3.0)
-      '@ton/crypto':
-        specifier: ^3.3.0
-        version: 3.3.0
       '@tonconnect/bridge-sdk':
         specifier: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
         version: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
@@ -469,6 +478,15 @@ importers:
       '@stryker-mutator/core':
         specifier: ^9.3.0
         version: 9.3.0(@types/node@24.10.1)
+      '@ton-community/tlb-runtime':
+        specifier: 1.0.0-alpha.3
+        version: 1.0.0-alpha.3
+      '@ton/core':
+        specifier: ^0.62.0
+        version: 0.62.0(@ton/crypto@3.3.0)
+      '@ton/crypto':
+        specifier: ^3.3.0
+        version: 3.3.0
       '@types/chrome':
         specifier: ^0.1.28
         version: 0.1.28
@@ -11551,7 +11569,7 @@ snapshots:
     dependencies:
       ansi-align: 3.0.1
       camelcase: 8.0.0
-      chalk: 5.4.1
+      chalk: 5.6.2
       cli-boxes: 3.0.0
       string-width: 7.2.0
       type-fest: 4.41.0
