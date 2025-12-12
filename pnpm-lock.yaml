@@ -450,9 +450,6 @@ importers:
       '@noble/curves':
         specifier: ^1.9.7
         version: 1.9.7
-      '@ton/core':
-        specifier: ^0.62.0
-        version: 0.62.0(@ton/crypto@3.3.0)
       '@tonconnect/bridge-sdk':
         specifier: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
         version: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
@@ -484,6 +481,9 @@ importers:
       '@ton-community/tlb-runtime':
         specifier: 1.0.0-alpha.3
         version: 1.0.0-alpha.3
+      '@ton/core':
+        specifier: ^0.62.0
+        version: 0.62.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: ^3.3.0
         version: 3.3.0

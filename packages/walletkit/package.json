@@ -86,6 +86,7 @@
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.3.0",
     "@ton-community/tlb-runtime": "1.0.0-alpha.3",
+    "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0",
     "@types/chrome": "^0.1.28",
     "@types/jest": "^30.0.0",
