@@ -69,10 +69,22 @@ export async function initTonWalletKit(
 
     log('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
 
+    // Build networks config - the new SDK requires networks as an object keyed by chain ID
+    const apiClientConfig = clientEndpoint ? { url: clientEndpoint } : undefined;
+    const networksConfig: Record<string, { apiClient?: { url: string } }> = {
+        [network]: { apiClient: apiClientConfig },
+    };
+
     const kitOptions: Record<string, unknown> = {
         network,
-        apiClient: { url: clientEndpoint },
+        networks: networksConfig,
     };
+
+    // Pass disableNetworkSend to dev options for testing
+    if (config?.disableNetworkSend) {
+        kitOptions.dev = { disableNetworkSend: true };
+        log('[walletkitBridge] ⚠️ disableNetworkSend is enabled - transactions will be simulated only');
+    }
 
     if (config?.deviceInfo) {
         kitOptions.deviceInfo = config.deviceInfo;

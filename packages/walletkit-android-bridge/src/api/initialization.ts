@@ -86,6 +86,17 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
 
     walletKit.onDisconnect(eventListeners.onDisconnectListener);
 
+    // Register error listener - forwards EventRequestError directly
+    if (eventListeners.onErrorListener) {
+        walletKit.removeErrorCallback();
+    }
+
+    eventListeners.onErrorListener = (event: unknown) => {
+        callback('requestError', event);
+    };
+
+    walletKit.onRequestError(eventListeners.onErrorListener);
+
     return { ok: true };
 }
 
@@ -113,6 +124,11 @@ export function removeEventListeners(): { ok: true } {
     if (eventListeners.onDisconnectListener) {
         walletKit.removeDisconnectCallback();
         eventListeners.onDisconnectListener = null;
+    }
+
+    if (eventListeners.onErrorListener) {
+        walletKit.removeErrorCallback();
+        eventListeners.onErrorListener = null;
     }
 
     return { ok: true };
