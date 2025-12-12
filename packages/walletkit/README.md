@@ -424,7 +424,10 @@ async function rejectTx() {
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
-See `apps/demo-wallet` for the full implementation. The store slices [walletCoreSlice.ts](/packages/demo-core/src/store/slices/walletCoreSlice.ts) and [tonConnectSlice.ts](/packages/demo-core/src/store/slices/tonConnectSlice.ts) show how to:
+- **Web**: See `apps/demo-wallet` for the full implementation.
+- **React Native**: See `apps/demo-wallet-native` for the Expo-based mobile wallet.
+
+The store slices [walletCoreSlice.ts](/packages/demo-core/src/store/slices/walletCoreSlice.ts) and [tonConnectSlice.ts](/packages/demo-core/src/store/slices/tonConnectSlice.ts) show how to:
 
 - Initialize the kit and add a wallet from mnemonic
 - Wire `onConnectRequest` and `onTransactionRequest` to open modals
