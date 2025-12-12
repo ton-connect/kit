@@ -6,7 +6,7 @@
  *
  */
 
-import { storeJettonTransferMessage } from '@ton-community/assets-sdk';
+import type { Builder, Cell } from '@ton/core';
 import { Address, beginCell } from '@ton/core';
 
 import { validateTransactionMessage } from '../../../validation';
@@ -24,6 +24,30 @@ import type {
     UserFriendlyAddress,
 } from '../../../api/models';
 import { SendModeFlag } from '../../../api/models';
+import { OpCode } from '../../../types/toncenter/parsers';
+
+export interface JettonTransferMessage {
+    queryId: bigint;
+    amount: bigint;
+    destination: Address;
+    responseDestination: Address | null;
+    customPayload: Cell | null;
+    forwardAmount: bigint;
+    forwardPayload: Cell | null;
+}
+
+export function storeJettonTransferMessage(src: JettonTransferMessage) {
+    return (builder: Builder) => {
+        builder.storeUint(Number(OpCode.JettonTransfer), 32);
+        builder.storeUint(src.queryId, 64);
+        builder.storeCoins(src.amount);
+        builder.storeAddress(src.destination);
+        builder.storeAddress(src.responseDestination);
+        builder.storeMaybeRef(src.customPayload);
+        builder.storeCoins(src.forwardAmount ?? 0);
+        builder.storeMaybeRef(src.forwardPayload);
+    };
+}
 
 export class WalletJettonClass implements WalletJettonInterface {
     async createTransferJettonTransaction(
