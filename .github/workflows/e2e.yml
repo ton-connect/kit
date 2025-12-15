@@ -1,0 +1,58 @@
+name: E2E tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  # Можно выбрать любую ветку из выпадающего списка
+  workflow_dispatch: {}
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm --filter demo-wallet e2e:deps
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Run web e2e tests
+        env:
+          CI: "1"
+          ENABLE_HEADLESS: "true"
+        run: pnpm demo-wallet e2e
+
+      - name: Build extension (chrome)
+        run: pnpm --filter demo-wallet build:extension:chrome
+
+      - name: Run extension e2e tests
+        env:
+          CI: "1"
+          ENABLE_HEADLESS: "true"
+          E2E_WALLET_SOURCE_EXTENSION: "../../dist-extension-chrome"
+          E2E_JS_BRIDGE: "true"
+        run: pnpm demo-wallet e2e
+
+
