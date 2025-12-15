@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - release
-  # Позволяет запускать Release вручную и выбирать ветку в UI
+  # Allows manual workflow runs with branch selection in UI
   workflow_dispatch: {}
 
 jobs:
