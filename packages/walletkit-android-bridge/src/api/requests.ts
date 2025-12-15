@@ -123,7 +123,7 @@ export async function approveSignDataRequest(args: ApproveSignDataRequestArgs) {
             throw new Error('Sign data request event is required');
         }
 
-        return await walletKit.signDataRequest(args.event);
+        return await walletKit.approveSignDataRequest(args.event);
     });
 }
 
@@ -136,7 +136,13 @@ export async function rejectSignDataRequest(args: RejectSignDataRequestArgs) {
             throw new Error('Sign data request event is required');
         }
 
-        const result = await walletKit.rejectSignDataRequest(args.event, args.reason);
+        // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
+        const reason =
+            args.errorCode !== undefined
+                ? { code: args.errorCode, message: args.reason || 'Sign data rejected' }
+                : args.reason;
+
+        const result = await walletKit.rejectSignDataRequest(args.event, reason);
 
         if (result == null) {
             return { success: true };

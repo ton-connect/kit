@@ -130,6 +130,7 @@ export interface ApproveSignDataRequestArgs {
 export interface RejectSignDataRequestArgs {
     event: TonConnectRequestEvent;
     reason?: string;
+    errorCode?: number;
 }
 
 export interface DisconnectSessionArgs {
