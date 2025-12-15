@@ -74,7 +74,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
     ): Promise<WalletV4R2Adapter> {
         return new WalletV4R2Adapter({
             signer,
-            publicKey: asHex(signer.publicKey),
+            publicKey: signer.publicKey,
             tonClient: options.client,
             network: options.network,
             walletId: typeof options.walletId === 'bigint' ? Number(options.walletId) : options.walletId,

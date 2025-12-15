@@ -95,7 +95,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
     ): Promise<WalletV5R1Adapter> {
         return new WalletV5R1Adapter({
             signer,
-            publicKey: asHex(signer.publicKey),
+            publicKey: signer.publicKey,
             tonClient: options.client,
             network: options.network,
             walletId: options.walletId,
