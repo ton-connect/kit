@@ -29,13 +29,16 @@ import { warn } from '../utils/logger';
  */
 export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<unknown[]> {
     return callBridge('getRecentTransactions', async () => {
-        const wallet = walletKit.getWallet?.(args.address);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found for address ${args.address}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
+        // Extract address from walletId (format: "{chainId}:{address}")
+        const address = wallet.getAddress?.() ?? args.walletId.split(':')[1];
+
         const response = await wallet.getClient().getAccountTransactions({
-            address: [args.address],
+            address: [address],
             limit: args.limit || 10,
         });
 
@@ -49,9 +52,9 @@ export async function getRecentTransactions(args: GetRecentTransactionsArgs): Pr
  */
 export async function createTransferTonTransaction(args: CreateTransferTonTransactionArgs) {
     return callBridge('createTransferTonTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found for address ${args.walletAddress}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
         const transaction = await wallet.createTransferTonTransaction(args);
@@ -76,9 +79,9 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
  */
 export async function createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs) {
     return callBridge('createTransferMultiTonTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletAddress}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
         if (!Array.isArray(args.messages) || args.messages.length === 0) {
@@ -106,9 +109,9 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
  */
 export async function getTransactionPreview(args: TransactionContentArgs) {
     return callBridge('getTransactionPreview', async () => {
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletAddress}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
         // Accept object directly (preferred) or parse string (legacy)
@@ -125,9 +128,9 @@ export async function getTransactionPreview(args: TransactionContentArgs) {
  */
 export async function handleNewTransaction(args: TransactionContentArgs) {
     return callBridge('handleNewTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found for address ${args.walletAddress}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
         const transaction =
@@ -145,9 +148,9 @@ export async function handleNewTransaction(args: TransactionContentArgs) {
  */
 export async function sendTransaction(args: TransactionContentArgs) {
     return callBridge('sendTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        const wallet = walletKit.getWallet?.(args.walletId);
         if (!wallet) {
-            throw new Error(`Wallet not found for address ${args.walletAddress}`);
+            throw new Error(`Wallet not found for walletId ${args.walletId}`);
         }
 
         const transaction =
