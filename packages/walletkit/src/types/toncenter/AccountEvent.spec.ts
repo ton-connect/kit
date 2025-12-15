@@ -16,64 +16,64 @@ const acc2 = 'UQC8G3SPXSa3TYV3mP9N1CUqK3nPUbIyrkG-HxnozZVHt2Iv';
 describe('AccountEvent', () => {
     it('contract call', async () => {
         const traces = loadData<ToncenterTracesResponse>('contract-call-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('contract call unknown', async () => {
         const traces = loadData<ToncenterTracesResponse>('contract-call-unknown-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('ft received', async () => {
         const traces = loadData<ToncenterTracesResponse>('ft-received-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('ft sent', async () => {
         const traces = loadData<ToncenterTracesResponse>('ft-sent-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('nft received', async () => {
         const traces = loadData<ToncenterTracesResponse>('nft-received-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('nft sent', async () => {
         const traces = loadData<ToncenterTracesResponse>('nft-sent-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('ton received', async () => {
         const traces = loadData<ToncenterTracesResponse>('ton-received-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('ton sent', async () => {
         const traces = loadData<ToncenterTracesResponse>('ton-sent-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc1, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc1, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 
     it('ton received acc2', async () => {
         const traces = loadData<ToncenterTracesResponse>('ton-received-acc2-traces');
-        const addressBook = toAddressBook(traces);
-        const actual = toEvent(traces.traces[0], acc2, addressBook);
+        const addressBook = await toAddressBook(traces);
+        const actual = await toEvent(traces.traces[0], acc2, addressBook);
         expect(actual.actions).toMatchSnapshot();
     });
 });

@@ -6,22 +6,26 @@
  *
  */
 
-import { Address } from '@ton/core';
+import type { Address } from '@ton/core';
 
-export function formatWalletAddress(address: string | Address, isTestnet: boolean = false) {
+import { loadTonCore } from '../deps/tonCore';
+
+export async function formatWalletAddress(address: string | Address, isTestnet: boolean = false): Promise<string> {
+    const { Address: AddressClass } = await loadTonCore();
     if (typeof address === 'string') {
-        return Address.parse(address).toString({ bounceable: false, testOnly: isTestnet });
+        return AddressClass.parse(address).toString({ bounceable: false, testOnly: isTestnet });
     }
     return address.toString({ bounceable: false, testOnly: isTestnet });
 }
 
-export function isValidAddress(address: unknown): boolean {
+export async function isValidAddress(address: unknown): Promise<boolean> {
     if (typeof address !== 'string') {
         return false;
     }
 
+    const { Address: AddressClass } = await loadTonCore();
     try {
-        Address.parse(address);
+        AddressClass.parse(address);
     } catch (_) {
         return false;
     }
@@ -29,9 +33,10 @@ export function isValidAddress(address: unknown): boolean {
     return true;
 }
 
-export function isFriendlyTonAddress(address: string): boolean {
+export async function isFriendlyTonAddress(address: string): Promise<boolean> {
+    const { Address: AddressClass } = await loadTonCore();
     try {
-        Address.parseFriendly(address);
+        AddressClass.parseFriendly(address);
     } catch (_) {
         return false;
     }

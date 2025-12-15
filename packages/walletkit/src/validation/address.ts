@@ -9,14 +9,14 @@
 // TON address validation logic
 
 import { CHAIN } from '@tonconnect/protocol';
-import { Address } from '@ton/core';
 
 import type { ValidationResult, ValidationContext } from './types';
+import { loadTonCore } from '../deps/tonCore';
 
 /**
  * Validate TON address format
  */
-export function validateTonAddress(address: string, context: ValidationContext = {}): ValidationResult {
+export async function validateTonAddress(address: string, context: ValidationContext = {}): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!address || typeof address !== 'string') {
@@ -25,11 +25,11 @@ export function validateTonAddress(address: string, context: ValidationContext =
     }
 
     // Check different TON address formats
-    const validationResults = [
+    const validationResults = await Promise.all([
         validateRawAddress(address),
         validateBouncableAddress(address),
         validateNonBouncableAddress(address),
-    ];
+    ]);
 
     // If none of the formats are valid, collect all errors
     const allValid = validationResults.some((result) => result.isValid);
@@ -55,7 +55,8 @@ export function validateTonAddress(address: string, context: ValidationContext =
 /**
  * Validate raw TON address (workchain:hex)
  */
-export function validateRawAddress(address: string): ValidationResult {
+export async function validateRawAddress(address: string): Promise<ValidationResult> {
+    const { Address } = await loadTonCore();
     const errors: string[] = [];
 
     try {
@@ -75,7 +76,8 @@ export function validateRawAddress(address: string): ValidationResult {
 /**
  * Validate bounceable address (base64 encoded)
  */
-export function validateBouncableAddress(address: string): ValidationResult {
+export async function validateBouncableAddress(address: string): Promise<ValidationResult> {
+    const { Address } = await loadTonCore();
     const errors: string[] = [];
 
     try {
@@ -101,7 +103,8 @@ export function validateBouncableAddress(address: string): ValidationResult {
 /**
  * Validate non-bounceable address (base64 encoded)
  */
-export function validateNonBouncableAddress(address: string): ValidationResult {
+export async function validateNonBouncableAddress(address: string): Promise<ValidationResult> {
+    const { Address } = await loadTonCore();
     const errors: string[] = [];
 
     try {
@@ -126,24 +129,27 @@ export function validateNonBouncableAddress(address: string): ValidationResult {
 /**
  * Detect TON address format
  */
-export function detectAddressFormat(address: string): 'raw' | 'bounceable' | 'non-bounceable' | 'unknown' {
-    if (validateRawAddress(address).isValid) return 'raw';
-    if (validateBouncableAddress(address).isValid) return 'bounceable';
-    if (validateNonBouncableAddress(address).isValid) return 'non-bounceable';
+export async function detectAddressFormat(
+    address: string,
+): Promise<'raw' | 'bounceable' | 'non-bounceable' | 'unknown'> {
+    if ((await validateRawAddress(address)).isValid) return 'raw';
+    if ((await validateBouncableAddress(address)).isValid) return 'bounceable';
+    if ((await validateNonBouncableAddress(address)).isValid) return 'non-bounceable';
     return 'unknown';
 }
 
 /**
  * Check if address is for mainnet or testnet
  */
-export function detectAddressNetwork(address: string): CHAIN | 'unknown' {
-    const format = detectAddressFormat(address);
+export async function detectAddressNetwork(address: string): Promise<CHAIN | 'unknown'> {
+    const format = await detectAddressFormat(address);
 
     if (format === 'raw') {
         return 'unknown';
     }
 
     if (format === 'bounceable' || format === 'non-bounceable') {
+        const { Address } = await loadTonCore();
         const parsed = Address.parseFriendly(address);
         if (parsed.isTestOnly) {
             return CHAIN.TESTNET;

@@ -25,7 +25,6 @@ import Transport from '@ledgerhq/hw-transport';
 import {
     IWalletAdapter,
     ApiClient,
-    formatWalletAddress,
     CallForSuccess,
     ConnectTransactionParamContent,
     PrepareSignDataResult,
@@ -114,7 +113,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
      * Get wallet's TON address
      */
     getAddress(options?: { testnet?: boolean }): string {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+        return this.walletContract.address.toString({ bounceable: false, testOnly: options?.testnet });
     }
 
     getWalletId(): WalletId {

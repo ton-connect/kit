@@ -8,7 +8,6 @@
 
 // Request approval and rejection processing
 
-import { Address } from '@ton/core';
 import {
     CONNECT_EVENT_ERROR_CODES,
     ConnectEventError,
@@ -19,7 +18,6 @@ import {
     SignDataRpcResponseSuccess,
     TonProofItemReplySuccess,
 } from '@tonconnect/protocol';
-import { getSecureRandomBytes } from '@ton/crypto';
 
 import type {
     EventConnectRequest,
@@ -52,6 +50,8 @@ import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
 import { getAddressFromWalletId } from '../utils/walletId';
+import { loadTonCore } from '../deps/tonCore';
+import { loadTonCrypto } from '../deps/tonCrypto';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -124,6 +124,7 @@ export class RequestProcessor {
                 // Create session for this connection'
                 const url = new URL(event.preview.manifest?.url || '');
                 const domain = url.host;
+                const { getSecureRandomBytes } = await loadTonCrypto();
                 const newSession = await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     event.preview.manifest?.name || '',
@@ -209,8 +210,9 @@ export class RequestProcessor {
                 // If event is EventConnectApproval, we need to send response to dApp and create session
                 const url = new URL(event.result.dAppUrl);
                 const domain = url.host;
+                const { getSecureRandomBytes: getRandomBytes } = await loadTonCrypto();
                 await this.sessionManager.createSession(
-                    event.from || (await getSecureRandomBytes(32)).toString('hex'),
+                    event.from || (await getRandomBytes(32)).toString('hex'),
                     event.result.dAppName,
                     domain,
                     event.result.dAppIconUrl,
@@ -613,7 +615,7 @@ export class RequestProcessor {
                 }
 
                 // Sign data with wallet
-                const signData = PrepareTonConnectData({
+                const signData = await PrepareTonConnectData({
                     payload: event.request,
                     domain: domainUrl,
                     address: walletAddress ?? wallet.getAddress(),
@@ -622,6 +624,7 @@ export class RequestProcessor {
                 const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
 
                 // Send approval response
+                const { Address } = await loadTonCore();
                 const response: SignDataRpcResponseSuccess = {
                     id: event.id,
                     result: {
@@ -724,6 +727,7 @@ export class RequestProcessor {
      * Create connect approval response
      */
     private async createConnectApprovalResponse(event: EventConnectRequest): Promise<{ result: ConnectEventSuccess }> {
+        const { Address } = await loadTonCore();
         const walletId = event.walletId;
         const walletAddress = this.getWalletAddressFromEvent(event);
 

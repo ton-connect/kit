@@ -27,7 +27,6 @@ import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
 import { WalletKitError, ERROR_CODES } from '../../errors';
 import { FakeSignature } from '../../utils/sign';
-import { formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { ConnectTransactionParamContent } from '../../types/internal';
 import { ActionSendMsg, packActionsList } from './actions';
@@ -146,7 +145,7 @@ export class WalletV5R1Adapter implements IWalletAdapter {
      * Get wallet's TON address
      */
     getAddress(options?: { testnet?: boolean }): string {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+        return this.walletContract.address.toString({ bounceable: false, testOnly: options?.testnet ?? false });
     }
 
     getWalletId(): WalletId {
@@ -327,7 +326,7 @@ export class WalletV5R1Adapter implements IWalletAdapter {
             .endCell();
 
         const signingData = payload.hash();
-        const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
+        const signature = options.fakeSignature ? await FakeSignature(signingData) : await this.sign(signingData);
         return beginCell()
             .storeSlice(payload.beginParse())
             .storeBuffer(Buffer.from(HexToUint8Array(signature)))

@@ -6,7 +6,7 @@
  *
  */
 
-import { Address, Cell } from '@ton/core';
+import type { Address, Cell } from '@ton/core';
 
 export type NftTransferParamsHuman = {
     nftAddress: string;

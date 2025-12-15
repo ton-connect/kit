@@ -147,9 +147,9 @@ export class WalletV5 implements Contract {
     }
 
     get publicKey(): Promise<bigint> {
-        return this.client.runGetMethod(this.address, 'get_public_key').then((data) => {
+        return this.client.runGetMethod(this.address, 'get_public_key').then(async (data) => {
             if (data.exitCode === 0) {
-                const parsedStack = ParseStack(data.stack);
+                const parsedStack = await ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
                     return parsedStack[0].value;
                 } else {
@@ -171,9 +171,9 @@ export class WalletV5 implements Contract {
     }
 
     get seqno() {
-        return this.client.runGetMethod(this.address, 'seqno').then((data) => {
+        return this.client.runGetMethod(this.address, 'seqno').then(async (data) => {
             if (data.exitCode === 0) {
-                const parsedStack = ParseStack(data.stack);
+                const parsedStack = await ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
                     return Number(parsedStack[0].value);
                 } else {
@@ -186,9 +186,9 @@ export class WalletV5 implements Contract {
     }
 
     get isSignatureAuthAllowed(): Promise<boolean> {
-        return this.client.runGetMethod(this.address, 'is_signature_allowed').then((data) => {
+        return this.client.runGetMethod(this.address, 'is_signature_allowed').then(async (data) => {
             if (data.exitCode === 0) {
-                const parsedStack = ParseStack(data.stack);
+                const parsedStack = await ParseStack(data.stack);
                 if (parsedStack[0]?.type === 'int') {
                     return Boolean(parsedStack[0].value);
                 } else {
@@ -206,9 +206,9 @@ export class WalletV5 implements Contract {
                 resolve(WalletV5R1Id.deserialize(this.subwalletId!));
             });
         } else {
-            return this.client.runGetMethod(this.address, 'get_subwallet_id').then((data) => {
+            return this.client.runGetMethod(this.address, 'get_subwallet_id').then(async (data) => {
                 if (data.exitCode === 0) {
-                    const parsedStack = ParseStack(data.stack);
+                    const parsedStack = await ParseStack(data.stack);
                     if (parsedStack[0]?.type === 'int') {
                         this.subwalletId = Number(parsedStack[0].value);
                     } else {

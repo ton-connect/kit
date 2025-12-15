@@ -6,8 +6,7 @@
  *
  */
 
-import { fromNano } from '@ton/core';
-
+import { loadTonCore } from '../../../deps/tonCore';
 import {
     AddressBook,
     toAccount,
@@ -15,22 +14,23 @@ import {
     ContractDeployAction as SmartContractDeployAction,
 } from '../AccountEvent';
 import { EmulationMessage, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendlySync } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
 import { Hex } from '../../primitive';
 
 export type SmartContractAction = SmartContractExecAction | SmartContractDeployAction;
 
-export function parseContractActions(
+export async function parseContractActions(
     ownerFriendly: string,
     transactions: Record<string, ToncenterTransaction>,
     addressBook: AddressBook,
-): SmartContractAction[] {
+): Promise<SmartContractAction[]> {
+    const { fromNano } = await loadTonCore();
     const actions: SmartContractAction[] = [];
     for (const hash of Object.keys(transactions)) {
         const tx = transactions[hash];
-        if (asAddressFriendly(tx.account) !== ownerFriendly) continue;
+        if (asAddressFriendlySync(tx.account) !== ownerFriendly) continue;
         const status = computeStatus(tx);
 
         for (const msg of tx.out_msgs || []) {
@@ -71,7 +71,7 @@ export function parseContractActions(
                     id: Base64ToHex(child.hash),
                     status: computeStatus(child),
                     ContractDeploy: {
-                        address: asAddressFriendly(contractAddress),
+                        address: asAddressFriendlySync(contractAddress),
                         interfaces: [],
                     },
                     simplePreview: {

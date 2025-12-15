@@ -34,7 +34,7 @@ export class WalletTonClass implements WalletTonInterface {
         param: TonTransferParams,
     ): Promise<ConnectTransactionParamContent> {
         let messages: ConnectTransactionParamMessage[] = [];
-        if (!isValidAddress(param.toAddress)) {
+        if (!(await isValidAddress(param.toAddress))) {
             throw new Error(`Invalid to address: ${param.toAddress}`);
         }
         if (!isValidNanotonAmount(param.amount)) {
@@ -56,7 +56,7 @@ export class WalletTonClass implements WalletTonInterface {
             mode: param.mode,
         };
 
-        if (!validateTransactionMessage(message, false).isValid) {
+        if (!(await validateTransactionMessage(message, false)).isValid) {
             throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
         }
 
@@ -72,7 +72,7 @@ export class WalletTonClass implements WalletTonInterface {
     ): Promise<ConnectTransactionParamContent> {
         let messages: ConnectTransactionParamMessage[] = [];
         for (const param of params) {
-            if (!isValidAddress(param.toAddress)) {
+            if (!(await isValidAddress(param.toAddress))) {
                 throw new Error(`Invalid to address: ${param.toAddress}`);
             }
             if (!isValidNanotonAmount(param.amount)) {
@@ -94,7 +94,7 @@ export class WalletTonClass implements WalletTonInterface {
                 mode: param.mode,
             };
 
-            if (!validateTransactionMessage(message, false).isValid) {
+            if (!(await validateTransactionMessage(message, false)).isValid) {
                 throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
             }
 

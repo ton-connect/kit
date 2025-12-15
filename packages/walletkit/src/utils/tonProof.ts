@@ -8,13 +8,13 @@
 
 import { TonProofItemReplySuccess } from '@tonconnect/protocol';
 import { Wallet } from '@tonconnect/sdk';
-// import { createHash } from 'crypto'
-import { Address } from '@ton/core';
-import { sha256_sync } from '@ton/crypto';
+import type { Address } from '@ton/core';
 import { ed25519 } from '@noble/curves/ed25519';
 
 import { Hex } from '../types/primitive';
 import { Base64ToHex, HexToUint8Array, Uint8ArrayToHex } from './base64';
+import { loadTonCore } from '../deps/tonCore';
+import { loadTonCrypto } from '../deps/tonCrypto';
 
 interface Domain {
     lengthBytes: number; // uint32 `json:"lengthBytes"`
@@ -40,6 +40,8 @@ const tonProofPrefix = 'ton-proof-item-v2/';
 const tonConnectPrefix = 'ton-connect';
 
 export async function CreateTonProofMessageBytes(message: TonProofParsedMessage): Promise<Uint8Array> {
+    const { sha256_sync } = await loadTonCrypto();
+
     const wc = Buffer.alloc(4);
     wc.writeUInt32BE(message.workchain);
 
@@ -66,7 +68,11 @@ export async function CreateTonProofMessageBytes(message: TonProofParsedMessage)
     return Buffer.from(res);
 }
 
-export function ConvertTonProofMessage(walletInfo: Wallet, tp: TonProofItemReplySuccess): TonProofParsedMessage {
+export async function ConvertTonProofMessage(
+    walletInfo: Wallet,
+    tp: TonProofItemReplySuccess,
+): Promise<TonProofParsedMessage> {
+    const { Address } = await loadTonCore();
     const address = Address.parse(walletInfo.account.address);
 
     const res: TonProofParsedMessage = {

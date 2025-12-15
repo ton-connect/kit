@@ -6,7 +6,9 @@
  *
  */
 
-import { Address, beginCell, Cell } from '@ton/core';
+import type { Cell } from '@ton/core';
+
+import { loadTonCore, getTonCore } from '../deps/tonCore';
 
 declare const hashBrand: unique symbol;
 
@@ -22,16 +24,47 @@ export function asHex(data: string): Hex {
 
 export type AddressFriendly = string;
 
-export function asMaybeAddressFriendly(data?: string | null): AddressFriendly | null {
+export async function asMaybeAddressFriendly(data?: string | null): Promise<AddressFriendly | null> {
     try {
-        return asAddressFriendly(data);
+        return await asAddressFriendly(data);
     } catch {
         /* empty */
     }
     return null;
 }
 
-export function asAddressFriendly(data?: string | null): AddressFriendly {
+/**
+ * Convert address to friendly format (sync version, requires @ton/core to be already loaded)
+ * Returns null if conversion fails
+ */
+export function asMaybeAddressFriendlySync(data?: string | null): AddressFriendly | null {
+    try {
+        return asAddressFriendlySync(data);
+    } catch {
+        /* empty */
+    }
+    return null;
+}
+
+/**
+ * Convert address to friendly format (async version, loads @ton/core if needed)
+ */
+export async function asAddressFriendly(data?: string | null): Promise<AddressFriendly> {
+    const { Address } = await loadTonCore();
+    try {
+        if (data) return Address.parse(data).toString();
+    } catch {
+        /* empty */
+    }
+    throw new Error(`Can not convert to AddressFriendly from "${data}"`);
+}
+
+/**
+ * Convert address to friendly format (sync version, requires @ton/core to be already loaded)
+ * Use this only after loadTonCore() has been called.
+ */
+export function asAddressFriendlySync(data?: string | null): AddressFriendly {
+    const { Address } = getTonCore();
     try {
         if (data) return Address.parse(data).toString();
     } catch {
@@ -44,15 +77,17 @@ export function limitString(data: string, limit: number): string {
     return data.length > limit ? data.substring(0, limit) : data;
 }
 
-export function toTinyString(data: string): Cell {
+export async function toTinyString(data: string): Promise<Cell> {
+    const { beginCell } = await loadTonCore();
     data = limitString(data, 126);
     return beginCell().storeUint(data.length, 8).storeStringTail(data).endCell();
 }
 
-export function toStringTail(data: string): Cell {
+export async function toStringTail(data: string): Promise<Cell> {
+    const { beginCell } = await loadTonCore();
     return beginCell().storeStringTail(limitString(data, 127)).endCell();
 }
 
-export function fromTinyString(data: Cell): string {
+export async function fromTinyString(data: Cell): Promise<string> {
     return data.beginParse().skip(8).loadStringTail();
 }

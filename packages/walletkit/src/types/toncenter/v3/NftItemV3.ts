@@ -8,7 +8,7 @@
 
 import type { NFTCollectionV3 } from './NFTCollectionV3';
 import type { NftItem } from '../NftItem';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../primitive';
+import { asAddressFriendlySync, asMaybeAddressFriendlySync } from '../../primitive';
 import { toNftCollection } from './NFTCollectionV3';
 import { Base64ToHex } from '../../../utils/base64';
 
@@ -35,18 +35,18 @@ export interface NftItemV3 {
 
 export function toNftItem(data: NftItemV3): NftItem {
     const out: NftItem = {
-        address: asAddressFriendly(data.address),
-        auctionContractAddress: asMaybeAddressFriendly(data.auction_contract_address),
+        address: asAddressFriendlySync(data.address),
+        auctionContractAddress: asMaybeAddressFriendlySync(data.auction_contract_address),
         codeHash: data.code_hash ? Base64ToHex(data.code_hash) : null,
         dataHash: data.data_hash ? Base64ToHex(data.data_hash) : null,
         collection: toNftCollection(data.collection),
-        collectionAddress: asMaybeAddressFriendly(data.collection_address),
+        collectionAddress: asMaybeAddressFriendlySync(data.collection_address),
         index: data.index.toString(),
         init: data.init,
         onSale: data.on_sale,
-        ownerAddress: asMaybeAddressFriendly(data.owner_address),
-        realOwner: asMaybeAddressFriendly(data.real_owner),
-        saleContractAddress: asMaybeAddressFriendly(data.sale_contract_address),
+        ownerAddress: asMaybeAddressFriendlySync(data.owner_address),
+        realOwner: asMaybeAddressFriendlySync(data.real_owner),
+        saleContractAddress: asMaybeAddressFriendlySync(data.sale_contract_address),
     };
     if (data.last_transaction_lt) out.lastTransactionLt = data.last_transaction_lt;
     if (data.content) out.content = data.content;

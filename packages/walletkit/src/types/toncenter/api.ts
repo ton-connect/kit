@@ -6,7 +6,7 @@
  *
  */
 
-import { AccountStatus, ExtraCurrency } from '@ton/core';
+import type { AccountStatus, ExtraCurrency } from '@ton/core';
 
 import { Hex } from '../primitive';
 import { RawStackItem } from '../../utils/tvmStack';

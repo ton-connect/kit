@@ -8,7 +8,8 @@
 
 import { AddressBook, NftItemTransferAction, SimplePreview, StatusAction, toAccount } from '../AccountEvent';
 import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly, Hex } from '../../primitive';
+import { asAddressFriendlySync, Hex } from '../../primitive';
+import { loadTonCore } from '../../../deps/tonCore';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
@@ -16,23 +17,26 @@ import { OpCode } from './opcodes';
 
 type Json = Record<string, unknown>;
 
-export function parseNftActions(
+export async function parseNftActions(
     ownerFriendly: string,
     item: ToncenterTraceItem,
     addressBook: AddressBook,
-): NftItemTransferAction[] {
+): Promise<NftItemTransferAction[]> {
+    // Ensure @ton/core is loaded for sync Address operations
+    await loadTonCore();
+
     const actions: NftItemTransferAction[] = [];
     const txs = item.transactions || {};
 
     // Sent: find out_msg with decoded '@type' === 'nft_transfer' originating from owner's main wallet
     for (const key of Object.keys(txs)) {
         const tx = txs[key];
-        if (asAddressFriendly(tx.account) !== ownerFriendly) continue;
+        if (asAddressFriendlySync(tx.account) !== ownerFriendly) continue;
         for (const out of tx.out_msgs || []) {
             const decoded = getDecoded(out);
             if (decoded?.['@type'] === 'nft_transfer') {
                 const newOwner = toAddr(getProp(decoded, 'new_owner'));
-                const nftAddr = out.destination ? asAddressFriendly(out.destination) : '';
+                const nftAddr = out.destination ? asAddressFriendlySync(out.destination) : '';
                 const status = computeStatus(tx);
                 const base = collectBaseTransactionsForSent(item, ownerFriendly, newOwner, nftAddr);
                 const action = buildNftAction(status, ownerFriendly, newOwner, nftAddr, addressBook, base);
@@ -44,13 +48,13 @@ export function parseNftActions(
     // Received: find in_msg with decoded '@type' indicates ownership assignment to ownerFriendly
     for (const key of Object.keys(txs)) {
         const tx = txs[key];
-        const acc = asAddressFriendly(tx.account);
+        const acc = asAddressFriendlySync(tx.account);
         const decoded = getDecoded(tx.in_msg);
         if (!decoded) continue;
         const t = decoded['@type'];
         if (acc === ownerFriendly && (t === 'nft_ownership_assigned' || t === 'nft_owner_changed')) {
             const prevOwner = toAddr(getProp(decoded, 'prev_owner')) || toAddr(getProp(decoded, 'old_owner'));
-            const nftAddr = tx.in_msg?.source ? asAddressFriendly(tx.in_msg.source) : '';
+            const nftAddr = tx.in_msg?.source ? asAddressFriendlySync(tx.in_msg.source) : '';
             // prefer status from NFT item transaction (child)
             const nftTx = findTransactionByAccount(item, nftAddr);
             const status = nftTx ? computeStatus(nftTx) : computeStatus(tx);
@@ -108,19 +112,19 @@ function collectBaseTransactionsForSent(
     for (const h of order) {
         const tx = item.transactions[h];
         if (!tx) continue;
-        const acc = asAddressFriendly(tx.account);
+        const acc = asAddressFriendlySync(tx.account);
         const t = getNftType(tx);
         if (
             !ownerTonFromNft &&
             acc === ownerFriendly &&
             tx.in_msg?.source &&
-            asAddressFriendly(tx.in_msg.source) === nftAddr
+            asAddressFriendlySync(tx.in_msg.source) === nftAddr
         ) {
             ownerTonFromNft = Base64ToHex(h);
         }
         if (
             !assignToNewOwner &&
-            acc === asAddressFriendly(newOwner) &&
+            acc === asAddressFriendlySync(newOwner) &&
             (t === 'nft_ownership_assigned' || t === 'nft_owner_changed')
         ) {
             assignToNewOwner = Base64ToHex(h);
@@ -150,19 +154,21 @@ function collectBaseTransactionsForReceived(item: ToncenterTraceItem, ownerFrien
     for (const h of order) {
         const tx = item.transactions[h];
         if (!tx) continue;
-        const acc = asAddressFriendly(tx.account);
+        const acc = asAddressFriendlySync(tx.account);
         if (
             !ownerFromNft &&
             acc === ownerFriendly &&
             tx.in_msg?.source &&
-            asAddressFriendly(tx.in_msg.source) === nftAddr
+            asAddressFriendlySync(tx.in_msg.source) === nftAddr
         ) {
             ownerFromNft = Base64ToHex(h);
             continue;
         }
         if (acc !== ownerFriendly) {
             const hex = Base64ToHex(h);
-            const targetsOwner = (tx.out_msgs || []).some((m) => asAddressFriendly(m.destination) === ownerFriendly);
+            const targetsOwner = (tx.out_msgs || []).some(
+                (m) => asAddressFriendlySync(m.destination) === ownerFriendly,
+            );
             if (targetsOwner) outToOwner.push(hex);
             others.push(hex);
         }
@@ -188,7 +194,7 @@ function toContractAccount(address: string, addressBook: AddressBook) {
 function findTransactionByAccount(item: ToncenterTraceItem, account: string): ToncenterTransaction | null {
     for (const key of Object.keys(item.transactions || {})) {
         const t = item.transactions[key];
-        if (t && asAddressFriendly(t.account) === account) return t;
+        if (t && asAddressFriendlySync(t.account) === account) return t;
     }
     return null;
 }
@@ -196,14 +202,14 @@ function findTransactionByAccount(item: ToncenterTraceItem, account: string): To
 function toAddr(raw?: unknown): string {
     if (!raw) return '';
     if (typeof raw === 'string') {
-        if (/^[A-Fa-f0-9]{64}$/.test(raw)) return asAddressFriendly(`0:${raw}`);
-        return asAddressFriendly(raw);
+        if (/^[A-Fa-f0-9]{64}$/.test(raw)) return asAddressFriendlySync(`0:${raw}`);
+        return asAddressFriendlySync(raw);
     }
     if (isRecord(raw)) {
         const wc = raw['workchain_id'];
         const addr = raw['address'];
         if ((typeof wc === 'string' || typeof wc === 'number') && typeof addr === 'string') {
-            return asAddressFriendly(`${wc}:${addr}`);
+            return asAddressFriendlySync(`${wc}:${addr}`);
         }
     }
     return '';

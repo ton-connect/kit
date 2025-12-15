@@ -161,8 +161,8 @@ describe('tonProof', () => {
             },
         };
 
-        it('should convert wallet info to parsed message', () => {
-            const result = ConvertTonProofMessage(mockWallet, mockTonProof);
+        it('should convert wallet info to parsed message', async () => {
+            const result = await ConvertTonProofMessage(mockWallet, mockTonProof);
 
             expect(result.workchain).toBe(0);
             expect(result.domain.lengthBytes).toBe(11);
@@ -172,20 +172,20 @@ describe('tonProof', () => {
             expect(result.stateInit).toBe(mockWallet.account.walletStateInit);
         });
 
-        it('should parse address correctly', () => {
-            const result = ConvertTonProofMessage(mockWallet, mockTonProof);
+        it('should parse address correctly', async () => {
+            const result = await ConvertTonProofMessage(mockWallet, mockTonProof);
 
             expect(result.address).toMatch(/^0x[0-9a-f]{64}$/);
         });
 
-        it('should convert signature to hex', () => {
-            const result = ConvertTonProofMessage(mockWallet, mockTonProof);
+        it('should convert signature to hex', async () => {
+            const result = await ConvertTonProofMessage(mockWallet, mockTonProof);
 
             expect(result.signature).toBeDefined();
             expect(result.signature).toMatch(/^0x[0-9a-f]+$/);
         });
 
-        it('should handle masterchain address', () => {
+        it('should handle masterchain address', async () => {
             const masterchainWallet: Wallet = {
                 ...mockWallet,
                 account: {
@@ -194,7 +194,7 @@ describe('tonProof', () => {
                 },
             };
 
-            const result = ConvertTonProofMessage(masterchainWallet, mockTonProof);
+            const result = await ConvertTonProofMessage(masterchainWallet, mockTonProof);
 
             expect(result.workchain).toBe(-1);
         });

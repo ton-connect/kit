@@ -6,11 +6,10 @@
  *
  */
 
-import { Cell } from '@ton/core';
-
 import type { ValidationResult } from './types';
 import { validateTonAddress } from './address';
 import { isFriendlyTonAddress } from '../utils/address';
+import { loadTonCore } from '../deps/tonCore';
 
 /**
  * Human-readable transaction message
@@ -36,8 +35,12 @@ export interface HumanReadableTx {
 /**
  * Validate transaction messages array
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true): ValidationResult {
+
+export async function validateTransactionMessages(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    messages: any[],
+    isTonConnect: boolean = true,
+): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!Array.isArray(messages)) {
@@ -51,12 +54,13 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
     }
 
     // Validate each message
-    messages.forEach((msg, index) => {
-        const msgErrors = validateTransactionMessage(msg, isTonConnect).errors;
-        msgErrors.forEach((error) => {
+    for (let index = 0; index < messages.length; index++) {
+        const msg = messages[index];
+        const msgResult = await validateTransactionMessage(msg, isTonConnect);
+        msgResult.errors.forEach((error) => {
             errors.push(`message[${index}]: ${error}`);
         });
-    });
+    }
 
     return {
         isValid: errors.length === 0,
@@ -67,8 +71,12 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
 /**
  * Validate individual transaction message
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessage(message: any, isTonConnect: boolean = true): ValidationResult {
+
+export async function validateTransactionMessage(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    message: any,
+    isTonConnect: boolean = true,
+): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (typeof message !== 'object') {
@@ -84,7 +92,7 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
     }
 
     // Object format - validate required fields
-    const objErrors = validateMessageObject(message).errors;
+    const objErrors = (await validateMessageObject(message)).errors;
     errors.push(...objErrors);
 
     return {
@@ -97,14 +105,14 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
  * Validate message object structure
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateMessageObject(message: any): ValidationResult {
+export async function validateMessageObject(message: any): Promise<ValidationResult> {
     const errors: string[] = [];
 
     // Required fields
     if (!message.address || typeof message.address !== 'string') {
         errors.push('to address is required and must be a string');
     } else {
-        if (!isFriendlyTonAddress(message.address)) {
+        if (!(await isFriendlyTonAddress(message.address))) {
             errors.push('to address must be a valid friendly TON address');
         }
     }
@@ -122,7 +130,7 @@ export function validateMessageObject(message: any): ValidationResult {
         if (typeof message.payload !== 'string') {
             errors.push('payload must be a string if provided');
         } else {
-            if (!isValidBOC(message.payload)) {
+            if (!(await isValidBOC(message.payload))) {
                 errors.push('payload must be a valid base64 string if provided');
             }
         }
@@ -132,7 +140,7 @@ export function validateMessageObject(message: any): ValidationResult {
         if (typeof message.stateInit !== 'string') {
             errors.push('stateInit must be a string if provided');
         } else {
-            if (!isValidBOC(message.stateInit)) {
+            if (!(await isValidBOC(message.stateInit))) {
                 errors.push('stateInit must be a valid base64 string if provided');
             }
         }
@@ -147,8 +155,12 @@ export function validateMessageObject(message: any): ValidationResult {
 /**
  * Validate transaction request structure
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionRequest(request: any, isTonConnect: boolean = true): ValidationResult {
+
+export async function validateTransactionRequest(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    request: any,
+    isTonConnect: boolean = true,
+): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!request || typeof request !== 'object') {
@@ -157,14 +169,14 @@ export function validateTransactionRequest(request: any, isTonConnect: boolean =
     }
 
     // Validate required fields
-    const messagesValidation = validateTransactionMessages(request.messages || [], isTonConnect);
+    const messagesValidation = await validateTransactionMessages(request.messages || [], isTonConnect);
     if (!messagesValidation.isValid) {
         errors.push(...messagesValidation.errors);
     }
 
     // Validate optional fields
     if (request.from) {
-        const fromValidation = validateTonAddress(request.from);
+        const fromValidation = await validateTonAddress(request.from);
         if (!fromValidation.isValid) {
             errors.push(`invalid from address: ${fromValidation.errors.join(', ')}`);
         }
@@ -191,7 +203,7 @@ export function validateTransactionRequest(request: any, isTonConnect: boolean =
 /**
  * Validate BOC (Bag of Cells) format
  */
-export function validateBOC(bocString: string): ValidationResult {
+export async function validateBOC(bocString: string): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!bocString || typeof bocString !== 'string') {
@@ -199,7 +211,7 @@ export function validateBOC(bocString: string): ValidationResult {
         return { isValid: false, errors };
     }
 
-    if (!isValidBOC(bocString)) {
+    if (!(await isValidBOC(bocString))) {
         errors.push('invalid BOC format - must be valid base64');
     }
 
@@ -231,8 +243,9 @@ export function isValidNanotonAmount(amount: any): boolean {
 /**
  * Check if string is valid BOC format
  */
-function isValidBOC(bocString: string): boolean {
+async function isValidBOC(bocString: string): Promise<boolean> {
     try {
+        const { Cell } = await loadTonCore();
         Cell.fromBase64(bocString);
 
         return true;

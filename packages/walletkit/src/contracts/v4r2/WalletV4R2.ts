@@ -108,7 +108,7 @@ export class WalletV4R2 implements Contract {
             if (state.exitCode !== 0) {
                 return 0;
             }
-            const parsedStack = ParseStack(state.stack);
+            const parsedStack = await ParseStack(state.stack);
             if (parsedStack[0]?.type === 'int') {
                 return Number(parsedStack[0].value);
             } else {
@@ -136,7 +136,7 @@ export class WalletV4R2 implements Contract {
             if (state.exitCode !== 0) {
                 return this.subwalletId;
             }
-            const parsedStack = ParseStack(state.stack);
+            const parsedStack = await ParseStack(state.stack);
             if (parsedStack[0]?.type === 'int') {
                 return Number(parsedStack[0].value);
             } else {

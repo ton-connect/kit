@@ -9,7 +9,6 @@
 // Sign data request handler
 
 import { SignDataPayload } from '@tonconnect/protocol';
-import { parseTLB } from '@ton-community/tlb-runtime';
 
 import type { EventSignDataRequest, SignDataPreview, TonWalletKitOptions } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../types/internal';
@@ -24,6 +23,7 @@ import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
 import { WalletManager } from '../core/WalletManager';
 import { getAddressFromWalletId } from '../utils/walletId';
+import { loadTlbRuntime } from '../deps/tlbRuntime';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -72,7 +72,7 @@ export class SignDataHandler
                 eventId: event.id,
             });
         }
-        const preview = this.createDataPreview(data, event);
+        const preview = await this.createDataPreview(data, event);
         if (!preview) {
             log.error('No preview found for data', { data });
             throw new WalletKitError(
@@ -140,7 +140,10 @@ export class SignDataHandler
     /**
      * Create human-readable preview of data to sign
      */
-    private createDataPreview(data: SignDataPayload, _event: RawBridgeEvent): SignDataPreview | undefined {
+    private async createDataPreview(
+        data: SignDataPayload,
+        _event: RawBridgeEvent,
+    ): Promise<SignDataPreview | undefined> {
         if (data.type === 'text') {
             return {
                 kind: 'text',
@@ -163,6 +166,7 @@ export class SignDataHandler
                 };
             }
             try {
+                const { parseTLB } = await loadTlbRuntime();
                 const parsed = parseTLB(data.schema).deserialize(data.cell) as unknown as Record<string, unknown>;
                 return {
                     kind: 'cell',

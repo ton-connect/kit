@@ -6,8 +6,8 @@
  *
  */
 
-import React, { memo, useMemo } from 'react';
-import type { ToncenterEmulationResponse } from '@ton/walletkit';
+import React, { memo, useEffect, useState } from 'react';
+import type { ToncenterEmulationResponse, Event } from '@ton/walletkit';
 import { emulationEvent } from '@ton/walletkit';
 
 interface ActionPreviewListProps {
@@ -19,10 +19,19 @@ interface ActionPreviewListProps {
 
 export const ActionPreviewList: React.FC<ActionPreviewListProps> = memo(
     ({ emulationResult, walletAddress, title = 'Actions:', className }) => {
-        if (!walletAddress) {
+        const [event, setEvent] = useState<Event | null>(null);
+
+        useEffect(() => {
+            if (!walletAddress) {
+                setEvent(null);
+                return;
+            }
+            emulationEvent(emulationResult, walletAddress).then(setEvent);
+        }, [emulationResult, walletAddress]);
+
+        if (!walletAddress || !event) {
             return null;
         }
-        const event = useMemo(() => emulationEvent(emulationResult, walletAddress), [emulationResult, walletAddress]);
 
         return (
             <div className={className ? className : ''}>

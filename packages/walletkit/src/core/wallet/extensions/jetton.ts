@@ -108,7 +108,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         };
 
         // Validate the transaction message
-        if (!validateTransactionMessage(message, false).isValid) {
+        if (!(await validateTransactionMessage(message, false)).isValid) {
             throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
         }
 
@@ -127,7 +127,7 @@ export class WalletJettonClass implements WalletJettonInterface {
             const result = await this.getClient().runGetMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
 
             // The balance is the first return value from get_wallet_data
-            const parsedStack = ParseStack(result.stack);
+            const parsedStack = await ParseStack(result.stack);
             const balance = parsedStack[0].type === 'int' ? parsedStack[0].value : 0n;
             return balance.toString();
         } catch (_error) {
@@ -137,7 +137,7 @@ export class WalletJettonClass implements WalletJettonInterface {
     }
 
     async getJettonWalletAddress(this: IWallet, jettonAddress: string): Promise<string> {
-        if (!isValidAddress(jettonAddress)) {
+        if (!(await isValidAddress(jettonAddress))) {
             throw new Error(`Invalid jetton address: ${jettonAddress}`);
         }
 
@@ -146,12 +146,12 @@ export class WalletJettonClass implements WalletJettonInterface {
             const result = await this.getClient().runGetMethod(
                 Address.parse(jettonAddress),
                 'get_wallet_address',
-                SerializeStack([
+                await SerializeStack([
                     { type: 'slice', cell: beginCell().storeAddress(Address.parse(this.getAddress())).endCell() },
                 ]),
             );
 
-            const parsedStack = ParseStack(result.stack);
+            const parsedStack = await ParseStack(result.stack);
             // Extract the jetton wallet address from the result
             const jettonWalletAddress =
                 parsedStack[0].type === 'slice' || parsedStack[0].type === 'cell'

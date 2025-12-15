@@ -6,14 +6,16 @@
  *
  */
 
-import { Cell, TupleItem } from '@ton/core';
+import type { Cell, TupleItem } from '@ton/core';
+
+import { loadTonCore } from '../deps/tonCore';
 
 export type RawStackItem =
     | { type: 'null' }
     | { type: 'num' | 'cell' | 'slice' | 'builder'; value: string }
     | { type: 'tuple' | 'list'; value: RawStackItem[] };
 
-function ParseStackItem(item: RawStackItem): TupleItem {
+async function ParseStackItem(item: RawStackItem, CellClass: typeof Cell): Promise<TupleItem> {
     switch (item.type) {
         case 'num':
             if (item.value.startsWith('-')) {
@@ -24,23 +26,27 @@ function ParseStackItem(item: RawStackItem): TupleItem {
         case 'null':
             return { type: 'null' };
         case 'cell':
-            return { type: 'cell', cell: Cell.fromBoc(Buffer.from(item.value, 'base64'))[0] };
+            return { type: 'cell', cell: CellClass.fromBoc(Buffer.from(item.value, 'base64'))[0] };
         case 'tuple':
         case 'list':
             if (item.value.length === 0) {
                 return { type: 'null' };
             }
-            return { type: 'tuple', items: item.value.map((value) => ParseStackItem(value)) };
+            return {
+                type: 'tuple',
+                items: await Promise.all(item.value.map((value) => ParseStackItem(value, CellClass))),
+            };
         default:
             throw Error(`Unsupported parse stack item type: ${JSON.stringify(item)}`);
     }
 }
 
 // todo - add support for all types
-export function ParseStack(list: RawStackItem[]): TupleItem[] {
+export async function ParseStack(list: RawStackItem[]): Promise<TupleItem[]> {
+    const { Cell } = await loadTonCore();
     let stack: TupleItem[] = [];
     for (let item of list) {
-        stack.push(ParseStackItem(item));
+        stack.push(await ParseStackItem(item, Cell));
     }
     return stack;
 }

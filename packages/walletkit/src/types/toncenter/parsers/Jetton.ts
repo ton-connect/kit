@@ -16,7 +16,8 @@ import {
     SimplePreview,
 } from '../AccountEvent';
 import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly, Hex } from '../../primitive';
+import { asAddressFriendlySync, Hex } from '../../primitive';
+import { loadTonCore } from '../../../deps/tonCore';
 import { Base64ToHex } from '../../../utils/base64';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
 import { OpCode } from './opcodes';
@@ -26,11 +27,14 @@ import { OpCode } from './opcodes';
 // Legacy function maintained for backwards compatibility
 // New handlers available in ./handlers/JettonHandler.ts
 
-export function parseJettonActions(
+export async function parseJettonActions(
     ownerFriendly: string,
     item: ToncenterTraceItem,
     addressBook: AddressBook,
-): Action[] {
+): Promise<Action[]> {
+    // Ensure @ton/core is loaded for sync Address operations
+    await loadTonCore();
+
     const actions: Action[] = [];
     const txs = item.transactions || {};
     let added = false;
@@ -44,12 +48,12 @@ export function parseJettonActions(
         if (
             decoded['@type'] === 'jetton_transfer' &&
             inMsg?.source &&
-            asAddressFriendly(inMsg.source) === ownerFriendly
+            asAddressFriendlySync(inMsg.source) === ownerFriendly
         ) {
             const amount = toBigInt(readAmountValue(getProp(decoded, 'amount')));
             const dest = toAddr(getProp(decoded, 'destination'));
             const comment = extractCommentFromDecoded(getForwardPayloadValue(decoded)) ?? undefined;
-            const senderWallet = asAddressFriendly(tx.account);
+            const senderWallet = asAddressFriendlySync(tx.account);
             const recipientWallet = findRecipientJettonWalletFromOut(tx);
 
             const status = computeStatus(tx);
@@ -89,15 +93,15 @@ export function parseJettonActions(
     if (!added)
         for (const key of Object.keys(txs)) {
             const tx = txs[key];
-            if (asAddressFriendly(tx.account) === ownerFriendly) continue; // skip main wallet tx here
+            if (asAddressFriendlySync(tx.account) === ownerFriendly) continue; // skip main wallet tx here
             const inMsg = tx.in_msg;
             const decoded = getDecoded(inMsg);
             if (!decoded) continue;
             if (decoded['@type'] === 'jetton_internal_transfer') {
                 const amount = toBigInt(readAmountValue(getProp(decoded, 'amount')));
                 const senderMain = toAddr(getProp(decoded, 'from'));
-                const recipientWallet = asAddressFriendly(tx.account);
-                const senderWallet = asAddressFriendly(inMsg!.source!);
+                const recipientWallet = asAddressFriendlySync(tx.account);
+                const senderWallet = asAddressFriendlySync(inMsg!.source!);
 
                 const status = computeStatus(tx);
                 const id = (getTraceRootId(item) ?? Base64ToHex(tx.hash)) as Hex;
@@ -155,15 +159,15 @@ function toAddr(raw?: unknown): string {
     if (typeof raw === 'string') {
         // Friendly or raw hex without wc
         if (/^[A-Fa-f0-9]{64}$/.test(raw)) {
-            return asAddressFriendly(`0:${raw}`);
+            return asAddressFriendlySync(`0:${raw}`);
         }
-        return asAddressFriendly(raw);
+        return asAddressFriendlySync(raw);
     }
     if (isRecord(raw)) {
         const wc = raw['workchain_id'];
         const addr = raw['address'];
         if ((typeof wc === 'string' || typeof wc === 'number') && typeof addr === 'string') {
-            return asAddressFriendly(`${wc}:${addr}`);
+            return asAddressFriendlySync(`${wc}:${addr}`);
         }
     }
     return '';
@@ -206,7 +210,7 @@ function computeStatus(tx: ToncenterTransaction): StatusAction {
 function findFirstOwnerTxId(ownerFriendly: string, item: ToncenterTraceItem): Hex | null {
     for (const h of item.transactions_order || []) {
         const tx = item.transactions[h];
-        if (tx && asAddressFriendly(tx.account) === ownerFriendly) {
+        if (tx && asAddressFriendlySync(tx.account) === ownerFriendly) {
             return Base64ToHex(h);
         }
     }
@@ -222,7 +226,7 @@ function findRecipientJettonWalletFromOut(tx: ToncenterTransaction): string | nu
     for (const m of tx.out_msgs || []) {
         const d = getDecoded(m) as Record<string, unknown> | null;
         if (m.opcode === OpCode.JettonInternalTransfer || (d && d['@type'] === 'jetton_internal_transfer')) {
-            return asAddressFriendly(m.destination);
+            return asAddressFriendlySync(m.destination);
         }
     }
     return null;
@@ -234,7 +238,7 @@ function collectBaseTransactionsSent(item: ToncenterTraceItem, ownerFriendly: st
     for (const h of order) {
         const tx = item.transactions[h];
         if (!tx) continue;
-        if (asAddressFriendly(tx.account) === ownerFriendly) continue; // skip owner main
+        if (asAddressFriendlySync(tx.account) === ownerFriendly) continue; // skip owner main
         const t = getTxType(tx);
         if (t) pairs.push({ type: t, hex: Base64ToHex(h) });
     }
@@ -262,7 +266,7 @@ function collectBaseTransactionsReceived(item: ToncenterTraceItem, ownerFriendly
     const isType = (tx: ToncenterTransaction, type: string) => getTxType(tx) === type;
     const jt = findTx((tx) => isType(tx, 'jetton_transfer'));
     const internal = findTx(
-        (tx) => isType(tx, 'jetton_internal_transfer') && asAddressFriendly(tx.account) !== ownerFriendly,
+        (tx) => isType(tx, 'jetton_internal_transfer') && asAddressFriendlySync(tx.account) !== ownerFriendly,
     );
     const excess = findTx((tx) => isType(tx, 'excess'));
     const out: Hex[] = [];
@@ -327,8 +331,8 @@ function buildJettonInfo(
                     const owner = extra?.['owner'];
                     if (
                         typeof owner === 'string' &&
-                        asAddressFriendly(owner) &&
-                        asAddressFriendly(raw) === walletFriendly
+                        asAddressFriendlySync(owner) &&
+                        asAddressFriendlySync(raw) === walletFriendly
                     ) {
                         const j = extra?.['jetton'];
                         if (typeof j === 'string') master = j;
@@ -354,7 +358,7 @@ function buildJettonInfo(
             (extra?.['_image_medium'] as string) ||
             (extra?.['_image_big'] as string);
     }
-    let outAddress = master ? asAddressFriendly(master) : '';
+    let outAddress = master ? asAddressFriendlySync(master) : '';
     if (!outAddress) {
         // Fallback: try infer from addressBook by known minter domain
         const inferred = inferMinterFromAddressBook(addressBook);

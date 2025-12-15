@@ -103,7 +103,7 @@ export class WalletNftClass implements WalletNftInterface {
             mode: SendMode.PAY_GAS_SEPARATELY | SendMode.IGNORE_ERRORS,
         };
 
-        if (!validateTransactionMessage(message, false).isValid) {
+        if (!(await validateTransactionMessage(message, false)).isValid) {
             throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
         }
 
@@ -150,7 +150,7 @@ export class WalletNftClass implements WalletNftInterface {
             mode: SendMode.PAY_GAS_SEPARATELY | SendMode.IGNORE_ERRORS,
         };
 
-        if (!validateTransactionMessage(message, false).isValid) {
+        if (!(await validateTransactionMessage(message, false)).isValid) {
             throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
         }
 

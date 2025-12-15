@@ -24,7 +24,7 @@ import {
     AddressBook,
 } from '../../AccountEvent';
 import { ToncenterTraceItem, ToncenterTransaction } from '../../emulation';
-import { asAddressFriendly, Hex } from '../../../primitive';
+import { asAddressFriendlySync, Hex } from '../../../primitive';
 import { Base64ToHex } from '../../../../utils/base64';
 
 /**
@@ -39,7 +39,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
         const inMsg = this.findMessageInTransaction(message, context);
         if (!inMsg) return false;
 
-        return inMsg.source !== undefined && asAddressFriendly(inMsg.source) === context.ownerAddress;
+        return inMsg.source !== undefined && asAddressFriendlySync(inMsg.source) === context.ownerAddress;
     }
 
     handle(message: DecodedMessage, context: MessageHandlerContext): Action[] {
@@ -53,7 +53,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
         const forwardValue = this.isRecord(forwardPayload) ? forwardPayload['value'] : undefined;
         const comment = this.extractComment(forwardValue) ?? undefined;
 
-        const senderWallet = asAddressFriendly(tx.account);
+        const senderWallet = asAddressFriendlySync(tx.account);
         const recipientWallet = this.findRecipientJettonWalletFromOut(tx);
 
         const status = this.computeStatus(tx);
@@ -132,15 +132,15 @@ export class JettonTransferHandler extends BaseMessageHandler {
         if (!raw) return '';
         if (typeof raw === 'string') {
             if (/^[A-Fa-f0-9]{64}$/.test(raw)) {
-                return asAddressFriendly(`0:${raw}`);
+                return asAddressFriendlySync(`0:${raw}`);
             }
-            return asAddressFriendly(raw);
+            return asAddressFriendlySync(raw);
         }
         if (this.isRecord(raw)) {
             const wc = raw['workchain_id'];
             const addr = raw['address'];
             if ((typeof wc === 'string' || typeof wc === 'number') && typeof addr === 'string') {
-                return asAddressFriendly(`${wc}:${addr}`);
+                return asAddressFriendlySync(`${wc}:${addr}`);
             }
         }
         return '';
@@ -149,7 +149,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
     private findRecipientJettonWalletFromOut(tx: ToncenterTransaction): string | null {
         for (const m of tx.out_msgs || []) {
             if (m.opcode === '0x178d4519') {
-                return asAddressFriendly(m.destination);
+                return asAddressFriendlySync(m.destination);
             }
         }
         return null;
@@ -172,7 +172,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
         const order = context.traceItem.transactions_order || [];
         for (const h of order) {
             const tx = context.transactions[h];
-            if (tx && asAddressFriendly(tx.account) === context.ownerAddress) {
+            if (tx && asAddressFriendlySync(tx.account) === context.ownerAddress) {
                 return Base64ToHex(h);
             }
         }
@@ -185,7 +185,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
         for (const h of order) {
             const tx = context.transactions[h];
             if (!tx) continue;
-            if (asAddressFriendly(tx.account) === context.ownerAddress) continue;
+            if (asAddressFriendlySync(tx.account) === context.ownerAddress) continue;
             const t = this.getTxType(tx);
             if (t) pairs.push({ type: t, hex: Base64ToHex(h) });
         }
@@ -245,8 +245,8 @@ export class JettonTransferHandler extends BaseMessageHandler {
                         const owner = extra?.['owner'];
                         if (
                             typeof owner === 'string' &&
-                            asAddressFriendly(owner) &&
-                            asAddressFriendly(raw) === walletFriendly
+                            asAddressFriendlySync(owner) &&
+                            asAddressFriendlySync(raw) === walletFriendly
                         ) {
                             const j = extra?.['jetton'];
                             if (typeof j === 'string') master = j;
@@ -275,7 +275,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
                 (extra?.['_image_big'] as string);
         }
 
-        let outAddress = master ? asAddressFriendly(master) : '';
+        let outAddress = master ? asAddressFriendlySync(master) : '';
         if (!outAddress) {
             const inferred = this.inferMinterFromAddressBook(context.addressBook);
             if (inferred) {
@@ -368,7 +368,7 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
         if (!tx) return false;
 
         // Skip if this is the owner's main wallet transaction
-        return asAddressFriendly(tx.account) !== context.ownerAddress;
+        return asAddressFriendlySync(tx.account) !== context.ownerAddress;
     }
 
     handle(message: DecodedMessage, context: MessageHandlerContext): Action[] {
@@ -378,8 +378,8 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
         const payload = message.payload as Record<string, unknown>;
         const amount = this.toBigInt(this.readAmountValue(this.getProperty(payload, 'amount')));
         const senderMain = this.toAddr(this.getProperty(payload, 'from'));
-        const recipientWallet = asAddressFriendly(tx.account);
-        const senderWallet = asAddressFriendly(tx.in_msg.source!);
+        const recipientWallet = asAddressFriendlySync(tx.account);
+        const senderWallet = asAddressFriendlySync(tx.in_msg.source!);
 
         const status = this.computeStatus(tx);
         const id = (this.getTraceRootId(context.traceItem) ?? Base64ToHex(tx.hash)) as Hex;
@@ -436,15 +436,15 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
         if (!raw) return '';
         if (typeof raw === 'string') {
             if (/^[A-Fa-f0-9]{64}$/.test(raw)) {
-                return asAddressFriendly(`0:${raw}`);
+                return asAddressFriendlySync(`0:${raw}`);
             }
-            return asAddressFriendly(raw);
+            return asAddressFriendlySync(raw);
         }
         if (this.isRecord(raw)) {
             const wc = raw['workchain_id'];
             const addr = raw['address'];
             if ((typeof wc === 'string' || typeof wc === 'number') && typeof addr === 'string') {
-                return asAddressFriendly(`${wc}:${addr}`);
+                return asAddressFriendlySync(`${wc}:${addr}`);
             }
         }
         return '';
@@ -483,7 +483,8 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
         const isType = (tx: ToncenterTransaction, type: string) => this.getTxType(tx) === type;
         const jt = findTx((tx) => isType(tx, 'jetton_transfer'));
         const internal = findTx(
-            (tx) => isType(tx, 'jetton_internal_transfer') && asAddressFriendly(tx.account) !== context.ownerAddress,
+            (tx) =>
+                isType(tx, 'jetton_internal_transfer') && asAddressFriendlySync(tx.account) !== context.ownerAddress,
         );
         const excess = findTx((tx) => isType(tx, 'excess'));
 
@@ -541,8 +542,8 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
                         const owner = extra?.['owner'];
                         if (
                             typeof owner === 'string' &&
-                            asAddressFriendly(owner) &&
-                            asAddressFriendly(raw) === walletFriendly
+                            asAddressFriendlySync(owner) &&
+                            asAddressFriendlySync(raw) === walletFriendly
                         ) {
                             const j = extra?.['jetton'];
                             if (typeof j === 'string') master = j;
@@ -572,7 +573,7 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
         }
 
         return {
-            address: master ? asAddressFriendly(master) : '',
+            address: master ? asAddressFriendlySync(master) : '',
             name,
             symbol,
             decimals,

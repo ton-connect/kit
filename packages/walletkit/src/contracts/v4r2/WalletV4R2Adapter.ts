@@ -29,7 +29,6 @@ import { defaultWalletIdV4R2 } from './constants';
 import { IWalletAdapter, WalletSigner } from '../../types/wallet';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
-import { formatWalletAddress } from '../../utils/address';
 import { ConnectTransactionParamContent } from '../../types/internal';
 import { CallForSuccess } from '../../utils/retry';
 import { PrepareSignDataResult } from '../../utils/signData/sign';
@@ -121,7 +120,7 @@ export class WalletV4R2Adapter implements IWalletAdapter {
      * Get wallet's TON address
      */
     getAddress(options?: { testnet?: boolean }): string {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+        return this.walletContract.address.toString({ bounceable: false, testOnly: options?.testnet ?? false });
     }
 
     getWalletId(): WalletId {

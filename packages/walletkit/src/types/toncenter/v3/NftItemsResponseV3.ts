@@ -11,7 +11,7 @@ import { AddressBookRowV3 } from './AddressBookRowV3';
 import { AddressMetadataV3 } from './AddressMetadataV3';
 import { NftItemsResponse } from '../NftItemsResponse';
 import { toNftItem } from './NftItemV3';
-import { AddressFriendly, asAddressFriendly } from '../../primitive';
+import { AddressFriendly, asAddressFriendlySync } from '../../primitive';
 import { toTokenInfo } from './NftTokenInfoV3';
 import { Pagination } from '../Pagination';
 import { NftMetadata } from '../NftMetadata';
@@ -34,14 +34,14 @@ export function toNftItemsResponse(data: NftItemsResponseV3, pagination: Paginat
             }
             const tokenInfo = data.metadata[address].token_info[0];
             if (tokenInfo.type === 'nft_items') {
-                metadata[asAddressFriendly(address)] = {
+                metadata[asAddressFriendlySync(address)] = {
                     isIndexed: data.metadata[address].is_indexed,
                     tokenInfo: [toTokenInfo(tokenInfo)],
                 };
             } else if (tokenInfo.type === 'nft_collections') {
                 const collection = tokenMetaToNftCollection(address, tokenInfo);
                 if (collection) {
-                    collections[asAddressFriendly(address)] = collection;
+                    collections[asAddressFriendlySync(address)] = collection;
                 }
             }
         }
@@ -60,7 +60,7 @@ export function toNftItemsResponse(data: NftItemsResponseV3, pagination: Paginat
             }
             const itemCollection = item.collection;
             const itemCollectionMeta = item.collectionAddress
-                ? collections[asAddressFriendly(item.collectionAddress)]
+                ? collections[asAddressFriendlySync(item.collectionAddress)]
                 : undefined;
 
             if (itemCollection || itemCollectionMeta) {
@@ -79,7 +79,7 @@ export function toNftItemsResponse(data: NftItemsResponseV3, pagination: Paginat
     }
     if (data.address_book) {
         for (const address of Object.keys(data.address_book)) {
-            out.addressBook[asAddressFriendly(address)] = {
+            out.addressBook[asAddressFriendlySync(address)] = {
                 domain: data.address_book[address].domain,
             };
         }

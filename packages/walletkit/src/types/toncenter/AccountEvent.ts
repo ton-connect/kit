@@ -14,7 +14,8 @@ import {
     EmulationTokenInfoMasters,
     EmulationTokenInfoWallets,
 } from './emulation';
-import { AddressFriendly, asAddressFriendly, asMaybeAddressFriendly, Hex } from '../primitive';
+import { AddressFriendly, asAddressFriendlySync, asMaybeAddressFriendlySync, Hex } from '../primitive';
+import { loadTonCore } from '../../deps/tonCore';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
@@ -48,12 +49,15 @@ export interface AddressBookItem {
 
 export type AddressBook = Record<AddressFriendly, AddressBookItem>;
 
-export function toAddressBook(data: MetadataV3): AddressBook {
+export async function toAddressBook(data: MetadataV3): Promise<AddressBook> {
+    // Ensure @ton/core is loaded for sync Address operations
+    await loadTonCore();
+
     const out: AddressBook = {};
 
     // Process address_book for domain information
     for (const [address, bookRow] of Object.entries(data.address_book)) {
-        const friendly = asAddressFriendly(address);
+        const friendly = asAddressFriendlySync(address);
         if (bookRow.domain) {
             out[friendly] = { domain: bookRow.domain };
         }
@@ -73,7 +77,7 @@ export function toAddressBook(data: MetadataV3): AddressBook {
 
     // Process metadata for jetton information
     for (const [address, meta] of Object.entries(data.metadata)) {
-        const friendly = asAddressFriendly(address);
+        const friendly = asAddressFriendlySync(address);
         if (!out[friendly]) {
             out[friendly] = {};
         }
@@ -104,8 +108,8 @@ export function toAddressBook(data: MetadataV3): AddressBook {
                 const walletInfo = tokenInfo as EmulationTokenInfoWallets;
                 out[friendly].jettonWallet = {
                     balance: walletInfo.extra?.balance || '0',
-                    jettonMaster: asAddressFriendly(walletInfo.extra?.jetton || ''),
-                    owner: asAddressFriendly(walletInfo.extra?.owner || ''),
+                    jettonMaster: asAddressFriendlySync(walletInfo.extra?.jetton || ''),
+                    owner: asAddressFriendlySync(walletInfo.extra?.owner || ''),
                 };
             }
         }
@@ -255,29 +259,36 @@ function filterActionsByPriority(actions: Action[]): Action[] {
 /**
  * Parse trace item into structured Event with typed actions
  */
-export function toEvent(data: ToncenterTraceItem, account: string, addressBook: AddressBook = {}): Event {
-    const accountFriendly = asAddressFriendly(account);
+export async function toEvent(
+    data: ToncenterTraceItem,
+    account: string,
+    addressBook: AddressBook = {},
+): Promise<Event> {
+    // Ensure @ton/core is loaded for sync Address operations
+    await loadTonCore();
+
+    const accountFriendly = asAddressFriendlySync(account);
     const transactions: Record<string, ToncenterTransaction> = data.transactions || {};
     const actions: Action[] = [];
 
     // Parse TON transfers from owner's transactions
     for (const txHash of Object.keys(transactions)) {
         const tx = transactions[txHash];
-        if (asAddressFriendly(tx.account) !== accountFriendly) {
+        if (asAddressFriendlySync(tx.account) !== accountFriendly) {
             continue;
         }
         const status = computeStatus(tx);
         actions.push(
-            ...parseOutgoingTonTransfers(tx, addressBook, status),
-            ...parseIncomingTonTransfers(tx, addressBook, status),
+            ...(await parseOutgoingTonTransfers(tx, addressBook, status)),
+            ...(await parseIncomingTonTransfers(tx, addressBook, status)),
         );
     }
 
     // Parse contract interactions, jettons, and NFTs
     actions.push(
-        ...parseContractActions(accountFriendly, transactions, addressBook),
-        ...parseJettonActions(accountFriendly, data, addressBook),
-        ...parseNftActions(accountFriendly, data, addressBook),
+        ...(await parseContractActions(accountFriendly, transactions, addressBook)),
+        ...(await parseJettonActions(accountFriendly, data, addressBook)),
+        ...(await parseNftActions(accountFriendly, data, addressBook)),
     );
 
     // Filter by priority: Jetton/NFT actions hide underlying TON transfers
@@ -286,7 +297,7 @@ export function toEvent(data: ToncenterTraceItem, account: string, addressBook: 
     return buildEvent(data, account, filteredActions, addressBook);
 }
 
-export function emulationEvent(data: ToncenterEmulationResponse, account?: string): Event {
+export async function emulationEvent(data: ToncenterEmulationResponse, account?: string): Promise<Event> {
     // Build a ToncenterTraceItem from emulation response
     const txEntries = Object.entries(data.transactions) as [string, ToncenterTransaction][];
     const byLtAsc = [...txEntries].sort((a, b) => (BigInt(a[1].lt) < BigInt(b[1].lt) ? -1 : 1));
@@ -352,8 +363,8 @@ export function emulationEvent(data: ToncenterEmulationResponse, account?: strin
         // However, to keep consistent use-sites, prefer empty string here and let toEvent handle.
         inferredAccount = '';
     }
-    const addressBook = toAddressBook(data);
-    return toEvent(traceItem, inferredAccount, addressBook);
+    const addressBook = await toAddressBook(data);
+    return await toEvent(traceItem, inferredAccount, addressBook);
 }
 
 export interface TonTransfer {
@@ -379,7 +390,7 @@ export interface Account {
 }
 
 export function toAccount(address: string, addressBook: AddressBook): Account {
-    const friendly = asMaybeAddressFriendly(address);
+    const friendly = asMaybeAddressFriendlySync(address);
     const out: Account = {
         address: friendly ?? address ?? '',
         isScam: false,

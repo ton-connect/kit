@@ -6,23 +6,26 @@
  *
  */
 
-import { Address, beginCell, Cell } from '@ton/core';
+import type { Address } from '@ton/core';
 import { SignDataPayloadBinary, SignDataPayloadCell, SignDataPayloadText } from '@tonconnect/protocol';
-import { sha256_sync } from '@ton/crypto';
 
 import { buf as crc32Buf } from './crc32';
+import { loadTonCore } from '../../deps/tonCore';
+import { loadTonCrypto } from '../../deps/tonCrypto';
 
 /**
  * Creates hash for text or binary payload.
  * Message format:
  * message = 0xffff || "ton-connect/sign-data/" || workchain || address_hash || domain_len || domain || timestamp || payload
  */
-export function createTextBinaryHash(
+export async function createTextBinaryHash(
     payload: SignDataPayloadText | SignDataPayloadBinary,
     parsedAddr: Address,
     domain: string,
     timestamp: number,
-): Buffer {
+): Promise<Buffer> {
+    const { sha256_sync } = await loadTonCrypto();
+
     // Create workchain buffer
     const wcBuffer = Buffer.alloc(4);
     wcBuffer.writeInt32BE(parsedAddr.workChain);
@@ -67,12 +70,13 @@ export function createTextBinaryHash(
 /**
  * Creates hash for Cell payload according to TON Connect specification.
  */
-export function createCellHash(
+export async function createCellHash(
     payload: SignDataPayloadCell,
     parsedAddr: Address,
     domain: string,
     timestamp: number,
-): Buffer {
+): Promise<Buffer> {
+    const { Cell, beginCell } = await loadTonCore();
     const cell = Cell.fromBase64(payload.cell);
     const schemaHash = crc32Buf(Buffer.from(payload.schema, 'utf8'), undefined) >>> 0; // unsigned crc32 hash
 

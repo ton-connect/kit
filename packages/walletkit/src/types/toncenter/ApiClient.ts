@@ -6,7 +6,7 @@
  *
  */
 
-import { Address } from '@ton/core';
+import type { Address } from '@ton/core';
 
 import type { ConnectTransactionParamMessage } from '../internal';
 import type {

@@ -100,7 +100,7 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
 
-        const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
+        const requestValidation = await this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
             log.error('Failed to parse transaction request', { event, requestValidation });
             this.eventEmitter.emit('event:error', event);
@@ -176,13 +176,13 @@ export class TransactionHandler
      * Parse raw transaction request from bridge event
      */
 
-    private parseTonConnectTransactionRequest(
+    private async parseTonConnectTransactionRequest(
         event: RawBridgeEventTransaction,
         wallet: IWallet,
-    ): {
+    ): Promise<{
         result: ConnectTransactionParamContent | undefined;
         validation: ValidationResult;
-    } {
+    }> {
         let errors: string[] = [];
         try {
             if (event.params.length !== 1) {
@@ -209,7 +209,7 @@ export class TransactionHandler
                 params.network = networkValidation.result;
             }
 
-            const fromValidation = this.validateFrom(params.from, wallet);
+            const fromValidation = await this.validateFrom(params.from, wallet);
             if (!fromValidation.isValid) {
                 errors = errors.concat(fromValidation.errors);
             } else {
@@ -217,7 +217,7 @@ export class TransactionHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
+            const messagesValidation = await validateTonConnectTransactionMessages(params.messages, isTonConnect);
             if (!messagesValidation.isValid) {
                 errors = errors.concat(messagesValidation.errors);
             }
@@ -261,7 +261,7 @@ export class TransactionHandler
         return { result: undefined, isValid: errors.length === 0, errors: errors };
     }
 
-    private validateFrom(from: unknown, wallet: IWallet): ReturnWithValidationResult<string> {
+    private async validateFrom(from: unknown, wallet: IWallet): Promise<ReturnWithValidationResult<string>> {
         let errors: string[] = [];
 
         if (typeof from !== 'string') {
@@ -269,7 +269,7 @@ export class TransactionHandler
             return { result: '', isValid: errors.length === 0, errors: errors };
         }
 
-        if (!isValidAddress(from)) {
+        if (!(await isValidAddress(from))) {
             errors.push('Invalid from address');
             return { result: '', isValid: errors.length === 0, errors: errors };
         }

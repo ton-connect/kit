@@ -8,7 +8,7 @@
 
 // Wallet-related type definitions
 
-import { Address, SendMode } from '@ton/core';
+import type { Address, SendMode } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 // import Transport from '@ledgerhq/hw-transport';
 

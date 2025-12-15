@@ -6,17 +6,17 @@
  *
  */
 
-import { fromNano } from '@ton/core';
-
+import { loadTonCore } from '../../../deps/tonCore';
 import { AddressBook, toAccount, TonTransferAction, StatusAction } from '../AccountEvent';
 import { EmulationMessage, ToncenterTransaction } from '../emulation';
 import { Base64ToHex } from '../../../utils/base64';
 
-export function parseOutgoingTonTransfers(
+export async function parseOutgoingTonTransfers(
     tx: ToncenterTransaction,
     addressBook: AddressBook,
     status: StatusAction,
-): TonTransferAction[] {
+): Promise<TonTransferAction[]> {
+    const { fromNano } = await loadTonCore();
     const actions: TonTransferAction[] = [];
     for (const msg of tx.out_msgs || []) {
         const valueNum = toPositiveNumber(msg.value);
@@ -53,11 +53,12 @@ export function parseOutgoingTonTransfers(
     return actions;
 }
 
-export function parseIncomingTonTransfers(
+export async function parseIncomingTonTransfers(
     tx: ToncenterTransaction,
     addressBook: AddressBook,
     status: StatusAction,
-): TonTransferAction[] {
+): Promise<TonTransferAction[]> {
+    const { fromNano } = await loadTonCore();
     const actions: TonTransferAction[] = [];
     const msg = tx.in_msg;
     if (!msg) {
