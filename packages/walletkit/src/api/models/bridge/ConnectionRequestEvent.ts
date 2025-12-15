@@ -35,6 +35,11 @@ export interface ConnectionRequestEventPreview {
      * Information about the requesting dApp
      */
     dAppInfo?: DAppInfo;
+    /**
+     * Error code if manifest fetching failed
+     * @format int
+     */
+    manifestFetchErrorCode?: number;
 }
 
 /**

@@ -48,18 +48,20 @@ export class ConnectHandler
         // Extract manifest information
         const manifestUrl = this.extractManifestUrl(event);
         let manifest = null;
+        let manifestFetchErrorCode = undefined;
 
         // Try to fetch manifest if URL is available
         if (manifestUrl) {
             try {
                 const result = await this.fetchManifest(manifestUrl);
                 manifest = result.manifest;
+                manifestFetchErrorCode = result.manifestFetchErrorCode;
             } catch (error) {
                 log.warn('Failed to fetch manifest', { error });
             }
         }
 
-        const preview = this.createPreview(event, manifestUrl, manifest);
+        const preview = this.createPreview(event, manifestUrl, manifest, manifestFetchErrorCode);
 
         const connectEvent: ConnectionRequestEvent = {
             ...event,
@@ -145,6 +147,9 @@ export class ConnectHandler
         manifestUrl: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fetchedManifest?: any,
+        manifestFetchErrorCode?:
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
     ): ConnectionRequestEventPreview {
         const eventManifest = event.params?.manifest;
         const manifest = fetchedManifest || eventManifest;
@@ -190,6 +195,7 @@ export class ConnectHandler
                 iconUrl: sanitizedManifest.iconUrl,
                 manifestUrl: manifestUrl,
             },
+            manifestFetchErrorCode: manifestFetchErrorCode ?? undefined,
         };
     }
 
