@@ -7,8 +7,7 @@
  */
 
 import { ApiClient } from '../../types/toncenter/ApiClient';
-import { Hex } from '../../types/primitive';
-import { Network } from '../../api/models';
+import { Hex, Network } from '../../api/models';
 import { WalletSigner } from '../../api/interfaces';
 
 /**

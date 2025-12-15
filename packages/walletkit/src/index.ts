@@ -70,7 +70,6 @@ export {
     HexToUint8Array,
 } from './utils/base64';
 export type { ToncenterTransaction } from './types/toncenter/emulation';
-export { Hex } from './types/primitive';
 export { TonProofParsedMessage } from './utils/tonProof';
 export type { ITonWalletKit } from './types/kit';
 export type {

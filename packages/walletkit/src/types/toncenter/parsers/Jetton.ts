@@ -16,10 +16,11 @@ import {
     SimplePreview,
 } from '../AccountEvent';
 import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly, Hex } from '../../primitive';
+import { asAddressFriendly } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
 import { OpCode } from './opcodes';
+import { Hex } from '../../../api/models';
 
 //
 // This parser has been refactored with new architecture support

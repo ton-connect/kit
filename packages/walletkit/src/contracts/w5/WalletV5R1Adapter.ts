@@ -31,11 +31,18 @@ import { CallForSuccess } from '../../utils/retry';
 import { ActionSendMsg, packActionsList } from './actions';
 import { ApiClient } from '../../types/toncenter/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
-import { asHex, Hex } from '../../types/primitive';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import { createWalletId, WalletId } from '../../utils/walletId';
 import { WalletAdapter, WalletSigner } from '../../api/interfaces';
-import { Network, PreparedSignData, ProofMessage, TransactionRequest, UserFriendlyAddress } from '../../api/models';
+import {
+    Network,
+    PreparedSignData,
+    ProofMessage,
+    TransactionRequest,
+    UserFriendlyAddress,
+    Hex,
+    asHex,
+} from '../../api/models';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 

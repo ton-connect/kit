@@ -24,8 +24,9 @@ import {
     AddressBook,
 } from '../../AccountEvent';
 import { ToncenterTraceItem, ToncenterTransaction } from '../../emulation';
-import { asAddressFriendly, Hex } from '../../../primitive';
+import { asAddressFriendly } from '../../../primitive';
 import { Base64ToHex } from '../../../../utils/base64';
+import { Hex } from '../../../../api/models';
 
 /**
  * Jetton Transfer Handler

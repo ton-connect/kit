@@ -154,7 +154,7 @@ export interface TransactionTraceActionJettonSwapDetails {
     /**
      * Address of the account initiating the swap
      */
-    sender: UserFriendlyAddress;
+    sender?: UserFriendlyAddress;
 
     /**
      * Transfer details for tokens sent to the DEX
@@ -176,17 +176,17 @@ export interface TransactionTraceActionJettonTransfer {
     /**
      * Jetton asset address being transferred.
      */
-    asset: UserFriendlyAddress;
+    asset?: UserFriendlyAddress;
 
     /**
      * Address of the sender account.
      */
-    source: UserFriendlyAddress;
+    source?: UserFriendlyAddress;
 
     /**
      * Address of the receiver account.
      */
-    destination: UserFriendlyAddress;
+    destination?: UserFriendlyAddress;
 
     /**
      * Jetton wallet address of the sender.
@@ -213,12 +213,12 @@ export interface TransactionTraceActionCallContractDetails {
     /**
      * Address of the sender account.
      */
-    source: UserFriendlyAddress;
+    source?: UserFriendlyAddress;
 
     /**
      * Address of the receiver account.
      */
-    destination: UserFriendlyAddress;
+    destination?: UserFriendlyAddress;
 
     /**
      * Value transferred during the contract call.
@@ -235,12 +235,12 @@ export interface TransactionTraceActionTONTransferDetails {
     /**
      * Address of the sender account.
      */
-    source: UserFriendlyAddress;
+    source?: UserFriendlyAddress;
 
     /**
      * Address of the receiver account.
      */
-    destination: UserFriendlyAddress;
+    destination?: UserFriendlyAddress;
 
     /**
      * Amount of TON transferred (in nanotons).

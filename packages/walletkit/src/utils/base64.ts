@@ -6,7 +6,7 @@
  *
  */
 
-import { Hex, asHex } from '../types/primitive';
+import { Hex, asHex } from '../api/models';
 import { WalletKitError, ERROR_CODES } from '../errors';
 
 /**

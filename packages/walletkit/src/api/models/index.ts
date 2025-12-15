@@ -14,7 +14,7 @@ export type { ExtraCurrencies } from './core/ExtraCurrencies';
 export { Network } from './core/Network';
 export type { PreparedSignData, SignDataPayload, UnpreparedSignData } from './core/PreparedSignData';
 export type { UserFriendlyAddress, Hex, Base64String, LogicalTime, ResultError, Pagination } from './core/Primitives';
-export { Result } from './core/Primitives';
+export { Result, asHex } from './core/Primitives';
 export type { ProofMessage } from './core/ProofMessage';
 export { SendMode, SendModeFlag, SendModeBase, SendModeToValue, SendModeFromValue } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';

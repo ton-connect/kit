@@ -18,7 +18,7 @@ import { EmulationMessage, ToncenterTransaction } from '../emulation';
 import { asAddressFriendly } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
-import { Hex } from '../../primitive';
+import { Hex } from '../../../api/models';
 
 export type SmartContractAction = SmartContractExecAction | SmartContractDeployAction;
 

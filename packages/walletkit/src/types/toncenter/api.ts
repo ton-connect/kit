@@ -8,8 +8,8 @@
 
 import { AccountStatus, ExtraCurrency } from '@ton/core';
 
-import { Hex } from '../primitive';
 import { RawStackItem } from '../../utils/tvmStack';
+import { Hex } from '../../api/models';
 
 export interface TransactionId {
     lt: string;

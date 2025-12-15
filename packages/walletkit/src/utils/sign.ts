@@ -10,7 +10,7 @@ import { keyPairFromSeed, sign } from '@ton/crypto';
 
 import { ISigner } from '../api/interfaces';
 import { Uint8ArrayToHex } from './base64';
-import { Hex } from '../types/primitive';
+import { Hex } from '../api/models';
 
 export function DefaultSignature(data: Iterable<number>, privateKey: Uint8Array): Hex {
     return Uint8ArrayToHex(sign(Buffer.from(Uint8Array.from(data)), Buffer.from(privateKey)));

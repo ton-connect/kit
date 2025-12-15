@@ -18,6 +18,8 @@ import {
     ProofMessage,
 } from '@ton/walletkit';
 
+import { WalletId } from '../../walletkit/dist/cjs';
+
 export class SwiftWalletAdapter implements WalletAdapter {
     private swiftWalletAdapter: WalletAdapter;
     private client: ApiClient;
@@ -44,21 +46,25 @@ export class SwiftWalletAdapter implements WalletAdapter {
         return this.swiftWalletAdapter.getAddress(options);
     }
 
+    getWalletId(): WalletId {
+        return this.swiftWalletAdapter.getWalletId();
+    }
+
     /** Get state init for wallet deployment base64 encoded boc */
-    async getStateInit(): Promise<Base64String> {
+    getStateInit(): Promise<Base64String> {
         return this.swiftWalletAdapter.getStateInit();
     }
 
-    async getSignedSendTransaction(
+    getSignedSendTransaction(
         input: TransactionRequest,
         options?: {
             fakeSignature: boolean;
         },
-    ): Promise<string> {
+    ): Promise<Base64String> {
         return this.swiftWalletAdapter.getSignedSendTransaction(input, options);
     }
 
-    async getSignedSignData(
+    getSignedSignData(
         input: PreparedSignData,
         options?: {
             fakeSignature: boolean;
@@ -67,7 +73,7 @@ export class SwiftWalletAdapter implements WalletAdapter {
         return this.swiftWalletAdapter.getSignedSignData(input, options);
     }
 
-    async getSignedTonProof(
+    getSignedTonProof(
         input: ProofMessage,
         options?: {
             fakeSignature: boolean;

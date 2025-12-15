@@ -17,7 +17,7 @@ export interface Transaction {
     /**
      * Account of the transaction
      */
-    account: string;
+    account: UserFriendlyAddress;
 
     /**
      * The state of the account before the transaction was executed
@@ -37,7 +37,7 @@ export interface Transaction {
     /**
      * Hash of the transaction
      */
-    hash: string;
+    hash: Hex;
 
     /**
      * The logical time of the transaction
@@ -58,7 +58,7 @@ export interface Transaction {
     /**
      * External hash of the trace
      */
-    traceExternalHash: string;
+    traceExternalHash: Hex;
 
     /**
      * ID of the trace

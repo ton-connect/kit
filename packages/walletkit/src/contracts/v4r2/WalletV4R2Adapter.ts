@@ -29,13 +29,20 @@ import { ApiClient } from '../../types/toncenter/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
 import { formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
-import { asHex, Hex } from '../../types/primitive';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import { globalLogger } from '../../core/Logger';
 import { WalletV4R2AdapterConfig } from './types';
 import { createWalletId, WalletId } from '../../utils/walletId';
 import { WalletAdapter, WalletSigner } from '../../api/interfaces';
-import { Network, PreparedSignData, ProofMessage, TransactionRequest, UserFriendlyAddress } from '../../api/models';
+import {
+    Network,
+    PreparedSignData,
+    ProofMessage,
+    TransactionRequest,
+    UserFriendlyAddress,
+    asHex,
+    Hex,
+} from '../../api/models';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
 

@@ -13,9 +13,8 @@ import { Address } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 import { ed25519 } from '@noble/curves/ed25519';
 
-import { asHex, Hex } from '../types/primitive';
 import { Base64ToHex, HexToUint8Array, Uint8ArrayToHex } from './base64';
-import { Base64String, ProofMessage } from '../api/models';
+import { Base64String, ProofMessage, Hex } from '../api/models';
 
 interface Domain {
     lengthBytes: number; // uint32 `json:"lengthBytes"`
@@ -53,7 +52,7 @@ export async function CreateTonProofMessageBytes(message: ProofMessage): Promise
     const m = Buffer.concat([
         Buffer.from(tonProofPrefix),
         wc,
-        HexToUint8Array(asHex(message.addressHash)),
+        HexToUint8Array(message.addressHash),
         dl,
         Buffer.from(message.domain.value),
         ts,

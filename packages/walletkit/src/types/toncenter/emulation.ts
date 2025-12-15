@@ -22,6 +22,7 @@ import {
     TransactionTraceActionTONTransferDetails,
     TransactionEmulatedTrace,
     TransactionsResponse,
+    UserFriendlyAddress,
 } from '../../api/models';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../primitive';
 import { AddressBookRowV3, MetadataV3, toAddressBook } from './v3/AddressBookRowV3';
@@ -451,7 +452,10 @@ function toTransactionTraceAction(action: EmulationAction): TransactionTraceActi
         transactions: action.transactions.map(Base64ToHex),
         isSuccess: action.success,
         traceExternalHash: Base64ToHex(action.trace_external_hash),
-        accounts: action.accounts.map(asAddressFriendly),
+        // Filter out invalid addresses
+        accounts: action.accounts
+            .map(asMaybeAddressFriendly)
+            .filter((addr): addr is UserFriendlyAddress => addr !== null),
         details: toTransactionTraceActionDetails(action),
     };
 }
@@ -485,20 +489,20 @@ function toTransactionTraceActionJettonSwapDetails(
 ): TransactionTraceActionJettonSwapDetails {
     return {
         dex: details.dex,
-        sender: asAddressFriendly(details.sender),
+        sender: asMaybeAddressFriendly(details.sender) ?? undefined,
         dexIncomingTransfer: {
-            asset: asAddressFriendly(details.dex_incoming_transfer.asset),
-            source: asAddressFriendly(details.dex_incoming_transfer.source),
-            destination: asAddressFriendly(details.dex_incoming_transfer.destination),
+            asset: asMaybeAddressFriendly(details.dex_incoming_transfer.asset) ?? undefined,
+            source: asMaybeAddressFriendly(details.dex_incoming_transfer.source) ?? undefined,
+            destination: asMaybeAddressFriendly(details.dex_incoming_transfer.destination) ?? undefined,
             sourceJettonWallet: asMaybeAddressFriendly(details.dex_incoming_transfer.source_jetton_wallet) ?? undefined,
             destinationJettonWallet:
                 asMaybeAddressFriendly(details.dex_incoming_transfer.destination_jetton_wallet) ?? undefined,
             amount: details.dex_incoming_transfer.amount,
         },
         dexOutgoingTransfer: {
-            asset: asAddressFriendly(details.dex_outgoing_transfer.asset),
-            source: asAddressFriendly(details.dex_outgoing_transfer.source),
-            destination: asAddressFriendly(details.dex_outgoing_transfer.destination),
+            asset: asMaybeAddressFriendly(details.dex_outgoing_transfer.asset) ?? undefined,
+            source: asMaybeAddressFriendly(details.dex_outgoing_transfer.source) ?? undefined,
+            destination: asMaybeAddressFriendly(details.dex_outgoing_transfer.destination) ?? undefined,
             sourceJettonWallet: asMaybeAddressFriendly(details.dex_outgoing_transfer.source_jetton_wallet) ?? undefined,
             destinationJettonWallet:
                 asMaybeAddressFriendly(details.dex_outgoing_transfer.destination_jetton_wallet) ?? undefined,
@@ -513,8 +517,8 @@ function toTransactionTraceActionCallContractDetails(
 ): TransactionTraceActionCallContractDetails {
     return {
         opcode: details.opcode,
-        source: asAddressFriendly(details.source),
-        destination: asAddressFriendly(details.destination),
+        source: asMaybeAddressFriendly(details.source) ?? undefined,
+        destination: asMaybeAddressFriendly(details.destination) ?? undefined,
         value: details.value,
         valueExtraCurrencies: details.extra_currencies ?? undefined,
     };
@@ -524,8 +528,8 @@ function toTransactionTraceActionTONTransferDetails(
     details: EmulationTonTransferDetails,
 ): TransactionTraceActionTONTransferDetails {
     return {
-        source: asAddressFriendly(details.source),
-        destination: asAddressFriendly(details.destination),
+        source: asMaybeAddressFriendly(details.source) ?? undefined,
+        destination: asMaybeAddressFriendly(details.destination) ?? undefined,
         value: details.value,
         valueExtraCurrencies: details.value_extra_currencies,
         comment: details.comment ?? undefined,
