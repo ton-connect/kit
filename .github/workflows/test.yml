@@ -2,6 +2,8 @@ name: Basic build and tests
 
 on:
   push:
+  # Позволяет запускать Basic build and tests вручную и выбирать ветку в UI
+  workflow_dispatch: {}
 
 
 jobs:
