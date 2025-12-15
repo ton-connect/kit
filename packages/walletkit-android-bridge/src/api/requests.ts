@@ -23,13 +23,10 @@ import type {
 } from '../types';
 import { walletKit } from '../core/state';
 import { callBridge } from '../utils/bridgeWrapper';
+import { log } from '../utils/logger';
 
 /**
  * Approves a connect request.
- *
- * Note: The wallet assignment and address resolution (lines 41-42) are necessary
- * SDK operations that must remain in JavaScript. The SDK requires the wallet object
- * to be attached to the event before approval.
  */
 export async function approveConnectRequest(args: ApproveConnectRequestArgs) {
     return callBridge('approveConnectRequest', async () => {
@@ -37,24 +34,17 @@ export async function approveConnectRequest(args: ApproveConnectRequestArgs) {
             throw new Error('Connect request event is required');
         }
 
-        const wallet = walletKit.getWallet?.(args.walletAddress);
+        log('approveConnectRequest walletId:', args.walletId);
+
+        const wallet = walletKit?.getWallet(args.walletId);
         if (!wallet) {
-            throw new Error('Wallet not found');
+            throw new Error(`Wallet not found for walletId: ${args.walletId}`);
         }
 
         args.event.wallet = wallet;
-        args.event.walletAddress = wallet.getAddress?.() ?? wallet.address ?? args.walletAddress;
+        args.event.walletId = args.walletId;
 
-        const result = await walletKit.approveConnectRequest(args.event);
-
-        if (result == null) {
-            return { success: true } as unknown as Record<string, unknown>;
-        }
-        if (!result?.success) {
-            throw new Error(result?.message || 'Failed to approve connect request');
-        }
-
-        return result;
+        return await walletKit?.approveConnectRequest(args.event);
     });
 }
 
@@ -67,7 +57,7 @@ export async function rejectConnectRequest(args: RejectConnectRequestArgs) {
             throw new Error('Connect request event is required');
         }
 
-        const result = await walletKit.rejectConnectRequest(args.event, args.reason);
+        const result = await walletKit.rejectConnectRequest(args.event, args.reason, args.errorCode);
 
         if (result == null) {
             return { success: true };
@@ -102,7 +92,16 @@ export async function rejectTransactionRequest(args: RejectTransactionRequestArg
             throw new Error('Transaction request event is required');
         }
 
-        const result = await walletKit.rejectTransactionRequest(args.event, args.reason);
+        // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
+        const reason =
+            args.errorCode !== undefined
+                ? { code: args.errorCode, message: args.reason || 'Transaction rejected' }
+                : args.reason;
+
+        const result = (await walletKit!.rejectTransactionRequest(args.event, reason)) as {
+            success?: boolean;
+            message?: string;
+        } | null;
 
         if (result == null) {
             return { success: true };
@@ -124,7 +123,7 @@ export async function approveSignDataRequest(args: ApproveSignDataRequestArgs) {
             throw new Error('Sign data request event is required');
         }
 
-        return await walletKit.signDataRequest(args.event);
+        return await walletKit.approveSignDataRequest(args.event);
     });
 }
 
@@ -137,7 +136,13 @@ export async function rejectSignDataRequest(args: RejectSignDataRequestArgs) {
             throw new Error('Sign data request event is required');
         }
 
-        const result = await walletKit.rejectSignDataRequest(args.event, args.reason);
+        // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
+        const reason =
+            args.errorCode !== undefined
+                ? { code: args.errorCode, message: args.reason || 'Sign data rejected' }
+                : args.reason;
+
+        const result = await walletKit.rejectSignDataRequest(args.event, reason);
 
         if (result == null) {
             return { success: true };

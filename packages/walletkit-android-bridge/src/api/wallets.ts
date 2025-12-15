@@ -51,16 +51,16 @@ export async function getWallets(): Promise<WalletKitWallet[]> {
 }
 
 /**
- * Get a single wallet by address.
+ * Get a single wallet by walletId.
  * Returns raw WalletKit wallet object - Kotlin handles mapping to WalletDescriptor.
  */
-export async function getWallet(args: { address: string }): Promise<WalletKitWallet | null> {
+export async function getWallet(args: { walletId: string }): Promise<WalletKitWallet | null> {
     return callBridge('getWallet', async () => {
-        if (!args.address) {
-            throw new Error('Wallet address is required');
+        if (!args.walletId) {
+            throw new Error('Wallet ID is required');
         }
 
-        const wallet = walletKit.getWallet?.(args.address) as WalletKitWallet | undefined;
+        const wallet = walletKit.getWallet?.(args.walletId) as WalletKitWallet | undefined;
         return wallet ?? null;
     });
 }
@@ -70,16 +70,16 @@ export async function getWallet(args: { address: string }): Promise<WalletKitWal
  */
 export async function removeWallet(args: RemoveWalletArgs) {
     return callBridge('removeWallet', async () => {
-        if (!args.address) {
-            throw new Error('Wallet address is required');
+        if (!args.walletId) {
+            throw new Error('Wallet ID is required');
         }
 
-        const wallet = walletKit.getWallet?.(args.address) as WalletKitWallet | undefined;
+        const wallet = walletKit.getWallet?.(args.walletId) as WalletKitWallet | undefined;
         if (!wallet) {
             return { removed: false };
         }
 
-        await walletKit.removeWallet(args.address);
+        await walletKit.removeWallet(args.walletId);
         return { removed: true };
     });
 }
@@ -90,7 +90,7 @@ export async function removeWallet(args: RemoveWalletArgs) {
  */
 export async function getBalance(args: GetBalanceArgs) {
     return callBridge('getBalance', async () => {
-        const wallet = walletKit.getWallet(args.address) as WalletKitWallet | undefined;
+        const wallet = walletKit.getWallet(args.walletId) as WalletKitWallet | undefined;
         if (!wallet) {
             throw new Error('Wallet not found');
         }
@@ -161,18 +161,24 @@ export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
         const signer = await getSigner(args);
 
+        // args.network should be "-239" (mainnet) or "-3" (testnet) - matching CHAIN enum values
+//         const networkChain = args.network as typeof CHAIN.MAINNET | typeof CHAIN.TESTNET;
+//         if (!networkChain) {
+//             throw new Error('Network is required for creating wallet adapter');
+//         }
+
         let adapter: AdapterInstance;
         if (args.walletVersion === 'v5r1') {
             adapter = (await WalletV5R1Adapter!.create(signer, {
-                client: walletKit.getApiClient(),
-                network: args.network,
+                client: walletKit!.getApiClient(networkChain),
+                network: networkChain,
                 workchain: args.workchain,
                 walletId: args.walletId,
             })) as AdapterInstance;
         } else if (args.walletVersion === 'v4r2') {
             adapter = (await WalletV4R2Adapter!.create(signer, {
-                client: walletKit.getApiClient(),
-                network: args.network,
+                client: walletKit!.getApiClient(networkChain),
+                network: networkChain,
                 workchain: args.workchain,
                 walletId: args.walletId,
             })) as AdapterInstance;
@@ -215,15 +221,10 @@ export async function addWallet(args: AddWalletArgs) {
             throw new Error(`Adapter not found: ${args.adapterId}`);
         }
 
-        const wallet = (await walletKit.addWallet(adapter)) as WalletKitWallet | null;
+        const wallet = await walletKit!.addWallet(adapter);
 
         if (!wallet) {
             throw new Error('Failed to add wallet - may already exist');
-        }
-
-        // Ensure address property is populated
-        if (!wallet.address && wallet.getAddress) {
-            (wallet as { address: string }).address = wallet.getAddress();
         }
 
         // Clean up the adapter from store after use

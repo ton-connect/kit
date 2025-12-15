@@ -25,7 +25,7 @@ import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
  */
 export async function getJettons(args: GetJettonsArgs) {
     return callBridge('getJettons', async () => {
-        return await callOnWalletBridge(args.address, 'getJettons', {
+        return await callOnWalletBridge(args.walletId, 'getJettons', {
             limit: args.limit,
             offset: args.offset,
         });
@@ -37,7 +37,7 @@ export async function getJettons(args: GetJettonsArgs) {
  */
 export async function createTransferJettonTransaction(args: CreateTransferJettonTransactionArgs) {
     return callBridge('createTransferJettonTransaction', async () => {
-        return await callOnWalletBridge(args.address, 'createTransferJettonTransaction', {
+        return await callOnWalletBridge(args.walletId, 'createTransferJettonTransaction', {
             jettonAddress: args.jettonAddress,
             amount: args.amount,
             toAddress: args.toAddress,
@@ -51,7 +51,7 @@ export async function createTransferJettonTransaction(args: CreateTransferJetton
  */
 export async function getJettonBalance(args: GetJettonBalanceArgs) {
     return callBridge('getJettonBalance', async () => {
-        return await callOnWalletBridge(args.address, 'getJettonBalance', args.jettonAddress);
+        return await callOnWalletBridge(args.walletId, 'getJettonBalance', args.jettonAddress);
     });
 }
 
@@ -60,6 +60,6 @@ export async function getJettonBalance(args: GetJettonBalanceArgs) {
  */
 export async function getJettonWalletAddress(args: GetJettonWalletAddressArgs) {
     return callBridge('getJettonWalletAddress', async () => {
-        return await callOnWalletBridge(args.address, 'getJettonWalletAddress', args.jettonAddress);
+        return await callOnWalletBridge(args.walletId, 'getJettonWalletAddress', args.jettonAddress);
     });
 }
