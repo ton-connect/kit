@@ -49,7 +49,6 @@ import {
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
-    asHex,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
 import { Wallet } from '../api/interfaces';
