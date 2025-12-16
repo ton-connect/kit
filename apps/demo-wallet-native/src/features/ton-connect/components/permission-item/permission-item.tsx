@@ -14,8 +14,8 @@ import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 
 interface PermissionItemProps {
-    title: string;
-    description: string;
+    title?: string;
+    description?: string;
 }
 
 export const PermissionItem: FC<PermissionItemProps> = ({ title, description }) => {

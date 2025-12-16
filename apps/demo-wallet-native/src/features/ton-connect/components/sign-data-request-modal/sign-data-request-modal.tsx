@@ -6,7 +6,7 @@
  *
  */
 
-import type { EventSignDataRequest } from '@ton/walletkit';
+import type { SignDataRequestEvent } from '@ton/walletkit';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View, ScrollView } from 'react-native';
@@ -25,7 +25,7 @@ import { WalletInfoBlock } from '@/features/wallets';
 import { Block } from '@/core/components/block';
 
 interface SignDataRequestModalProps {
-    request: EventSignDataRequest;
+    request: SignDataRequestEvent;
     isOpen: boolean;
     onApprove: () => void;
     onReject: (reason?: string) => void;
@@ -69,13 +69,13 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
     const renderDataPreview = () => {
         const { preview } = request;
 
-        switch (preview.kind) {
+        switch (preview.data.type) {
             case 'text':
                 return (
                     <Block style={[styles.dataPreview, styles.textPreview]}>
                         <AppText style={styles.dataPreviewTitle}>Type: Text Message</AppText>
                         <AppText style={styles.dataPreviewContent} textType="body1">
-                            {preview.content}
+                            {preview.data.value.content}
                         </AppText>
                     </Block>
                 );
@@ -84,7 +84,7 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
                     <Block style={[styles.dataPreview, styles.binaryPreview]}>
                         <AppText style={styles.dataPreviewTitle}>Type: Binary Data</AppText>
                         <AppText style={styles.dataPreviewContent} textType="body1">
-                            {preview.content}
+                            {preview.data.value.content}
                         </AppText>
                     </Block>
                 );
@@ -99,32 +99,32 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
                                 </AppText>
                                 <ScrollView horizontal style={styles.cellValue}>
                                     <AppText style={styles.cellValueText} textType="body1">
-                                        {preview.content}
+                                        {preview.data.value.content}
                                     </AppText>
                                 </ScrollView>
                             </View>
 
-                            {preview.schema && (
+                            {preview.data.value.schema && (
                                 <View style={styles.cellItem}>
                                     <AppText style={styles.cellLabel} textType="caption1">
                                         Schema
                                     </AppText>
                                     <ScrollView horizontal style={styles.cellValue}>
                                         <AppText style={styles.cellValueText} textType="body1">
-                                            {preview.schema}
+                                            {preview.data.value.schema}
                                         </AppText>
                                     </ScrollView>
                                 </View>
                             )}
 
-                            {preview.parsed && (
+                            {preview.data.value.parsed && (
                                 <View style={styles.cellItem}>
                                     <AppText style={styles.cellLabel} textType="caption1">
                                         Parsed Data
                                     </AppText>
                                     <ScrollView style={styles.parsedData}>
                                         <AppText style={styles.parsedDataText} textType="caption1">
-                                            {JSON.stringify(preview.parsed, null, 2)}
+                                            {JSON.stringify(preview.data.value.parsed, null, 2)}
                                         </AppText>
                                     </ScrollView>
                                 </View>

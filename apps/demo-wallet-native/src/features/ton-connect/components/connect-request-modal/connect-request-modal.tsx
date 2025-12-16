@@ -6,7 +6,7 @@
  *
  */
 
-import type { EventConnectRequest, Wallet } from '@ton/walletkit';
+import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
 import { useWallet } from '@ton/demo-core';
 import type { SavedWallet } from '@ton/demo-core';
 import { useState, useMemo, useEffect } from 'react';
@@ -26,7 +26,7 @@ import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock, WalletSelectorModal } from '@/features/wallets';
 
 interface ConnectRequestModalProps {
-    request: EventConnectRequest;
+    request: ConnectionRequestEvent;
     isOpen: boolean;
     onApprove: (selectedWallet: Wallet) => void;
     onReject: (reason?: string) => void;
