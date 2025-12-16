@@ -1,61 +1,61 @@
-# TON Wallet
+# TON Wallet (Demo Native)
 
-A React Native wallet application for The Open Network (TON) blockchain, built with Expo.
+React Native wallet for the TON blockchain, built with [Expo](https://expo.dev/) (SDK 54).
 
-## How to Run
+## Requirements
 
-### Prerequisites
-- Node.js (v16 or higher)
-- Yarn package manager
-- Expo CLI
-- For iOS: Xcode and CocoaPods
-- For Android: Android Studio and Android SDK
+- **Node.js** v18+
+- **pnpm** — package manager
+- **Expo CLI** — installed automatically via `npx`
+- **iOS**: Xcode 15+ and CocoaPods
+- **Android**: Android Studio and Android SDK (API 34+)
 
-### Installation
+> See [Expo Environment Setup](https://docs.expo.dev/get-started/set-up-your-environment/) for detailed instructions.
+
+## Installation
 
 ```bash
-# Install dependencies
-yarn install
+# From the monorepo root
+pnpm install
 
-# Start the development server
-yarn start
+# Navigate to the app directory
+cd apps/demo-wallet-native
 
-# Run on iOS
-yarn ios
+# Run on iOS (requires macOS + Xcode)
+pnpm ios
 
 # Run on Android
-yarn android
+pnpm android
 ```
 
-### Additional Commands
+### Available Commands
 
-```bash
-# Type checking
-yarn typecheck
+| Command | Description |
+|---------|-------------|
+| `pnpm start` | Start Expo dev server |
+| `pnpm ios` | Build and run on iOS |
+| `pnpm android` | Build and run on Android |
+| `pnpm typecheck` | TypeScript type checking |
+| `pnpm clean` | Clean cache, node_modules, ios/, android/ |
 
-# Format code
-yarn format
+## Features
 
-# Clean build artifacts and dependencies
-yarn clean
-```
+- **Wallets** — create, import, and manage TON wallets with secure key storage
+- **Balances** — view wallet balances and tokens
+- **Transactions** — send/receive TON, transaction history
+- **TON Connect** — connect to dApps via TON Connect protocol
 
-## Available Features
+## Polyfills
 
-The application includes the following core features:
+The app uses several polyfills for Node.js API compatibility in React Native environment.
 
-- **Wallets** - Create, import, and manage TON wallet with secure key storage
-- **Balances** - View wallet balances and token holdings
-- **Transactions** - Send and receive TON, view transaction history
-- **Send** - Transfer TON and tokens to other addresses
-
-## Project Structure
+Detailed documentation: [docs/POLYFILLS.md](./docs/POLYFILLS.md)
 
 ### Wallet Kit
 
-The project uses **@ton/walletkit**, a compiled version of the TON wallet SDK located in the `src/features/wallet-kit` directory. 
+The project uses **@ton/walletkit** — SDK for working with TON wallets.
 
-For easier imports, TypeScript path aliases have been configured in `tsconfig.json`:
+TypeScript path aliases are configured in `tsconfig.json` for convenient imports:
 
 ```json
 {
@@ -65,3 +65,10 @@ For easier imports, TypeScript path aliases have been configured in `tsconfig.js
   }
 }
 ```
+
+## Useful Links
+
+- [WalletKit README](../../README.md) — main SDK documentation
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native](https://reactnative.dev/)
+- [TON Documentation](https://docs.ton.org/)

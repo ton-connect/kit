@@ -7,7 +7,7 @@
  */
 
 import 'react-native-url-polyfill/auto';
-import '../polyfills';
+import '../polyfills/eventsource';
 import { install } from 'react-native-quick-crypto';
 import '@/core/libs/unistyles';
 
