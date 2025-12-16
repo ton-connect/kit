@@ -22,7 +22,9 @@ export default defineConfig({
         alias: {
             '@': path.resolve(__dirname, './src'),
             react: path.resolve(__dirname, '../../node_modules/react'),
-            'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
+            // Pin react-dom to this app to avoid picking a different hoisted version in CI
+            'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
+            'react-dom/client': path.resolve(__dirname, './node_modules/react-dom/client'),
         },
     },
     optimizeDeps: {
