@@ -4,6 +4,24 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/react':
+      specifier: 19.1.17
+      version: 19.1.17
+    '@types/react-dom':
+      specifier: 19.1.7
+      version: 19.1.7
+    react:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-dom:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-native:
+      specifier: 0.81.5
+      version: 0.81.5
+
 importers:
 
   .:
@@ -435,15 +453,6 @@ importers:
       '@noble/curves':
         specifier: ^1.9.7
         version: 1.9.7
-      '@ton-community/tlb-runtime':
-        specifier: 1.0.0-alpha.3
-        version: 1.0.0-alpha.3
-      '@ton/core':
-        specifier: ^0.62.0
-        version: 0.62.0(@ton/crypto@3.3.0)
-      '@ton/crypto':
-        specifier: ^3.3.0
-        version: 3.3.0
       '@tonconnect/bridge-sdk':
         specifier: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
         version: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
@@ -453,9 +462,6 @@ importers:
       '@tonconnect/sdk':
         specifier: ^3.3.1
         version: 3.3.1
-      '@truecarry/tlb-abi':
-        specifier: ^0.2.0
-        version: 0.2.0(@ton/core@0.62.0(@ton/crypto@3.3.0))
       bip39:
         specifier: ^3.1.0
         version: 3.1.0
@@ -472,6 +478,18 @@ importers:
       '@stryker-mutator/core':
         specifier: ^9.3.0
         version: 9.3.0(@types/node@24.10.1)
+      '@ton-community/tlb-runtime':
+        specifier: 1.0.0-alpha.3
+        version: 1.0.0-alpha.3
+      '@ton/core':
+        specifier: ^0.62.0
+        version: 0.62.0(@ton/crypto@3.3.0)
+      '@ton/crypto':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@truecarry/tlb-abi':
+        specifier: ^0.2.0
+        version: 0.2.0(@ton/core@0.62.0(@ton/crypto@3.3.0))
       '@types/chrome':
         specifier: ^0.1.28
         version: 0.1.28
@@ -535,9 +553,6 @@ importers:
 
   packages/walletkit-android-bridge:
     dependencies:
-      '@ton/core':
-        specifier: ^0.62.0
-        version: 0.62.0(@ton/crypto@3.3.0)
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../walletkit
@@ -551,6 +566,9 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
     devDependencies:
+      '@ton/core':
+        specifier: ^0.62.0
+        version: 0.62.0(@ton/crypto@3.3.0)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -560,12 +578,6 @@ importers:
 
   packages/walletkit-ios-bridge:
     dependencies:
-      '@ton/crypto':
-        specifier: ^3.3.0
-        version: 3.3.0
-      '@ton/crypto-primitives':
-        specifier: ^2.1.0
-        version: 2.1.0
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../walletkit
@@ -579,6 +591,12 @@ importers:
         specifier: ^14.2.0
         version: 14.2.0
     devDependencies:
+      '@ton/crypto':
+        specifier: ^3.3.0
+        version: 3.3.0
+      '@ton/crypto-primitives':
+        specifier: ^2.1.0
+        version: 2.1.0
       '@types/whatwg-url':
         specifier: ^13.0.0
         version: 13.0.0

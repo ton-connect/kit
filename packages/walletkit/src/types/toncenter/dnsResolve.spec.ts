@@ -24,21 +24,21 @@ describe('dnsResolve', () => {
     afterEach(() => {});
 
     it('toTonDnsCategory', async () => {
-        expect(toTonDnsCategory()).toEqual(0n);
-        expect(toTonDnsCategory(DnsCategory.All)).toEqual(0n);
-        expect(toTonDnsCategory(DnsCategory.DnsNextResolver)).toEqual(
+        expect(await toTonDnsCategory()).toEqual(0n);
+        expect(await toTonDnsCategory(DnsCategory.All)).toEqual(0n);
+        expect(await toTonDnsCategory(DnsCategory.DnsNextResolver)).toEqual(
             11732114750494247458678882651681748623800183221773167493832867265755123357695n,
         );
-        expect(toTonDnsCategory(DnsCategory.Wallet)).toEqual(
+        expect(await toTonDnsCategory(DnsCategory.Wallet)).toEqual(
             105311596331855300602201538317979276640056460191511695660591596829410056223515n,
         );
-        expect(toTonDnsCategory(DnsCategory.Site)).toEqual(
+        expect(await toTonDnsCategory(DnsCategory.Site)).toEqual(
             113837984718866553357015413641085683664993881322709313240352703269157551621118n,
         );
-        expect(toTonDnsCategory(DnsCategory.BagId)).toEqual(
+        expect(await toTonDnsCategory(DnsCategory.BagId)).toEqual(
             33305727148774590499946634090951755272001978043137765208040544350030765946327n,
         );
-        expect(toTonDnsCategory('')).toEqual(
+        expect(await toTonDnsCategory('')).toEqual(
             102987336249554097029535212322581322789799900648198034993379397001115665086549n,
         );
     });

@@ -320,7 +320,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             .endCell();
 
         const signingData = payload.hash();
-        const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
+        const signature = options.fakeSignature ? await FakeSignature(signingData) : await this.sign(signingData);
         return beginCell()
             .storeSlice(payload.beginParse())
             .storeBuffer(Buffer.from(HexToUint8Array(signature)))

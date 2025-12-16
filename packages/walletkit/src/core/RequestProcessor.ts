@@ -25,8 +25,8 @@ import {
     SEND_TRANSACTION_ERROR_CODES,
     SIGN_DATA_ERROR_CODES,
 } from '@tonconnect/protocol';
-import { getSecureRandomBytes } from '@ton/crypto';
 
+import { loadTonCrypto } from '../deps';
 import type {
     EventConnectRequest,
     EventTransactionRequest,
@@ -129,6 +129,7 @@ export class RequestProcessor {
                 // Create session for this connection'
                 const url = new URL(event.preview.manifest?.url || '');
                 const domain = url.host;
+                const { getSecureRandomBytes } = await loadTonCrypto();
                 const newSession = await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     event.preview.manifest?.name || '',
@@ -214,6 +215,7 @@ export class RequestProcessor {
                 // If event is EventConnectApproval, we need to send response to dApp and create session
                 const url = new URL(event.result.dAppUrl);
                 const domain = url.host;
+                const { getSecureRandomBytes } = await loadTonCrypto();
                 await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     event.result.dAppName,
@@ -618,7 +620,7 @@ export class RequestProcessor {
                 }
 
                 // Sign data with wallet
-                const signData = PrepareSignData({
+                const signData = await PrepareSignData({
                     payload: event.request,
                     domain: domainUrl,
                     address: wallet.getAddress(),

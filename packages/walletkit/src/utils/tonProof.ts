@@ -7,11 +7,11 @@
  */
 
 import type { Address } from '@ton/core';
-import { sha256_sync } from '@ton/crypto';
 import { ed25519 } from '@noble/curves/ed25519';
 
 import { HexToUint8Array, Uint8ArrayToHex } from './base64';
 import type { Base64String, ProofMessage, Hex } from '../api/models';
+import { loadTonCrypto } from '../deps';
 
 interface Domain {
     lengthBytes: number; // uint32 `json:"lengthBytes"`
@@ -37,6 +37,8 @@ const tonProofPrefix = 'ton-proof-item-v2/';
 const tonConnectPrefix = 'ton-connect';
 
 export async function CreateTonProofMessageBytes(message: ProofMessage): Promise<Uint8Array> {
+    const { sha256_sync } = await loadTonCrypto();
+
     const wc = Buffer.alloc(4);
     wc.writeUInt32BE(message.workchain);
 

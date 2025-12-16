@@ -108,3 +108,5 @@ export { CreateTonProofMessageBytes } from './utils/tonProof';
 // API Interfaces
 export type * from './api/interfaces';
 export * from './api/models';
+
+export { loadTonCrypto, loadTlbRuntime, loadTlbAbi } from './deps';

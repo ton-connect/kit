@@ -8,17 +8,24 @@
 
 import type { Address } from '@ton/core';
 import { beginCell, Cell } from '@ton/core';
-import { sha256_sync } from '@ton/crypto';
 
 import { buf as crc32Buf } from './crc32';
 import type { SignData, SignDataCell } from '../../api/models';
+import { loadTonCrypto } from '../../deps';
 
 /**
  * Creates hash for text or binary payload.
  * Message format:
  * message = 0xffff || "ton-connect/sign-data/" || workchain || address_hash || domain_len || domain || timestamp || payload
  */
-export function createTextBinaryHash(data: SignData, parsedAddr: Address, domain: string, timestamp: number): Buffer {
+export async function createTextBinaryHash(
+    data: SignData,
+    parsedAddr: Address,
+    domain: string,
+    timestamp: number,
+): Promise<Buffer> {
+    const { sha256_sync } = await loadTonCrypto();
+
     // Create workchain buffer
     const wcBuffer = Buffer.alloc(4);
     wcBuffer.writeInt32BE(parsedAddr.workChain);

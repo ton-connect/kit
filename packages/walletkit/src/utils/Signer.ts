@@ -8,12 +8,11 @@
 
 // Signer utility class for creating wallet signers
 
-import { keyPairFromSeed } from '@ton/crypto';
-
 import { MnemonicToKeyPair } from './mnemonic';
 import { createWalletSigner } from './sign';
 import { Uint8ArrayToHex } from './base64';
 import type { WalletSigner } from '../api/interfaces';
+import { loadTonCrypto } from '../deps';
 
 /**
  * Utility class for creating wallet signers from various sources
@@ -45,6 +44,7 @@ export class Signer {
      * @returns Signer function with publicKey property
      */
     static async fromPrivateKey(privateKey: string | Uint8Array): Promise<WalletSigner> {
+        const { keyPairFromSeed } = await loadTonCrypto();
         const privateKeyBytes =
             typeof privateKey === 'string'
                 ? Uint8Array.from(Buffer.from(privateKey.replace('0x', ''), 'hex'))

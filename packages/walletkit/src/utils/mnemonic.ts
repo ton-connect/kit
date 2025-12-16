@@ -6,12 +6,13 @@
  *
  */
 
-import { mnemonicToWalletKey, mnemonicNew, keyPairFromSeed, deriveEd25519Path } from '@ton/crypto';
 import { mnemonicToSeed as bip39MnemonicToSeed } from 'bip39';
 
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { loadTonCrypto } from '../deps';
 
 async function bip39ToPrivateKey(mnemonic: string[]) {
+    const { deriveEd25519Path, keyPairFromSeed } = await loadTonCrypto();
     const seed = await bip39MnemonicToSeed(mnemonic.join(' '));
     const TON_DERIVATION_PATH = [44, 607, 0];
     const seedContainer = await deriveEd25519Path(seed, TON_DERIVATION_PATH);
@@ -38,6 +39,7 @@ export async function MnemonicToKeyPair(
     }
 
     if (mnemonicType === 'ton') {
+        const { mnemonicToWalletKey } = await loadTonCrypto();
         const key = await mnemonicToWalletKey(mnemonicArray);
         return {
             publicKey: new Uint8Array(key.publicKey),
@@ -62,5 +64,6 @@ export async function MnemonicToKeyPair(
 }
 
 export async function CreateTonMnemonic(): Promise<string[]> {
+    const { mnemonicNew } = await loadTonCrypto();
     return mnemonicNew(24);
 }
