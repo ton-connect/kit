@@ -7,9 +7,9 @@
  */
 
 import { Address, Cell } from '@ton/core';
-import { parseInternal } from '@truecarry/tlb-abi';
 
 import type { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
+import { loadTlbAbi } from '../deps';
 import { toTransactionEmulatedTrace } from '../types/toncenter/emulation';
 import type { ErrorInfo } from '../errors/WalletKitError';
 import { ERROR_CODES } from '../errors/codes';
@@ -117,7 +117,9 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
 /**
  * Processes toncenter emulation result to extract money flow
  */
-export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): TransactionTraceMoneyFlow {
+export async function processToncenterMoneyFlow(
+    emulation: ToncenterEmulationResponse,
+): Promise<TransactionTraceMoneyFlow> {
     if (!emulation || !emulation.transactions) {
         return {
             outputs: '0',
@@ -158,6 +160,8 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
 
     // Process jetton transfers
     const jettonTransfers: TransactionTraceMoneyFlowItem[] = [];
+
+    const { parseInternal } = await loadTlbAbi();
 
     for (const t of Object.values(emulation.transactions)) {
         if (!t.in_msg?.source) {
@@ -287,7 +291,7 @@ export async function createTransactionPreview(
         };
     }
 
-    const moneyFlow = processToncenterMoneyFlow(emulationResult);
+    const moneyFlow = await processToncenterMoneyFlow(emulationResult);
 
     return {
         result: Result.success,

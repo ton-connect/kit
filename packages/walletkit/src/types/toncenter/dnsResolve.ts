@@ -7,12 +7,12 @@
  */
 
 import type { TupleItem } from '@ton/core';
-import { sha256_sync } from '@ton/crypto';
 import { toHexString } from '@tonconnect/protocol';
 
 import type { ApiClient } from './ApiClient';
 import { toStringTail } from '../primitive';
 import { ParseStack, SerializeStack } from '../../utils/tvmStack';
+import { loadTonCrypto } from '../../deps';
 
 export const ROOT_DNS_RESOLVER_MAINNET = 'Ef_lZ1T4NCb2mwkme9h2rJfESCE0W34ma9lWp7-_uY3zXDvq'; // TODO getting from config#4
 export const ROOT_DNS_RESOLVER_TESTNET = 'kf_v5x0Thgr6pq6ur2NvkWhIf4DxAxsL-Nk5rknT6n99oEkd'; // TODO getting from config#4
@@ -37,11 +37,12 @@ export function toDnsInternal(domain: string): string {
     return domain.split('.').filter(Boolean).reverse().join('\0') + '\0';
 }
 
-export function toTonDnsCategory(category?: string | number): bigint {
+export async function toTonDnsCategory(category?: string | number): Promise<bigint> {
     category = category ?? DnsCategory.All;
     if (typeof category === 'number') {
         return BigInt(category);
     }
+    const { sha256_sync } = await loadTonCrypto();
     return BigInt('0x' + sha256_sync(category).toString('hex'));
 }
 
@@ -114,7 +115,7 @@ export async function dnsLookup(
     const internal = toDnsInternal(domain);
     const param: TupleItem[] = [
         { type: 'slice', cell: toStringTail(internal) },
-        { type: 'int', value: toTonDnsCategory(category) },
+        { type: 'int', value: await toTonDnsCategory(category) },
     ];
     const { stack, exitCode } = await client.runGetMethod(resolver, 'dnsresolve', SerializeStack(param));
     if (stack?.length !== 2) {

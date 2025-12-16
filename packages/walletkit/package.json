@@ -58,20 +58,37 @@
   ],
   "dependencies": {
     "@noble/curves": "^1.9.7",
-    "@ton-community/tlb-runtime": "1.0.0-alpha.3",
-    "@ton/core": "^0.62.0",
-    "@ton/crypto": "^3.3.0",
     "@tonconnect/bridge-sdk": "https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz",
     "@tonconnect/protocol": "^2.3.0",
     "@tonconnect/sdk": "^3.3.1",
-    "@truecarry/tlb-abi": "^0.2.0",
     "bip39": "^3.1.0",
     "lru-cache": "^11.2.2",
     "uuid": "^13.0.0"
   },
+  "peerDependencies": {
+    "@ton-community/tlb-runtime": "1.0.0-alpha.3",
+    "@ton/core": "^0.62.0",
+    "@ton/crypto": "^3.3.0",
+    "@truecarry/tlb-abi": "^0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@ton-community/tlb-runtime": {
+      "optional": true
+    },
+    "@truecarry/tlb-abi": {
+      "optional": true
+    },
+    "@ton/crypto": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.3.0",
+    "@ton-community/tlb-runtime": "1.0.0-alpha.3",
+    "@ton/core": "^0.62.0",
+    "@ton/crypto": "^3.3.0",
+    "@truecarry/tlb-abi": "^0.2.0",
     "@types/chrome": "^0.1.28",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",

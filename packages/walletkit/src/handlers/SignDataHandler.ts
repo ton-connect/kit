@@ -9,9 +9,9 @@
 // Sign data request handler
 
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/protocol';
-import { parseTLB } from '@ton-community/tlb-runtime';
 
 import type { EventSignDataRequest, SignDataPreview, TonWalletKitOptions } from '../types';
+import { loadTlbRuntime } from '../deps';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { globalLogger } from '../core/Logger';
@@ -74,7 +74,7 @@ export class SignDataHandler
                 eventId: event.id,
             });
         }
-        const preview = this.createDataPreview(payload.data, event);
+        const preview = await this.createDataPreview(payload.data, event);
         if (!preview) {
             log.error('No preview found for data', { data: payload });
             throw new WalletKitError(
@@ -178,7 +178,7 @@ export class SignDataHandler
     /**
      * Create human-readable preview of data to sign
      */
-    private createDataPreview(data: SignData, _event: RawBridgeEvent): SignDataPreview | undefined {
+    private async createDataPreview(data: SignData, _event: RawBridgeEvent): Promise<SignDataPreview | undefined> {
         if (data.type === 'text') {
             return {
                 kind: 'text',
@@ -201,6 +201,7 @@ export class SignDataHandler
                 };
             }
             try {
+                const { parseTLB } = await loadTlbRuntime();
                 const parsed = parseTLB(data.value.schema).deserialize(data.value.content) as unknown as Record<
                     string,
                     unknown
