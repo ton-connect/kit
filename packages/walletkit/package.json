@@ -27,6 +27,9 @@
         "default": "./dist/cjs/bridge/JSBridgeInjector.js"
       }
     }
+    "tlb-abi": {
+      ...
+    }
   },
   "scripts": {
     "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
