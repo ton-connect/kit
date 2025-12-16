@@ -51,21 +51,6 @@ The app uses several polyfills for Node.js API compatibility in React Native env
 
 Detailed documentation: [docs/POLYFILLS.md](./docs/POLYFILLS.md)
 
-## Project Structure
-
-```
-apps/demo-wallet-native/
-├── src/
-│   ├── app/           # Expo Router pages
-│   ├── core/          # Utilities, hooks, configuration
-│   ├── features/      # Features (wallet, transactions, etc.)
-│   └── globals.ts     # Polyfills initialization
-├── polyfills/         # Custom polyfills
-├── assets/            # Icons and images
-├── metro.config.js    # Metro bundler configuration
-└── app.json           # Expo configuration
-```
-
 ### Wallet Kit
 
 The project uses **@ton/walletkit** — SDK for working with TON wallets.
