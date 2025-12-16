@@ -6,9 +6,9 @@
  *
  */
 
-import { UserFriendlyAddress } from '../core/Primitives';
-import { TokenAmount } from '../core/TokenAmount';
-import { TokenInfo } from '../core/TokenInfo';
+import type { UserFriendlyAddress } from '../core/Primitives';
+import type { TokenAmount } from '../core/TokenAmount';
+import type { TokenInfo } from '../core/TokenInfo';
 
 /**
  * Jetton fungible token on the TON blockchain (TEP-74 standard).
@@ -22,33 +22,23 @@ export interface Jetton {
     /**
      * The Jetton wallet address
      */
-    walletAddress?: UserFriendlyAddress;
-
-    /**
-     * The blockchain address of the Jetton master contract
-     */
-    masterAddress?: UserFriendlyAddress;
+    walletAddress: UserFriendlyAddress;
 
     /**
      * The current jetton balance
      */
-    balance?: TokenAmount;
+    balance: TokenAmount;
 
     /**
      * Information about the token
      */
-    info?: TokenInfo;
+    info: TokenInfo;
 
     /**
      * The number of decimal places used by the token
      * @format int
      */
     decimalsNumber?: number;
-
-    /**
-     * Additional metadata related to the jetton
-     */
-    metadata?: { [key: string]: string };
 
     /**
      * Additional arbitrary data related to the jetton

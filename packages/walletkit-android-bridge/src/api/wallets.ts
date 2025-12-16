@@ -12,7 +12,7 @@
  * Simplified bridge for wallet creation, listing, removal, and state retrieval.
  */
 
-import { type Hex, CHAIN } from '@ton/walletkit';
+import type { Hex } from '@ton/walletkit';
 
 import type {
     RemoveWalletArgs,
@@ -162,10 +162,10 @@ export async function createAdapter(args: CreateAdapterArgs) {
         const signer = await getSigner(args);
 
         // args.network should be "-239" (mainnet) or "-3" (testnet) - matching CHAIN enum values
-        const networkChain = args.network as typeof CHAIN.MAINNET | typeof CHAIN.TESTNET;
-        if (!networkChain) {
-            throw new Error('Network is required for creating wallet adapter');
-        }
+        const networkChain = args.network;
+        //         if (!networkChain) {
+        //             throw new Error('Network is required for creating wallet adapter');
+        //         }
 
         let adapter: AdapterInstance;
         if (args.walletVersion === 'v5r1') {

@@ -11,7 +11,8 @@ import type { ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { Big } from '../../libs/big-number';
-import { AppInput, type AppInputProps } from '../app-input';
+import { AppInput } from '../app-input';
+import type { AppInputProps } from '../app-input';
 import { AppText } from '../app-text';
 
 import { Row } from '@/core/components/grid';

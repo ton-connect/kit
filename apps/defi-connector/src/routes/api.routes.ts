@@ -6,11 +6,12 @@
  *
  */
 
-import { Router, Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 
 import { StonFiService } from '../services/stonfi.service.js';
-import { Action, ApiMeta, SwapInput } from '../types/api.js';
+import type { Action, ApiMeta, SwapInput } from '../types/api.js';
 
 const router: Router = Router();
 const stonFiService = new StonFiService();

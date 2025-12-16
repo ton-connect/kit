@@ -6,13 +6,15 @@
  *
  */
 
-import { AddressBook, NftItemTransferAction, SimplePreview, StatusAction, toAccount } from '../AccountEvent';
-import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly, Hex } from '../../primitive';
+import type { AddressBook, NftItemTransferAction, SimplePreview, StatusAction } from '../AccountEvent';
+import { toAccount } from '../AccountEvent';
+import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
+import { asAddressFriendly } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
 import { OpCode } from './opcodes';
+import type { Hex } from '../../../api/models';
 
 type Json = Record<string, unknown>;
 

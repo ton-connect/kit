@@ -7,14 +7,11 @@
  */
 
 // Types for TonConnect JS Bridge implementation
-import { type DeviceInfo, type Feature } from '@tonconnect/protocol';
-import { type WalletInfo } from '@tonconnect/sdk';
+import type { DeviceInfo, Feature } from '@tonconnect/protocol';
+import type { WalletInfo } from '@tonconnect/sdk';
 
-import {
-    TONCONNECT_BRIDGE_EVENT,
-    TONCONNECT_BRIDGE_RESPONSE,
-    type TONCONNECT_BRIDGE_REQUEST,
-} from '../bridge/utils/messageTypes';
+import type { TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_RESPONSE } from '../bridge/utils/messageTypes';
+import type { TONCONNECT_BRIDGE_REQUEST } from '../bridge/utils/messageTypes';
 
 export { type Feature, type DeviceInfo, type WalletInfo };
 

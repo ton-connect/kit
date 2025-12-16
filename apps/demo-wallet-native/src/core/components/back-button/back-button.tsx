@@ -9,7 +9,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { FC } from 'react';
-import { Pressable, View, type ViewProps } from 'react-native';
+import { Pressable, View } from 'react-native';
+import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 interface Props extends ViewProps {

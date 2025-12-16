@@ -6,9 +6,11 @@
  *
  */
 
-import { Image, type ImageProps } from 'expo-image';
+import { Image } from 'expo-image';
+import type { ImageProps } from 'expo-image';
 import type { FC } from 'react';
-import { View, type ViewProps } from 'react-native';
+import { View } from 'react-native';
+import type { ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 export interface WithSize {

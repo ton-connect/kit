@@ -14,7 +14,17 @@ export type UserFriendlyAddress = string;
 /**
  * Hexadecimal string representation (e.g., "0x0a1b2c3d...")
  */
-export type Hex = string;
+
+declare const hashBrand: unique symbol;
+
+export type Hex = `0x${string}` & { readonly [hashBrand]: never };
+
+export function asHex(data: string): Hex {
+    if (!/^0x[0-9a-fA-F]+$/.test(data) || data.length % 2 !== 0) {
+        throw new Error('Not a valid hex');
+    }
+    return data as Hex;
+}
 
 /**
  * Base64-encoded string representation

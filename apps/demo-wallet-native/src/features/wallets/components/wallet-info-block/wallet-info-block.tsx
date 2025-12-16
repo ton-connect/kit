@@ -8,7 +8,8 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
-import { View, type ViewProps } from 'react-native';
+import { View } from 'react-native';
+import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { formatAddress } from '@ton/demo-core';
 

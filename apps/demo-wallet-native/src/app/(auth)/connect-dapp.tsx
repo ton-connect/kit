@@ -8,7 +8,8 @@
 
 import { useTonConnect } from '@ton/demo-core';
 import { router } from 'expo-router';
-import { type FC, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import type { FC } from 'react';
 import { View, Alert } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

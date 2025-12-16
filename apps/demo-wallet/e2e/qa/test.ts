@@ -6,7 +6,8 @@
  *
  */
 
-import { chromium, type Fixtures, type TestType } from '@playwright/test';
+import { chromium } from '@playwright/test';
+import type { Fixtures, TestType } from '@playwright/test';
 import { mergeTests, test as base } from '@playwright/test';
 
 export async function launchPersistentContext(extensionPath: string, slowMo = 0) {

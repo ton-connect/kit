@@ -10,9 +10,10 @@ import { CHAIN } from '@tonconnect/protocol';
 
 import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config';
 import { TonWalletKit } from './TonWalletKit';
-import type { TonTransferParams, TonWalletKitOptions } from '../types';
+import type { TonWalletKitOptions } from '../types';
 import { createDummyWallet, createMockApiClient } from '../contracts/w5/WalletV5R1.fixture';
-import { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
+import type { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
+import type { TONTransferRequest } from '../api/models';
 
 const mockApiClient = createMockApiClient();
 
@@ -112,9 +113,9 @@ describe('TonWalletKit', () => {
             receivedWalletAddress = event.walletAddress;
         });
 
-        const tonTransferParams: TonTransferParams = {
-            toAddress: wallet.getAddress(),
-            amount: '1000000000',
+        const tonTransferParams: TONTransferRequest = {
+            recipientAddress: wallet.getAddress(),
+            transferAmount: '1000000000',
         };
         const result = await wallet.createTransferTonTransaction(tonTransferParams);
 

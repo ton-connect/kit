@@ -6,8 +6,8 @@
  *
  */
 
-import { TokenImage } from '../core/TokenImage';
-import { UserFriendlyAddress, Hex } from '../core/Primitives';
+import type { TokenImage } from '../core/TokenImage';
+import type { UserFriendlyAddress, Hex } from '../core/Primitives';
 
 /**
  * NFT collection on the TON blockchain (TEP-62 standard).
@@ -52,11 +52,6 @@ export interface NFTCollection {
      * The blockchain address of the collection owner
      */
     ownerAddress?: UserFriendlyAddress;
-
-    /**
-     * The content metadata of the collection
-     */
-    metadata?: { [key: string]: string };
 
     /**
      * Additional arbitrary data related to the NFT collection

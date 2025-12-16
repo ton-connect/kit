@@ -6,7 +6,7 @@
  *
  */
 
-import type { IWallet, IWalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -34,8 +34,8 @@ export interface WalletKitNativeBridgeType {
     signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
-export type WalletKitWallet = IWallet;
-export type WalletKitAdapter = IWalletAdapter;
+export type WalletKitWallet = Wallet;
+export type WalletKitAdapter = WalletAdapter;
 export type WalletKitSigner = WalletSigner;
 
 export interface WalletKitInstance {

@@ -6,7 +6,7 @@
  *
  */
 
-import { Base64String } from '../core/Primitives';
+import type { Base64String } from '../core/Primitives';
 
 /**
  * Response after user approves a transaction request.

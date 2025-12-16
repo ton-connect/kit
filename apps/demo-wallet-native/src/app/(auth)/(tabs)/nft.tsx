@@ -6,7 +6,8 @@
  *
  */
 
-import { type FC, useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import { RefreshControl } from 'react-native';
 import { useNfts } from '@ton/demo-core';
 

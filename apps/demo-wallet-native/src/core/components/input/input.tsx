@@ -8,10 +8,12 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import type { FC, RefObject } from 'react';
-import { type TextInput, View, type ViewProps } from 'react-native';
+import { View } from 'react-native';
+import type { TextInput, ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { AppInput, type AppInputProps } from '../app-input';
+import { AppInput } from '../app-input';
+import type { AppInputProps } from '../app-input';
 import { Row } from '../grid';
 
 import type { PropsOf } from '@/core/utils/component-props';

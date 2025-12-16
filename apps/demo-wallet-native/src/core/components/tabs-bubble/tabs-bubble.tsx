@@ -11,7 +11,8 @@ import type { ScrollViewProps, ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ActiveTouchAction } from '../active-touch-action';
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 import { RowScroll } from '../grid';
 
 export interface BubbleTabItemProps extends ViewProps {

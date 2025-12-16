@@ -7,7 +7,8 @@
  */
 
 import type { EventSignDataRequest } from '@ton/walletkit';
-import { type FC, useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import type { FC } from 'react';
 import { View, ScrollView } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { useWallet } from '@ton/demo-core';

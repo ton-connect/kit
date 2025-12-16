@@ -6,44 +6,43 @@
  *
  */
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import { createWalletId, parseWalletId, getAddressFromWalletId, getNetworkFromWalletId, isWalletId } from './walletId';
+import { Network } from '../api/models';
 
 describe('walletId', () => {
     const testAddress = 'EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2';
 
     describe('createWalletId', () => {
         it('should create wallet ID for mainnet', () => {
-            const walletId = createWalletId(CHAIN.MAINNET, testAddress);
+            const walletId = createWalletId(Network.mainnet(), testAddress);
 
-            expect(walletId).toBe(`${CHAIN.MAINNET}:${testAddress}`);
+            expect(walletId).toBe(`${Network.mainnet().chainId}:${testAddress}`);
         });
 
         it('should create wallet ID for testnet', () => {
-            const walletId = createWalletId(CHAIN.TESTNET, testAddress);
+            const walletId = createWalletId(Network.testnet(), testAddress);
 
-            expect(walletId).toBe(`${CHAIN.TESTNET}:${testAddress}`);
+            expect(walletId).toBe(`${Network.testnet().chainId}:${testAddress}`);
         });
     });
 
     describe('parseWalletId', () => {
         it('should parse valid mainnet wallet ID', () => {
-            const walletId = `${CHAIN.MAINNET}:${testAddress}`;
+            const walletId = `${Network.mainnet().chainId}:${testAddress}`;
             const result = parseWalletId(walletId);
 
             expect(result).toEqual({
-                network: CHAIN.MAINNET,
+                network: Network.mainnet(),
                 address: testAddress,
             });
         });
 
         it('should parse valid testnet wallet ID', () => {
-            const walletId = `${CHAIN.TESTNET}:${testAddress}`;
+            const walletId = `${Network.testnet().chainId}:${testAddress}`;
             const result = parseWalletId(walletId);
 
             expect(result).toEqual({
-                network: CHAIN.TESTNET,
+                network: Network.testnet(),
                 address: testAddress,
             });
         });
@@ -61,18 +60,18 @@ describe('walletId', () => {
         });
 
         it('should return undefined for empty address', () => {
-            const result = parseWalletId(`${CHAIN.MAINNET}:`);
+            const result = parseWalletId(`${Network.mainnet().chainId}:`);
 
             expect(result).toBeUndefined();
         });
 
         it('should handle address containing colons', () => {
             const addressWithColon = 'EQDtFpEwcFAEcRe5mLVh2N6C0x:special';
-            const walletId = `${CHAIN.MAINNET}:${addressWithColon}`;
+            const walletId = `${Network.mainnet().chainId}:${addressWithColon}`;
             const result = parseWalletId(walletId);
 
             expect(result).toEqual({
-                network: CHAIN.MAINNET,
+                network: Network.mainnet(),
                 address: addressWithColon,
             });
         });
@@ -80,14 +79,14 @@ describe('walletId', () => {
 
     describe('getAddressFromWalletId', () => {
         it('should extract address from valid mainnet wallet ID', () => {
-            const walletId = `${CHAIN.MAINNET}:${testAddress}`;
+            const walletId = `${Network.mainnet().chainId}:${testAddress}`;
             const address = getAddressFromWalletId(walletId);
 
             expect(address).toBe(testAddress);
         });
 
         it('should extract address from valid testnet wallet ID', () => {
-            const walletId = `${CHAIN.TESTNET}:${testAddress}`;
+            const walletId = `${Network.testnet().chainId}:${testAddress}`;
             const address = getAddressFromWalletId(walletId);
 
             expect(address).toBe(testAddress);
@@ -102,17 +101,17 @@ describe('walletId', () => {
 
     describe('getNetworkFromWalletId', () => {
         it('should extract mainnet from wallet ID', () => {
-            const walletId = `${CHAIN.MAINNET}:${testAddress}`;
+            const walletId = `${Network.mainnet().chainId}:${testAddress}`;
             const network = getNetworkFromWalletId(walletId);
 
-            expect(network).toBe(CHAIN.MAINNET);
+            expect(network).toEqual(Network.mainnet());
         });
 
         it('should extract testnet from wallet ID', () => {
-            const walletId = `${CHAIN.TESTNET}:${testAddress}`;
+            const walletId = `${Network.testnet().chainId}:${testAddress}`;
             const network = getNetworkFromWalletId(walletId);
 
-            expect(network).toBe(CHAIN.TESTNET);
+            expect(network).toEqual(Network.testnet());
         });
 
         it('should return undefined for invalid wallet ID', () => {
@@ -124,13 +123,13 @@ describe('walletId', () => {
 
     describe('isWalletId', () => {
         it('should return true for valid mainnet wallet ID', () => {
-            const walletId = `${CHAIN.MAINNET}:${testAddress}`;
+            const walletId = `${Network.mainnet().chainId}:${testAddress}`;
 
             expect(isWalletId(walletId)).toBe(true);
         });
 
         it('should return true for valid testnet wallet ID', () => {
-            const walletId = `${CHAIN.TESTNET}:${testAddress}`;
+            const walletId = `${Network.testnet().chainId}:${testAddress}`;
 
             expect(isWalletId(walletId)).toBe(true);
         });
@@ -150,7 +149,7 @@ describe('walletId', () => {
 
     describe('integration', () => {
         it('should round-trip wallet ID creation and parsing', () => {
-            const network = CHAIN.MAINNET;
+            const network = Network.mainnet();
             const address = testAddress;
 
             const walletId = createWalletId(network, address);
@@ -160,13 +159,13 @@ describe('walletId', () => {
         });
 
         it('should handle both networks correctly', () => {
-            const networks = [CHAIN.MAINNET, CHAIN.TESTNET];
+            const networks = [Network.mainnet(), Network.testnet()];
 
             for (const network of networks) {
                 const walletId = createWalletId(network, testAddress);
 
                 expect(isWalletId(walletId)).toBe(true);
-                expect(getNetworkFromWalletId(walletId)).toBe(network);
+                expect(getNetworkFromWalletId(walletId)).toEqual(network);
                 expect(getAddressFromWalletId(walletId)).toBe(testAddress);
             }
         });

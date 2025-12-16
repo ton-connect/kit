@@ -8,7 +8,7 @@
 
 // Disconnect event handler
 
-import { SessionManager } from '../core/SessionManager';
+import type { SessionManager } from '../core/SessionManager';
 import type { EventDisconnect } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';

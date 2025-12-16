@@ -9,7 +9,8 @@
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { openURL } from 'expo-linking';
 import { router } from 'expo-router';
-import { type FC, useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import { RefreshControl, View, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useJettons, useWallet } from '@ton/demo-core';

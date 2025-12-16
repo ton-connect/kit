@@ -6,8 +6,8 @@
  *
  */
 
-import { ErrorInfo } from './WalletKitError';
-import { ErrorCode } from './codes';
+import type { ErrorInfo } from './WalletKitError';
+import type { ErrorCode } from './codes';
 import { ERROR_MESSAGES } from './messages';
 
 export function createErrorInfo(code: ErrorCode, message?: string, data?: Record<string, unknown>): ErrorInfo {

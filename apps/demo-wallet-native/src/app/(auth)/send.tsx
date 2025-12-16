@@ -7,12 +7,13 @@
  */
 
 import { Address } from '@ton/ton';
-import type { AddressJetton, TonTransferParams } from '@ton/walletkit';
+import type { Jetton, TONTransferRequest } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { type FC, useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { useWallet, useJettons, useWalletKit } from '@ton/demo-core';
+import { useWallet, useWalletKit } from '@ton/demo-core';
 
 import { AmountInput } from '@/core/components/amount-input';
 import { AppButton } from '@/core/components/app-button';
@@ -22,11 +23,12 @@ import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scr
 import { ScreenHeader } from '@/core/components/screen-header';
 import { getErrorMessage } from '@/core/utils/errors/get-error-message';
 import { TokenListSheet, TokenSelector } from '@/features/send';
-import { fromMinorUnit } from '@/core/utils/amount/minor-unit';
+import { fromMinorUnit, toMinorUnit } from '@/core/utils/amount/minor-unit';
+import { useFormattedJetton } from '@/core/hooks/use-formatted-jetton';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
-    data?: AddressJetton;
+    data?: Jetton;
 }
 
 const SendScreen: FC = () => {
@@ -36,9 +38,10 @@ const SendScreen: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedToken, setSelectedToken] = useState<SelectedToken>({ type: 'TON' });
 
+    const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
+
     const walletKit = useWalletKit();
     const { balance, currentWallet } = useWallet();
-    const { formatJettonAmount } = useJettons();
 
     const formatTonBalance = (bal: string): string => {
         return fromMinorUnit(bal || '0', 9).toString();
@@ -47,8 +50,8 @@ const SendScreen: FC = () => {
     const getCurrentTokenBalance = (): string => {
         if (selectedToken.type === 'TON') {
             return formatTonBalance(balance || '0');
-        } else if (selectedToken.data) {
-            return formatJettonAmount(selectedToken.data.balance, selectedToken.data.decimals);
+        } else if (selectedJettonInfo?.balance) {
+            return selectedJettonInfo.balance;
         }
         return '0';
     };
@@ -56,8 +59,8 @@ const SendScreen: FC = () => {
     const getTokenSymbol = (): string => {
         if (selectedToken.type === 'TON') {
             return 'TON';
-        } else if (selectedToken.data) {
-            return selectedToken.data.symbol;
+        } else if (selectedJettonInfo?.symbol) {
+            return selectedJettonInfo.symbol;
         }
         return '';
     };
@@ -94,11 +97,11 @@ const SendScreen: FC = () => {
 
         try {
             if (selectedToken.type === 'TON') {
-                const nanoTonAmount = Math.floor(inputAmount * 1_000_000_000).toString();
+                const nanoTonAmount = toMinorUnit(inputAmount, 9).toString();
 
-                const tonTransferParams: TonTransferParams = {
-                    toAddress: recipient,
-                    amount: nanoTonAmount,
+                const tonTransferParams: TONTransferRequest = {
+                    recipientAddress: recipient,
+                    transferAmount: nanoTonAmount,
                 };
 
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
@@ -107,12 +110,17 @@ const SendScreen: FC = () => {
                     await walletKit.handleNewTransaction(currentWallet, result);
                 }
             } else if (selectedToken.data) {
-                const jettonAmount = Math.floor(inputAmount * Math.pow(10, selectedToken.data.decimals)).toString();
+                if (!selectedJettonInfo?.decimals) {
+                    Alert.alert('Error', 'Jetton decimals not found');
+                    return;
+                }
+
+                const jettonAmount = toMinorUnit(inputAmount, selectedJettonInfo.decimals).toString();
 
                 const jettonTransaction = await currentWallet.createTransferJettonTransaction({
-                    toAddress: recipient,
+                    recipientAddress: recipient,
                     jettonAddress: selectedToken.data.address,
-                    amount: jettonAmount,
+                    transferAmount: jettonAmount,
                 });
 
                 if (walletKit) {
@@ -138,7 +146,7 @@ const SendScreen: FC = () => {
         setAmount('');
     };
 
-    const handleSelectJetton = (jetton: AddressJetton) => {
+    const handleSelectJetton = (jetton: Jetton) => {
         setSelectedToken({ type: 'JETTON', data: jetton });
         setAmount('');
     };

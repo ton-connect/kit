@@ -13,7 +13,8 @@ if (globalThis && !globalThis.Buffer) {
     globalThis.Buffer = Buffer;
 }
 
-import { ExtensionTransport, injectBridgeCode, type MessageSender, type MessageListener } from '@ton/walletkit/bridge';
+import { ExtensionTransport, injectBridgeCode } from '@ton/walletkit/bridge';
+import type { MessageSender, MessageListener } from '@ton/walletkit/bridge';
 import { onMessage, sendMessage, setNamespace } from '@truecarry/webext-bridge/window';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';

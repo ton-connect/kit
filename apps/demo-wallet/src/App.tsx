@@ -6,7 +6,8 @@
  *
  */
 
-import { WalletProvider, type WalletKitConfig } from '@ton/demo-core';
+import { WalletProvider } from '@ton/demo-core';
+import type { WalletKitConfig } from '@ton/demo-core';
 
 import { AppRouter } from './components';
 
@@ -19,12 +20,13 @@ import {
     ENV_TON_API_KEY_TESTNET,
 } from '@/lib/env';
 import { isExtension } from '@/utils/isExtension';
+import type { SendMessageToExtensionContent, CreateExtensionStorageAdapter } from '@/lib/extensionPopup';
 
 import './App.css';
 import './storePatch';
 
-let jsBridgeTransport: typeof import('@/lib/extensionPopup').SendMessageToExtensionContent | undefined;
-let storage: ReturnType<typeof import('@/lib/extensionPopup').CreateExtensionStorageAdapter> | undefined;
+let jsBridgeTransport: typeof SendMessageToExtensionContent | undefined;
+let storage: ReturnType<typeof CreateExtensionStorageAdapter> | undefined;
 
 if (isExtension()) {
     const { SendMessageToExtensionContent, CreateExtensionStorageAdapter } = await import('@/lib/extensionPopup');

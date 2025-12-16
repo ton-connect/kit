@@ -6,12 +6,14 @@
  *
  */
 
-import { type FC, useMemo } from 'react';
+import { useMemo } from 'react';
+import type { FC } from 'react';
 import type { TextStyle } from 'react-native';
 
 import { useFormattedAmount } from '../../hooks/use-formatted-amount';
 import { Big } from '../../libs/big-number';
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 
 export interface TextAmountProps extends AppTextProps {
     amount: string;

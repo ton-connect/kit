@@ -6,15 +6,15 @@
  *
  */
 
-import { Address, ExtraCurrency, AccountStatus } from '@ton/core';
+import type { ExtraCurrency, AccountStatus } from '@ton/core';
+import { Address } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 
-import { Base64ToBigInt, Uint8ArrayToBase64, Base64Normalize, Base64ToHex } from '../utils/base64';
-import { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
-import { ToncenterEmulationResponse } from '../types';
-import { ConnectTransactionParamMessage } from '../types/internal';
-import { RawStackItem } from '../utils/tvmStack';
-import {
+import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../utils/base64';
+import type { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
+import type { JettonInfo, ToncenterEmulationResponse } from '../types';
+import type { RawStackItem } from '../utils/tvmStack';
+import type {
     ApiClient,
     GetJettonsByOwnerRequest,
     GetJettonsByAddressRequest,
@@ -22,27 +22,24 @@ import {
     GetPendingTransactionsRequest,
     GetTraceRequest,
     GetTransactionByHashRequest,
-    NftItemsByOwnerRequest,
-    NftItemsRequest,
     TransactionsByAddressRequest,
     GetEventsResponse,
     GetEventsRequest,
 } from '../types/toncenter/ApiClient';
-import { NftItemsResponseV3, toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
-import { NftItemsResponse } from '../types/toncenter/NftItemsResponse';
-import { Pagination } from '../types/toncenter/Pagination';
-import {
+import type { NftItemsResponseV3 } from '../types/toncenter/v3/NftItemsResponseV3';
+import { toNftItemsResponse } from '../types/toncenter/v3/NftItemsResponseV3';
+import type {
     ToncenterResponseJettonMasters,
     ToncenterResponseJettonWallets,
     ToncenterTracesResponse,
     ToncenterTransactionsResponse,
     EmulationTokenInfoMasters,
 } from '../types/toncenter/emulation';
-import { ResponseUserJettons } from '../types/export/responses/jettons';
-import { AddressJetton, JettonInfo } from '../types/jettons';
+import { toTransactionEmulatedTrace, toTransactionsResponse } from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
-import { DNSRecordsResponseV3, toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
+import type { DNSRecordsResponseV3 } from '../types/toncenter/v3/DNSRecordsResponseV3';
+import { toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
 import {
     DnsCategory,
     dnsResolve,
@@ -50,6 +47,20 @@ import {
     ROOT_DNS_RESOLVER_TESTNET,
 } from '../types/toncenter/dnsResolve';
 import { toAddressBook, toEvent } from '../types/toncenter/AccountEvent';
+import type {
+    Base64String,
+    Jetton,
+    JettonsResponse,
+    Network,
+    NFTsRequest,
+    NFTsResponse,
+    TokenAmount,
+    TransactionEmulatedTrace,
+    TransactionRequestMessage,
+    TransactionsResponse,
+    UserFriendlyAddress,
+    UserNFTsRequest,
+} from '../api/models';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -71,7 +82,7 @@ export interface ApiClientConfig {
     apiKey?: string;
     timeout?: number;
     fetchApi?: typeof fetch;
-    network?: CHAIN;
+    network?: Network;
     disableNetworkSend?: boolean;
 }
 
@@ -81,15 +92,16 @@ export class ApiClientToncenter implements ApiClient {
     private readonly apiKey?: string;
     private readonly timeout: number;
     private readonly fetchApi: typeof fetch;
-    private readonly network?: CHAIN;
+    private readonly network?: Network;
     private readonly disableNetworkSend?: boolean;
 
     constructor(config: ApiClientConfig = {}) {
         this.network = config.network;
 
-        const dnsResolver = this.network === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
+        const dnsResolver =
+            this.network?.chainId === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
         const defaultEndpoint =
-            this.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+            this.network?.chainId === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
 
         this.dnsResolver = config.dnsResolver ?? dnsResolver;
         this.endpoint = config.endpoint ?? defaultEndpoint;
@@ -99,41 +111,30 @@ export class ApiClientToncenter implements ApiClient {
         this.disableNetworkSend = config.disableNetworkSend ?? false;
     }
 
-    async nftItemsByAddress(request: NftItemsRequest): Promise<NftItemsResponse> {
+    async nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse> {
         const props: Record<string, unknown> = {
-            address: (request.address ?? []).map(prepareAddress),
+            address: request.address,
         };
         const response = await this.getJson<NftItemsResponseV3>('/api/v3/nft/items', props);
-        return toNftItemsResponse(response, {
-            limit: 0,
-            offset: 0,
-        });
+        return toNftItemsResponse(response);
     }
 
-    async nftItemsByOwner(request: NftItemsByOwnerRequest): Promise<NftItemsResponse> {
-        const pagination: Pagination = {
-            limit: request.limit ?? 10,
-            offset: request.offset ?? 0,
-        };
+    async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
         const props: Record<string, unknown> = {
-            owner_address: (request.ownerAddress ?? []).map(prepareAddress),
-            sort_by_last_transaction_lt: request.sortByLastTransactionLt ?? false,
-            limit: pagination.limit,
-            offset: pagination.offset,
+            owner_address: request.ownerAddress,
+            limit: request.pagination?.limit ?? 10,
+            offset: request.pagination?.offset ?? 0,
         };
         const response = await this.getJson<NftItemsResponseV3>('/api/v3/nft/items', props);
-        const formattedResponse = toNftItemsResponse(response, pagination);
+        const formattedResponse = toNftItemsResponse(response);
         return formattedResponse;
     }
 
     async fetchEmulation(
-        address: Address | string,
-        messages: ConnectTransactionParamMessage[],
+        address: UserFriendlyAddress,
+        messages: TransactionRequestMessage[],
         seqno?: number,
-    ): Promise<ToncenterEmulationResponse> {
-        if (address instanceof Address) {
-            address = address.toString();
-        }
+    ): Promise<TransactionEmulatedTrace> {
         const props: Record<string, unknown> = {
             from: address,
             valid_until: Math.floor(Date.now() / 1000) + 60,
@@ -144,29 +145,24 @@ export class ApiClientToncenter implements ApiClient {
             messages,
         };
         if (typeof seqno === 'number') props.mc_block_seqno = seqno;
-        return this.postJson<ToncenterEmulationResponse>('/api/emulate/v1/emulateTonConnect', props);
+        const response = await this.postJson<ToncenterEmulationResponse>('/api/v3/emulation', props);
+        return toTransactionEmulatedTrace(response);
     }
 
-    async sendBoc(boc: string | Uint8Array): Promise<string> {
+    async sendBoc(boc: Base64String): Promise<string> {
         if (this.disableNetworkSend) {
             return '';
-        }
-        if (typeof boc !== 'string') {
-            boc = Uint8ArrayToBase64(boc);
         }
         const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
         return Base64ToBigInt(response.message_hash_norm).toString(16);
     }
 
     async runGetMethod(
-        address: Address | string,
+        address: UserFriendlyAddress,
         method: string,
         stack: RawStackItem[] = [],
         seqno?: number,
     ): Promise<GetResult> {
-        if (address instanceof Address) {
-            address = address.toString();
-        }
         const props: Record<string, unknown> = {
             address,
             method,
@@ -181,10 +177,7 @@ export class ApiClientToncenter implements ApiClient {
         };
     }
 
-    async getAccountState(address: Address | string, seqno?: number): Promise<FullAccountState> {
-        if (address instanceof Address) {
-            address = address.toString();
-        }
+    async getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState> {
         const query: Record<string, unknown> = { include_boc: true, address: [address] };
         if (typeof seqno === 'number') query.seqno = seqno.toString();
         const raw = await this.getJson<V2AddressInformation>('/api/v3/addressInformation', query);
@@ -212,7 +205,7 @@ export class ApiClientToncenter implements ApiClient {
         return out;
     }
 
-    async getBalance(address: Address | string, seqno?: number): Promise<string> {
+    async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
         return (await this.getAccountState(address, seqno)).balance;
     }
 
@@ -293,7 +286,7 @@ export class ApiClientToncenter implements ApiClient {
         return new TonClientError(`HTTP ${response.status}: ${message}`, code, detail);
     }
 
-    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<ToncenterTransactionsResponse> {
+    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
         const accounts = request.address?.map(prepareAddress);
         let offset = request.offset ?? 0;
         let limit = request.limit ?? 10;
@@ -310,10 +303,10 @@ export class ApiClientToncenter implements ApiClient {
             limit,
             offset,
         });
-        return response;
+        return toTransactionsResponse(response);
     }
 
-    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<ToncenterTransactionsResponse> {
+    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<TransactionsResponse> {
         const msgHash = 'msgHash' in request ? padBase64(request.msgHash) : undefined;
         const bodyHash = 'bodyHash' in request ? padBase64(request.bodyHash) : undefined;
 
@@ -321,17 +314,17 @@ export class ApiClientToncenter implements ApiClient {
             msg_hash: msgHash ? [msgHash] : undefined,
             body_hash: bodyHash ? [bodyHash] : undefined,
         });
-        return response;
+        return toTransactionsResponse(response);
     }
 
-    async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<ToncenterTransactionsResponse> {
+    async getPendingTransactions(request: GetPendingTransactionsRequest): Promise<TransactionsResponse> {
         const accounts = 'accounts' in request ? request.accounts?.map(prepareAddress) : undefined;
         const traceId = 'traceId' in request ? request.traceId : undefined;
         const response = await this.getJson<ToncenterTransactionsResponse>('/api/v3/pendingTransactions', {
             account: accounts,
             trace_id: traceId,
         });
-        return response;
+        return toTransactionsResponse(response);
     }
 
     async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
@@ -432,7 +425,7 @@ export class ApiClientToncenter implements ApiClient {
         });
     }
 
-    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<ResponseUserJettons> {
+    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse> {
         const offset = request.offset ?? 0;
         const limit = request.limit ?? 50;
         const rawResponse = await this.getJson<ToncenterResponseJettonWallets>('/api/v3/jetton/wallets', {
@@ -441,42 +434,35 @@ export class ApiClientToncenter implements ApiClient {
             limit,
         });
 
-        return this.mapToResponseUserJettons(rawResponse, offset, limit);
+        return this.mapToResponseUserJettons(rawResponse);
     }
 
-    private mapToResponseUserJettons(
-        rawResponse: ToncenterResponseJettonWallets,
-        offset: number,
-        limit: number,
-    ): ResponseUserJettons {
-        const userJettons: AddressJetton[] = rawResponse.jetton_wallets.map((wallet) => {
+    private mapToResponseUserJettons(rawResponse: ToncenterResponseJettonWallets): JettonsResponse {
+        const userJettons: Jetton[] = rawResponse.jetton_wallets.map((wallet) => {
             const jettonInfo = this.extractJettonInfoFromMetadata(wallet.jetton, rawResponse.metadata);
-            return {
+            const jetton: Jetton = {
                 address: wallet.jetton,
+                walletAddress: wallet.address,
                 balance: wallet.balance,
-                jettonWalletAddress: wallet.address,
-                usdValue: '0',
-                name: jettonInfo.name,
-                symbol: jettonInfo.symbol,
-                description: jettonInfo.description,
-                decimals: jettonInfo.decimals,
-                image: jettonInfo.image,
-                verification: jettonInfo.verification,
-                metadata: jettonInfo.metadata,
-                totalSupply: jettonInfo.totalSupply,
-                uri: jettonInfo.uri,
-                image_data: jettonInfo.image_data,
-                lastActivity: wallet.last_transaction_lt,
+                info: {
+                    name: jettonInfo.name,
+                    description: jettonInfo.description,
+                    image: {
+                        url: jettonInfo.image,
+                        data: jettonInfo.image_data,
+                    },
+                    symbol: jettonInfo.symbol,
+                },
+                decimalsNumber: jettonInfo.decimals,
+                // ????
+                // extra: rawResponse.metadata[wallet.jetton]?.token_info,
             };
+            return jetton;
         });
 
         return {
             jettons: userJettons,
-            address_book: rawResponse.address_book,
-            pagination: {
-                offset,
-                limit,
-            },
+            addressBook: {},
         };
     }
 
@@ -497,7 +483,7 @@ export class ApiClientToncenter implements ApiClient {
             const decimals =
                 typeof metadataJettonInfo.extra.decimals === 'string'
                     ? parseInt(metadataJettonInfo.extra.decimals, 10)
-                    : ((metadataJettonInfo.extra.decimals as number) ?? 9);
+                    : (metadataJettonInfo.extra.decimals as number | undefined);
 
             return {
                 address: jettonAddress,

@@ -6,7 +6,7 @@
  *
  */
 
-import { StorageAdapter } from '@ton/walletkit';
+import type { StorageAdapter } from '@ton/walletkit';
 
 /**
  * In-memory storage adapter for testing and temporary storage

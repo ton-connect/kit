@@ -6,7 +6,8 @@
  *
  */
 
-import { type IWallet, type ITonWalletKit, CHAIN } from '@ton/walletkit';
+import { Network } from '@ton/walletkit';
+import type { Wallet, ITonWalletKit } from '@ton/walletkit';
 import { createLedgerPath } from '@ton/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
@@ -237,7 +238,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             const publicKey = wallet.getPublicKey();
 
             const ledgerPath = createLedgerPath(
-                wallet.getNetwork() === CHAIN.TESTNET,
+                wallet.getNetwork().chainId === Network.testnet().chainId,
                 0,
                 state.auth.ledgerAccountNumber || 0,
             );
@@ -598,7 +599,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             const walletNetwork = activeWallet?.network || 'testnet';
 
             const response = await state.walletCore.walletKit
-                .getApiClient(walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET)
+                .getApiClient(walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet())
                 .getEvents({
                     account: state.walletManagement.address,
                     limit,
@@ -617,7 +618,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
         }
     },
 
-    getAvailableWallets: (): IWallet[] => {
+    getAvailableWallets: (): Wallet[] => {
         const state = get();
         if (!state.walletCore.walletKit) {
             return [];

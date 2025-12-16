@@ -6,8 +6,8 @@
  *
  */
 
-import type { NftItem } from '@ton/walletkit';
-import { type FC } from 'react';
+import type { NFT } from '@ton/walletkit';
+import type { FC } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +24,7 @@ import { getErrorMessage } from '@/core/utils/errors/get-error-message';
 import { ScreenHeader } from '@/core/components/screen-header';
 
 interface NftDetailsModalProps {
-    nft: NftItem | null;
+    nft: NFT | null;
     visible: boolean;
     onClose: () => void;
 }
@@ -103,7 +103,7 @@ export const NftDetailsModal: FC<NftDetailsModalProps> = ({ nft, visible, onClos
 
                         <View style={styles.section}>
                             <AppText style={styles.sectionLabel}>Status</AppText>
-                            <AppText style={styles.sectionValue}>{nft.onSale ? 'On Sale' : 'Not for Sale'}</AppText>
+                            <AppText style={styles.sectionValue}>{nft.isOnSale ? 'On Sale' : 'Not for Sale'}</AppText>
                         </View>
 
                         <View style={styles.section}>

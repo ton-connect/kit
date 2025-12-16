@@ -9,7 +9,8 @@
 import { StyleSheet } from 'react-native-unistyles';
 
 import { breakpoints } from '../configs/theme/breakpoints';
-import { type AppBreakpoints, type AppThemes, lightTheme } from '../configs/theme/themes';
+import { lightTheme } from '../configs/theme/themes';
+import type { AppBreakpoints, AppThemes } from '../configs/theme/themes';
 
 declare module 'react-native-unistyles' {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type

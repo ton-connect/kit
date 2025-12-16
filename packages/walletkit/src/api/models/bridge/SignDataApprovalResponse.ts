@@ -6,7 +6,7 @@
  *
  */
 
-import { Hex } from '../core/Primitives';
+import type { Hex } from '../core/Primitives';
 
 /**
  * Response after user approves a sign data request.

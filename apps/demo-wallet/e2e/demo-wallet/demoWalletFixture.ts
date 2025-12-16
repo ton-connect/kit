@@ -11,14 +11,9 @@ import { fileURLToPath } from 'url';
 
 import { test } from '@playwright/test';
 
-import {
-    type TestFixture,
-    launchPersistentContext,
-    getExtensionId,
-    TonConnectWidget,
-    ConfigFixture,
-    testWith,
-} from '../qa';
+import type { ConfigFixture } from '../qa';
+import { launchPersistentContext, getExtensionId, TonConnectWidget, testWith } from '../qa';
+import type { TestFixture } from '../qa';
 import { DemoWallet } from './DemoWallet';
 import { isExtensionWalletSource } from '../qa/WalletApp';
 

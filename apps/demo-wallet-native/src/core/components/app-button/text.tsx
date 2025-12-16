@@ -6,10 +6,12 @@
  *
  */
 
-import { type FC, useContext } from 'react';
+import { useContext } from 'react';
+import type { FC } from 'react';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 import { AppButtonContext } from './context';
 
 export const ButtonText: FC<AppTextProps> = ({ style, children, ...props }) => {

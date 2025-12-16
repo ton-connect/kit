@@ -7,33 +7,38 @@
  */
 
 import { storeJettonTransferMessage } from '@ton-community/assets-sdk';
-import { Address, beginCell, SendMode } from '@ton/core';
+import { Address, beginCell } from '@ton/core';
 
-import { IWallet } from '../../../types';
-import { WalletJettonInterface } from '../../../types/wallet';
-import { JettonTransferParams } from '../../../types/jettons';
 import { validateTransactionMessage } from '../../../validation';
-import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '../../../types/internal';
 import { isValidAddress } from '../../../utils/address';
 import { CallForSuccess } from '../../../utils/retry';
 import { ParseStack, SerializeStack } from '../../../utils/tvmStack';
-import { ResponseUserJettons } from '../../../types/export/responses/jettons';
-import { GetJettonsByOwnerRequest } from '../../../types/toncenter/ApiClient';
+import type { Wallet, WalletJettonInterface } from '../../../api/interfaces';
+import type {
+    JettonsRequest,
+    JettonsResponse,
+    JettonsTransferRequest,
+    TokenAmount,
+    TransactionRequest,
+    TransactionRequestMessage,
+    UserFriendlyAddress,
+} from '../../../api/models';
+import { SendModeFlag } from '../../../api/models';
 
 export class WalletJettonClass implements WalletJettonInterface {
     async createTransferJettonTransaction(
-        this: IWallet,
-        jettonTransferParams: JettonTransferParams,
-    ): Promise<ConnectTransactionParamContent> {
+        this: Wallet,
+        jettonTransferParams: JettonsTransferRequest,
+    ): Promise<TransactionRequest> {
         // Validate input parameters
-        if (!isValidAddress(jettonTransferParams.toAddress)) {
-            throw new Error(`Invalid to address: ${jettonTransferParams.toAddress}`);
+        if (!isValidAddress(jettonTransferParams.recipientAddress)) {
+            throw new Error(`Invalid to address: ${jettonTransferParams.recipientAddress}`);
         }
         if (!isValidAddress(jettonTransferParams.jettonAddress)) {
             throw new Error(`Invalid jetton address: ${jettonTransferParams.jettonAddress}`);
         }
-        if (!jettonTransferParams.amount || BigInt(jettonTransferParams.amount) <= 0n) {
-            throw new Error(`Invalid amount: ${jettonTransferParams.amount}`);
+        if (!jettonTransferParams.transferAmount || BigInt(jettonTransferParams.transferAmount) <= 0n) {
+            throw new Error(`Invalid amount: ${jettonTransferParams.transferAmount}`);
         }
 
         // Get jetton wallet address for this user
@@ -51,8 +56,8 @@ export class WalletJettonClass implements WalletJettonInterface {
             .store(
                 storeJettonTransferMessage({
                     queryId: 0n,
-                    amount: BigInt(jettonTransferParams.amount),
-                    destination: Address.parse(jettonTransferParams.toAddress),
+                    amount: BigInt(jettonTransferParams.transferAmount),
+                    destination: Address.parse(jettonTransferParams.recipientAddress),
                     responseDestination: Address.parse(this.getAddress()),
                     customPayload: null,
                     forwardAmount: 1n, //1 nanoton default
@@ -62,13 +67,15 @@ export class WalletJettonClass implements WalletJettonInterface {
             .endCell();
 
         // Create transaction message
-        const message: ConnectTransactionParamMessage = {
+        const message: TransactionRequestMessage = {
             address: jettonWalletAddress,
             amount: '50000000', // 0.05 TON for gas fees
             payload: jettonPayload.toBoc().toString('base64'),
             stateInit: undefined,
             extraCurrency: undefined,
-            mode: SendMode.PAY_GAS_SEPARATELY | SendMode.IGNORE_ERRORS,
+            mode: {
+                flags: [SendModeFlag.IGNORE_ERRORS, SendModeFlag.PAY_GAS_SEPARATELY],
+            },
         };
 
         // Validate the transaction message
@@ -78,17 +85,17 @@ export class WalletJettonClass implements WalletJettonInterface {
 
         return {
             messages: [message],
-            from: this.getAddress(),
+            fromAddress: this.getAddress(),
         };
     }
 
-    async getJettonBalance(this: IWallet, jettonAddress: string): Promise<string> {
+    async getJettonBalance(this: Wallet, jettonAddress: UserFriendlyAddress): Promise<TokenAmount> {
         // Get jetton wallet address for this user
         const jettonWalletAddress = await this.getJettonWalletAddress(jettonAddress);
 
         // Get the jetton wallet contract and query balance
         try {
-            const result = await this.getClient().runGetMethod(Address.parse(jettonWalletAddress), 'get_wallet_data');
+            const result = await this.getClient().runGetMethod(jettonWalletAddress, 'get_wallet_data');
 
             // The balance is the first return value from get_wallet_data
             const parsedStack = ParseStack(result.stack);
@@ -100,7 +107,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         }
     }
 
-    async getJettonWalletAddress(this: IWallet, jettonAddress: string): Promise<string> {
+    async getJettonWalletAddress(this: Wallet, jettonAddress: UserFriendlyAddress): Promise<UserFriendlyAddress> {
         if (!isValidAddress(jettonAddress)) {
             throw new Error(`Invalid jetton address: ${jettonAddress}`);
         }
@@ -108,7 +115,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         try {
             // Call get_wallet_address method on jetton master contract
             const result = await this.getClient().runGetMethod(
-                Address.parse(jettonAddress),
+                jettonAddress,
                 'get_wallet_address',
                 SerializeStack([
                     { type: 'slice', cell: beginCell().storeAddress(Address.parse(this.getAddress())).endCell() },
@@ -134,14 +141,11 @@ export class WalletJettonClass implements WalletJettonInterface {
         }
     }
 
-    async getJettons(
-        this: IWallet,
-        params?: Omit<GetJettonsByOwnerRequest, 'ownerAddress'>,
-    ): Promise<ResponseUserJettons> {
+    async getJettons(this: Wallet, params?: JettonsRequest): Promise<JettonsResponse> {
         return this.getClient().jettonsByOwnerAddress({
-            ...params,
-
             ownerAddress: this.getAddress(),
+            offset: params?.pagination.offset,
+            limit: params?.pagination.limit,
         });
     }
 }

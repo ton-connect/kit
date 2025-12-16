@@ -6,10 +6,10 @@
  *
  */
 
-import { ExtraCurrencies } from '../core/ExtraCurrencies';
-import { UserFriendlyAddress, Base64String } from '../core/Primitives';
-import { TokenAmount } from '../core/TokenAmount';
-import { SendMode } from '../core/SendMode';
+import type { ExtraCurrencies } from '../core/ExtraCurrencies';
+import type { UserFriendlyAddress, Base64String } from '../core/Primitives';
+import type { TokenAmount } from '../core/TokenAmount';
+import type { SendMode } from '../core/SendMode';
 
 /**
  * Request parameters for transferring TON to another address.

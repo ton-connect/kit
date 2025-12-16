@@ -7,14 +7,11 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import {
-    BottomSheetModal,
-    BottomSheetScrollView,
-    BottomSheetView,
-    type BottomSheetModalProps as InitialBottomSheetProps,
-} from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetScrollView, BottomSheetView } from '@gorhom/bottom-sheet';
+import type { BottomSheetModalProps as InitialBottomSheetProps } from '@gorhom/bottom-sheet';
 import { ImpactFeedbackStyle, impactAsync } from 'expo-haptics';
-import { type FC, type PropsWithChildren, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

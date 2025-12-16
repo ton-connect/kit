@@ -10,6 +10,8 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
+import type { Network } from '../api/models/core/Network';
+
 /**
  * Wallet ID format: "network:address"
  * Examples:
@@ -21,15 +23,15 @@ export type WalletId = string;
 /**
  * Creates a wallet ID from network and address
  */
-export function createWalletId(network: CHAIN, address: string): WalletId {
-    return `${network}:${address}`;
+export function createWalletId(network: Network, address: string): WalletId {
+    return `${network.chainId}:${address}`;
 }
 
 /**
  * Parses a wallet ID into network and address components
  * Returns undefined if the wallet ID is invalid
  */
-export function parseWalletId(walletId: WalletId): { network: CHAIN; address: string } | undefined {
+export function parseWalletId(walletId: WalletId): { network: Network; address: string } | undefined {
     const colonIndex = walletId.indexOf(':');
     if (colonIndex === -1) {
         return undefined;
@@ -47,7 +49,7 @@ export function parseWalletId(walletId: WalletId): { network: CHAIN; address: st
     }
 
     return {
-        network: networkStr as CHAIN,
+        network: { chainId: networkStr },
         address,
     };
 }
@@ -65,7 +67,7 @@ export function getAddressFromWalletId(walletId: WalletId): string {
  * Extracts the network from a wallet ID
  * Returns undefined if the wallet ID is invalid
  */
-export function getNetworkFromWalletId(walletId: WalletId): CHAIN | undefined {
+export function getNetworkFromWalletId(walletId: WalletId): Network | undefined {
     const parsed = parseWalletId(walletId);
     return parsed?.network;
 }

@@ -7,7 +7,8 @@
  */
 
 import { setStringAsync } from 'expo-clipboard';
-import { type FC, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import type { FC } from 'react';
 import type { LayoutChangeEvent, ViewProps } from 'react-native';
 import QRCode from 'react-native-qrcode-skia';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';

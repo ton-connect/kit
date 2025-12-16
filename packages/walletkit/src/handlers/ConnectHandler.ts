@@ -8,13 +8,14 @@
 
 // Connect request handler
 
-import { CONNECT_EVENT_ERROR_CODES, ConnectItem } from '@tonconnect/protocol';
+import type { ConnectItem } from '@tonconnect/protocol';
+import { CONNECT_EVENT_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { ConnectPreview, EventConnectRequest, TonWalletKitOptions } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
-import { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsApi } from '../analytics/sender';
 import { getUnixtime } from '../utils/time';
 import { uuidv7 } from '../utils/uuid';
 import { getEventsSubsystem, getVersion } from '../utils/version';

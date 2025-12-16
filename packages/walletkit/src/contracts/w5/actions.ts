@@ -6,7 +6,8 @@
  *
  */
 
-import { Address, beginCell, Cell, MessageRelaxed, SendMode, storeMessageRelaxed } from '@ton/core';
+import type { Address, Cell, MessageRelaxed } from '@ton/core';
+import { beginCell, SendMode, storeMessageRelaxed } from '@ton/core';
 
 export class ActionSendMsg {
     public static readonly tag = 0x0ec3c86d;

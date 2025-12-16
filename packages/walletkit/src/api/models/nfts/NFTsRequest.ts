@@ -6,14 +6,18 @@
  *
  */
 
-import { Pagination } from '../core/Primitives';
+import type { Pagination, UserFriendlyAddress } from '../core/Primitives';
 
 /**
  * Request parameters for fetching NFT tokens.
  */
 export interface NFTsRequest {
     /**
+     * NFT address to filter by
+     */
+    address?: UserFriendlyAddress;
+    /**
      * Pagination information
      */
-    pagination: Pagination;
+    pagination?: Pagination;
 }

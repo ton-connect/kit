@@ -6,7 +6,8 @@
  *
  */
 
-import { type NftItem, type NftItems } from '@ton/walletkit';
+import type { NFTsResponse } from '@ton/walletkit';
+import type { NFT, NftItem } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
 import type { SetState, NftsSliceCreator } from '../../types/store';
@@ -63,18 +64,20 @@ export const createNftsSlice: NftsSliceCreator = (set: SetState, get) => ({
                 throw new Error('Wallet not found');
             }
 
-            const result: NftItems = await wallet.getNfts({ limit, offset: 0 });
+            const result: NFTsResponse = await wallet.getNfts({
+                pagination: { limit, offset: 0 },
+            });
 
             set((state) => {
-                state.nfts.userNfts = result.items;
+                state.nfts.userNfts = result.nfts;
                 state.nfts.lastNftsUpdate = Date.now();
                 state.nfts.isLoadingNfts = false;
                 state.nfts.error = null;
-                state.nfts.hasMore = result.items.length === limit;
-                state.nfts.offset = result.items.length;
+                state.nfts.hasMore = result.nfts.length === limit;
+                state.nfts.offset = result.nfts.length;
             });
 
-            log.info('Successfully loaded user NFTs', { count: result.items.length });
+            log.info('Successfully loaded user NFTs', { count: result.nfts.length });
         } catch (error) {
             log.error('Failed to load user NFTs:', error);
 
@@ -116,18 +119,20 @@ export const createNftsSlice: NftsSliceCreator = (set: SetState, get) => ({
                 throw new Error('Wallet not found');
             }
 
-            const result: NftItems = await wallet.getNfts({ limit: 20, offset: 0 });
+            const result: NFTsResponse = await wallet.getNfts({
+                pagination: { limit: 20, offset: 0 },
+            });
 
             set((state) => {
-                state.nfts.userNfts = result.items;
+                state.nfts.userNfts = result.nfts;
                 state.nfts.lastNftsUpdate = Date.now();
                 state.nfts.isRefreshing = false;
                 state.nfts.error = null;
-                state.nfts.hasMore = result.items.length === 20;
-                state.nfts.offset = result.items.length;
+                state.nfts.hasMore = result.nfts.length === 20;
+                state.nfts.offset = result.nfts.length;
             });
 
-            log.info('Successfully refreshed user NFTs', { count: result.items.length });
+            log.info('Successfully refreshed user NFTs', { count: result.nfts.length });
         } catch (error) {
             log.error('Failed to refresh user NFTs:', error);
 
@@ -168,18 +173,20 @@ export const createNftsSlice: NftsSliceCreator = (set: SetState, get) => ({
                 throw new Error('Wallet not found');
             }
 
-            const result: NftItems = await wallet.getNfts({ limit: 20, offset: state.nfts.offset });
+            const result: NFTsResponse = await wallet.getNfts({
+                pagination: { limit: 20, offset: state.nfts.offset },
+            });
 
             set((state) => {
-                state.nfts.userNfts = [...state.nfts.userNfts, ...result.items];
+                state.nfts.userNfts = [...state.nfts.userNfts, ...result.nfts];
                 state.nfts.lastNftsUpdate = Date.now();
                 state.nfts.isLoadingNfts = false;
                 state.nfts.error = null;
-                state.nfts.hasMore = result.items.length === 20;
-                state.nfts.offset = state.nfts.offset + result.items.length;
+                state.nfts.hasMore = result.nfts.length === 20;
+                state.nfts.offset = state.nfts.offset + result.nfts.length;
             });
 
-            log.info('Successfully loaded more user NFTs', { count: result.items.length });
+            log.info('Successfully loaded more user NFTs', { count: result.nfts.length });
         } catch (error) {
             log.error('Failed to load more user NFTs:', error);
 
@@ -204,7 +211,7 @@ export const createNftsSlice: NftsSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    getNftByAddress: (address: string): NftItem | undefined => {
+    getNftByAddress: (address: string): NFT | undefined => {
         const state = get();
         return state.nfts.userNfts.find((nft) => nft.address === address);
     },

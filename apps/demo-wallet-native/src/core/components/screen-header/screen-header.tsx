@@ -14,7 +14,8 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { ActiveTouchAction } from '../active-touch-action';
 import { AppButton } from '../app-button';
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 import { BackButton } from '../back-button';
 import { Row } from '../grid';
 

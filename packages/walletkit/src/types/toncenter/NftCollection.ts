@@ -6,10 +6,10 @@
  *
  */
 
-import { AddressFriendly, Hex } from '../primitive';
+import type { Hex, UserFriendlyAddress } from '../../api/models';
 
 export interface NftCollection {
-    address: AddressFriendly;
+    address: UserFriendlyAddress;
 
     collectionContent?: {
         uri?: string;
@@ -19,7 +19,7 @@ export interface NftCollection {
     lastTransactionLt?: string;
     name?: string;
     nextItemIndex?: string;
-    ownerAddress?: AddressFriendly | null;
+    ownerAddress?: UserFriendlyAddress | null;
 
     codeHash?: Hex | null;
     dataHash?: Hex | null;

@@ -10,11 +10,12 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 
-import { ApiClient } from '../types/toncenter/ApiClient';
-import { ApiClientConfig, TonWalletKitOptions } from '../types/config';
+import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { ApiClientConfig, TonWalletKitOptions } from '../types/config';
 import { ApiClientToncenter } from './ApiClientToncenter';
 import { globalLogger } from './Logger';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { Network } from '../api/models';
 
 const log = globalLogger.createChild('NetworkManager');
 
@@ -25,7 +26,7 @@ const log = globalLogger.createChild('NetworkManager');
  * At least one network must be configured.
  */
 export class NetworkManager {
-    private clients: Map<CHAIN, ApiClient> = new Map();
+    private clients: Map<string, ApiClient> = new Map();
 
     constructor(options: TonWalletKitOptions) {
         this.initializeClients(options);
@@ -51,13 +52,13 @@ export class NetworkManager {
             return;
         }
 
-        for (const [chainIdStr, networkConfig] of Object.entries(networks)) {
-            const chainId = chainIdStr as CHAIN;
+        for (const [chainId, networkConfig] of Object.entries(networks)) {
+            const network = Network.custom(chainId);
 
             if (!networkConfig) continue;
 
-            const client = this.createClient(chainId, networkConfig.apiClient, options);
-            this.clients.set(chainId, client);
+            const client = this.createClient(network, networkConfig.apiClient, options);
+            this.clients.set(network.chainId, client);
 
             log.info('Initialized network client', { chainId });
         }
@@ -67,7 +68,7 @@ export class NetworkManager {
      * Create an API client for a specific network
      */
     private createClient(
-        network: CHAIN,
+        network: Network,
         apiClientConfig: ApiClientConfig | ApiClient | undefined,
         options: TonWalletKitOptions,
     ): ApiClient {
@@ -77,14 +78,15 @@ export class NetworkManager {
         }
 
         // Create a new ApiClientToncenter
-        const defaultEndpoint = network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+        const defaultEndpoint =
+            network.chainId === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
 
         const endpoint = apiClientConfig?.url || defaultEndpoint;
 
         return new ApiClientToncenter({
             endpoint,
             apiKey: apiClientConfig?.key,
-            network,
+            network: network,
             disableNetworkSend: options.dev?.disableNetworkSend,
         });
     }
@@ -111,15 +113,15 @@ export class NetworkManager {
      * @returns The API client for the specified network
      * @throws WalletKitError if no client is configured for the network
      */
-    getClient(chainId: CHAIN): ApiClient {
-        const client = this.clients.get(chainId);
+    getClient(network: Network): ApiClient {
+        const client = this.clients.get(network.chainId);
         if (!client) {
             throw new WalletKitError(
                 ERROR_CODES.NETWORK_NOT_CONFIGURED,
-                `No API client configured for network ${chainId}`,
+                `No API client configured for network ${network.chainId}`,
                 undefined,
                 {
-                    chainId,
+                    network: network,
                     configuredNetworks: Array.from(this.clients.keys()),
                 },
             );
@@ -130,22 +132,22 @@ export class NetworkManager {
     /**
      * Check if a network is configured
      */
-    hasNetwork(chainId: CHAIN): boolean {
-        return this.clients.has(chainId);
+    hasNetwork(network: Network): boolean {
+        return this.clients.has(network.chainId);
     }
 
     /**
      * Get all configured networks
      */
-    getConfiguredNetworks(): CHAIN[] {
-        return Array.from(this.clients.keys());
+    getConfiguredNetworks(): Network[] {
+        return Array.from(this.clients.keys()).map((chainId) => Network.custom(chainId));
     }
 
     /**
      * Add or update a network client dynamically
      */
-    setClient(chainId: CHAIN, client: ApiClient): void {
-        this.clients.set(chainId, client);
-        log.info('Added/updated network client', { chainId });
+    setClient(network: Network, client: ApiClient): void {
+        this.clients.set(network.chainId, client);
+        log.info('Added/updated network client', { network });
     }
 }

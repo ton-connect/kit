@@ -6,19 +6,17 @@
  *
  */
 
+import type { WalletAdapter, WalletSigner } from '@ton/walletkit';
 import {
-    type IWalletAdapter,
-    Signer,
     WalletV5R1Adapter,
     WalletV4R2Adapter,
     DefaultSignature,
-    CHAIN,
-    type ITonWalletKit,
     MnemonicToKeyPair,
-    type WalletSigner,
     Uint8ArrayToHex,
-    type ToncenterTransaction,
+    Network,
+    Signer,
 } from '@ton/walletkit';
+import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 
@@ -40,7 +38,7 @@ export interface CreateWalletAdapterParams {
 /**
  * Creates a wallet adapter based on the specified type and configuration
  */
-export async function createWalletAdapter(params: CreateWalletAdapterParams): Promise<IWalletAdapter> {
+export async function createWalletAdapter(params: CreateWalletAdapterParams): Promise<WalletAdapter> {
     const {
         mnemonic,
         useWalletInterfaceType,
@@ -55,7 +53,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    const chainNetwork = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const chainNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     switch (useWalletInterfaceType) {
         case 'signer': {
@@ -119,7 +117,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                             path: storedLedgerConfig.path,
                             publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
-                            network: storedLedgerConfig.network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET,
+                            network: storedLedgerConfig.network === 'mainnet' ? Network.mainnet() : Network.testnet(),
                             workchain: storedLedgerConfig.workchain,
                             walletId: storedLedgerConfig.walletId,
                             accountIndex: storedLedgerConfig.accountIndex,
@@ -130,7 +128,11 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                     );
                 }
 
-                const path = createLedgerPath(chainNetwork === CHAIN.TESTNET, 0, ledgerAccountNumber);
+                const path = createLedgerPath(
+                    chainNetwork.chainId === Network.testnet().chainId,
+                    0,
+                    ledgerAccountNumber,
+                );
 
                 return createWalletV4R2Ledger(
                     createWalletInitConfigLedger({

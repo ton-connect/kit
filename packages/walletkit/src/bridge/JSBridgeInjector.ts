@@ -16,7 +16,8 @@ import {
     TONCONNECT_BRIDGE_RESPONSE,
 } from './utils/messageTypes';
 import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from './utils/timeouts';
-import { ExtensionTransport, type MessageSender, type MessageListener } from './transport/ExtensionTransport';
+import { ExtensionTransport } from './transport/ExtensionTransport';
+import type { MessageSender, MessageListener } from './transport/ExtensionTransport';
 
 export {
     type JSBridgeInjectOptions,

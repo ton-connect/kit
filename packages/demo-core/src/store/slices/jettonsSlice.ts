@@ -6,7 +6,8 @@
  *
  */
 
-import { type AddressJetton, type JettonTransfer, type JettonInfo, JettonError } from '@ton/walletkit';
+import { JettonError } from '@ton/walletkit';
+import type { Jetton, JettonTransfer, JettonInfo } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
 import type { SetState, JettonsSliceCreator } from '../../types/store';
@@ -14,7 +15,7 @@ import type { SetState, JettonsSliceCreator } from '../../types/store';
 const log = createComponentLogger('JettonsSlice');
 
 export interface JettonsState {
-    userJettons: AddressJetton[];
+    userJettons: Jetton[];
     jettonTransfers: JettonTransfer[];
     popularJettons: JettonInfo[];
     isLoadingJettons: boolean;
@@ -67,8 +68,10 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
             log.info('Loading user jettons', { address });
 
             const jettonsResponse = await state.walletManagement.currentWallet?.getJettons({
-                limit: 10,
-                offset: 0,
+                pagination: {
+                    limit: 10,
+                    offset: 0,
+                },
             });
 
             if (!jettonsResponse) {
@@ -147,7 +150,7 @@ export const createJettonsSlice: JettonsSliceCreator = (set: SetState, get) => (
         });
     },
 
-    getJettonByAddress: (jettonAddress: string): AddressJetton | undefined => {
+    getJettonByAddress: (jettonAddress: string): Jetton | undefined => {
         const state = get();
         return state.jettons.userJettons.find((j) => j.address === jettonAddress);
     },

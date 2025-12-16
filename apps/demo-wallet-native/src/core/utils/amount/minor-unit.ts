@@ -8,7 +8,8 @@
 
 import type { BigNumber } from 'bignumber.js';
 
-import { Big, type BigValue } from '../../libs/big-number';
+import { Big } from '../../libs/big-number';
+import type { BigValue } from '../../libs/big-number';
 
 // 0.00001 -> 1
 export const toMinorUnit = (amount: string | BigValue | number, decimals: number): BigNumber =>

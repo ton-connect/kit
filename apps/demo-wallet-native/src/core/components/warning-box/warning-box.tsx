@@ -6,7 +6,8 @@
  *
  */
 
-import { type FC, type ReactNode, useMemo } from 'react';
+import { useMemo } from 'react';
+import type { FC, ReactNode } from 'react';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { AppText } from '@/core/components/app-text';

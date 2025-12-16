@@ -6,19 +6,18 @@
  *
  */
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
 import type { FullAccountState, GetResult } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
-import { WalletId } from './WalletV5R1';
+import type { WalletV5R1Id } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
-import { ToncenterResponseJettonMasters, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
 import { Signer } from '../../utils/Signer';
 import { Uint8ArrayToHex } from '../../utils/base64';
+import { Network } from '../../api/models';
 
 export const mnemonic = [
     'hospital',
@@ -50,7 +49,7 @@ export const publicKey = new Uint8Array([
     246, 196, 80, 161, 107, 177, 197, 20, 226, 47, 25, 119, 227, 144, 163, 2, 85, 153, 170, 30, 123, 0, 6, 138, 106,
     172, 242, 17, 148, 132, 193, 189,
 ]);
-export const walletId: WalletId = {
+export const walletId: WalletV5R1Id = {
     serialized: 2147483409n,
     subwalletNumber: 2147483409,
 };
@@ -105,7 +104,7 @@ export async function createDummyWallet(walletId?: bigint): Promise<WalletV5R1Ad
     const signer = await Signer.fromMnemonic(mnemonic);
     return WalletV5R1Adapter.create(signer, {
         client: createMockApiClient(),
-        network: CHAIN.MAINNET,
+        network: Network.mainnet(),
         walletId,
     });
 }

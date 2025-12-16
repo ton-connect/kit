@@ -12,7 +12,8 @@ import type { TextInput, ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { ActiveTouchAction } from '../active-touch-action';
-import { AppInput, type AppInputProps } from '../app-input';
+import { AppInput } from '../app-input';
+import type { AppInputProps } from '../app-input';
 import { Row } from '../grid';
 
 interface Props extends AppInputProps {

@@ -8,7 +8,8 @@
 
 // Initialization and setup logic
 
-import { TonWalletKitOptions, IWallet, DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
+import type { TonWalletKitOptions } from '../types';
+import { DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
 import type { StorageAdapter, StorageConfig } from '../storage';
 import { createStorageAdapter, Storage } from '../storage';
 import { WalletManager } from './WalletManager';
@@ -20,12 +21,12 @@ import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
-import { IWalletAdapter } from '../types/wallet';
 import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
-import { AnalyticsApi } from '../analytics/sender';
-import { NetworkManager } from './NetworkManager';
+import type { AnalyticsApi } from '../analytics/sender';
+import type { NetworkManager } from './NetworkManager';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -244,7 +245,7 @@ export class Initializer {
  * Uses proxy API to make wallet extension modular
  * The wallet adapter already contains its own ApiClient for its network
  */
-export async function wrapWalletInterface(wallet: IWalletAdapter): Promise<IWallet> {
+export async function wrapWalletInterface(wallet: WalletAdapter): Promise<Wallet> {
     const ourClassesToExtend = [WalletTonClass, WalletJettonClass, WalletNftClass];
     const newProxy = new Proxy(wallet, {
         get: (target, prop) => {
@@ -267,7 +268,7 @@ export async function wrapWalletInterface(wallet: IWalletAdapter): Promise<IWall
 
             return value;
         },
-    }) as IWallet;
+    }) as Wallet;
 
     return newProxy;
 }

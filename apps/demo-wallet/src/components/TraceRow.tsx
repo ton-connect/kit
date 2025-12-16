@@ -9,7 +9,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { Base64NormalizeUrl, CHAIN } from '@ton/walletkit';
+import { Base64NormalizeUrl, Network } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
 import { useWalletKit, useWalletStore } from '@ton/demo-core';
 
@@ -61,7 +61,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
     // Get the active wallet's network
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
     const walletNetwork = activeWallet?.network || 'testnet';
-    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON

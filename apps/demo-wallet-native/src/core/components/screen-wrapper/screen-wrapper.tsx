@@ -7,7 +7,8 @@
  */
 
 import type { FC, PropsWithChildren } from 'react';
-import { ScrollView, type ScrollViewProps } from 'react-native';
+import { ScrollView } from 'react-native';
+import type { ScrollViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 export const ScreenWrapper: FC<PropsWithChildren<ScrollViewProps>> = ({ style, children, ...props }) => {

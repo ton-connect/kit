@@ -7,12 +7,15 @@
  */
 
 import { ImpactFeedbackStyle, impactAsync } from 'expo-haptics';
-import { type FC, type PropsWithChildren, useCallback, useMemo } from 'react';
-import { Linking, type PressableProps, type ViewStyle } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { Linking } from 'react-native';
+import type { PressableProps, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ActiveTouchAction } from '../active-touch-action';
-import { type AppButtonColorScheme, AppButtonContext, type AppButtonVariant } from './context';
+import { AppButtonContext } from './context';
+import type { AppButtonColorScheme, AppButtonVariant } from './context';
 
 export interface AppButtonContainerProps extends PressableProps {
     variant?: AppButtonVariant;

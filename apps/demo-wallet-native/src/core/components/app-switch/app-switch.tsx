@@ -6,8 +6,10 @@
  *
  */
 
-import { type FC, useCallback, useEffect } from 'react';
-import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
+import { useCallback, useEffect } from 'react';
+import type { FC } from 'react';
+import { Pressable } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 

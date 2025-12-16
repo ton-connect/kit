@@ -10,7 +10,8 @@ import { allureId, label, suite, tags } from 'allure-js-commons';
 import type { TestInfo } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-import { AllureApiClient, getTestCaseData, extractAllureId } from './utils';
+import type { AllureApiClient } from './utils';
+import { getTestCaseData, extractAllureId } from './utils';
 import type { TestFixture } from './qa';
 
 const isExtension = process.env.E2E_JS_BRIDGE === 'true';

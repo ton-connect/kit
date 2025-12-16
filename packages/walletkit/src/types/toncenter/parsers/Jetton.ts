@@ -6,20 +6,14 @@
  *
  */
 
-import {
-    toAccount,
-    AddressBook,
-    Account,
-    Action,
-    StatusAction,
-    JettonTransferAction,
-    SimplePreview,
-} from '../AccountEvent';
-import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly, Hex } from '../../primitive';
+import type { AddressBook, Account, Action, StatusAction, JettonTransferAction, SimplePreview } from '../AccountEvent';
+import { toAccount } from '../AccountEvent';
+import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
+import { asAddressFriendly } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
 import { OpCode } from './opcodes';
+import type { Hex } from '../../../api/models';
 
 //
 // This parser has been refactored with new architecture support

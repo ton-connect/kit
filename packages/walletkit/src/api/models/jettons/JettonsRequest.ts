@@ -6,7 +6,7 @@
  *
  */
 
-import { Pagination } from '../core/Primitives';
+import type { Pagination } from '../core/Primitives';
 
 /**
  * Request parameters for fetching Jetton tokens.

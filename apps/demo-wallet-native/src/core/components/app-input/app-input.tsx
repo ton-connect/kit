@@ -7,10 +7,12 @@
  */
 
 import type { FC, RefObject } from 'react';
-import { TextInput, type TextInputProps } from 'react-native';
+import { TextInput } from 'react-native';
+import type { TextInputProps } from 'react-native';
 import { useUnistyles } from 'react-native-unistyles';
 
-import { type AppTextProps, textStylesheet } from '../app-text';
+import { textStylesheet } from '../app-text';
+import type { AppTextProps } from '../app-text';
 
 export interface AppInputProps extends TextInputProps {
     textType?: AppTextProps['textType'];

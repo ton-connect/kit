@@ -6,8 +6,8 @@
  *
  */
 
-import { BridgeEvent } from './BridgeEvent';
-import { DAppInfo } from '../core/DAppInfo';
+import type { BridgeEvent } from './BridgeEvent';
+import type { DAppInfo } from '../core/DAppInfo';
 
 /**
  * Event indicating a dApp has disconnected from the wallet.

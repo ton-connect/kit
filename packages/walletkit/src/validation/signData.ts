@@ -6,7 +6,7 @@
  *
  */
 
-import { SignDataPayload } from '@tonconnect/protocol';
+import type { SignDataPayload } from '@tonconnect/protocol';
 
 type ValidationResult = string | null;
 const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;

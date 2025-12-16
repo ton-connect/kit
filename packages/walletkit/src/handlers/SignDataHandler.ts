@@ -8,7 +8,7 @@
 
 // Sign data request handler
 
-import { SignDataPayload } from '@tonconnect/protocol';
+import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/protocol';
 import { parseTLB } from '@ton-community/tlb-runtime';
 
 import type { EventSignDataRequest, SignDataPreview, TonWalletKitOptions } from '../types';
@@ -17,13 +17,15 @@ import { BasicHandler } from './BasicHandler';
 import { globalLogger } from '../core/Logger';
 import { validateSignDataPayload } from '../validation/signData';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsApi } from '../analytics/sender';
 import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
-import { WalletManager } from '../core/WalletManager';
+import type { WalletManager } from '../core/WalletManager';
 import { getAddressFromWalletId } from '../utils/walletId';
+import type { SignDataPayload, SignData } from '../api/models';
+import { Network } from '../api/models';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -65,27 +67,27 @@ export class SignDataHandler
         // Try to get wallet by walletId first, fall back to address search
         const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
 
-        const data = this.parseDataToSign(event);
-        if (!data) {
+        const payload = this.parseDataToSign(event);
+        if (!payload) {
             log.error('No data to sign found in request', { event });
             throw new WalletKitError(ERROR_CODES.INVALID_REQUEST_EVENT, 'No data to sign found in request', undefined, {
                 eventId: event.id,
             });
         }
-        const preview = this.createDataPreview(data, event);
+        const preview = this.createDataPreview(payload.data, event);
         if (!preview) {
-            log.error('No preview found for data', { data });
+            log.error('No preview found for data', { data: payload });
             throw new WalletKitError(
                 ERROR_CODES.RESPONSE_CREATION_FAILED,
                 'Failed to create preview for sign data request',
                 undefined,
-                { eventId: event.id, data },
+                { eventId: event.id, data: payload },
             );
         }
 
         const signEvent: EventSignDataRequest = {
             ...event,
-            request: data,
+            request: payload,
             preview,
             dAppInfo: event.dAppInfo ?? {},
             walletId: walletId ?? (wallet ? this.walletManager.getWalletId(wallet) : ''),
@@ -104,7 +106,7 @@ export class SignDataHandler
                 client_timestamp: getUnixtime(),
                 dapp_name: event.dAppInfo?.name,
                 version: getVersion(),
-                network_id: wallet?.getNetwork(),
+                network_id: wallet?.getNetwork().chainId,
                 wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
                 wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
                 event_id: uuidv7(),
@@ -121,7 +123,7 @@ export class SignDataHandler
      */
     private parseDataToSign(event: RawBridgeEventSignData): SignDataPayload | undefined {
         try {
-            const parsed = JSON.parse(event.params[0]) as SignDataPayload;
+            const parsed = JSON.parse(event.params[0]) as TonConnectSignDataPayload;
 
             const validationResult = validateSignDataPayload(parsed);
 
@@ -130,7 +132,43 @@ export class SignDataHandler
                 return undefined;
             }
 
-            return parsed;
+            if (parsed === undefined) {
+                return undefined;
+            }
+
+            let signData: SignData;
+
+            if (parsed.type === 'text') {
+                signData = {
+                    type: 'text',
+                    value: {
+                        content: parsed.text,
+                    },
+                };
+            } else if (parsed.type === 'binary') {
+                signData = {
+                    type: 'binary',
+                    value: {
+                        content: parsed.bytes,
+                    },
+                };
+            } else if (parsed.type === 'cell') {
+                signData = {
+                    type: 'cell',
+                    value: {
+                        schema: parsed.schema,
+                        content: parsed.cell,
+                    },
+                };
+            } else {
+                return undefined;
+            }
+
+            return {
+                network: parsed.network ? Network.custom(parsed.network) : undefined,
+                fromAddress: parsed.from,
+                data: signData,
+            };
         } catch (error) {
             log.error('Invalid data to sign found in request', { error });
             return undefined;
@@ -140,41 +178,44 @@ export class SignDataHandler
     /**
      * Create human-readable preview of data to sign
      */
-    private createDataPreview(data: SignDataPayload, _event: RawBridgeEvent): SignDataPreview | undefined {
+    private createDataPreview(data: SignData, _event: RawBridgeEvent): SignDataPreview | undefined {
         if (data.type === 'text') {
             return {
                 kind: 'text',
-                content: data.text,
+                content: data.value.content,
             };
         }
 
         if (data.type === 'binary') {
             return {
                 kind: 'binary',
-                content: data.bytes,
+                content: data.value.content,
             };
         }
 
         if (data.type === 'cell') {
-            if (!data.schema) {
+            if (!data.value.schema) {
                 return {
                     kind: 'cell',
-                    content: data.cell,
+                    content: data.value.content,
                 };
             }
             try {
-                const parsed = parseTLB(data.schema).deserialize(data.cell) as unknown as Record<string, unknown>;
+                const parsed = parseTLB(data.value.schema).deserialize(data.value.content) as unknown as Record<
+                    string,
+                    unknown
+                >;
                 return {
                     kind: 'cell',
-                    schema: data.schema,
-                    content: data.cell,
+                    schema: data.value.schema,
+                    content: data.value.content,
                     parsed,
                 };
             } catch (error) {
                 log.error('Error deserializing cell', { error });
                 return {
                     kind: 'cell',
-                    content: data.cell,
+                    content: data.value.content,
                 };
             }
         }

@@ -9,7 +9,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useWallet } from '@ton/demo-core';
 import { setStringAsync } from 'expo-clipboard';
-import { type FC, useState } from 'react';
+import { useState } from 'react';
+import type { FC } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 

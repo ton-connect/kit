@@ -6,7 +6,8 @@
  *
  */
 
-import React, { type FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';

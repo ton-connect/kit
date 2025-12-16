@@ -7,7 +7,7 @@
  */
 
 import { CallForSuccess } from '../../utils/retry';
-import { StorageAdapter, StorageConfig } from '../types';
+import type { StorageAdapter, StorageConfig } from '../types';
 
 /**
  * localStorage adapter for web environments
