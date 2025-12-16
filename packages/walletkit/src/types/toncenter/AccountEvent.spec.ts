@@ -8,7 +8,7 @@
 
 import { toAddressBook, toEvent } from './AccountEvent';
 import { loadData } from '../../../data';
-import { ToncenterTracesResponse } from './emulation';
+import type { ToncenterTracesResponse } from './emulation';
 
 const acc1 = 'UQCdqXGvONLwOr3zCNX5FjapflorB6ZsOdcdfLrjsDLt3AF4';
 const acc2 = 'UQC8G3SPXSa3TYV3mP9N1CUqK3nPUbIyrkG-HxnozZVHt2Iv';

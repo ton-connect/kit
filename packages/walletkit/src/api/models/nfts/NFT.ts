@@ -6,10 +6,10 @@
  *
  */
 
-import { UserFriendlyAddress, Hex } from '../core/Primitives';
-import { TokenInfo } from '../core/TokenInfo';
-import { NFTAttribute } from './NFTAttribute';
-import { NFTCollection } from './NFTCollection';
+import type { UserFriendlyAddress, Hex } from '../core/Primitives';
+import type { TokenInfo } from '../core/TokenInfo';
+import type { NFTAttribute } from './NFTAttribute';
+import type { NFTCollection } from './NFTCollection';
 
 /**
  * Non-fungible token (NFT) on the TON blockchain.
@@ -88,5 +88,5 @@ export interface NFT {
     /**
      * Off-chain metadata of the NFT (key-value pairs)
      */
-    metadata?: { [key: string]: string };
+    extra?: { [key: string]: unknown };
 }

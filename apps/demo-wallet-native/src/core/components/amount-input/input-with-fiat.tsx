@@ -6,7 +6,8 @@
  *
  */
 
-import { type FC, type RefObject, useMemo } from 'react';
+import { useMemo } from 'react';
+import type { FC, RefObject } from 'react';
 import type { TextInput, TextInputProps, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

@@ -11,7 +11,9 @@ import util from 'util';
 // import { Address } from '@ton/core'; // Not used in this example
 import * as dotenv from 'dotenv';
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
-import { ApiClientToncenter, CHAIN, ConnectTransactionParamMessage, IWallet } from '@ton/walletkit';
+import type { Wallet } from '@ton/walletkit';
+import { ApiClientToncenter, Network } from '@ton/walletkit';
+import type { TransactionRequestMessage } from '@ton/walletkit';
 import { wrapWalletInterface } from '@ton/walletkit';
 
 import { createLedgerPath, createWalletV4R2Ledger } from '../utils';
@@ -37,7 +39,7 @@ async function createLedgerWallet(
     testnet: boolean = false,
     workchain: number = 0,
     account: number = 0,
-): Promise<IWallet> {
+): Promise<Wallet> {
     logInfo('🔌 Connecting to Ledger device...');
 
     try {
@@ -51,7 +53,7 @@ async function createLedgerWallet(
             createTransport: async () => await TransportNodeHid.create(),
             path,
             version: 'v4r2', // Only v4r2 is supported for Ledger
-            network: CHAIN.MAINNET,
+            network: Network.mainnet(),
             workchain: 0,
             accountIndex: 0,
         });
@@ -66,7 +68,7 @@ async function createLedgerWallet(
     }
 }
 
-async function logWallet(wallet: IWallet) {
+async function logWallet(wallet: Wallet) {
     const address = wallet.getAddress();
     logInfo('📍 Wallet address:', address);
 
@@ -74,13 +76,13 @@ async function logWallet(wallet: IWallet) {
         const balance = await wallet.getBalance();
         logInfo('💰 Balance:', balance, 'nanoTON');
 
-        const nfts = await wallet.getNfts({});
-        logInfo('🖼️  NFTs count:', nfts.items.length);
+        const { nfts } = await wallet.getNfts({});
+        logInfo('🖼️  NFTs count:', nfts.length);
 
         return {
             address,
             balance,
-            nftsCount: nfts.items.length,
+            nftsCount: nfts.length,
         };
     } catch (error) {
         logError('⚠️  Error fetching wallet data:', error);
@@ -111,7 +113,7 @@ async function testLedgerWallet() {
         logInfo('📊 Wallet info:', util.inspect(walletInfo, { colors: true, depth: 3 }));
 
         // Create a test transaction message
-        const message: ConnectTransactionParamMessage = {
+        const message: TransactionRequestMessage = {
             address: ledgerWallet.getAddress(),
             amount: '1000000', // 0.001 TON in nanoTON
         };
@@ -133,8 +135,8 @@ async function testLedgerWallet() {
             try {
                 const boc = await ledgerWallet.getSignedSendTransaction(
                     {
-                        network: CHAIN.MAINNET,
-                        valid_until: Math.floor(Date.now() / 1000) + 60,
+                        network: Network.mainnet(),
+                        validUntil: Math.floor(Date.now() / 1000) + 60,
                         messages: [message],
                     },
                     { fakeSignature: false },

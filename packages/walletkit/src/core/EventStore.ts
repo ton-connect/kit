@@ -10,7 +10,7 @@
 
 import type { StoredEvent, EventStore, EventStatus } from '../types/durableEvents';
 import type { RawBridgeEvent, EventType } from '../types/internal';
-import { Storage } from '../storage';
+import type { Storage } from '../storage';
 import { globalLogger } from './Logger';
 import { validateBridgeEvent } from '../validation/events';
 

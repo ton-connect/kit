@@ -9,17 +9,9 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-    MemoryStorageAdapter,
-    Signer,
-    WalletV4R2Adapter,
-    WalletV5R1Adapter,
-    WalletSigner,
-    TonWalletKit,
-    BridgeEventMessageInfo,
-    InjectedToExtensionBridgeRequestPayload,
-    IWalletAdapter,
-} from '@ton/walletkit';
+import type { WalletSigner, BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
+import { MemoryStorageAdapter, Signer, WalletV4R2Adapter, WalletV5R1Adapter, TonWalletKit } from '@ton/walletkit';
+import type { WalletAdapter } from '@ton/walletkit';
 
 import { SwiftStorageAdapter } from './SwiftStorageAdapter';
 import { SwiftWalletAdapter } from './SwiftWalletAdapter';
@@ -42,12 +34,15 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
     };
 
     const walletKit = new TonWalletKit({
-        network: configuration.network,
+        networks: {
+            [configuration.network]: {
+                apiClient: configuration.apiClient,
+            },
+        },
         walletManifest: configuration.walletManifest,
         deviceInfo: configuration.deviceInfo,
         bridge: configuration.bridge,
         eventProcessor: {},
-        apiClient: configuration.apiClient,
 
         storage: storage ? new SwiftStorageAdapter(storage) : new MemoryStorageAdapter({}),
     });
@@ -146,8 +141,15 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
 
             console.log('➕ Bridge: Creating V4R2 wallet using mnemonic');
 
+            const configuredNetworks = walletKit.getConfiguredNetworks();
+            const network = configuredNetworks[parameters.network];
+
+            if (!network) {
+                throw new Error('Network is required to create V4R2 wallet');
+            }
+
             return await WalletV4R2Adapter.create(this.jsSigner(signer), {
-                client: walletKit.getApiClient(),
+                client: walletKit.getApiClient(network),
                 network: parameters.network,
             });
         },
@@ -157,8 +159,15 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
 
             console.log('➕ Bridge: Creating V5R1 wallet using mnemonic');
 
+            const configuredNetworks = walletKit.getConfiguredNetworks();
+            const network = configuredNetworks[parameters.network];
+
+            if (!network) {
+                throw new Error('Network is required to create V4R2 wallet');
+            }
+
             return await WalletV5R1Adapter.create(this.jsSigner(signer), {
-                client: walletKit.getApiClient(),
+                client: walletKit.getApiClient(network),
                 network: parameters.network,
             });
         },
@@ -199,7 +208,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
             return wallet;
         },
 
-        jsWalletAdapter(walletAdapter): IWalletAdapter {
+        jsWalletAdapter(walletAdapter): WalletAdapter {
             if (isSwiftObject(walletAdapter)) {
                 return new SwiftWalletAdapter(walletAdapter, walletKit.getApiClient());
             }

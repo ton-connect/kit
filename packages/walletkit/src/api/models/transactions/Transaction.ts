@@ -6,9 +6,9 @@
  *
  */
 
-import { Hex, Base64String, LogicalTime, UserFriendlyAddress } from '../core/Primitives';
-import { ExtraCurrencies } from '../core/ExtraCurrencies';
-import { TokenAmount } from '../core/TokenAmount';
+import type { Hex, Base64String, LogicalTime, UserFriendlyAddress } from '../core/Primitives';
+import type { ExtraCurrencies } from '../core/ExtraCurrencies';
+import type { TokenAmount } from '../core/TokenAmount';
 
 /**
  * Transaction on the TON blockchain.
@@ -17,7 +17,7 @@ export interface Transaction {
     /**
      * Account of the transaction
      */
-    account: string;
+    account: UserFriendlyAddress;
 
     /**
      * The state of the account before the transaction was executed
@@ -37,7 +37,7 @@ export interface Transaction {
     /**
      * Hash of the transaction
      */
-    hash: string;
+    hash: Hex;
 
     /**
      * The logical time of the transaction
@@ -53,12 +53,12 @@ export interface Transaction {
      * Masterchain block sequence number
      * @format int
      */
-    msBlockSeqno: number;
+    mcBlockSeqno: number;
 
     /**
      * External hash of the trace
      */
-    traceExternalHash: string;
+    traceExternalHash: Hex;
 
     /**
      * ID of the trace
@@ -113,7 +113,7 @@ export interface Transaction {
     /**
      * Emulated state of the transaction
      */
-    isEmulated: AccountStatus;
+    isEmulated: boolean;
 }
 
 /**
@@ -122,7 +122,7 @@ export interface Transaction {
 export type AccountStatus =
     | { type: 'active' }
     | { type: 'frozen' }
-    | { type: 'uninitialized' }
+    | { type: 'uninit' }
     | { type: 'unknown'; value: string };
 
 /**
@@ -147,7 +147,7 @@ export interface AccountState {
     /**
      * The status of the account
      */
-    accountStatus: AccountStatus;
+    accountStatus?: AccountStatus;
 
     /**
      * The hash of the frozen account state, if the account is frozen
@@ -238,9 +238,8 @@ export interface TransactionMessage {
 
     /**
      * The opcode included in the message payload
-     * @format int
      */
-    opcode?: number;
+    opcode?: string;
 
     /**
      * IHR(Immediate hypercube routing) enabled/disabled
@@ -272,11 +271,6 @@ export interface TransactionMessage {
      * The content body of the message
      */
     messageContent?: TransactionMessageContent;
-
-    /**
-     * The initial state of the contract, if provided by the message
-     */
-    initState?: TransactionMessageContent;
 }
 
 /**
@@ -286,12 +280,12 @@ export interface TransactionMessageContent {
     /**
      * The hash of the initial state
      */
-    hash: string;
+    hash?: string;
 
     /**
      * The body in BOC format
      */
-    body: Base64String;
+    body?: Base64String;
 
     /**
      * The decoded metadata from the initial state body
@@ -376,7 +370,7 @@ export interface TransactionCreditPhase {
     /**
      * The credited amount
      */
-    credit: TokenAmount;
+    credit?: TokenAmount;
 }
 
 /**
@@ -386,37 +380,37 @@ export interface TransactionComputePhase {
     /**
      * The flag indicating if the compute phase was skipped
      */
-    isSkipped: boolean;
+    isSkipped?: boolean;
 
     /**
      * The success state of the compute phase
      */
-    isSuccess: boolean;
+    isSuccess?: boolean;
 
     /**
      * The flag indicating if message state was used
      */
-    isMessageStateUsed: boolean;
+    isMessageStateUsed?: boolean;
 
     /**
      * The flag indicating if the account was activated during compute
      */
-    isAccountActivated: boolean;
+    isAccountActivated?: boolean;
 
     /**
      * The gas fees charged for compute
      */
-    gasFees: TokenAmount;
+    gasFees?: TokenAmount;
 
     /**
      * The total gas used in the compute phase
      */
-    gasUsed: TokenAmount;
+    gasUsed?: TokenAmount;
 
     /**
      * The gas limit for the compute phase
      */
-    gasLimit: TokenAmount;
+    gasLimit?: TokenAmount;
 
     /**
      * The gas credit for the compute phase
@@ -427,29 +421,29 @@ export interface TransactionComputePhase {
      * The compute execution mode
      * @format int
      */
-    mode: number;
+    mode?: number;
 
     /**
      * The exit code returned from the VM
      * @format int
      */
-    exitCode: number;
+    exitCode?: number;
 
     /**
      * The number of steps executed by the VM
      * @format int
      */
-    vmStepsNumber: number;
+    vmStepsNumber?: number;
 
     /**
      * The hash of the initial VM state before compute
      */
-    vmInitStateHash: string;
+    vmInitStateHash?: Hex;
 
     /**
      * The hash of the final VM state after compute
      */
-    vmFinalStateHash: string;
+    vmFinalStateHash?: Hex;
 }
 
 /**
@@ -459,22 +453,22 @@ export interface TransactionAction {
     /**
      * The flag indicating whether the action phase succeeded
      */
-    isSuccess: boolean;
+    isSuccess?: boolean;
 
     /**
      * The flag indicating whether the action phase was valid
      */
-    isValid: boolean;
+    isValid?: boolean;
 
     /**
      * The flag indicating if the transaction had insufficient funds
      */
-    hasNoFunds: boolean;
+    hasNoFunds?: boolean;
 
     /**
      * The status change applied to the account during the action phase
      */
-    statusChange: string;
+    statusChange?: string;
 
     /**
      * The total forwarding fees charged
@@ -490,7 +484,7 @@ export interface TransactionAction {
      * The result code returned from the action phase
      * @format int
      */
-    resultCode: number;
+    resultCode?: number;
 
     /**
      * The total number of actions processed
@@ -514,12 +508,12 @@ export interface TransactionAction {
      * The number of messages created in the action phase
      * @format int
      */
-    messagesCreatedCount: number;
+    messagesCreatedNumber: number;
 
     /**
      * The hash of the action list
      */
-    actionListHash: string;
+    actionListHash?: Hex;
 
     /**
      * The total size of messages created in the action phase
@@ -534,10 +528,10 @@ export interface TransactionActionMessageSize {
     /**
      * The total number of cells used
      */
-    cells: string;
+    cells?: string;
 
     /**
      * The total number of bits used
      */
-    bits: string;
+    bits?: string;
 }

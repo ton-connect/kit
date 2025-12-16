@@ -9,7 +9,8 @@
 import type { FC } from 'react';
 import { useUnistyles } from 'react-native-unistyles';
 
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 
 const NUMBER_REGEX = /[-+]?\d+\.?(\d+)?/;
 

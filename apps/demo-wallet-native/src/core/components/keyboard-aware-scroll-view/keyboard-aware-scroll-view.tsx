@@ -8,7 +8,8 @@
 
 import type { FC, RefObject } from 'react';
 import type { ScrollView } from 'react-native';
-import { KeyboardAwareScrollView, type KeyboardAwareScrollViewProps } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import type { KeyboardAwareScrollViewProps } from 'react-native-keyboard-controller';
 
 interface Props extends KeyboardAwareScrollViewProps {
     ref?: RefObject<ScrollView>;

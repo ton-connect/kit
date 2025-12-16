@@ -34,23 +34,23 @@ export async function callBridge<T>(_method: string, operation: () => Promise<T>
 
 /**
  * Wrapper for wallet-specific operations.
- * Gets a wallet by address and calls a method on it.
+ * Gets a wallet by walletId and calls a method on it.
  *
- * @param address - Wallet address
+ * @param walletId - Wallet ID (format: "{chainId}:{address}")
  * @param method - Wallet method name to call
  * @param args - Optional arguments to pass to the method
  * @returns Result of the wallet method
  */
-export async function callOnWalletBridge<T>(address: string, method: string, args?: unknown): Promise<T> {
+export async function callOnWalletBridge<T>(walletId: string, method: string, args?: unknown): Promise<T> {
     return callBridge(`wallet.${method}`, async () => {
-        const trimmedAddress = address?.trim();
-        if (!trimmedAddress) {
-            throw new Error('Wallet address is required');
+        const trimmedWalletId = walletId?.trim();
+        if (!trimmedWalletId) {
+            throw new Error('Wallet ID is required');
         }
 
-        const wallet = walletKit.getWallet?.(trimmedAddress);
+        const wallet = walletKit.getWallet?.(trimmedWalletId);
         if (!wallet) {
-            throw new Error(`Wallet not found for address ${trimmedAddress}`);
+            throw new Error(`Wallet not found for walletId ${trimmedWalletId}`);
         }
 
         const methodRef = (wallet as unknown as Record<string, unknown>)[method];

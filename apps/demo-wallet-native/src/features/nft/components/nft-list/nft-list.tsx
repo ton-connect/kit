@@ -7,8 +7,9 @@
  */
 
 import { useNfts, useWallet } from '@ton/demo-core';
-import type { NftItem } from '@ton/walletkit';
-import { type FC, useCallback, useEffect, useState } from 'react';
+import type { NFT } from '@ton/walletkit';
+import { useCallback, useEffect, useState } from 'react';
+import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { LegendList } from '@legendapp/list';
@@ -23,7 +24,7 @@ export const NftList: FC = () => {
     const { address } = useWallet();
     const { lastNftsUpdate, userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
     const { theme } = useUnistyles();
-    const [selectedNft, setSelectedNft] = useState<NftItem | null>(null);
+    const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
 
     // Load NFTs on mount if none are loaded
     useEffect(() => {
@@ -41,18 +42,14 @@ export const NftList: FC = () => {
         return () => clearInterval(interval);
     }, [loadUserNfts]);
 
-    const handleNftPress = useCallback((nft: NftItem) => {
-        setSelectedNft(nft);
-    }, []);
-
     const renderNftItem = useCallback(
-        ({ item: nft }: { item: NftItem }) => (
-            <NftItemCard nft={nft} onPress={handleNftPress} formatNftIndex={formatNftIndex} />
+        ({ item: nft }: { item: NFT }) => (
+            <NftItemCard nft={nft} onPress={setSelectedNft} formatNftIndex={formatNftIndex} />
         ),
-        [handleNftPress, formatNftIndex],
+        [formatNftIndex],
     );
 
-    const keyExtractor = useCallback((item: NftItem) => item.address, []);
+    const keyExtractor = useCallback((item: NFT) => item.address, []);
 
     // Error state
     if (error) {

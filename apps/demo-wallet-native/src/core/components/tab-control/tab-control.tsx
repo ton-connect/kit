@@ -7,7 +7,8 @@
  */
 
 import type { ReactElement } from 'react';
-import { TouchableWithoutFeedback, View, type ViewStyle } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { AppText } from '../app-text';

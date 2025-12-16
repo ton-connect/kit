@@ -6,7 +6,8 @@
  *
  */
 
-import { LegendList, type LegendListProps } from '@legendapp/list';
+import { LegendList } from '@legendapp/list';
+import type { LegendListProps } from '@legendapp/list';
 import type { ReactNode } from 'react';
 
 type BaseListProps<T> = Omit<LegendListProps<T>, 'data' | 'renderItem' | 'children'>;

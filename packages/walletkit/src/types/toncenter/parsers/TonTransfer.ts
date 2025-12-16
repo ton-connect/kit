@@ -8,8 +8,9 @@
 
 import { fromNano } from '@ton/core';
 
-import { AddressBook, toAccount, TonTransferAction, StatusAction } from '../AccountEvent';
-import { EmulationMessage, ToncenterTransaction } from '../emulation';
+import type { AddressBook, TonTransferAction, StatusAction } from '../AccountEvent';
+import { toAccount } from '../AccountEvent';
+import type { EmulationMessage, ToncenterTransaction } from '../emulation';
 import { Base64ToHex } from '../../../utils/base64';
 
 export function parseOutgoingTonTransfers(

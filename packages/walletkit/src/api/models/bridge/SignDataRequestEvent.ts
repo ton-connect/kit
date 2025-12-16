@@ -6,8 +6,8 @@
  *
  */
 
-import { DAppInfo } from '../core/DAppInfo';
-import { SignData } from '../core/SignData';
+import type { DAppInfo } from '../core/DAppInfo';
+import type { SignData } from '../core/SignData';
 
 /**
  * Event containing a sign data request from a dApp via TON Connect.

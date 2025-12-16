@@ -6,7 +6,8 @@
  *
  */
 
-import { Cell, TupleItem } from '@ton/core';
+import type { TupleItem } from '@ton/core';
+import { Cell } from '@ton/core';
 
 export type RawStackItem =
     | { type: 'null' }

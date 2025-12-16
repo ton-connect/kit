@@ -8,16 +8,16 @@
 
 import type { StateCreator } from 'zustand';
 import type {
-    IWallet,
+    Wallet,
     EventConnectRequest,
     EventTransactionRequest,
     EventSignDataRequest,
     EventDisconnect,
-    AddressJetton,
     JettonTransfer,
     JettonInfo,
-    NftItem,
     ITonWalletKit,
+    NFT,
+    Jetton,
 } from '@ton/walletkit';
 
 import type {
@@ -64,7 +64,7 @@ export interface WalletManagementSlice {
         events: unknown[];
         hasNextEvents: boolean;
 
-        currentWallet?: IWallet;
+        currentWallet?: Wallet;
         hasWallet: boolean;
         isAuthenticated: boolean;
     };
@@ -98,7 +98,7 @@ export interface WalletManagementSlice {
 
     // Getters
     getDecryptedMnemonic: (walletId?: string) => Promise<string[] | null>;
-    getAvailableWallets: () => IWallet[];
+    getAvailableWallets: () => Wallet[];
     getActiveWallet: () => SavedWallet | undefined;
 }
 
@@ -118,7 +118,7 @@ export interface TonConnectSlice {
     // TON Connect actions
     handleTonConnectUrl: (url: string) => Promise<void>;
     showConnectRequest: (request: EventConnectRequest) => void;
-    approveConnectRequest: (selectedWallet: IWallet) => Promise<void>;
+    approveConnectRequest: (selectedWallet: Wallet) => Promise<void>;
     rejectConnectRequest: (reason?: string) => Promise<void>;
     closeConnectModal: () => void;
 
@@ -152,7 +152,7 @@ export interface TonConnectSlice {
 // Jettons slice interface
 export interface JettonsSlice {
     jettons: {
-        userJettons: AddressJetton[];
+        userJettons: Jetton[];
         jettonTransfers: JettonTransfer[];
         popularJettons: JettonInfo[];
         isLoadingJettons: boolean;
@@ -170,14 +170,14 @@ export interface JettonsSlice {
     refreshJettons: (userAddress?: string) => Promise<void>;
     validateJettonAddress: (address: string) => boolean;
     clearJettons: () => void;
-    getJettonByAddress: (jettonAddress: string) => AddressJetton | undefined;
+    getJettonByAddress: (jettonAddress: string) => Jetton | undefined;
     formatJettonAmount: (amount: string, decimals: number) => string;
 }
 
 // NFTs slice interface
 export interface NftsSlice {
     nfts: {
-        userNfts: NftItem[];
+        userNfts: NFT[];
         isLoadingNfts: boolean;
         isRefreshing: boolean;
         error: string | null;
@@ -190,7 +190,7 @@ export interface NftsSlice {
     refreshNfts: (userAddress?: string) => Promise<void>;
     loadMoreNfts: (userAddress?: string) => Promise<void>;
     clearNfts: () => void;
-    getNftByAddress: (address: string) => NftItem | undefined;
+    getNftByAddress: (address: string) => NFT | undefined;
     formatNftIndex: (index: string) => string;
 }
 

@@ -6,9 +6,9 @@
  *
  */
 
-import { AddressJetton } from '../../jettons';
-import { Pagination } from '../../toncenter/Pagination';
-import { AddressBookRowV3 } from '../../toncenter/v3/AddressBookRowV3';
+import type { AddressJetton } from '../../jettons';
+import type { Pagination } from '../../toncenter/Pagination';
+import type { AddressBookRowV3 } from '../../toncenter/v3/AddressBookRowV3';
 
 // Toncenter Jetton Wallets API Response Types
 export interface ResponseUserJettons {

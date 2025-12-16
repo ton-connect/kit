@@ -7,7 +7,8 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { type FC, useContext, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
+import type { FC } from 'react';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { AppButtonContext } from './context';

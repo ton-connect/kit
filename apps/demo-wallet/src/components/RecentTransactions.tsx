@@ -8,8 +8,10 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useWalletStore, useWalletKit, type PreviewTransaction } from '@ton/demo-core';
-import { Base64NormalizeUrl, HexToBase64, type Event, type Action, CHAIN } from '@ton/walletkit';
+import { useWalletStore, useWalletKit } from '@ton/demo-core';
+import type { PreviewTransaction } from '@ton/demo-core';
+import { Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
+import type { Event, Action } from '@ton/walletkit';
 
 import { TraceRow } from './TraceRow';
 import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
@@ -40,7 +42,7 @@ export const RecentTransactions: React.FC = memo(() => {
     // Get the active wallet's network
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
     const walletNetwork = activeWallet?.network || 'testnet';
-    const chainNetwork = walletNetwork === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     // Check for pending transactions
     const checkPendingTransactions = async () => {
@@ -60,25 +62,25 @@ export const RecentTransactions: React.FC = memo(() => {
                     let targetAddress = '';
 
                     // Check incoming message
-                    if (tx.in_msg && tx.in_msg.value) {
-                        amount = tx.in_msg.value;
-                        targetAddress = tx.in_msg.source || '';
+                    if (tx.inMessage && tx.inMessage.value) {
+                        amount = tx.inMessage.value;
+                        targetAddress = tx.inMessage.source || '';
                         type = 'receive';
                     }
 
                     // Check outgoing messages - if there are any, it's likely a send transaction
-                    if (tx.out_msgs && tx.out_msgs.length > 0) {
-                        const mainOutMsg = tx.out_msgs[0];
+                    if (tx.outMessages && tx.outMessages.length > 0) {
+                        const mainOutMsg = tx.outMessages[0];
                         if (mainOutMsg.value) {
                             amount = mainOutMsg.value;
-                            targetAddress = mainOutMsg.destination;
+                            targetAddress = mainOutMsg.destination || '';
                             type = 'send';
                         }
                     }
 
                     return {
                         id: tx.hash,
-                        messageHash: tx.in_msg?.hash || '',
+                        messageHash: tx.inMessage?.hash || '',
                         type,
                         amount,
                         address: targetAddress,

@@ -6,8 +6,8 @@
  *
  */
 
-import { UserFriendlyAddress } from '../core/Primitives';
-import { TokenAmount } from '../core/TokenAmount';
+import type { UserFriendlyAddress } from '../core/Primitives';
+import type { TokenAmount } from '../core/TokenAmount';
 
 /**
  * Request parameters for transferring Jetton tokens.
@@ -21,7 +21,7 @@ export interface JettonsTransferRequest {
     /**
      * Amount to transfer in Jetton's smallest unit
      */
-    transferAmount?: TokenAmount;
+    transferAmount: TokenAmount;
 
     /**
      * Recipient wallet address

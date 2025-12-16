@@ -6,8 +6,8 @@
  *
  */
 
-import { AddressBookRow } from './AddressBookRow';
-import { DnsRecord } from './DnsRecord';
+import type { AddressBookRow } from './AddressBookRow';
+import type { DnsRecord } from './DnsRecord';
 
 export interface DnsRecords {
     addressBook: { [key: string]: AddressBookRow };

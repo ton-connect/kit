@@ -7,7 +7,8 @@
  */
 
 import type { FC } from 'react';
-import { ScrollView, type ScrollViewProps, View, type ViewProps, type ViewStyle } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import type { ScrollViewProps, ViewProps, ViewStyle } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 export const Container: FC<ViewProps & { offset?: number }> = ({ style, offset, ...rest }) => {

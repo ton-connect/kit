@@ -6,7 +6,7 @@
  *
  */
 
-import type { IWallet } from '@ton/walletkit';
+import type { Wallet } from '@ton/walletkit';
 import { useWallet } from '@ton/demo-core';
 import type { FC } from 'react';
 import { View } from 'react-native';
@@ -20,10 +20,10 @@ import { ActiveTouchAction } from '@/core/components/active-touch-action';
 interface WalletSelectorModalProps {
     isOpen: boolean;
     onClose: () => void;
-    wallets: IWallet[];
+    wallets: Wallet[];
 
-    selectedWallet: IWallet | null;
-    onSelectWallet: (wallet: IWallet) => void;
+    selectedWallet: Wallet | null;
+    onSelectWallet: (wallet: Wallet) => void;
     title?: string;
 }
 
@@ -37,7 +37,7 @@ export const WalletSelectorModal: FC<WalletSelectorModalProps> = ({
 }) => {
     const { savedWallets } = useWallet();
 
-    const handleSelect = (wallet: IWallet) => {
+    const handleSelect = (wallet: Wallet) => {
         onSelectWallet(wallet);
         onClose();
     };

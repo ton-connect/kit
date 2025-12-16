@@ -6,23 +6,14 @@
  *
  */
 
-import { Address, beginCell, Cell } from '@ton/core';
+import type { Cell } from '@ton/core';
+import { Address, beginCell } from '@ton/core';
 
-declare const hashBrand: unique symbol;
+import type { UserFriendlyAddress } from '../api/models';
 
-export type Hex = `0x${string}` & { readonly [hashBrand]: never };
 export type Base64String = string;
 
-export function asHex(data: string): Hex {
-    if (!/^0x[0-9a-fA-F]+$/.test(data) || data.length % 2 !== 0) {
-        throw new Error('Not a valid hex');
-    }
-    return data as Hex;
-}
-
-export type AddressFriendly = string;
-
-export function asMaybeAddressFriendly(data?: string | null): AddressFriendly | null {
+export function asMaybeAddressFriendly(data?: string | null): UserFriendlyAddress | null {
     try {
         return asAddressFriendly(data);
     } catch {
@@ -31,7 +22,7 @@ export function asMaybeAddressFriendly(data?: string | null): AddressFriendly | 
     return null;
 }
 
-export function asAddressFriendly(data?: string | null): AddressFriendly {
+export function asAddressFriendly(data?: string | null): UserFriendlyAddress {
     try {
         if (data) return Address.parse(data).toString();
     } catch {

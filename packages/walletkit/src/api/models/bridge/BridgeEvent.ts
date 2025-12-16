@@ -6,7 +6,7 @@
  *
  */
 
-import { UserFriendlyAddress } from '../core/Primitives';
+import type { UserFriendlyAddress } from '../core/Primitives';
 
 /**
  * Base event type for TON Connect bridge communication.

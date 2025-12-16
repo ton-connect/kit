@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import type { AddressJetton } from '@ton/walletkit';
+import type { Jetton } from '@ton/walletkit';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -18,10 +18,11 @@ import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
+import { getFormattedJettonInfo } from '@/core/utils/jetton';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
-    data?: AddressJetton;
+    data?: Jetton;
 }
 
 interface TokenSelectorProps {
@@ -30,7 +31,7 @@ interface TokenSelectorProps {
 }
 
 export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken, selectedToken }) => {
-    const { userJettons, formatJettonAmount } = useJettons();
+    const { userJettons } = useJettons();
     const tonBalance = useFormattedTonBalance();
 
     const { theme } = useUnistyles();
@@ -47,12 +48,14 @@ export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken, selectedT
         }
 
         if (selectedToken.data) {
+            const jettonInfo = getFormattedJettonInfo(selectedToken.data);
+
             return {
-                name: selectedToken.data.name || selectedToken.data.symbol,
-                symbol: selectedToken.data.symbol,
-                balance: formatJettonAmount(selectedToken.data.balance, selectedToken.data.decimals),
-                decimals: selectedToken.data.decimals,
-                image: selectedToken.data.image ? { uri: selectedToken.data.image } : null,
+                name: jettonInfo.name || jettonInfo.symbol,
+                symbol: jettonInfo.symbol,
+                balance: jettonInfo.balance,
+                decimals: jettonInfo.decimals,
+                image: jettonInfo.image ? { uri: jettonInfo.image } : null,
             };
         }
 
@@ -75,7 +78,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken, selectedT
                         </CircleLogo.Container>
                     ) : (
                         <View style={styles.tonLogo}>
-                            <AppText style={styles.tonLogoText}>{tokenInfo.symbol[0]}</AppText>
+                            <AppText style={styles.tonLogoText}>{tokenInfo.symbol?.[0]}</AppText>
                         </View>
                     )}
 

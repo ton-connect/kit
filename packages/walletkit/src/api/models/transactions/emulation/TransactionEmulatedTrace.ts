@@ -6,10 +6,10 @@
  *
  */
 
-import { Base64String, Hex } from '../../core/Primitives';
-import { TransactionTrace } from '../TransactionTrace';
-import { TransactionAddressMetadata } from '../TransactionMetadata';
-import { AddressBook } from '../../core/AddressBook';
+import type { Base64String, Hex } from '../../core/Primitives';
+import type { TransactionTrace } from '../TransactionTrace';
+import type { TransactionAddressMetadata } from '../TransactionMetadata';
+import type { AddressBook } from '../../core/AddressBook';
 
 /**
  * Extended transaction trace with emulation-specific data including

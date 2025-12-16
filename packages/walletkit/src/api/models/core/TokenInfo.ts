@@ -6,8 +6,8 @@
  *
  */
 
-import { TokenImage } from './TokenImage';
-import { TokenAnimation } from './TokenAnimation';
+import type { TokenImage } from './TokenImage';
+import type { TokenAnimation } from './TokenAnimation';
 
 /**
  * Display information for a token (TON, Jetton, or NFT).
@@ -37,9 +37,4 @@ export interface TokenInfo {
      * Ticker symbol of the token (e.g., "TON", "USDT")
      */
     symbol?: string;
-
-    /**
-     * Whether the token metadata has been verified
-     */
-    isValid?: boolean;
 }

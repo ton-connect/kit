@@ -6,9 +6,9 @@
  *
  */
 
-import { Cell } from '@ton/core';
+import type { Cell } from '@ton/core';
 
-import { ApiClient } from '../types/toncenter/ApiClient';
+import type { ApiClient } from '../types/toncenter/ApiClient';
 
 export type WalletOptions = {
     code: Cell;

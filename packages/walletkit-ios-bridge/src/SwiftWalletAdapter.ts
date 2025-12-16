@@ -6,23 +6,25 @@
  *
  */
 
-import {
-    IWalletAdapter,
+import type {
+    WalletAdapter,
     Hex,
-    CHAIN,
-    ConnectTransactionParamContent,
-    PrepareSignDataResult,
-    TonProofParsedMessage,
     ApiClient,
+    UserFriendlyAddress,
+    Base64String,
+    Network,
+    TransactionRequest,
+    PreparedSignData,
+    ProofMessage,
 } from '@ton/walletkit';
 
-import { Base64String } from '../../walletkit/dist/cjs/types/primitive';
+import type { WalletId } from '../../walletkit/dist/cjs';
 
-export class SwiftWalletAdapter implements IWalletAdapter {
-    private swiftWalletAdapter;
+export class SwiftWalletAdapter implements WalletAdapter {
+    private swiftWalletAdapter: WalletAdapter;
     private client: ApiClient;
 
-    constructor(swiftWalletAdapter: IWalletAdapter, client: ApiClient) {
+    constructor(swiftWalletAdapter: WalletAdapter, client: ApiClient) {
         this.swiftWalletAdapter = swiftWalletAdapter;
         this.client = client;
     }
@@ -31,7 +33,7 @@ export class SwiftWalletAdapter implements IWalletAdapter {
         return this.swiftWalletAdapter.getPublicKey();
     }
 
-    getNetwork(): CHAIN {
+    getNetwork(): Network {
         return this.swiftWalletAdapter.getNetwork();
     }
 
@@ -40,26 +42,30 @@ export class SwiftWalletAdapter implements IWalletAdapter {
     }
 
     /** Get wallet's TON address */
-    getAddress(options?: { testnet?: boolean }): string {
+    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
         return this.swiftWalletAdapter.getAddress(options);
     }
 
+    getWalletId(): WalletId {
+        return this.swiftWalletAdapter.getWalletId();
+    }
+
     /** Get state init for wallet deployment base64 encoded boc */
-    async getStateInit(): Promise<Base64String> {
+    getStateInit(): Promise<Base64String> {
         return this.swiftWalletAdapter.getStateInit();
     }
 
-    async getSignedSendTransaction(
-        input: ConnectTransactionParamContent,
+    getSignedSendTransaction(
+        input: TransactionRequest,
         options?: {
             fakeSignature: boolean;
         },
-    ): Promise<string> {
+    ): Promise<Base64String> {
         return this.swiftWalletAdapter.getSignedSendTransaction(input, options);
     }
 
-    async getSignedSignData(
-        input: PrepareSignDataResult,
+    getSignedSignData(
+        input: PreparedSignData,
         options?: {
             fakeSignature: boolean;
         },
@@ -67,8 +73,8 @@ export class SwiftWalletAdapter implements IWalletAdapter {
         return this.swiftWalletAdapter.getSignedSignData(input, options);
     }
 
-    async getSignedTonProof(
-        input: TonProofParsedMessage,
+    getSignedTonProof(
+        input: ProofMessage,
         options?: {
             fakeSignature: boolean;
         },

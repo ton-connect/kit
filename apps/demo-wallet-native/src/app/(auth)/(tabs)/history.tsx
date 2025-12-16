@@ -7,7 +7,8 @@
  */
 
 import type { Event } from '@ton/walletkit';
-import { type FC, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+import type { FC } from 'react';
 import { RefreshControl, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

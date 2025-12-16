@@ -8,13 +8,11 @@
 
 // Configuration type definitions
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import type { StorageAdapter, StorageConfig } from '../storage';
-import { EventProcessorConfig } from '../core/EventProcessor';
-import { DeviceInfo, WalletInfo } from './jsBridge';
-import { BridgeConfig } from './internal';
-import { ApiClient } from './toncenter/ApiClient';
+import type { EventProcessorConfig } from '../core/EventProcessor';
+import type { DeviceInfo, WalletInfo } from './jsBridge';
+import type { BridgeConfig } from './internal';
+import type { ApiClient } from './toncenter/ApiClient';
 
 /**
  * API client configuration options
@@ -37,7 +35,7 @@ export interface NetworkConfig {
  * Example: { [CHAIN.MAINNET]: { apiClient: {...} }, [CHAIN.TESTNET]: { apiClient: {...} } }
  */
 export type NetworkAdapters = {
-    [K in CHAIN]?: NetworkConfig;
+    [K in string]?: NetworkConfig;
 };
 
 /**

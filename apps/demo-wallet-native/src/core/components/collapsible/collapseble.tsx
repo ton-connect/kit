@@ -6,8 +6,10 @@
  *
  */
 
-import { type FC, type PropsWithChildren, useCallback, useState } from 'react';
-import { type LayoutChangeEvent, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import type { FC, PropsWithChildren } from 'react';
+import { View } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 interface Props extends PropsWithChildren {

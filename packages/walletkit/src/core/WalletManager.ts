@@ -8,19 +8,18 @@
 
 // Wallet management with validation and persistence
 
-import { CHAIN } from '@tonconnect/protocol';
-
-import type { IWallet } from '../types';
-import { Storage } from '../storage';
-import { IWalletAdapter } from '../types/wallet';
+import type { Storage } from '../storage';
 import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
-import { createWalletId, WalletId } from '../utils/walletId';
+import type { WalletId } from '../utils/walletId';
+import { createWalletId } from '../utils/walletId';
+import type { Network } from '../api/models';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
 
 const _log = globalLogger.createChild('WalletManager');
 
 export class WalletManager {
-    private wallets: Map<WalletId, IWallet> = new Map();
+    private wallets: Map<WalletId, Wallet> = new Map();
     private storage: Storage;
     // private storageKey = 'wallets';
 
@@ -38,21 +37,21 @@ export class WalletManager {
     /**
      * Get all wallets as array
      */
-    getWallets(): IWallet[] {
+    getWallets(): Wallet[] {
         return Array.from(this.wallets.values());
     }
 
     /**
      * Get wallet by wallet ID (network:address format)
      */
-    getWallet(walletId: WalletId): IWallet | undefined {
+    getWallet(walletId: WalletId): Wallet | undefined {
         return this.wallets.get(walletId) || undefined;
     }
 
     /**
      * Get wallet by address and network (convenience method)
      */
-    getWalletByAddressAndNetwork(address: string, network: CHAIN): IWallet | undefined {
+    getWalletByAddressAndNetwork(address: string, network: Network): Wallet | undefined {
         const walletId = createWalletId(network, address);
         return this.getWallet(walletId);
     }
@@ -60,7 +59,7 @@ export class WalletManager {
     /**
      * Add a wallet with validation
      */
-    async addWallet(wallet: IWallet): Promise<WalletId> {
+    async addWallet(wallet: Wallet): Promise<WalletId> {
         const validation = validateWallet(wallet);
         if (!validation.isValid) {
             throw new Error(`Invalid wallet: ${validation.errors.join(', ')}`);
@@ -78,7 +77,7 @@ export class WalletManager {
     /**
      * Remove wallet by wallet ID or wallet adapter
      */
-    async removeWallet(walletIdOrAdapter: WalletId | IWalletAdapter): Promise<boolean> {
+    async removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<boolean> {
         let walletId: WalletId;
         if (typeof walletIdOrAdapter === 'string') {
             walletId = walletIdOrAdapter;
@@ -87,17 +86,13 @@ export class WalletManager {
         }
 
         const removed = this.wallets.delete(walletId);
-        // if (removed) {
-        //     await this.persistWallets();
-        // }
-
         return removed;
     }
 
     /**
      * Update existing wallet
      */
-    async updateWallet(wallet: IWallet): Promise<void> {
+    async updateWallet(wallet: Wallet): Promise<void> {
         const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
         if (!this.wallets.has(walletId)) {
             throw new Error(`Wallet with ID ${walletId} not found`);
@@ -109,7 +104,6 @@ export class WalletManager {
         }
 
         this.wallets.set(walletId, wallet);
-        // await this.persistWallets();
     }
 
     /**
@@ -117,7 +111,6 @@ export class WalletManager {
      */
     async clearWallets(): Promise<void> {
         this.wallets.clear();
-        // await this.persistWallets();
     }
 
     /**
@@ -137,7 +130,7 @@ export class WalletManager {
     /**
      * Get wallet ID for a wallet adapter
      */
-    getWalletId(wallet: IWalletAdapter): WalletId {
+    getWalletId(wallet: WalletAdapter): WalletId {
         return createWalletId(wallet.getNetwork(), wallet.getAddress());
     }
 }

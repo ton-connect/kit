@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "node build.js",
-    "clean": "git clean -xdf dist node_modules .turbo"
+    "clean": "git clean -xdf dist node_modules .turbo",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ton/crypto": "^3.3.0",

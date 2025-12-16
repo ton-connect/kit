@@ -10,10 +10,12 @@ import type { FC } from 'react';
 import type { ViewProps, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { AppText, type AppTextProps } from '@/core/components/app-text';
+import { AppText } from '@/core/components/app-text';
+import type { AppTextProps } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { Column, Divider, Row } from '@/core/components/grid';
-import { TextAmount, type TextAmountProps } from '@/core/components/text-amount';
+import { TextAmount } from '@/core/components/text-amount';
+import type { TextAmountProps } from '@/core/components/text-amount';
 
 export const DataBlockContainer: FC<ViewProps> = ({ style, ...props }) => {
     return <Block style={[styles.container, style]} {...props} />;

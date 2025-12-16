@@ -6,7 +6,8 @@
  *
  */
 
-import { type FC, useMemo } from 'react';
+import { useMemo } from 'react';
+import type { FC } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

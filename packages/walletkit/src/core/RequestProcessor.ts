@@ -9,15 +9,21 @@
 // Request approval and rejection processing
 
 import { Address } from '@ton/core';
-import {
-    CONNECT_EVENT_ERROR_CODES,
+import type {
     ConnectEventError,
     ConnectEventSuccess,
-    SEND_TRANSACTION_ERROR_CODES,
     SendTransactionRpcResponseError,
     SendTransactionRpcResponseSuccess,
+    SignDataRpcResponseError,
     SignDataRpcResponseSuccess,
     TonProofItemReplySuccess,
+    SignDataPayload as TonConnectSignDataPayload,
+} from '@tonconnect/protocol';
+import {
+    CHAIN,
+    CONNECT_EVENT_ERROR_CODES,
+    SEND_TRANSACTION_ERROR_CODES,
+    SIGN_DATA_ERROR_CODES,
 } from '@tonconnect/protocol';
 import { getSecureRandomBytes } from '@ton/crypto';
 
@@ -28,30 +34,29 @@ import type {
     EventSignDataApproval,
     TonWalletKitOptions,
 } from '../types';
-import type { ConnectTransactionParamContent } from '../types/internal';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
-import { createTonProofMessage } from '../utils/tonProof';
+import { CreateTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
-import { PrepareTonConnectData } from '../utils/signData/sign';
 import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
-import { WalletManager } from './WalletManager';
-import { IWallet } from '../types';
-import {
+import type { WalletManager } from './WalletManager';
+import type {
     EventConnectApproval,
     EventSignDataResponse,
     EventTransactionApproval,
     EventTransactionResponse,
 } from '../types/events';
-import { asHex } from '../types/primitive';
-import { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsApi } from '../analytics/sender';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
-import { Base64Normalize } from '../utils/base64';
+import { Base64Normalize, Base64ToHex, HexToBase64 } from '../utils/base64';
 import { getAddressFromWalletId } from '../utils/walletId';
+import type { TransactionRequest, SignDataPayload } from '../api/models';
+import { PrepareSignData } from '../utils/signData/sign';
+import type { Wallet } from '../api/interfaces';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -71,7 +76,7 @@ export class RequestProcessor {
     /**
      * Helper to get wallet from event, supporting both walletId and walletAddress
      */
-    private getWalletFromEvent(event: { walletId?: string }): IWallet | undefined {
+    private getWalletFromEvent(event: { walletId?: string }): Wallet | undefined {
         if (event.walletId) {
             return this.walletManager.getWallet(event.walletId);
         }
@@ -148,7 +153,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         event_id: uuidv7(),
@@ -177,7 +182,7 @@ export class RequestProcessor {
                         manifest_json_url: event.preview.manifest?.url,
                         proof_payload_size: event.request.find((item) => item.name === 'ton_proof')?.payload?.length,
                         event_id: uuidv7(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     },
@@ -224,7 +229,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         event_id: uuidv7(),
@@ -261,7 +266,7 @@ export class RequestProcessor {
                             ) as TonProofItemReplySuccess
                         )?.proof?.payload?.length,
                         event_id: uuidv7(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     },
@@ -381,7 +386,7 @@ export class RequestProcessor {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
                     const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(Buffer.from(event.result.signedBoc, 'base64')));
+                    await CallForSuccess(() => client.sendBoc(event.result.signedBoc));
                 }
 
                 // Send approval response
@@ -399,7 +404,7 @@ export class RequestProcessor {
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
                     const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(Buffer.from(signedBoc, 'base64')));
+                    await CallForSuccess(() => client.sendBoc(signedBoc));
                 }
 
                 // Send approval response
@@ -443,7 +448,7 @@ export class RequestProcessor {
                 event_id: uuidv7(),
                 client_timestamp: getUnixtime(),
                 version: getVersion(),
-                network_id: wallet?.getNetwork(),
+                network_id: wallet?.getNetwork().chainId,
                 wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                 wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                 client_id: event.from,
@@ -457,7 +462,7 @@ export class RequestProcessor {
                 client_environment: 'wallet',
                 subsystem: getEventsSubsystem(),
                 event_id: uuidv7(),
-                network_id: wallet?.getNetwork(),
+                network_id: wallet?.getNetwork().chainId,
                 wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                 wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                 version: getVersion(),
@@ -502,7 +507,7 @@ export class RequestProcessor {
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
                     event_id: uuidv7(),
-                    network_id: wallet?.getNetwork(),
+                    network_id: wallet?.getNetwork().chainId,
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -532,7 +537,7 @@ export class RequestProcessor {
                         address: event.result.address,
                         timestamp: event.result.timestamp,
                         domain: event.result.domain,
-                        payload: event.result.payload,
+                        payload: toTonConnectSignDataPayload(event.result.payload),
                     },
                 };
 
@@ -546,7 +551,7 @@ export class RequestProcessor {
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
                         event_id: uuidv7(),
-                        network_id: wallet?.getNetwork(),
+                        network_id: wallet?.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -560,7 +565,7 @@ export class RequestProcessor {
                         client_environment: 'wallet',
                         subsystem: getEventsSubsystem(),
                         event_id: uuidv7(),
-                        network_id: wallet?.getNetwork(),
+                        network_id: wallet?.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -569,7 +574,7 @@ export class RequestProcessor {
                         client_id: event.from,
                     },
                 ]);
-                return { signature: asHex(event.result.signature) };
+                return { signature: Base64ToHex(event.result.signature) };
             } else {
                 if (!event.domain) {
                     const error = new WalletKitError(
@@ -613,13 +618,13 @@ export class RequestProcessor {
                 }
 
                 // Sign data with wallet
-                const signData = PrepareTonConnectData({
+                const signData = PrepareSignData({
                     payload: event.request,
                     domain: domainUrl,
-                    address: walletAddress ?? wallet.getAddress(),
+                    address: wallet.getAddress(),
                 });
                 const signature = await wallet.getSignedSignData(signData);
-                const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
+                const signatureBase64 = HexToBase64(signature);
 
                 // Send approval response
                 const response: SignDataRpcResponseSuccess = {
@@ -629,7 +634,7 @@ export class RequestProcessor {
                         address: Address.parse(signData.address).toRawString(),
                         timestamp: signData.timestamp,
                         domain: signData.domain,
-                        payload: signData.payload,
+                        payload: toTonConnectSignDataPayload(signData.payload),
                     },
                 };
 
@@ -643,7 +648,7 @@ export class RequestProcessor {
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
                         event_id: uuidv7(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -659,7 +664,7 @@ export class RequestProcessor {
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
                         event_id: uuidv7(),
-                        network_id: wallet.getNetwork(),
+                        network_id: wallet.getNetwork().chainId,
                         wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                         wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                         wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -668,7 +673,7 @@ export class RequestProcessor {
                         client_id: event.from,
                     },
                 ]);
-                return { signature: asHex(signature) };
+                return { signature: signature };
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -687,10 +692,19 @@ export class RequestProcessor {
      */
     async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
         try {
-            const response = {
-                error: 'USER_REJECTED',
-                reason: reason || 'User rejected data signing',
-            };
+            const response: SignDataRpcResponseError =
+                typeof reason === 'string' || typeof reason === 'undefined'
+                    ? {
+                          error: {
+                              code: SIGN_DATA_ERROR_CODES.USER_REJECTS_ERROR,
+                              message: reason || 'User rejected transaction',
+                          },
+                          id: event.id,
+                      }
+                    : {
+                          error: reason,
+                          id: event.id,
+                      };
 
             await this.bridgeManager.sendResponse(event, response);
             const wallet = this.getWalletFromEvent(event);
@@ -704,7 +718,7 @@ export class RequestProcessor {
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
                     event_id: uuidv7(),
-                    network_id: wallet?.getNetwork(),
+                    network_id: wallet?.getNetwork().chainId,
                     wallet_app_name: this.walletKitOptions.deviceInfo?.appName,
                     wallet_app_version: this.walletKitOptions.deviceInfo?.appVersion,
                     wallet_id: walletAddress ? Base64Normalize(walletAddress) : undefined,
@@ -767,7 +781,8 @@ export class RequestProcessor {
                     {
                         name: 'ton_addr',
                         address: Address.parse(address).toRawString(),
-                        network: walletNetwork,
+                        // TODO: Support multiple networks
+                        network: walletNetwork.chainId === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
                         walletStateInit,
                         publicKey,
                     },
@@ -796,7 +811,7 @@ export class RequestProcessor {
             // const walletKeyPair = secretKeyToED25519(decryptedData.seed);
 
             const timestamp = Math.floor(Date.now() / 1000);
-            const signMessage = createTonProofMessage({
+            const signMessage = CreateTonProofMessage({
                 address: Address.parse(address),
                 domain,
                 payload: proofItem.payload,
@@ -874,19 +889,52 @@ export class RequestProcessor {
 /**
  * Internal helper to sign transaction
  */
-export async function signTransactionInternal(
-    wallet: IWallet,
-    request: ConnectTransactionParamContent,
-): Promise<string> {
+export async function signTransactionInternal(wallet: Wallet, request: TransactionRequest): Promise<string> {
     const signedBoc = await wallet.getSignedSendTransaction(request, {
         fakeSignature: false,
     });
 
     log.debug('Signing transaction', {
-        messagesCount: request.messages.length,
-        from: request.from,
-        validUntil: request.valid_until,
+        messagesNumber: request.messages.length,
+        fromAddress: request.fromAddress,
+        validUntil: request.validUntil,
     });
 
     return signedBoc;
+}
+
+function toTonConnectSignDataPayload(payload: SignDataPayload): TonConnectSignDataPayload {
+    let network: CHAIN | undefined;
+
+    if (payload.network?.chainId === CHAIN.MAINNET) {
+        network = CHAIN.MAINNET;
+    } else if (payload.network?.chainId === CHAIN.TESTNET) {
+        network = CHAIN.TESTNET;
+    } else {
+        network = undefined;
+    }
+
+    if (payload.data.type === 'text') {
+        return {
+            network: network,
+            from: payload.fromAddress,
+            type: 'text',
+            text: payload.data.value.content,
+        };
+    } else if (payload.data.type === 'cell') {
+        return {
+            network: network,
+            from: payload.fromAddress,
+            type: 'cell',
+            schema: payload.data.value.schema,
+            cell: payload.data.value.content,
+        };
+    } else {
+        return {
+            network: network,
+            from: payload.fromAddress,
+            type: 'binary',
+            bytes: payload.data.value.content,
+        };
+    }
 }

@@ -7,7 +7,8 @@
  */
 
 import type { FC } from 'react';
-import { Modal, type ModalProps, Platform, View } from 'react-native';
+import { Modal, Platform, View } from 'react-native';
+import type { ModalProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { ModalToastProvider } from '@/features/toasts';

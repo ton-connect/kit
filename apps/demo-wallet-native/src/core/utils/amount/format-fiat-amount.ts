@@ -6,7 +6,8 @@
  *
  */
 
-import { Big, type BigValue } from '../../libs/big-number';
+import { Big } from '../../libs/big-number';
+import type { BigValue } from '../../libs/big-number';
 import { formatAmount } from './format-amount';
 
 export const formatFiatAmount = (amount: BigValue, decimals?: number, toFixed?: boolean): string => {

@@ -6,11 +6,11 @@
  *
  */
 
-import { TupleItem } from '@ton/core';
+import type { TupleItem } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 import { toHexString } from '@tonconnect/protocol';
 
-import { ApiClient } from './ApiClient';
+import type { ApiClient } from './ApiClient';
 import { toStringTail } from '../primitive';
 import { ParseStack, SerializeStack } from '../../utils/tvmStack';
 

@@ -6,9 +6,10 @@
  *
  */
 
-import type { NftItem } from '@ton/walletkit';
+import type { NFT } from '@ton/walletkit';
 import { formatAddress } from '@ton/demo-core';
-import { type FC, memo } from 'react';
+import { memo } from 'react';
+import type { FC } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,8 +20,8 @@ import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 
 interface NftItemCardProps {
-    nft: NftItem;
-    onPress: (nft: NftItem) => void;
+    nft: NFT;
+    onPress: (nft: NFT) => void;
     formatNftIndex: (index: string) => string;
 }
 
@@ -52,7 +53,7 @@ export const NftItemCard: FC<NftItemCardProps> = memo(({ nft, onPress, formatNft
                             {collectionName || formatAddress(nft.address, 4)}
                         </AppText>
 
-                        {nft.onSale && (
+                        {nft.isOnSale && (
                             <View style={styles.onSaleBadge}>
                                 <AppText style={styles.onSaleText}>On Sale</AppText>
                             </View>

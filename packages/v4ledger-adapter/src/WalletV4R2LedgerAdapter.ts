@@ -8,40 +8,36 @@
 
 // WalletV4R2 Ledger adapter that implements WalletInterface
 
-import {
-    Address,
-    beginCell,
-    Cell,
-    loadStateInit,
-    SendMode,
-    StateInit,
-    storeMessage,
-    storeStateInit,
-    external,
-} from '@ton/core';
+import type { StateInit } from '@ton/core';
+import { Address, beginCell, Cell, loadStateInit, SendMode, storeMessage, storeStateInit, external } from '@ton/core';
 import { CHAIN, toHexString } from '@tonconnect/protocol';
 import { TonTransport } from '@ton-community/ton-ledger';
-import Transport from '@ledgerhq/hw-transport';
-import {
-    IWalletAdapter,
+import type Transport from '@ledgerhq/hw-transport';
+import type {
+    WalletAdapter,
     ApiClient,
+    Hex,
+    WalletId,
+    Base64String,
+    TransactionRequest,
+    PreparedSignData,
+    ProofMessage,
+} from '@ton/walletkit';
+import {
     formatWalletAddress,
     CallForSuccess,
-    ConnectTransactionParamContent,
-    PrepareSignDataResult,
-    Hex,
-    TonProofParsedMessage,
     HexToBigInt,
     Uint8ArrayToHex,
     HexToUint8Array,
     createWalletId,
-    WalletId,
+    Network,
 } from '@ton/walletkit';
 
-import { WalletV4R2, WalletV4R2Config } from './WalletV4R2';
+import type { WalletV4R2Config } from './WalletV4R2';
+import { WalletV4R2 } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
 import { defaultWalletIdV4R2 } from './constants';
-import { WalletInitConfigLedgerInterface, WalletV4R2LedgerAdapterConfig } from './types';
+import type { WalletInitConfigLedgerInterface, WalletV4R2LedgerAdapterConfig } from './types';
 
 const log = {
     warn: (_message: string, _error: unknown) => {},
@@ -53,7 +49,7 @@ export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInter
         path: params.path,
         version: params.version ?? 'v4r2',
         walletId: params.walletId ?? 698983191,
-        network: params.network ?? CHAIN.MAINNET,
+        network: params.network ?? Network.mainnet(),
         workchain: params.workchain ?? 0,
         accountIndex: params.accountIndex ?? 0,
         publicKey: params.publicKey,
@@ -66,7 +62,7 @@ export function createWalletInitConfigLedger(params: WalletInitConfigLedgerInter
  * WalletV4R2 Ledger adapter that implements WalletInterface for WalletV4R2 contracts
  * using Ledger hardware wallet for signing
  */
-export class WalletV4R2LedgerAdapter implements IWalletAdapter {
+export class WalletV4R2LedgerAdapter implements WalletAdapter {
     private createTransport: () => Promise<Transport>;
     private config: WalletV4R2LedgerAdapterConfig;
     private derivationPath: number[];
@@ -106,7 +102,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         return this.client;
     }
 
-    getNetwork(): CHAIN {
+    getNetwork(): Network {
         return this.config.network;
     }
 
@@ -122,9 +118,9 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
     }
 
     async getSignedSendTransaction(
-        input: ConnectTransactionParamContent,
+        input: TransactionRequest,
         _options: { fakeSignature: boolean },
-    ): Promise<string> {
+    ): Promise<Base64String> {
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -140,8 +136,8 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
             //
         }
 
-        const timeout = input.valid_until
-            ? Math.min(input.valid_until, Math.floor(Date.now() / 1000) + 600)
+        const timeout = input.validUntil
+            ? Math.min(input.validUntil, Math.floor(Date.now() / 1000) + 600)
             : Math.floor(Date.now() / 1000) + 60;
 
         let transport: Transport | undefined;
@@ -232,7 +228,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address);
+            const state = await this.client.getAccountState(this.walletContract.address.toString());
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });
@@ -240,11 +236,11 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         }
     }
 
-    async getSignedSignData(_input: PrepareSignDataResult): Promise<Hex> {
+    async getSignedSignData(_input: PreparedSignData): Promise<Hex> {
         throw new Error('Not implemented');
     }
 
-    async getSignedTonProof(input: TonProofParsedMessage): Promise<Hex> {
+    async getSignedTonProof(input: ProofMessage): Promise<Hex> {
         // todo - add ledger max len checks
         let transport: Transport | undefined;
         try {
@@ -256,7 +252,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
 
             const { signature } = await tonTransport.getAddressProof(this.derivationPath, {
                 domain: input.domain.value,
-                timestamp: input.timstamp,
+                timestamp: input.timestamp,
                 payload: Buffer.from(input.payload),
             });
             return ('0x' + toHexString(signature)) as Hex;
@@ -271,7 +267,7 @@ export class WalletV4R2LedgerAdapter implements IWalletAdapter {
         const addressResponse = await tonTransport.getAddress(this.derivationPath, {
             chain: this.config.workchain ?? 0,
             bounceable: false,
-            testOnly: this.config.network === CHAIN.TESTNET,
+            testOnly: this.config.network.chainId === CHAIN.TESTNET,
             walletVersion: 'v4',
         });
         if (!addressResponse.publicKey) {

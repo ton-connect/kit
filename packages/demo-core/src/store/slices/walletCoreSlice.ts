@@ -6,7 +6,8 @@
  *
  */
 
-import { TonWalletKit, CHAIN, type ITonWalletKit, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import { TonWalletKit, CHAIN, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import type { ITonWalletKit } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
 import { isExtension } from '../../utils/isExtension';
@@ -15,9 +16,6 @@ import type { SetState, WalletCoreSliceCreator } from '../../types/store';
 import type { WalletKitConfig } from '../../types/wallet';
 
 const log = createComponentLogger('WalletCoreSlice');
-
-const ENV_TON_API_KEY_MAINNET = '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
-const ENV_TON_API_KEY_TESTNET = 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
 
 /**
  * Creates a WalletKit instance with the specified network configuration
@@ -37,13 +35,13 @@ async function createWalletKitInstance(walletKitConfig?: WalletKitConfig): Promi
             [CHAIN.MAINNET]: {
                 apiClient: {
                     url: 'https:/toncenter.com',
-                    key: ENV_TON_API_KEY_MAINNET,
+                    key: walletKitConfig?.tonApiKeyMainnet,
                 },
             },
             [CHAIN.TESTNET]: {
                 apiClient: {
                     url: 'https://testnet.toncenter.com',
-                    key: ENV_TON_API_KEY_TESTNET,
+                    key: walletKitConfig?.tonApiKeyTestnet,
                 },
             },
         },

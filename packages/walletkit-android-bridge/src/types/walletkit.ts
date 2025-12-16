@@ -6,7 +6,7 @@
  *
  */
 
-import type { IWallet, IWalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -22,6 +22,7 @@ export interface WalletKitBridgeInitConfig {
     allowMemoryStorage?: boolean;
     walletManifest?: unknown;
     deviceInfo?: unknown;
+    disableNetworkSend?: boolean;
 }
 
 export interface AndroidBridgeType {
@@ -33,17 +34,17 @@ export interface WalletKitNativeBridgeType {
     signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
-export type WalletKitWallet = IWallet;
-export type WalletKitAdapter = IWalletAdapter;
+export type WalletKitWallet = Wallet;
+export type WalletKitAdapter = WalletAdapter;
 export type WalletKitSigner = WalletSigner;
 
 export interface WalletKitInstance {
     ensureInitialized?: () => Promise<void>;
     getWallets: () => WalletKitWallet[];
-    getWallet(address: string): WalletKitWallet | undefined;
+    getWallet(walletId: string): WalletKitWallet | undefined;
     getNetwork?: () => string;
-    removeWallet(address: string): Promise<void>;
-    getApiClient(): unknown;
+    removeWallet(walletId: string): Promise<void>;
+    getApiClient(chainId?: string): unknown;
     addWallet(adapter: unknown): Promise<WalletKitWallet | null>;
     handleNewTransaction(wallet: WalletKitWallet, transaction: unknown): Promise<unknown>;
     handleTonConnectUrl(url: string): Promise<unknown>;
@@ -61,5 +62,13 @@ export interface WalletKitInstance {
     removeSignDataRequestCallback(): void;
     onDisconnect(callback: (event: unknown) => void): void;
     removeDisconnectCallback(): void;
-    signDataRequest(event: unknown): Promise<unknown>;
+    onRequestError(callback: (event: unknown) => void): void;
+    removeErrorCallback(): void;
+    // Request approval methods
+    approveConnectRequest(event: unknown): Promise<unknown>;
+    rejectConnectRequest(event: unknown, reason?: string, errorCode?: number): Promise<unknown>;
+    approveTransactionRequest(event: unknown): Promise<unknown>;
+    rejectTransactionRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
+    approveSignDataRequest(event: unknown): Promise<unknown>;
+    rejectSignDataRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
 }

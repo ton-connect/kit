@@ -7,7 +7,7 @@
  */
 
 import type { Event, Action } from '@ton/walletkit';
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';

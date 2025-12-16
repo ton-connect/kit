@@ -32,3 +32,4 @@ packages/walletkit-ios-bridge/build/*
 packages/walletkit-android-bridge/*.sh
 
 release-artifacts
+*.tgz

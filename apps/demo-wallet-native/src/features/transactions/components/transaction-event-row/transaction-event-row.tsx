@@ -9,7 +9,8 @@
 import type { Event, Action } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
-import { type FC, memo } from 'react';
+import { memo } from 'react';
+import type { FC } from 'react';
 import { Image } from 'react-native';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';

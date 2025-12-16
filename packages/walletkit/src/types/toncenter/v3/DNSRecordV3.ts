@@ -6,7 +6,7 @@
  *
  */
 
-import { DnsRecord } from '../DnsRecord';
+import type { DnsRecord } from '../DnsRecord';
 import { asAddressFriendly } from '../../primitive';
 
 export interface DNSRecordV3 {

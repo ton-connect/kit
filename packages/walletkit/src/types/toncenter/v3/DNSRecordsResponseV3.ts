@@ -6,10 +6,11 @@
  *
  */
 
-import { DNSRecordV3, toDnsRecord } from './DNSRecordV3';
-import { AddressBookRowV3 } from './AddressBookRowV3';
-import { DnsRecords } from '../DnsRecords';
-import { AddressBookRow } from '../AddressBookRow';
+import type { DNSRecordV3 } from './DNSRecordV3';
+import { toDnsRecord } from './DNSRecordV3';
+import type { AddressBookRowV3 } from './AddressBookRowV3';
+import type { DnsRecords } from '../DnsRecords';
+import type { AddressBookRow } from '../AddressBookRow';
 import { asAddressFriendly } from '../../primitive';
 
 export interface DNSRecordsResponseV3 {

@@ -11,7 +11,7 @@
  * Provides extensible message decoding with type-safe pattern matching
  */
 
-import { EmulationMessage } from '../emulation';
+import type { EmulationMessage } from '../emulation';
 import { MessageType, resolveOpCode, matchesDecodedType } from './opcodes';
 
 /**

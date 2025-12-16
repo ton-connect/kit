@@ -8,7 +8,7 @@
 
 // Durable event system types
 
-import { WalletId } from '../utils/walletId';
+import type { WalletId } from '../utils/walletId';
 import type { RawBridgeEvent, EventType } from './internal';
 
 /**

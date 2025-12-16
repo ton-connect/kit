@@ -9,16 +9,17 @@
 // Bridge connection and communication management
 
 import { SessionCrypto } from '@tonconnect/protocol';
-import { BridgeProvider, ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
+import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
+import { BridgeProvider } from '@tonconnect/bridge-sdk';
 
 import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, SessionData } from '../types/internal';
-import { Storage } from '../storage';
+import type { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
-import { SessionManager } from './SessionManager';
-import { EventRouter } from './EventRouter';
-import {
+import type { SessionManager } from './SessionManager';
+import type { EventRouter } from './EventRouter';
+import type {
     BridgeEventMessageInfo,
     InjectedToExtensionBridgeRequestPayload,
     JSBridgeTransportFunction,
@@ -26,9 +27,9 @@ import {
 } from '../types/jsBridge';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsApi } from '../analytics/sender';
 import { getUnixtime } from '../utils/time';
-import { TonWalletKitOptions } from '../types/config';
+import type { TonWalletKitOptions } from '../types/config';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
 import { getAddressFromWalletId } from '../utils/walletId';

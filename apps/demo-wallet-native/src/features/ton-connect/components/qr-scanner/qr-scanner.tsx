@@ -7,7 +7,8 @@
  */
 
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { type FC, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import type { FC } from 'react';
 import { View, Alert, Linking } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

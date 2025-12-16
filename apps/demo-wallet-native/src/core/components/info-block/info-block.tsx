@@ -7,11 +7,14 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { type FC, useMemo } from 'react';
-import { View, type ViewProps } from 'react-native';
+import { useMemo } from 'react';
+import type { FC } from 'react';
+import { View } from 'react-native';
+import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { AppText, type AppTextProps } from '../app-text';
+import { AppText } from '../app-text';
+import type { AppTextProps } from '../app-text';
 import { Block } from '../block';
 import { getIconName } from './utils';
 

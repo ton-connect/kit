@@ -6,7 +6,7 @@
  *
  */
 
-import { UserFriendlyAddress, Base64String, Hex } from '../core/Primitives';
+import type { Base64String, Hex } from '../core/Primitives';
 
 /**
  * Message structure used for TON Connect proof of ownership.
@@ -18,17 +18,18 @@ export interface ProofMessage {
      */
     workchain: number;
     /**
-     * Wallet address in user-friendly format
+     * Wallet address hash in hexadecimal format
      */
-    address: UserFriendlyAddress;
+    addressHash: Hex;
     /**
      * Unix timestamp when the proof was created
+     * @format timestamp
      */
     timestamp: number;
     /**
      * Domain information for the proof request
      */
-    domain?: ProofMessageDomain;
+    domain: ProofMessageDomain;
     /**
      * Payload string to be signed
      */

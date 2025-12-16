@@ -6,7 +6,8 @@
  *
  */
 
-import { chromium, type Fixtures, type TestType } from '@playwright/test';
+import { chromium } from '@playwright/test';
+import type { Fixtures, TestType } from '@playwright/test';
 import { mergeTests, test as base } from '@playwright/test';
 
 export async function launchPersistentContext(extensionPath: string, slowMo = 0) {
@@ -37,7 +38,7 @@ export async function launchPersistentContext(extensionPath: string, slowMo = 0)
     slowMo = isCi ? 0 : (parseInt(process.env.E2E_SLOW_MO || '0') ?? slowMo);
     const browserContext = await chromium.launchPersistentContext('', {
         args,
-        headless,
+        headless: false,
         slowMo,
     });
 

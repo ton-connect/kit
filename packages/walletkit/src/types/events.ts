@@ -13,22 +13,18 @@ import type {
     ConnectEventSuccess,
     ConnectItem,
     ConnectRequest,
-    SignDataPayload,
     WalletResponseTemplateError,
 } from '@tonconnect/protocol';
 
-import {
+import type {
     BridgeEventBase,
-    ConnectTransactionParamContent,
     EventApprovalBase,
     RawBridgeEventSignData,
     RawBridgeEventTransaction,
     RawBridgeEvent,
 } from './internal';
-import { MoneyFlow } from '../utils/toncenterEmulation';
-import { ToncenterEmulationResponse } from './toncenter/emulation';
-import { Base64String, Hex } from './primitive';
-import { ErrorInfo } from '../errors';
+import type { Base64String } from './primitive';
+import type { SignDataPayload, TransactionEmulatedPreview, TransactionRequest, Hex } from '../api/models';
 
 // export type EventConnectRequest = ConnectRequest;
 
@@ -57,10 +53,10 @@ export interface EventConnectRequest extends BridgeEventBase {
  */
 export type EventTransactionRequest = RawBridgeEventTransaction & {
     /** Raw transaction request data */
-    request: ConnectTransactionParamContent;
+    request: TransactionRequest;
 
     /** Human-readable preview for UI display */
-    preview: TransactionPreview;
+    preview: TransactionEmulatedPreview;
 
     /** dApp information */
     dAppInfo: DAppInfo;
@@ -169,24 +165,6 @@ export interface ConnectPreview {
     manifestFetchErrorCode?:
         | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
         | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
-}
-
-/**
- * Transaction preview for UI display
- */
-export type TransactionPreview = TransactionPreviewEmulationError | TransactionPreviewEmulationResult;
-
-export interface TransactionPreviewEmulationError {
-    result: 'error';
-    emulationError: ErrorInfo;
-}
-
-export interface TransactionPreviewEmulationResult {
-    result: 'success';
-    /** Estimated total fees */
-    moneyFlow: MoneyFlow;
-    /** Emulation result */
-    emulationResult: ToncenterEmulationResponse;
 }
 
 export type SignDataPreviewText = {

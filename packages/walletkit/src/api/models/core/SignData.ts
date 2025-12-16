@@ -6,7 +6,7 @@
  *
  */
 
-import { Base64String } from './Primitives';
+import type { Base64String } from './Primitives';
 
 /**
  * Data to be signed by the wallet, discriminated by type.

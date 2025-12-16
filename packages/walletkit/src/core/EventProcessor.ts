@@ -20,7 +20,8 @@ import type { SessionManager } from './SessionManager';
 import type { EventRouter } from './EventRouter';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
-import { getAddressFromWalletId, WalletId } from '../utils/walletId';
+import type { WalletId } from '../utils/walletId';
+import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('EventProcessor');
 

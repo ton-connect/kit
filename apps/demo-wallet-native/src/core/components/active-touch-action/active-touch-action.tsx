@@ -7,7 +7,8 @@
  */
 
 import type { FC, PropsWithChildren } from 'react';
-import { type StyleProp, type TouchableOpacityProps, TouchableWithoutFeedback, type ViewStyle } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native';
+import type { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 export interface ActiveTouchActionProps extends PropsWithChildren {

@@ -6,7 +6,7 @@
  *
  */
 
-import { StorageAdapter, StorageConfig } from '../types';
+import type { StorageAdapter, StorageConfig } from '../types';
 
 /**
  * In-memory storage adapter for testing and temporary storage

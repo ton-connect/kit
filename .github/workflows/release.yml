@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - release
+  # Allows manual workflow runs with branch selection in UI
+  workflow_dispatch: {}
 
 jobs:
   release:

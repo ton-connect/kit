@@ -6,9 +6,9 @@
  *
  */
 
-import { SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
+import type { SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
 
-import { DeviceInfo, WalletInfo } from '../types/jsBridge';
+import type { DeviceInfo, WalletInfo } from '../types/jsBridge';
 
 /**
  * Default device info for JS Bridge

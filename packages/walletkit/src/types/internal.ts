@@ -8,17 +8,19 @@
 
 // Internal types for TonWalletKit modules
 
-import {
+import type {
     ConnectItem,
     SendTransactionRpcRequest,
     SignDataRpcRequest,
-    WalletResponseError as _WalletResponseError,
     WalletResponseTemplateError,
 } from '@tonconnect/protocol';
+import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
-import { DAppInfo } from './events';
-import { JSBridgeTransportFunction } from './jsBridge';
-import { WalletId } from '../utils/walletId';
+import type { DAppInfo } from './events';
+import type { JSBridgeTransportFunction } from './jsBridge';
+import type { WalletId } from '../utils/walletId';
+import type { ExtraCurrencies, TransactionRequest, TransactionRequestMessage } from '../api/models';
+import { SendModeFromValue, SendModeToValue } from '../api/models/core/SendMode';
 
 // import type { WalletInterface } from './wallet';
 
@@ -140,11 +142,59 @@ export interface ConnectTransactionParamMessage {
     extraCurrency?: ConnectExtraCurrency;
     mode?: number;
 }
+
+export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefined): ExtraCurrencies | undefined {
+    if (!extraCurrency) {
+        return undefined;
+    }
+    return extraCurrency as ExtraCurrencies;
+}
+
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
     network?: string;
     valid_until?: number; // unixtime
     from?: string;
+}
+
+export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {
+    return {
+        address: msg.address,
+        amount: msg.amount,
+        payload: msg.payload,
+        stateInit: msg.stateInit,
+        extraCurrency: toExtraCurrencies(msg.extraCurrency),
+        mode: msg.mode ? SendModeFromValue(msg.mode) : undefined,
+    };
+}
+
+export function toConnectTransactionParamMessage(message: TransactionRequestMessage): ConnectTransactionParamMessage {
+    return {
+        address: message.address,
+        amount: message.amount,
+        payload: message.payload,
+        stateInit: message.stateInit,
+        extraCurrency: message.extraCurrency as ConnectExtraCurrency | undefined,
+        mode: message.mode ? SendModeToValue(message.mode) : undefined,
+    };
+}
+
+export function toTransactionRequest(params: ConnectTransactionParamContent): TransactionRequest {
+    return {
+        messages: params.messages.map(toTransactionRequestMessage),
+        network: params.network ? { chainId: params.network } : undefined,
+        validUntil: params.valid_until,
+        fromAddress: params.from,
+    };
+}
+
+export function toConnectTransactionParamContent(request: TransactionRequest): ConnectTransactionParamContent {
+    return {
+        messages: request.messages.map(toConnectTransactionParamMessage),
+        network: request.network?.chainId,
+        valid_until: request.validUntil,
+        from: request.fromAddress,
+    };
 }
 
 export type RawBridgeEventTransaction = BridgeEventBase & SendTransactionRpcRequest;

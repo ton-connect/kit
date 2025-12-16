@@ -10,15 +10,15 @@
 
 import { CHAIN } from '@tonconnect/protocol';
 import { TonTransport } from '@ton-community/ton-ledger';
-import Transport from '@ledgerhq/hw-transport';
+import type Transport from '@ledgerhq/hw-transport';
+import type { WalletAdapter, ApiClient } from '@ton/walletkit';
 import {
-    IWalletAdapter,
-    ApiClient,
+    Network,
     // globalLogger,
 } from '@ton/walletkit';
 
 import { WalletV4R2LedgerAdapter } from './WalletV4R2LedgerAdapter';
-import { WalletInitConfigLedgerInterface } from './types';
+import type { WalletInitConfigLedgerInterface } from './types';
 
 // const log = globalLogger.createChild('WalletV4R2Utils');
 const log = {
@@ -51,7 +51,7 @@ export async function createWalletV4R2Ledger(
     options: {
         tonClient: ApiClient;
     },
-): Promise<IWalletAdapter> {
+): Promise<WalletAdapter> {
     if (!isWalletInitConfigLedger(config)) {
         throw new Error('Invalid Ledger configuration');
     }
@@ -68,7 +68,7 @@ export async function createWalletV4R2Ledger(
             const response = await tonTransport.getAddress(config.path, {
                 chain: config.workchain ?? 0,
                 bounceable: false,
-                testOnly: config.network === CHAIN.TESTNET,
+                testOnly: config.network?.chainId === CHAIN.TESTNET,
                 walletVersion: 'v4',
             });
             publicKey = response.publicKey;
@@ -80,7 +80,7 @@ export async function createWalletV4R2Ledger(
             publicKey: publicKey,
             walletId: config.walletId,
             tonClient: options.tonClient,
-            network: config.network || CHAIN.MAINNET,
+            network: config.network || Network.mainnet(),
             workchain: config.workchain,
         });
     } catch (error) {

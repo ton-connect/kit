@@ -6,11 +6,11 @@
  *
  */
 
-import { ExtraCurrencies } from '../core/ExtraCurrencies';
-import { Network } from '../core/Network';
-import { UserFriendlyAddress, Base64String } from '../core/Primitives';
-import { SendMode } from '../core/SendMode';
-import { TokenAmount } from '../core/TokenAmount';
+import type { ExtraCurrencies } from '../core/ExtraCurrencies';
+import type { Network } from '../core/Network';
+import type { UserFriendlyAddress, Base64String } from '../core/Primitives';
+import type { SendMode } from '../core/SendMode';
+import type { TokenAmount } from '../core/TokenAmount';
 
 /**
  * Request to send a transaction on the TON blockchain.
@@ -44,12 +44,12 @@ export interface TransactionRequestMessage {
     /**
      * Recipient wallet address
      */
-    recipientAddress: UserFriendlyAddress;
+    address: UserFriendlyAddress;
 
     /**
-     * Amount to transfer in nanotons
+     * Amount to transfer in nanos
      */
-    transferAmount: TokenAmount;
+    amount: TokenAmount;
 
     /**
      * Send mode flags controlling message behavior

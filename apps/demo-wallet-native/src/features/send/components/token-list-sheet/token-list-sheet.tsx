@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { ScrollView, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useFormattedTonBalance, useJettons } from '@ton/demo-core';
-import type { AddressJetton } from '@ton/walletkit';
+import type { Jetton } from '@ton/walletkit';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppLogo } from '@/core/components/app-logo';
@@ -19,22 +19,23 @@ import { AppModal } from '@/core/components/app-modal';
 import { AppText } from '@/core/components/app-text';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
+import { getFormattedJettonInfo } from '@/core/utils/jetton';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
-    data?: AddressJetton;
+    data?: Jetton;
 }
 
 interface TokenListSheetProps {
     isOpen: boolean;
     onClose: () => void;
     onSelectTon: () => void;
-    onSelectJetton: (jetton: AddressJetton) => void;
+    onSelectJetton: (jetton: Jetton) => void;
     selectedToken: SelectedToken;
 }
 
 export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSelectTon, onSelectJetton }) => {
-    const { userJettons, formatJettonAmount } = useJettons();
+    const { userJettons } = useJettons();
     const tonBalance = useFormattedTonBalance();
 
     const { theme } = useUnistyles();
@@ -44,7 +45,7 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
         onClose();
     };
 
-    const handleSelectJetton = (jetton: AddressJetton) => {
+    const handleSelectJetton = (jetton: Jetton) => {
         onSelectJetton(jetton);
         onClose();
     };
@@ -81,41 +82,42 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
                     </View>
                 </ActiveTouchAction>
 
-                {userJettons.map((jetton) => (
-                    <ActiveTouchAction
-                        key={jetton.address}
-                        onPress={() => handleSelectJetton(jetton)}
-                        style={styles.tokenItem}
-                    >
-                        <View style={styles.tokenInfo}>
-                            {jetton.image ? (
-                                <CircleLogo.Container>
-                                    <CircleLogo.Logo source={{ uri: jetton.image }} />
-                                </CircleLogo.Container>
-                            ) : (
-                                <View style={styles.jettonPlaceholder}>
-                                    <AppText style={styles.jettonPlaceholderText}>{jetton.symbol.charAt(0)}</AppText>
+                {userJettons.map((jetton) => {
+                    const { image, name, symbol, decimals, balance, address } = getFormattedJettonInfo(jetton);
+
+                    return (
+                        <ActiveTouchAction
+                            key={address}
+                            onPress={() => handleSelectJetton(jetton)}
+                            style={styles.tokenItem}
+                        >
+                            <View style={styles.tokenInfo}>
+                                {image ? (
+                                    <CircleLogo.Container>
+                                        <CircleLogo.Logo source={{ uri: image }} />
+                                    </CircleLogo.Container>
+                                ) : (
+                                    <View style={styles.jettonPlaceholder}>
+                                        <AppText style={styles.jettonPlaceholderText}>{symbol?.charAt(0)}</AppText>
+                                    </View>
+                                )}
+                                <View style={styles.tokenDetails}>
+                                    <AppText style={styles.tokenName}>{name}</AppText>
+                                    <AppText style={styles.tokenDescription} textType="caption1">
+                                        {symbol}
+                                    </AppText>
                                 </View>
-                            )}
-                            <View style={styles.tokenDetails}>
-                                <AppText style={styles.tokenName}>{jetton.name}</AppText>
-                                <AppText style={styles.tokenDescription} textType="caption1">
-                                    {jetton.symbol}
+                            </View>
+
+                            <View style={styles.tokenBalance}>
+                                <TextAmount amount={balance} decimals={decimals} style={styles.balanceAmount} />
+                                <AppText style={styles.balanceSymbol} textType="caption1">
+                                    {symbol}
                                 </AppText>
                             </View>
-                        </View>
-                        <View style={styles.tokenBalance}>
-                            <TextAmount
-                                amount={formatJettonAmount(jetton.balance, jetton.decimals)}
-                                decimals={jetton.decimals}
-                                style={styles.balanceAmount}
-                            />
-                            <AppText style={styles.balanceSymbol} textType="caption1">
-                                {jetton.symbol}
-                            </AppText>
-                        </View>
-                    </ActiveTouchAction>
-                ))}
+                        </ActiveTouchAction>
+                    );
+                })}
             </ScrollView>
         </AppModal>
     );

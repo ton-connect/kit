@@ -7,7 +7,8 @@
  */
 
 import { hideAsync, preventAutoHideAsync } from 'expo-splash-screen';
-import { type FC, type PropsWithChildren, useEffect } from 'react';
+import { useEffect } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { useWalletStore } from '@ton/demo-core';

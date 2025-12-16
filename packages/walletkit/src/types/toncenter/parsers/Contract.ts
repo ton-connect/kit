@@ -8,17 +8,17 @@
 
 import { fromNano } from '@ton/core';
 
-import {
+import type {
     AddressBook,
-    toAccount,
     SmartContractExecAction,
     ContractDeployAction as SmartContractDeployAction,
 } from '../AccountEvent';
-import { EmulationMessage, ToncenterTransaction } from '../emulation';
+import { toAccount } from '../AccountEvent';
+import type { EmulationMessage, ToncenterTransaction } from '../emulation';
 import { asAddressFriendly } from '../../primitive';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
-import { Hex } from '../../primitive';
+import type { Hex } from '../../../api/models';
 
 export type SmartContractAction = SmartContractExecAction | SmartContractDeployAction;
 

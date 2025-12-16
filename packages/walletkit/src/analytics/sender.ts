@@ -7,7 +7,7 @@
  */
 
 import { globalLogger } from '../core/Logger';
-import { AnalyticsConfig } from '../types/config';
+import type { AnalyticsConfig } from '../types/config';
 import { Api } from './Api';
 
 const log = globalLogger.createChild('AnalyticsApi');

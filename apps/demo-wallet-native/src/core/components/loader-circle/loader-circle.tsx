@@ -6,8 +6,10 @@
  *
  */
 
-import { type FC, useEffect } from 'react';
-import { View, type ViewStyle } from 'react-native';
+import { useEffect } from 'react';
+import type { FC } from 'react';
+import { View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import Animated, {
     cancelAnimation,
     Easing,

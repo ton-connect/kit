@@ -6,7 +6,8 @@
  *
  */
 
-import { type FC, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
+import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { CreateTonMnemonic } from '@ton/walletkit';

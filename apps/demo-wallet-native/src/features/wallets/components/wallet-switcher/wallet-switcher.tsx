@@ -6,8 +6,9 @@
  *
  */
 
-import { type SavedWallet } from '@ton/demo-core';
-import { type FC, useState } from 'react';
+import type { SavedWallet } from '@ton/demo-core';
+import { useState } from 'react';
+import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 

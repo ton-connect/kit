@@ -6,8 +6,10 @@
  *
  */
 
-import { type FC, useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, type TextInput, View, type ViewProps } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { FC } from 'react';
+import { Pressable, View } from 'react-native';
+import type { TextInput, ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 import { AppInput } from '@/core/components/app-input';

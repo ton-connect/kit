@@ -8,9 +8,8 @@
 
 // Main TonWalletKit interface definition
 
-import { CHAIN, CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
+import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
 
-import type { IWallet, IWalletAdapter } from './wallet';
 import type {
     EventConnectRequest,
     EventTransactionRequest,
@@ -21,8 +20,11 @@ import type {
     EventTransactionResponse,
 } from './events';
 import type { JettonsAPI } from './jettons';
-import { ConnectTransactionParamContent } from './internal';
-import { ApiClient } from './toncenter/ApiClient';
+import type { ApiClient } from './toncenter/ApiClient';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
+import type { Network } from '../api/models/core/Network';
+import type { WalletId } from '../utils/walletId';
+import type { TransactionRequest, UserFriendlyAddress } from '../api/models';
 
 /**
  * Main TonWalletKit interface
@@ -33,31 +35,31 @@ import { ApiClient } from './toncenter/ApiClient';
 export interface ITonWalletKit {
     /**
      * Get API client for a specific network
-     * @param chainId - The chain ID (CHAIN.MAINNET or CHAIN.TESTNET)
+     * @param network - The network object
      */
-    getApiClient(chainId: CHAIN): ApiClient;
+    getApiClient(network: Network): ApiClient;
 
     /** Get all configured networks */
-    getConfiguredNetworks(): CHAIN[];
+    getConfiguredNetworks(): Network[];
 
     isReady(): boolean;
 
     // === Wallet Management ===
 
     /** Get all registered wallets */
-    getWallets(): IWallet[];
+    getWallets(): Wallet[];
 
     /** Get wallet by wallet ID (network:address format) */
-    getWallet(walletId: string): IWallet | undefined;
+    getWallet(walletId: WalletId): Wallet | undefined;
 
     /** Get wallet by address and network */
-    getWalletByAddressAndNetwork(address: string, network: CHAIN): IWallet | undefined;
+    getWalletByAddressAndNetwork(address: UserFriendlyAddress, network: Network): Wallet | undefined;
 
     /** Add a new wallet, returns wallet ID */
-    addWallet(adapter: IWalletAdapter): Promise<IWallet | undefined>;
+    addWallet(adapter: WalletAdapter): Promise<Wallet | undefined>;
 
     /** Remove a wallet by wallet ID or adapter */
-    removeWallet(walletIdOrAdapter: string | IWalletAdapter): Promise<void>;
+    removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<void>;
 
     /** Clear all wallets */
     clearWallets(): Promise<void>;
@@ -76,7 +78,7 @@ export interface ITonWalletKit {
     handleTonConnectUrl(url: string): Promise<void>;
 
     /** Handle new transaction */
-    handleNewTransaction(wallet: IWallet, data: ConnectTransactionParamContent): Promise<void>;
+    handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
 
     // === Request Processing ===
 
@@ -99,7 +101,7 @@ export interface ITonWalletKit {
     ): Promise<void>;
 
     /** Approve a sign data request */
-    signDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse>;
+    approveSignDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse>;
 
     /** Reject a sign data request */
     rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void>;

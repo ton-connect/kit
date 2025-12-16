@@ -7,7 +7,7 @@
  */
 
 import type { BrowserContext } from '@playwright/test';
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export { TonConnectWidget } from './TonConnectWidget';
 export { WalletApp } from './WalletApp';
@@ -20,8 +20,8 @@ export interface ConfigFixture {
     mnemonic?: string;
 }
 
-import { TonConnectWidget } from './TonConnectWidget';
-import { DemoWallet } from '../demo-wallet';
+import type { TonConnectWidget } from './TonConnectWidget';
+import type { DemoWallet } from '../demo-wallet';
 
 export type TestFixture = {
     context: BrowserContext;

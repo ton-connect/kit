@@ -6,7 +6,7 @@
  *
  */
 
-import { AddressFriendly } from '../primitive';
-import { AddressMetadata } from './AddressMetadata';
+import type { UserFriendlyAddress } from '../../api/models';
+import type { AddressMetadata } from './AddressMetadata';
 
-export type NftMetadata = { [key: AddressFriendly]: AddressMetadata };
+export type NftMetadata = { [key: UserFriendlyAddress]: AddressMetadata };

@@ -6,8 +6,8 @@
  *
  */
 
+import type { Network } from '@ton/walletkit';
 import type { ApiClient } from '@ton/walletkit';
-import type { CHAIN } from '@tonconnect/protocol';
 import type Transport from '@ledgerhq/hw-transport';
 
 /**
@@ -25,7 +25,7 @@ export interface WalletV4R2LedgerAdapterConfig {
     /** Shared TON client instance */
     tonClient: ApiClient;
     /** Network */
-    network: CHAIN;
+    network: Network;
     /** Workchain */
     workchain?: number;
 }
@@ -43,7 +43,7 @@ export interface WalletInitConfigLedgerInterface {
     /** Wallet ID configuration */
     walletId?: number;
     /** Network */
-    network?: CHAIN;
+    network?: Network;
     /** Workchain */
     workchain?: number;
     /** Account index */

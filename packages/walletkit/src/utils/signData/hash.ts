@@ -6,23 +6,19 @@
  *
  */
 
-import { Address, beginCell, Cell } from '@ton/core';
-import { SignDataPayloadBinary, SignDataPayloadCell, SignDataPayloadText } from '@tonconnect/protocol';
+import type { Address } from '@ton/core';
+import { beginCell, Cell } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 
 import { buf as crc32Buf } from './crc32';
+import type { SignData, SignDataCell } from '../../api/models';
 
 /**
  * Creates hash for text or binary payload.
  * Message format:
  * message = 0xffff || "ton-connect/sign-data/" || workchain || address_hash || domain_len || domain || timestamp || payload
  */
-export function createTextBinaryHash(
-    payload: SignDataPayloadText | SignDataPayloadBinary,
-    parsedAddr: Address,
-    domain: string,
-    timestamp: number,
-): Buffer {
+export function createTextBinaryHash(data: SignData, parsedAddr: Address, domain: string, timestamp: number): Buffer {
     // Create workchain buffer
     const wcBuffer = Buffer.alloc(4);
     wcBuffer.writeInt32BE(parsedAddr.workChain);
@@ -37,9 +33,9 @@ export function createTextBinaryHash(
     tsBuffer.writeBigUInt64BE(BigInt(timestamp));
 
     // Create payload buffer
-    const typePrefix = payload.type === 'text' ? 'txt' : 'bin';
-    const content = payload.type === 'text' ? payload.text : payload.bytes;
-    const encoding = payload.type === 'text' ? 'utf8' : 'base64';
+    const typePrefix = data.type === 'text' ? 'txt' : 'bin';
+    const content = data.value.content;
+    const encoding = data.type === 'text' ? 'utf8' : 'base64';
 
     const payloadPrefix = Buffer.from(typePrefix);
     const payloadBuffer = Buffer.from(content, encoding);
@@ -67,13 +63,8 @@ export function createTextBinaryHash(
 /**
  * Creates hash for Cell payload according to TON Connect specification.
  */
-export function createCellHash(
-    payload: SignDataPayloadCell,
-    parsedAddr: Address,
-    domain: string,
-    timestamp: number,
-): Buffer {
-    const cell = Cell.fromBase64(payload.cell);
+export function createCellHash(payload: SignDataCell, parsedAddr: Address, domain: string, timestamp: number): Buffer {
+    const cell = Cell.fromBase64(payload.content);
     const schemaHash = crc32Buf(Buffer.from(payload.schema, 'utf8'), undefined) >>> 0; // unsigned crc32 hash
 
     const tep81Domain = domain.split('.').reverse().join('\0') + '\0';

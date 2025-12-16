@@ -6,10 +6,12 @@
  *
  */
 
-import React, { createContext, useMemo, type ReactNode } from 'react';
+import React, { createContext, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import type { StoreApi } from 'zustand';
 
-import { createWalletStore, type CreateWalletStoreOptions } from '../store/createWalletStore';
+import { createWalletStore } from '../store/createWalletStore';
+import type { CreateWalletStoreOptions } from '../store/createWalletStore';
 import type { AppState } from '../types/store';
 
 export const WalletStoreContext = createContext<StoreApi<AppState> | null>(null);

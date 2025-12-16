@@ -6,7 +6,7 @@
  *
  */
 
-import { TokenInfo } from './TokenInfo';
+import type { TokenInfo } from './TokenInfo';
 
 export interface AddressMetadata {
     isIndexed: boolean;

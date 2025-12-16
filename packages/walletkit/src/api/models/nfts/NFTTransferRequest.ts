@@ -6,8 +6,8 @@
  *
  */
 
-import { UserFriendlyAddress } from '../core/Primitives';
-import { TokenAmount } from '../core/TokenAmount';
+import type { UserFriendlyAddress } from '../core/Primitives';
+import type { TokenAmount } from '../core/TokenAmount';
 
 /**
  * Request parameters for transferring an NFT to another address.
@@ -21,7 +21,7 @@ export interface NFTTransferRequest {
     /**
      * TON amount to attach for gas fees (default: 0.1 TON)
      */
-    transferAmount?: TokenAmount;
+    transferAmount: TokenAmount;
 
     /**
      * Recipient wallet address

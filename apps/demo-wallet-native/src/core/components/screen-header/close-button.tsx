@@ -10,7 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { ActiveTouchAction, type ActiveTouchActionProps } from '../active-touch-action';
+import { ActiveTouchAction } from '../active-touch-action';
+import type { ActiveTouchActionProps } from '../active-touch-action';
 
 export interface Props extends ActiveTouchActionProps {
     onClose?: () => void;

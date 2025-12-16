@@ -10,15 +10,8 @@
 import 'dotenv/config';
 import util from 'util';
 
-import {
-    ApiClientToncenter,
-    ConnectTransactionParamMessage,
-    CHAIN,
-    Signer,
-    WalletV5R1Adapter,
-    wrapWalletInterface,
-    IWallet,
-} from '../src';
+import type { ConnectTransactionParamMessage, Wallet } from '../src';
+import { ApiClientToncenter, CHAIN, Signer, WalletV5R1Adapter, wrapWalletInterface } from '../src';
 
 // eslint-disable-next-line no-console
 const logInfo = console.log;
@@ -32,7 +25,7 @@ const apiKey = process.env[`TON_API_KEY_${networkName}`];
 const mnemonic = process.env[`TON_MNEMONIC_${networkName}`]!.trim().split(' ');
 const client = new ApiClientToncenter({ apiKey, network });
 
-async function logWallet(wallet: IWallet) {
+async function logWallet(wallet: Wallet) {
     return {
         address: wallet.getAddress(),
         balance: await wallet.getBalance(),
