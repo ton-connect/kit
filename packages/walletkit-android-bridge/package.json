@@ -25,11 +25,6 @@
   "peerDependencies": {
     "@ton/core": "^0.62.0"
   },
-  "peerDependenciesMeta": {
-    "@ton/core": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@ton/core": "^0.62.0",
     "typescript": "^5.9.3",

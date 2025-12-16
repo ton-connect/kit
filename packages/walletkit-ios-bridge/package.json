@@ -22,9 +22,6 @@
     "@ton/crypto-primitives": "^2.1.0"
   },
   "peerDependenciesMeta": {
-    "@ton/crypto": {
-      "optional": true
-    },
     "@ton/crypto-primitives": {
       "optional": true
     }
