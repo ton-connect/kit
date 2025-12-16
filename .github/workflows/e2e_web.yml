@@ -95,6 +95,8 @@ jobs:
         xvfb-run pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
+        E2E_DEBUG_LOGS: "true"
+        DEBUG: "pw:webserver"
         # VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
         VITE_BRIDGE_URL: 'https://connect.ton.org/bridge'
         ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
@@ -116,5 +118,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: playwright-report-web
-        path: apps/demo-wallet/test-results/
+        path: |
+          apps/demo-wallet/test-results/
+          apps/demo-wallet/playwright-report/
         retention-days: 1

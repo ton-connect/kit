@@ -27,9 +27,17 @@ export async function launchPersistentContext(extensionPath: string, slowMo = 0)
         args.push(`--load-extension=${extensionPath}`);
     }
 
-    const isHeadlessEnv = process.env.ENABLE_HEADLESS === 'true';
     const isCi = !!process.env.CI;
-    const headless = isHeadlessEnv || isCi;
+    const headless =
+        process.env.ENABLE_HEADLESS === 'true' ? true : process.env.ENABLE_HEADLESS === 'false' ? false : isCi;
+
+    if (extensionPath !== '' && headless) {
+        // eslint-disable-next-line no-console
+        console.warn(
+            `[E2E] Extension mode detected but headless=true. Chrome extensions usually won't load in headless mode. ` +
+                `Set ENABLE_HEADLESS=false in CI for extension e2e (run under xvfb).`,
+        );
+    }
 
     if (headless) {
         args.push('--headless=new');

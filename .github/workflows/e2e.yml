@@ -36,6 +36,8 @@ jobs:
         env:
           CI: "1"
           ENABLE_HEADLESS: "true"
+          E2E_DEBUG_LOGS: "true"
+          DEBUG: "pw:webserver"
         run: pnpm demo-wallet e2e
 
       - name: Build extension (chrome)
@@ -44,9 +46,20 @@ jobs:
       - name: Run extension e2e tests
         env:
           CI: "1"
-          ENABLE_HEADLESS: "true"
+          ENABLE_HEADLESS: "false"
+          E2E_DEBUG_LOGS: "true"
           E2E_WALLET_SOURCE_EXTENSION: "../../dist-extension-chrome"
           E2E_JS_BRIDGE: "true"
         run: pnpm demo-wallet e2e
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            apps/demo-wallet/test-results/
+            apps/demo-wallet/playwright-report/
+          retention-days: 3
 
 
