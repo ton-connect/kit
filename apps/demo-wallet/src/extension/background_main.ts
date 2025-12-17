@@ -18,7 +18,9 @@ import { onMessage } from '@truecarry/webext-bridge/background';
 import { INJECT_CONTENT_SCRIPT, TONCONNECT_BRIDGE_REQUEST } from '@ton/walletkit/bridge';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/walletManifest';
+import { authenticate, getSessionPassword, lock, setSessionDuration, getSessionDuration } from './sessionManager';
 
+import { SESSION_MESSAGE_TYPES } from '@/constants/sessionMessage';
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND } from '@/lib/constants';
 import { SendMessageToExtensionContentFromBackground } from '@/lib/extensionBackground';
 import { DISABLE_AUTO_POPUP, ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/lib/env';
@@ -197,6 +199,56 @@ async function injectContentScript(tabId: number) {
         console.error('Error injecting script:', error);
     }
 }
+
+// Handle session-related messages from popup
+browser.runtime.onMessage.addListener(((
+    message: unknown,
+    _sender: browser.Runtime.MessageSender,
+    sendResponse: (response: unknown) => void,
+): true | void => {
+    if (!message || typeof message !== 'object' || !('type' in message)) {
+        return;
+    }
+
+    const { type, payload } = message as { type: string; payload?: unknown };
+
+    switch (type) {
+        case SESSION_MESSAGE_TYPES.AUTHENTICATE: {
+            const { password } = payload as { password: string };
+            authenticate(password);
+            sendResponse({ success: true });
+            return;
+        }
+
+        case SESSION_MESSAGE_TYPES.GET_PASSWORD: {
+            const password = getSessionPassword();
+            sendResponse({ password });
+            return;
+        }
+
+        case SESSION_MESSAGE_TYPES.LOCK: {
+            lock();
+            sendResponse({ success: true });
+            return;
+        }
+
+        case SESSION_MESSAGE_TYPES.SET_DURATION: {
+            const { duration } = payload as { duration: number };
+            setSessionDuration(duration);
+            sendResponse({ success: true });
+            return;
+        }
+
+        case SESSION_MESSAGE_TYPES.GET_DURATION: {
+            const duration = getSessionDuration();
+            sendResponse({ duration });
+            return;
+        }
+
+        default:
+            return;
+    }
+}) as Parameters<typeof browser.runtime.onMessage.addListener>[0]);
 
 // Export for module compatibility
 export {};

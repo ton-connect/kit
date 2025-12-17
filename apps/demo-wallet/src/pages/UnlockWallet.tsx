@@ -6,11 +6,14 @@
  *
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useWallet } from '@ton/demo-core';
 
 import { Layout, Button, Input, Card } from '../components';
+import { useExtensionAuth } from '../hooks';
+
+import { isExtension } from '@/utils/isExtension';
 
 export const UnlockWallet: React.FC = () => {
     const [password, setPassword] = useState('');
@@ -18,8 +21,47 @@ export const UnlockWallet: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
-    const { unlock, reset } = useAuth();
+    const { unlock: storeUnlock, reset } = useAuth();
     const { loadAllWallets } = useWallet();
+
+    // Extension session hook (only active in extension context)
+    const extensionAuth = useExtensionAuth();
+
+    // If extension has active session, auto-unlock and navigate
+    useEffect(() => {
+        if (!isExtension() || extensionAuth.isLoading) {
+            return;
+        }
+
+        const autoUnlock = async () => {
+            if (extensionAuth.hasSession && !extensionAuth.isUnlocked) {
+                try {
+                    setIsLoading(true);
+                    await extensionAuth.loadWallets();
+                    navigate('/wallet');
+                } catch (err) {
+                    // Session exists but wallet load failed - user needs to re-enter password
+                    // eslint-disable-next-line no-console
+                    console.error('Auto-unlock failed:', err);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else if (extensionAuth.isUnlocked) {
+                navigate('/wallet');
+            }
+        };
+
+        void autoUnlock();
+    }, [
+        extensionAuth.isLoading,
+        extensionAuth.hasSession,
+        extensionAuth.isUnlocked,
+        extensionAuth.loadWallets,
+        navigate,
+    ]);
+
+    // Use extension auth or regular auth based on context
+    const unlock = isExtension() ? extensionAuth.unlock : storeUnlock;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -33,7 +75,11 @@ export const UnlockWallet: React.FC = () => {
             }
 
             // Load wallet data after successful unlock
-            await loadAllWallets();
+            if (isExtension()) {
+                await extensionAuth.loadWallets();
+            } else {
+                await loadAllWallets();
+            }
 
             // Navigate to wallet
             navigate('/wallet');

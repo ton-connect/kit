@@ -12,14 +12,20 @@ import { useAuth, useWallet } from '@ton/demo-core';
 
 import { MnemonicDisplay } from './MnemonicDisplay';
 import { createComponentLogger } from '../utils/logger';
+import { useExtensionAuth } from '../hooks';
+
+import { isExtension } from '@/utils/isExtension';
 
 // Create logger for settings dropdown component
 const log = createComponentLogger('SettingsDropdown');
 
 export const SettingsDropdown: React.FC = () => {
     const navigate = useNavigate();
-    const { lock, reset, persistPassword, setPersistPassword, holdToSign, setHoldToSign } = useAuth();
+    const { lock: storeLock, reset, persistPassword, setPersistPassword, holdToSign, setHoldToSign } = useAuth();
     const { getDecryptedMnemonic } = useWallet();
+
+    // Extension session support
+    const extensionAuth = useExtensionAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMnemonicModal, setShowMnemonicModal] = useState(false);
     const [mnemonic, setMnemonic] = useState<string[]>([]);
@@ -27,9 +33,15 @@ export const SettingsDropdown: React.FC = () => {
     const [mnemonicError, setMnemonicError] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const handleLockWallet = () => {
-        lock();
+    const handleLockWallet = async () => {
+        // Use extension auth lock (clears session) or regular store lock
+        if (isExtension()) {
+            await extensionAuth.lock();
+        } else {
+            storeLock();
+        }
         setIsDropdownOpen(false);
+        navigate('/unlock');
     };
 
     const handleDeleteWallet = () => {
@@ -292,6 +304,31 @@ export const SettingsDropdown: React.FC = () => {
                                                     </p>
                                                 </div>
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* Remember Password (Extension only) */}
+                                    {isExtension() && !persistPassword && (
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <label className="text-sm font-medium text-gray-700">
+                                                    Remember Password
+                                                </label>
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Keep password in memory for 1 minute
+                                                </p>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only peer"
+                                                    checked={extensionAuth.rememberPassword}
+                                                    onChange={(e) =>
+                                                        extensionAuth.setRememberPassword(e.target.checked)
+                                                    }
+                                                />
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                            </label>
                                         </div>
                                     )}
                                 </div>

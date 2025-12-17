@@ -11,6 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@ton/demo-core';
 
 import { Layout, Button, Input, Card } from '../components';
+import { useExtensionAuth } from '../hooks';
+
+import { isExtension } from '@/utils/isExtension';
 
 export const SetupPassword: React.FC = () => {
     const [password, setPassword] = useState('');
@@ -20,6 +23,7 @@ export const SetupPassword: React.FC = () => {
 
     const navigate = useNavigate();
     const { setPassword: setStorePassword } = useAuth();
+    const extensionAuth = useExtensionAuth();
 
     const validatePassword = (pwd: string): string[] => {
         const errors = [];
@@ -48,6 +52,11 @@ export const SetupPassword: React.FC = () => {
 
             // Set password in store
             await setStorePassword(password);
+
+            // Save password to session in extension
+            if (isExtension()) {
+                await extensionAuth.savePasswordToSession(password);
+            }
 
             // Navigate to mnemonic setup
             navigate('/setup-wallet');

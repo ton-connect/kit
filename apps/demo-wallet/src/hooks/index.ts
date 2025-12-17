@@ -7,3 +7,5 @@
  */
 
 export * from './useTonWallet';
+export * from './useExtensionSession';
+export * from './useExtensionAuth';
