@@ -6,9 +6,9 @@
  *
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { NFT } from '@ton/walletkit';
-import { useNfts, useWallet } from '@ton/demo-core';
+import { useNfts } from '@ton/demo-core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -18,25 +18,8 @@ interface NftsCardProps {
 }
 
 export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
-    const { address } = useWallet();
-    const { lastNftsUpdate, userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
+    const { userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
     const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
-
-    // Load NFTs on mount if none are loaded
-    useEffect(() => {
-        if (lastNftsUpdate > 0 && Date.now() - lastNftsUpdate < 10000) {
-            return;
-        }
-        loadUserNfts();
-    }, [address, loadUserNfts]);
-
-    // Auto refresh NFTs every 30 seconds (less frequent than jettons)
-    useEffect(() => {
-        const interval = setInterval(() => {
-            loadUserNfts();
-        }, 30000);
-        return () => clearInterval(interval);
-    }, [loadUserNfts]);
 
     const handleViewAll = () => {
         // TODO: Navigate to NFTs page when created

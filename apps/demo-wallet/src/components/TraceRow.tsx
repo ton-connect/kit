@@ -236,7 +236,6 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 setError(null);
 
                 if (!walletKit) {
-                    setError('WalletKit not initialized');
                     setIsLoading(false);
                     return;
                 }
@@ -255,21 +254,14 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                             traceId: [traceId],
                         });
                     }
-                } catch (error) {
-                    log.error('Error fetching trace', { error });
-                }
-                try {
+
                     if (externalHash && !response) {
                         // Fetch by external message hash for pending traces
                         response = await apiClient.getPendingTrace({
                             externalMessageHash: [externalHash],
                         });
                     }
-                } catch (error) {
-                    log.error('Error fetching trace', { error });
-                }
 
-                try {
                     if (externalHash && !response) {
                         // Fetch by trace ID for completed traces
                         response = await apiClient.getTrace({
@@ -299,8 +291,12 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
             }
         };
 
-        fetchTrace();
-    }, [traceId, externalHash, isPending]);
+        if (!walletKit) {
+            return;
+        }
+
+        void fetchTrace();
+    }, [traceId, externalHash, isPending, walletKit]);
 
     if (isPending) {
         return (

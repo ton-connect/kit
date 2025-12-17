@@ -6,7 +6,7 @@
  *
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
 import { useJettons } from '@ton/demo-core';
 
@@ -29,22 +29,12 @@ export const JettonsList: React.FC<JettonsListProps> = ({
     maxItems = 10,
     showRefreshButton = true,
 }) => {
-    const { userJettons, isLoadingJettons, isRefreshing, error, loadUserJettons, refreshJettons } = useJettons();
+    const { userJettons, isLoadingJettons, isRefreshing, error, refreshJettons } = useJettons();
 
     const [selectedJetton, setSelectedJetton] = useState<Jetton | null>(null);
 
     const formatJetton = useFormatJetton();
     const selectedJettonInfo = useFormattedJetton(selectedJetton);
-
-    // Load jettons on mount if none are loaded
-    useEffect(() => {
-        log.info('userJettons', userJettons);
-        log.info('isLoadingJettons', isLoadingJettons);
-        if (userJettons.length === 0 && !isLoadingJettons) {
-            log.info('Loading user jettons on mount');
-            loadUserJettons();
-        }
-    }, [userJettons.length, isLoadingJettons, loadUserJettons]);
 
     const handleRefresh = async () => {
         try {

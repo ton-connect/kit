@@ -14,9 +14,10 @@ interface LayoutProps {
     children: React.ReactNode;
     title?: string;
     showLogout?: boolean;
+    headerAction?: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', showLogout = false }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', showLogout = false, headerAction }) => {
     return (
         <div className="min-h-screen bg-gray-100">
             <header className="bg-white shadow-sm border-b border-gray-200">
@@ -24,11 +25,14 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'TON Wallet', 
                     <h1 className="text-lg font-bold text-gray-900" data-testid="title">
                         {title}
                     </h1>
-                    {showLogout && <SettingsDropdown />}
+                    <div className="flex items-center gap-2">
+                        {headerAction}
+                        {showLogout && <SettingsDropdown />}
+                    </div>
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto px-4 py-6">{children}</main>
+            <main className="max-w-md mx-auto px-3 py-4">{children}</main>
         </div>
     );
 };

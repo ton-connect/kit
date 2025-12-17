@@ -23,20 +23,32 @@ export class DemoWallet extends WalletApp {
             throw new Error('[importWallet] mnemonic is required setup WALLET_MNEMONIC');
         }
         const app = await this.open();
+        // Setup password
         await app.getByTestId('title').filter({ hasText: 'Setup Password', visible: true });
         await app.getByTestId('subtitle').filter({ hasText: 'Create Password', visible: true });
         await app.getByTestId('password').fill(this.password);
         await app.getByTestId('password-confirm').fill(this.password);
         await app.getByTestId('password-submit').click();
-        await app.getByTestId('subtitle').filter({ hasText: 'Setup Your Wallet', visible: true });
-        await app.getByTestId('import-wallet').click();
+
+        // Navigate to Import tab
+        await app.getByTestId('title').filter({ hasText: 'Setup Wallet' }).waitFor({ state: 'visible' });
+        await app.getByTestId('tab-import').click();
         await app.getByTestId('subtitle').filter({ hasText: 'Import Wallet', visible: true });
+
+        // Select mainnet
         await app.getByTestId('network-select-mainnet').click();
-        await app.getByTestId('paste-all').click();
-        await app.getByTestId('mnemonic').fill(mnemonic);
-        await app.getByTestId('mnemonic-process').click();
+
+        // Paste mnemonic using clipboard
+        await app.evaluate(async (m) => {
+            await navigator.clipboard.writeText(m);
+        }, mnemonic);
+        await app.getByTestId('paste-mnemonic').click();
+
+        // Import wallet
         await app.getByTestId('import-wallet-process').click();
         await app.getByTestId('title').filter({ hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
+
+        // Disable auto-lock and hold-to-sign for e2e tests
         await app.getByTestId('wallet-menu').click();
         await app.getByTestId('auto-lock').waitFor({ state: 'attached' });
         await app.getByTestId('auto-lock').click();

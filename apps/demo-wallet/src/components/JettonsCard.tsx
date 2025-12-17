@@ -6,8 +6,8 @@
  *
  */
 
-import React, { useEffect } from 'react';
-import { useJettons, useWallet } from '@ton/demo-core';
+import React from 'react';
+import { useJettons } from '@ton/demo-core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -23,24 +23,7 @@ interface JettonsCardProps {
 }
 
 export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
-    const { address } = useWallet();
-    const { lastJettonsUpdate, userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
-
-    // Load jettons on mount if none are loaded
-    useEffect(() => {
-        if (lastJettonsUpdate > 0 && Date.now() - lastJettonsUpdate < 10000) {
-            return;
-        }
-        loadUserJettons();
-    }, [address, loadUserJettons]);
-
-    // auto refresh jettons every 10 seconds
-    useEffect(() => {
-        const interval = setInterval(() => {
-            loadUserJettons();
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [loadUserJettons]);
+    const { userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
 
     const handleViewAll = () => {
         // TODO: Navigate to jettons page when created

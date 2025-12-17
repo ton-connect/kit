@@ -21,10 +21,14 @@ import {
     TransactionDetail,
 } from '../pages';
 
+import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
+
 export const AppRouter: React.FC = () => {
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
     const isUnlocked = useWalletStore((state) => state.auth.isUnlocked);
     const { hasWallet } = useWallet();
+
+    useWalletDataUpdater();
 
     const getInitialRoute = () => {
         if (!isPasswordSet) return '/setup-password';
