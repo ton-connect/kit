@@ -65,7 +65,7 @@ export class WalletNftClass implements WalletNftInterface {
             .endCell();
         const message: TransactionRequestMessage = {
             address: nftTransferMessage.nftAddress,
-            amount: nftTransferMessage.transferAmount.toString(),
+            amount: nftTransferMessage.transferAmount?.toString() ?? '100000000', // Default 0.1 TON
             payload: nftPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,

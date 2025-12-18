@@ -41,7 +41,29 @@ export interface Jetton {
     decimalsNumber?: number;
 
     /**
+     * Indicates if the jetton is verified
+     */
+    isVerified: boolean;
+
+    /**
+     * Current prices of the jetton in various currencies
+     */
+    prices: JettonPrice[];
+
+    /**
      * Additional arbitrary data related to the jetton
      */
     extra?: { [key: string]: unknown };
+}
+
+export interface JettonPrice {
+    /**
+     * Price in smallest units of the currency
+     * @format bigInt
+     */
+    value: string;
+    /**
+     * Currency code (e.g., "USD", "EUR")
+     */
+    currency: string;
 }
