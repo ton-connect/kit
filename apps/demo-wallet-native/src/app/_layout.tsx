@@ -71,10 +71,7 @@ const RootLayout: FC = () => {
                             },
                         }}
                     >
-                        <WalletProvider
-                            storage={walletProviderStorage}
-                            walletKitConfig={walletKitConfig}
-                        >
+                        <WalletProvider storage={walletProviderStorage} walletKitConfig={walletKitConfig}>
                             <AppWrapper>
                                 <Slot />
                                 <AppToastProvider />

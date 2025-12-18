@@ -10,11 +10,10 @@ import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { AppText } from '@/core/components/app-text';
-
 import type { LedgerDevice } from '../utils/ledger-transport';
-
 import { DeviceListItem } from './device-list-item';
+
+import { AppText } from '@/core/components/app-text';
 
 interface DeviceListProps {
     devices: LedgerDevice[];
@@ -77,4 +76,3 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
         opacity: 0.7,
     },
 }));
-

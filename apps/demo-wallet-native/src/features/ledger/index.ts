@@ -22,3 +22,4 @@ export type { LedgerDeviceStorage } from './utils/create-ble-transport-factory';
 
 // Components
 export { DeviceList, DeviceListItem, ScanningIndicator, LedgerInstructions, LedgerSettings } from './components';
+export { InstructionsStep, ScanningStep, ConfigureStep, ConnectingStep } from './components';

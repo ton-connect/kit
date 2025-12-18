@@ -48,9 +48,7 @@ export interface LedgerDeviceStorage {
  * };
  * ```
  */
-export function createBLELedgerTransportFactory(
-    storage: LedgerDeviceStorage,
-): CreateLedgerTransportFunction {
+export function createBLELedgerTransportFactory(storage: LedgerDeviceStorage): CreateLedgerTransportFunction {
     return async (): Promise<Transport> => {
         const deviceId = await storage.getDeviceId();
 
@@ -72,4 +70,3 @@ export function createBLELedgerTransportFactory(
         }
     };
 }
-

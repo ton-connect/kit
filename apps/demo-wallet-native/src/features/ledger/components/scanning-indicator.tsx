@@ -56,7 +56,9 @@ export const ScanningIndicator: FC<ScanningIndicatorProps> = ({ isScanning }) =>
     return (
         <View style={styles.container}>
             <View style={styles.iconContainer}>
-                <Animated.View style={[styles.pulse, { backgroundColor: theme.colors.accent.primary }, animatedStyle]} />
+                <Animated.View
+                    style={[styles.pulse, { backgroundColor: theme.colors.accent.primary }, animatedStyle]}
+                />
                 <View style={[styles.iconInner, { backgroundColor: theme.colors.background.main }]}>
                     <Ionicons name="bluetooth" size={32} color={theme.colors.accent.primary} />
                 </View>
@@ -96,4 +98,3 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
         textAlign: 'center',
     },
 }));
-

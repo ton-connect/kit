@@ -128,7 +128,6 @@ const SendScreen: FC = () => {
                 }
             }
 
-            Alert.alert('Success', 'Transaction sent successfully');
             router.back();
         } catch (err) {
             Alert.alert('Error', getErrorMessage(err, 'Failed to send transaction'));

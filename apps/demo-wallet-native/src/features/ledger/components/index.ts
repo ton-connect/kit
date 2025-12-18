@@ -12,3 +12,5 @@ export { ScanningIndicator } from './scanning-indicator';
 export { LedgerInstructions } from './ledger-instructions';
 export { LedgerSettings } from './ledger-settings';
 
+// Connect steps
+export { InstructionsStep, ScanningStep, ConfigureStep, ConnectingStep } from './connect-steps';

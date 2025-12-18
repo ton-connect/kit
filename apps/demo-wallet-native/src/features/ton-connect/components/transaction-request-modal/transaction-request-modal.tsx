@@ -81,12 +81,14 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
     return (
         <AppBottomSheet isOpened={isOpen} onClose={handleReject} title="Transaction Request" enableDynamicSizing>
             <View style={styles.container}>
-                <DAppInfo
-                    name={request.dAppInfo?.name}
-                    description={request.dAppInfo?.description}
-                    url={request.dAppInfo?.url}
-                    iconUrl={request.dAppInfo?.iconUrl}
-                />
+                {request.dAppInfo?.name && (
+                    <DAppInfo
+                        name={request.dAppInfo?.name}
+                        description={request.dAppInfo?.description}
+                        url={request.dAppInfo?.url}
+                        iconUrl={request.dAppInfo?.iconUrl}
+                    />
+                )}
 
                 {currentWallet && (
                     <View style={styles.walletSection}>
