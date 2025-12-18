@@ -22,6 +22,19 @@ export type LedgerConnectionStatus =
     | 'connected'
     | 'error';
 
+export interface UseLedgerConnectionOptions {
+    /**
+     * Callback called when a device is successfully connected.
+     * Use this to persist the device ID for later reconnection.
+     */
+    onDeviceConnected?: (device: LedgerDevice) => void | Promise<void>;
+    /**
+     * Callback called when a device is disconnected.
+     * Use this to clear the persisted device ID if needed.
+     */
+    onDeviceDisconnected?: () => void | Promise<void>;
+}
+
 export interface UseLedgerConnectionReturn {
     status: LedgerConnectionStatus;
     devices: LedgerDevice[];
@@ -35,7 +48,8 @@ export interface UseLedgerConnectionReturn {
     disconnect: () => Promise<void>;
 }
 
-export const useLedgerConnection = (): UseLedgerConnectionReturn => {
+export const useLedgerConnection = (options?: UseLedgerConnectionOptions): UseLedgerConnectionReturn => {
+    const { onDeviceConnected, onDeviceDisconnected } = options ?? {};
     const [status, setStatus] = useState<LedgerConnectionStatus>('idle');
     const [devices, setDevices] = useState<LedgerDevice[]>([]);
     const [connectedDevice, setConnectedDevice] = useState<LedgerDevice | null>(null);
@@ -134,6 +148,9 @@ export const useLedgerConnection = (): UseLedgerConnectionReturn => {
                 setTonTransport(newTonTransport);
                 setConnectedDevice(device);
                 setStatus('connected');
+
+                // Notify about successful connection (e.g., to persist device ID)
+                await onDeviceConnected?.(device);
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Failed to connect to device';
                 setError(errorMessage);
@@ -141,7 +158,7 @@ export const useLedgerConnection = (): UseLedgerConnectionReturn => {
                 throw err;
             }
         },
-        [stopScan],
+        [stopScan, onDeviceConnected],
     );
 
     const disconnect = useCallback(async (): Promise<void> => {
@@ -157,7 +174,10 @@ export const useLedgerConnection = (): UseLedgerConnectionReturn => {
         setTonTransport(null);
         setConnectedDevice(null);
         setStatus('idle');
-    }, [transport]);
+
+        // Notify about disconnection
+        await onDeviceDisconnected?.();
+    }, [transport, onDeviceDisconnected]);
 
     useEffect(() => {
         return () => {

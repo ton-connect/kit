@@ -55,6 +55,7 @@ export type {
     RequestQueue,
     LedgerConfig,
     WalletKitConfig,
+    CreateLedgerTransportFunction,
 } from './types/wallet';
 
 // Utils (optional exports)

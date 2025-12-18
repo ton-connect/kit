@@ -127,7 +127,7 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                         ...createWalletCoreSlice(walletKitConfig)(...a),
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
-                        ...createWalletManagementSlice(...a),
+                        ...createWalletManagementSlice(walletKitConfig)(...a),
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         ...createTonConnectSlice(...a),

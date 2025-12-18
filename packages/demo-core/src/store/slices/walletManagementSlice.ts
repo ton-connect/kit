@@ -13,12 +13,14 @@ import { createLedgerPath } from '@ton/v4ledger-adapter';
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
 import { createWalletAdapter, generateWalletId, generateWalletName } from '../../utils/walletAdapterFactory';
-import type { LedgerConfig, SavedWallet } from '../../types/wallet';
+import type { LedgerConfig, SavedWallet, WalletKitConfig } from '../../types/wallet';
 import type { SetState, WalletManagementSliceCreator } from '../../types/store';
 
 const log = createComponentLogger('WalletManagementSlice');
 
-export const createWalletManagementSlice: WalletManagementSliceCreator = (set: SetState, get) => ({
+export const createWalletManagementSlice =
+    (walletKitConfig?: WalletKitConfig): WalletManagementSliceCreator =>
+    (set: SetState, get) => ({
     walletManagement: {
         savedWallets: [],
         activeWalletId: undefined,
@@ -60,6 +62,10 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger' && savedWallet.ledgerConfig) {
+                    if (!walletKitConfig?.createLedgerTransport) {
+                        log.warn(`Skipping Ledger wallet ${savedWallet.id}: createLedgerTransport not provided`);
+                        continue;
+                    }
                     walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig.accountIndex,
@@ -67,6 +73,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         network: walletNetwork,
                         walletKit,
                         version: savedWallet.version || 'v4r2',
+                        createLedgerTransport: walletKitConfig.createLedgerTransport,
                     });
                 } else if (savedWallet.encryptedMnemonic) {
                     const mnemonicJson = await SimpleEncryption.decrypt(
@@ -210,6 +217,10 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
             const version = 'v4r2';
             const walletNetwork = network || 'mainnet';
 
+            if (!walletKitConfig?.createLedgerTransport) {
+                throw new Error('createLedgerTransport is required for Ledger wallet');
+            }
+
             const walletAdapter = await createWalletAdapter({
                 useWalletInterfaceType: 'ledger',
                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
@@ -217,6 +228,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 network: walletNetwork,
                 walletKit: state.walletCore.walletKit,
                 version: version,
+                createLedgerTransport: walletKitConfig.createLedgerTransport,
             });
 
             const wallet = await state.walletCore.walletKit.addWallet(walletAdapter);
@@ -311,6 +323,9 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger') {
+                    if (!walletKitConfig?.createLedgerTransport) {
+                        throw new Error('createLedgerTransport is required for Ledger wallet');
+                    }
                     const walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
@@ -318,6 +333,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v4r2',
+                        createLedgerTransport: walletKitConfig.createLedgerTransport,
                     });
 
                     await state.walletCore.walletKit.addWallet(walletAdapter);
@@ -450,6 +466,10 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                 const walletNetwork = savedWallet.network || 'testnet';
 
                 if (savedWallet.walletType === 'ledger') {
+                    if (!walletKitConfig?.createLedgerTransport) {
+                        log.warn(`Skipping Ledger wallet ${savedWallet.id}: createLedgerTransport not provided`);
+                        continue;
+                    }
                     const walletAdapter = await createWalletAdapter({
                         useWalletInterfaceType: 'ledger',
                         ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
@@ -457,6 +477,7 @@ export const createWalletManagementSlice: WalletManagementSliceCreator = (set: S
                         network: walletNetwork,
                         walletKit: state.walletCore.walletKit,
                         version: savedWallet.version || 'v4r2',
+                        createLedgerTransport: walletKitConfig.createLedgerTransport,
                     });
 
                     await state.walletCore.walletKit.addWallet(walletAdapter);

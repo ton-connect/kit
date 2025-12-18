@@ -210,7 +210,7 @@ export type AuthSliceCreator = StateCreator<AppState, [], [], AuthSlice>;
 
 export type WalletCoreSliceCreator = StateCreator<AppState, [], [], WalletCoreSlice>;
 
-export type WalletManagementSliceCreator = StateCreator<AppState, [], [], WalletManagementSlice>;
+export type WalletManagementSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], WalletManagementSlice>;
 
 export type TonConnectSliceCreator = StateCreator<AppState, [], [], TonConnectSlice>;
 

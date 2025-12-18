@@ -7,6 +7,12 @@
  */
 
 export { useLedgerConnection } from './hooks/use-ledger-connection';
-export type { LedgerConnectionStatus, UseLedgerConnectionReturn } from './hooks/use-ledger-connection';
+export type {
+    LedgerConnectionStatus,
+    UseLedgerConnectionReturn,
+    UseLedgerConnectionOptions,
+} from './hooks/use-ledger-connection';
 export type { LedgerDevice, ScanSubscription } from './utils/ledger-transport';
 export { scanLedgerDevices, connectToLedgerDevice, disconnectLedgerDevice } from './utils/ledger-transport';
+export { createBLELedgerTransportFactory } from './utils/create-ble-transport-factory';
+export type { LedgerDeviceStorage } from './utils/create-ble-transport-factory';
