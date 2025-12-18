@@ -7,6 +7,7 @@
  */
 
 import React, { memo } from 'react';
+import { Link } from 'react-router-dom';
 import type { Action } from '@ton/walletkit';
 
 import { formatTimestamp } from '../../utils';
@@ -75,8 +76,8 @@ export const ActionCard: React.FC<ActionCardProps> = memo(({ action, myAddress, 
     const { bgColor, iconColor, icon } = getIconAndColor();
 
     return (
-        <a
-            href={traceLink}
+        <Link
+            to={traceLink}
             className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
         >
             <div className="flex items-center space-x-3">
@@ -112,6 +113,6 @@ export const ActionCard: React.FC<ActionCardProps> = memo(({ action, myAddress, 
                     {status === 'success' ? formatTimestamp(timestamp) : 'Failed'}
                 </p>
             </div>
-        </a>
+        </Link>
     );
 });

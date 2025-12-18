@@ -106,23 +106,28 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             return;
         }
 
-        if (!state.walletCore.walletKit) {
-            throw new Error('WalletKit not initialized');
-        }
-
-        try {
-            await state.walletCore.walletKit.rejectConnectRequest(state.tonConnect.pendingConnectRequest, reason);
-
+        const closeModal = () => {
             set((state) => {
                 state.tonConnect.pendingConnectRequest = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
 
             state.clearCurrentRequestFromQueue();
+        };
+
+        if (!state.walletCore.walletKit) {
+            log.error('WalletKit not initialized');
+            closeModal();
+            return;
+        }
+
+        try {
+            await state.walletCore.walletKit.rejectConnectRequest(state.tonConnect.pendingConnectRequest, reason);
         } catch (error) {
             log.error('Failed to reject connect request:', error);
-            throw error;
         }
+
+        closeModal();
     },
 
     closeConnectModal: () => {

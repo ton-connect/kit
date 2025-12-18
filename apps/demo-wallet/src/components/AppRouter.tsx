@@ -24,7 +24,6 @@ import {
 import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
 
 export const AppRouter: React.FC = () => {
-    // const { isPasswordSet, isUnlocked } = useAuth();
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
     const isUnlocked = useWalletStore((state) => state.auth.isUnlocked);
     const { hasWallet } = useWallet();

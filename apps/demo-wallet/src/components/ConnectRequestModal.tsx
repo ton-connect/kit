@@ -9,6 +9,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { EventConnectRequest, Wallet } from '@ton/walletkit';
 import type { SavedWallet } from '@ton/demo-core';
+import { toast } from 'sonner';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -70,6 +71,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
             await onApprove(selectedWallet);
         } catch (error) {
             log.error('Failed to approve connection:', error);
+            toast.error('Failed to approve connection', {
+                description: (error as Error)?.message,
+            });
         } finally {
             setIsLoading(false);
         }
