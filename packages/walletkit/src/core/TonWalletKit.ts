@@ -60,6 +60,7 @@ import type {
     TransactionApprovalResponse,
     SignDataApprovalResponse,
 } from '../api/models';
+import { asAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -530,7 +531,7 @@ export class TonWalletKit implements ITonWalletKit {
             domain: '',
             isLocal: true,
             walletId,
-            walletAddress: wallet.getAddress().toString(),
+            walletAddress: asAddressFriendly(wallet.getAddress()),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }

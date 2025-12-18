@@ -24,9 +24,9 @@ import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize } from '../utils/base64';
 import type { WalletManager } from '../core/WalletManager';
 import { getAddressFromWalletId } from '../utils/walletId';
-import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview } from '../api/models';
+import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview, Base64String } from '../api/models';
 import { Network } from '../api/models';
-import { asMaybeAddressFriendly } from '../types/primitive';
+import { asMaybeAddressFriendly } from '../utils/address';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -95,7 +95,7 @@ export class SignDataHandler
             },
             dAppInfo: event.dAppInfo ?? {},
             walletId: walletId ?? (wallet ? this.walletManager.getWalletId(wallet) : ''),
-            walletAddress: walletAddress ?? wallet?.getAddress() ?? '',
+            walletAddress: walletAddress ?? wallet?.getAddress() ?? undefined,
         };
 
         // Send wallet-sign-data-request-received event
@@ -153,7 +153,7 @@ export class SignDataHandler
                 signData = {
                     type: 'binary',
                     value: {
-                        content: parsed.bytes,
+                        content: parsed.bytes as Base64String,
                     },
                 };
             } else if (parsed.type === 'cell') {
@@ -161,7 +161,7 @@ export class SignDataHandler
                     type: 'cell',
                     value: {
                         schema: parsed.schema,
-                        content: parsed.cell,
+                        content: parsed.cell as Base64String,
                     },
                 };
             } else {

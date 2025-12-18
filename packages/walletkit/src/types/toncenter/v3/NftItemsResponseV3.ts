@@ -10,7 +10,7 @@ import type { NftItemV3 } from './NftItemV3';
 import type { AddressBookRowV3 } from './AddressBookRowV3';
 import type { AddressMetadataV3 } from './AddressMetadataV3';
 import { toNftItem } from './NftItemV3';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly } from '../../../utils';
 import { toTokenInfo } from './NftTokenInfoV3';
 import type { NftMetadata } from '../NftMetadata';
 import { tokenMetaToNftCollection } from './NFTCollectionV3';

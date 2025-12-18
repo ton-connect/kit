@@ -61,7 +61,7 @@ import type {
     UserFriendlyAddress,
     UserNFTsRequest,
 } from '../api/models';
-import { asAddressFriendly } from '../types/primitive';
+import { asAddressFriendly } from '../utils/address';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -439,6 +439,11 @@ export class ApiClientToncenter implements ApiClient {
     }
 
     private mapToResponseUserJettons(rawResponse: ToncenterResponseJettonWallets): JettonsResponse {
+        // Currently we hardcoding USDT jetton as verified
+        const verifiedJettonsMasters = new Set<string>([
+            '0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE',
+        ]);
+
         const userJettons: Jetton[] = rawResponse.jetton_wallets.map((wallet) => {
             const jettonInfo = this.extractJettonInfoFromMetadata(wallet.jetton, rawResponse.metadata);
             const jetton: Jetton = {
@@ -455,6 +460,14 @@ export class ApiClientToncenter implements ApiClient {
                     symbol: jettonInfo.symbol,
                 },
                 decimalsNumber: jettonInfo.decimals,
+                // For future use, currently prices are not provided by toncenter
+                prices: [
+                    {
+                        value: '0',
+                        currency: 'USD',
+                    },
+                ],
+                isVerified: verifiedJettonsMasters.has(wallet.jetton),
                 // ????
                 // extra: rawResponse.metadata[wallet.jetton]?.token_info,
             };

@@ -21,7 +21,7 @@ export interface NFTTransferRequest {
     /**
      * TON amount to attach for gas fees (default: 0.1 TON)
      */
-    transferAmount: TokenAmount;
+    transferAmount?: TokenAmount;
 
     /**
      * Recipient wallet address

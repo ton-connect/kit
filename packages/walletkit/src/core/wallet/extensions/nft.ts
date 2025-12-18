@@ -12,6 +12,7 @@ import { Address, beginCell, Cell } from '@ton/core';
 import { validateTransactionMessage } from '../../../validation';
 import type { Wallet, WalletNftInterface } from '../../../api/interfaces';
 import type {
+    Base64String,
     NFT,
     NFTRawTransferRequest,
     NFTsRequest,
@@ -85,8 +86,8 @@ export class WalletNftClass implements WalletNftInterface {
             .endCell();
         const message: TransactionRequestMessage = {
             address: nftTransferMessage.nftAddress,
-            amount: nftTransferMessage.transferAmount.toString(),
-            payload: nftPayload.toBoc().toString('base64'),
+            amount: nftTransferMessage.transferAmount?.toString() ?? '100000000', // Default 0.1 TON
+            payload: nftPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,
             mode: {
@@ -132,7 +133,7 @@ export class WalletNftClass implements WalletNftInterface {
         const message: TransactionRequestMessage = {
             address: params.nftAddress,
             amount: params.transferAmount.toString(),
-            payload: nftPayload.toBoc().toString('base64'),
+            payload: nftPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,
             mode: {

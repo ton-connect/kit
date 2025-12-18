@@ -8,9 +8,9 @@
 
 import { Cell } from '@ton/core';
 
-import { fromTinyString, toStringTail, toTinyString } from './primitive';
+import { fromTinyString, toStringTail, toTinyString } from '../utils/cell';
 
-describe('primitive', () => {
+describe('Cells parsing', () => {
     it('toStringTail', async () => {
         expect(toStringTail('').toString()).toEqual('x{}');
         expect(toStringTail('s'.repeat(2)).toString()).toEqual(`x{${'73'.repeat(2)}}`);

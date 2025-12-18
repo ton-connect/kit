@@ -14,7 +14,7 @@ import type {
     EmulationTokenInfoMasters,
     EmulationTokenInfoWallets,
 } from './emulation';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../../utils/address';
 import { Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';

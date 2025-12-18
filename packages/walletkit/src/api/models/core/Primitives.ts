@@ -9,6 +9,7 @@
 /**
  * User-friendly TON address representation (e.g., "EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2")
  */
+
 export type UserFriendlyAddress = string;
 
 /**
@@ -19,17 +20,13 @@ declare const hashBrand: unique symbol;
 
 export type Hex = `0x${string}` & { readonly [hashBrand]: never };
 
-export function asHex(data: string): Hex {
-    if (!/^0x[0-9a-fA-F]+$/.test(data) || data.length % 2 !== 0) {
-        throw new Error('Not a valid hex');
-    }
-    return data as Hex;
-}
-
 /**
  * Base64-encoded string representation
  */
-export type Base64String = string;
+
+declare const base64StringBrand: unique symbol;
+
+export type Base64String = string & { readonly [base64StringBrand]: never };
 
 /**
  * Logical time value used for ordering transactions on the TON blockchain

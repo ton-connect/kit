@@ -11,7 +11,7 @@
 import type { ConnectEventSuccess } from '@tonconnect/protocol';
 
 import type { EventApprovalBase } from './internal';
-import type { SignDataPayload } from '../api/models';
+import type { Base64String, SignDataPayload } from '../api/models';
 
 export interface EventConnectApproval extends EventApprovalBase {
     result: ConnectApproval;
@@ -33,7 +33,7 @@ export interface EventTransactionApproval extends EventApprovalBase {
 }
 
 export interface TransactionApproval {
-    signedBoc: string;
+    signedBoc: Base64String;
 }
 
 export interface EventSignDataApproval extends EventApprovalBase {

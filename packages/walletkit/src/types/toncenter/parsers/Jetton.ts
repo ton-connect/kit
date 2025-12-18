@@ -9,11 +9,11 @@
 import type { AddressBook, Account, Action, StatusAction, JettonTransferAction, SimplePreview } from '../AccountEvent';
 import { toAccount } from '../AccountEvent';
 import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 import { Base64ToHex } from '../../../utils/base64';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
 import { OpCode } from './opcodes';
-import type { Hex } from '../../../api/models';
+import type { Hex, UserFriendlyAddress } from '../../../api/models';
 
 //
 // This parser has been refactored with new architecture support
@@ -285,7 +285,7 @@ function getTxType(tx: ToncenterTransaction): string | '' {
 
 function buildJettonInfo(
     item: ToncenterTraceItem,
-    walletFriendly: string,
+    walletFriendly: UserFriendlyAddress,
     addressBook: AddressBook,
 ): {
     address: string;
@@ -299,8 +299,8 @@ function buildJettonInfo(
     // First, try to find jetton info directly from addressBook using wallet address
     const walletInfo = addressBook[walletFriendly];
     if (walletInfo?.jettonWallet?.jettonMaster) {
-        const masterAddress = walletInfo.jettonWallet.jettonMaster;
-        const masterInfo = addressBook[masterAddress];
+        const masterAddress = asMaybeAddressFriendly(walletInfo.jettonWallet.jettonMaster);
+        const masterInfo = masterAddress ? addressBook[masterAddress] : undefined;
         if (masterInfo?.jetton) {
             return masterInfo.jetton;
         }

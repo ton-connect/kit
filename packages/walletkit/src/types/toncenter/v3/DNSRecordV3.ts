@@ -7,7 +7,7 @@
  */
 
 import type { DnsRecord } from '../DnsRecord';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
 
 export interface DNSRecordV3 {
     dns_next_resolver: string | null;
@@ -24,7 +24,7 @@ export function toDnsRecord(data: DNSRecordV3): DnsRecord {
         dnsNextResolver: data.dns_next_resolver,
         dnsSiteAdnl: data.dns_site_adnl,
         dnsStorageBagId: data.dns_storage_bag_id,
-        dnsWallet: data.dns_wallet,
+        dnsWallet: asMaybeAddressFriendly(data.dns_wallet),
         domain: data.domain,
         nftItemAddress: asAddressFriendly(data.nft_item_address),
         nftItemOwner: asAddressFriendly(data.nft_item_owner),

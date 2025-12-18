@@ -7,7 +7,7 @@
  */
 
 import type { AddressBook, AddressBookEntry } from '../../../api/models';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly } from '../../../utils/address';
 import type { EmulationAddressMetadata } from '../emulation';
 
 export interface MetadataV3 {

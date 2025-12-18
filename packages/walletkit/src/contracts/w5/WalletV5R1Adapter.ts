@@ -17,7 +17,7 @@ import { WalletV5R1CodeCell } from './WalletV5R1.source';
 import { globalLogger } from '../../core/Logger';
 import { WalletKitError, ERROR_CODES } from '../../errors';
 import { FakeSignature } from '../../utils/sign';
-import { formatWalletAddress } from '../../utils/address';
+import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { ActionSendMsg, packActionsList } from './actions';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
@@ -33,6 +33,7 @@ import type {
     TransactionRequest,
     UserFriendlyAddress,
     Hex,
+    Base64String,
 } from '../../api/models';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
@@ -149,7 +150,10 @@ export class WalletV5R1Adapter implements WalletAdapter {
         return createWalletId(this.getNetwork(), this.getAddress());
     }
 
-    async getSignedSendTransaction(input: TransactionRequest, options: { fakeSignature: boolean }): Promise<string> {
+    async getSignedSendTransaction(
+        input: TransactionRequest,
+        options: { fakeSignature: boolean },
+    ): Promise<Base64String> {
         const actions = packActionsList(
             input.messages.map((m) => {
                 let bounce = true;
@@ -236,13 +240,13 @@ export class WalletV5R1Adapter implements WalletAdapter {
             init: this.walletContract.init,
             body: transfer,
         });
-        return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64');
+        return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64') as Base64String;
     }
 
     /**
      * Get state init for wallet deployment
      */
-    async getStateInit(): Promise<string> {
+    async getStateInit(): Promise<Base64String> {
         if (!this.walletContract.init) {
             throw new Error('Wallet contract not properly initialized');
         }
@@ -250,7 +254,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
         const stateInit = beginCell()
             .store(storeStateInit(this.walletContract.init as unknown as StateInit))
             .endCell();
-        return stateInit.toBoc().toString('base64');
+        return stateInit.toBoc().toString('base64') as Base64String;
     }
 
     /**
@@ -292,7 +296,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address.toString());
+            const state = await this.client.getAccountState(asAddressFriendly(this.walletContract.address));
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });

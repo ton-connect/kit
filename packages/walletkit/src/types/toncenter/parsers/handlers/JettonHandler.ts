@@ -25,9 +25,9 @@ import type {
 } from '../../AccountEvent';
 import { toAccount } from '../../AccountEvent';
 import type { ToncenterTraceItem, ToncenterTransaction } from '../../emulation';
-import { asAddressFriendly } from '../../../primitive';
 import { Base64ToHex } from '../../../../utils/base64';
-import type { Hex } from '../../../../api/models';
+import type { Hex, UserFriendlyAddress } from '../../../../api/models';
+import { asMaybeAddressFriendly, asAddressFriendly } from '../../../../utils';
 
 /**
  * Jetton Transfer Handler
@@ -214,7 +214,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
 
     private buildJettonInfo(
         context: MessageHandlerContext,
-        walletFriendly: string,
+        walletFriendly: UserFriendlyAddress,
     ): {
         address: string;
         name: string;
@@ -226,8 +226,8 @@ export class JettonTransferHandler extends BaseMessageHandler {
     } {
         const walletInfo = context.addressBook[walletFriendly];
         if (walletInfo?.jettonWallet?.jettonMaster) {
-            const masterAddress = walletInfo.jettonWallet.jettonMaster;
-            const masterInfo = context.addressBook[masterAddress];
+            const masterAddress = asMaybeAddressFriendly(walletInfo.jettonWallet.jettonMaster);
+            const masterInfo = masterAddress ? context.addressBook[masterAddress] : undefined;
             if (masterInfo?.jetton) {
                 return masterInfo.jetton;
             }
@@ -510,7 +510,7 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
 
     private buildJettonInfo(
         context: MessageHandlerContext,
-        walletFriendly: string,
+        walletFriendly: UserFriendlyAddress,
     ): {
         address: string;
         name: string;
@@ -522,8 +522,8 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
     } {
         const walletInfo = context.addressBook[walletFriendly];
         if (walletInfo?.jettonWallet?.jettonMaster) {
-            const masterAddress = walletInfo.jettonWallet.jettonMaster;
-            const masterInfo = context.addressBook[masterAddress];
+            const masterAddress = asMaybeAddressFriendly(walletInfo.jettonWallet.jettonMaster);
+            const masterInfo = masterAddress ? context.addressBook[masterAddress] : undefined;
             if (masterInfo?.jetton) {
                 return masterInfo.jetton;
             }

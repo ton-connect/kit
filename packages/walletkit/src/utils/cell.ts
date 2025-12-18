@@ -7,29 +7,7 @@
  */
 
 import type { Cell } from '@ton/core';
-import { Address, beginCell } from '@ton/core';
-
-import type { UserFriendlyAddress } from '../api/models';
-
-export type Base64String = string;
-
-export function asMaybeAddressFriendly(data?: string | null): UserFriendlyAddress | null {
-    try {
-        return asAddressFriendly(data);
-    } catch {
-        /* empty */
-    }
-    return null;
-}
-
-export function asAddressFriendly(data?: string | null): UserFriendlyAddress {
-    try {
-        if (data) return Address.parse(data).toString();
-    } catch {
-        /* empty */
-    }
-    throw new Error(`Can not convert to AddressFriendly from "${data}"`);
-}
+import { beginCell } from '@ton/core';
 
 export function limitString(data: string, limit: number): string {
     return data.length > limit ? data.substring(0, limit) : data;

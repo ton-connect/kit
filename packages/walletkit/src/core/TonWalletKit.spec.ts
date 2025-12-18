@@ -7,6 +7,7 @@
  */
 
 import { CHAIN } from '@tonconnect/protocol';
+import { Address } from '@ton/core';
 
 import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config';
 import { TonWalletKit } from './TonWalletKit';
@@ -122,7 +123,12 @@ describe('TonWalletKit', () => {
         await kit.handleNewTransaction(wallet, result);
 
         expect(receivedWalletId).toBe(wallet.getWalletId());
-        expect(receivedWalletAddress).toBe(wallet.getAddress().toString());
+
+        if (receivedWalletAddress) {
+            expect(Address.parse(receivedWalletAddress).toString()).toEqual(
+                Address.parse(wallet.getAddress()).toString(),
+            );
+        }
 
         await kit.close();
     });

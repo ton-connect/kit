@@ -21,6 +21,7 @@ import type {
     TransactionRequest,
     TransactionRequestMessage,
     SendTransactionResponse,
+    Base64String,
 } from '../../../api/models';
 import type { Wallet, WalletTonInterface } from '../../../api/interfaces';
 
@@ -41,11 +42,16 @@ export class WalletTonClass implements WalletTonInterface {
             throw new Error(`Invalid amount: ${param.transferAmount}`);
         }
 
-        let body;
+        let body: Base64String | undefined;
         if (param.payload) {
             body = param.payload;
         } else if (param.comment) {
-            body = beginCell().storeUint(0, 32).storeStringTail(param.comment).endCell().toBoc().toString('base64');
+            body = beginCell()
+                .storeUint(0, 32)
+                .storeStringTail(param.comment)
+                .endCell()
+                .toBoc()
+                .toString('base64') as Base64String;
         }
         const message: TransactionRequestMessage = {
             address: param.recipientAddress,
@@ -75,11 +81,16 @@ export class WalletTonClass implements WalletTonInterface {
                 throw new Error(`Invalid amount: ${param.transferAmount}`);
             }
 
-            let body;
+            let body: Base64String | undefined;
             if (param.payload) {
                 body = param.payload;
             } else if (param.comment) {
-                body = beginCell().storeUint(0, 32).storeStringTail(param.comment).endCell().toBoc().toString('base64');
+                body = beginCell()
+                    .storeUint(0, 32)
+                    .storeStringTail(param.comment)
+                    .endCell()
+                    .toBoc()
+                    .toString('base64') as Base64String;
             }
             const message: TransactionRequestMessage = {
                 address: param.recipientAddress,

@@ -6,8 +6,7 @@
  *
  */
 
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../primitive';
-import { Base64ToHex } from '../../../utils/base64';
+import { asAddressFriendly, asMaybeAddressFriendly, Base64ToHex } from '../../../utils';
 import type { NFTCollection } from '../../../api/models';
 
 export interface NFTCollectionV3 {

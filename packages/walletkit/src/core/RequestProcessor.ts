@@ -51,6 +51,7 @@ import type {
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
+    Base64String,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
 import type { Wallet } from '../api/interfaces';
@@ -849,7 +850,7 @@ export class RequestProcessor {
     /**
      * Sign transaction and return BOC
      */
-    private async signTransaction(event: TransactionRequestEvent): Promise<string> {
+    private async signTransaction(event: TransactionRequestEvent): Promise<Base64String> {
         const walletId = event.walletId;
         const walletAddress = this.getWalletAddressFromEvent(event);
 
@@ -894,7 +895,7 @@ export class RequestProcessor {
 /**
  * Internal helper to sign transaction
  */
-export async function signTransactionInternal(wallet: Wallet, request: TransactionRequest): Promise<string> {
+export async function signTransactionInternal(wallet: Wallet, request: TransactionRequest): Promise<Base64String> {
     const signedBoc = await wallet.getSignedSendTransaction(request, {
         fakeSignature: false,
     });

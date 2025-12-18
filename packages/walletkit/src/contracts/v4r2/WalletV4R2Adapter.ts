@@ -27,7 +27,7 @@ import { WalletV4R2CodeCell } from './WalletV4R2.source';
 import { defaultWalletIdV4R2 } from './constants';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
-import { formatWalletAddress } from '../../utils/address';
+import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import { globalLogger } from '../../core/Logger';
@@ -42,6 +42,7 @@ import type {
     TransactionRequest,
     UserFriendlyAddress,
     Hex,
+    Base64String,
 } from '../../api/models';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
@@ -133,7 +134,10 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return createWalletId(this.getNetwork(), this.getAddress());
     }
 
-    async getSignedSendTransaction(input: TransactionRequest, _options: { fakeSignature: boolean }): Promise<string> {
+    async getSignedSendTransaction(
+        input: TransactionRequest,
+        _options: { fakeSignature: boolean },
+    ): Promise<Base64String> {
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -184,7 +188,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
                 body: signedCell,
             });
 
-            return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64');
+            return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64') as Base64String;
         } catch (error) {
             log.warn('Failed to get signed send transaction', { error });
             throw error;
@@ -194,7 +198,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
     /**
      * Get state init for wallet deployment
      */
-    async getStateInit(): Promise<string> {
+    async getStateInit(): Promise<Base64String> {
         if (!this.walletContract.init) {
             throw new Error('Wallet contract not properly initialized');
         }
@@ -202,7 +206,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
         const stateInit = beginCell()
             .store(storeStateInit(this.walletContract.init as unknown as StateInit))
             .endCell();
-        return stateInit.toBoc().toString('base64');
+        return stateInit.toBoc().toString('base64') as Base64String;
     }
 
     /**
@@ -241,7 +245,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address.toString());
+            const state = await this.client.getAccountState(asAddressFriendly(this.walletContract.address));
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });

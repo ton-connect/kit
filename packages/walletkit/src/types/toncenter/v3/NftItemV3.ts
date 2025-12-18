@@ -7,9 +7,8 @@
  */
 
 import type { NFTCollectionV3 } from './NFTCollectionV3';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly, Base64ToHex } from '../../../utils';
 import { toNftCollection } from './NFTCollectionV3';
-import { Base64ToHex } from '../../../utils/base64';
 import type { NFT } from '../../../api/models';
 
 export interface NftItemV3 {

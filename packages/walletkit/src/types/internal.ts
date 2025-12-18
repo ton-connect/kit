@@ -18,9 +18,16 @@ import { WalletResponseError as _WalletResponseError } from '@tonconnect/protoco
 
 import type { JSBridgeTransportFunction } from './jsBridge';
 import type { WalletId } from '../utils/walletId';
-import type { ExtraCurrencies, TransactionRequest, TransactionRequestMessage, BridgeEvent } from '../api/models';
+import type {
+    ExtraCurrencies,
+    TransactionRequest,
+    TransactionRequestMessage,
+    BridgeEvent,
+    UserFriendlyAddress,
+    Base64String,
+} from '../api/models';
 import { SendModeFromValue, SendModeToValue } from '../api/models';
-import { asMaybeAddressFriendly } from './primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';
 
@@ -73,8 +80,8 @@ export type EventApprovalBase = {
     id: string;
     from: string;
     sessionId: string;
-    walletId: string;
-    walletAddress?: string;
+    walletId: WalletId;
+    walletAddress?: UserFriendlyAddress;
 
     messageId?: string;
 
@@ -140,10 +147,10 @@ export interface ConnectTransactionParamContent {
 
 export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {
     return {
-        address: msg.address,
+        address: asAddressFriendly(msg.address),
         amount: msg.amount,
-        payload: msg.payload,
-        stateInit: msg.stateInit,
+        payload: msg.payload ? (msg.payload as Base64String) : undefined,
+        stateInit: msg.stateInit ? (msg.stateInit as Base64String) : undefined,
         extraCurrency: toExtraCurrencies(msg.extraCurrency),
         mode: msg.mode ? SendModeFromValue(msg.mode) : undefined,
     };

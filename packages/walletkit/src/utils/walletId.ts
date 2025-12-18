@@ -12,7 +12,7 @@ import { CHAIN } from '@tonconnect/protocol';
 
 import type { Network } from '../api/models/core/Network';
 import type { UserFriendlyAddress } from '../api/models';
-import { asMaybeAddressFriendly } from '../types/primitive';
+import { asMaybeAddressFriendly } from '../utils/address';
 
 /**
  * Wallet ID format: "network:address"

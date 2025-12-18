@@ -14,6 +14,7 @@ import type { Maybe } from '@ton/core/dist/utils/maybe';
 
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import { ParseStack } from '../../utils/tvmStack';
+import { asAddressFriendly } from '../../utils';
 
 const log = {
     error: (_message: string, _data: unknown) => {
@@ -94,7 +95,7 @@ export class WalletV4R2 implements Contract {
      */
     async getSeqno(): Promise<number> {
         try {
-            const state = await this.client.runGetMethod(this.address.toString(), 'seqno');
+            const state = await this.client.runGetMethod(asAddressFriendly(this.address), 'seqno');
             if (state.exitCode !== 0) {
                 return 0;
             }
@@ -122,7 +123,7 @@ export class WalletV4R2 implements Contract {
      */
     async getSubwalletId(): Promise<number> {
         try {
-            const state = await this.client.runGetMethod(this.address.toString(), 'get_subwallet_id');
+            const state = await this.client.runGetMethod(asAddressFriendly(this.address), 'get_subwallet_id');
             if (state.exitCode !== 0) {
                 return this.subwalletId;
             }

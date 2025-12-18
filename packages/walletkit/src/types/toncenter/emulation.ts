@@ -23,8 +23,9 @@ import type {
     TransactionEmulatedTrace,
     TransactionsResponse,
     UserFriendlyAddress,
+    Base64String,
 } from '../../api/models';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../primitive';
+import { asAddressFriendly, asMaybeAddressFriendly } from '../../utils/address';
 import type { AddressBookRowV3, MetadataV3 } from './v3/AddressBookRowV3';
 import { toAddressBook } from './v3/AddressBookRowV3';
 // Types for Toncenter emulation endpoint response
@@ -52,10 +53,10 @@ export function toTransactionEmulatedTrace(response: ToncenterEmulationResponse)
         randSeed: Base64ToHex(response.rand_seed),
         isIncomplete: response.is_incomplete,
         codeCells: Object.fromEntries(
-            Object.entries(response.code_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell]),
+            Object.entries(response.code_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell as Base64String]),
         ),
         dataCells: Object.fromEntries(
-            Object.entries(response.data_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell]),
+            Object.entries(response.data_cells ?? {}).map(([hash, cell]) => [Base64ToHex(hash), cell as Base64String]),
         ),
         metadata: {}, // to be filled later
         addressBook: {}, // to be filled later
@@ -344,7 +345,7 @@ function toTransactionMessage(msg: EmulationMessage): TransactionMessage {
         opcode: msg.opcode ?? undefined,
         messageContent: {
             hash: msg.message_content?.hash ? Base64ToHex(msg.message_content.hash) : undefined,
-            body: msg.message_content?.body,
+            body: msg.message_content?.body ? (msg.message_content.body as Base64String) : undefined,
             decoded: msg.message_content?.decoded ?? undefined,
         },
     };

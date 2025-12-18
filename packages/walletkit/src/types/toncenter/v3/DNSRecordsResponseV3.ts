@@ -11,7 +11,7 @@ import { toDnsRecord } from './DNSRecordV3';
 import type { AddressBookRowV3 } from './AddressBookRowV3';
 import type { DnsRecords } from '../DnsRecords';
 import type { AddressBookRow } from '../AddressBookRow';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly } from '../../../utils/address';
 
 export interface DNSRecordsResponseV3 {
     address_book: { [key: string]: AddressBookRowV3 };

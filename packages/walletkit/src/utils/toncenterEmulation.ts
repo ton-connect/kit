@@ -22,6 +22,7 @@ import type {
 } from '../api/models';
 import { Result, SendModeToValue, AssetType } from '../api/models';
 import type { Wallet } from '../api/interfaces';
+import { asAddressFriendly, asMaybeAddressFriendly } from './address';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -170,7 +171,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
             continue;
         }
 
-        const from = Address.parse(t.in_msg.source);
+        const from = asMaybeAddressFriendly(t.in_msg.source);
         const to = parsed.data.destination instanceof Address ? parsed.data.destination : null;
         if (!to) {
             continue;
@@ -190,12 +191,12 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
             continue;
         }
 
-        const jettonAddress = Address.parse(tokenInfo.extra.jetton);
+        const jettonAddress = asMaybeAddressFriendly(tokenInfo.extra.jetton);
 
         jettonTransfers.push({
-            fromAddress: from.toString(),
-            toAddress: to.toString(),
-            tokenAddress: jettonAddress.toRawString().toUpperCase(),
+            fromAddress: from ?? undefined,
+            toAddress: asMaybeAddressFriendly(to.toString()) ?? undefined,
+            tokenAddress: jettonAddress ?? undefined,
             amount: jettonAmount.toString(),
             assetType: AssetType.jetton,
         });
@@ -235,7 +236,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     const ourJettonTransfers: TransactionTraceMoneyFlowItem[] = Object.entries(ourJettonTransfersByAddress).map(
         ([jettonKey, amount]) => ({
             assetType: AssetType.jetton,
-            tokenAddress: Address.parse(jettonKey).toRawString().toUpperCase(),
+            tokenAddress: asMaybeAddressFriendly(jettonKey) ?? undefined,
             amount: amount.toString(),
         }),
     );
@@ -250,7 +251,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         inputs,
         allJettonTransfers: jettonTransfers,
         ourTransfers: selfTransfers,
-        ourAddress: ourAddress.toString(),
+        ourAddress: asAddressFriendly(ourAddress),
     };
 }
 

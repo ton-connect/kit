@@ -22,6 +22,7 @@ import type {
     TransactionRequest,
     PreparedSignData,
     ProofMessage,
+    UserFriendlyAddress,
 } from '@ton/walletkit';
 import {
     formatWalletAddress,
@@ -109,7 +110,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
     /**
      * Get wallet's TON address
      */
-    getAddress(options?: { testnet?: boolean }): string {
+    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
         return formatWalletAddress(this.walletContract.address, options?.testnet);
     }
 
@@ -170,7 +171,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
                 body: signedCell,
             });
 
-            return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64');
+            return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64') as Base64String;
         } finally {
             if (transport) {
                 await transport.close();
@@ -181,7 +182,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
     /**
      * Get state init for wallet deployment
      */
-    async getStateInit(): Promise<string> {
+    async getStateInit(): Promise<Base64String> {
         if (!this.walletContract.init) {
             throw new Error('Wallet contract not properly initialized');
         }
@@ -189,7 +190,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
         const stateInit = beginCell()
             .store(storeStateInit(this.walletContract.init as unknown as StateInit))
             .endCell();
-        return stateInit.toBoc().toString('base64');
+        return stateInit.toBoc().toString('base64') as Base64String;
     }
 
     /**
@@ -228,7 +229,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
      */
     async isDeployed(): Promise<boolean> {
         try {
-            const state = await this.client.getAccountState(this.walletContract.address.toString());
+            const state = await this.client.getAccountState(this.getAddress().toString());
             return state.status === 'active';
         } catch (error) {
             log.warn('Failed to check deployment status', { error });

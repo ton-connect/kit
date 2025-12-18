@@ -20,6 +20,7 @@ import { JettonError, JettonErrorCode } from '../types/jettons';
 import type { NetworkManager } from './NetworkManager';
 import type { Jetton } from '../api/models';
 import { Network } from '../api/models';
+import { asMaybeAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('JettonsManager');
 
@@ -113,14 +114,16 @@ export class JettonsManager implements JettonsAPI {
 
             log.debug('Jetton info not found in cache', { jettonAddress: jettonAddress, network: targetNetwork });
 
-            if (!this.validateJettonAddress(jettonAddress)) {
+            const address = asMaybeAddressFriendly(jettonAddress);
+
+            if (!address) {
                 log.error('Invalid jetton address format', { jettonAddress, network: targetNetwork });
                 return null;
             }
 
             const apiClient = this.networkManager.getClient(targetNetwork);
             const jettonFromApi = await apiClient.jettonsByAddress({
-                address: jettonAddress,
+                address: address,
                 offset: 0,
                 limit: 1,
             });

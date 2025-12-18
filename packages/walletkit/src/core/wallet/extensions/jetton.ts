@@ -10,11 +10,12 @@ import type { Builder, Cell } from '@ton/core';
 import { Address, beginCell } from '@ton/core';
 
 import { validateTransactionMessage } from '../../../validation';
-import { isValidAddress } from '../../../utils/address';
+import { asAddressFriendly, isValidAddress } from '../../../utils/address';
 import { CallForSuccess } from '../../../utils/retry';
 import { ParseStack, SerializeStack } from '../../../utils/tvmStack';
 import type { Wallet, WalletJettonInterface } from '../../../api/interfaces';
 import type {
+    Base64String,
     JettonsRequest,
     JettonsResponse,
     JettonsTransferRequest,
@@ -94,7 +95,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         const message: TransactionRequestMessage = {
             address: jettonWalletAddress,
             amount: '50000000', // 0.05 TON for gas fees
-            payload: jettonPayload.toBoc().toString('base64'),
+            payload: jettonPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,
             mode: {
@@ -155,7 +156,7 @@ export class WalletJettonClass implements WalletJettonInterface {
             if (!jettonWalletAddress) {
                 throw new Error('Failed to get jetton wallet address');
             }
-            return jettonWalletAddress.toString();
+            return asAddressFriendly(jettonWalletAddress.toString());
         } catch (error) {
             throw new Error(
                 `Failed to get jetton wallet address for ${jettonAddress}: ${

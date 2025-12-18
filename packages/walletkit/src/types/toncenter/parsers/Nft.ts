@@ -9,7 +9,7 @@
 import type { AddressBook, NftItemTransferAction, SimplePreview, StatusAction } from '../AccountEvent';
 import { toAccount } from '../AccountEvent';
 import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
-import { asAddressFriendly } from '../../primitive';
+import { asAddressFriendly } from '../../../utils/address';
 import { Base64ToHex } from '../../../utils/base64';
 import { computeStatus } from './TonTransfer';
 import { getDecoded, extractOpFromBody, matchOpWithMap } from './body';
