@@ -1,12 +1,7 @@
 name: e2e extension
 
 on:
-  workflow_run:
-    workflows: ["Basic build and tests"]
-    types:
-      - completed
-    branches:
-      - main
+  workflow_call: {}
   # Allows manual workflow runs with branch selection in UI
   workflow_dispatch: {}
 
@@ -18,7 +13,6 @@ jobs:
     # container:
     #   image: node:22
     #   options: --user root
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run != '' && github.event.workflow_run.conclusion == 'success') }}
 
     steps:
     - uses: actions/checkout@v5
