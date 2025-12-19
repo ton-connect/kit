@@ -36,3 +36,13 @@ jobs:
 
     - name: test
       run: pnpm quality
+
+  e2e-web:
+    needs: unit
+    uses: ./.github/workflows/e2e_web.yml
+    secrets: inherit
+
+  e2e-extension:
+    needs: unit
+    uses: ./.github/workflows/e2e_extension.yml
+    secrets: inherit
