@@ -27,6 +27,7 @@ import { WalletNftClass } from './wallet/extensions/nft';
 import type { AnalyticsApi } from '../analytics/sender';
 import type { NetworkManager } from './NetworkManager';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
+import type { ProcessToncenterMoneyFlowHandler } from '../types';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -51,11 +52,18 @@ export class Initializer {
     private networkManager!: NetworkManager;
     private eventEmitter: EventEmitter;
     private analyticsApi?: AnalyticsApi;
+    private extendHandlers: ProcessToncenterMoneyFlowHandler[] = [];
 
-    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
+    constructor(
+        config: TonWalletKitOptions,
+        eventEmitter: EventEmitter,
+        analyticsApi?: AnalyticsApi,
+        extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
+    ) {
         this.config = config;
         this.eventEmitter = eventEmitter;
         this.analyticsApi = analyticsApi;
+        this.extendHandlers = extendHandlers;
     }
 
     /**
@@ -152,6 +160,7 @@ export class Initializer {
             walletManager,
             this.config,
             this.analyticsApi,
+            this.extendHandlers,
         );
 
         const bridgeManager = new BridgeManager(

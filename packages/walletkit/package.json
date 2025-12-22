@@ -71,6 +71,11 @@
     "@ton/crypto": "^3.3.0",
     "@truecarry/tlb-abi": "^0.2.0"
   },
+  "peerDependenciesMeta": {
+    "@truecarry/tlb-abi": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.3.0",

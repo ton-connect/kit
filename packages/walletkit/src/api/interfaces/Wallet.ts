@@ -23,6 +23,7 @@ import type {
     NFTRawTransferRequest,
 } from '../models';
 import type { WalletAdapter } from './WalletAdapter';
+import type { ProcessToncenterMoneyFlowHandler } from '../../types';
 
 export type Wallet = WalletAdapter & WalletTonInterface & WalletJettonInterface & WalletNftInterface;
 
@@ -30,7 +31,10 @@ export interface WalletTonInterface {
     createTransferTonTransaction(params: TONTransferRequest): Promise<TransactionRequest>;
     createTransferMultiTonTransaction(params: [TONTransferRequest]): Promise<TransactionRequest>;
 
-    getTransactionPreview(data: TransactionRequest | Promise<TransactionRequest>): Promise<TransactionEmulatedPreview>;
+    getTransactionPreview(
+        data: TransactionRequest | Promise<TransactionRequest>,
+        extendHandlers?: ProcessToncenterMoneyFlowHandler[],
+    ): Promise<TransactionEmulatedPreview>;
 
     sendTransaction(request: TransactionRequest): Promise<SendTransactionResponse>;
 

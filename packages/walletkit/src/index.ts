@@ -9,6 +9,7 @@
 export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 export { CHAIN } from '@tonconnect/protocol';
 export { TonWalletKit } from './core/TonWalletKit';
+export { processToncenterMoneyFlow } from './core/TonWalletKit';
 export * from './types';
 export type * from './types/internal';
 export * from './errors';
@@ -108,3 +109,4 @@ export { CreateTonProofMessageBytes } from './utils/tonProof';
 // API Interfaces
 export type * from './api/interfaces';
 export * from './api/models';
+export * from './extend';
