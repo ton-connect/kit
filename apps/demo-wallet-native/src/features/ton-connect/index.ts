@@ -14,6 +14,5 @@ export { DAppInfo } from './components/dapp-info';
 export { ActionButtons } from './components/action-buttons';
 export { SectionTitle } from './components/section-title';
 export { SuccessView } from './components/success-view';
-export { QrScanner } from './components/qr-scanner';
 export { ScanQrButton } from './components/scan-qr-button';
 export { TonConnectLinkInput } from './components/ton-connect-link-input';

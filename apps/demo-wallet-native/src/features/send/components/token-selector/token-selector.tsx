@@ -19,6 +19,7 @@ import { Block } from '@/core/components/block';
 import { CircleLogo } from '@/core/components/circle-logo';
 import { TextAmount } from '@/core/components/text-amount';
 import { getFormattedJettonInfo } from '@/core/utils/jetton';
+import { logoSource } from '@/core/components/app-logo';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
@@ -43,7 +44,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({ onSelectToken, selectedT
                 symbol: 'TON',
                 balance: tonBalance || '0',
                 decimals: 9,
-                image: null,
+                image: logoSource,
             };
         }
 

@@ -16,6 +16,7 @@ import { StyleSheet } from 'react-native-unistyles';
 import { AppButton } from '@/core/components/app-button';
 import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scroll-view';
 import { AppText } from '@/core/components/app-text';
+import { QrScanner } from '@/core/components/qr-scanner';
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScanQrButton, TonConnectLinkInput } from '@/features/ton-connect';
 
@@ -23,6 +24,7 @@ const ConnectDAppScreen: FC = () => {
     const { handleTonConnectUrl } = useTonConnect();
     const [tonConnectUrl, setTonConnectUrl] = useState('');
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isScannerVisible, setIsScannerVisible] = useState(false);
 
     const handleConnect = useCallback(
         async (url: string) => {
@@ -44,9 +46,31 @@ const ConnectDAppScreen: FC = () => {
         [handleTonConnectUrl],
     );
 
-    const handleOpenScanner = useCallback(() => {
-        router.push('/scan-qr');
+    const handleScannerClose = useCallback(() => {
+        setIsScannerVisible(false);
     }, []);
+
+    const handleScannerOpen = useCallback(() => {
+        setIsScannerVisible(true);
+    }, []);
+
+    const handleScan = useCallback(
+        async (data: string) => {
+            try {
+                await handleTonConnectUrl(data.trim());
+                handleScannerClose();
+                router.back();
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to connect to dApp:', error);
+                Alert.alert(
+                    'Connection Failed',
+                    'Failed to connect to the dApp. Please check the QR code and try again.',
+                );
+            }
+        },
+        [handleTonConnectUrl, handleScannerClose],
+    );
 
     return (
         <AppKeyboardAwareScrollView contentContainerStyle={styles.containerContent} style={styles.container}>
@@ -62,7 +86,7 @@ const ConnectDAppScreen: FC = () => {
                     Scan a QR code or paste a TON Connect link to connect to a dApp
                 </AppText>
 
-                <ScanQrButton onPress={handleOpenScanner} />
+                <ScanQrButton onPress={handleScannerOpen} />
 
                 <View style={styles.divider}>
                     <View style={styles.dividerLine} />
@@ -82,6 +106,7 @@ const ConnectDAppScreen: FC = () => {
                     <AppButton.Text>{isConnecting ? 'Connecting...' : 'Connect'}</AppButton.Text>
                 </AppButton.Container>
             </View>
+            <QrScanner isVisible={isScannerVisible} onClose={handleScannerClose} onScan={handleScan} />
         </AppKeyboardAwareScrollView>
     );
 };

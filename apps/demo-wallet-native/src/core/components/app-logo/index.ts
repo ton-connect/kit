@@ -6,4 +6,4 @@
  *
  */
 
-export { AppLogo } from './app-logo';
+export { AppLogo, logoSource } from './app-logo';
