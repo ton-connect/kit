@@ -26,7 +26,6 @@ import type { WalletManager } from '../core/WalletManager';
 import { getAddressFromWalletId } from '../utils/walletId';
 import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview, Base64String } from '../api/models';
 import { Network } from '../api/models';
-import { asMaybeAddressFriendly } from '../utils/address';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -170,7 +169,7 @@ export class SignDataHandler
 
             return {
                 network: parsed.network ? Network.custom(parsed.network) : undefined,
-                fromAddress: asMaybeAddressFriendly(parsed.from) ?? undefined,
+                fromAddress: parsed.from,
                 data: signData,
             };
         } catch (error) {

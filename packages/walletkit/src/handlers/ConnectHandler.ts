@@ -213,9 +213,9 @@ export class ConnectHandler
             permissions: permissions,
             dAppInfo: {
                 url: dAppUrl,
-                name: sanitizedManifest.name,
-                description: sanitizedManifest.description,
-                iconUrl: sanitizedManifest.iconUrl,
+                name: sanitizedManifest?.name,
+                description: sanitizedManifest?.description,
+                iconUrl: sanitizedManifest?.iconUrl,
                 manifestUrl: manifestUrl,
             },
             manifestFetchErrorCode: manifestFetchErrorCode ?? undefined,

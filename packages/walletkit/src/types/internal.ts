@@ -27,7 +27,7 @@ import type {
     Base64String,
 } from '../api/models';
 import { SendModeFromValue, SendModeToValue } from '../api/models';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../utils/address';
+import { asAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';
 
@@ -123,7 +123,7 @@ export interface ConnectExtraCurrency {
 }
 
 export interface ConnectTransactionParamMessage {
-    address: string;
+    address: string; // address as passed from client
     amount: string;
     payload?: string; // boc
     stateInit?: string; // boc
@@ -146,8 +146,11 @@ export interface ConnectTransactionParamContent {
 }
 
 export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {
+    // Check that msg.address is valid address
+    asAddressFriendly(msg.address);
+
     return {
-        address: asAddressFriendly(msg.address),
+        address: msg.address,
         amount: msg.amount,
         payload: msg.payload ? (msg.payload as Base64String) : undefined,
         stateInit: msg.stateInit ? (msg.stateInit as Base64String) : undefined,
@@ -172,7 +175,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
         messages: params.messages.map(toTransactionRequestMessage),
         network: params.network ? { chainId: params.network } : undefined,
         validUntil: params.valid_until,
-        fromAddress: asMaybeAddressFriendly(params.from) || undefined,
+        fromAddress: params.from,
     };
 }
 

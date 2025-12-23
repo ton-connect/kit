@@ -149,12 +149,18 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
                 throw new Error('Public key from Ledger does not match');
             }
 
+            let bounce = true;
+            const parsedAddress = Address.parseFriendly(message.address);
+            if (parsedAddress.isBounceable === false) {
+                bounce = false;
+            }
+
             const signedCell = await tonTransport.signTransaction(this.derivationPath, {
                 to: Address.parse(message.address),
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
                 seqno: seqno,
                 timeout: timeout,
-                bounce: true,
+                bounce,
                 amount: BigInt(message.amount),
                 stateInit: message.stateInit ? loadStateInit(Cell.fromBase64(message.stateInit).asSlice()) : undefined,
                 payload: message.payload
