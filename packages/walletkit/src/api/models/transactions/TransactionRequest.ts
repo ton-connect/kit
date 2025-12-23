@@ -8,7 +8,7 @@
 
 import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 import type { Network } from '../core/Network';
-import type { UserFriendlyAddress, Base64String } from '../core/Primitives';
+import type { Base64String } from '../core/Primitives';
 import type { SendMode } from '../core/SendMode';
 import type { TokenAmount } from '../core/TokenAmount';
 
@@ -32,14 +32,9 @@ export interface TransactionRequest {
     validUntil?: number;
 
     /**
-     * Sender wallet address
+     * Sender wallet address in received format(raw, user friendly)
      */
-    originalFromAddress?: string;
-
-    /**
-     * Sender wallet address in user-friendly format
-     */
-    fromAddress?: UserFriendlyAddress;
+    fromAddress?: string;
 }
 
 /**

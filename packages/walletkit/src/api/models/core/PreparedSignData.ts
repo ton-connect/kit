@@ -45,13 +45,9 @@ export interface SignDataPayload {
      */
     network?: Network;
     /**
-     * Optional original sender address
+     * Optional sender address in received format (raw, user friendly)
      */
-    originalFromAddress?: string;
-    /**
-     * Optional sender address in user-friendly format
-     */
-    fromAddress?: UserFriendlyAddress;
+    fromAddress?: string;
     /**
      * Sign data content to be signed
      */

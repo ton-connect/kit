@@ -27,7 +27,7 @@ import type {
     Base64String,
 } from '../api/models';
 import { SendModeFromValue, SendModeToValue } from '../api/models';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../utils/address';
+import { asAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';
 
@@ -175,8 +175,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
         messages: params.messages.map(toTransactionRequestMessage),
         network: params.network ? { chainId: params.network } : undefined,
         validUntil: params.valid_until,
-        originalFromAddress: params.from ?? undefined,
-        fromAddress: asMaybeAddressFriendly(params.from) || undefined,
+        fromAddress: params.from,
     };
 }
 
@@ -185,7 +184,7 @@ export function toConnectTransactionParamContent(request: TransactionRequest): C
         messages: request.messages.map(toConnectTransactionParamMessage),
         network: request.network?.chainId,
         valid_until: request.validUntil,
-        from: request.originalFromAddress,
+        from: request.fromAddress,
     };
 }
 
