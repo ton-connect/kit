@@ -2,10 +2,8 @@
 '@ton/walletkit': patch
 ---
 
-Major API restructuring with new wallet interfaces, Network object, and structured event previews
+Major API restructuring with new wallet interfaces and a Network object.
 
-- Structured wallet API with separate interfaces for TON, Jetton, and NFT operations
-- `Network` object replaces `CHAIN` enum (`Network.mainnet()`, `Network.testnet()`)
-- Event models with structured `preview` data for UI
-- Multi-network support
-- Fields renamed to camelCase (e.g. `validUntil`, `extraCurrency`)
+- The `Network` object replaces the `CHAIN` enum (`Network.mainnet()`, `Network.testnet()`)
+- Added multi-network support
+- Refactored most models with field names updated to camelCase (e.g. `validUntil`, `extraCurrency`)
