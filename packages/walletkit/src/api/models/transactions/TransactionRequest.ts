@@ -8,7 +8,7 @@
 
 import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 import type { Network } from '../core/Network';
-import type { UserFriendlyAddress, Base64String } from '../core/Primitives';
+import type { Base64String } from '../core/Primitives';
 import type { SendMode } from '../core/SendMode';
 import type { TokenAmount } from '../core/TokenAmount';
 
@@ -32,9 +32,9 @@ export interface TransactionRequest {
     validUntil?: number;
 
     /**
-     * Sender wallet address
+     * Sender wallet address in received format(raw, user friendly)
      */
-    fromAddress?: UserFriendlyAddress;
+    fromAddress?: string;
 }
 
 /**
@@ -42,9 +42,9 @@ export interface TransactionRequest {
  */
 export interface TransactionRequestMessage {
     /**
-     * Recipient wallet address
+     * Recipient wallet address in format received from caller (raw, user friendly)
      */
-    address: UserFriendlyAddress;
+    address: string;
 
     /**
      * Amount to transfer in nanos

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 import type { BrowserContext, Page } from '@playwright/test';
 import { test } from '@playwright/test';
 
-import { launchPersistentContext, testWith } from '../qa';
+import { getExtensionId, launchPersistentContext, testWith } from '../qa';
 import { isExtensionWalletSource } from '../qa/WalletApp';
 
 export interface UITestFixture {
@@ -49,7 +49,13 @@ export function uiTestFixture(config: UITestConfig = {}, slowMo = 0) {
         },
         page: async ({ context }, use) => {
             const page = await context.newPage();
-            const pageUrl = isExtension ? `chrome-extension://${walletSource}/index.extension.html` : walletSource;
+            let pageUrl: string;
+            if (isExtension) {
+                const extensionId = await getExtensionId(context);
+                pageUrl = `chrome-extension://${extensionId}/index.extension.html`;
+            } else {
+                pageUrl = walletSource;
+            }
             await page.goto(pageUrl, { waitUntil: 'load' });
             await use(page);
         },

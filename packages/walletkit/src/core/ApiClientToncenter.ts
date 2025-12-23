@@ -62,6 +62,7 @@ import type {
     UserNFTsRequest,
 } from '../api/models';
 import { asAddressFriendly } from '../utils/address';
+import { toConnectTransactionParamMessage } from '../types/internal';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -143,7 +144,7 @@ export class ApiClientToncenter implements ApiClient {
             include_address_book: true,
             include_metadata: true,
             with_actions: true,
-            messages,
+            messages: messages.map(toConnectTransactionParamMessage),
         };
         if (typeof seqno === 'number') props.mc_block_seqno = seqno;
         const response = await this.postJson<ToncenterEmulationResponse>('/api/v3/emulation', props);
