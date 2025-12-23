@@ -41,7 +41,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     // Find the wallet being used for this transaction
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
-        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+        return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
     // Check every second if transaction has expired

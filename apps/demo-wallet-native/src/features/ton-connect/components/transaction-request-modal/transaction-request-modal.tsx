@@ -22,9 +22,11 @@ import { SuccessView } from '../success-view';
 
 import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
 import { AppText } from '@/core/components/app-text';
+import { AppButton } from '@/core/components/app-button';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
 import { getErrorMessage } from '@/core/utils/errors/get-error-message';
+import { useAppToasts } from '@/features/toasts';
 
 interface TransactionRequestModalProps {
     request: TransactionRequestEvent;
@@ -39,18 +41,43 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
 
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isExpired, setIsExpired] = useState(false);
+
+    const { toast } = useAppToasts();
 
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
-        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+        return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
     useEffect(() => {
         if (!isOpen) {
             setShowSuccess(false);
             setIsLoading(false);
+            setIsExpired(false);
         }
     }, [isOpen]);
+
+    // Check every second if transaction has expired
+    useEffect(() => {
+        const checkExpiration = () => {
+            const validUntil = request.request?.validUntil;
+            if (validUntil) {
+                const now = Math.floor(Date.now() / 1000);
+                setIsExpired(validUntil < now);
+            } else {
+                setIsExpired(false);
+            }
+        };
+
+        // Check immediately
+        checkExpiration();
+
+        // Set up interval to check every second
+        const interval = setInterval(checkExpiration, 1000);
+
+        return () => clearInterval(interval);
+    }, [request.request?.validUntil]);
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -62,6 +89,11 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to approve transaction:', error);
+            toast({
+                title: 'Failed to approve transaction',
+                subtitle: (error as Error)?.message,
+                type: 'error',
+            });
             setIsLoading(false);
         }
     };
@@ -95,53 +127,71 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     </View>
                 )}
 
-                {request.preview.data.result === 'success' && currentWallet && walletKit && (
-                    <View style={styles.moneyFlowSection}>
-                        <SectionTitle>Money Flow</SectionTitle>
+                {isExpired && (
+                    <WarningBox variant="warning">
+                        This transaction request has expired and can no longer be signed. Please reject it and ask the
+                        dApp to create a new request.
+                    </WarningBox>
+                )}
 
-                        {request.preview.data.moneyFlow?.outputs === '0' &&
-                        request.preview.data.moneyFlow.inputs === '0' &&
-                        request.preview.data.moneyFlow.ourTransfers.length === 0 ? (
-                            <View style={styles.noTransfers}>
-                                <AppText style={styles.noTransfersText} textType="body1">
-                                    This transaction doesn't involve any token transfers
-                                </AppText>
-                            </View>
-                        ) : (
-                            <View style={styles.transfersList}>
-                                {request.preview.data.moneyFlow?.ourTransfers.map((transfer, index) => (
-                                    <JettonFlowItem
-                                        key={index}
-                                        jettonAddress={
-                                            transfer.assetType === 'jetton'
-                                                ? transfer.tokenAddress
-                                                : transfer.assetType.toUpperCase()
-                                        }
-                                        amount={transfer.amount}
-                                        activeWallet={currentWallet}
-                                        walletKit={walletKit}
-                                    />
-                                ))}
+                {!isExpired && (
+                    <>
+                        {request.preview.data.result === 'success' && currentWallet && walletKit && (
+                            <View style={styles.moneyFlowSection}>
+                                <SectionTitle>Money Flow</SectionTitle>
+
+                                {request.preview.data.moneyFlow?.outputs === '0' &&
+                                request.preview.data.moneyFlow.inputs === '0' &&
+                                request.preview.data.moneyFlow.ourTransfers.length === 0 ? (
+                                    <View style={styles.noTransfers}>
+                                        <AppText style={styles.noTransfersText} textType="body1">
+                                            This transaction doesn't involve any token transfers
+                                        </AppText>
+                                    </View>
+                                ) : (
+                                    <View style={styles.transfersList}>
+                                        {request.preview.data.moneyFlow?.ourTransfers.map((transfer, index) => (
+                                            <JettonFlowItem
+                                                key={index}
+                                                jettonAddress={
+                                                    transfer.assetType === 'jetton'
+                                                        ? transfer.tokenAddress
+                                                        : transfer.assetType.toUpperCase()
+                                                }
+                                                amount={transfer.amount}
+                                                activeWallet={currentWallet}
+                                                walletKit={walletKit}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
                             </View>
                         )}
-                    </View>
+
+                        {(request.preview.data.result === 'failure' || request.preview.data.error) && (
+                            <WarningBox variant="error">Error: {getErrorMessage(request.preview.data)}</WarningBox>
+                        )}
+
+                        <WarningBox variant="error">
+                            Warning: This transaction will be irreversible. Only approve if you trust the requesting
+                            dApp and understand the transaction details.
+                        </WarningBox>
+                    </>
                 )}
 
-                {(request.preview.data.result === 'failure' || request.preview.data.error) && (
-                    <WarningBox variant="error">Error: {getErrorMessage(request.preview.data)}</WarningBox>
+                {isExpired ? (
+                    <AppButton.Container onPress={handleReject} colorScheme="secondary" disabled={isLoading}>
+                        <AppButton.Text>Reject</AppButton.Text>
+                    </AppButton.Container>
+                ) : (
+                    <ActionButtons
+                        primaryText={isLoading ? 'Signing...' : 'Approve & Sign'}
+                        onPrimaryPress={handleApprove}
+                        onSecondaryPress={handleReject}
+                        isLoading={isLoading}
+                        isPrimaryDisabled={isLoading}
+                    />
                 )}
-
-                <WarningBox variant="error">
-                    Warning: This transaction will be irreversible. Only approve if you trust the requesting dApp and
-                    understand the transaction details.
-                </WarningBox>
-
-                <ActionButtons
-                    primaryText={isLoading ? 'Signing...' : 'Approve & Sign'}
-                    onPrimaryPress={handleApprove}
-                    onSecondaryPress={handleReject}
-                    isLoading={isLoading}
-                />
             </View>
         </AppBottomSheet>
     );

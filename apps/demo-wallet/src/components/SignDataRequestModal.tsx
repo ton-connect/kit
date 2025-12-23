@@ -43,7 +43,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
     // Find the wallet being used for this sign data request
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
-        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+        return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
     // Reset success state when modal closes/opens

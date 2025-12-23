@@ -15,10 +15,12 @@ interface Props extends ViewProps {
     size?: number;
 }
 
+export const logoSource = require('../../../../assets/logo.png');
+
 export const AppLogo: FC<Props> = ({ size, ...props }) => {
     return (
         <CircleLogo.Container size={size} {...props}>
-            <CircleLogo.Logo size={size} source={require('../../../../assets/logo.png')} />
+            <CircleLogo.Logo size={size} source={logoSource} />
         </CircleLogo.Container>
     );
 };

@@ -39,7 +39,7 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
 
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
-        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+        return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
     useEffect(() => {

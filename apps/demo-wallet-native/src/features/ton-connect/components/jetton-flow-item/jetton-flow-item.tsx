@@ -20,6 +20,8 @@ import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
 import { fromMinorUnit } from '@/core/utils/amount/minor-unit';
 import { TextAmount } from '@/core/components/text-amount';
+import { CircleLogo } from '@/core/components/circle-logo';
+import { logoSource } from '@/core/components/app-logo';
 
 function safeParseAddress(address: string): string | null {
     try {
@@ -65,6 +67,7 @@ export const JettonFlowItem: FC<JettonFlowItemProps> = memo(({ jettonAddress, am
     }, [resolvedAddress, walletKit, chainNetwork]);
 
     const isPositive = BigInt(amount) >= 0n;
+    const isTon = jettonAddress === 'TON';
     const decimals = jettonInfo?.decimals ?? 9;
     const formattedAmount = fromMinorUnit(amount, decimals).toString();
     const displayAmount = isPositive ? `+${formattedAmount}` : formattedAmount;
@@ -74,8 +77,10 @@ export const JettonFlowItem: FC<JettonFlowItemProps> = memo(({ jettonAddress, am
     return (
         <Block style={styles.container}>
             <View style={styles.left}>
-                {jettonInfo?.image ? (
-                    <Image source={{ uri: jettonInfo.image }} style={styles.image} />
+                {jettonInfo?.image || isTon ? (
+                    <CircleLogo.Container style={styles.image}>
+                        <CircleLogo.Logo source={isTon ? logoSource : { uri: jettonInfo?.image }} />
+                    </CircleLogo.Container>
                 ) : (
                     <View style={styles.imagePlaceholder}>
                         <AppText style={styles.placeholderText} textType="caption1">
