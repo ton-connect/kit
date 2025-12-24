@@ -34,8 +34,8 @@ function safeParseAddress(address: string): string | null {
 interface JettonFlowItemProps {
     jettonAddress: Address | string | undefined;
     amount: string;
-    activeWallet: SavedWallet;
-    walletKit: ITonWalletKit;
+    activeWallet: SavedWallet | null;
+    walletKit: ITonWalletKit | null;
 }
 
 export const JettonFlowItem: FC<JettonFlowItemProps> = memo(({ jettonAddress, amount, activeWallet, walletKit }) => {

@@ -6,7 +6,7 @@
  *
  */
 
-import { AntDesign } from '@expo/vector-icons';
+import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { Address } from '@ton/ton';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
 import { router } from 'expo-router';
@@ -20,6 +20,7 @@ import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AmountInput } from '@/core/components/amount-input';
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
+import { AppText } from '@/core/components/app-text';
 import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scroll-view';
 import { QrScanner } from '@/core/components/qr-scanner';
 import { ScreenHeader } from '@/core/components/screen-header';
@@ -27,6 +28,7 @@ import { getErrorMessage } from '@/core/utils/errors/get-error-message';
 import { TokenListSheet, TokenSelector } from '@/features/send';
 import { fromMinorUnit, toMinorUnit } from '@/core/utils/amount/minor-unit';
 import { useFormattedJetton } from '@/core/hooks/use-formatted-jetton';
+import { getLedgerErrorMessage } from '@/features/ledger';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
@@ -41,11 +43,13 @@ const SendScreen: FC = () => {
     const [selectedToken, setSelectedToken] = useState<SelectedToken>({ type: 'TON' });
     const [isScannerVisible, setIsScannerVisible] = useState(false);
 
+    const { theme } = useUnistyles();
     const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
 
     const walletKit = useWalletKit();
     const { balance, currentWallet } = useWallet();
-    const { theme } = useUnistyles();
+
+    const isLedgerWallet = currentWallet?.walletType === 'ledger';
 
     const formatTonBalance = (bal: string): string => {
         return fromMinorUnit(bal || '0', 9).toString();
@@ -132,10 +136,12 @@ const SendScreen: FC = () => {
                 }
             }
 
-            Alert.alert('Success', 'Transaction sent successfully');
             router.back();
         } catch (err) {
-            Alert.alert('Error', getErrorMessage(err, 'Failed to send transaction'));
+            Alert.alert(
+                'Error',
+                isLedgerWallet ? getLedgerErrorMessage(err) : getErrorMessage(err, 'Failed to send transaction'),
+            );
         } finally {
             setIsLoading(false);
         }
@@ -206,12 +212,28 @@ const SendScreen: FC = () => {
                 </ActiveTouchAction>
             </View>
 
+            {isLedgerWallet && isLoading && (
+                <View style={styles.ledgerPrompt}>
+                    <Ionicons name="hardware-chip-outline" size={24} color={theme.colors.accent.primary} />
+                    <View style={styles.ledgerPromptText}>
+                        <AppText style={styles.ledgerPromptTitle} textType="body1">
+                            Confirm on Ledger
+                        </AppText>
+                        <AppText style={styles.ledgerPromptHint}>
+                            Please review and confirm this transaction on your Ledger device
+                        </AppText>
+                    </View>
+                </View>
+            )}
+
             <AppButton.Container
                 colorScheme="primary"
                 disabled={isLoading || !recipient || !amount}
                 onPress={handleSend}
             >
-                <AppButton.Text>{isLoading ? 'Sending...' : 'Send'}</AppButton.Text>
+                <AppButton.Text>
+                    {isLoading ? (isLedgerWallet ? 'Waiting for Ledger...' : 'Sending...') : 'Send'}
+                </AppButton.Text>
             </AppButton.Container>
 
             <TokenListSheet
@@ -268,5 +290,28 @@ const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
         gap: sizes.space.vertical / 2,
         marginTop: sizes.space.vertical,
         marginBottom: sizes.space.vertical,
+    },
+    ledgerPrompt: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: sizes.space.horizontal,
+        padding: sizes.space.horizontal,
+        backgroundColor: colors.accent.primary + '15',
+        borderRadius: sizes.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.accent.primary + '30',
+        marginBottom: sizes.space.vertical,
+    },
+    ledgerPromptText: {
+        flex: 1,
+        gap: 2,
+    },
+    ledgerPromptTitle: {
+        color: colors.text.highlight,
+        fontWeight: '600',
+    },
+    ledgerPromptHint: {
+        color: colors.text.secondary,
+        fontSize: 13,
     },
 }));

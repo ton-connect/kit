@@ -30,7 +30,7 @@ const validatePassword = (pwd: string): string[] => {
 };
 
 const NewPasswordScreen: FC = () => {
-    const { type } = useLocalSearchParams<{ type: 'create' | 'import' }>();
+    const { type } = useLocalSearchParams<{ type: 'create' | 'import' | 'ledger' }>();
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,6 +38,17 @@ const NewPasswordScreen: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const { setPassword: setStorePassword } = useAuth();
+
+    const getNextRoute = () => {
+        switch (type) {
+            case 'import':
+                return '/(non-auth)/import-mnemonic';
+            case 'ledger':
+                return '/(non-auth)/connect-ledger';
+            default:
+                return '/(non-auth)/create-mnemonic';
+        }
+    };
 
     const handleSetPassword = async () => {
         setError('');
@@ -58,8 +69,8 @@ const NewPasswordScreen: FC = () => {
             // Set password in store
             await setStorePassword(password);
 
-            // Navigate to mnemonic setup
-            router.push(type === 'import' ? '/(non-auth)/import-mnemonic' : '/(non-auth)/create-mnemonic');
+            // Navigate to next step
+            router.push(getNextRoute());
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {

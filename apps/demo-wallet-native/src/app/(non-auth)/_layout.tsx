@@ -23,6 +23,7 @@ const NonAuthLayout: FC = () => (
             <Stack.Screen name="add-new-wallet" />
             <Stack.Screen name="create-mnemonic" />
             <Stack.Screen name="import-mnemonic" />
+            <Stack.Screen name="connect-ledger" />
             <Stack.Screen name="new-password" />
             <Stack.Screen name="unlock-wallet" />
         </Stack>

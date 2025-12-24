@@ -6,10 +6,11 @@
  *
  */
 
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useWalletStore } from '@ton/demo-core';
 
 import { AppButton } from '@/core/components/app-button';
@@ -18,6 +19,7 @@ import { AppText } from '@/core/components/app-text';
 
 const StartScreen: FC = () => {
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
+    const { theme } = useUnistyles();
 
     const router = useRouter();
 
@@ -45,6 +47,18 @@ const StartScreen: FC = () => {
         });
     };
 
+    const handleConnectLedger = () => {
+        if (isPasswordSet) {
+            router.push('/(non-auth)/connect-ledger');
+            return;
+        }
+
+        router.push({
+            pathname: '/(non-auth)/new-password',
+            params: { type: 'ledger' },
+        });
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.content}>
@@ -64,6 +78,16 @@ const StartScreen: FC = () => {
 
                     <AppButton.Container colorScheme="secondary" onPress={handleImport}>
                         <AppButton.Text>Import Wallet</AppButton.Text>
+                    </AppButton.Container>
+
+                    <AppButton.Container colorScheme="secondary" onPress={handleConnectLedger}>
+                        <Ionicons
+                            name="hardware-chip-outline"
+                            size={18}
+                            color={theme.colors.text.highlight}
+                            style={styles.ledgerIcon}
+                        />
+                        <AppButton.Text>Connect Ledger</AppButton.Text>
                     </AppButton.Container>
                 </View>
             </View>
@@ -102,5 +126,8 @@ const styles = StyleSheet.create(({ sizes, colors }) => ({
         marginTop: sizes.space.vertical * 4,
         width: '100%',
         gap: sizes.space.vertical,
+    },
+    ledgerIcon: {
+        marginRight: 8,
     },
 }));

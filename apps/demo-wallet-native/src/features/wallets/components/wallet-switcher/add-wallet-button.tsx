@@ -26,6 +26,10 @@ export const AddWalletButton: FC = () => {
         router.push('/(non-auth)/import-mnemonic');
     };
 
+    const handleConnectLedger = () => {
+        router.push('/(non-auth)/connect-ledger');
+    };
+
     return (
         <View style={styles.container}>
             <ActiveTouchAction onPress={handleCreateNew} style={styles.button}>
@@ -39,6 +43,13 @@ export const AddWalletButton: FC = () => {
                 <Ionicons color={theme.colors.accent.primary} name="arrow-down-circle-outline" size={20} />
                 <AppText style={[styles.text, { color: theme.colors.accent.primary }]} textType="body2">
                     Import Existing Wallet
+                </AppText>
+            </ActiveTouchAction>
+
+            <ActiveTouchAction onPress={handleConnectLedger} style={styles.button}>
+                <Ionicons color={theme.colors.accent.primary} name="hardware-chip-outline" size={20} />
+                <AppText style={[styles.text, { color: theme.colors.accent.primary }]} textType="body2">
+                    Connect Ledger
                 </AppText>
             </ActiveTouchAction>
         </View>

@@ -7,10 +7,11 @@
  */
 
 import type { TransactionRequestEvent } from '@ton/walletkit';
+import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useWallet } from '@ton/demo-core';
 import { useWalletKit } from '@ton/demo-core';
 
@@ -26,6 +27,7 @@ import { AppButton } from '@/core/components/app-button';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
 import { getErrorMessage } from '@/core/utils/errors/get-error-message';
+import { getLedgerErrorMessage } from '@/features/ledger';
 import { useAppToasts } from '@/features/toasts';
 
 interface TransactionRequestModalProps {
@@ -38,9 +40,11 @@ interface TransactionRequestModalProps {
 export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
     const { savedWallets } = useWallet();
     const walletKit = useWalletKit();
+    const { theme } = useUnistyles();
 
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [isExpired, setIsExpired] = useState(false);
 
     const { toast } = useAppToasts();
@@ -50,10 +54,13 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
         return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
+    const isLedgerWallet = currentWallet?.walletType === 'ledger';
+
     useEffect(() => {
         if (!isOpen) {
             setShowSuccess(false);
             setIsLoading(false);
+            setError(null);
             setIsExpired(false);
         }
     }, [isOpen]);
@@ -81,17 +88,20 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
 
     const handleApprove = async () => {
         setIsLoading(true);
+        setError(null);
 
         try {
             await onApprove();
             setIsLoading(false);
             setShowSuccess(true);
-        } catch (error) {
+        } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('Failed to approve transaction:', error);
+            console.error('Failed to approve transaction:', err);
+            const errorMessage = isLedgerWallet ? getLedgerErrorMessage(err) : getErrorMessage(err);
+            setError(errorMessage);
             toast({
                 title: 'Failed to approve transaction',
-                subtitle: (error as Error)?.message,
+                subtitle: errorMessage,
                 type: 'error',
             });
             setIsLoading(false);
@@ -113,12 +123,14 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
     return (
         <AppBottomSheet isOpened={isOpen} onClose={handleReject} title="Transaction Request" enableDynamicSizing>
             <View style={styles.container}>
-                <DAppInfo
-                    name={request.dAppInfo?.name}
-                    description={request.dAppInfo?.description}
-                    url={request.dAppInfo?.url}
-                    iconUrl={request.dAppInfo?.iconUrl}
-                />
+                {request.dAppInfo?.name && (
+                    <DAppInfo
+                        name={request.dAppInfo?.name}
+                        description={request.dAppInfo?.description}
+                        url={request.dAppInfo?.url}
+                        iconUrl={request.dAppInfo?.iconUrl}
+                    />
+                )}
 
                 {currentWallet && (
                     <View style={styles.walletSection}>
@@ -179,13 +191,31 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                     </>
                 )}
 
+                {error && <WarningBox variant="error">{error}</WarningBox>}
+
+                {isLedgerWallet && isLoading && (
+                    <View style={styles.ledgerPrompt}>
+                        <Ionicons name="hardware-chip-outline" size={24} color={theme.colors.accent.primary} />
+                        <View style={styles.ledgerPromptText}>
+                            <AppText style={styles.ledgerPromptTitle} textType="body1">
+                                Confirm on Ledger
+                            </AppText>
+                            <AppText style={styles.ledgerPromptHint}>
+                                Please review and confirm this transaction on your Ledger device
+                            </AppText>
+                        </View>
+                    </View>
+                )}
+
                 {isExpired ? (
                     <AppButton.Container onPress={handleReject} colorScheme="secondary" disabled={isLoading}>
                         <AppButton.Text>Reject</AppButton.Text>
                     </AppButton.Container>
                 ) : (
                     <ActionButtons
-                        primaryText={isLoading ? 'Signing...' : 'Approve & Sign'}
+                        primaryText={
+                            isLoading ? (isLedgerWallet ? 'Waiting for Ledger...' : 'Signing...') : 'Approve & Sign'
+                        }
                         onPrimaryPress={handleApprove}
                         onSecondaryPress={handleReject}
                         isLoading={isLoading}
@@ -219,5 +249,27 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
     },
     transfersList: {
         gap: sizes.space.vertical / 2,
+    },
+    ledgerPrompt: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: sizes.space.horizontal,
+        padding: sizes.space.horizontal,
+        backgroundColor: colors.accent.primary + '15',
+        borderRadius: sizes.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.accent.primary + '30',
+    },
+    ledgerPromptText: {
+        flex: 1,
+        gap: 2,
+    },
+    ledgerPromptTitle: {
+        color: colors.text.highlight,
+        fontWeight: '600',
+    },
+    ledgerPromptHint: {
+        color: colors.text.secondary,
+        fontSize: 13,
     },
 }));

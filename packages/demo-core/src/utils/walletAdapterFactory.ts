@@ -18,9 +18,8 @@ import {
 } from '@ton/walletkit';
 import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
-import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 
-import type { LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
+import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
 import { createComponentLogger } from './logger';
 
 const log = createComponentLogger('WalletAdapterFactory');
@@ -33,6 +32,13 @@ export interface CreateWalletAdapterParams {
     network: 'mainnet' | 'testnet';
     walletKit: ITonWalletKit;
     version: 'v5r1' | 'v4r2';
+    /**
+     * Factory function to create Ledger transport.
+     * Required when useWalletInterfaceType is 'ledger'.
+     * For web: () => TransportWebHID.create()
+     * For React Native: () => TransportBLE.open(deviceId)
+     */
+    createLedgerTransport?: CreateLedgerTransportFunction;
 }
 
 /**
@@ -47,6 +53,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
         network,
         walletKit,
         version = 'v5r1',
+        createLedgerTransport,
     } = params;
 
     while (!walletKit.isReady()) {
@@ -104,16 +111,15 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
             }
         }
         case 'ledger': {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if (typeof navigator === 'undefined' || !(navigator as any).usb) {
-                throw new Error('WebUSB not supported in this environment');
+            if (!createLedgerTransport) {
+                throw new Error('createLedgerTransport is required for Ledger wallet type');
             }
 
             try {
                 if (storedLedgerConfig) {
                     return createWalletV4R2Ledger(
                         createWalletInitConfigLedger({
-                            createTransport: async () => await TransportWebHID.create(),
+                            createTransport: createLedgerTransport,
                             path: storedLedgerConfig.path,
                             publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
@@ -136,7 +142,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 
                 return createWalletV4R2Ledger(
                     createWalletInitConfigLedger({
-                        createTransport: async () => await TransportWebHID.create(),
+                        createTransport: createLedgerTransport,
                         path,
                         version: 'v4r2',
                         network: chainNetwork,

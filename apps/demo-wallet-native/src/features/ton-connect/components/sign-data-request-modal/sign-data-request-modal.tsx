@@ -7,10 +7,11 @@
  */
 
 import type { SignDataRequestEvent } from '@ton/walletkit';
+import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View, ScrollView } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useWallet } from '@ton/demo-core';
 
 import { DAppInfo } from '../dapp-info';
@@ -23,6 +24,8 @@ import { AppText } from '@/core/components/app-text';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock } from '@/features/wallets';
 import { Block } from '@/core/components/block';
+import { getErrorMessage } from '@/core/utils/errors/get-error-message';
+import { getLedgerErrorMessage } from '@/features/ledger';
 
 interface SignDataRequestModalProps {
     request: SignDataRequestEvent;
@@ -33,37 +36,51 @@ interface SignDataRequestModalProps {
 
 export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
     const { savedWallets } = useWallet();
+    const { theme } = useUnistyles();
 
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
         return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
+    const isLedgerWallet = currentWallet?.walletType === 'ledger';
+
     useEffect(() => {
         if (!isOpen) {
             setShowSuccess(false);
             setIsLoading(false);
+            setError(null);
         }
     }, [isOpen]);
 
     const handleApprove = async () => {
         setIsLoading(true);
+        setError(null);
+
         try {
             await onApprove();
             setIsLoading(false);
             setShowSuccess(true);
-        } catch (error) {
+        } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('Failed to approve sign data request:', error);
+            console.error('Failed to approve sign data request:', err);
+            const errorMessage = isLedgerWallet ? getLedgerErrorMessage(err) : getErrorMessage(err);
+            setError(errorMessage);
             setIsLoading(false);
         }
     };
 
-    const handleReject = () => {
-        onReject('User rejected the sign data request');
+    const handleReject = async () => {
+        try {
+            await onReject('User rejected the sign data request');
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to reject sign data request:', err);
+        }
     };
 
     const renderDataPreview = () => {
@@ -173,13 +190,29 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
                     {renderDataPreview()}
                 </View>
 
+                {error && <WarningBox variant="error">{error}</WarningBox>}
+
+                {isLedgerWallet && isLoading && (
+                    <View style={styles.ledgerPrompt}>
+                        <Ionicons name="hardware-chip-outline" size={24} color={theme.colors.accent.primary} />
+                        <View style={styles.ledgerPromptText}>
+                            <AppText style={styles.ledgerPromptTitle} textType="body1">
+                                Confirm on Ledger
+                            </AppText>
+                            <AppText style={styles.ledgerPromptHint}>
+                                Please review and confirm this signature on your Ledger device
+                            </AppText>
+                        </View>
+                    </View>
+                )}
+
                 <WarningBox variant="warning">
                     Warning: Only sign data if you trust the requesting dApp and understand what you're signing. Signing
                     data can have security implications.
                 </WarningBox>
 
                 <ActionButtons
-                    primaryText={isLoading ? 'Signing...' : 'Sign Data'}
+                    primaryText={isLoading ? (isLedgerWallet ? 'Waiting for Ledger...' : 'Signing...') : 'Sign Data'}
                     onPrimaryPress={handleApprove}
                     onSecondaryPress={handleReject}
                     isLoading={isLoading}
@@ -242,5 +275,27 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
     parsedDataText: {
         color: colors.text.default,
         fontFamily: 'monospace',
+    },
+    ledgerPrompt: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: sizes.space.horizontal,
+        padding: sizes.space.horizontal,
+        backgroundColor: colors.accent.primary + '15',
+        borderRadius: sizes.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.accent.primary + '30',
+    },
+    ledgerPromptText: {
+        flex: 1,
+        gap: 2,
+    },
+    ledgerPromptTitle: {
+        color: colors.text.highlight,
+        fontWeight: '600',
+    },
+    ledgerPromptHint: {
+        color: colors.text.secondary,
+        fontSize: 13,
     },
 }));

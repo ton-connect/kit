@@ -7,12 +7,12 @@
  */
 
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
+import { Ionicons } from '@expo/vector-icons';
 import { useWallet } from '@ton/demo-core';
-import type { SavedWallet } from '@ton/demo-core';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import { DAppInfo } from '../dapp-info';
 import { PermissionItem } from '../permission-item';
@@ -24,6 +24,8 @@ import { AppBottomSheet } from '@/core/components/app-bottom-sheet';
 import { AppText } from '@/core/components/app-text';
 import { WarningBox } from '@/core/components/warning-box';
 import { WalletInfoBlock, WalletSelectorModal } from '@/features/wallets';
+import { getErrorMessage } from '@/core/utils/errors/get-error-message';
+import { getLedgerErrorMessage } from '@/features/ledger';
 
 interface ConnectRequestModalProps {
     request: ConnectionRequestEvent;
@@ -34,11 +36,18 @@ interface ConnectRequestModalProps {
 
 export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
     const { savedWallets, getAvailableWallets } = useWallet();
+    const { theme } = useUnistyles();
 
     const [availableWallets, setAvailableWallets] = useState<Wallet[]>(getAvailableWallets());
     const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(availableWallets[0] || null);
     const [isLoading, setIsLoading] = useState(false);
     const [showWalletSelector, setShowWalletSelector] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const selectedWalletData = selectedWallet
+        ? savedWallets.find((w) => w.address === selectedWallet.getAddress())
+        : undefined;
+    const isLedgerWallet = selectedWalletData?.walletType === 'ledger';
 
     useEffect(() => {
         if (selectedWallet !== null) return;
@@ -55,23 +64,18 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
         return () => clearInterval(intervalId);
     }, [selectedWallet, getAvailableWallets]);
 
-    const walletDataMap = useMemo(() => {
-        const map = new Map<string, SavedWallet>();
-        savedWallets.forEach((savedWallet) => {
-            map.set(savedWallet.address, savedWallet);
-        });
-        return map;
-    }, [savedWallets]);
-
     const handleApprove = async () => {
         if (!selectedWallet) return;
 
         setIsLoading(true);
+        setError(null);
+
         try {
             await onApprove(selectedWallet);
-        } catch (error) {
+        } catch (err) {
             // eslint-disable-next-line no-console
-            console.error('Failed to approve connection:', error);
+            console.error('Failed to approve connection:', err);
+            setError(isLedgerWallet ? getLedgerErrorMessage(err) : getErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
@@ -80,8 +84,6 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
     const handleReject = () => {
         onReject('User rejected the connection');
     };
-
-    const selectedWalletData = selectedWallet ? walletDataMap.get(selectedWallet.getAddress()) : undefined;
 
     return (
         <>
@@ -129,13 +131,29 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
                         </View>
                     )}
 
+                    {error && <WarningBox variant="error">{error}</WarningBox>}
+
+                    {isLedgerWallet && isLoading && (
+                        <View style={styles.ledgerPrompt}>
+                            <Ionicons name="hardware-chip-outline" size={24} color={theme.colors.accent.primary} />
+                            <View style={styles.ledgerPromptText}>
+                                <AppText style={styles.ledgerPromptTitle} textType="body1">
+                                    Confirm on Ledger
+                                </AppText>
+                                <AppText style={styles.ledgerPromptHint}>
+                                    Please confirm this connection on your Ledger device
+                                </AppText>
+                            </View>
+                        </View>
+                    )}
+
                     <WarningBox>
                         Only connect to trusted applications. This will give the dApp access to your wallet address and
                         allow it to request transactions.
                     </WarningBox>
 
                     <ActionButtons
-                        primaryText="Connect"
+                        primaryText={isLoading && isLedgerWallet ? 'Waiting for Ledger...' : 'Connect'}
                         onPrimaryPress={handleApprove}
                         onSecondaryPress={handleReject}
                         isLoading={isLoading}
@@ -177,5 +195,27 @@ const styles = StyleSheet.create(({ colors, sizes }) => ({
     changeWalletText: {
         color: colors.accent.primary,
         marginBottom: sizes.space.vertical / 2,
+    },
+    ledgerPrompt: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: sizes.space.horizontal,
+        padding: sizes.space.horizontal,
+        backgroundColor: colors.accent.primary + '15',
+        borderRadius: sizes.borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.accent.primary + '30',
+    },
+    ledgerPromptText: {
+        flex: 1,
+        gap: 2,
+    },
+    ledgerPromptTitle: {
+        color: colors.text.highlight,
+        fontWeight: '600',
+    },
+    ledgerPromptHint: {
+        color: colors.text.secondary,
+        fontSize: 13,
     },
 }));

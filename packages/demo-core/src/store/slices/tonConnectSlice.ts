@@ -6,7 +6,7 @@
  *
  */
 
-import { SEND_TRANSACTION_ERROR_CODES, WalletKitError, ERROR_CODES } from '@ton/walletkit';
+import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 import type {
     Wallet,
     TransactionRequestEvent,
@@ -14,7 +14,6 @@ import type {
     SignDataRequestEvent,
     DisconnectionEvent,
 } from '@ton/walletkit';
-import { toast } from 'sonner';
 
 import { createComponentLogger } from '../../utils/logger';
 import type { QueuedRequest, QueuedRequestData, DisconnectNotification } from '../../types/wallet';
@@ -175,7 +174,12 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         if (!state.walletCore.walletKit) {
-            throw new Error('WalletKit not initialized');
+            // Close modal even if walletKit is not initialized
+            set((state) => {
+                state.tonConnect.pendingTransactionRequest = undefined;
+                state.tonConnect.isTransactionModalOpen = false;
+            });
+            return;
         }
 
         try {
@@ -183,26 +187,15 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 state.tonConnect.pendingTransactionRequest,
                 reason,
             );
-
+        } catch (error) {
+            log.error('Failed to reject transaction request:', error);
+        } finally {
             set((state) => {
                 state.tonConnect.pendingTransactionRequest = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
             });
 
             state.clearCurrentRequestFromQueue();
-        } catch (error) {
-            log.error('Failed to reject transaction request:', error);
-            if (error instanceof WalletKitError && error.code === ERROR_CODES.SESSION_NOT_FOUND) {
-                set((state) => {
-                    state.tonConnect.pendingTransactionRequest = undefined;
-                    state.tonConnect.isTransactionModalOpen = false;
-                });
-                toast.error('Could not properly reject transaction request: Session not found');
-
-                state.clearCurrentRequestFromQueue();
-                return;
-            }
-            throw error;
         }
     },
 
@@ -257,21 +250,25 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         if (!state.walletCore.walletKit) {
-            throw new Error('WalletKit not initialized');
+            // Close modal even if walletKit is not initialized
+            set((state) => {
+                state.tonConnect.pendingSignDataRequest = undefined;
+                state.tonConnect.isSignDataModalOpen = false;
+            });
+            return;
         }
 
         try {
             await state.walletCore.walletKit.rejectSignDataRequest(state.tonConnect.pendingSignDataRequest, reason);
-
+        } catch (error) {
+            log.error('Failed to reject sign data request:', error);
+        } finally {
             set((state) => {
                 state.tonConnect.pendingSignDataRequest = undefined;
                 state.tonConnect.isSignDataModalOpen = false;
             });
 
             state.clearCurrentRequestFromQueue();
-        } catch (error) {
-            log.error('Failed to reject sign data request:', error);
-            throw error;
         }
     },
 
@@ -314,9 +311,8 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
             const updatedState = get();
             if (updatedState.tonConnect.requestQueue.items.length >= MAX_QUEUE_SIZE) {
-                log.error('Queue overflow: cannot add more requests');
-                toast.error(
-                    `Request queue is full (${MAX_QUEUE_SIZE} items). Please approve or reject pending requests.`,
+                log.error(
+                    `Queue overflow: cannot add more requests. Queue is full (${MAX_QUEUE_SIZE} items). Please approve or reject pending requests.`,
                 );
                 return;
             }

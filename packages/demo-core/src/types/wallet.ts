@@ -13,6 +13,14 @@ import type {
     SignDataRequestEvent,
     TransactionRequestEvent,
 } from '@ton/walletkit';
+import type Transport from '@ledgerhq/hw-transport';
+
+/**
+ * Function that creates a Ledger transport.
+ * For web: use TransportWebHID.create() or TransportWebUSB.create()
+ * For React Native: use TransportBLE.open(deviceId)
+ */
+export type CreateLedgerTransportFunction = () => Promise<Transport>;
 
 export interface SavedWallet {
     id: string;
@@ -110,4 +118,11 @@ export interface WalletKitConfig {
     bridgeUrl?: string;
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
+    /**
+     * Factory function to create Ledger transport.
+     * For web: () => TransportWebHID.create()
+     * For React Native: () => TransportBLE.open(deviceId)
+     * If not provided, Ledger functionality will not be available.
+     */
+    createLedgerTransport?: CreateLedgerTransportFunction;
 }

@@ -6,6 +6,7 @@
  *
  */
 
+import TransportWebHID from '@ledgerhq/hw-transport-webhid';
 import { WalletProvider } from '@ton/demo-core';
 import type { WalletKitConfig } from '@ton/demo-core';
 
@@ -34,6 +35,12 @@ if (isExtension()) {
     storage = CreateExtensionStorageAdapter();
 }
 
+/**
+ * Creates a Ledger transport for web using WebHID API
+ * This is used for connecting to Ledger hardware wallets via USB
+ */
+const createWebLedgerTransport = () => TransportWebHID.create();
+
 const walletKitConfig: WalletKitConfig = {
     storage,
     jsBridgeTransport,
@@ -42,6 +49,7 @@ const walletKitConfig: WalletKitConfig = {
     bridgeUrl: ENV_BRIDGE_URL,
     tonApiKeyMainnet: ENV_TON_API_KEY_MAINNET,
     tonApiKeyTestnet: ENV_TON_API_KEY_TESTNET,
+    createLedgerTransport: createWebLedgerTransport,
 };
 
 function App() {
