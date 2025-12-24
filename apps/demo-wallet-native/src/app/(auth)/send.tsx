@@ -20,6 +20,7 @@ import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AmountInput } from '@/core/components/amount-input';
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
+import { AppText } from '@/core/components/app-text';
 import { AppKeyboardAwareScrollView } from '@/core/components/keyboard-aware-scroll-view';
 import { QrScanner } from '@/core/components/qr-scanner';
 import { ScreenHeader } from '@/core/components/screen-header';
@@ -47,7 +48,6 @@ const SendScreen: FC = () => {
 
     const walletKit = useWalletKit();
     const { balance, currentWallet } = useWallet();
-    const { theme } = useUnistyles();
 
     const isLedgerWallet = currentWallet?.walletType === 'ledger';
 
