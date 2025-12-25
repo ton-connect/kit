@@ -7,6 +7,7 @@
  */
 
 import { Network } from '@ton/walletkit';
+import type { WalletAdapter } from '@ton/walletkit';
 import type { Wallet, ITonWalletKit } from '@ton/walletkit';
 import { createLedgerPath } from '@ton/v4ledger-adapter';
 
@@ -58,41 +59,10 @@ export const createWalletManagementSlice =
                         continue;
                     }
 
-                    let walletAdapter;
-                    const walletNetwork = savedWallet.network || 'testnet';
+                    const walletAdapter = await state.createAdapterFromSavedWallet(walletKit, savedWallet);
 
-                    if (savedWallet.walletType === 'ledger' && savedWallet.ledgerConfig) {
-                        if (!walletKitConfig?.createLedgerTransport) {
-                            log.warn(`Skipping Ledger wallet ${savedWallet.id}: createLedgerTransport not provided`);
-                            continue;
-                        }
-                        walletAdapter = await createWalletAdapter({
-                            useWalletInterfaceType: 'ledger',
-                            ledgerAccountNumber: savedWallet.ledgerConfig.accountIndex,
-                            storedLedgerConfig: savedWallet.ledgerConfig,
-                            network: walletNetwork,
-                            walletKit,
-                            version: savedWallet.version || 'v4r2',
-                            createLedgerTransport: walletKitConfig.createLedgerTransport,
-                        });
-                    } else if (savedWallet.encryptedMnemonic) {
-                        const mnemonicJson = await SimpleEncryption.decrypt(
-                            savedWallet.encryptedMnemonic,
-                            state.auth.currentPassword,
-                        );
-                        const mnemonic = JSON.parse(mnemonicJson) as string[];
-
-                        walletAdapter = await createWalletAdapter({
-                            mnemonic,
-                            useWalletInterfaceType: savedWallet.walletInterfaceType,
-                            ledgerAccountNumber: state.auth.ledgerAccountNumber,
-                            storedLedgerConfig: undefined,
-                            network: walletNetwork,
-                            walletKit,
-                            version: savedWallet.version || 'v5r1',
-                        });
-                    } else {
-                        log.warn(`Skipping wallet ${savedWallet.id}: no mnemonic or ledger config`);
+                    if (!walletAdapter) {
+                        log.warn(`Failed to create adapter for wallet ${savedWallet.name}`);
                         continue;
                     }
 
@@ -320,42 +290,16 @@ export const createWalletManagementSlice =
                     : undefined;
 
                 if (!wallet) {
-                    const walletNetwork = savedWallet.network || 'testnet';
+                    const walletAdapter = await state.createAdapterFromSavedWallet(
+                        state.walletCore.walletKit,
+                        savedWallet,
+                    );
 
-                    if (savedWallet.walletType === 'ledger') {
-                        if (!walletKitConfig?.createLedgerTransport) {
-                            throw new Error('createLedgerTransport is required for Ledger wallet');
-                        }
-                        const walletAdapter = await createWalletAdapter({
-                            useWalletInterfaceType: 'ledger',
-                            ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
-                            storedLedgerConfig: savedWallet.ledgerConfig,
-                            network: walletNetwork,
-                            walletKit: state.walletCore.walletKit,
-                            version: savedWallet.version || 'v4r2',
-                            createLedgerTransport: walletKitConfig.createLedgerTransport,
-                        });
-
-                        await state.walletCore.walletKit.addWallet(walletAdapter);
-                    } else if (savedWallet.encryptedMnemonic) {
-                        const decryptedString = await SimpleEncryption.decrypt(
-                            savedWallet.encryptedMnemonic,
-                            state.auth.currentPassword,
-                        );
-                        const mnemonic = JSON.parse(decryptedString) as string[];
-
-                        const walletAdapter = await createWalletAdapter({
-                            mnemonic,
-                            useWalletInterfaceType: savedWallet.walletInterfaceType,
-                            ledgerAccountNumber: state.auth.ledgerAccountNumber,
-                            storedLedgerConfig: undefined,
-                            network: walletNetwork,
-                            walletKit: state.walletCore.walletKit,
-                            version: savedWallet.version || 'v5r1',
-                        });
-
-                        await state.walletCore.walletKit.addWallet(walletAdapter);
+                    if (!walletAdapter) {
+                        throw new Error(`Failed to create adapter for wallet ${savedWallet.name}`);
                     }
+
+                    await state.walletCore.walletKit.addWallet(walletAdapter);
                 }
 
                 if (!wallet) {
@@ -463,43 +407,17 @@ export const createWalletManagementSlice =
                         continue;
                     }
 
-                    const walletNetwork = savedWallet.network || 'testnet';
+                    const walletAdapter = await state.createAdapterFromSavedWallet(
+                        state.walletCore.walletKit,
+                        savedWallet,
+                    );
 
-                    if (savedWallet.walletType === 'ledger') {
-                        if (!walletKitConfig?.createLedgerTransport) {
-                            log.warn(`Skipping Ledger wallet ${savedWallet.id}: createLedgerTransport not provided`);
-                            continue;
-                        }
-                        const walletAdapter = await createWalletAdapter({
-                            useWalletInterfaceType: 'ledger',
-                            ledgerAccountNumber: savedWallet.ledgerConfig?.accountIndex,
-                            storedLedgerConfig: savedWallet.ledgerConfig,
-                            network: walletNetwork,
-                            walletKit: state.walletCore.walletKit,
-                            version: savedWallet.version || 'v4r2',
-                            createLedgerTransport: walletKitConfig.createLedgerTransport,
-                        });
-
-                        await state.walletCore.walletKit.addWallet(walletAdapter);
-                    } else if (savedWallet.encryptedMnemonic) {
-                        const decryptedString = await SimpleEncryption.decrypt(
-                            savedWallet.encryptedMnemonic,
-                            state.auth.currentPassword,
-                        );
-                        const mnemonic = JSON.parse(decryptedString) as string[];
-
-                        const walletAdapter = await createWalletAdapter({
-                            mnemonic,
-                            useWalletInterfaceType: savedWallet.walletInterfaceType,
-                            ledgerAccountNumber: state.auth.ledgerAccountNumber,
-                            storedLedgerConfig: undefined,
-                            network: walletNetwork,
-                            walletKit: state.walletCore.walletKit,
-                            version: savedWallet.version || 'v5r1',
-                        });
-
-                        await state.walletCore.walletKit.addWallet(walletAdapter);
+                    if (!walletAdapter) {
+                        log.warn(`Failed to create adapter for wallet ${savedWallet.name}`);
+                        continue;
                     }
+
+                    await state.walletCore.walletKit.addWallet(walletAdapter);
                 }
 
                 if (state.walletManagement.savedWallets.length > 0 && !state.walletManagement.activeWalletId) {
@@ -660,5 +578,54 @@ export const createWalletManagementSlice =
                 return undefined;
             }
             return state.walletManagement.savedWallets.find((w) => w.id === state.walletManagement.activeWalletId);
+        },
+
+        createAdapterFromSavedWallet: async (
+            walletKit: ITonWalletKit,
+            savedWallet: SavedWallet,
+        ): Promise<WalletAdapter | undefined> => {
+            const state = get();
+
+            if (!state.auth.currentPassword) {
+                throw new Error('Cannot load wallets: user is not authenticated');
+            }
+
+            let walletAdapter;
+            const walletNetwork = savedWallet.network || 'testnet';
+
+            if (savedWallet.walletType === 'ledger' && savedWallet.ledgerConfig) {
+                if (!walletKitConfig?.createLedgerTransport) {
+                    log.warn(`Skipping Ledger wallet ${savedWallet.id}: createLedgerTransport not provided`);
+                    return;
+                }
+
+                walletAdapter = await createWalletAdapter({
+                    useWalletInterfaceType: 'ledger',
+                    ledgerAccountNumber: savedWallet.ledgerConfig.accountIndex,
+                    storedLedgerConfig: savedWallet.ledgerConfig,
+                    network: walletNetwork,
+                    walletKit,
+                    version: savedWallet.version || 'v4r2',
+                    createLedgerTransport: walletKitConfig.createLedgerTransport,
+                });
+            } else if (savedWallet.encryptedMnemonic) {
+                const mnemonicJson = await SimpleEncryption.decrypt(
+                    savedWallet.encryptedMnemonic,
+                    state.auth.currentPassword,
+                );
+                const mnemonic = JSON.parse(mnemonicJson) as string[];
+
+                walletAdapter = await createWalletAdapter({
+                    mnemonic,
+                    useWalletInterfaceType: savedWallet.walletInterfaceType,
+                    ledgerAccountNumber: state.auth.ledgerAccountNumber,
+                    storedLedgerConfig: undefined,
+                    network: walletNetwork,
+                    walletKit,
+                    version: savedWallet.version || 'v5r1',
+                });
+            }
+
+            return walletAdapter;
         },
     });

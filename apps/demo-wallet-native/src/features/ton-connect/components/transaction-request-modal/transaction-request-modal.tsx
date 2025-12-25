@@ -50,9 +50,9 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
     const { toast } = useAppToasts();
 
     const currentWallet = useMemo(() => {
-        if (!request.walletAddress) return null;
+        if (!request.walletId) return null;
         return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
-    }, [savedWallets, request.walletAddress]);
+    }, [savedWallets, request.walletId]);
 
     const isLedgerWallet = currentWallet?.walletType === 'ledger';
 

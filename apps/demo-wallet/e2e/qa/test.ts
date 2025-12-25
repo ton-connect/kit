@@ -28,7 +28,7 @@ export async function launchPersistentContext(extensionPath: string, slowMo = 0)
     }
 
     const isHeadlessEnv = process.env.ENABLE_HEADLESS === 'true';
-    const isCi = !!process.env.CI;
+    const isCi = process.env.CI === 'true' || process.env.CI === '1';
     const headless = isHeadlessEnv || isCi;
 
     if (headless) {

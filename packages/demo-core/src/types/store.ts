@@ -18,6 +18,7 @@ import type {
     TransactionRequestEvent,
     SignDataRequestEvent,
     DisconnectionEvent,
+    WalletAdapter,
 } from '@ton/walletkit';
 
 import type {
@@ -88,6 +89,10 @@ export interface WalletManagementSlice {
     renameWallet: (walletId: string, newName: string) => void;
     loadAllWallets: () => Promise<void>;
     loadSavedWalletsIntoKit: (walletKit: ITonWalletKit) => Promise<void>;
+    createAdapterFromSavedWallet: (
+        walletKit: ITonWalletKit,
+        savedWallet: SavedWallet,
+    ) => Promise<WalletAdapter | undefined>;
 
     // Wallet state actions
     clearWallet: () => void;

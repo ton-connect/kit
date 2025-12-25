@@ -10,7 +10,7 @@ import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { Address } from '@ton/ton';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -47,9 +47,15 @@ const SendScreen: FC = () => {
     const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
 
     const walletKit = useWalletKit();
-    const { balance, currentWallet } = useWallet();
+    const { balance, currentWallet, savedWallets } = useWallet();
 
-    const isLedgerWallet = currentWallet?.walletType === 'ledger';
+    const currentSavedWallet = useMemo(() => {
+        const currentWalletId = currentWallet?.getWalletId();
+        if (!currentWalletId) return undefined;
+
+        return savedWallets.find((wallet) => wallet.kitWalletId === currentWalletId);
+    }, [currentWallet, savedWallets]);
+    const isLedgerWallet = currentSavedWallet?.walletType === 'ledger';
 
     const formatTonBalance = (bal: string): string => {
         return fromMinorUnit(bal || '0', 9).toString();
