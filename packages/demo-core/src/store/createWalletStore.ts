@@ -227,14 +227,28 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                             }
 
                             // Resume processing if there are queued requests
-                            if (
-                                state.tonConnect.requestQueue.items.length > 0 &&
-                                !state.tonConnect.requestQueue.isProcessing &&
-                                state.processNextRequest
-                            ) {
-                                log.info('Resuming queue processing after rehydration');
-                                state.processNextRequest();
-                            }
+                            // if (
+                            //     state.tonConnect.requestQueue.items.length > 0 &&
+                            //     !state.tonConnect.requestQueue.isProcessing &&
+                            //     state.processNextRequest
+                            // ) {
+                            //     log.info('Resuming queue processing after rehydration');
+                            //     state.processNextRequest();
+                            // }
+
+                            const processTimeoutCallback = () => {
+                                if (
+                                    state.tonConnect.requestQueue.items.length > 0 &&
+                                    !state.tonConnect.requestQueue.isProcessing &&
+                                    state.processNextRequest
+                                ) {
+                                    log.info('Calling processNextRequest after timeout');
+                                    state.processNextRequest();
+                                }
+                                setTimeout(() => processTimeoutCallback(), 1000);
+                            };
+                            processTimeoutCallback();
+                            // setTimeout(() => {}, 1000);
                         },
                     },
                 ),
