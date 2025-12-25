@@ -83,3 +83,6 @@ export type {
     Account,
     SimplePreview,
 } from './toncenter/AccountEvent';
+
+// Handler types
+export type { ProcessToncenterMoneyFlowHandler } from './handlers';

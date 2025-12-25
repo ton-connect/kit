@@ -29,6 +29,7 @@ import type {
     SignDataRequestEvent,
     ConnectionRequestEvent,
 } from '../api/models';
+import type { ProcessToncenterMoneyFlowHandler } from '../types';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -49,8 +50,8 @@ export class EventRouter {
         private walletManager: WalletManager,
         private config: TonWalletKitOptions,
         private analyticsApi?: AnalyticsApi,
+        private extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
     ) {
-        this.config = config;
         this.setupHandlers();
     }
 
@@ -162,6 +163,7 @@ export class EventRouter {
                 this.config,
                 this.walletManager,
                 this.analyticsApi,
+                this.extendHandlers,
             ),
             new SignDataHandler(
                 this.notifySignDataRequestCallbacks.bind(this),

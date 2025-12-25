@@ -24,6 +24,7 @@ import type {
     Base64String,
 } from '../../../api/models';
 import type { Wallet, WalletTonInterface } from '../../../api/interfaces';
+import type { ProcessToncenterMoneyFlowHandler } from '../../../types';
 
 const log = globalLogger.createChild('WalletTonClass');
 
@@ -116,10 +117,10 @@ export class WalletTonClass implements WalletTonInterface {
     async getTransactionPreview(
         this: Wallet,
         param: TransactionRequest | Promise<TransactionRequest>,
+        extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
     ): Promise<TransactionEmulatedPreview> {
         const transaction = await param;
-        const preview = await CallForSuccess(() => createTransactionPreviewHelper(transaction, this));
-        return preview;
+        return await CallForSuccess(() => createTransactionPreviewHelper(transaction, this, extendHandlers));
     }
 
     async sendTransaction(this: Wallet, request: TransactionRequest): Promise<SendTransactionResponse> {

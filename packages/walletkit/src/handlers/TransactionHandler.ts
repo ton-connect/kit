@@ -37,6 +37,7 @@ import { getAddressFromWalletId } from '../utils/walletId';
 import type { Wallet } from '../api/interfaces';
 import type { TransactionEmulatedPreview, TransactionRequest, TransactionRequestEvent } from '../api/models';
 import { Result } from '../api/models';
+import type { ProcessToncenterMoneyFlowHandler } from '../types';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -47,6 +48,7 @@ export class TransactionHandler
     private eventEmitter: EventEmitter;
     private analyticsApi?: AnalyticsApi;
     private walletKitConfig: TonWalletKitOptions;
+    private extendHandlers: ProcessToncenterMoneyFlowHandler[] = [];
 
     constructor(
         notify: (event: TransactionRequestEvent) => void,
@@ -54,11 +56,13 @@ export class TransactionHandler
         walletKitConfig: TonWalletKitOptions,
         private readonly walletManager: WalletManager,
         analyticsApi?: AnalyticsApi,
+        extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
     ) {
         super(notify);
         this.eventEmitter = eventEmitter;
         this.analyticsApi = analyticsApi;
         this.walletKitConfig = walletKitConfig;
+        this.extendHandlers = extendHandlers;
     }
     canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
         return event.method === 'sendTransaction';
@@ -110,7 +114,7 @@ export class TransactionHandler
 
         let preview: TransactionEmulatedPreview;
         try {
-            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
+            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet, this.extendHandlers));
             // Emit emulation result event for jetton caching and other components
             if (preview.result === Result.success && preview.trace) {
                 try {
