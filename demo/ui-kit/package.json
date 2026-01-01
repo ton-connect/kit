@@ -1,0 +1,34 @@
+{
+  "name": "@demo/ui-kit",
+  "version": "0.0.1",
+  "sideEffects": [
+    "*.css"
+  ],
+  "private": true,
+  "types": "./src",
+  "main": "src/index.tsx",
+  "module:jsx": "src",
+  "files": [
+    "types",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tamagui-build --skip-types",
+    "dev": "tamagui-build --skip-types --watch",
+    "clean": "git clean -xdf dist node_modules .turbo"
+  },
+  "dependencies": {
+    "@tamagui/animations-css": "1.141.5",
+    "@tamagui/animations-react-native": "1.141.5",
+    "@tamagui/font-inter": "1.141.5",
+    "@tamagui/shorthands": "1.141.5",
+    "@tamagui/themes": "1.141.5",
+    "@tamagui/toast": "1.141.5",
+    "@tamagui/config": "1.141.5",
+    "@tamagui/core": "1.141.5",
+    "@tamagui/text": "1.141.5"
+  },
+  "devDependencies": {
+    "@tamagui/build": "1.141.5"
+  }
+}

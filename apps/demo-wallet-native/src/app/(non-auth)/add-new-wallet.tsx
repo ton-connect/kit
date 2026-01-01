@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWalletStore } from '@ton/demo-core';
+import { useWalletStore } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppLogo } from '@/core/components/app-logo';

@@ -12,8 +12,8 @@ import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet } from '@ton/demo-core';
-import { useWalletKit } from '@ton/demo-core';
+import { useWallet } from '@demo/core';
+import { useWalletKit } from '@demo/core';
 
 import { DAppInfo } from '../dapp-info';
 import { JettonFlowItem } from '../jetton-flow-item';

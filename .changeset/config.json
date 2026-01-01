@@ -10,7 +10,7 @@
   "ignore": [
     "demo-wallet",
     "demo-wallet-native",
-    "@ton/demo-core",
+    "@demo/core",
     "@ton/v4ledger-adapter",
     "walletkit-android-bridge",
     "walletkit-ios-bridge"

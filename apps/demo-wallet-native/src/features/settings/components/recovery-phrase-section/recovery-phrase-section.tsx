@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@ton/demo-core';
+import { useWallet } from '@demo/core';
 import { setStringAsync } from 'expo-clipboard';
 import { useState } from 'react';
 import type { FC } from 'react';

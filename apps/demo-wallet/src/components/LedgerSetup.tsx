@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import { useAuth } from '@ton/demo-core';
+import { useAuth } from '@demo/core';
 
 import { Button } from './Button';
 import { NetworkSelector } from './NetworkSelector';

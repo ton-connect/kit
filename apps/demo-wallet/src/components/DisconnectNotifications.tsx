@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useDisconnectEvents } from '@ton/demo-core';
+import { useDisconnectEvents } from '@demo/core';
 
 import { Button } from './Button';
 

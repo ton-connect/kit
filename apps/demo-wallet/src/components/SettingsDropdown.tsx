@@ -8,7 +8,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@ton/demo-core';
+import { useAuth, useWallet } from '@demo/core';
 
 import { MnemonicDisplay } from './MnemonicDisplay';
 import { createComponentLogger } from '../utils/logger';

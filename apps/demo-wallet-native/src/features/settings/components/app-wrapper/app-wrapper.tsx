@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { useWalletStore } from '@ton/demo-core';
+import { useWalletStore } from '@demo/core';
 
 import { useRedirects } from '../../hooks/use-redirects';
 import { useAppFonts } from '../../hooks/use-app-fonts';

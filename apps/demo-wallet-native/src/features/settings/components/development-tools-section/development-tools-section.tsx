@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWalletKit } from '@ton/demo-core';
+import { useWalletKit } from '@demo/core';
 import type { FC } from 'react';
 import { useCallback } from 'react';
 import { Alert, View } from 'react-native';

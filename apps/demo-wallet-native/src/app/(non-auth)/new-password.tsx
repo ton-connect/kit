@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useAuth } from '@ton/demo-core';
+import { useAuth } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';

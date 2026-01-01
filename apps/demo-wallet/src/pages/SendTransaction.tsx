@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
-import { useWallet, useJettons, useWalletKit } from '@ton/demo-core';
+import { useWallet, useJettons, useWalletKit } from '@demo/core';
 
 import { Layout, Button, Input, Card } from '../components';
 import { createComponentLogger } from '../utils/logger';

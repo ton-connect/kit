@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useWalletStore, useWallet } from '@ton/demo-core';
+import { useWalletStore, useWallet } from '@demo/core';
 
 import { ProtectedRoute } from './ProtectedRoute';
 import {

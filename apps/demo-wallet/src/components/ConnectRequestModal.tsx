@@ -8,7 +8,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
-import type { SavedWallet } from '@ton/demo-core';
+import type { SavedWallet } from '@demo/core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';

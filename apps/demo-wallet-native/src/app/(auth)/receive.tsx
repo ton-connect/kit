@@ -10,7 +10,7 @@ import { router } from 'expo-router';
 import type { FC } from 'react';
 import { Dimensions } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
-import { useWallet } from '@ton/demo-core';
+import { useWallet } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { ScreenHeader } from '@/core/components/screen-header';

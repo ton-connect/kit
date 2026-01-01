@@ -7,7 +7,7 @@
  */
 
 import type { Wallet } from '@ton/walletkit';
-import { useWallet } from '@ton/demo-core';
+import { useWallet } from '@demo/core';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';

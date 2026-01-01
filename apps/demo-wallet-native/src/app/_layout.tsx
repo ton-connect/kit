@@ -13,8 +13,8 @@ import type { FC } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useUnistyles } from 'react-native-unistyles';
-import { WalletProvider } from '@ton/demo-core';
-import type { WalletKitConfig } from '@ton/demo-core';
+import { WalletProvider } from '@demo/core';
+import type { WalletKitConfig } from '@demo/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AppWrapper } from '@/features/settings';

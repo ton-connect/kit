@@ -8,8 +8,8 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import type { SignDataRequestEvent } from '@ton/walletkit';
-import type { SavedWallet } from '@ton/demo-core';
-import { useAuth } from '@ton/demo-core';
+import type { SavedWallet } from '@demo/core';
+import { useAuth } from '@demo/core';
 
 import { Button } from './Button';
 import { Card } from './Card';

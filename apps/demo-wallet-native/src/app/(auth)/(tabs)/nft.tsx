@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { RefreshControl } from 'react-native';
-import { useNfts } from '@ton/demo-core';
+import { useNfts } from '@demo/core';
 
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';

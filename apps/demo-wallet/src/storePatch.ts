@@ -6,7 +6,7 @@
  *
  */
 
-import type { AppState } from '@ton/demo-core';
+import type { AppState } from '@demo/core';
 
 declare global {
     interface Window {

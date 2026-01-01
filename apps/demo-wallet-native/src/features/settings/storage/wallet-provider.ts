@@ -6,7 +6,7 @@
  *
  */
 
-import type { CreateWalletStoreOptions } from '@ton/demo-core';
+import type { CreateWalletStoreOptions } from '@demo/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const walletProviderStorage: CreateWalletStoreOptions['storage'] = {

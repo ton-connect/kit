@@ -7,8 +7,9 @@
  */
 
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
-import { WalletProvider } from '@ton/demo-core';
-import type { WalletKitConfig } from '@ton/demo-core';
+import { WalletProvider } from '@demo/core';
+import type { WalletKitConfig } from '@demo/core';
+import { TamaguiProvider, config } from '@demo/ui-kit';
 
 import { AppRouter } from './components';
 
@@ -54,10 +55,12 @@ const walletKitConfig: WalletKitConfig = {
 
 function App() {
     return (
-        <WalletProvider storage={localStorage} walletKitConfig={walletKitConfig} enableDevtools={false}>
-            <AppRouter />
-            <Toaster />
-        </WalletProvider>
+        <TamaguiProvider config={config}>
+            <WalletProvider storage={localStorage} walletKitConfig={walletKitConfig} enableDevtools={false}>
+                <AppRouter />
+                <Toaster />
+            </WalletProvider>
+        </TamaguiProvider>
     );
 }
 
