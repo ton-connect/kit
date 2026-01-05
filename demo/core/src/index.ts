@@ -7,8 +7,7 @@
  */
 
 // Store
-export { createWalletStore } from './store/create-wallet-store';
-export type { CreateWalletStoreOptions } from './store/create-wallet-store';
+export * from './store';
 
 // Storages
 export { AsyncStorageAdapter, ExtensionStorageAdapter, LocalStorageAdapter } from './adapters/storage';
@@ -35,14 +34,7 @@ export { useWalletInitialization } from './hooks/use-wallet-initialization';
 export type { WalletInitializationState } from './hooks/use-wallet-initialization';
 
 // Types
-export type {
-    AppState,
-    WalletCoreSlice,
-    WalletManagementSlice,
-    TonConnectSlice,
-    JettonsSlice,
-    NftsSlice,
-} from './types/store';
+export type { AppState } from './types/store';
 
 export type {
     SavedWallet,

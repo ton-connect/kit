@@ -8,7 +8,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@demo/core';
+import { useAuth, getDecryptedMnemonic, resetAuthState, lock, setPersistPassword, setHoldToSign } from '@demo/core';
 
 import { MnemonicDisplay } from './MnemonicDisplay';
 import { createComponentLogger } from '../utils/logger';
@@ -18,8 +18,7 @@ const log = createComponentLogger('SettingsDropdown');
 
 export const SettingsDropdown: React.FC = () => {
     const navigate = useNavigate();
-    const { lock, reset, persistPassword, setPersistPassword, holdToSign, setHoldToSign } = useAuth();
-    const { getDecryptedMnemonic } = useWallet();
+    const { persistPassword, holdToSign } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMnemonicModal, setShowMnemonicModal] = useState(false);
     const [mnemonic, setMnemonic] = useState<string[]>([]);
@@ -34,7 +33,7 @@ export const SettingsDropdown: React.FC = () => {
 
     const handleDeleteWallet = () => {
         if (window.confirm('Are you sure you want to delete your wallet? This action cannot be undone.')) {
-            reset();
+            resetAuthState();
             setIsDropdownOpen(false);
         }
     };

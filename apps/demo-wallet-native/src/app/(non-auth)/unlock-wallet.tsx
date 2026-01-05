@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useAuth, useWalletInitialization, useWallet, useJettons } from '@demo/core';
+import { unlock, resetAuthState, useWalletInitialization, useWallet, refreshJettons, updateBalance } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -24,9 +24,7 @@ const UnlockWalletScreen: FC = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const { unlock, reset } = useAuth();
-    const { savedWallets, updateBalance } = useWallet();
-    const { refreshJettons } = useJettons();
+    const { savedWallets } = useWallet();
     const { initialize } = useWalletInitialization();
 
     const handleSubmit = async () => {
@@ -69,7 +67,7 @@ const UnlockWalletScreen: FC = () => {
                     text: 'Reset',
                     style: 'destructive',
                     onPress: () => {
-                        reset();
+                        resetAuthState();
                         router.replace('/(non-auth)/add-new-wallet');
                     },
                 },

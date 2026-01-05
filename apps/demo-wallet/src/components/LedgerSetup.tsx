@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import { useAuth } from '@demo/core';
+import { useAuth, setLedgerAccountNumber } from '@demo/core';
 
 import { Button } from './Button';
 import { NetworkSelector } from './NetworkSelector';
@@ -21,7 +21,7 @@ interface LedgerSetupProps {
 
 export const LedgerSetup: React.FC<LedgerSetupProps> = ({ onConnect, onBack, isLoading, error }) => {
     const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
-    const { ledgerAccountNumber, setLedgerAccountNumber } = useAuth();
+    const { ledgerAccountNumber } = useAuth();
 
     const handleConnect = async () => {
         await onConnect(network);

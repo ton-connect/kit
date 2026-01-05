@@ -10,18 +10,21 @@ import { create } from 'zustand';
 import { devtools, persist, createJSONStorage, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
+import { setWalletKitConfig } from './utils/config';
 import { createLogger } from './utils/logger';
 import type { StoreLogger } from './utils/logger';
-import { setStore } from './utils/store-instance';
+import { isStoreInitialized, setStore } from './utils/store-instance';
 import { createAuthSlice } from './slices/auth/slice';
-import { createWalletCoreSlice } from './slices/walletCoreSlice';
-import { createWalletManagementSlice } from './slices/walletManagementSlice';
-import { createTonConnectSlice } from './slices/tonConnectSlice';
-import { createJettonsSlice } from './slices/jettonsSlice';
-import { createNftsSlice } from './slices/nftsSlice';
+import { createWalletCoreSlice } from './slices/wallet-core/slice';
+import { createTonConnectSlice } from './slices/ton-connect/slice';
+import { createJettonsSlice } from './slices/jettons/slice';
+import { createNftsSlice } from './slices/nfts/slice';
+import { createWalletManagementSlice } from './slices/wallet-management/slice';
 import type { AppState } from '../types/store';
 import type { StorageAdapter } from '../adapters/storage/types';
 import type { WalletKitConfig } from '../types/wallet';
+import { initializeWalletKit } from './slices/wallet-core/actions';
+import { clearExpiredRequests, processNextRequest } from './slices/ton-connect/actions';
 
 export interface CreateWalletStoreOptions {
     /**
@@ -58,21 +61,11 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                     immer((...a) => ({
                         isHydrated: false,
                         auth: createAuthSlice(...a),
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        ...createWalletCoreSlice(walletKitConfig)(...a),
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        ...createWalletManagementSlice(walletKitConfig)(...a),
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        ...createTonConnectSlice(...a),
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        ...createJettonsSlice(...a),
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        ...createNftsSlice(...a),
+                        jettons: createJettonsSlice(...a),
+                        nfts: createNftsSlice(...a),
+                        walletCore: createWalletCoreSlice(...a),
+                        walletManagement: createWalletManagementSlice(...a),
+                        tonConnect: createTonConnectSlice(...a),
                     })),
                     {
                         name: 'demo-wallet-store',
@@ -155,18 +148,17 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                             state.isHydrated = true;
 
                             // Call actions after rehydration
-                            if (state.clearExpiredRequests) {
-                                state.clearExpiredRequests();
+                            if (isStoreInitialized()) {
+                                void clearExpiredRequests();
                             }
 
                             // Resume processing if there are queued requests
                             if (
                                 state.tonConnect.requestQueue.items.length > 0 &&
-                                !state.tonConnect.requestQueue.isProcessing &&
-                                state.processNextRequest
+                                !state.tonConnect.requestQueue.isProcessing
                             ) {
                                 log.info('Resuming queue processing after rehydration');
-                                state.processNextRequest();
+                                processNextRequest();
                             }
                         },
                     },
@@ -181,10 +173,10 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
         ),
     );
 
-    const storeState = store.getState();
-    storeState.initializeWalletKit();
-
     setStore(store);
+    setWalletKitConfig(walletKitConfig);
+
+    void initializeWalletKit();
 
     return store;
 }

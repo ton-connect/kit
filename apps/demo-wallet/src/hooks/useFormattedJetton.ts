@@ -8,13 +8,11 @@
 
 import { useCallback, useMemo } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { useJettons } from '@demo/core';
+import { formatJettonAmount } from '@demo/core';
 
 import { getFormattedJettonInfo } from '@/utils/jetton';
 
 export const useFormatJetton = () => {
-    const { formatJettonAmount } = useJettons();
-
     return useCallback(
         (jetton: Jetton) => {
             return getFormattedJettonInfo(formatJettonAmount)(jetton);

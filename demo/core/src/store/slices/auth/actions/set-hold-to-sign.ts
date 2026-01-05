@@ -8,7 +8,7 @@
 
 import { getStore } from '../../../utils/store-instance';
 
-export const setHoldToSign = async (enabled: boolean) => {
+export const setHoldToSign = (enabled: boolean) => {
     const store = getStore();
 
     store.setState((state) => {

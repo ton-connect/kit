@@ -13,7 +13,7 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { RefreshControl, View, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useJettons, useWallet } from '@demo/core';
+import { loadUserJettons, useWallet, switchWallet, removeWallet, renameWallet, updateBalance } from '@demo/core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppButton } from '@/core/components/app-button';
@@ -27,9 +27,7 @@ const WalletHomeScreen: FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isWalletSwitcherOpen, setIsWalletSwitcherOpen] = useState(false);
 
-    const { address, savedWallets, activeWalletId, switchWallet, removeWallet, renameWallet, updateBalance } =
-        useWallet();
-    const { loadUserJettons } = useJettons();
+    const { address, savedWallets, activeWalletId } = useWallet();
 
     const { theme } = useUnistyles();
 

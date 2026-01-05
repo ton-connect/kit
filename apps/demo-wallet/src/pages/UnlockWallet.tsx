@@ -8,8 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@demo/core';
-import { AppText, ActiveTouchAction } from '@demo/ui-kit';
+import { loadAllWallets, unlock, resetAuthState } from '@demo/core';
 
 import { Layout, Button, Input, Card } from '../components';
 
@@ -19,8 +18,6 @@ export const UnlockWallet: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
-    const { unlock, reset } = useAuth();
-    const { loadAllWallets } = useWallet();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -49,7 +46,7 @@ export const UnlockWallet: React.FC = () => {
         if (
             window.confirm('Are you sure you want to reset your wallet? This will delete all wallet data permanently.')
         ) {
-            reset();
+            resetAuthState();
             navigate('/setup-password');
         }
     };
@@ -88,10 +85,6 @@ export const UnlockWallet: React.FC = () => {
                     <Button variant="secondary" onClick={handleReset} className="text-sm">
                         Reset Wallet
                     </Button>
-
-                    <ActiveTouchAction>
-                        <AppText>Reset Wallet</AppText>
-                    </ActiveTouchAction>
 
                     <p className="mt-2 text-xs text-gray-500">This will permanently delete your wallet data</p>
                 </div>

@@ -8,7 +8,7 @@
 
 import { getStore } from '../../../utils/store-instance';
 
-export const setPersistPassword = async (persist: boolean) => {
+export const setPersistPassword = (persist: boolean) => {
     const store = getStore();
 
     store.setState((state) => {

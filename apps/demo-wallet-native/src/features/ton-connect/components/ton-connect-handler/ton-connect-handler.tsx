@@ -7,18 +7,26 @@
  */
 
 import type { FC } from 'react';
-import { useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/core';
+import {
+    useTonConnect,
+    useTransactionRequests,
+    useSignDataRequests,
+    approveSignDataRequest,
+    rejectSignDataRequest,
+    approveConnectRequest,
+    rejectConnectRequest,
+    approveTransactionRequest,
+    rejectTransactionRequest,
+} from '@demo/core';
 
 import { ConnectRequestModal } from '../connect-request-modal';
 import { TransactionRequestModal } from '../transaction-request-modal';
 import { SignDataRequestModal } from '../sign-data-request-modal';
 
 export const TonConnectHandler: FC = () => {
-    const { pendingConnectRequest, isConnectModalOpen, approveConnectRequest, rejectConnectRequest } = useTonConnect();
-    const { pendingTransactionRequest, isTransactionModalOpen, approveTransactionRequest, rejectTransactionRequest } =
-        useTransactionRequests();
-    const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
-        useSignDataRequests();
+    const { pendingConnectRequest, isConnectModalOpen } = useTonConnect();
+    const { pendingTransactionRequest, isTransactionModalOpen } = useTransactionRequests();
+    const { pendingSignDataRequest, isSignDataModalOpen } = useSignDataRequests();
 
     return (
         <>

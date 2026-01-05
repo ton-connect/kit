@@ -8,7 +8,7 @@
 
 import { getStore } from '../../../utils/store-instance';
 
-export const setUseWalletInterfaceType = async (interfaceType: 'signer' | 'mnemonic' | 'ledger') => {
+export const setUseWalletInterfaceType = (interfaceType: 'signer' | 'mnemonic' | 'ledger') => {
     const store = getStore();
 
     store.setState((state) => {

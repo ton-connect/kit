@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useDisconnectEvents } from '@demo/core';
+import { useDisconnectEvents, clearDisconnectNotifications } from '@demo/core';
 
 import { Button } from './Button';
 
@@ -16,7 +16,7 @@ interface DisconnectNotificationsProps {
 }
 
 export const DisconnectNotifications: React.FC<DisconnectNotificationsProps> = ({ className = '' }) => {
-    const { disconnectedSessions, clearDisconnectNotifications } = useDisconnectEvents();
+    const { disconnectedSessions } = useDisconnectEvents();
 
     if (!disconnectedSessions || disconnectedSessions.length === 0) {
         return null;

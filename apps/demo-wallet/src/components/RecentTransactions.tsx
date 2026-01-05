@@ -8,7 +8,7 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useWalletStore, useWalletKit } from '@demo/core';
+import { useWalletStore, useWalletKit, loadEvents } from '@demo/core';
 import type { PreviewTransaction } from '@demo/core';
 import { Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
 import type { Event, Action } from '@ton/walletkit';
@@ -21,10 +21,9 @@ import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, 
  * Displays a list of recent blockchain transactions for the current wallet
  */
 export const RecentTransactions: React.FC = memo(() => {
-    const { events, loadEvents, address, hasNextEvents, savedWallets, activeWalletId } = useWalletStore(
+    const { events, address, hasNextEvents, savedWallets, activeWalletId } = useWalletStore(
         useShallow((state) => ({
             events: state.walletManagement.events,
-            loadEvents: state.loadEvents,
             address: state.walletManagement.address,
             hasNextEvents: state.walletManagement.hasNextEvents,
             savedWallets: state.walletManagement.savedWallets,

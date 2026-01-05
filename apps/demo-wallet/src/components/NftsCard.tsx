@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import type { NFT } from '@ton/walletkit';
-import { useNfts } from '@demo/core';
+import { useNfts, loadUserNfts, formatNftIndex } from '@demo/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -18,7 +18,7 @@ interface NftsCardProps {
 }
 
 export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
-    const { userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
+    const { userNfts, isLoadingNfts, error } = useNfts();
     const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
 
     const handleViewAll = () => {

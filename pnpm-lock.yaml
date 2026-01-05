@@ -56,9 +56,6 @@ importers:
       '@demo/core':
         specifier: workspace:*
         version: link:../../demo/core
-      '@demo/ui-kit':
-        specifier: workspace:*
-        version: link:../../demo/ui-kit
       '@ledgerhq/hw-transport-webhid':
         specifier: ^6.30.9
         version: 6.30.9
@@ -210,9 +207,6 @@ importers:
       '@demo/core':
         specifier: workspace:*
         version: link:../../demo/core
-      '@demo/ui-kit':
-        specifier: workspace:*
-        version: link:../../demo/ui-kit
       '@expo-google-fonts/inter':
         specifier: 0.4.2
         version: 0.4.2

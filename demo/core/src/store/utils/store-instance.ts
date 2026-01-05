@@ -21,3 +21,7 @@ export const getStore = () => {
 
     return store;
 };
+
+export const isStoreInitialized = () => {
+    return !!store;
+};

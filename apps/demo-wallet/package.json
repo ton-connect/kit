@@ -30,7 +30,6 @@
     "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0",
     "@demo/core": "workspace:*",
-    "@demo/ui-kit": "workspace:*",
     "@ton/v4ledger-adapter": "workspace:*",
     "@ton/walletkit": "workspace:*",
     "@truecarry/vite-plugin-web-extension": "^4.5.1",

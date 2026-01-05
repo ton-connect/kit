@@ -6,7 +6,7 @@
  *
  */
 
-import { useTonConnect } from '@demo/core';
+import { handleTonConnectUrl } from '@demo/core';
 import { router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import type { FC } from 'react';
@@ -21,7 +21,6 @@ import { ScreenHeader } from '@/core/components/screen-header';
 import { ScanQrButton, TonConnectLinkInput } from '@/features/ton-connect';
 
 const ConnectDAppScreen: FC = () => {
-    const { handleTonConnectUrl } = useTonConnect();
     const [tonConnectUrl, setTonConnectUrl] = useState('');
     const [isConnecting, setIsConnecting] = useState(false);
     const [isScannerVisible, setIsScannerVisible] = useState(false);

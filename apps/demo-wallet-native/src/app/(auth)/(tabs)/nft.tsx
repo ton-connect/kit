@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { RefreshControl } from 'react-native';
-import { useNfts } from '@demo/core';
+import { loadUserNfts } from '@demo/core';
 
 import { ScreenHeader } from '@/core/components/screen-header';
 import { ScreenWrapper } from '@/core/components/screen-wrapper';
@@ -18,7 +18,6 @@ import { NftList } from '@/features/nft';
 
 const NftScreen: FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const { loadUserNfts } = useNfts();
 
     const refreshNfts = async () => {
         setIsRefreshing(true);

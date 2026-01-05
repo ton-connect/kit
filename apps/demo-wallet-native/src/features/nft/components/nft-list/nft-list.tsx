@@ -6,7 +6,7 @@
  *
  */
 
-import { useNfts, useWallet } from '@demo/core';
+import { useNfts, useWallet, loadUserNfts, formatNftIndex } from '@demo/core';
 import type { NFT } from '@ton/walletkit';
 import { useCallback, useEffect, useState } from 'react';
 import type { FC } from 'react';
@@ -22,7 +22,7 @@ import { InfoBlock } from '@/core/components/info-block';
 
 export const NftList: FC = () => {
     const { address } = useWallet();
-    const { lastNftsUpdate, userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
+    const { lastNftsUpdate, userNfts, isLoadingNfts, error } = useNfts();
     const { theme } = useUnistyles();
     const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
 

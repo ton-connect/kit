@@ -6,7 +6,7 @@
  *
  */
 
-import { useJettons } from '@demo/core';
+import { useJettons, loadUserJettons } from '@demo/core';
 import { useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
@@ -22,7 +22,7 @@ import { RowCenter } from '@/core/components/grid';
 import { getFormattedJettonInfo } from '@/core/utils/jetton';
 
 export const JettonList: FC = () => {
-    const { userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
+    const { userJettons, isLoadingJettons, error } = useJettons();
     const { theme } = useUnistyles();
 
     // Load jettons on mount if none are loaded

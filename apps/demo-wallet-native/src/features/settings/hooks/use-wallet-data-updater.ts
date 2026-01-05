@@ -7,11 +7,10 @@
  */
 
 import { useEffect } from 'react';
-import { useJettons, useWallet } from '@demo/core';
+import { useWallet, loadUserJettons, updateBalance } from '@demo/core';
 
 export const useWalletDataUpdater = () => {
-    const { address, updateBalance } = useWallet();
-    const { loadUserJettons } = useJettons();
+    const { address } = useWallet();
 
     // Update on address change
     useEffect(() => {

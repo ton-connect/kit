@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useAuth } from '@demo/core';
+import { setPassword as setStorePassword } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -36,8 +36,6 @@ const NewPasswordScreen: FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-    const { setPassword: setStorePassword } = useAuth();
 
     const getNextRoute = () => {
         switch (type) {

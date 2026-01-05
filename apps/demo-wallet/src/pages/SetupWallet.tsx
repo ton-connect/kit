@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@demo/core';
+import { useWallet, setUseWalletInterfaceType } from '@demo/core';
 
 import { Layout, Button, ImportWallet, CreateWallet, LedgerSetup } from '../components';
 import { useTonWallet } from '../hooks';
@@ -22,7 +22,6 @@ export const SetupWallet: React.FC = () => {
 
     const navigate = useNavigate();
     const { createLedgerWallet, importWallet } = useTonWallet();
-    const { setUseWalletInterfaceType } = useAuth();
     const { hasWallet } = useWallet();
 
     const handleCreateWallet = async (mnemonic: string[], network: 'mainnet' | 'testnet') => {

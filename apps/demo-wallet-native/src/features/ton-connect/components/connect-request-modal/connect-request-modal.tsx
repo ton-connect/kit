@@ -8,7 +8,7 @@
 
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@demo/core';
+import { useWallet, getAvailableWallets } from '@demo/core';
 import { useState, useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
@@ -35,7 +35,7 @@ interface ConnectRequestModalProps {
 }
 
 export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isOpen, onApprove, onReject }) => {
-    const { savedWallets, getAvailableWallets } = useWallet();
+    const { savedWallets } = useWallet();
     const { theme } = useUnistyles();
 
     const [availableWallets, setAvailableWallets] = useState<Wallet[]>(getAvailableWallets());

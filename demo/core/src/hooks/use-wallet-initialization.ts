@@ -7,9 +7,8 @@
  */
 
 import { useCallback, useState } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 
-import { useWalletStore } from './use-wallet-store';
+import { initializeWalletKit, loadAllWallets } from '../store';
 
 export interface WalletInitializationState {
     isInitializing: boolean;
@@ -20,14 +19,6 @@ export interface WalletInitializationState {
 export const useWalletInitialization = (): WalletInitializationState => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isInitializing, setIsInitializing] = useState(true);
-
-    const { initializeWalletKit, loadAllWallets } = useWalletStore(
-        useShallow((state) => ({
-            isHydrated: state.isHydrated,
-            initializeWalletKit: state.initializeWalletKit,
-            loadAllWallets: state.loadAllWallets,
-        })),
-    );
 
     const initialize = useCallback(async () => {
         setIsInitializing(true);

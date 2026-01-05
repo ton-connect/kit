@@ -8,7 +8,24 @@
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/core';
+import {
+    useWallet,
+    useWalletKit,
+    useTonConnect,
+    useTransactionRequests,
+    useSignDataRequests,
+    getActiveWallet,
+    handleTonConnectUrl,
+    updateBalance,
+    switchWallet,
+    removeWallet,
+    renameWallet,
+    getAvailableWallets,
+    approveConnectRequest,
+    rejectConnectRequest,
+    approveSignDataRequest,
+    rejectSignDataRequest,
+} from '@demo/core';
 
 import {
     Layout,
@@ -38,30 +55,12 @@ export const WalletDashboard: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false);
     const navigate = useNavigate();
 
-    const {
-        balance,
-        address,
-        getAvailableWallets,
-        updateBalance,
-        savedWallets,
-        activeWalletId,
-        switchWallet,
-        removeWallet,
-        renameWallet,
-        getActiveWallet,
-    } = useWallet();
+    const { balance, address, savedWallets, activeWalletId } = useWallet();
     const activeWallet = getActiveWallet();
     const network = activeWallet?.network || 'testnet';
-    const {
-        handleTonConnectUrl,
-        pendingConnectRequest,
-        isConnectModalOpen,
-        approveConnectRequest,
-        rejectConnectRequest,
-    } = useTonConnect();
+    const { pendingConnectRequest, isConnectModalOpen } = useTonConnect();
     const { pendingTransactionRequest, isTransactionModalOpen } = useTransactionRequests();
-    const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
-        useSignDataRequests();
+    const { pendingSignDataRequest, isSignDataModalOpen } = useSignDataRequests();
     const { error } = useTonWallet();
 
     // Use the paste handler hook

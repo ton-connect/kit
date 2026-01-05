@@ -12,7 +12,7 @@ import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { CreateTonMnemonic } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { useWallet } from '@demo/core';
+import { createWallet } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppText } from '@/core/components/app-text';
@@ -33,8 +33,6 @@ const CreateMnemonicScreen: FC = () => {
     const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
     const [isWarningShown, setIsWarningShown] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
-
-    const { createWallet } = useWallet();
 
     const { theme } = useUnistyles();
 

@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@demo/core';
+import { getDecryptedMnemonic } from '@demo/core';
 import { setStringAsync } from 'expo-clipboard';
 import { useState } from 'react';
 import type { FC } from 'react';
@@ -27,7 +27,6 @@ export const RecoveryPhraseSection: FC = () => {
     const [showMnemonic, setShowMnemonic] = useState(false);
     const [mnemonic, setMnemonic] = useState<string[]>([]);
 
-    const { getDecryptedMnemonic } = useWallet();
     const { theme } = useUnistyles();
     const { toast } = useAppToasts();
 

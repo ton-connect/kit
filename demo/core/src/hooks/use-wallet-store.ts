@@ -18,9 +18,11 @@ import type { AppState } from '../types/store';
  */
 export function useWalletStore<T>(selector: (state: AppState) => T): T {
     const store = useContext(WalletStoreContext);
+
     if (!store) {
         throw new Error('useWalletStore must be used within WalletProvider');
     }
+
     return useStore(store, selector);
 }
 
@@ -62,19 +64,6 @@ export const useWallet = () => {
             currentWallet: state.walletManagement.currentWallet,
             savedWallets: state.walletManagement.savedWallets,
             activeWalletId: state.walletManagement.activeWalletId,
-            loadAllWallets: state.loadAllWallets,
-            createWallet: state.createWallet,
-            importWallet: state.importWallet,
-            clearWallet: state.clearWallet,
-            updateBalance: state.updateBalance,
-            loadEvents: state.loadEvents,
-            getDecryptedMnemonic: state.getDecryptedMnemonic,
-            getAvailableWallets: state.getAvailableWallets,
-            getActiveWallet: state.getActiveWallet,
-            switchWallet: state.switchWallet,
-            removeWallet: state.removeWallet,
-            renameWallet: state.renameWallet,
-            createLedgerWallet: state.createLedgerWallet,
         })),
     );
 };
@@ -87,11 +76,6 @@ export const useTonConnect = () => {
         useShallow((state) => ({
             pendingConnectRequest: state.tonConnect.pendingConnectRequest,
             isConnectModalOpen: state.tonConnect.isConnectModalOpen,
-            handleTonConnectUrl: state.handleTonConnectUrl,
-            showConnectRequest: state.showConnectRequest,
-            approveConnectRequest: state.approveConnectRequest,
-            rejectConnectRequest: state.rejectConnectRequest,
-            closeConnectModal: state.closeConnectModal,
         })),
     );
 };
@@ -104,10 +88,6 @@ export const useTransactionRequests = () => {
         useShallow((state) => ({
             pendingTransactionRequest: state.tonConnect.pendingTransactionRequest,
             isTransactionModalOpen: state.tonConnect.isTransactionModalOpen,
-            showTransactionRequest: state.showTransactionRequest,
-            approveTransactionRequest: state.approveTransactionRequest,
-            rejectTransactionRequest: state.rejectTransactionRequest,
-            closeTransactionModal: state.closeTransactionModal,
         })),
     );
 };
@@ -120,10 +100,6 @@ export const useSignDataRequests = () => {
         useShallow((state) => ({
             pendingSignDataRequest: state.tonConnect.pendingSignDataRequest,
             isSignDataModalOpen: state.tonConnect.isSignDataModalOpen,
-            showSignDataRequest: state.showSignDataRequest,
-            approveSignDataRequest: state.approveSignDataRequest,
-            rejectSignDataRequest: state.rejectSignDataRequest,
-            closeSignDataModal: state.closeSignDataModal,
         })),
     );
 };
@@ -135,8 +111,6 @@ export const useDisconnectEvents = () => {
     return useWalletStore(
         useShallow((state) => ({
             disconnectedSessions: state.tonConnect.disconnectedSessions || [],
-            handleDisconnectEvent: state.handleDisconnectEvent,
-            clearDisconnectNotifications: state.clearDisconnectNotifications,
         })),
     );
 };
@@ -154,12 +128,6 @@ export const useNfts = () => {
             error: state.nfts.error,
             hasMore: state.nfts.hasMore,
             offset: state.nfts.offset,
-            loadUserNfts: state.loadUserNfts,
-            refreshNfts: state.refreshNfts,
-            loadMoreNfts: state.loadMoreNfts,
-            clearNfts: state.clearNfts,
-            getNftByAddress: state.getNftByAddress,
-            formatNftIndex: state.formatNftIndex,
         })),
     );
 };
@@ -180,12 +148,6 @@ export const useJettons = () => {
             isRefreshing: state.jettons.isRefreshing,
             error: state.jettons.error,
             transferError: state.jettons.transferError,
-            loadUserJettons: state.loadUserJettons,
-            refreshJettons: state.refreshJettons,
-            validateJettonAddress: state.validateJettonAddress,
-            clearJettons: state.clearJettons,
-            getJettonByAddress: state.getJettonByAddress,
-            formatJettonAmount: state.formatJettonAmount,
         })),
     );
 };

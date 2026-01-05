@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useJettons } from '@demo/core';
+import { useJettons, loadUserJettons } from '@demo/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -23,7 +23,7 @@ interface JettonsCardProps {
 }
 
 export const JettonsCard: React.FC<JettonsCardProps> = ({ className = '' }) => {
-    const { userJettons, isLoadingJettons, error, loadUserJettons } = useJettons();
+    const { userJettons, isLoadingJettons, error } = useJettons();
 
     const handleViewAll = () => {
         // TODO: Navigate to jettons page when created

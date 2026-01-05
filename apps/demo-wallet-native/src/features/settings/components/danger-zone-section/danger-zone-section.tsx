@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@demo/core';
+import { clearWalletManagementState } from '@demo/core';
 import { router } from 'expo-router';
 import type { FC } from 'react';
 import { Alert, View } from 'react-native';
@@ -19,7 +19,6 @@ import { Block } from '@/core/components/block';
 
 export const DangerZoneSection: FC = () => {
     const { theme } = useUnistyles();
-    const { clearWallet } = useWallet();
 
     const handleDeleteAccount = () => {
         Alert.alert(
@@ -31,7 +30,7 @@ export const DangerZoneSection: FC = () => {
                     text: 'Delete',
                     style: 'destructive',
                     onPress: () => {
-                        clearWallet();
+                        clearWalletManagementState();
                         router.replace('/(non-auth)/new-password');
                     },
                 },

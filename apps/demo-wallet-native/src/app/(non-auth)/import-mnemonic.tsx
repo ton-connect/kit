@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useWallet } from '@demo/core';
+import { importWallet } from '@demo/core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -32,8 +32,6 @@ const ImportMnemonicScreen: FC = () => {
     const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
     const [isLoading, setIsLoading] = useState(false);
     const [, setError] = useState('');
-
-    const { importWallet } = useWallet();
 
     const handleImport = async () => {
         if (!mnemonic.trim()) {

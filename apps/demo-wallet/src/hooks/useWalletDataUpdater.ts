@@ -7,12 +7,19 @@
  */
 
 import { useEffect } from 'react';
-import { useJettons, useNfts, useWallet } from '@demo/core';
+import {
+    loadUserJettons,
+    updateBalance,
+    clearJettons,
+    refreshJettons,
+    loadUserNfts,
+    clearNfts,
+    refreshNfts,
+    useWallet,
+} from '@demo/core';
 
 export const useWalletDataUpdater = () => {
-    const { address, updateBalance } = useWallet();
-    const { loadUserJettons, clearJettons, refreshJettons } = useJettons();
-    const { loadUserNfts, clearNfts, refreshNfts } = useNfts();
+    const { address } = useWallet();
 
     // Update on address change
     useEffect(() => {

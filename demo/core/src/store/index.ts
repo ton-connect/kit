@@ -7,6 +7,11 @@
  */
 
 export * from './slices/auth/actions';
+export * from './slices/jettons/actions';
+export * from './slices/nfts/actions';
+export * from './slices/ton-connect/actions';
+export * from './slices/wallet-core/actions';
+export * from './slices/wallet-management/actions';
 
 export { getStore, setStore } from './utils/store-instance';
 

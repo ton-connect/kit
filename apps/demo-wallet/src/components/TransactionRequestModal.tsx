@@ -10,7 +10,7 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Network } from '@ton/walletkit';
 import type { JettonInfo, TransactionRequestEvent, TransactionTraceMoneyFlowItem } from '@ton/walletkit';
 import { Address } from '@ton/core';
-import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@demo/core';
+import { useWalletKit, useAuth, useWalletStore, approveTransactionRequest, rejectTransactionRequest } from '@demo/core';
 import type { SavedWallet } from '@demo/core';
 import { toast } from 'sonner';
 
@@ -36,7 +36,6 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     const [showSuccess, setShowSuccess] = useState(false);
     const [isExpired, setIsExpired] = useState(false);
     const { holdToSign } = useAuth();
-    const { approveTransactionRequest, rejectTransactionRequest } = useTransactionRequests();
 
     // Find the wallet being used for this transaction
     const currentWallet = useMemo(() => {

@@ -8,7 +8,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { CreateTonMnemonic } from '@ton/walletkit';
-import { useWallet, useAuth } from '@demo/core';
+import {
+    useWallet,
+    useAuth,
+    importWallet as importWalletStore,
+    loadAllWallets,
+    createWallet,
+    createLedgerWallet as createLedgerWalletStore,
+} from '@demo/core';
 
 import { createComponentLogger } from '../utils/logger';
 
@@ -53,7 +60,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
 
             // Load existing wallet if available
             if (walletStore.hasWallet && authStore.isUnlocked) {
-                await walletStore.loadAllWallets();
+                await loadAllWallets();
             }
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -70,7 +77,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
             const mnemonic = await CreateTonMnemonic();
 
             // Create wallet with mnemonic
-            await walletStore.createWallet(mnemonic);
+            await createWallet(mnemonic);
 
             return mnemonic;
         } catch (err) {
@@ -88,7 +95,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
                 setError(null);
 
                 // Create Ledger wallet
-                await walletStore.createLedgerWallet(undefined, network);
+                await createLedgerWalletStore(undefined, network);
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Failed to create Ledger wallet';
                 setError(errorMessage);
@@ -113,7 +120,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
                 }
 
                 // Import wallet
-                await walletStore.importWallet(mnemonic, undefined, version, network);
+                await importWalletStore(mnemonic, undefined, version, network);
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Failed to import wallet';
                 setError(errorMessage);

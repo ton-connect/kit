@@ -47,9 +47,12 @@ const SendScreen: FC = () => {
     const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
 
     const walletKit = useWalletKit();
-    const { balance, currentWallet } = useWallet();
+    const { balance, currentWallet, savedWallets } = useWallet();
 
-    const isLedgerWallet = currentWallet?.walletType === 'ledger';
+    const selectedWalletData = currentWallet
+        ? savedWallets.find((w) => w.address === currentWallet.getAddress())
+        : undefined;
+    const isLedgerWallet = selectedWalletData?.walletType === 'ledger';
 
     const formatTonBalance = (bal: string): string => {
         return fromMinorUnit(bal || '0', 9).toString();

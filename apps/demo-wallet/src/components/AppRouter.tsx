@@ -26,6 +26,7 @@ import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
 export const AppRouter: React.FC = () => {
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
     const isUnlocked = useWalletStore((state) => state.auth.isUnlocked);
+    const isHydrated = useWalletStore((state) => state.isHydrated);
     const { hasWallet } = useWallet();
 
     useWalletDataUpdater();
@@ -36,6 +37,10 @@ export const AppRouter: React.FC = () => {
         if (!hasWallet) return '/setup-wallet';
         return '/wallet';
     };
+
+    if (!isHydrated) {
+        return null;
+    }
 
     return (
         <BrowserRouter>

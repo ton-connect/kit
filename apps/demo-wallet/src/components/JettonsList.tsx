@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { useJettons } from '@demo/core';
+import { useJettons, refreshJettons } from '@demo/core';
 
 import { createComponentLogger } from '../utils/logger';
 import { Button } from './Button';
@@ -29,7 +29,7 @@ export const JettonsList: React.FC<JettonsListProps> = ({
     maxItems = 10,
     showRefreshButton = true,
 }) => {
-    const { userJettons, isLoadingJettons, isRefreshing, error, refreshJettons } = useJettons();
+    const { userJettons, isLoadingJettons, isRefreshing, error } = useJettons();
 
     const [selectedJetton, setSelectedJetton] = useState<Jetton | null>(null);
 

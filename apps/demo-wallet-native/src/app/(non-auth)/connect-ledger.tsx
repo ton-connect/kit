@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useAuth, useWallet } from '@demo/core';
+import { setUseWalletInterfaceType, setLedgerAccountNumber, createLedgerWallet } from '@demo/core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AppText } from '@/core/components/app-text';
@@ -37,9 +37,6 @@ const ConnectLedgerScreen: FC = () => {
     const [selectedDevice, setSelectedDevice] = useState<LedgerDevice | null>(null);
     const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
     const [accountNumber, setAccountNumber] = useState(0);
-
-    const { setUseWalletInterfaceType, setLedgerAccountNumber } = useAuth();
-    const { createLedgerWallet } = useWallet();
 
     const handleDeviceConnected = useCallback(async (device: LedgerDevice) => {
         await AsyncStorage.setItem(LEDGER_DEVICE_ID_KEY, device.id);

@@ -6,15 +6,14 @@
  *
  */
 
-import { useWalletStore } from '@demo/core';
+import { useWalletStore, loadEvents } from '@demo/core';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const useTransactionEvents = (limit = 20) => {
-    const { events, loadEvents, address, hasNextEvents } = useWalletStore(
+    const { events, address, hasNextEvents } = useWalletStore(
         useShallow((state) => ({
             events: state.walletManagement.events,
-            loadEvents: state.loadEvents,
             address: state.walletManagement.address,
             hasNextEvents: state.walletManagement.hasNextEvents,
         })),

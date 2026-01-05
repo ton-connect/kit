@@ -9,7 +9,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
-import { useWallet, useJettons, useWalletKit } from '@demo/core';
+import { useWallet, useJettons, useWalletKit, loadUserJettons, formatJettonAmount } from '@demo/core';
 
 import { Layout, Button, Input, Card } from '../components';
 import { createComponentLogger } from '../utils/logger';
@@ -36,7 +36,7 @@ export const SendTransaction: React.FC = () => {
     const navigate = useNavigate();
     const { balance, currentWallet, address } = useWallet();
     // Get current wallet
-    const { userJettons, isLoadingJettons, loadUserJettons, formatJettonAmount } = useJettons();
+    const { userJettons, isLoadingJettons } = useJettons();
 
     const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
 

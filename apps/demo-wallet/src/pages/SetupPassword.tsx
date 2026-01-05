@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@demo/core';
+import { setPassword as setStorePassword } from '@demo/core';
 
 import { Layout, Button, Input, Card } from '../components';
 
@@ -19,7 +19,6 @@ export const SetupPassword: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
-    const { setPassword: setStorePassword } = useAuth();
 
     const validatePassword = (pwd: string): string[] => {
         const errors = [];
