@@ -10,6 +10,7 @@ import type { ExtraCurrency, AccountStatus } from '@ton/core';
 import { Address } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../utils/base64';
 import type { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
 import type { JettonInfo, ToncenterEmulationResponse } from '../types';
@@ -139,7 +140,7 @@ export class ApiClientToncenter implements ApiClient {
     ): Promise<TransactionEmulatedTrace> {
         const props: Record<string, unknown> = {
             from: address,
-            valid_until: Math.floor(Date.now() / 1000) + 60,
+            valid_until: (await KitGlobalOptions.getCurrentTime()) + 60,
             include_code_data: true,
             include_address_book: true,
             include_metadata: true,

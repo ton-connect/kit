@@ -9,6 +9,7 @@
 // Bridge event validation logic
 
 import type { ValidationResult, ValidationContext } from './types';
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 
 /**
  * Validate bridge event structure
@@ -88,7 +89,7 @@ export function validateConnectEventParams(params: any): ValidationResult {
  * Validate transaction event parameters
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionEventParams(params: any): ValidationResult {
+export async function validateTransactionEventParams(params: any): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!params || typeof params !== 'object') {
@@ -109,7 +110,7 @@ export function validateTransactionEventParams(params: any): ValidationResult {
 
     if (params.validUntil && typeof params.validUntil !== 'number') {
         errors.push('validUntil must be a number if provided');
-    } else if (params.validUntil && params.validUntil <= Date.now() / 1000) {
+    } else if (params.validUntil && params.validUntil <= (await KitGlobalOptions.getCurrentTime())) {
         errors.push('validUntil must be a future timestamp');
     }
 

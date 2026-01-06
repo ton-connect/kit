@@ -158,10 +158,6 @@ export class WalletV4R2 implements Contract {
             .storeUint(0, 8) // Simple transfer
             .storeUint(args.sendMode, 8);
 
-        if (args.timeout) {
-            body.storeUint(args.timeout, 32);
-        }
-
         for (const message of args.messages) {
             body = body.storeRef(beginCell().store(storeMessageRelaxed(message)));
         }

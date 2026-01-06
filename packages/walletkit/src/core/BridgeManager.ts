@@ -34,6 +34,7 @@ import { getEventsSubsystem, getVersion } from '../utils/version';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
 import { getAddressFromWalletId } from '../utils/walletId';
 import type { BridgeEvent } from '../api/models';
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 
 const log = globalLogger.createChild('BridgeManager');
 
@@ -606,7 +607,7 @@ export class BridgeManager {
                 method: event.method || 'unknown',
                 params: event.params || event,
                 // sessionId: event.from,
-                timestamp: Date.now(),
+                timestamp: await KitGlobalOptions.getCurrentTime(),
                 from: event?.from,
                 domain: event?.domain,
                 isJsBridge: event?.isJsBridge,
