@@ -54,11 +54,6 @@ export interface TonWalletKitOptions {
     bridge?: BridgeConfig;
     /** Storage settings */
     storage?: StorageConfig | StorageAdapter;
-    /** Validation settings */
-    validation?: {
-        strictMode?: boolean;
-        allowUnknownWalletVersions?: boolean;
-    };
     /** Event processor settings */
     eventProcessor?: EventProcessorConfig;
 

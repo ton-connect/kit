@@ -12,6 +12,7 @@ export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export type * from './types/internal';
 export * from './errors';
+export { KitGlobalOptions } from './core/KitGlobalOptions';
 export { WalletManager } from './core/WalletManager';
 export { SessionManager } from './core/SessionManager';
 export { BridgeManager } from './core/BridgeManager';

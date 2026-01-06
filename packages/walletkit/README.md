@@ -24,6 +24,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 - **[Browser Extension Build](/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+- **[KitGlobalOptions](/packages/walletkit/GLOBALOPTIONS.md)** - Configure global time provider for accurate transaction validation
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
 
@@ -297,6 +298,25 @@ function renderSignDataPreview(preview: SignDataPreview) {
 const info = kit.jettons.getJettonInfo(jettonAddress);
 // info?.name, info?.symbol, info?.image
 ```
+
+## Advanced Configuration
+
+### Custom Time Provider
+
+For production wallets, it's recommended to use server-synchronized time instead of device time to avoid issues with clock skew and timezone differences:
+
+```ts
+import { KitGlobalOptions } from '@ton/walletkit';
+
+// Set custom time provider before creating TonWalletKit
+KitGlobalOptions.setGetCurrentTime(async () => {
+    const response = await fetch('https://your-api.com/time');
+    const { timestamp } = await response.json();
+    return timestamp; // Unix timestamp in seconds
+});
+```
+
+This ensures accurate `validUntil` validation for transactions. See [KitGlobalOptions documentation](/packages/walletkit/GLOBALOPTIONS.md) for detailed usage and best practices.
 
 ## Sending assets programmatically
 

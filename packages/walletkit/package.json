@@ -41,6 +41,7 @@
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "clean": "git clean -xdf dist node_modules .turbo",
+    "typecheck": "tsc --noEmit",
     "generate-openapi-spec": "src/api/scripts/generate-openapi-spec.sh"
   },
   "keywords": [

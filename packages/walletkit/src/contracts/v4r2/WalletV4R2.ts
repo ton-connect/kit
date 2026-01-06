@@ -12,6 +12,7 @@ import type { Address, Cell, Contract, ContractProvider, Sender, MessageRelaxed 
 import { beginCell, contractAddress, SendMode, storeMessageRelaxed } from '@ton/core';
 import type { Maybe } from '@ton/core/dist/utils/maybe';
 
+import { KitGlobalOptions } from '../../core/KitGlobalOptions';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import { ParseStack } from '../../utils/tvmStack';
 import { asAddressFriendly } from '../../utils';
@@ -142,8 +143,13 @@ export class WalletV4R2 implements Contract {
     /**
      * Create transfer message body
      */
-    createTransfer(args: { seqno: number; sendMode: SendMode; messages: MessageRelaxed[]; timeout?: number }): Cell {
-        const timeout = args.timeout ?? Math.floor(Date.now() / 1000) + 60;
+    async createTransfer(args: {
+        seqno: number;
+        sendMode: SendMode;
+        messages: MessageRelaxed[];
+        timeout?: number;
+    }): Promise<Cell> {
+        const timeout = args.timeout ?? (await KitGlobalOptions.getCurrentTime()) + 60;
 
         let body = beginCell()
             .storeUint(this.subwalletId, 32)
@@ -173,7 +179,7 @@ export class WalletV4R2 implements Contract {
             timeout?: number;
         },
     ): Promise<void> {
-        const transfer = this.createTransfer(args);
+        const transfer = await this.createTransfer(args);
         await provider.internal(via, {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: transfer,
