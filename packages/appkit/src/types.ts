@@ -1,7 +1,16 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 // AppKit types - bridge between @tonconnect/sdk and TonWalletKit
 
-import TonConnect, { Wallet } from '@tonconnect/sdk';
-import { ApiClient, ConnectTransactionParamContent, TonWalletKit, WalletInterface } from '@ton/walletkit';
+import type TonConnect from '@tonconnect/sdk';
+import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
+import type { TransactionRequest, Wallet } from '@ton/walletkit';
 
 export interface Storage {
     /**
@@ -36,18 +45,15 @@ export interface AppKitConfig {
 /**
  * Wrapper around @tonconnect/sdk Wallet that provides TonWalletKit-compatible interface
  */
-export interface TonConnectWalletWrapper extends WalletInterface {
+export interface TonConnectWalletWrapper extends Wallet {
     /** The underlying TonConnect wallet */
-    readonly tonConnectWallet: Wallet;
+    readonly tonConnectWallet: TonConnectWallet;
 
     /** The underlying TonConnect instance */
     readonly tonConnect: TonConnect;
 
-    /** The underlying TonClient instance */
-    // readonly client: ApiClient;
-
     /** Check if the wallet is connected */
-    // isConnected(): boolean;
+    isConnected(): boolean;
 
     /** Get connection info */
     getConnectionInfo(): {
@@ -74,11 +80,11 @@ export interface AppKit {
      * @param wallet - The connected TonConnect wallet
      * @returns Wrapped wallet with TonWalletKit interface
      */
-    wrapWallet(wallet: Wallet): TonConnectWalletWrapper;
+    wrapWallet(wallet: TonConnectWallet): TonConnectWalletWrapper;
 
     handleNewTransaction(
         wallet: TonConnectWalletWrapper,
-        transaction: ConnectTransactionParamContent,
+        transaction: TransactionRequest,
     ): Promise<{
         boc: string;
     }>;

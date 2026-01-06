@@ -1,7 +1,24 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/* eslint-disable no-console */
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 // Example usage of AppKit - bridging @tonconnect/sdk to TonWalletKit
 
-import TonConnect, { Wallet } from '@tonconnect/sdk';
-import { ApiClientToncenter, TonWalletKit } from '@ton/walletkit';
+import TonConnect from '@tonconnect/sdk';
+import { ApiClientToncenter } from '@ton/walletkit';
 
 import { AppKit } from './index';
 import { FSStorage } from './FSStorage';
@@ -42,13 +59,14 @@ async function main() {
             //     comment: 'Hello from ??!',
             // });
 
-            const tx = await tonWallet.createTransferJettonTransaction({
-                amount: '1',
+            // const tx =
+            await tonWallet.createTransferJettonTransaction({
+                transferAmount: '1',
                 jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
-                toAddress: tonWallet.getAddress(),
+                recipientAddress: tonWallet.getAddress(),
                 comment: 'Hello from ??!',
             });
-            const result = await appKit.handleNewTransaction(tonWallet, tx);
+            // const result = await appKit.handleNewTransaction(tonWallet, tx);
             // const tx = await tonConnect.getResponse(requestNumber);
 
             // const onChainTx = await appKit.findTransaction(result.boc);
@@ -86,7 +104,7 @@ async function main() {
 
     while (true) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        // eslint-disable-next-line no-console
+
         console.log('Waiting for 1 second');
     }
     // 3. In your dApp, connect with TonConnect

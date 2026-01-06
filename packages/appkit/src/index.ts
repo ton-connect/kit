@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 // AppKit - Bridge between @tonconnect/sdk and TonWalletKit
 // Allows dApps to use TonConnect wallets with TonWalletKit-compatible interface
 
@@ -11,9 +19,8 @@ export type { AppKitConfig, AppKit as IAppKit, TonConnectWalletWrapper as ITonCo
 export type { Wallet } from '@tonconnect/sdk';
 export type {
     TonWalletKit,
-    WalletInterface,
-    TonTransferParams,
-    TonTransferManyParams,
-    JettonTransferParams,
-    ConnectTransactionParamContent,
+    Wallet as WalletInterface,
+    TONTransferRequest,
+    JettonsTransferRequest,
+    TransactionRequest,
 } from '@ton/walletkit';

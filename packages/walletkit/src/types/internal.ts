@@ -175,7 +175,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
     return {
         messages: params.messages.map(toTransactionRequestMessage),
         network: params.network ? { chainId: params.network } : undefined,
-        validUntil: params.valid_until,
+        validUntil: params.validUntil,
         fromAddress: params.from,
     };
 }
@@ -183,8 +183,8 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
 export function toConnectTransactionParamContent(request: TransactionRequest): ConnectTransactionParamContent {
     return {
         messages: request.messages.map(toConnectTransactionParamMessage),
-        network: request.network?.chainId,
-        valid_until: request.validUntil,
+        network: request.network?.chainId as CHAIN,
+        validUntil: request.validUntil,
         from: request.fromAddress,
     };
 }

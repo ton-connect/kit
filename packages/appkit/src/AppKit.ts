@@ -1,9 +1,18 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
 // Main AppKit class that bridges TonConnect SDK to TonWalletKit
 
-import TonConnect, { SendTransactionRequest, Wallet } from '@tonconnect/sdk';
-import { TonWalletKit, ConnectTransactionParamContent, ApiClient } from '@ton/walletkit';
+import type { SendTransactionRequest, Wallet } from '@tonconnect/sdk';
+import type TonConnect from '@tonconnect/sdk';
+import type { TransactionRequest, ApiClient } from '@ton/walletkit';
 
-import { AppKit, AppKitConfig, TonConnectWalletWrapper } from './types';
+import type { AppKit, AppKitConfig, TonConnectWalletWrapper } from './types';
 import { TonConnectWalletWrapperImpl } from './TonConnectWalletWrapper';
 
 /**
@@ -69,7 +78,7 @@ export class AppKitImpl implements AppKit {
 
     async handleNewTransaction(
         wallet: TonConnectWalletWrapper,
-        transaction: ConnectTransactionParamContent,
+        transaction: TransactionRequest,
     ): Promise<{ boc: string }> {
         const tonConnectWallet = this.tonConnect.wallet;
         if (!tonConnectWallet) {
@@ -78,7 +87,17 @@ export class AppKitImpl implements AppKit {
         if (tonConnectWallet.account.address !== wallet.getAddress()) {
             throw new Error('Wallet address does not match');
         }
-        const result = await this.tonConnect.sendTransaction(transaction as SendTransactionRequest);
+        // Convert TransactionRequest to TonConnect SendTransactionRequest format
+        const tonConnectTransaction: SendTransactionRequest = {
+            validUntil: transaction.validUntil || Math.floor(Date.now() / 1000) + 300,
+            messages: transaction.messages.map((msg) => ({
+                address: msg.address,
+                amount: String(msg.amount),
+                payload: msg.payload,
+                stateInit: msg.stateInit,
+            })),
+        };
+        const result = await this.tonConnect.sendTransaction(tonConnectTransaction);
         return result;
     }
 
