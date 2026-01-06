@@ -143,14 +143,15 @@ export class WalletV4R2 implements Contract {
      * Create transfer message body
      */
     createTransfer(args: { seqno: number; sendMode: SendMode; messages: MessageRelaxed[]; timeout?: number }): Cell {
-        const timeout = args.timeout ?? Math.floor(Date.now() / 1000) + 60;
-
         let body = beginCell()
             .storeUint(this.subwalletId, 32)
-            .storeUint(timeout, 32)
             .storeUint(args.seqno, 32)
             .storeUint(0, 8) // Simple transfer
             .storeUint(args.sendMode, 8);
+
+        if (args.timeout) {
+            body.storeUint(args.timeout, 32);
+        }
 
         for (const message of args.messages) {
             body = body.storeRef(beginCell().store(storeMessageRelaxed(message)));

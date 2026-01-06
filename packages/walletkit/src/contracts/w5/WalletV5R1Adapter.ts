@@ -202,25 +202,8 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
         const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
             ...options,
-            validUntil: undefined,
+            validUntil: input.validUntil,
         };
-        // add valid untill
-        if (input.validUntil) {
-            const now = Math.floor(Date.now() / 1000);
-            const maxValidUntil = now + 600;
-            if (input.validUntil < now) {
-                throw new WalletKitError(
-                    ERROR_CODES.VALIDATION_ERROR,
-                    'Transaction valid_until timestamp is in the past',
-                    undefined,
-                    { validUntil: input.validUntil, currentTime: now },
-                );
-            } else if (input.validUntil > maxValidUntil) {
-                createBodyOptions.validUntil = maxValidUntil;
-            } else {
-                createBodyOptions.validUntil = input.validUntil;
-            }
-        }
 
         let seqno = 0;
         try {
@@ -314,19 +297,22 @@ export class WalletV5R1Adapter implements WalletAdapter {
             auth_signed: 0x7369676e,
         };
 
-        const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
-        const payload = beginCell()
+        const builder = beginCell()
             .storeUint(Opcodes.auth_signed, 32)
             .storeUint(walletId, 32)
-            .storeUint(expireAt, 32)
             .storeUint(seqno, 32) // seqno
-            .storeSlice(actionsList.beginParse())
-            .endCell();
+            .storeSlice(actionsList.beginParse());
 
-        const signingData = payload.hash();
+        if (options.validUntil) {
+            builder.storeUint(options.validUntil, 32);
+        }
+
+        const cell = builder.endCell();
+
+        const signingData = cell.hash();
         const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
         return beginCell()
-            .storeSlice(payload.beginParse())
+            .storeSlice(cell.beginParse())
             .storeBuffer(Buffer.from(HexToUint8Array(signature)))
             .endCell();
     }

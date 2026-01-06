@@ -6,6 +6,14 @@
  *
  */
 
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
+
 export function getUnixtime(): number {
     return Math.floor(Date.now() / 1000);
+}
+
+export async function isBefore(timestamp1: number, timestamp2?: number): Promise<boolean> {
+    const calculated = timestamp2 ?? (await KitGlobalOptions.getCurrentTime());
+
+    return timestamp1 < calculated;
 }
