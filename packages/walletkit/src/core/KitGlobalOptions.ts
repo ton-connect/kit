@@ -6,7 +6,7 @@
  *
  */
 
-import { getUnixtime } from '../utils';
+import { getUnixtime } from '../utils/time';
 
 type GetCurrentTimeFunc = () => Promise<number> | number;
 

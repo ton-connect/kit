@@ -35,6 +35,7 @@ import type {
     Hex,
     Base64String,
 } from '../../api/models';
+import { KitGlobalOptions } from '../../core/KitGlobalOptions';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -202,8 +203,26 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
         const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
             ...options,
-            validUntil: input.validUntil,
+            validUntil: undefined,
         };
+
+        // add validUntil
+        if (input.validUntil) {
+            const now = await KitGlobalOptions.getCurrentTime();
+            const maxValidUntil = now + 600;
+            if (input.validUntil < now) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Transaction valid_until timestamp is in the past',
+                    undefined,
+                    { validUntil: input.validUntil, currentTime: now },
+                );
+            } else if (input.validUntil > maxValidUntil) {
+                createBodyOptions.validUntil = maxValidUntil;
+            } else {
+                createBodyOptions.validUntil = input.validUntil;
+            }
+        }
 
         let seqno = 0;
         try {
@@ -297,22 +316,19 @@ export class WalletV5R1Adapter implements WalletAdapter {
             auth_signed: 0x7369676e,
         };
 
-        const builder = beginCell()
+        const expireAt = options.validUntil ?? (await KitGlobalOptions.getCurrentTime()) + 300;
+        const payload = beginCell()
             .storeUint(Opcodes.auth_signed, 32)
             .storeUint(walletId, 32)
+            .storeUint(expireAt, 32)
             .storeUint(seqno, 32) // seqno
-            .storeSlice(actionsList.beginParse());
+            .storeSlice(actionsList.beginParse())
+            .endCell();
 
-        if (options.validUntil) {
-            builder.storeUint(options.validUntil, 32);
-        }
-
-        const cell = builder.endCell();
-
-        const signingData = cell.hash();
+        const signingData = payload.hash();
         const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
         return beginCell()
-            .storeSlice(cell.beginParse())
+            .storeSlice(payload.beginParse())
             .storeBuffer(Buffer.from(HexToUint8Array(signature)))
             .endCell();
     }

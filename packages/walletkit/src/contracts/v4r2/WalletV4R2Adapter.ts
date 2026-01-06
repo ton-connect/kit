@@ -171,7 +171,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
                     init: m.stateInit ? loadStateInit(Cell.fromBase64(m.stateInit).asSlice()) : undefined,
                 });
             });
-            const data = this.walletContract.createTransfer({
+            const data = await this.walletContract.createTransfer({
                 seqno: seqno,
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
                 messages,
