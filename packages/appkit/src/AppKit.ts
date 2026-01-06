@@ -8,8 +8,8 @@
 
 // Main AppKit class that bridges TonConnect SDK to TonWalletKit
 
-import type { SendTransactionRequest, Wallet } from '@tonconnect/sdk';
-import type TonConnect from '@tonconnect/sdk';
+import type { ITonConnect, SendTransactionRequest, Wallet } from '@tonconnect/sdk';
+// import type ITonConnect from '@tonconnect/sdk';
 import type { TransactionRequest, ApiClient } from '@ton/walletkit';
 
 import type { AppKit, AppKitConfig, TonConnectWalletWrapper } from './types';
@@ -50,11 +50,11 @@ import { TonConnectWalletWrapperImpl } from './TonConnectWalletWrapper';
  */
 export class AppKitImpl implements AppKit {
     private readonly config: AppKitConfig;
-    private readonly tonConnect: TonConnect;
+    private readonly tonConnect: ITonConnect;
     private readonly client: ApiClient;
     // private readonly walletKit: TonWalletKit;
 
-    constructor(config: AppKitConfig, tonConnect: TonConnect, client: ApiClient) {
+    constructor(config: AppKitConfig, tonConnect: ITonConnect, client: ApiClient) {
         this.config = config;
         this.tonConnect = tonConnect;
         this.client = client;

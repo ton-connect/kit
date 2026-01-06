@@ -1,0 +1,52 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import { useEffect, useCallback, useRef } from 'react';
+import { useTonConnectUI, useTonWallet, useTonAddress } from '@tonconnect/ui-react';
+import { AppKit } from '@ton/appkit';
+import { ApiClientToncenter } from '@ton/walletkit';
+
+export function useAppKit() {
+    const [tonConnectUI] = useTonConnectUI();
+    const wallet = useTonWallet();
+    const address = useTonAddress();
+    const appKitRef = useRef<AppKit | null>(null);
+
+    // Initialize AppKit when TonConnect is ready
+    useEffect(() => {
+        if (tonConnectUI.connector) {
+            const client = new ApiClientToncenter();
+            appKitRef.current = new AppKit({}, tonConnectUI.connector, client);
+        }
+    }, [tonConnectUI.connector]);
+
+    const disconnect = useCallback(async () => {
+        await tonConnectUI.disconnect();
+    }, [tonConnectUI]);
+
+    const getAppKit = useCallback(() => {
+        return appKitRef.current;
+    }, []);
+
+    const getTonConnect = useCallback(() => {
+        return tonConnectUI.connector;
+    }, [tonConnectUI.connector]);
+
+    return {
+        // State
+        isConnected: !!wallet,
+        address: address || null,
+        wallet,
+        tonConnectUI,
+
+        // Actions
+        disconnect,
+        getAppKit,
+        getTonConnect,
+    };
+}

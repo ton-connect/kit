@@ -8,8 +8,7 @@
 
 // AppKit types - bridge between @tonconnect/sdk and TonWalletKit
 
-import type TonConnect from '@tonconnect/sdk';
-import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
+import type { ITonConnect, Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import type { TransactionRequest, Wallet } from '@ton/walletkit';
 
 export interface Storage {
@@ -50,7 +49,7 @@ export interface TonConnectWalletWrapper extends Wallet {
     readonly tonConnectWallet: TonConnectWallet;
 
     /** The underlying TonConnect instance */
-    readonly tonConnect: TonConnect;
+    readonly tonConnect: ITonConnect;
 
     /** Check if the wallet is connected */
     isConnected(): boolean;

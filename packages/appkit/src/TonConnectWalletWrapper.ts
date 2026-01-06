@@ -10,8 +10,7 @@
 
 import type { Builder, Cell } from '@ton/core';
 import { Address, beginCell } from '@ton/core';
-import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
-import type TonConnect from '@tonconnect/sdk';
+import type { ITonConnect, Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import { CHAIN } from '@tonconnect/protocol';
 import type {
     ApiClient,
@@ -81,7 +80,7 @@ function storeJettonTransferMessage(src: JettonTransferMessage) {
  */
 export class TonConnectWalletWrapperImpl implements TonConnectWalletWrapper {
     public readonly tonConnectWallet: TonConnectWallet;
-    public readonly tonConnect: TonConnect;
+    public readonly tonConnect: ITonConnect;
     public readonly client: ApiClient;
 
     constructor({
@@ -90,7 +89,7 @@ export class TonConnectWalletWrapperImpl implements TonConnectWalletWrapper {
         client,
     }: {
         tonConnectWallet: TonConnectWallet;
-        tonConnect: TonConnect;
+        tonConnect: ITonConnect;
         client: ApiClient;
     }) {
         this.tonConnectWallet = tonConnectWallet;
