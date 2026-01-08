@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { Network } from '@ton/walletkit';
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
 import type { SavedWallet } from '@ton/demo-core';
 import { toast } from 'sonner';
@@ -104,7 +105,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     const getNetworkLabel = (wallet?: Wallet): { label: string; isTestnet: boolean } => {
         if (!wallet) return { label: 'Unknown', isTestnet: false };
         const network = wallet.getNetwork();
-        const isTestnet = network.chainId === '-3';
+        const isTestnet = network.chainId === Network.testnet().chainId;
         return {
             label: isTestnet ? 'Testnet' : 'Mainnet',
             isTestnet,
@@ -198,7 +199,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                             const walletId = wallet.getWalletId();
                                             const savedWallet = walletDataMap.get(walletId);
                                             const networkLabel =
-                                                wallet.getNetwork().chainId === '-3' ? 'testnet' : 'mainnet';
+                                                wallet.getNetwork().chainId === Network.testnet().chainId
+                                                    ? 'testnet'
+                                                    : 'mainnet';
 
                                             return (
                                                 <label key={walletId} className="block cursor-pointer">
@@ -258,7 +261,8 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                         walletType: 'mnemonic',
                                                         walletInterfaceType: 'mnemonic',
                                                         network:
-                                                            selectedWallet.getNetwork().chainId === '-3'
+                                                            selectedWallet.getNetwork().chainId ===
+                                                            Network.testnet().chainId
                                                                 ? 'testnet'
                                                                 : 'mainnet',
                                                         createdAt: Date.now(),
