@@ -18,7 +18,7 @@ import type {
 } from '@tonconnect/protocol';
 import { CHAIN } from '@tonconnect/protocol';
 
-import type { ITonWalletKit, TonWalletKitOptions, SessionInfo } from '../types';
+import type { ITonWalletKit, TonWalletKitOptions, SessionInfo, ProcessToncenterMoneyFlowHandler } from '../types';
 import { Initializer, wrapWalletInterface } from './Initializer';
 import type { InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
@@ -64,6 +64,26 @@ import { asAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('TonWalletKit');
 
+export enum KitScope {
+    ProcessToncenterMoneyFlow,
+}
+
+export type { ProcessToncenterMoneyFlowHandler } from '../types';
+
+export type ExtendHandler = {
+    [KitScope.ProcessToncenterMoneyFlow]: ProcessToncenterMoneyFlowHandler;
+};
+
+export type ExtendHandlers = {
+    [KitScope.ProcessToncenterMoneyFlow]: ProcessToncenterMoneyFlowHandler[];
+};
+
+export function processToncenterMoneyFlow(handler: ProcessToncenterMoneyFlowHandler): Partial<ExtendHandler> {
+    return {
+        [KitScope.ProcessToncenterMoneyFlow]: handler,
+    };
+}
+
 /**
  * Minimal TonWalletKit implementation - pure orchestration
  *
@@ -76,6 +96,19 @@ const log = globalLogger.createChild('TonWalletKit');
  * - Initializer: component setup & teardown
  */
 export class TonWalletKit implements ITonWalletKit {
+    private extendHandlers: ExtendHandlers = {
+        [KitScope.ProcessToncenterMoneyFlow]: [],
+    };
+
+    extend(handler: Partial<ExtendHandler>): void {
+        for (const scope of Object.keys(handler) as unknown as KitScope[]) {
+            const handlerFn = handler[scope];
+            if (handlerFn !== undefined) {
+                this.extendHandlers[scope].push(handlerFn);
+            }
+        }
+    }
+
     // Component references
     private walletManager!: WalletManager;
     private sessionManager!: SessionManager;
@@ -109,7 +142,12 @@ export class TonWalletKit implements ITonWalletKit {
         this.networkManager = new NetworkManager(options);
 
         this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
+        this.initializer = new Initializer(
+            options,
+            this.eventEmitter,
+            this.analyticsApi,
+            this.extendHandlers[KitScope.ProcessToncenterMoneyFlow],
+        );
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 

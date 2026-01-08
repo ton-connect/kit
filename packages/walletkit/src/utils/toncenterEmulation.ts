@@ -6,10 +6,9 @@
  *
  */
 
-import { Address, Cell } from '@ton/core';
-import { parseInternal } from '@truecarry/tlb-abi';
+import { Address } from '@ton/core';
 
-import type { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
+import type { ToncenterEmulationResponse } from '../types';
 import { toTransactionEmulatedTrace } from '../types/toncenter/emulation';
 import type { ErrorInfo } from '../errors/WalletKitError';
 import { ERROR_CODES } from '../errors/codes';
@@ -23,6 +22,7 @@ import type {
 import { Result, SendModeToValue, AssetType } from '../api/models';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
+import type { ProcessToncenterMoneyFlowHandler } from '../types';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -118,7 +118,10 @@ export async function fetchToncenterEmulation(message: ToncenterMessage): Promis
 /**
  * Processes toncenter emulation result to extract money flow
  */
-export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): TransactionTraceMoneyFlow {
+export function processToncenterMoneyFlow(
+    emulation: ToncenterEmulationResponse,
+    extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
+): TransactionTraceMoneyFlow {
     if (!emulation || !emulation.transactions) {
         return {
             outputs: '0',
@@ -161,45 +164,12 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     const jettonTransfers: TransactionTraceMoneyFlowItem[] = [];
 
     for (const t of Object.values(emulation.transactions)) {
-        if (!t.in_msg?.source) {
-            continue;
+        for (const handler of extendHandlers) {
+            const item = handler({ transaction: t, emulation });
+            if (item) {
+                jettonTransfers.push(item);
+            }
         }
-
-        const parsed = parseInternal(Cell.fromBase64(t.in_msg.message_content.body).beginParse());
-
-        if (parsed?.internal !== 'jetton_transfer') {
-            continue;
-        }
-
-        const from = asMaybeAddressFriendly(t.in_msg.source);
-        const to = parsed.data.destination instanceof Address ? parsed.data.destination : null;
-        if (!to) {
-            continue;
-        }
-        const jettonAmount = parsed.data.amount;
-
-        const metadata = emulation.metadata[t.account];
-        if (!metadata || !metadata?.token_info) {
-            continue;
-        }
-
-        const tokenInfo = metadata.token_info.find((t) => t.valid && t.type === 'jetton_wallets') as
-            | EmulationTokenInfoWallets
-            | undefined;
-
-        if (!tokenInfo) {
-            continue;
-        }
-
-        const jettonAddress = asMaybeAddressFriendly(tokenInfo.extra.jetton);
-
-        jettonTransfers.push({
-            fromAddress: from ?? undefined,
-            toAddress: asMaybeAddressFriendly(to.toString()) ?? undefined,
-            tokenAddress: jettonAddress ?? undefined,
-            amount: jettonAmount.toString(),
-            assetType: AssetType.jetton,
-        });
     }
 
     const ourAddress = Address.parse(firstTx.account);
@@ -261,6 +231,7 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
 export async function createTransactionPreview(
     request: TransactionRequest,
     wallet?: Wallet,
+    extendHandlers: ProcessToncenterMoneyFlowHandler[] = [],
 ): Promise<TransactionEmulatedPreview> {
     const message = createToncenterMessage(wallet?.getAddress(), request.messages);
 
@@ -288,7 +259,7 @@ export async function createTransactionPreview(
         };
     }
 
-    const moneyFlow = processToncenterMoneyFlow(emulationResult);
+    const moneyFlow = processToncenterMoneyFlow(emulationResult, extendHandlers);
 
     return {
         result: Result.success,
