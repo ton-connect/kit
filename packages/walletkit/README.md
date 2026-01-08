@@ -56,7 +56,11 @@ import {
     MemoryStorageAdapter,
 } from '@ton/walletkit';
 
+import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './walletManifest';
+
 const kit = new TonWalletKit({
+    deviceInfo: getTonConnectDeviceInfo(),
+    walletManifest: getTonConnectWalletManifest(),
     storage: new MemoryStorageAdapter({}),
     // Multi-network API configuration
     networks: {
@@ -120,11 +124,21 @@ Register callbacks that show UI and then approve or reject via kit methods. Note
 // Connect requests - triggered when a dApp wants to connect
 kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
     try {
-        // Use req.preview to display dApp info in your UI
+        // Use event.preview to display dApp info in your UI
         const name = event.dAppInfo?.name;
-        if (confirm(`Connect to ${name}?`)) {
-            // Set wallet address on the request before approving
-            event.walletAddress = getSelectedWalletAddress(); // Your wallet selection logic
+        if (yourConfirmLogic(`Connect to ${name}?`)) {
+            // Set wallet ID and address on the request before approving
+            const wallets = kit.getWallets();
+            console.log(`Available wallets: ${wallets.length}`);
+            const walletInfo = yourWalletSelectionLogic();
+            if (!walletInfo) {
+                console.error('No wallet available. Wallets count:', wallets.length);
+                await kit.rejectConnectRequest(event, 'No wallet available');
+                return;
+            }
+            console.log(`Using wallet ID: ${walletInfo.walletId}, address: ${walletInfo.walletAddress}`);
+            event.walletId = walletInfo.walletId;
+            event.walletAddress = walletInfo.walletAddress;
             await kit.approveConnectRequest(event);
         } else {
             await kit.rejectConnectRequest(event, 'User rejected');
@@ -140,7 +154,7 @@ kit.onTransactionRequest(async (event: TransactionRequestEvent) => {
     try {
         // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
         // Each transfer shows positive amounts for incoming, negative for outgoing
-        if (confirm('Do you confirm this transaction?')) {
+        if (yourConfirmLogic('Do you confirm this transaction?')) {
             await kit.approveTransactionRequest(event);
         } else {
             await kit.rejectTransactionRequest(event, 'User rejected');
@@ -155,7 +169,7 @@ kit.onTransactionRequest(async (event: TransactionRequestEvent) => {
 kit.onSignDataRequest(async (event: SignDataRequestEvent) => {
     try {
         // Use event.preview.kind to determine how to display the data
-        if (confirm('Sign this data?')) {
+        if (yourConfirmLogic('Sign this data?')) {
             await kit.approveSignDataRequest(event);
         } else {
             await kit.rejectSignDataRequest(event, 'User rejected');

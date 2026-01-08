@@ -201,12 +201,7 @@ export interface NftsSlice {
 
 // Combined app state
 export interface AppState
-    extends AuthSlice,
-        WalletCoreSlice,
-        WalletManagementSlice,
-        TonConnectSlice,
-        JettonsSlice,
-        NftsSlice {
+    extends AuthSlice, WalletCoreSlice, WalletManagementSlice, TonConnectSlice, JettonsSlice, NftsSlice {
     isHydrated: boolean;
 }
 

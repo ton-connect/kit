@@ -1,3 +1,7 @@
+---
+target: packages/walletkit/README.md
+---
+
 # TonWalletKit
 
 A production-ready wallet-side integration layer for TON Connect, designed for building TON wallets at scale
@@ -46,7 +50,7 @@ npm install @ton/walletkit
 
 ## Initialize the kit
 
-%../examples/src/initialize.ts#INIT_KIT%
+%%packages/examples/src#INIT_KIT%%
 
 ## Understanding previews (for your UI)
 
@@ -62,14 +66,14 @@ You can display these previews directly in your confirmation modals.
 
 Register callbacks that show UI and then approve or reject via kit methods. Note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic.
 
-%../examples/src/requests.ts#LISTEN_FOR_REQUESTS%
+%%packages/examples/src#LISTEN_FOR_REQUESTS%%
 
 
 ### Handle TON Connect links
 
 When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit. This will trigger your `onConnectRequest` callback.
 
-%../examples/src/requests.ts#ON_TON_CONNECT_LINK%
+%%packages/examples/src#ON_TON_CONNECT_LINK%%
 
 ### Basic wallet operations
 

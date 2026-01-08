@@ -6,16 +6,20 @@
  *
  */
 
+import { createInterface } from 'readline';
+
 import type {
-    UserFriendlyAddress,
     SignDataRequestEvent,
     TransactionRequestEvent,
     DisconnectionEvent,
     ConnectionRequestEvent,
+    UserFriendlyAddress,
 } from '@ton/walletkit';
 
 import 'dotenv/config';
-import { walletKitInitializeSample } from './initialize';
+import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
+
+const isCI = process.env.CI === 'true' || process.env.CI === '1';
 
 /**
  * npx tsx src/requests.ts
@@ -24,12 +28,19 @@ async function main() {
     console.log('=== Listen for requests from dApps ===');
     const kit = await walletKitInitializeSample();
 
-    function getSelectedWalletAddress(): UserFriendlyAddress | undefined {
+    function yourWalletSelectionLogic(): { walletId: string; walletAddress: UserFriendlyAddress } | undefined {
         const wallet = kit.getWallets().pop();
         if (!wallet) {
             return;
         }
-        return wallet.getAddress();
+        return {
+            walletId: wallet.getWalletId(),
+            walletAddress: wallet.getAddress(),
+        };
+    }
+
+    function yourConfirmLogic(_message: string): boolean {
+        return true;
     }
 
     // SAMPLE_START: ON_TON_CONNECT_LINK
@@ -44,11 +55,21 @@ async function main() {
     // Connect requests - triggered when a dApp wants to connect
     kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
         try {
-            // Use req.preview to display dApp info in your UI
+            // Use event.preview to display dApp info in your UI
             const name = event.dAppInfo?.name;
-            if (confirm(`Connect to ${name}?`)) {
-                // Set wallet address on the request before approving
-                event.walletAddress = getSelectedWalletAddress(); // Your wallet selection logic
+            if (yourConfirmLogic(`Connect to ${name}?`)) {
+                // Set wallet ID and address on the request before approving
+                const wallets = kit.getWallets();
+                console.log(`Available wallets: ${wallets.length}`);
+                const walletInfo = yourWalletSelectionLogic();
+                if (!walletInfo) {
+                    console.error('No wallet available. Wallets count:', wallets.length);
+                    await kit.rejectConnectRequest(event, 'No wallet available');
+                    return;
+                }
+                console.log(`Using wallet ID: ${walletInfo.walletId}, address: ${walletInfo.walletAddress}`);
+                event.walletId = walletInfo.walletId;
+                event.walletAddress = walletInfo.walletAddress;
                 await kit.approveConnectRequest(event);
             } else {
                 await kit.rejectConnectRequest(event, 'User rejected');
@@ -64,7 +85,7 @@ async function main() {
         try {
             // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
             // Each transfer shows positive amounts for incoming, negative for outgoing
-            if (confirm('Do you confirm this transaction?')) {
+            if (yourConfirmLogic('Do you confirm this transaction?')) {
                 await kit.approveTransactionRequest(event);
             } else {
                 await kit.rejectTransactionRequest(event, 'User rejected');
@@ -79,7 +100,7 @@ async function main() {
     kit.onSignDataRequest(async (event: SignDataRequestEvent) => {
         try {
             // Use event.preview.kind to determine how to display the data
-            if (confirm('Sign this data?')) {
+            if (yourConfirmLogic('Sign this data?')) {
                 await kit.approveSignDataRequest(event);
             } else {
                 await kit.rejectSignDataRequest(event, 'User rejected');
@@ -96,10 +117,23 @@ async function main() {
         console.log(`Disconnected from wallet: ${event.walletAddress}`);
     });
     // SAMPLE_END: LISTEN_FOR_REQUESTS
-    const connectUrl = ''; // TODO add user promp with message: Enter Dapp connect url
-    await onTonConnectLink(connectUrl);
-    // TODO add handle for CI
-    await kit.close();
+
+    if (!isCI) {
+        const ui = createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        const connectUrl = await new Promise<string>((resolve) => {
+            ui.question('Enter Dapp connect url: ', (answer) => {
+                ui.close();
+                resolve(answer.trim());
+            });
+        });
+        await onTonConnectLink(connectUrl);
+    } else {
+        console.log('Skip prompt on CI');
+        await kit.close();
+    }
 }
 
 main().catch((error) => {
