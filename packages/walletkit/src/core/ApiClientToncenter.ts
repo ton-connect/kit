@@ -35,7 +35,7 @@ import type {
     ToncenterTransactionsResponse,
     EmulationTokenInfoMasters,
 } from '../types/toncenter/emulation';
-import { toTransactionEmulatedTrace, toTransactionsResponse } from '../types/toncenter/emulation';
+import { toTransactionsResponse } from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
 import { globalLogger } from './Logger';
 import type { DNSRecordsResponseV3 } from '../types/toncenter/v3/DNSRecordsResponseV3';
@@ -55,14 +55,12 @@ import type {
     NFTsRequest,
     NFTsResponse,
     TokenAmount,
-    TransactionEmulatedTrace,
-    TransactionRequestMessage,
     TransactionsResponse,
     UserFriendlyAddress,
     UserNFTsRequest,
 } from '../api/models';
 import { asAddressFriendly } from '../utils/address';
-import { toConnectTransactionParamMessage } from '../types/internal';
+import type { ToncenterEmulationResult } from '../utils/toncenterEmulation';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -132,23 +130,20 @@ export class ApiClientToncenter implements ApiClient {
         return formattedResponse;
     }
 
-    async fetchEmulation(
-        address: UserFriendlyAddress,
-        messages: TransactionRequestMessage[],
-        seqno?: number,
-    ): Promise<TransactionEmulatedTrace> {
+    async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
         const props: Record<string, unknown> = {
-            from: address,
-            valid_until: Math.floor(Date.now() / 1000) + 60,
+            boc: messageBoc,
+            ignore_chksig: ignoreSignature === true,
             include_code_data: true,
             include_address_book: true,
             include_metadata: true,
             with_actions: true,
-            messages: messages.map(toConnectTransactionParamMessage),
         };
-        if (typeof seqno === 'number') props.mc_block_seqno = seqno;
-        const response = await this.postJson<ToncenterEmulationResponse>('/api/v3/emulation', props);
-        return toTransactionEmulatedTrace(response);
+        const response = await this.postJson<ToncenterEmulationResponse>('/api/emulate/v1/emulateTrace', props);
+        return {
+            result: 'success',
+            emulationResult: response,
+        };
     }
 
     async sendBoc(boc: Base64String): Promise<string> {

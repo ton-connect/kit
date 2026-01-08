@@ -205,12 +205,24 @@ export const WalletPreview: React.FC<WalletPreviewProps> = ({
                         </span>
                     </div>
 
-                    {/* Version & Interface Type */}
-                    <div className="flex items-center justify-between">
+                    {/* Version, Network & Interface Type */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center space-x-2">
                             <span className="text-xs font-medium text-gray-500">Version:</span>
                             <span className="text-xs text-gray-900 px-2 py-0.5 bg-gray-100 rounded">
                                 {formatVersion(wallet.version)}
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs font-medium text-gray-500">Network:</span>
+                            <span
+                                className={`text-xs px-2 py-0.5 rounded ${
+                                    wallet.network === 'testnet'
+                                        ? 'bg-orange-100 text-orange-800'
+                                        : 'bg-green-100 text-green-800'
+                                }`}
+                            >
+                                {wallet.network === 'testnet' ? 'Testnet' : 'Mainnet'}
                             </span>
                         </div>
                         <div className="flex items-center space-x-2">

@@ -222,6 +222,8 @@ export class ConnectHandler
         };
     }
 
+    private static readonly MANIFEST_PROXY_URL = 'https://walletbot.me/tonconnect-proxy/';
+
     /**
      * Fetch manifest from URL
      */
@@ -248,19 +250,33 @@ export class ConnectHandler
                 manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR,
             };
         }
+
+        // Try direct fetch first
+        const directResult = await this.tryFetchManifest(manifestUrl);
+        if (directResult.manifest) {
+            return directResult;
+        }
+
+        // If direct fetch failed, try via proxy
+        log.info('Direct manifest fetch failed, trying proxy', { manifestUrl });
+        const proxyUrl = `${ConnectHandler.MANIFEST_PROXY_URL}${manifestUrl}`;
+        return this.tryFetchManifest(proxyUrl);
+    }
+
+    private async tryFetchManifest(url: string): Promise<{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        manifest: any;
+        manifestFetchErrorCode?:
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
+    }> {
         try {
-            const response = await fetch(manifestUrl);
+            const response = await fetch(url);
             if (!response.ok) {
                 return {
                     manifest: null,
                     manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
                 };
-                // throw new WalletKitError(
-                //     ERROR_CODES.API_REQUEST_FAILED,
-                //     `Failed to fetch manifest: ${response.statusText}`,
-                //     undefined,
-                //     { manifestUrl, status: response.status, statusText: response.statusText },
-                // );
             }
             const result = await response.json();
             return {

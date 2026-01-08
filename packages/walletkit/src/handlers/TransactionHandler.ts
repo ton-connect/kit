@@ -110,7 +110,7 @@ export class TransactionHandler
 
         let preview: TransactionEmulatedPreview;
         try {
-            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
+            preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
             // Emit emulation result event for jetton caching and other components
             if (preview.result === Result.success && preview.trace) {
                 try {
