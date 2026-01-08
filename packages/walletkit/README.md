@@ -46,7 +46,7 @@ npm install @ton/walletkit
 
 ## Initialize the kit
 
-```ts
+```ts source=packages/examples/src#INIT_KIT
 import {
     TonWalletKit, // Main SDK class
     Signer, // Handles cryptographic signing
@@ -105,6 +105,7 @@ if (walletV5R1) {
     console.log('V5R1 Balance:', await walletV5R1.getBalance());
 }
 ```
+[Source full sample](../examples/src#INIT_KIT)
 
 ## Understanding previews (for your UI)
 
@@ -120,7 +121,7 @@ You can display these previews directly in your confirmation modals.
 
 Register callbacks that show UI and then approve or reject via kit methods. Note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic.
 
-```ts
+```ts source=packages/examples/src#LISTEN_FOR_REQUESTS
 // Connect requests - triggered when a dApp wants to connect
 kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
     try {
@@ -186,23 +187,24 @@ kit.onDisconnect((event: DisconnectionEvent) => {
     console.log(`Disconnected from wallet: ${event.walletAddress}`);
 });
 ```
-
+[Source full sample](../examples/src#LISTEN_FOR_REQUESTS)
 
 ### Handle TON Connect links
 
 When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit. This will trigger your `onConnectRequest` callback.
 
-```ts
+```ts source=packages/examples/src#ON_TON_CONNECT_LINK
 // Example: from a QR scanner, deep link, or URL parameter
 async function onTonConnectLink(url: string) {
     // url format: tc://connect?...
     await kit.handleTonConnectUrl(url);
 }
 ```
+[Source full sample](../examples/src#ON_TON_CONNECT_LINK)
 
 ### Basic wallet operations
 
-```ts
+```ts source=packages/examples/src#BASIC_WALLET_OPERATIONS
 // Get wallet instance (is your own logic)
 async function yourWalletSelectionLogic(): Promise<{
     walletId: string;
@@ -220,6 +222,7 @@ async function yourWalletSelectionLogic(): Promise<{
     };
 }
 ```
+[Source full sample](../examples/src#BASIC_WALLET_OPERATIONS)
 
 ### Rendering previews (reference)
 
