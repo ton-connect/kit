@@ -28,7 +28,6 @@ import type { EventEmitter } from '../core/EventEmitter';
 import type { WalletManager } from '../core/WalletManager';
 import type { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import type { AnalyticsApi } from '../analytics/sender';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
@@ -37,6 +36,7 @@ import { getAddressFromWalletId } from '../utils/walletId';
 import type { Wallet } from '../api/interfaces';
 import type { TransactionEmulatedPreview, TransactionRequest, TransactionRequestEvent } from '../api/models';
 import { Result } from '../api/models';
+import type { Analytics, AnalyticsManager } from '../analytics';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -45,7 +45,7 @@ export class TransactionHandler
     implements EventHandler<TransactionRequestEvent, RawBridgeEventTransaction>
 {
     private eventEmitter: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
+    private analytics?: Analytics;
     private walletKitConfig: TonWalletKitOptions;
 
     constructor(
@@ -53,11 +53,11 @@ export class TransactionHandler
         eventEmitter: EventEmitter,
         walletKitConfig: TonWalletKitOptions,
         private readonly walletManager: WalletManager,
-        analyticsApi?: AnalyticsApi,
+        analyticsManager?: AnalyticsManager,
     ) {
         super(notify);
         this.eventEmitter = eventEmitter;
-        this.analyticsApi = analyticsApi;
+        this.analytics = analyticsManager?.scoped();
         this.walletKitConfig = walletKitConfig;
     }
     canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
@@ -143,27 +143,24 @@ export class TransactionHandler
         };
 
         // Send wallet-transaction-request-received event
-        this.analyticsApi?.sendEvents([
-            {
-                event_name: 'wallet-transaction-request-received',
-                trace_id: event.traceId ?? uuidv7(),
-                client_environment: 'wallet',
-                subsystem: getEventsSubsystem(),
-                client_id: event.from,
+        this.analytics?.emitWalletTransactionRequestReceived({
+            trace_id: event.traceId ?? uuidv7(),
+            client_environment: 'wallet',
+            subsystem: getEventsSubsystem(),
+            client_id: event.from,
 
-                client_timestamp: getUnixtime(),
-                dapp_name: event.dAppInfo?.name,
-                version: getVersion(),
-                network_id: wallet.getNetwork().chainId,
-                wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
-                wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
-                event_id: uuidv7(),
-                // manifest_json_url: event.dAppInfo?.url, // todo
-                origin_url: event.dAppInfo?.url,
+            client_timestamp: getUnixtime(),
+            dapp_name: event.dAppInfo?.name,
+            version: getVersion(),
+            network_id: wallet.getNetwork().chainId,
+            wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
+            wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
+            event_id: uuidv7(),
+            // manifest_json_url: event.dAppInfo?.url, // todo
+            origin_url: event.dAppInfo?.url,
 
-                wallet_id: Base64Normalize(walletAddress ?? wallet.getAddress()),
-            },
-        ]);
+            wallet_id: Base64Normalize(walletAddress ?? wallet.getAddress()),
+        });
 
         return txEvent;
     }

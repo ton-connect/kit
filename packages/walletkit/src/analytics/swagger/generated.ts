@@ -325,7 +325,8 @@ export interface BridgeEventsClientSubscribedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-events-client-subscribed" | string;
+  /** @example "bridge-events-client-subscribed" */
+  event_name: "bridge-events-client-subscribed";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"
@@ -368,7 +369,8 @@ export interface BridgeEventsClientUnsubscribedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-events-client-unsubscribed" | string;
+  /** @example "bridge-events-client-unsubscribed" */
+  event_name: "bridge-events-client-unsubscribed";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"
@@ -417,7 +419,8 @@ export interface BridgeMessageExpiredEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-message-expired" | string;
+  /** @example "bridge-message-expired" */
+  event_name: "bridge-message-expired";
   /** Message ID. */
   message_id?: string;
   /**
@@ -476,7 +479,8 @@ export interface BridgeMessageReceivedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-message-received" | string;
+  /** @example "bridge-message-received" */
+  event_name: "bridge-message-received";
   /** Message ID. */
   message_id?: string;
   /**
@@ -529,7 +533,8 @@ export interface BridgeMessageSentEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-message-sent" | string;
+  /** @example "bridge-message-sent" */
+  event_name: "bridge-message-sent";
   /** Message ID. */
   message_id?: string;
   /**
@@ -588,7 +593,8 @@ export interface BridgeMessageValidationFailedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-message-validation-failed" | string;
+  /** @example "bridge-message-validation-failed" */
+  event_name: "bridge-message-validation-failed";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"
@@ -707,7 +713,8 @@ export interface BridgeVerifyEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-verify" | string;
+  /** @example "bridge-verify" */
+  event_name: "bridge-verify";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"
@@ -757,7 +764,8 @@ export interface BridgeVerifyValidationFailedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "bridge-verify-validation-failed" | string;
+  /** @example "bridge-verify-validation-failed" */
+  event_name: "bridge-verify-validation-failed";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"
@@ -806,7 +814,8 @@ export interface ConnectionCompletedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "connection-completed" | string;
+  /** @example "connection-completed" */
+  event_name: "connection-completed";
   locale?: string;
   manifest_json_url?: string;
   /**
@@ -891,7 +900,8 @@ export interface ConnectionErrorEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "connection-error" | string;
+  /** @example "connection-error" */
+  event_name: "connection-error";
   locale?: string;
   manifest_json_url?: string;
   /**
@@ -959,7 +969,8 @@ export interface ConnectionSelectedWalletEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "connection-selected-wallet" | string;
+  /** @example "connection-selected-wallet" */
+  event_name: "connection-selected-wallet";
   locale?: string;
   main_screen?: string[];
   manifest_json_url?: string;
@@ -1030,7 +1041,8 @@ export interface ConnectionStartedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "connection-started" | string;
+  /** @example "connection-started" */
+  event_name: "connection-started";
   locale?: string;
   /** List of the wallets on the main screen. */
   main_screen?: string[];
@@ -1396,7 +1408,8 @@ export interface SignDataRequestCompletedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "sign-data-request-completed" | string;
+  /** @example "sign-data-request-completed" */
+  event_name: "sign-data-request-completed";
   locale?: string;
   manifest_json_url?: string;
   /**
@@ -1480,7 +1493,8 @@ export interface SignDataRequestFailedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "sign-data-request-failed" | string;
+  /** @example "sign-data-request-failed" */
+  event_name: "sign-data-request-failed";
   locale?: string;
   manifest_json_url?: string;
   /**
@@ -1563,7 +1577,8 @@ export interface SignDataRequestInitiatedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "sign-data-request-initiated" | string;
+  /** @example "sign-data-request-initiated" */
+  event_name: "sign-data-request-initiated";
   locale?: string;
   manifest_json_url?: string;
   /**
@@ -2049,7 +2064,8 @@ export interface WalletConnectAcceptedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-connect-accepted" | string;
+  /** @example "wallet-connect-accepted" */
+  event_name: "wallet-connect-accepted";
   is_ton_addr?: boolean;
   is_ton_proof?: boolean;
   manifest_json_url?: string;
@@ -2104,7 +2120,8 @@ export interface WalletConnectRejectedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-connect-rejected" | string;
+  /** @example "wallet-connect-rejected" */
+  event_name: "wallet-connect-rejected";
   is_ton_addr?: boolean;
   is_ton_proof?: boolean;
   manifest_json_url?: string;
@@ -2157,7 +2174,8 @@ export interface WalletConnectRequestReceivedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-connect-request-received" | string;
+  /** @example "wallet-connect-request-received" */
+  event_name: "wallet-connect-request-received";
   is_ton_addr?: boolean;
   is_ton_proof?: boolean;
   manifest_json_url?: string;
@@ -2209,7 +2227,8 @@ export interface WalletConnectRequestUIDisplayedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-connect-request-ui-displayed" | string;
+  /** @example "wallet-connect-request-ui-displayed" */
+  event_name: "wallet-connect-request-ui-displayed";
   is_ton_addr?: boolean;
   is_ton_proof?: boolean;
   manifest_json_url?: string;
@@ -2264,7 +2283,8 @@ export interface WalletConnectResponseSentEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-connect-response-sent" | string;
+  /** @example "wallet-connect-response-sent" */
+  event_name: "wallet-connect-response-sent";
   is_ton_addr?: boolean;
   is_ton_proof?: boolean;
   manifest_json_url?: string;
@@ -2319,7 +2339,8 @@ export interface WalletSignDataAcceptedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-sign-data-accepted" | string;
+  /** @example "wallet-sign-data-accepted" */
+  event_name: "wallet-sign-data-accepted";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2375,7 +2396,8 @@ export interface WalletSignDataConfirmationUIDisplayedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-sign-data-confirmation-ui-displayed" | string;
+  /** @example "wallet-sign-data-confirmation-ui-displayed" */
+  event_name: "wallet-sign-data-confirmation-ui-displayed";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2436,7 +2458,8 @@ export interface WalletSignDataDeclinedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-sign-data-declined" | string;
+  /** @example "wallet-sign-data-declined" */
+  event_name: "wallet-sign-data-declined";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2492,7 +2515,8 @@ export interface WalletSignDataRequestReceivedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-sign-data-request-received" | string;
+  /** @example "wallet-sign-data-request-received" */
+  event_name: "wallet-sign-data-request-received";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2548,7 +2572,8 @@ export interface WalletSignDataSentEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-sign-data-sent" | string;
+  /** @example "wallet-sign-data-sent" */
+  event_name: "wallet-sign-data-sent";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2604,7 +2629,8 @@ export interface WalletTransactionAcceptedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-transaction-accepted" | string;
+  /** @example "wallet-transaction-accepted" */
+  event_name: "wallet-transaction-accepted";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2666,7 +2692,8 @@ export interface WalletTransactionConfirmationUIDisplayedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-transaction-confirmation-ui-displayed" | string;
+  /** @example "wallet-transaction-confirmation-ui-displayed" */
+  event_name: "wallet-transaction-confirmation-ui-displayed";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2731,7 +2758,8 @@ export interface WalletTransactionDeclinedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-transaction-declined" | string;
+  /** @example "wallet-transaction-declined" */
+  event_name: "wallet-transaction-declined";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2789,7 +2817,8 @@ export interface WalletTransactionRequestReceivedEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-transaction-request-received" | string;
+  /** @example "wallet-transaction-request-received" */
+  event_name: "wallet-transaction-request-received";
   manifest_json_url?: string;
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
@@ -2847,7 +2876,8 @@ export interface WalletTransactionSentEvent {
    * @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3"
    */
   event_id?: string;
-  event_name: "wallet-transaction-sent" | string;
+  /** @example "wallet-transaction-sent" */
+  event_name: "wallet-transaction-sent";
   /**
    * Network id (-239 for the mainnet and -3 for the testnet). Other values should be rejected.
    * @example "-3"

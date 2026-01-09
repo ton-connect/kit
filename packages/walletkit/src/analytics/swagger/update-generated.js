@@ -78,12 +78,10 @@ function removeEmptyStringsFromEnums(parsedContent) {
 }
 
 function transformEventName(content) {
-    // Step 1: Replace event_name enum structure with const
+    // Step 1: Replace event_name enum structure with const (when example is present)
     const pattern = /"event_name":\s*\{\s*"type":\s*"string",\s*"enum":\s*\[[^\]]+\],\s*"example":\s*"([^"]+)"\s*\}/g;
-    const replaced = [];
 
     const result = content.replace(pattern, (_match, eventName) => {
-        replaced.push(eventName);
         return `"event_name": {
                     "const": "${eventName}",
                     "type": "string",
@@ -91,14 +89,30 @@ function transformEventName(content) {
                 }`;
     });
 
-    console.log(`Replaced event_name pattern for: ${replaced.join(', ')}`);
-
-    // Step 2: Parse and make event_name required in all event definitions
+    // Step 2: Parse and handle enum arrays with empty strings
     const parsedContent = JSON.parse(result);
 
     if (parsedContent.definitions) {
         for (const [key, definition] of Object.entries(parsedContent.definitions)) {
             if (key.includes('Event') && definition.properties && definition.properties.event_name) {
+                const eventNameProp = definition.properties.event_name;
+
+                // Handle enum arrays like ["", "bridge-message-expired"]
+                if (eventNameProp.enum && Array.isArray(eventNameProp.enum)) {
+                    const nonEmptyValues = eventNameProp.enum.filter((val) => val !== '');
+
+                    // If there's exactly one non-empty value, convert to const
+                    if (nonEmptyValues.length === 1) {
+                        const eventName = nonEmptyValues[0];
+                        definition.properties.event_name = {
+                            const: eventName,
+                            type: 'string',
+                            example: eventName,
+                        };
+                    }
+                }
+
+                // Make event_name required
                 if (!definition.required) {
                     definition.required = [];
                 }
@@ -156,7 +170,7 @@ async function main() {
         console.log(`🔄 Made ${originalCount} event_name replacements`);
 
         // Save modified content to doc.json temporarily
-        modifiedContent = JSON.stringify(parsedContent, null, 4);
+        const modifiedContent = JSON.stringify(parsedContent, null, 4);
         fs.writeFileSync(swaggerJsonPath, modifiedContent);
         console.log('💾 Saved doc.json temporarily');
 

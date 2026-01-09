@@ -9,4 +9,4 @@
 export * from './analytics';
 export * from './analytics-manager';
 export * from './swagger/types';
-export { AnalyticsApi } from './sender';
+export { AnalyticsManager, type AnalyticsManagerOptions } from './analytics-manager';

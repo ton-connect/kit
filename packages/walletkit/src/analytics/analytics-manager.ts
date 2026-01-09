@@ -7,6 +7,7 @@
  */
 
 import { globalLogger } from '../core/Logger';
+import { Api } from './swagger';
 import type { Analytics } from './analytics';
 import type { AnalyticsEvent } from './swagger';
 import { pascalToKebab } from './utils';
@@ -23,6 +24,9 @@ export type AnalyticsManagerOptions = {
 };
 
 export class AnalyticsManager {
+    private api: Api<unknown>;
+    private readonly baseEvent: Partial<AnalyticsEvent>;
+
     private events: AnalyticsEvent[] = [];
     private timeoutId: ReturnType<typeof setTimeout> | null = null;
     private isProcessing = false;
@@ -35,10 +39,6 @@ export class AnalyticsManager {
     private readonly analyticsUrl: string;
     private enabled: boolean;
 
-    private shouldSend: boolean = true;
-
-    private readonly baseEvent: Partial<AnalyticsEvent>;
-
     private static readonly HTTP_STATUS = {
         TOO_MANY_REQUESTS: 429,
         CLIENT_ERROR_START: 400,
@@ -49,18 +49,20 @@ export class AnalyticsManager {
     private static readonly BACKOFF_MULTIPLIER = 2;
 
     constructor(options: AnalyticsManagerOptions = {}) {
-        this.batchTimeoutMs = options.batchTimeoutMs ?? 2000;
+        this.batchTimeoutMs = options.batchTimeoutMs ?? 5000;
         this.currentBatchTimeoutMs = this.batchTimeoutMs;
         this.maxBatchSize = options.maxBatchSize ?? 100;
         this.analyticsUrl = options.analyticsUrl ?? 'https://analytics.ton.org/events';
         this.enabled = options.enabled ?? true;
 
+        this.api = new Api({
+            baseUrl: options.analyticsUrl ?? 'https://analytics.ton.org',
+        });
+
         this.baseEvent = {
             subsystem: options.subsystem ?? 'wallet-sdk',
             version: options.version,
         };
-
-        this.addWindowFocusAndBlurSubscriptions();
     }
 
     scoped<TEvent extends AnalyticsEvent = AnalyticsEvent, TOptional extends keyof TEvent = 'event_name'>(
@@ -98,15 +100,13 @@ export class AnalyticsManager {
             return;
         }
 
-        const traceId = event.trace_id ?? this.generateUUID();
-
         const enhancedEvent = {
             ...this.baseEvent,
             ...event,
             event_id: this.generateUUID(),
             client_timestamp: Math.floor(Date.now() / 1000),
-            trace_id: traceId,
-        } as const;
+            trace_id: event.trace_id ?? this.generateUUID(),
+        };
 
         log.debug('Analytics event emitted', { event: enhancedEvent });
 
@@ -131,7 +131,7 @@ export class AnalyticsManager {
     }
 
     async flush(): Promise<void> {
-        if (this.isProcessing || this.events.length === 0 || !this.shouldSend) {
+        if (this.isProcessing || this.events.length === 0) {
             return;
         }
 
@@ -166,7 +166,12 @@ export class AnalyticsManager {
     }
 
     private async processEventsBatch(eventsToSend: AnalyticsEvent[]): Promise<void> {
+        if (!this.enabled) {
+            return;
+        }
+
         log.debug('Sending analytics events', { count: eventsToSend.length });
+
         try {
             const response = await this.sendEvents(eventsToSend);
             this.handleResponse(response);
@@ -198,14 +203,7 @@ export class AnalyticsManager {
     }
 
     private async sendEvents(events: AnalyticsEvent[]): Promise<Response> {
-        return await fetch(this.analyticsUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Client-Timestamp': Math.floor(Date.now() / 1000).toString(),
-            },
-            body: JSON.stringify(events),
-        });
+        return await this.api.events.eventsCreate(events);
     }
 
     private isClientError(status: number): boolean {
@@ -243,26 +241,6 @@ export class AnalyticsManager {
         throw new Error(`Analytics API error: ${status} ${statusText}`);
     }
 
-    private addWindowFocusAndBlurSubscriptions(): void {
-        if (typeof document === 'undefined') {
-            return;
-        }
-
-        try {
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    this.clearTimeout();
-                    this.shouldSend = false;
-                } else {
-                    this.shouldSend = true;
-                    this.scheduleNextFlushIfNeeded();
-                }
-            });
-        } catch (e) {
-            log.error('Cannot subscribe to document.visibilitychange', { error: e });
-        }
-    }
-
     private generateUUID(): string {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
             const r = (Math.random() * 16) | 0;
@@ -277,9 +255,5 @@ export class AnalyticsManager {
 
     isEnabled(): boolean {
         return this.enabled;
-    }
-
-    getPendingEventsCount(): number {
-        return this.events.length;
     }
 }
