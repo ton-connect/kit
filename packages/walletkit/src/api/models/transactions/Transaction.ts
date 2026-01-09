@@ -490,25 +490,25 @@ export interface TransactionAction {
      * The total number of actions processed
      * @format int
      */
-    totalActionsNumber: number;
+    totalActionsNumber?: number;
 
     /**
      * The number of special actions executed
      * @format int
      */
-    specActionsNumber: number;
+    specActionsNumber?: number;
 
     /**
      * The number of skipped actions during execution
      * @format int
      */
-    skippedActionsNumber: number;
+    skippedActionsNumber?: number;
 
     /**
      * The number of messages created in the action phase
      * @format int
      */
-    messagesCreatedNumber: number;
+    messagesCreatedNumber?: number;
 
     /**
      * The hash of the action list

@@ -161,24 +161,22 @@ export async function createAdapter(args: CreateAdapterArgs) {
     return callBridge('createAdapter', async () => {
         const signer = await getSigner(args);
 
-        // args.network should be "-239" (mainnet) or "-3" (testnet) - matching CHAIN enum values
-        const networkChain = args.network;
-        //         if (!networkChain) {
-        //             throw new Error('Network is required for creating wallet adapter');
-        //         }
+        // args.network is now { chainId: string } from Kotlin, matching backend's Network type
+        // Default to mainnet if not provided
+        const network = args.network ?? { chainId: '-239' };
 
         let adapter: AdapterInstance;
         if (args.walletVersion === 'v5r1') {
             adapter = (await WalletV5R1Adapter!.create(signer, {
-                client: walletKit!.getApiClient(networkChain),
-                network: networkChain,
+                client: walletKit!.getApiClient(network),
+                network: network,
                 workchain: args.workchain,
                 walletId: args.walletId,
             })) as AdapterInstance;
         } else if (args.walletVersion === 'v4r2') {
             adapter = (await WalletV4R2Adapter!.create(signer, {
-                client: walletKit!.getApiClient(networkChain),
-                network: networkChain,
+                client: walletKit!.getApiClient(network),
+                network: network,
                 workchain: args.workchain,
                 walletId: args.walletId,
             })) as AdapterInstance;
@@ -229,6 +227,12 @@ export async function addWallet(args: AddWalletArgs) {
 
         // Clean up the adapter from store after use
         adapterStore.delete(args.adapterId);
+
+        // Enrich wallet with address property if not set (address is a method in walletkit)
+        const walletWithAddress = wallet as unknown as { address?: string; getAddress?: () => string };
+        if (!walletWithAddress.address && walletWithAddress.getAddress) {
+            walletWithAddress.address = walletWithAddress.getAddress();
+        }
 
         return wallet;
     });

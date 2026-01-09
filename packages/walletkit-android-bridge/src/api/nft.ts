@@ -26,8 +26,7 @@ import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
 export async function getNfts(args: GetNftsArgs) {
     return callBridge('getNfts', async () => {
         return await callOnWalletBridge(args.walletId, 'getNfts', {
-            limit: args.limit,
-            offset: args.offset,
+            pagination: args.pagination,
             collectionAddress: args.collectionAddress,
             indirectOwnership: args.indirectOwnership,
         });

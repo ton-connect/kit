@@ -38,7 +38,7 @@ export interface CreateSignerArgs {
 export interface CreateAdapterArgs {
     signerId: string;
     walletVersion: 'v4r2' | 'v5r1';
-    network?: string;
+    network?: { chainId: string };
     workchain?: number;
     walletId?: number;
     publicKey?: string;
@@ -115,6 +115,7 @@ export interface RejectConnectRequestArgs {
 
 export interface ApproveTransactionRequestArgs {
     event: TonConnectRequestEvent;
+    walletId?: string;
 }
 
 export interface RejectTransactionRequestArgs {
@@ -125,6 +126,7 @@ export interface RejectTransactionRequestArgs {
 
 export interface ApproveSignDataRequestArgs {
     event: TonConnectRequestEvent;
+    walletId?: string;
 }
 
 export interface RejectSignDataRequestArgs {
@@ -139,8 +141,7 @@ export interface DisconnectSessionArgs {
 
 export interface GetNftsArgs {
     walletId: string;
-    limit?: number;
-    offset?: number;
+    pagination?: { limit?: number; offset?: number };
     collectionAddress?: string;
     indirectOwnership?: boolean;
 }
@@ -167,8 +168,7 @@ export interface CreateTransferNftRawTransactionArgs {
 
 export interface GetJettonsArgs {
     walletId: string;
-    limit?: number;
-    offset?: number;
+    pagination?: { limit?: number; offset?: number };
 }
 
 export interface CreateTransferJettonTransactionArgs {

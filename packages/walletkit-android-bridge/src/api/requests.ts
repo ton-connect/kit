@@ -79,6 +79,11 @@ export async function approveTransactionRequest(args: ApproveTransactionRequestA
             throw new Error('Transaction request event is required');
         }
 
+        // Enrich event with walletId (same pattern as approveConnectRequest)
+        if (args.walletId) {
+            args.event.walletId = args.walletId;
+        }
+
         return await walletKit.approveTransactionRequest(args.event);
     });
 }
@@ -121,6 +126,11 @@ export async function approveSignDataRequest(args: ApproveSignDataRequestArgs) {
     return callBridge('approveSignDataRequest', async () => {
         if (!args.event) {
             throw new Error('Sign data request event is required');
+        }
+
+        // Enrich event with walletId (same pattern as approveConnectRequest)
+        if (args.walletId) {
+            args.event.walletId = args.walletId;
         }
 
         return await walletKit.approveSignDataRequest(args.event);
