@@ -6,12 +6,6 @@
  *
  */
 
-const VERSION = '0.0.3';
-
-export function getVersion(): string {
-    return VERSION;
-}
-
-export function getEventsSubsystem(): string {
-    return 'wallet';
-}
+export * from './AnalyticsManager';
+export * from './types';
+export * from './swagger/types';

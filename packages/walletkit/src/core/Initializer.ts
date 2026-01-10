@@ -24,7 +24,7 @@ import { StorageEventProcessor } from './EventProcessor';
 import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
-import type { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsManager } from '../analytics';
 import type { NetworkManager } from './NetworkManager';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 
@@ -50,12 +50,12 @@ export class Initializer {
     private config: TonWalletKitOptions;
     private networkManager!: NetworkManager;
     private eventEmitter: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
+    private analyticsManager?: AnalyticsManager;
 
-    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
+    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsManager?: AnalyticsManager) {
         this.config = config;
         this.eventEmitter = eventEmitter;
-        this.analyticsApi = analyticsApi;
+        this.analyticsManager = analyticsManager;
     }
 
     /**
@@ -146,13 +146,7 @@ export class Initializer {
         await sessionManager.initialize();
 
         const eventStore = new StorageEventStore(storage);
-        const eventRouter = new EventRouter(
-            this.eventEmitter,
-            sessionManager,
-            walletManager,
-            this.config,
-            this.analyticsApi,
-        );
+        const eventRouter = new EventRouter(this.eventEmitter, sessionManager, walletManager, this.analyticsManager);
 
         const bridgeManager = new BridgeManager(
             options?.walletManifest,
@@ -163,7 +157,7 @@ export class Initializer {
             eventRouter,
             options,
             this.eventEmitter,
-            this.analyticsApi,
+            this.analyticsManager,
         );
         eventRouter.setBridgeManager(bridgeManager);
         await bridgeManager.start();
@@ -204,7 +198,7 @@ export class Initializer {
             sessionManager,
             bridgeManager,
             walletManager,
-            this.analyticsApi,
+            this.analyticsManager,
         );
 
         return {

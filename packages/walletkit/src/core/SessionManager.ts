@@ -79,7 +79,7 @@ export class SessionManager {
         this.sessions.set(sessionId, sessionData);
         await this.persistSessions();
 
-        return (await this.getSession(sessionId))!;
+        return this.getSession(sessionId)!;
     }
 
     static toSessionData(session: SessionData): SessionData {
@@ -103,7 +103,7 @@ export class SessionManager {
     /**
      * Get session by ID
      */
-    async getSession(sessionId: string): Promise<SessionData | undefined> {
+    getSession(sessionId: string): SessionData | undefined {
         const session = this.sessions.get(sessionId);
         if (session) {
             return {

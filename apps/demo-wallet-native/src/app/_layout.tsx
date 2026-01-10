@@ -15,30 +15,17 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useUnistyles } from 'react-native-unistyles';
 import { WalletProvider } from '@demo/core';
 import type { WalletKitConfig } from '@demo/core';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-import { AppWrapper } from '@/features/settings';
+import { AppWrapper, walletProviderStorage, walletKitStorage, getCurrentUserId } from '@/features/settings';
 import { AppToastProvider } from '@/features/toasts';
-import { walletProviderStorage } from '@/features/settings/storage/wallet-provider';
-import { walletKitStorage } from '@/features/settings/storage/wallet-kit';
-import { createBLELedgerTransportFactory } from '@/features/ledger';
-import type { LedgerDeviceStorage } from '@/features/ledger';
+import { createBLELedgerTransportFactory, ledgerDeviceStorage } from '@/features/ledger';
 import { envConfig } from '@/core/configs/env';
 
 import '@/core/libs/unistyles';
 import 'react-native-reanimated';
 
-/**
- * Storage adapter for Ledger device ID using AsyncStorage.
- * This persists the last connected Ledger device ID for reconnection.
- */
-const { ledger, tonApi, bridge } = envConfig;
-
-const ledgerDeviceStorage: LedgerDeviceStorage = {
-    getDeviceId: () => AsyncStorage.getItem(ledger.deviceIdKey),
-    setDeviceId: (deviceId: string) => AsyncStorage.setItem(ledger.deviceIdKey, deviceId),
-    clearDeviceId: () => AsyncStorage.removeItem(ledger.deviceIdKey),
-};
+const { tonApi, bridge } = envConfig;
 
 /**
  * Creates a BLE transport for Ledger hardware wallets.
@@ -52,6 +39,15 @@ const walletKitConfig: WalletKitConfig = {
     tonApiKeyMainnet: tonApi.mainnetApiKey,
     tonApiKeyTestnet: tonApi.testnetApiKey,
     createLedgerTransport,
+    analytics: {
+        enabled: true,
+        appInfo: {
+            env: 'web',
+            platform: Platform.OS === 'ios' ? 'ios' : 'android',
+            getLocale: () => 'en-US',
+            getCurrentUserId,
+        },
+    },
 };
 
 const RootLayout: FC = () => {

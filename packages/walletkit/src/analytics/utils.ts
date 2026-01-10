@@ -6,12 +6,6 @@
  *
  */
 
-const VERSION = '0.0.3';
-
-export function getVersion(): string {
-    return VERSION;
-}
-
-export function getEventsSubsystem(): string {
-    return 'wallet';
+export function pascalToKebab(value: string): string {
+    return value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }

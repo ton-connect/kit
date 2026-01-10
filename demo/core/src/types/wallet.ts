@@ -12,6 +12,7 @@ import type {
     StorageAdapter as KitStorageAdapter,
     SignDataRequestEvent,
     TransactionRequestEvent,
+    AnalyticsManagerOptions,
 } from '@ton/walletkit';
 import type Transport from '@ledgerhq/hw-transport';
 
@@ -118,6 +119,7 @@ export interface WalletKitConfig {
     bridgeUrl?: string;
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
+    analytics?: AnalyticsManagerOptions;
     /**
      * Factory function to create Ledger transport.
      * For web: () => TransportWebHID.create()
