@@ -12,7 +12,8 @@
  * Provides consistent initialization and error handling for all bridge operations.
  */
 
-import { walletKit, type WalletKitInstance } from '../core/state';
+import type { WalletKitInstance } from '../core/state';
+import { walletKit } from '../core/state';
 
 /**
  * Unified wrapper for all bridge operations.

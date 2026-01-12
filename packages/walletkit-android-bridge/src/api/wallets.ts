@@ -118,9 +118,10 @@ async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
  */
 export async function createSigner(args: CreateSignerArgs) {
     return callBridge('createSigner', async (_kit) => {
-        const signer = args.mnemonic && args.mnemonic.length > 0
-            ? (await Signer!.fromMnemonic(args.mnemonic, { type: args.mnemonicType || 'ton' })) as SignerInstance
-            : (await Signer!.fromPrivateKey(args.secretKey!)) as SignerInstance;
+        const signer =
+            args.mnemonic && args.mnemonic.length > 0
+                ? ((await Signer!.fromMnemonic(args.mnemonic, { type: args.mnemonicType || 'ton' })) as SignerInstance)
+                : ((await Signer!.fromPrivateKey(args.secretKey!)) as SignerInstance);
 
         // Store signer with temp ID for Kotlin to retrieve
         const tempId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
