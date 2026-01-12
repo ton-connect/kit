@@ -46,8 +46,8 @@ describe('getDeviceInfoForWallet', () => {
 
         const deviceInfo = getDeviceInfoForWallet(mockLedgerAdapter);
 
-        expect(deviceInfo.features).toEqual(customFeatures);
         expect(deviceInfo.features).toEqual([
+            'SendTransaction',
             {
                 name: 'SignData',
                 types: ['binary'],
