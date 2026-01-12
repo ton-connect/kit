@@ -52,7 +52,7 @@ module.exports = [
         },
     },
     {
-        files: ['packages/examples/**/*.ts', 'scripts/**/*.ts'],
+        files: ['demo/examples/**/*.ts', 'scripts/**/*.ts'],
         rules: {
             'no-console': 'off',
         },
