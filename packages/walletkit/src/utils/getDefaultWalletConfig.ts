@@ -117,7 +117,7 @@ export function getDeviceInfoForWallet(
     if (walletAdapter?.getSupportedFeatures) {
         return {
             ...baseDeviceInfo,
-            features: walletAdapter.getSupportedFeatures(),
+            features: ['SendTransaction', ...walletAdapter.getSupportedFeatures()],
         };
     }
 
