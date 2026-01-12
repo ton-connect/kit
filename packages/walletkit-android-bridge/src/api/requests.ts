@@ -21,7 +21,6 @@ import type {
     ApproveSignDataRequestArgs,
     RejectSignDataRequestArgs,
 } from '../types';
-import { walletKit } from '../core/state';
 import { callBridge } from '../utils/bridgeWrapper';
 import { log } from '../utils/logger';
 
@@ -29,22 +28,14 @@ import { log } from '../utils/logger';
  * Approves a connect request.
  */
 export async function approveConnectRequest(args: ApproveConnectRequestArgs) {
-    return callBridge('approveConnectRequest', async () => {
-        if (!args.event) {
-            throw new Error('Connect request event is required');
-        }
-
+    return callBridge('approveConnectRequest', async (kit) => {
         log('approveConnectRequest walletId:', args.walletId);
 
-        const wallet = walletKit?.getWallet(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId: ${args.walletId}`);
-        }
-
+        const wallet = kit.getWallet(args.walletId);
         args.event.wallet = wallet;
         args.event.walletId = args.walletId;
 
-        return await walletKit?.approveConnectRequest(args.event);
+        return await kit.approveConnectRequest(args.event);
     });
 }
 
@@ -52,21 +43,9 @@ export async function approveConnectRequest(args: ApproveConnectRequestArgs) {
  * Rejects a connect request.
  */
 export async function rejectConnectRequest(args: RejectConnectRequestArgs) {
-    return callBridge('rejectConnectRequest', async () => {
-        if (!args.event) {
-            throw new Error('Connect request event is required');
-        }
-
-        const result = await walletKit.rejectConnectRequest(args.event, args.reason, args.errorCode);
-
-        if (result == null) {
-            return { success: true };
-        }
-        if (!result?.success) {
-            throw new Error(result?.message || 'Failed to reject connect request');
-        }
-
-        return result;
+    return callBridge('rejectConnectRequest', async (kit) => {
+        const result = await kit.rejectConnectRequest(args.event, args.reason, args.errorCode);
+        return result ?? { success: true };
     });
 }
 
@@ -74,17 +53,13 @@ export async function rejectConnectRequest(args: RejectConnectRequestArgs) {
  * Approves a transaction request.
  */
 export async function approveTransactionRequest(args: ApproveTransactionRequestArgs) {
-    return callBridge('approveTransactionRequest', async () => {
-        if (!args.event) {
-            throw new Error('Transaction request event is required');
-        }
-
+    return callBridge('approveTransactionRequest', async (kit) => {
         // Enrich event with walletId (same pattern as approveConnectRequest)
         if (args.walletId) {
             args.event.walletId = args.walletId;
         }
 
-        return await walletKit.approveTransactionRequest(args.event);
+        return await kit.approveTransactionRequest(args.event);
     });
 }
 
@@ -92,30 +67,15 @@ export async function approveTransactionRequest(args: ApproveTransactionRequestA
  * Rejects a transaction request.
  */
 export async function rejectTransactionRequest(args: RejectTransactionRequestArgs) {
-    return callBridge('rejectTransactionRequest', async () => {
-        if (!args.event) {
-            throw new Error('Transaction request event is required');
-        }
-
+    return callBridge('rejectTransactionRequest', async (kit) => {
         // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
         const reason =
             args.errorCode !== undefined
                 ? { code: args.errorCode, message: args.reason || 'Transaction rejected' }
                 : args.reason;
 
-        const result = (await walletKit!.rejectTransactionRequest(args.event, reason)) as {
-            success?: boolean;
-            message?: string;
-        } | null;
-
-        if (result == null) {
-            return { success: true };
-        }
-        if (!result?.success) {
-            throw new Error(result?.message || 'Failed to reject transaction request');
-        }
-
-        return result;
+        const result = await kit.rejectTransactionRequest(args.event, reason);
+        return result ?? { success: true };
     });
 }
 
@@ -123,17 +83,13 @@ export async function rejectTransactionRequest(args: RejectTransactionRequestArg
  * Approves a sign-data request.
  */
 export async function approveSignDataRequest(args: ApproveSignDataRequestArgs) {
-    return callBridge('approveSignDataRequest', async () => {
-        if (!args.event) {
-            throw new Error('Sign data request event is required');
-        }
-
+    return callBridge('approveSignDataRequest', async (kit) => {
         // Enrich event with walletId (same pattern as approveConnectRequest)
         if (args.walletId) {
             args.event.walletId = args.walletId;
         }
 
-        return await walletKit.approveSignDataRequest(args.event);
+        return await kit.approveSignDataRequest(args.event);
     });
 }
 
@@ -141,26 +97,14 @@ export async function approveSignDataRequest(args: ApproveSignDataRequestArgs) {
  * Rejects a sign-data request.
  */
 export async function rejectSignDataRequest(args: RejectSignDataRequestArgs) {
-    return callBridge('rejectSignDataRequest', async () => {
-        if (!args.event) {
-            throw new Error('Sign data request event is required');
-        }
-
+    return callBridge('rejectSignDataRequest', async (kit) => {
         // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
         const reason =
             args.errorCode !== undefined
                 ? { code: args.errorCode, message: args.reason || 'Sign data rejected' }
                 : args.reason;
 
-        const result = await walletKit.rejectSignDataRequest(args.event, reason);
-
-        if (result == null) {
-            return { success: true };
-        }
-        if (!result?.success) {
-            throw new Error(result?.message || 'Failed to reject sign data request');
-        }
-
-        return result;
+        const result = await kit.rejectSignDataRequest(args.event, reason);
+        return result ?? { success: true };
     });
 }

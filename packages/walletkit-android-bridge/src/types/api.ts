@@ -38,7 +38,7 @@ export interface CreateSignerArgs {
 export interface CreateAdapterArgs {
     signerId: string;
     walletVersion: 'v4r2' | 'v5r1';
-    network?: { chainId: string };
+    network: { chainId: string }; // Required - Kotlin must specify the network
     workchain?: number;
     walletId?: number;
     publicKey?: string;

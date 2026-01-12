@@ -12,24 +12,25 @@
  * Provides consistent initialization and error handling for all bridge operations.
  */
 
-import { walletKit } from '../core/state';
+import { walletKit, type WalletKitInstance } from '../core/state';
 
 /**
  * Unified wrapper for all bridge operations.
  * Handles initialization and ensures WalletKit is ready before executing operation.
+ * Passes the initialized walletKit instance to the callback to avoid null assertions.
  *
  * @param _method - Operation name for error logging (unused, kept for API consistency)
- * @param operation - Function containing the actual business logic
+ * @param operation - Function receiving the initialized walletKit instance
  * @returns Result of the operation
  */
-export async function callBridge<T>(_method: string, operation: () => Promise<T>): Promise<T> {
+export async function callBridge<T>(_method: string, operation: (kit: WalletKitInstance) => Promise<T>): Promise<T> {
     if (!walletKit) {
         throw new Error('WalletKit not initialized');
     }
     if (walletKit.ensureInitialized) {
         await walletKit.ensureInitialized();
     }
-    return await operation();
+    return await operation(walletKit);
 }
 
 /**
@@ -42,22 +43,9 @@ export async function callBridge<T>(_method: string, operation: () => Promise<T>
  * @returns Result of the wallet method
  */
 export async function callOnWalletBridge<T>(walletId: string, method: string, args?: unknown): Promise<T> {
-    return callBridge(`wallet.${method}`, async () => {
-        const trimmedWalletId = walletId?.trim();
-        if (!trimmedWalletId) {
-            throw new Error('Wallet ID is required');
-        }
-
-        const wallet = walletKit.getWallet?.(trimmedWalletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${trimmedWalletId}`);
-        }
-
-        const methodRef = (wallet as unknown as Record<string, unknown>)[method];
-        if (typeof methodRef !== 'function') {
-            throw new Error(`Method '${method}' not found on wallet`);
-        }
-
+    return callBridge(`wallet.${method}`, async (kit) => {
+        const wallet = kit.getWallet?.(walletId);
+        const methodRef = (wallet as unknown as Record<string, unknown>)?.[method];
         return (await (methodRef as (args?: unknown) => Promise<T>).call(wallet, args)) as T;
     });
 }
