@@ -4,6 +4,24 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/react':
+      specifier: 19.1.17
+      version: 19.1.17
+    '@types/react-dom':
+      specifier: 19.1.7
+      version: 19.1.7
+    react:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-dom:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-native:
+      specifier: 0.81.5
+      version: 0.81.5
+
 importers:
 
   .:
@@ -13,7 +31,7 @@ importers:
         version: 2.29.7(@types/node@24.10.1)
       '@ton/toolchain':
         specifier: github:the-ton-tech/toolchain#v1.5.0
-        version: https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1)(ts-node@10.9.2(@types/node@24.10.1)(typescript@5.9.3)))(jiti@2.6.1)(typescript@5.9.3)
+        version: https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1))(jiti@2.6.1)(typescript@5.9.3)
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.6.1)
@@ -384,11 +402,11 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
-  packages/examples:
+  demo/examples:
     dependencies:
       '@ton/walletkit':
         specifier: workspace:*
-        version: link:../walletkit
+        version: link:../../packages/walletkit
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
@@ -10687,14 +10705,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@ton/toolchain@https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1)(ts-node@10.9.2(@types/node@24.10.1)(typescript@5.9.3)))(jiti@2.6.1)(typescript@5.9.3)':
+  '@ton/toolchain@https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1))(jiti@2.6.1)(typescript@5.9.3)':
     dependencies:
       '@eslint/js': 9.33.0
       '@typescript-eslint/eslint-plugin': 8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/parser': 8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))
-      eslint-plugin-jest: 28.14.0(@typescript-eslint/eslint-plugin@8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1)(ts-node@10.9.2(@types/node@24.10.1)(typescript@5.9.3)))(typescript@5.9.3)
+      eslint-plugin-jest: 28.14.0(@typescript-eslint/eslint-plugin@8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1))(typescript@5.9.3)
       eslint-plugin-prettier: 5.5.4(eslint@9.39.1(jiti@2.6.1))(prettier@3.7.4)
       globals: 16.5.0
       prettier: 3.7.4
@@ -12396,7 +12414,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-jest@28.14.0(@typescript-eslint/eslint-plugin@8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1)(ts-node@10.9.2(@types/node@24.10.1)(typescript@5.9.3)))(typescript@5.9.3):
+  eslint-plugin-jest@28.14.0(@typescript-eslint/eslint-plugin@8.40.0(@typescript-eslint/parser@8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(jest@30.2.0(@types/node@24.10.1)(node-notifier@10.0.1))(typescript@5.9.3):
     dependencies:
       '@typescript-eslint/utils': 8.40.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.39.1(jiti@2.6.1)

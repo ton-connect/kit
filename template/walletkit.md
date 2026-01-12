@@ -50,7 +50,7 @@ npm install @ton/walletkit
 
 ## Initialize the kit
 
-%%packages/examples/src#INIT_KIT%%
+%%demo/examples/src#INIT_KIT%%
 
 ## Understanding previews (for your UI)
 
@@ -66,18 +66,18 @@ You can display these previews directly in your confirmation modals.
 
 Register callbacks that show UI and then approve or reject via kit methods. Note: `getSelectedWalletAddress()` is a placeholder for your own wallet selection logic.
 
-%%packages/examples/src#LISTEN_FOR_REQUESTS%%
+%%demo/examples/src#LISTEN_FOR_REQUESTS%%
 
 
 ### Handle TON Connect links
 
 When users scan a QR code or click a deep link from a dApp, pass the TON Connect URL to the kit. This will trigger your `onConnectRequest` callback.
 
-%%packages/examples/src#ON_TON_CONNECT_LINK%%
+%%demo/examples/src#ON_TON_CONNECT_LINK%%
 
 ### Basic wallet operations
 
-%%packages/examples/src#BASIC_WALLET_OPERATIONS%%
+%%demo/examples/src#BASIC_WALLET_OPERATIONS%%
 
 ### Rendering previews (reference)
 
