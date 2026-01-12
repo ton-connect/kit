@@ -11,7 +11,7 @@ import type { Jetton } from '@ton/walletkit';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useFormattedTonBalance, useJettons } from '@demo/core';
+import { useFormattedTonBalance, useJettons } from '@demo/wallet-core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppText } from '@/core/components/app-text';

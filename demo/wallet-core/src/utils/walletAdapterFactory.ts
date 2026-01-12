@@ -17,7 +17,7 @@ import {
     Signer,
 } from '@ton/walletkit';
 import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
-import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@ton/v4ledger-adapter';
+import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@demo/v4ledger-adapter';
 
 import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
 import { createComponentLogger } from './logger';

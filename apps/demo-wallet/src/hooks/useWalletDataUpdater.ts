@@ -7,7 +7,7 @@
  */
 
 import { useEffect } from 'react';
-import { useJettons, useNfts, useWallet } from '@demo/core';
+import { useJettons, useNfts, useWallet } from '@demo/wallet-core';
 
 export const useWalletDataUpdater = () => {
     const { address, updateBalance } = useWallet();

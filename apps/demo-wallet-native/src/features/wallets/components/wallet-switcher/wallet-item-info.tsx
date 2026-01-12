@@ -6,8 +6,8 @@
  *
  */
 
-import { formatAddress } from '@demo/core';
-import type { SavedWallet } from '@demo/core';
+import { formatAddress } from '@demo/wallet-core';
+import type { SavedWallet } from '@demo/wallet-core';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';

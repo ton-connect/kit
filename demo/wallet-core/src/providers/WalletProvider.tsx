@@ -25,7 +25,7 @@ export interface WalletProviderProps extends CreateWalletStoreOptions {
  *
  * @example
  * ```typescript
- * import { WalletProvider } from '@demo/core';
+ * import { WalletProvider } from '@demo/wallet-core';
  *
  * function App() {
  *   return (

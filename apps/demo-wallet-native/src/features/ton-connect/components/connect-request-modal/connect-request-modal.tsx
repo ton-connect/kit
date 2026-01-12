@@ -8,7 +8,7 @@
 
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@demo/core';
+import { useWallet } from '@demo/wallet-core';
 import { useState, useEffect, useMemo } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';

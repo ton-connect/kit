@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import type { SavedWallet } from '@demo/core';
+import type { SavedWallet } from '@demo/wallet-core';
 
 import { createComponentLogger } from '../utils/logger';
 

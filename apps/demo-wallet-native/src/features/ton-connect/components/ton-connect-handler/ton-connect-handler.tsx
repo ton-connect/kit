@@ -7,7 +7,7 @@
  */
 
 import type { FC } from 'react';
-import { useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/core';
+import { useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/wallet-core';
 
 import { ConnectRequestModal } from '../connect-request-modal';
 import { TransactionRequestModal } from '../transaction-request-modal';

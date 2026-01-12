@@ -9,7 +9,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Network } from '@ton/walletkit';
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
-import type { SavedWallet } from '@demo/core';
+import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';

@@ -8,7 +8,7 @@
 
 import { router, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { useWalletStore, useWallet } from '@demo/core';
+import { useWalletStore, useWallet } from '@demo/wallet-core';
 
 export const useRedirects = (isRouterLoading: boolean): void => {
     const [isRedirected, setIsRedirected] = useState(false);

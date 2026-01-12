@@ -14,7 +14,7 @@ import type { StorageAdapter } from './types';
  * @example
  * ```typescript
  * import browser from 'webextension-polyfill';
- * import { ExtensionStorageAdapter } from '@demo/core/adapters';
+ * import { ExtensionStorageAdapter } from '@demo/wallet-core/adapters';
  *
  * const storage = new ExtensionStorageAdapter(browser.storage.local);
  * ```

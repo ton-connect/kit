@@ -6,7 +6,7 @@
  *
  */
 
-import { useWalletStore } from '@demo/core';
+import { useWalletStore } from '@demo/wallet-core';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 

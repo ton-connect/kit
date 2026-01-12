@@ -8,8 +8,8 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useWalletStore, useWalletKit } from '@demo/core';
-import type { PreviewTransaction } from '@demo/core';
+import { useWalletStore, useWalletKit } from '@demo/wallet-core';
+import type { PreviewTransaction } from '@demo/wallet-core';
 import { Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
 import type { Event, Action } from '@ton/walletkit';
 

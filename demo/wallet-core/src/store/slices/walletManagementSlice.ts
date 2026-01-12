@@ -9,7 +9,7 @@
 import { Network } from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
 import type { Wallet, ITonWalletKit } from '@ton/walletkit';
-import { createLedgerPath } from '@ton/v4ledger-adapter';
+import { createLedgerPath } from '@demo/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';

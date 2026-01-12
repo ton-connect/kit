@@ -7,7 +7,7 @@
  */
 
 import type { FC } from 'react';
-import { useWallet } from '@demo/core';
+import { useWallet } from '@demo/wallet-core';
 
 import { DataBlock } from '@/core/components/data-block';
 
