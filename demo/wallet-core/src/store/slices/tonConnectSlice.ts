@@ -52,6 +52,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         try {
             log.info('Handling TON Connect URL:', url);
             await state.walletCore.walletKit.handleTonConnectUrl(url);
+            log.info('Handled TON Connect URL');
         } catch (error) {
             log.error('Failed to handle TON Connect URL:', error);
             throw new Error('Failed to process TON Connect link');

@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useWalletStore, useWallet } from '@demo/wallet-core';
 
 import { ProtectedRoute } from './ProtectedRoute';
+import { LoaderCircle } from './LoaderCircle';
 import {
     SetupPassword,
     UnlockWallet,
@@ -26,6 +27,7 @@ import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
 export const AppRouter: React.FC = () => {
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
     const isUnlocked = useWalletStore((state) => state.auth.isUnlocked);
+    const isWalletKitInitialized = useWalletStore((state) => state.walletCore.isWalletKitInitialized);
     const { hasWallet } = useWallet();
 
     useWalletDataUpdater();
@@ -36,6 +38,10 @@ export const AppRouter: React.FC = () => {
         if (!hasWallet) return '/setup-wallet';
         return '/wallet';
     };
+
+    if (!isWalletKitInitialized) {
+        return <LoaderCircle />;
+    }
 
     return (
         <BrowserRouter>

@@ -237,16 +237,6 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                             // }
 
                             const processTimeoutCallback = () => {
-                                /* eslint-disable no-console */
-                                console.log('---------------------------');
-                                console.log(
-                                    'processTimeoutCallback isProcessing',
-                                    state.tonConnect.requestQueue.isProcessing,
-                                );
-                                console.log('processTimeoutCallback items', state.tonConnect.requestQueue.items);
-                                console.log('processNextRequest', !!state.processNextRequest);
-                                console.log('---------------------------');
-
                                 if (
                                     state.tonConnect.requestQueue.items.length > 0 &&
                                     !state.tonConnect.requestQueue.isProcessing &&

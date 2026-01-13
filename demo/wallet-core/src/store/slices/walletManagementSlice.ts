@@ -381,11 +381,6 @@ export const createWalletManagementSlice =
             }
 
             state = get();
-            if (state.walletCore.walletKitInitializer) {
-                await state.walletCore.walletKitInitializer;
-            }
-
-            state = get();
 
             if (!state.auth.currentPassword) {
                 throw new Error('User not authenticated');
