@@ -9,7 +9,8 @@
     "strict": true,
     "skipLibCheck": true,
     "removeComments": false,
-    "declarationMap": true
+    "declarationMap": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
