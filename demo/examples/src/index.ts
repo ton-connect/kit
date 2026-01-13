@@ -12,6 +12,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 
+import dotenv from 'dotenv';
+
+dotenv.config();
+dotenv.config({ path: '../../.env' });
+
 const execAsync = promisify(exec);
 
 const examplesDir = path.dirname(fileURLToPath(import.meta.url));
@@ -34,7 +39,7 @@ async function main(): Promise<void> {
         const log = [path.relative(process.cwd(), file)];
         let status = '✅';
         try {
-            await execAsync(`npx tsx "${file}"`);
+            await execAsync(`pnpm tsx "${file}"`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             status = '❌';

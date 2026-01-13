@@ -6,7 +6,7 @@
  *
  */
 
-import { useWallet } from '@demo/core';
+import { useWallet } from '@demo/wallet-core';
 import type { FC } from 'react';
 import type { ViewProps } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';

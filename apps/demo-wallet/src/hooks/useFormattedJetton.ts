@@ -8,7 +8,7 @@
 
 import { useCallback, useMemo } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { useJettons } from '@demo/core';
+import { useJettons } from '@demo/wallet-core';
 
 import { getFormattedJettonInfo } from '@/utils/jetton';
 

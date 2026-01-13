@@ -14,7 +14,7 @@ import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet, useWalletKit } from '@demo/core';
+import { useWallet, useWalletKit } from '@demo/wallet-core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AmountInput } from '@/core/components/amount-input';

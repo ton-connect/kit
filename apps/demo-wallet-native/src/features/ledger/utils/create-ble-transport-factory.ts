@@ -8,7 +8,7 @@
 
 import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import type Transport from '@ledgerhq/hw-transport';
-import type { CreateLedgerTransportFunction } from '@demo/core';
+import type { CreateLedgerTransportFunction } from '@demo/wallet-core';
 
 /**
  * Storage interface for persisting Ledger device ID

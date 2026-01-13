@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useDisconnectEvents } from '@demo/core';
+import { useDisconnectEvents } from '@demo/wallet-core';
 
 import { Button } from './Button';
 

@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@demo/core';
+import { useAuth } from '@demo/wallet-core';
 
 import { Layout, Button, Input, Card } from '../components';
 

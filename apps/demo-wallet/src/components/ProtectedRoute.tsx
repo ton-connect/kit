@@ -8,7 +8,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@demo/core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;

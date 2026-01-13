@@ -1,5 +1,5 @@
 {
-  "name": "@ton/v4ledger-adapter",
+  "name": "@demo/v4ledger-adapter",
   "version": "0.1.0",
   "description": "Ledger hardware wallet adapter for TON V4R2 wallets",
   "main": "dist/cjs/index.js",

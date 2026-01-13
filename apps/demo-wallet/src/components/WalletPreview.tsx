@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import type { SavedWallet } from '@demo/core';
+import type { SavedWallet } from '@demo/wallet-core';
 
 /**
  * WalletPreview - A reusable component for displaying wallet information in lists

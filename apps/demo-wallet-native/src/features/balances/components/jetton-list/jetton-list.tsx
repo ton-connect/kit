@@ -6,7 +6,7 @@
  *
  */
 
-import { useJettons } from '@demo/core';
+import { useJettons } from '@demo/wallet-core';
 import { useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';

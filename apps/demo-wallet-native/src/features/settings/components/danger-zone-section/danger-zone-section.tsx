@@ -7,7 +7,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@demo/core';
+import { useWallet } from '@demo/wallet-core';
 import { router } from 'expo-router';
 import type { FC } from 'react';
 import { Alert, View } from 'react-native';

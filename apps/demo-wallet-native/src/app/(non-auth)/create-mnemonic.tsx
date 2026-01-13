@@ -12,7 +12,7 @@ import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { CreateTonMnemonic } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { useAuth, useWallet } from '@demo/core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppText } from '@/core/components/app-text';

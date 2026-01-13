@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import type { NFT } from '@ton/walletkit';
-import { useNfts } from '@demo/core';
+import { useNfts } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { Card } from './Card';

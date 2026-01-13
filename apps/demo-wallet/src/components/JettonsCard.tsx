@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useJettons } from '@demo/core';
+import { useJettons } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { Card } from './Card';

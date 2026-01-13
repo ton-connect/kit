@@ -1,5 +1,5 @@
 {
-  "name": "@demo/core",
+  "name": "@demo/wallet-core",
   "version": "0.1.0",
   "description": "Core logic for TON wallet demo applications (React + React Native)",
   "main": "dist/cjs/index.js",
@@ -31,7 +31,7 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@ton/v4ledger-adapter": "workspace:*",
+    "@demo/v4ledger-adapter": "workspace:*",
     "@ton/walletkit": "workspace:*"
   },
   "peerDependencies": {

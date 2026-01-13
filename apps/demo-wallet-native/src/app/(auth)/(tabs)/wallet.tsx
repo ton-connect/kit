@@ -13,7 +13,7 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { RefreshControl, View, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useJettons, useWallet } from '@demo/core';
+import { useJettons, useWallet } from '@demo/wallet-core';
 
 import { ActiveTouchAction } from '@/core/components/active-touch-action';
 import { AppButton } from '@/core/components/app-button';

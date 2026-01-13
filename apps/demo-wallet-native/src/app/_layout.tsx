@@ -13,9 +13,9 @@ import type { FC } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useUnistyles } from 'react-native-unistyles';
-import { WalletProvider } from '@demo/core';
-import type { WalletKitConfig } from '@demo/core';
 import { Platform } from 'react-native';
+import { WalletProvider } from '@demo/wallet-core';
+import type { WalletKitConfig } from '@demo/wallet-core';
 
 import { AppWrapper, walletProviderStorage, walletKitStorage, getCurrentUserId } from '@/features/settings';
 import { AppToastProvider } from '@/features/toasts';
@@ -40,7 +40,6 @@ const walletKitConfig: WalletKitConfig = {
     tonApiKeyTestnet: tonApi.testnetApiKey,
     createLedgerTransport,
     analytics: {
-        enabled: true,
         appInfo: {
             env: 'web',
             platform: Platform.OS === 'ios' ? 'ios' : 'android',

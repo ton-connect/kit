@@ -14,7 +14,7 @@ import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import type { ITonWalletKit } from '@ton/walletkit';
-import type { SavedWallet } from '@demo/core';
+import type { SavedWallet } from '@demo/wallet-core';
 
 import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';
