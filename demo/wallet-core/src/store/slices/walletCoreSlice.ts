@@ -14,6 +14,7 @@ import { isExtension } from '../../utils/isExtension';
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../utils/walletManifest';
 import type { SetState, WalletCoreSliceCreator } from '../../types/store';
 import type { WalletKitConfig } from '../../types/wallet';
+import { getErrorMessage } from '../../utils/error';
 
 const log = createComponentLogger('WalletCoreSlice');
 
@@ -88,34 +89,26 @@ export const createWalletCoreSlice =
             // Create new WalletKit instance
             const walletKit = createWalletKitInstance(walletKitConfig);
 
-            // Wait for WalletKit to be ready with 10 second timeout
-            const startTime = Date.now();
-            const timeout = 10000; // 10 seconds
+            try {
+                await walletKit.ensureInitialized();
+                get().setupTonConnectListeners(walletKit);
 
-            while (!walletKit?.isReady()) {
-                if (Date.now() - startTime > timeout) {
-                    log.error('WalletKit initialization timeout after 10 seconds');
+                set((state) => {
+                    state.walletCore.walletKit = walletKit;
+                    state.walletCore.isWalletKitInitialized = true;
+                    state.walletCore.initializationError = null;
+                });
 
-                    set((state) => {
-                        state.walletCore.initializationError = 'Initialization timeout';
-                        state.walletCore.isWalletKitInitialized = false;
-                    });
+                // Load all saved wallets into the WalletKit instance
+                await get().loadSavedWalletsIntoKit(walletKit);
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                log.error('WalletKit initialization failed', { errorMessage });
 
-                    return;
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                set((state) => {
+                    state.walletCore.initializationError = errorMessage;
+                    state.walletCore.isWalletKitInitialized = false;
+                });
             }
-
-            get().setupTonConnectListeners(walletKit);
-
-            set((state) => {
-                state.walletCore.walletKit = walletKit;
-                state.walletCore.isWalletKitInitialized = true;
-                state.walletCore.initializationError = null;
-            });
-
-            // Load all saved wallets into the WalletKit instance
-            await get().loadSavedWalletsIntoKit(walletKit);
         },
     });

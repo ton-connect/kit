@@ -237,7 +237,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Ensure initialization is complete
      */
-    private async ensureInitialized(): Promise<void> {
+    async ensureInitialized(): Promise<void> {
         if (this.initializationPromise) {
             await this.initializationPromise;
         }
