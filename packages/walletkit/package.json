@@ -91,6 +91,7 @@
     "jest": "^30.2.0",
     "node-hid": "^3.2.0",
     "rimraf": "^6.1.0",
+    "swagger-typescript-api": "13.2.16",
     "ts-jest": "^29.4.5",
     "ts-json-schema-generator": "^2.4.0",
     "ts-node": "^10.9.2",

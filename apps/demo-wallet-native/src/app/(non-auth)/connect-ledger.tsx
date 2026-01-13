@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useAuth, useWallet } from '@ton/demo-core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AppText } from '@/core/components/app-text';

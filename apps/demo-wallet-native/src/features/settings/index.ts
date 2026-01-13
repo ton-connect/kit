@@ -11,4 +11,9 @@ export { DangerZoneSection } from './components/danger-zone-section';
 export { DevelopmentToolsSection } from './components/development-tools-section';
 export { RecoveryPhraseSection } from './components/recovery-phrase-section';
 export { WalletInfoSection } from './components/wallet-info-section';
+
 export { useSettingsStore } from './store/store';
+
+export { getCurrentUserId } from './storage/user-id';
+export { walletProviderStorage } from './storage/wallet-provider';
+export { walletKitStorage } from './storage/wallet-kit';

@@ -8,8 +8,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { isValidAddress } from '@ton/walletkit';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
-import { useWallet, useJettons, useWalletKit } from '@ton/demo-core';
+import { useWallet, useJettons, useWalletKit } from '@demo/wallet-core';
 
 import { Layout, Button, Input, Card } from '../components';
 import { createComponentLogger } from '../utils/logger';
@@ -50,12 +51,6 @@ export const SendTransaction: React.FC = () => {
         return tonAmount.toFixed(4);
     };
 
-    const validateAddress = (address: string): boolean => {
-        // Basic TON address validation
-        // In a real app, use proper TON address validation
-        return address.length > 10 && (address.startsWith('EQ') || address.startsWith('UQ'));
-    };
-
     const getCurrentTokenBalance = (): string => {
         if (selectedToken.type === 'TON') {
             return formatTonAmount(balance || '0');
@@ -89,7 +84,7 @@ export const SendTransaction: React.FC = () => {
 
         try {
             // Validate inputs
-            if (!validateAddress(recipient)) {
+            if (!isValidAddress(recipient)) {
                 throw new Error('Invalid recipient address');
             }
 

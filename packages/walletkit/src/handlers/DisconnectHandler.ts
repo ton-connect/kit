@@ -12,7 +12,6 @@ import type { SessionManager } from '../core/SessionManager';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { getAddressFromWalletId } from '../utils/walletId';
 import type { DisconnectionEvent } from '../api/models';
 
 export class DisconnectHandler
@@ -33,7 +32,7 @@ export class DisconnectHandler
     async handle(event: RawBridgeEventDisconnect): Promise<DisconnectionEvent> {
         // Support both walletId (new) and walletAddress (legacy)
         const walletId = event.walletId;
-        const walletAddress = event.walletAddress ?? (walletId ? getAddressFromWalletId(walletId) : undefined);
+        const walletAddress = event.walletAddress;
 
         if (!walletId && !walletAddress) {
             throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'No wallet ID found in disconnect event', undefined, {

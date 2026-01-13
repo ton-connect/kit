@@ -26,8 +26,7 @@ import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
 export async function getJettons(args: GetJettonsArgs) {
     return callBridge('getJettons', async () => {
         return await callOnWalletBridge(args.walletId, 'getJettons', {
-            limit: args.limit,
-            offset: args.offset,
+            pagination: args.pagination,
         });
     });
 }

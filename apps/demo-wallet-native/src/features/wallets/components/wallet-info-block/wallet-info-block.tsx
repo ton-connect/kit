@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { View } from 'react-native';
 import type { ViewProps } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { formatAddress } from '@ton/demo-core';
+import { formatAddress } from '@demo/wallet-core';
 
 import { AppText } from '@/core/components/app-text';
 import { Block } from '@/core/components/block';

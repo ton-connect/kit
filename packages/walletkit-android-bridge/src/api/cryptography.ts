@@ -51,16 +51,8 @@ export async function mnemonicToKeyPair(args: MnemonicToKeyPairArgs) {
  */
 export async function sign(args: SignArgs) {
     return callBridge('sign', async () => {
-        if (!Array.isArray(args.data)) {
-            throw new Error('Data array required for sign');
-        }
-        if (!Array.isArray(args.secretKey)) {
-            throw new Error('Secret key array required for sign');
-        }
-
         const dataBytes = Uint8Array.from(args.data);
         const secretKeyBytes = Uint8Array.from(args.secretKey);
-
         return DefaultSignature!(dataBytes, secretKeyBytes);
     });
 }

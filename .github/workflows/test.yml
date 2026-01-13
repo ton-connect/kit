@@ -36,6 +36,8 @@ jobs:
 
     - name: test
       run: pnpm quality
+      env:
+        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
 
   e2e-web:
     needs: unit

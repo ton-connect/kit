@@ -47,13 +47,7 @@ export { Storage } from './storage/Storage';
 export type { ApiClient } from './types/toncenter/ApiClient';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
-export {
-    createWalletId,
-    parseWalletId,
-    getAddressFromWalletId,
-    getNetworkFromWalletId,
-    isWalletId,
-} from './utils/walletId';
+export { createWalletId } from './utils/walletId';
 export type { WalletId } from './utils/walletId';
 export {
     Base64Normalize,
@@ -105,6 +99,8 @@ export { Transport } from './bridge/transport/Transport';
 export { TONCONNECT_BRIDGE_EVENT } from './bridge/utils/messageTypes';
 export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/utils/timeouts';
 export { CreateTonProofMessageBytes } from './utils/tonProof';
+export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
+export { isValidAddress } from './utils/address';
 
 // API Interfaces
 export type * from './api/interfaces';

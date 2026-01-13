@@ -36,6 +36,7 @@ import type {
     Base64String,
 } from '../../api/models';
 import { KitGlobalOptions } from '../../core/KitGlobalOptions';
+import type { Feature } from '../../types/jsBridge';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
 
@@ -343,5 +344,18 @@ export class WalletV5R1Adapter implements WalletAdapter {
         const signature = await this.sign(message);
 
         return signature;
+    }
+
+    getSupportedFeatures(): Feature[] {
+        return [
+            {
+                name: 'SendTransaction',
+                maxMessages: 255,
+            },
+            {
+                name: 'SignData',
+                types: ['binary', 'cell', 'text'],
+            },
+        ];
     }
 }

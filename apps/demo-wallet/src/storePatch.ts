@@ -6,7 +6,7 @@
  *
  */
 
-import type { AppState } from '@ton/demo-core';
+import type { AppState } from '@demo/wallet-core';
 
 declare global {
     interface Window {

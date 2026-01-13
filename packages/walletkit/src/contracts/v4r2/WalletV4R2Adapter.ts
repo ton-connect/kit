@@ -21,6 +21,7 @@ import {
     internal,
 } from '@ton/core';
 
+import type { Feature } from '../../types/jsBridge';
 import type { WalletV4R2Config } from './WalletV4R2';
 import { WalletV4R2 } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
@@ -265,5 +266,18 @@ export class WalletV4R2Adapter implements WalletAdapter {
         const signature = await this.sign(message);
 
         return signature;
+    }
+
+    getSupportedFeatures(): Feature[] {
+        return [
+            {
+                name: 'SendTransaction',
+                maxMessages: 4,
+            },
+            {
+                name: 'SignData',
+                types: ['binary', 'cell', 'text'],
+            },
+        ];
     }
 }

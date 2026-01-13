@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - apps/*
+  - demo/*
 
 onlyBuiltDependencies:
   - node-hid

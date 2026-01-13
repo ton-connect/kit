@@ -52,6 +52,12 @@ module.exports = [
         },
     },
     {
+        files: ['demo/examples/**/*.ts', 'scripts/**/*.ts'],
+        rules: {
+            'no-console': 'off',
+        },
+    },
+    {
         files: ['**/**/*.ts', '**/**/*.tsx'],
         plugins: {
             import: importPlugin,

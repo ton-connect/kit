@@ -11,14 +11,10 @@
 import type { ConnectItem } from '@tonconnect/protocol';
 import { CONNECT_EVENT_ERROR_CODES } from '@tonconnect/protocol';
 
-import type { TonWalletKitOptions } from '../types';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventConnect } from '../types/internal';
 import { globalLogger } from '../core/Logger';
 import { BasicHandler } from './BasicHandler';
-import type { AnalyticsApi } from '../analytics/sender';
-import { getUnixtime } from '../utils/time';
-import { uuidv7 } from '../utils/uuid';
-import { getEventsSubsystem, getVersion } from '../utils/version';
+import type { AnalyticsManager, Analytics } from '../analytics';
 import { isValidHost } from '../utils/url';
 import type {
     ConnectionRequestEvent,
@@ -32,17 +28,11 @@ export class ConnectHandler
     extends BasicHandler<ConnectionRequestEvent>
     implements EventHandler<ConnectionRequestEvent, RawBridgeEventConnect>
 {
-    private analyticsApi?: AnalyticsApi;
-    private walletKitConfig: TonWalletKitOptions;
+    private analytics?: Analytics;
 
-    constructor(
-        notify: (event: ConnectionRequestEvent) => void,
-        walletKitConfig: TonWalletKitOptions,
-        analyticsApi?: AnalyticsApi,
-    ) {
+    constructor(notify: (event: ConnectionRequestEvent) => void, analyticsManager?: AnalyticsManager) {
         super(notify);
-        this.analyticsApi = analyticsApi;
-        this.walletKitConfig = walletKitConfig;
+        this.analytics = analyticsManager?.scoped();
     }
 
     canHandle(event: RawBridgeEvent): event is RawBridgeEventConnect {
@@ -79,26 +69,16 @@ export class ConnectHandler
         };
 
         // Send wallet-connect-request-received event
-        this.analyticsApi?.sendEvents([
-            {
-                event_name: 'wallet-connect-request-received',
-                trace_id: event.traceId ?? uuidv7(),
-                client_environment: 'wallet',
-                subsystem: getEventsSubsystem(),
-                client_id: event.from,
-                manifest_json_url: manifestUrl || preview?.dAppInfo?.manifestUrl,
-                is_ton_addr: event.params?.items?.some((item) => item.name === 'ton_addr') || false,
-                is_ton_proof: event.params?.items?.some((item) => item.name === 'ton_proof') || false,
-                client_timestamp: getUnixtime(),
-                event_id: uuidv7(),
-                version: getVersion(),
-                proof_payload_size: event.params?.items?.some((item) => item.name === 'ton_proof')
-                    ? event.params?.items?.find((item) => item.name === 'ton_proof')?.payload?.length
-                    : 0,
-                wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
-                wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
-            },
-        ]);
+        this.analytics?.emitWalletConnectRequestReceived({
+            trace_id: event.traceId,
+            client_id: event.from,
+            manifest_json_url: manifestUrl || preview?.dAppInfo?.manifestUrl,
+            is_ton_addr: event.params?.items?.some((item) => item.name === 'ton_addr') || false,
+            is_ton_proof: event.params?.items?.some((item) => item.name === 'ton_proof') || false,
+            proof_payload_size: event.params?.items?.some((item) => item.name === 'ton_proof')
+                ? event.params?.items?.find((item) => item.name === 'ton_proof')?.payload?.length
+                : 0,
+        });
 
         return connectEvent;
     }
@@ -218,9 +198,11 @@ export class ConnectHandler
                 iconUrl: sanitizedManifest?.iconUrl,
                 manifestUrl: manifestUrl,
             },
-            manifestFetchErrorCode: manifestFetchErrorCode ?? undefined,
+            manifestFetchErrorCode: finalManifestFetchErrorCode ?? undefined,
         };
     }
+
+    private static readonly MANIFEST_PROXY_URL = 'https://walletbot.me/tonconnect-proxy/';
 
     /**
      * Fetch manifest from URL
@@ -248,19 +230,33 @@ export class ConnectHandler
                 manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR,
             };
         }
+
+        // Try direct fetch first
+        const directResult = await this.tryFetchManifest(manifestUrl);
+        if (directResult.manifest) {
+            return directResult;
+        }
+
+        // If direct fetch failed, try via proxy
+        log.info('Direct manifest fetch failed, trying proxy', { manifestUrl });
+        const proxyUrl = `${ConnectHandler.MANIFEST_PROXY_URL}${manifestUrl}`;
+        return this.tryFetchManifest(proxyUrl);
+    }
+
+    private async tryFetchManifest(url: string): Promise<{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        manifest: any;
+        manifestFetchErrorCode?:
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_NOT_FOUND_ERROR
+            | CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
+    }> {
         try {
-            const response = await fetch(manifestUrl);
+            const response = await fetch(url);
             if (!response.ok) {
                 return {
                     manifest: null,
                     manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
                 };
-                // throw new WalletKitError(
-                //     ERROR_CODES.API_REQUEST_FAILED,
-                //     `Failed to fetch manifest: ${response.statusText}`,
-                //     undefined,
-                //     { manifestUrl, status: response.status, statusText: response.statusText },
-                // );
             }
             const result = await response.json();
             return {

@@ -63,7 +63,9 @@ describe('EventProcessor with Real EventStore', () => {
         } as unknown as EventEmitter;
 
         // Mock WalletManager
-        walletManager = {} as WalletManager;
+        walletManager = {
+            getWallet: vi.fn().mockReturnValue(undefined),
+        } as unknown as WalletManager;
 
         // Config with fast retry for testing
         config = {
@@ -487,14 +489,12 @@ describe('EventProcessor with Real EventStore', () => {
             expect(eventRouter.routeEvent).toHaveBeenCalledWith(
                 expect.objectContaining({
                     params: ['wallet-1'],
-                    walletAddress: undefined,
                 }),
             );
 
             expect(eventRouter.routeEvent).not.toHaveBeenCalledWith(
                 expect.objectContaining({
                     params: ['wallet-2'],
-                    walletAddress: undefined,
                 }),
             );
 
@@ -502,11 +502,10 @@ describe('EventProcessor with Real EventStore', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (processor as any).processNextAvailableEvent();
 
-            // Should process older event from wallet-1 first
+            // Should process wallet-2 event next
             expect(eventRouter.routeEvent).toHaveBeenCalledWith(
                 expect.objectContaining({
                     params: ['wallet-2'],
-                    walletAddress: undefined,
                 }),
             );
         });

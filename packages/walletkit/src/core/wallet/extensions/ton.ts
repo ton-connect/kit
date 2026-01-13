@@ -11,7 +11,6 @@ import { beginCell } from '@ton/core';
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
-import type { ApiClient } from '../../../types/toncenter/ApiClient';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
 import { ERROR_CODES, WalletKitError } from '../../../errors';
 import { globalLogger } from '../../Logger';
@@ -30,12 +29,6 @@ import { isBefore } from '../../../utils/time';
 const log = globalLogger.createChild('WalletTonClass');
 
 export class WalletTonClass implements WalletTonInterface {
-    client: ApiClient;
-
-    private constructor(client: ApiClient) {
-        this.client = client;
-    }
-
     async createTransferTonTransaction(this: Wallet, param: TONTransferRequest): Promise<TransactionRequest> {
         if (!isValidAddress(param.recipientAddress)) {
             throw new Error(`Invalid to address: ${param.recipientAddress}`);
@@ -120,7 +113,7 @@ export class WalletTonClass implements WalletTonInterface {
         param: TransactionRequest | Promise<TransactionRequest>,
     ): Promise<TransactionEmulatedPreview> {
         const transaction = await param;
-        const preview = await CallForSuccess(() => createTransactionPreviewHelper(transaction, this));
+        const preview = await CallForSuccess(() => createTransactionPreviewHelper(this.client, transaction, this));
         return preview;
     }
 

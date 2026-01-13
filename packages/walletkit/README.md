@@ -48,56 +48,62 @@ npm install @ton/walletkit
 ## Initialize the kit
 
 ```ts
-import { 
-  TonWalletKit,      // Main SDK class
-  Signer,            // Handles cryptographic signing
-  WalletV5R1Adapter, // Latest wallet version (recommended)
-  Network,           // Network configuration (mainnet/testnet)
-  CHAIN,             // Chain constants (mainnet/testnet)
+import {
+    TonWalletKit, // Main SDK class
+    Signer, // Handles cryptographic signing
+    WalletV5R1Adapter, // Latest wallet version (recommended)
+    Network, // Network configuration (mainnet/testnet)
+    CHAIN, // Chain constants (mainnet/testnet)
+    MemoryStorageAdapter,
 } from '@ton/walletkit';
 
+import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './walletManifest';
+
 const kit = new TonWalletKit({
-  // Multi-network API configuration
-  networks: {
-    [CHAIN.MAINNET]: {
-      apiClient: {
-        // Optional API key for Toncenter get on https://t.me/toncenter
-        key: process.env.APP_TONCENTER_KEY,
-        url: 'https://toncenter.com', // default
-        // or use self-hosted from https://github.com/toncenter/ton-http-api
-      },
+    deviceInfo: getTonConnectDeviceInfo(),
+    walletManifest: getTonConnectWalletManifest(),
+    storage: new MemoryStorageAdapter({}),
+    // Multi-network API configuration
+    networks: {
+        [CHAIN.MAINNET]: {
+            apiClient: {
+                // Optional API key for Toncenter get on https://t.me/toncenter
+                key: process.env.APP_TONCENTER_KEY,
+                url: 'https://toncenter.com', // default
+                // or use self-hosted from https://github.com/toncenter/ton-http-api
+            },
+        },
+        // Optionally configure testnet as well
+        // [CHAIN.TESTNET]: {
+        //   apiClient: {
+        //     key: process.env.APP_TONCENTER_KEY_TESTNET,
+        //     url: 'https://testnet.toncenter.com',
+        //   },
+        // },
     },
-    // Optionally configure testnet as well
-    // [CHAIN.TESTNET]: {
-    //   apiClient: {
-    //     key: process.env.APP_TONCENTER_KEY_TESTNET,
-    //     url: 'https://testnet.toncenter.com',
-    //   },
-    // },
-  },
-  bridge: {
-    // TON Connect bridge for dApp communication
-    bridgeUrl: 'https://connect.ton.org/bridge',
-    // or use self-hosted bridge from https://github.com/ton-connect/bridge
-  },
+    bridge: {
+        // TON Connect bridge for dApp communication
+        bridgeUrl: 'https://connect.ton.org/bridge',
+        // or use self-hosted bridge from https://github.com/ton-connect/bridge
+    },
 });
 
 // Wait for initialization to complete
 await kit.waitForReady();
 
 // Add a wallet from mnemonic (24-word seed phrase) ton or bip39
-const mnemonic = process.env.APP_MNEMONIC!.split(' ');
+const mnemonic = process.env.WALLET_MNEMONIC!.split(' ');
 const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
 
 const walletV5R1Adapter = await WalletV5R1Adapter.create(signer, {
-  client: kit.getApiClient(Network.mainnet()),
-  network: Network.mainnet(),
+    client: kit.getApiClient(Network.mainnet()),
+    network: Network.mainnet(),
 });
 
 const walletV5R1 = await kit.addWallet(walletV5R1Adapter);
 if (walletV5R1) {
-  console.log('V5R1 Address:', walletV5R1.getAddress());
-  console.log('V5R1 Balance:', await walletV5R1.getBalance());
+    console.log('V5R1 Address:', walletV5R1.getAddress());
+    console.log('V5R1 Balance:', await walletV5R1.getBalance());
 }
 ```
 
@@ -117,60 +123,70 @@ Register callbacks that show UI and then approve or reject via kit methods. Note
 
 ```ts
 // Connect requests - triggered when a dApp wants to connect
-kit.onConnectRequest(async (req) => {
-  try {
-    // Use req.preview to display dApp info in your UI
-    const name = req.dAppInfo?.name;
-    if (confirm(`Connect to ${name}?`)) {
-      // Set wallet address on the request before approving
-      req.walletAddress = getSelectedWalletAddress(); // Your wallet selection logic
-      await kit.approveConnectRequest(req);
-    } else {
-      await kit.rejectConnectRequest(req, 'User rejected');
+kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
+    try {
+        // Use event.preview to display dApp info in your UI
+        const name = event.dAppInfo?.name;
+        if (yourConfirmLogic(`Connect to ${name}?`)) {
+            const selectedWalletId = getSelectedWalletId();
+            const wallet = kit.getWallet(selectedWalletId);
+            if (!wallet) {
+                console.error('Selected wallet not found');
+                await kit.rejectConnectRequest(event, 'No wallet available');
+                return;
+            }
+            console.log(`Using wallet ID: ${wallet.getWalletId()}, address: ${wallet.getAddress()}`);
+
+            // Set walletId on the request before approving
+            event.walletId = wallet.getWalletId();
+            await kit.approveConnectRequest(event);
+        } else {
+            await kit.rejectConnectRequest(event, 'User rejected');
+        }
+    } catch (error) {
+        console.error('Connect request failed:', error);
+        await kit.rejectConnectRequest(event, 'Error processing request');
     }
-  } catch (error) {
-    console.error('Connect request failed:', error);
-    await kit.rejectConnectRequest(req, 'Error processing request');
-  }
 });
 
 // Transaction requests - triggered when a dApp wants to execute a transaction
-kit.onTransactionRequest(async (tx) => {
-  try {
-    // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
-    // Each transfer shows positive amounts for incoming, negative for outgoing
-    if (confirm('Do you confirm this transaction?')) {
-      await kit.approveTransactionRequest(tx);
-    } else {
-      await kit.rejectTransactionRequest(tx, 'User rejected');
+kit.onTransactionRequest(async (event: TransactionRequestEvent) => {
+    try {
+        // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
+        // Each transfer shows positive amounts for incoming, negative for outgoing
+        if (yourConfirmLogic('Do you confirm this transaction?')) {
+            await kit.approveTransactionRequest(event);
+        } else {
+            await kit.rejectTransactionRequest(event, 'User rejected');
+        }
+    } catch (error) {
+        console.error('Transaction request failed:', error);
+        await kit.rejectTransactionRequest(event, 'Error processing request');
     }
-  } catch (error) {
-    console.error('Transaction request failed:', error);
-    await kit.rejectTransactionRequest(tx, 'Error processing request');
-  }
 });
 
 // Sign data requests - triggered when a dApp wants to sign arbitrary data
-kit.onSignDataRequest(async (sd) => {
-  try {
-    // Use sd.preview.kind to determine how to display the data
-    if (confirm('Sign this data?')) {
-      await kit.signDataRequest(sd);
-    } else {
-      await kit.rejectSignDataRequest(sd, 'User rejected');
+kit.onSignDataRequest(async (event: SignDataRequestEvent) => {
+    try {
+        // Use event.preview.kind to determine how to display the data
+        if (yourConfirmLogic('Sign this data?')) {
+            await kit.approveSignDataRequest(event);
+        } else {
+            await kit.rejectSignDataRequest(event, 'User rejected');
+        }
+    } catch (error) {
+        console.error('Sign data request failed:', error);
+        await kit.rejectSignDataRequest(event, 'Error processing request');
     }
-  } catch (error) {
-    console.error('Sign data request failed:', error);
-    await kit.rejectSignDataRequest(sd, 'Error processing request');
-  }
 });
 
 // Disconnect events - triggered when a dApp disconnects
-kit.onDisconnect((evt) => {
-  // Clean up any UI state related to this connection
-  console.log(`Disconnected from wallet: ${evt.walletAddress}`);
+kit.onDisconnect((event: DisconnectionEvent) => {
+    // Clean up any UI state related to this connection
+    console.log(`Disconnected from wallet: ${event.walletAddress}`);
 });
 ```
+
 
 ### Handle TON Connect links
 
@@ -179,22 +195,23 @@ When users scan a QR code or click a deep link from a dApp, pass the TON Connect
 ```ts
 // Example: from a QR scanner, deep link, or URL parameter
 async function onTonConnectLink(url: string) {
-  // url format: tc://connect?...
-  await kit.handleTonConnectUrl(url);
+    // url format: tc://connect?...
+    await kit.handleTonConnectUrl(url);
 }
 ```
 
 ### Basic wallet operations
 
 ```ts
-// Get wallet instance (getSelectedWalletAddress is your own logic)
-const address = getSelectedWalletAddress();
-const current = kit.getWallet(address);
-if (!current) return;
-
+const selectedWalletId = getSelectedWalletId();
+const wallet = kit.getWallet(selectedWalletId);
+if (!wallet) {
+    console.error('Selected wallet not found');
+    return;
+}
 // Query balance
-const balance = await current.getBalance();
-console.log(address, balance.toString());
+const balance = await wallet.getBalance();
+console.log('WalletBalance', wallet.getAddress(), balance.toString());
 ```
 
 ### Rendering previews (reference)

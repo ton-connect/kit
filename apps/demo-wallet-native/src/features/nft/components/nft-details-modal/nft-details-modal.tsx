@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
-import { formatAddress, useNfts } from '@ton/demo-core';
+import { formatAddress, useNfts } from '@demo/wallet-core';
 import * as Clipboard from 'expo-clipboard';
 
 import { getCollectionName, getNftDescription, getNftImage, getNftName, getCollectionDescription } from '../../utils';

@@ -7,7 +7,7 @@
  */
 
 import type { NFT } from '@ton/walletkit';
-import { formatAddress } from '@ton/demo-core';
+import { formatAddress } from '@demo/wallet-core';
 import { memo } from 'react';
 import type { FC } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';

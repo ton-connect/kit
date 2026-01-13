@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Base64Normalize, Network } from '@ton/walletkit';
 import type { TransactionMessage } from '@ton/walletkit';
-import { useWalletKit, useWalletStore } from '@ton/demo-core';
+import { useWalletKit, useWalletStore } from '@demo/wallet-core';
 
 interface TransactionDetailData {
     hash: string;
@@ -80,10 +80,6 @@ export const TransactionDetail: React.FC = () => {
                     setError('WalletKit not initialized');
                     setIsLoading(false);
                     return;
-                }
-
-                while (!walletKit?.isReady()) {
-                    await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
                 // Use the walletKit's API client to get transaction by hash

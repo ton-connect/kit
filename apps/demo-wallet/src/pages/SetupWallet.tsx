@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, useWallet } from '@ton/demo-core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { Layout, Button, ImportWallet, CreateWallet, LedgerSetup } from '../components';
 import { useTonWallet } from '../hooks';

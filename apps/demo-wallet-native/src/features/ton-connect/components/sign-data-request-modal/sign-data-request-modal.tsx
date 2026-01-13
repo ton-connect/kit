@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View, ScrollView } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet } from '@ton/demo-core';
+import { useWallet } from '@demo/wallet-core';
 
 import { DAppInfo } from '../dapp-info';
 import { SectionTitle } from '../section-title';

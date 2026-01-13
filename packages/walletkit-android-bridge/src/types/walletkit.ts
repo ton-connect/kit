@@ -6,7 +6,7 @@
  *
  */
 
-import type { Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletAdapter, WalletSigner, Network } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -44,7 +44,7 @@ export interface WalletKitInstance {
     getWallet(walletId: string): WalletKitWallet | undefined;
     getNetwork?: () => string;
     removeWallet(walletId: string): Promise<void>;
-    getApiClient(chainId?: string): unknown;
+    getApiClient(network?: Network): unknown;
     addWallet(adapter: unknown): Promise<WalletKitWallet | null>;
     handleNewTransaction(wallet: WalletKitWallet, transaction: unknown): Promise<unknown>;
     handleTonConnectUrl(url: string): Promise<unknown>;

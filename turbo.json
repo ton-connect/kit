@@ -20,7 +20,8 @@
       "dependsOn": ["//#lint", "build"]
     },
     "quality": {
-      "dependsOn": ["verify", "^quality"]
+      "dependsOn": ["verify", "^quality"],
+      "env": ["WALLET_MNEMONIC"]
     },
     "e2e": {
       "dependsOn": ["build", "^e2e"]

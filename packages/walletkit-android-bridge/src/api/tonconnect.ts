@@ -14,7 +14,6 @@
  */
 
 import type { HandleTonConnectUrlArgs, DisconnectSessionArgs, ProcessInternalBrowserRequestArgs } from '../types';
-import { walletKit } from '../core/state';
 import { callBridge } from '../utils/bridgeWrapper';
 import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
 
@@ -22,8 +21,8 @@ import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolv
  * Handles TonConnect URLs from deep links or QR codes.
  */
 export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
-    return callBridge('handleTonConnectUrl', async () => {
-        return await walletKit.handleTonConnectUrl(args.url);
+    return callBridge('handleTonConnectUrl', async (kit) => {
+        return await kit.handleTonConnectUrl(args.url);
     });
 }
 
@@ -32,8 +31,8 @@ export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
  * Session transformation handled by Kotlin SessionResponseParser.
  */
 export async function listSessions() {
-    return callBridge('listSessions', async () => {
-        const fetchedSessions = await walletKit.listSessions();
+    return callBridge('listSessions', async (kit) => {
+        const fetchedSessions = await kit.listSessions();
         const sessions = Array.isArray(fetchedSessions) ? fetchedSessions : [];
         return { items: sessions };
     });
@@ -43,8 +42,8 @@ export async function listSessions() {
  * Disconnects a TonConnect session.
  */
 export async function disconnectSession(args?: DisconnectSessionArgs) {
-    return callBridge('disconnectSession', async () => {
-        await walletKit.disconnect(args?.sessionId);
+    return callBridge('disconnectSession', async (kit) => {
+        await kit.disconnect(args?.sessionId);
         return { ok: true };
     });
 }
@@ -54,7 +53,7 @@ export async function disconnectSession(args?: DisconnectSessionArgs) {
  * Domain resolution and request preparation handled by Kotlin InternalBrowserRequestProcessor.
  */
 export async function processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs) {
-    return callBridge('processInternalBrowserRequest', async () => {
+    return callBridge('processInternalBrowserRequest', async (kit) => {
         // Extract origin (with scheme) from URL - SessionManager.getSessionByDomain expects a parseable URL
         const domain = args.url ? new URL(args.url).origin : 'internal-browser';
 
@@ -70,7 +69,7 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
             params: args.params,
         };
 
-        await walletKit.processInjectedBridgeRequest(messageInfo, request);
+        await kit.processInjectedBridgeRequest(messageInfo, request);
 
         // Wait for response from jsBridgeTransport (via initialization.ts)
         return new Promise<unknown>((resolve, reject) => {

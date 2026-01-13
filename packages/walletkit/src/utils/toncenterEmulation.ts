@@ -24,6 +24,7 @@ import { Result, SendModeToValue, AssetType } from '../api/models';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
 import { KitGlobalOptions } from '../core/KitGlobalOptions';
+import type { ApiClient } from '../types/toncenter/ApiClient';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -46,8 +47,8 @@ export type ToncenterEmulationResult =
       };
 
 const TON_PROXY_ADDRESSES = [
-    '0:8CDC1D7640AD5EE326527FC1AD0514F468B30DC84B0173F0E155F451B4E11F7C',
-    '0:671963027F7F85659AB55B821671688601CDCF1EE674FC7FBBB1A776A18D34A3',
+    'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez',
+    'EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S',
 ];
 
 /**
@@ -88,32 +89,6 @@ export class FetchToncenterEmulationError extends Error {
         this.name = 'fetchToncenterEmulationError';
         this.response = response;
     }
-}
-
-/**
- * Fetches toncenter emulation result
- */
-export async function fetchToncenterEmulation(message: ToncenterMessage): Promise<ToncenterEmulationResult> {
-    const response = await fetch('https://toncenter.com/api/emulate/v1/emulateTonConnect', message);
-    if (!response.ok) {
-        try {
-            const errorMessage = await response.json();
-            if (errorMessage.error === 'Failed to fetch account state: Account not found in accounts_dict') {
-                return {
-                    result: 'error',
-                    emulationError: {
-                        code: ERROR_CODES.ACCOUNT_NOT_FOUND,
-                        message: 'Account not found',
-                    },
-                };
-            }
-        } catch (_) {
-            throw new FetchToncenterEmulationError('Failed to fetch toncenter emulation result', response);
-        }
-        throw new FetchToncenterEmulationError('Failed to fetch toncenter emulation result', response);
-    }
-    const result = (await response.json()) as ToncenterEmulationResponse;
-    return { result: 'success', emulationResult: result };
 }
 
 /**
@@ -260,14 +235,25 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
  * Creates a transaction preview by emulating the transaction
  */
 export async function createTransactionPreview(
+    client: ApiClient,
     request: TransactionRequest,
     wallet?: Wallet,
 ): Promise<TransactionEmulatedPreview> {
-    const message = await createToncenterMessage(wallet?.getAddress(), request.messages);
+    const txData = await wallet?.getSignedSendTransaction(request, { fakeSignature: true });
+
+    if (!txData) {
+        return {
+            result: Result.failure,
+            error: {
+                code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                message: 'Unknown emulation error',
+            },
+        };
+    }
 
     let emulationResult: ToncenterEmulationResponse;
     try {
-        const emulatedResult = await CallForSuccess(() => fetchToncenterEmulation(message));
+        const emulatedResult = await CallForSuccess(() => client.fetchEmulation(txData, true));
         if (emulatedResult.result === 'success') {
             emulationResult = emulatedResult.emulationResult;
         } else {

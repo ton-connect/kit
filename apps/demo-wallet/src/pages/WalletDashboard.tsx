@@ -8,7 +8,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@ton/demo-core';
+import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/wallet-core';
 
 import {
     Layout,
@@ -339,6 +339,7 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingConnectRequest}
                     availableWallets={getAvailableWallets()}
                     savedWallets={savedWallets}
+                    currentWallet={getAvailableWallets().find((w) => w.getWalletId() === activeWalletId)}
                     isOpen={isConnectModalOpen}
                     onApprove={approveConnectRequest}
                     onReject={rejectConnectRequest}

@@ -20,6 +20,7 @@ export { scanLedgerDevices, connectToLedgerDevice, disconnectLedgerDevice } from
 export { createBLELedgerTransportFactory } from './utils/create-ble-transport-factory';
 export type { LedgerDeviceStorage } from './utils/create-ble-transport-factory';
 export { getLedgerErrorMessage } from './utils/get-ledger-error-message';
+export { ledgerDeviceStorage } from './storage/device';
 
 // Components
 export { DeviceList, DeviceListItem, ScanningIndicator, LedgerInstructions, LedgerSettings } from './components';
