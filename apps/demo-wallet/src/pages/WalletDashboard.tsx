@@ -64,6 +64,7 @@ export const WalletDashboard: React.FC = () => {
         useSignDataRequests();
     const { error } = useTonWallet();
 
+    /* eslint-disable no-console */
     console.log('----------------------------------------');
     console.log('pendingSignDataRequest', pendingSignDataRequest);
     console.log('isSignDataModalOpen', isSignDataModalOpen);
