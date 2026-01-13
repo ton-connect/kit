@@ -86,7 +86,7 @@ jobs:
       run: |
         pnpm build
         cd apps/demo-wallet
-        xvfb-run pnpm e2e -- signData.spec.ts
+        xvfb-run pnpm e2e
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
         # VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
