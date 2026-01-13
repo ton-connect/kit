@@ -42,7 +42,6 @@ import { uuidv7 } from '../utils/uuid';
 import { getUnixtime } from '../utils/time';
 import { getEventsSubsystem, getVersion } from '../utils/version';
 import { Base64Normalize, Base64ToHex, HexToBase64 } from '../utils/base64';
-import { getAddressFromWalletId } from '../utils/walletId';
 import type {
     TransactionRequest,
     SignDataPayload,
@@ -89,7 +88,7 @@ export class RequestProcessor {
             return event.walletAddress;
         }
         if (event.walletId) {
-            return getAddressFromWalletId(event.walletId);
+            return this.walletManager.getWallet(event.walletId)?.getAddress();
         }
         return undefined;
     }

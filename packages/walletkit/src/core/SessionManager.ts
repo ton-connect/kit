@@ -64,6 +64,7 @@ export class SessionManager {
             dAppName,
             domain,
             walletId,
+            walletAddress: wallet?.getAddress() ?? '',
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
@@ -87,6 +88,7 @@ export class SessionManager {
             sessionId: session.sessionId,
             dAppName: session.dAppName,
             walletId: session.walletId,
+            walletAddress: session.walletAddress,
             privateKey: session.privateKey,
             publicKey: session.publicKey,
             createdAt: session.createdAt,
@@ -110,6 +112,7 @@ export class SessionManager {
                 sessionId: session.sessionId,
                 dAppName: session.dAppName,
                 walletId: session.walletId,
+                walletAddress: session.walletAddress,
                 privateKey: session.privateKey,
                 publicKey: session.publicKey,
                 createdAt: session.createdAt,
@@ -259,6 +262,7 @@ export class SessionManager {
             sessionId: session.sessionId,
             dAppName: session.dAppName,
             walletId: session.walletId,
+            walletAddress: session.walletAddress,
             dAppUrl: session.domain,
             dAppIconUrl: session.dAppIconUrl,
         }));
@@ -273,6 +277,16 @@ export class SessionManager {
 
             if (sessionData && Array.isArray(sessionData)) {
                 for (const session of sessionData) {
+                    if (session.walletId && !session.walletAddress) {
+                        const wallet = this.walletManager.getWallet(session.walletId);
+                        if (wallet) {
+                            session.walletAddress = wallet.getAddress();
+                        } else {
+                            log.warn('Wallet not found for session', { sessionId: session.sessionId });
+                            this.removeSession(session.sessionId);
+                            return this.loadSessions();
+                        }
+                    }
                     this.sessions.set(session.sessionId, {
                         ...session,
                     });
@@ -295,6 +309,7 @@ export class SessionManager {
                 dAppName: session.dAppName,
                 domain: session.domain,
                 walletId: session.walletId,
+                walletAddress: session.walletAddress,
                 createdAt: session.createdAt,
                 lastActivityAt: session.lastActivityAt,
                 privateKey: session.privateKey,

@@ -46,13 +46,7 @@ export { Storage } from './storage/Storage';
 export type { ApiClient } from './types/toncenter/ApiClient';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
-export {
-    createWalletId,
-    parseWalletId,
-    getAddressFromWalletId,
-    getNetworkFromWalletId,
-    isWalletId,
-} from './utils/walletId';
+export { createWalletId } from './utils/walletId';
 export type { WalletId } from './utils/walletId';
 export {
     Base64Normalize,

@@ -35,6 +35,7 @@ export interface SessionData {
     sessionId: string;
 
     walletId: WalletId;
+    walletAddress: UserFriendlyAddress;
     createdAt: string; // date
     lastActivityAt: string; // date
     privateKey: string;
