@@ -153,10 +153,6 @@ export class WalletV4R2Adapter implements WalletAdapter {
             //
         }
 
-        const timeout = input.validUntil
-            ? Math.min(input.validUntil, Math.floor(Date.now() / 1000) + 600)
-            : Math.floor(Date.now() / 1000) + 60;
-
         try {
             const messages: MessageRelaxed[] = input.messages.map((m) => {
                 let bounce = true;
@@ -176,11 +172,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
                     init: m.stateInit ? loadStateInit(Cell.fromBase64(m.stateInit).asSlice()) : undefined,
                 });
             });
-            const data = this.walletContract.createTransfer({
+            const data = await this.walletContract.createTransfer({
                 seqno: seqno,
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
                 messages,
-                timeout: timeout,
+                timeout: input.validUntil,
             });
 
             const signature = await this.sign(Uint8Array.from(data.hash()));

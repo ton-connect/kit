@@ -11,6 +11,7 @@ import type { SendTransactionRpcResponseError, WalletResponseTemplateError } fro
 import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { ValidationResult } from '../types';
+import { isBefore } from '../utils/time';
 import { toTransactionRequest } from '../types/internal';
 import type {
     RawBridgeEvent,
@@ -88,7 +89,7 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
 
-        const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
+        const requestValidation = await this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
             log.error('Failed to parse transaction request', { event, requestValidation });
             this.eventEmitter.emit('event:error', event);
@@ -158,14 +159,13 @@ export class TransactionHandler
     /**
      * Parse raw transaction request from bridge event
      */
-
-    private parseTonConnectTransactionRequest(
+    private async parseTonConnectTransactionRequest(
         event: RawBridgeEventTransaction,
         wallet: Wallet,
-    ): {
+    ): Promise<{
         result: TransactionRequest | undefined;
         validation: ValidationResult;
-    } {
+    }> {
         let errors: string[] = [];
         try {
             if (event.params.length !== 1) {
@@ -178,7 +178,7 @@ export class TransactionHandler
             }
             const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
 
-            const validUntilValidation = this.validateValidUntil(params.valid_until);
+            const validUntilValidation = await this.validateValidUntil(params.valid_until);
             if (!validUntilValidation.isValid) {
                 errors = errors.concat(validUntilValidation.errors);
             } else {
@@ -222,8 +222,7 @@ export class TransactionHandler
     /**
      * Parse network from various possible formats
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<CHAIN | undefined> {
+    private validateNetwork(network: unknown, wallet: Wallet): ReturnWithValidationResult<CHAIN | undefined> {
         let errors: string[] = [];
         if (typeof network === 'string') {
             if (network === '-3' || network === '-239') {
@@ -270,19 +269,18 @@ export class TransactionHandler
     /**
      * Parse validUntil timestamp
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateValidUntil(validUntil: any): ReturnWithValidationResult<number> {
+    private async validateValidUntil(validUntil: unknown): Promise<ReturnWithValidationResult<number>> {
         let errors: string[] = [];
         if (typeof validUntil === 'undefined') {
             return { result: 0, isValid: errors.length === 0, errors: errors };
         }
+
         if (typeof validUntil !== 'number' || isNaN(validUntil)) {
             errors.push('Invalid validUntil timestamp not a number');
             return { result: 0, isValid: errors.length === 0, errors: errors };
         }
 
-        const now = Math.floor(Date.now() / 1000);
-        if (validUntil < now) {
+        if (await isBefore(validUntil)) {
             errors.push('Invalid validUntil timestamp');
             return { result: 0, isValid: errors.length === 0, errors: errors };
         }

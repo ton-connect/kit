@@ -23,6 +23,8 @@ import type {
     Base64String,
 } from '../../../api/models';
 import type { Wallet, WalletTonInterface } from '../../../api/interfaces';
+import { KitGlobalOptions } from '../../KitGlobalOptions';
+import { isBefore } from '../../../utils/time';
 
 const log = globalLogger.createChild('WalletTonClass');
 
@@ -117,6 +119,15 @@ export class WalletTonClass implements WalletTonInterface {
 
     async sendTransaction(this: Wallet, request: TransactionRequest): Promise<SendTransactionResponse> {
         try {
+            if (request.validUntil !== undefined && (await isBefore(request.validUntil))) {
+                throw new WalletKitError(
+                    ERROR_CODES.INVALID_REQUEST_EVENT,
+                    'Transaction validUntil has expired',
+                    undefined,
+                    { validUntil: request.validUntil, currentTime: await KitGlobalOptions.getCurrentTime() },
+                );
+            }
+
             const boc = await this.getSignedSendTransaction(request);
 
             await CallForSuccess(() => this.getClient().sendBoc(boc));

@@ -23,6 +23,7 @@ import type {
 import { Result, SendModeToValue, AssetType } from '../api/models';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 import type { ApiClient } from '../types/toncenter/ApiClient';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
@@ -53,10 +54,10 @@ const TON_PROXY_ADDRESSES = [
 /**
  * Creates a toncenter message payload for emulation
  */
-export function createToncenterMessage(
+export async function createToncenterMessage(
     walletAddress: string | undefined,
     messages: TransactionRequest['messages'],
-): ToncenterMessage {
+): Promise<ToncenterMessage> {
     return {
         method: 'POST',
         headers: {
@@ -64,7 +65,7 @@ export function createToncenterMessage(
         },
         body: JSON.stringify({
             from: walletAddress,
-            valid_until: Math.floor(Date.now() / 1000) + 60,
+            valid_until: (await KitGlobalOptions.getCurrentTime()) + 60,
             include_code_data: true,
             include_address_book: true,
             include_metadata: true,

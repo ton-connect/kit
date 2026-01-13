@@ -8,6 +8,7 @@
 
 import { Cell } from '@ton/core';
 
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 import type { ValidationResult } from './types';
 import { validateTonAddress } from './address';
 import { isFriendlyTonAddress } from '../utils/address';
@@ -147,8 +148,11 @@ export function validateMessageObject(message: any): ValidationResult {
 /**
  * Validate transaction request structure
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionRequest(request: any, isTonConnect: boolean = true): ValidationResult {
+export async function validateTransactionRequest(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    request: any,
+    isTonConnect: boolean = true,
+): Promise<ValidationResult> {
     const errors: string[] = [];
 
     if (!request || typeof request !== 'object') {
@@ -173,7 +177,7 @@ export function validateTransactionRequest(request: any, isTonConnect: boolean =
     if (request.validUntil) {
         if (typeof request.validUntil !== 'number') {
             errors.push('validUntil must be a number');
-        } else if (request.validUntil <= Math.floor(Date.now() / 1000)) {
+        } else if (request.validUntil <= (await KitGlobalOptions.getCurrentTime())) {
             errors.push('validUntil must be a future timestamp');
         }
     }

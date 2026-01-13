@@ -61,6 +61,7 @@ import type {
     SignDataApprovalResponse,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
+import { KitGlobalOptions } from './KitGlobalOptions';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -528,7 +529,7 @@ export class TonWalletKit implements ITonWalletKit {
     async handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void> {
         await this.ensureInitialized();
 
-        data.validUntil ??= Math.floor(Date.now() / 1000) + 300;
+        data.validUntil ??= (await KitGlobalOptions.getCurrentTime()) + 300;
         data.network ??= wallet.getNetwork();
 
         const walletId = wallet.getWalletId();

@@ -27,7 +27,9 @@ import {
 } from '@tonconnect/protocol';
 import { getSecureRandomBytes } from '@ton/crypto';
 
+import { KitGlobalOptions } from '../core/KitGlobalOptions';
 import type { EventSignDataApproval, TonWalletKitOptions } from '../types';
+import { isBefore } from '../utils/time';
 import type { SessionManager } from './SessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -777,6 +779,7 @@ export class RequestProcessor {
                 { eventId: event.id },
             );
         }
+
         const wallet = this.getWalletFromEvent(event);
         if (!wallet) {
             throw new WalletKitError(
@@ -788,16 +791,13 @@ export class RequestProcessor {
         }
 
         const validUntil = event.request.validUntil;
-        if (validUntil) {
-            const now = Math.floor(Date.now() / 1000);
-            if (validUntil < now) {
-                throw new WalletKitError(
-                    ERROR_CODES.VALIDATION_ERROR,
-                    'Transaction valid_until timestamp is in the past',
-                    undefined,
-                    { validUntil, currentTime: now },
-                );
-            }
+        if (validUntil && (await isBefore(validUntil))) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                'Transaction expired: valid_until timestamp is in the past',
+                undefined,
+                { validUntil, currentTime: await KitGlobalOptions.getCurrentTime() },
+            );
         }
 
         return await signTransactionInternal(wallet, event.request);

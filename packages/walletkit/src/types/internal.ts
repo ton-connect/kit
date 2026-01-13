@@ -14,7 +14,6 @@ import type {
     SignDataRpcRequest,
     WalletResponseTemplateError,
 } from '@tonconnect/protocol';
-import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
 import type { WalletId } from '../utils/walletId';
@@ -28,8 +27,6 @@ import type {
 } from '../api/models';
 import { SendModeFromValue, SendModeToValue } from '../api/models';
 import { asAddressFriendly } from '../utils/address';
-
-// import type { WalletInterface } from './wallet';
 
 export interface SessionData {
     sessionId: string;

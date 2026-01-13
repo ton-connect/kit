@@ -35,6 +35,7 @@ import type {
     Hex,
     Base64String,
 } from '../../api/models';
+import { KitGlobalOptions } from '../../core/KitGlobalOptions';
 import type { Feature } from '../../types/jsBridge';
 
 const log = globalLogger.createChild('WalletV5R1Adapter');
@@ -205,9 +206,10 @@ export class WalletV5R1Adapter implements WalletAdapter {
             ...options,
             validUntil: undefined,
         };
-        // add valid untill
+
+        // add validUntil
         if (input.validUntil) {
-            const now = Math.floor(Date.now() / 1000);
+            const now = await KitGlobalOptions.getCurrentTime();
             const maxValidUntil = now + 600;
             if (input.validUntil < now) {
                 throw new WalletKitError(
@@ -315,7 +317,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             auth_signed: 0x7369676e,
         };
 
-        const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
+        const expireAt = options.validUntil ?? (await KitGlobalOptions.getCurrentTime()) + 300;
         const payload = beginCell()
             .storeUint(Opcodes.auth_signed, 32)
             .storeUint(walletId, 32)
