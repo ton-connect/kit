@@ -45,6 +45,9 @@ export interface ITonWalletKit {
 
     isReady(): boolean;
 
+    /** Ensure initialization is complete */
+    ensureInitialized(): Promise<void>;
+
     // === Wallet Management ===
 
     /** Get all registered wallets */

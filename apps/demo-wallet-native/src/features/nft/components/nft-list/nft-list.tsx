@@ -6,7 +6,7 @@
  *
  */
 
-import { useNfts, useWallet } from '@ton/demo-core';
+import { useNfts, useWallet } from '@demo/wallet-core';
 import type { NFT } from '@ton/walletkit';
 import { useCallback, useEffect, useState } from 'react';
 import type { FC } from 'react';

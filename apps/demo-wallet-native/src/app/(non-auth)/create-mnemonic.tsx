@@ -12,7 +12,7 @@ import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { CreateTonMnemonic } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { useWallet } from '@ton/demo-core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppText } from '@/core/components/app-text';
@@ -35,6 +35,7 @@ const CreateMnemonicScreen: FC = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const { createWallet } = useWallet();
+    const { setUseWalletInterfaceType } = useAuth();
 
     const { theme } = useUnistyles();
 
@@ -55,6 +56,7 @@ const CreateMnemonicScreen: FC = () => {
     const handleContinue = async () => {
         try {
             setIsLoading(true);
+            setUseWalletInterfaceType('mnemonic');
             await createWallet(mnemonic, undefined, undefined, network);
             router.replace('/(auth)/(tabs)/wallet');
         } catch (err) {

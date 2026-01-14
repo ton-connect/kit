@@ -10,7 +10,7 @@ import { Address } from '@ton/core';
 import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
 import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
-import type { ValidationResult, TonWalletKitOptions } from '../types';
+import type { ValidationResult } from '../types';
 import { toTransactionRequest } from '../types/internal';
 import type {
     RawBridgeEvent,
@@ -28,15 +28,11 @@ import type { EventEmitter } from '../core/EventEmitter';
 import type { WalletManager } from '../core/WalletManager';
 import type { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import type { AnalyticsApi } from '../analytics/sender';
-import { getEventsSubsystem, getVersion } from '../utils/version';
-import { uuidv7 } from '../utils/uuid';
-import { getUnixtime } from '../utils/time';
-import { Base64Normalize } from '../utils/base64';
-import { getAddressFromWalletId } from '../utils/walletId';
 import type { Wallet } from '../api/interfaces';
 import type { TransactionEmulatedPreview, TransactionRequest, TransactionRequestEvent } from '../api/models';
 import { Result } from '../api/models';
+import type { Analytics, AnalyticsManager } from '../analytics';
+import type { SessionManager } from '../core/SessionManager';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -45,20 +41,19 @@ export class TransactionHandler
     implements EventHandler<TransactionRequestEvent, RawBridgeEventTransaction>
 {
     private eventEmitter: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
-    private walletKitConfig: TonWalletKitOptions;
+    private analytics?: Analytics;
 
     constructor(
         notify: (event: TransactionRequestEvent) => void,
         eventEmitter: EventEmitter,
-        walletKitConfig: TonWalletKitOptions,
         private readonly walletManager: WalletManager,
-        analyticsApi?: AnalyticsApi,
+        private readonly sessionManager: SessionManager,
+        analyticsManager?: AnalyticsManager,
     ) {
         super(notify);
         this.eventEmitter = eventEmitter;
-        this.analyticsApi = analyticsApi;
-        this.walletKitConfig = walletKitConfig;
+        this.sessionManager = sessionManager;
+        this.analytics = analyticsManager?.scoped();
     }
     canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
         return event.method === 'sendTransaction';
@@ -67,7 +62,7 @@ export class TransactionHandler
     async handle(event: RawBridgeEventTransaction): Promise<TransactionRequestEvent | WalletResponseTemplateError> {
         // Support both walletId (new) and walletAddress (legacy)
         const walletId = event.walletId;
-        const walletAddress = event.walletAddress ?? (walletId ? getAddressFromWalletId(walletId) : undefined);
+        const walletAddress = event.walletAddress;
 
         if (!walletId && !walletAddress) {
             log.error('Wallet ID not found', { event });
@@ -110,7 +105,7 @@ export class TransactionHandler
 
         let preview: TransactionEmulatedPreview;
         try {
-            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
+            preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
             // Emit emulation result event for jetton caching and other components
             if (preview.result === Result.success && preview.trace) {
                 try {
@@ -142,28 +137,20 @@ export class TransactionHandler
             walletAddress: walletAddress ?? wallet.getAddress(),
         };
 
-        // Send wallet-transaction-request-received event
-        this.analyticsApi?.sendEvents([
-            {
-                event_name: 'wallet-transaction-request-received',
-                trace_id: event.traceId ?? uuidv7(),
-                client_environment: 'wallet',
-                subsystem: getEventsSubsystem(),
-                client_id: event.from,
+        if (this.analytics) {
+            const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
 
-                client_timestamp: getUnixtime(),
+            this.analytics?.emitWalletTransactionRequestReceived({
+                trace_id: event.traceId,
+                client_id: event.from,
+                wallet_id: sessionData?.publicKey,
+
                 dapp_name: event.dAppInfo?.name,
-                version: getVersion(),
                 network_id: wallet.getNetwork().chainId,
-                wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
-                wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
-                event_id: uuidv7(),
                 // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
-
-                wallet_id: Base64Normalize(walletAddress ?? wallet.getAddress()),
-            },
-        ]);
+            });
+        }
 
         return txEvent;
     }

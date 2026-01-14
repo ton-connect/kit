@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { Base64NormalizeUrl, Network } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
-import { useWalletKit, useWalletStore } from '@ton/demo-core';
+import { useWalletKit, useWalletStore } from '@demo/wallet-core';
 
 import { log } from '@/utils/logger';
 

@@ -21,7 +21,6 @@ import type { EventRouter } from './EventRouter';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
 import type { WalletId } from '../utils/walletId';
-import { getAddressFromWalletId } from '../utils/walletId';
 
 const log = globalLogger.createChild('EventProcessor');
 
@@ -38,6 +37,7 @@ export class StorageEventProcessor implements IEventProcessor {
     private sessionManager: SessionManager;
     private eventRouter: EventRouter;
     private eventEmitter: EventEmitter;
+    private walletManager: WalletManager;
 
     // Single global processing loop state
     private isProcessing: boolean = false;
@@ -56,7 +56,7 @@ export class StorageEventProcessor implements IEventProcessor {
         processorConfig: EventProcessorConfig = {},
         eventStore: EventStore,
         config: DurableEventsConfig,
-        _walletManager: WalletManager,
+        walletManager: WalletManager,
         sessionManager: SessionManager,
         eventRouter: EventRouter,
         eventEmitter: EventEmitter,
@@ -68,6 +68,7 @@ export class StorageEventProcessor implements IEventProcessor {
         this.sessionManager = sessionManager;
         this.eventRouter = eventRouter;
         this.eventEmitter = eventEmitter;
+        this.walletManager = walletManager;
 
         if (this.processorConfig.disableEvents) {
             return;
@@ -322,9 +323,16 @@ export class StorageEventProcessor implements IEventProcessor {
 
         // Process the event through EventRouter
         try {
+            let wallet;
+            let walletAddress;
+            if (walletId) {
+                wallet = this.walletManager.getWallet(walletId);
+                walletAddress = wallet?.getAddress();
+            }
             await this.eventRouter.routeEvent({
                 ...event.rawEvent,
-                ...(walletId ? { walletId, walletAddress: getAddressFromWalletId(walletId) } : {}),
+                ...(walletId ? { walletId } : {}),
+                ...(walletAddress ? { walletAddress } : {}),
             });
 
             // Mark as completed

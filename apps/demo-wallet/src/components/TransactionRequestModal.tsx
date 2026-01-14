@@ -10,8 +10,8 @@ import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Network } from '@ton/walletkit';
 import type { JettonInfo, TransactionRequestEvent, TransactionTraceMoneyFlowItem } from '@ton/walletkit';
 import { Address } from '@ton/core';
-import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@ton/demo-core';
-import type { SavedWallet } from '@ton/demo-core';
+import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@demo/wallet-core';
+import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';

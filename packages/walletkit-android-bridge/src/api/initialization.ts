@@ -15,7 +15,6 @@
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
 import { ensureWalletKitLoaded } from '../core/moduleLoader';
 import { initTonWalletKit, requireWalletKit } from '../core/initialization';
-import { walletKit } from '../core/state';
 import { emit } from '../transport/messaging';
 import { postToNative } from '../transport/nativeBridge';
 import { eventListeners } from './eventListeners';
@@ -38,7 +37,7 @@ export async function init(config?: WalletKitBridgeInitConfig) {
  * Registers bridge event listeners, proxying WalletKit events to the native layer.
  */
 export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } {
-    requireWalletKit();
+    const kit = requireWalletKit();
 
     const callback: WalletKitBridgeEventCallback =
         args?.callback ??
@@ -47,55 +46,55 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         });
 
     if (eventListeners.onConnectListener) {
-        walletKit.removeConnectRequestCallback();
+        kit.removeConnectRequestCallback();
     }
 
     eventListeners.onConnectListener = (event: unknown) => {
         callback('connectRequest', event);
     };
 
-    walletKit.onConnectRequest(eventListeners.onConnectListener);
+    kit.onConnectRequest(eventListeners.onConnectListener);
 
     if (eventListeners.onTransactionListener) {
-        walletKit.removeTransactionRequestCallback();
+        kit.removeTransactionRequestCallback();
     }
 
     eventListeners.onTransactionListener = (event: unknown) => {
         callback('transactionRequest', event);
     };
 
-    walletKit.onTransactionRequest(eventListeners.onTransactionListener);
+    kit.onTransactionRequest(eventListeners.onTransactionListener);
 
     if (eventListeners.onSignDataListener) {
-        walletKit.removeSignDataRequestCallback();
+        kit.removeSignDataRequestCallback();
     }
 
     eventListeners.onSignDataListener = (event: unknown) => {
         callback('signDataRequest', event);
     };
 
-    walletKit.onSignDataRequest(eventListeners.onSignDataListener);
+    kit.onSignDataRequest(eventListeners.onSignDataListener);
 
     if (eventListeners.onDisconnectListener) {
-        walletKit.removeDisconnectCallback();
+        kit.removeDisconnectCallback();
     }
 
     eventListeners.onDisconnectListener = (event: unknown) => {
         callback('disconnect', event);
     };
 
-    walletKit.onDisconnect(eventListeners.onDisconnectListener);
+    kit.onDisconnect(eventListeners.onDisconnectListener);
 
     // Register error listener - forwards EventRequestError directly
     if (eventListeners.onErrorListener) {
-        walletKit.removeErrorCallback();
+        kit.removeErrorCallback();
     }
 
     eventListeners.onErrorListener = (event: unknown) => {
         callback('requestError', event);
     };
 
-    walletKit.onRequestError(eventListeners.onErrorListener);
+    kit.onRequestError(eventListeners.onErrorListener);
 
     return { ok: true };
 }
@@ -104,30 +103,30 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
  * Removes all previously registered bridge event listeners.
  */
 export function removeEventListeners(): { ok: true } {
-    requireWalletKit();
+    const kit = requireWalletKit();
 
     if (eventListeners.onConnectListener) {
-        walletKit.removeConnectRequestCallback();
+        kit.removeConnectRequestCallback();
         eventListeners.onConnectListener = null;
     }
 
     if (eventListeners.onTransactionListener) {
-        walletKit.removeTransactionRequestCallback();
+        kit.removeTransactionRequestCallback();
         eventListeners.onTransactionListener = null;
     }
 
     if (eventListeners.onSignDataListener) {
-        walletKit.removeSignDataRequestCallback();
+        kit.removeSignDataRequestCallback();
         eventListeners.onSignDataListener = null;
     }
 
     if (eventListeners.onDisconnectListener) {
-        walletKit.removeDisconnectCallback();
+        kit.removeDisconnectCallback();
         eventListeners.onDisconnectListener = null;
     }
 
     if (eventListeners.onErrorListener) {
-        walletKit.removeErrorCallback();
+        kit.removeErrorCallback();
         eventListeners.onErrorListener = null;
     }
 

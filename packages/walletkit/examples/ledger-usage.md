@@ -1,8 +1,8 @@
 # Ledger Wallet Integration Example
 
-This document shows how to use the WalletV4R2LedgerAdapter with the `@ton/v4ledger-adapter` package.
+This document shows how to use the WalletV4R2LedgerAdapter with the `@demo/v4ledger-adapter` package.
 
-> **Note:** `@ton/v4ledger-adapter` isn’t published as a prebuilt package. It is provided for demonstration only — you’ll need to build it yourself before use.
+> **Note:** `@demo/v4ledger-adapter` isn’t published as a prebuilt package. It is provided for demonstration only — you’ll need to build it yourself before use.
 
 ## Installation
 
@@ -19,7 +19,7 @@ npm install @ledgerhq/hw-transport-webusb
 
 ```typescript
 import { ApiClientToncenter, Network, wrapWalletInterface } from '@ton/walletkit';
-import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@ton/v4ledger-adapter';
+import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@demo/v4ledger-adapter';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 
 async function setupLedgerWallet() {
@@ -58,7 +58,7 @@ async function setupLedgerWallet() {
 
 ```typescript
 import { TonWalletKit, Network } from '@ton/walletkit';
-import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@ton/v4ledger-adapter';
+import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@demo/v4ledger-adapter';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 
 async function addLedgerWallet(walletKit: TonWalletKit) {

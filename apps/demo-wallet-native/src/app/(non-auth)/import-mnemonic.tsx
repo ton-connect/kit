@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
-import { useWallet } from '@ton/demo-core';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
 import { AppInput } from '@/core/components/app-input';
@@ -34,6 +34,7 @@ const ImportMnemonicScreen: FC = () => {
     const [, setError] = useState('');
 
     const { importWallet } = useWallet();
+    const { setUseWalletInterfaceType } = useAuth();
 
     const handleImport = async () => {
         if (!mnemonic.trim()) {
@@ -44,6 +45,7 @@ const ImportMnemonicScreen: FC = () => {
         try {
             setIsLoading(true);
             setError('');
+            setUseWalletInterfaceType('mnemonic');
             const words = mnemonic.trim().toLowerCase().split(regexp).filter(Boolean);
             await importWallet(words, undefined, undefined, network);
             router.replace('/(auth)/(tabs)/wallet');

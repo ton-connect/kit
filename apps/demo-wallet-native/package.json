@@ -20,8 +20,8 @@
     "@ton-community/ton-ledger": "7.3.0",
     "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0",
-    "@ton/demo-core": "workspace:*",
-    "@ton/v4ledger-adapter": "workspace:*",
+    "@demo/wallet-core": "workspace:*",
+    "@demo/v4ledger-adapter": "workspace:*",
     "@ton/ton": "16.0.0",
     "@ton/walletkit": "workspace:*",
     "axios": "1.13.1",
@@ -63,6 +63,7 @@
     "react-native-url-polyfill": "3.0.0",
     "react-native-worklets": "0.5.1",
     "readable-stream": "4.7.0",
+    "uuid": "^13.0.0",
     "zod": "4.1.12",
     "zustand": "5.0.8"
   },

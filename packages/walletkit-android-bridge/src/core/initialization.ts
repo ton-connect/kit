@@ -179,11 +179,13 @@ export async function initTonWalletKit(
 
 /**
  * Ensures WalletKit has been initialized before performing an operation.
+ * Returns the initialized WalletKit instance for type-safe usage.
  *
  * @throws If WalletKit is not yet ready.
  */
-export function requireWalletKit(): void {
+export function requireWalletKit(): NonNullable<typeof walletKit> {
     if (!walletKit) {
         throw new Error('WalletKit not initialized');
     }
+    return walletKit;
 }

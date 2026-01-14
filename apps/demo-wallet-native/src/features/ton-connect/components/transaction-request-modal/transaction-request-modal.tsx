@@ -12,8 +12,8 @@ import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet } from '@ton/demo-core';
-import { useWalletKit } from '@ton/demo-core';
+import { useWallet } from '@demo/wallet-core';
+import { useWalletKit } from '@demo/wallet-core';
 
 import { DAppInfo } from '../dapp-info';
 import { JettonFlowItem } from '../jetton-flow-item';
@@ -50,9 +50,9 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
     const { toast } = useAppToasts();
 
     const currentWallet = useMemo(() => {
-        if (!request.walletAddress) return null;
+        if (!request.walletId) return null;
         return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
-    }, [savedWallets, request.walletAddress]);
+    }, [savedWallets, request.walletId]);
 
     const isLedgerWallet = currentWallet?.walletType === 'ledger';
 

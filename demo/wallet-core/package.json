@@ -1,0 +1,49 @@
+{
+  "name": "@demo/wallet-core",
+  "version": "0.1.0",
+  "description": "Core logic for TON wallet demo applications (React + React Native)",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
+    "build:clean": "rimraf dist",
+    "build:cjs": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "dev": "tsc -p tsconfig.esm.json --watch",
+    "clean": "git clean -xdf dist node_modules .turbo",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@demo/v4ledger-adapter": "workspace:*",
+    "@ton/walletkit": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "@ton/core": "^0.62.0",
+    "@ton/crypto": "^3.3.0",
+    "zustand": "^5.0.8",
+    "immer": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "rimraf": "^6.1.0",
+    "typescript": "~5.9.3"
+  }
+}

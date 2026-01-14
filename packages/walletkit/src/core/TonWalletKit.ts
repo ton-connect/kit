@@ -39,8 +39,8 @@ import type { StorageEventProcessor } from './EventProcessor';
 import type { BridgeManager } from './BridgeManager';
 import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
 import type { ApiClient } from '../types/toncenter/ApiClient';
-import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
-import { AnalyticsApi } from '../analytics/sender';
+import { AnalyticsManager } from '../analytics';
+import { getDeviceInfoForWallet } from '../utils/getDefaultWalletConfig';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { CallForSuccess } from '../utils/retry';
 import { NetworkManager } from './NetworkManager';
@@ -96,20 +96,27 @@ export class TonWalletKit implements ITonWalletKit {
     // State
     private isInitialized = false;
     private initializationPromise?: Promise<void>;
-    private analyticsApi?: AnalyticsApi;
+    private analyticsManager?: AnalyticsManager;
 
     constructor(options: TonWalletKitOptions) {
         this.config = options;
 
         if (options?.analytics?.enabled) {
-            this.analyticsApi = new AnalyticsApi(options?.analytics);
+            this.analyticsManager = new AnalyticsManager({
+                ...options?.analytics,
+                appInfo: {
+                    appName: options?.deviceInfo?.appName,
+                    appVersion: options?.deviceInfo?.appVersion,
+                    ...options?.analytics?.appInfo,
+                },
+            });
         }
 
         // Initialize NetworkManager for multi-network support
         this.networkManager = new NetworkManager(options);
 
         this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
+        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsManager);
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 
@@ -136,7 +143,9 @@ export class TonWalletKit implements ITonWalletKit {
 
             const walletAddress = wallet.getAddress();
 
-            const deviceInfo = getDeviceInfoWithDefaults(this.config.deviceInfo);
+            // Get device info with wallet-specific features if available
+            const deviceInfo = getDeviceInfoForWallet(wallet, this.config.deviceInfo);
+
             // Create base response data
             const connectResponse: ConnectEventSuccess = {
                 event: 'connect',
@@ -237,7 +246,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Ensure initialization is complete
      */
-    private async ensureInitialized(): Promise<void> {
+    async ensureInitialized(): Promise<void> {
         if (this.initializationPromise) {
             await this.initializationPromise;
         }

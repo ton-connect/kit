@@ -18,12 +18,11 @@ import type {
     NFTsRequest,
     NFTsResponse,
     TokenAmount,
-    TransactionEmulatedTrace,
     TransactionsResponse,
     UserFriendlyAddress,
     JettonsResponse,
-    TransactionRequestMessage,
 } from '../../api/models';
+import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 
 export interface LimitRequest {
     limit?: number;
@@ -96,11 +95,7 @@ export interface GetEventsResponse {
 export interface ApiClient {
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
-    fetchEmulation(
-        address: UserFriendlyAddress,
-        messages: TransactionRequestMessage[],
-        seqno?: number,
-    ): Promise<TransactionEmulatedTrace>;
+    fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult>;
     sendBoc(boc: Base64String): Promise<string>;
     runGetMethod(
         address: UserFriendlyAddress,

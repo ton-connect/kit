@@ -7,8 +7,8 @@
  */
 
 import TransportWebHID from '@ledgerhq/hw-transport-webhid';
-import { WalletProvider } from '@ton/demo-core';
-import type { WalletKitConfig } from '@ton/demo-core';
+import { WalletProvider } from '@demo/wallet-core';
+import type { WalletKitConfig } from '@demo/wallet-core';
 
 import { AppRouter } from './components';
 
@@ -41,6 +41,17 @@ if (isExtension()) {
  */
 const createWebLedgerTransport = () => TransportWebHID.create();
 
+const getPlatform = (): 'ios' | 'ipad' | 'android' | 'macos' | 'windows' | 'linux' | undefined => {
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes('ipad')) return 'ipad';
+    if (ua.includes('iphone')) return 'ios';
+    if (ua.includes('android')) return 'android';
+    if (ua.includes('mac')) return 'macos';
+    if (ua.includes('win')) return 'windows';
+    if (ua.includes('linux')) return 'linux';
+    return undefined;
+};
+
 const walletKitConfig: WalletKitConfig = {
     storage,
     jsBridgeTransport,
@@ -50,6 +61,14 @@ const walletKitConfig: WalletKitConfig = {
     tonApiKeyMainnet: ENV_TON_API_KEY_MAINNET,
     tonApiKeyTestnet: ENV_TON_API_KEY_TESTNET,
     createLedgerTransport: createWebLedgerTransport,
+    analytics: {
+        appInfo: {
+            env: 'web',
+            platform: getPlatform(),
+            browser: navigator.userAgent,
+            getLocale: () => navigator.language,
+        },
+    },
 };
 
 function App() {

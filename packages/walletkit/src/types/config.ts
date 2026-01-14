@@ -13,6 +13,7 @@ import type { EventProcessorConfig } from '../core/EventProcessor';
 import type { DeviceInfo, WalletInfo } from './jsBridge';
 import type { BridgeConfig } from './internal';
 import type { ApiClient } from './toncenter/ApiClient';
+import type { AnalyticsManagerOptions } from '../analytics';
 
 /**
  * API client configuration options
@@ -62,14 +63,11 @@ export interface TonWalletKitOptions {
     /** Event processor settings */
     eventProcessor?: EventProcessorConfig;
 
-    analytics?: AnalyticsConfig;
+    analytics?: AnalyticsManagerOptions & {
+        enabled?: boolean;
+    };
 
     dev?: {
         disableNetworkSend?: boolean;
     };
-}
-
-export interface AnalyticsConfig {
-    enabled?: boolean;
-    endpoint?: string;
 }

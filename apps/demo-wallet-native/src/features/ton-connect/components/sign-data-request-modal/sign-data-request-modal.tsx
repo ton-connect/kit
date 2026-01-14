@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import { View, ScrollView } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet } from '@ton/demo-core';
+import { useWallet } from '@demo/wallet-core';
 
 import { DAppInfo } from '../dapp-info';
 import { SectionTitle } from '../section-title';
@@ -43,9 +43,9 @@ export const SignDataRequestModal: FC<SignDataRequestModalProps> = ({ request, i
     const [error, setError] = useState<string | null>(null);
 
     const currentWallet = useMemo(() => {
-        if (!request.walletAddress) return null;
+        if (!request.walletId) return null;
         return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
-    }, [savedWallets, request.walletAddress]);
+    }, [savedWallets, request.walletId]);
 
     const isLedgerWallet = currentWallet?.walletType === 'ledger';
 

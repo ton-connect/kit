@@ -6,7 +6,7 @@
  *
  */
 
-import { useTonConnect } from '@ton/demo-core';
+import { useTonConnect } from '@demo/wallet-core';
 import { router } from 'expo-router';
 import { useState, useCallback } from 'react';
 import type { FC } from 'react';

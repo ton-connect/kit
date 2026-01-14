@@ -6,6 +6,7 @@
  *
  */
 
+import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type {
     TokenAmount,
     TONTransferRequest,
@@ -24,7 +25,10 @@ import type {
 } from '../models';
 import type { WalletAdapter } from './WalletAdapter';
 
-export type Wallet = WalletAdapter & WalletTonInterface & WalletJettonInterface & WalletNftInterface;
+export type Wallet = WalletAdapter &
+    WalletTonInterface &
+    WalletJettonInterface &
+    WalletNftInterface & { client: ApiClient };
 
 export interface WalletTonInterface {
     createTransferTonTransaction(params: TONTransferRequest): Promise<TransactionRequest>;

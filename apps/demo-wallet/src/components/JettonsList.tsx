@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { useJettons } from '@ton/demo-core';
+import { useJettons } from '@demo/wallet-core';
 
 import { createComponentLogger } from '../utils/logger';
 import { Button } from './Button';

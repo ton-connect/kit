@@ -20,7 +20,6 @@ import type {
     TransactionContentArgs,
 } from '../types';
 import { callBridge } from '../utils/bridgeWrapper';
-import { walletKit } from '../core/state';
 import { warn } from '../utils/logger';
 
 /**
@@ -28,16 +27,13 @@ import { warn } from '../utils/logger';
  * Returns raw WalletKit response - transformation happens in Kotlin TransactionResponseParser.
  */
 export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<unknown[]> {
-    return callBridge('getRecentTransactions', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('getRecentTransactions', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
         // Extract address from walletId (format: "{chainId}:{address}")
-        const address = wallet.getAddress?.() ?? args.walletId.split(':')[1];
+        const address = wallet?.getAddress?.() ?? args.walletId.split(':')[1];
 
-        const response = await wallet.getClient().getAccountTransactions({
+        const response = await wallet!.getClient().getAccountTransactions({
             address: [address],
             limit: args.limit || 10,
         });
@@ -51,17 +47,14 @@ export async function getRecentTransactions(args: GetRecentTransactionsArgs): Pr
  * Returns raw transaction and optional preview - Kotlin handles structure.
  */
 export async function createTransferTonTransaction(args: CreateTransferTonTransactionArgs) {
-    return callBridge('createTransferTonTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('createTransferTonTransaction', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
-        const transaction = await wallet.createTransferTonTransaction(args);
+        const transaction = await wallet!.createTransferTonTransaction(args);
 
-        if (wallet.getTransactionPreview) {
+        if (wallet!.getTransactionPreview) {
             try {
-                const previewResult = await wallet.getTransactionPreview(transaction);
+                const previewResult = await wallet!.getTransactionPreview(transaction);
                 const preview = previewResult?.preview ?? previewResult;
                 return { transaction, preview };
             } catch (err) {
@@ -78,21 +71,14 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
  * Returns raw transaction and optional preview - Kotlin handles structure.
  */
 export async function createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs) {
-    return callBridge('createTransferMultiTonTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('createTransferMultiTonTransaction', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
-        if (!Array.isArray(args.messages) || args.messages.length === 0) {
-            throw new Error('At least one message required');
-        }
+        const transaction = await wallet!.createTransferMultiTonTransaction(args);
 
-        const transaction = await wallet.createTransferMultiTonTransaction(args);
-
-        if (wallet.getTransactionPreview) {
+        if (wallet!.getTransactionPreview) {
             try {
-                const previewResult = await wallet.getTransactionPreview(transaction);
+                const previewResult = await wallet!.getTransactionPreview(transaction);
                 const preview = previewResult?.preview ?? previewResult;
                 return { transaction, preview };
             } catch (err) {
@@ -108,16 +94,13 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
  * Gets transaction preview (fee estimation).
  */
 export async function getTransactionPreview(args: TransactionContentArgs) {
-    return callBridge('getTransactionPreview', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('getTransactionPreview', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
         // Accept object directly (preferred) or parse string (legacy)
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        const result = await wallet.getTransactionPreview(transaction);
+        const result = await wallet!.getTransactionPreview(transaction);
 
         return result?.preview ?? result;
     });
@@ -127,16 +110,13 @@ export async function getTransactionPreview(args: TransactionContentArgs) {
  * Handles new transaction (triggers confirmation flow).
  */
 export async function handleNewTransaction(args: TransactionContentArgs) {
-    return callBridge('handleNewTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('handleNewTransaction', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
 
-        await walletKit.handleNewTransaction(wallet, transaction);
+        await kit.handleNewTransaction(wallet, transaction);
 
         return { success: true };
     });
@@ -147,14 +127,11 @@ export async function handleNewTransaction(args: TransactionContentArgs) {
  * Returns raw result object with signedBoc.
  */
 export async function sendTransaction(args: TransactionContentArgs) {
-    return callBridge('sendTransaction', async () => {
-        const wallet = walletKit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found for walletId ${args.walletId}`);
-        }
+    return callBridge('sendTransaction', async (kit) => {
+        const wallet = kit.getWallet?.(args.walletId);
 
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        return await wallet.sendTransaction(transaction);
+        return await wallet!.sendTransaction(transaction);
     });
 }

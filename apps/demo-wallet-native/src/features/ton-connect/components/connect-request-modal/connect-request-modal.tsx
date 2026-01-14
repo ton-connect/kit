@@ -8,8 +8,8 @@
 
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
-import { useWallet } from '@ton/demo-core';
-import { useState, useEffect } from 'react';
+import { useWallet } from '@demo/wallet-core';
+import { useState, useEffect, useMemo } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -44,9 +44,14 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
     const [showWalletSelector, setShowWalletSelector] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const selectedWalletData = selectedWallet
-        ? savedWallets.find((w) => w.address === selectedWallet.getAddress())
-        : undefined;
+    const selectedWalletData = useMemo(() => {
+        if (!selectedWallet) return undefined;
+
+        const selectedWalletId = selectedWallet.getWalletId();
+        if (!selectedWalletId) return undefined;
+
+        return savedWallets.find((wallet) => wallet.kitWalletId === selectedWalletId);
+    }, [selectedWallet, savedWallets]);
     const isLedgerWallet = selectedWalletData?.walletType === 'ledger';
 
     useEffect(() => {

@@ -12,6 +12,7 @@ import type { ApiClient, WalletId } from '../..';
 import type { TransactionRequest } from '../models/transactions/TransactionRequest';
 import type { PreparedSignData } from '../models/core/PreparedSignData';
 import type { ProofMessage } from '../models/core/ProofMessage';
+import type { Feature } from '../../types/jsBridge';
 
 /**
  * Core wallet interface that all wallets must implement
@@ -54,4 +55,10 @@ export interface WalletAdapter {
             fakeSignature: boolean;
         },
     ): Promise<Hex>;
+
+    /**
+     * Get supported TON Connect features for this wallet adapter
+     * If not implemented, features from deviceInfo will be used
+     */
+    getSupportedFeatures?(): Feature[];
 }

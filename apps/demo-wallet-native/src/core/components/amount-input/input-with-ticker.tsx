@@ -32,7 +32,6 @@ export const InputWithTicker: FC<Props> = ({ amount, onChangeAmount, ticker, sty
     return (
         <Row style={[styles.container, style]}>
             <AppInput
-                inputMode="numeric"
                 keyboardType="numeric"
                 onBlur={handleBlur}
                 onChangeText={onChangeAmount}
