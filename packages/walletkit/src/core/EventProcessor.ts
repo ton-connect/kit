@@ -26,6 +26,7 @@ const log = globalLogger.createChild('EventProcessor');
 
 export interface EventProcessorConfig {
     disableEvents?: boolean;
+    disableTranscationEmulation?: boolean; // if true, transaction events will not be emulated before firing
 }
 
 /**

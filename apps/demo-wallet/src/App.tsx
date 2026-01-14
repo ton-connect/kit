@@ -14,6 +14,7 @@ import { AppRouter } from './components';
 
 import { Toaster } from '@/components/ui/sonner';
 import {
+    DISABLE_AUTO_EMULATION,
     DISABLE_HTTP_BRIDGE,
     DISABLE_NETWORK_SEND,
     ENV_BRIDGE_URL,
@@ -69,6 +70,7 @@ const walletKitConfig: WalletKitConfig = {
             getLocale: () => navigator.language,
         },
     },
+    disableAutoEmulation: DISABLE_AUTO_EMULATION,
 };
 
 function App() {

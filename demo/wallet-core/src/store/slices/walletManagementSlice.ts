@@ -299,7 +299,18 @@ export const createWalletManagementSlice =
                         throw new Error(`Failed to create adapter for wallet ${savedWallet.name}`);
                     }
 
-                    await state.walletCore.walletKit.addWallet(walletAdapter);
+                    wallet = await state.walletCore.walletKit.addWallet(walletAdapter);
+                    if (wallet && wallet.getWalletId() !== savedWallet.kitWalletId) {
+                        const newKitWalletId = wallet.getWalletId();
+                        set((state) => {
+                            const savedWalletIndex = state.walletManagement.savedWallets.findIndex(
+                                (w) => w.id === walletId,
+                            );
+                            if (savedWalletIndex !== -1) {
+                                state.walletManagement.savedWallets[savedWalletIndex].kitWalletId = newKitWalletId;
+                            }
+                        });
+                    }
                 }
 
                 if (!wallet) {
