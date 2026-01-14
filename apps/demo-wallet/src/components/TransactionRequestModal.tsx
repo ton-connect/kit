@@ -8,7 +8,12 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Network } from '@ton/walletkit';
-import type { JettonInfo, TransactionRequestEvent, TransactionTraceMoneyFlowItem } from '@ton/walletkit';
+import type {
+    JettonInfo,
+    TransactionEmulatedPreview,
+    TransactionRequestEvent,
+    TransactionTraceMoneyFlowItem,
+} from '@ton/walletkit';
 import { Address } from '@ton/core';
 import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
@@ -32,9 +37,12 @@ interface TransactionRequestModalProps {
 }
 
 export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = ({ request, savedWallets, isOpen }) => {
+    const walletKit = useWalletKit();
+    const isAuthenticated = useWalletStore((state) => state.walletManagement.isAuthenticated);
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isExpired, setIsExpired] = useState(false);
+    const [localPreview, setPreview] = useState<TransactionEmulatedPreview | undefined>(undefined);
     const { holdToSign } = useAuth();
     const { approveTransactionRequest, rejectTransactionRequest } = useTransactionRequests();
 
@@ -64,6 +72,23 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
 
         return () => clearInterval(interval);
     }, [request.request?.validUntil]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        async function updatePreview() {
+            if (request.preview.data) {
+                return;
+            }
+            await walletKit?.ensureInitialized();
+            const preview = await walletKit?.getWallet(request.walletId ?? '')?.getTransactionPreview(request.request);
+            setPreview(preview);
+        }
+        updatePreview();
+    }, [request.walletId, request.request, request.preview, walletKit, isAuthenticated]);
+
+    const preview = useMemo(() => {
+        return localPreview ?? request.preview.data;
+    }, [request, localPreview]);
 
     // Reset success state when modal closes/opens
     useEffect(() => {
@@ -212,24 +237,22 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                             </div>
                         ) : (
                             <>
-                                {request.preview.data.result === 'success' && (
+                                {preview && preview.result === 'success' && (
                                     <>
                                         {/* Money Flow Summary */}
                                         <div>
                                             <div className="space-y-3">
                                                 {/* No transfers message */}
-                                                {request.preview.data.moneyFlow?.outputs === '0' &&
-                                                request.preview.data.moneyFlow.inputs === '0' &&
-                                                request.preview.data.moneyFlow.ourTransfers.length === 0 ? (
+                                                {preview.moneyFlow?.outputs === '0' &&
+                                                preview.moneyFlow?.inputs === '0' &&
+                                                preview.moneyFlow?.ourTransfers.length === 0 ? (
                                                     <div className="border rounded-lg p-3 bg-gray-50">
                                                         <p className="text-sm text-gray-600 text-center">
                                                             This transaction doesn't involve any token transfers
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    <JettonFlow
-                                                        transfers={request.preview.data.moneyFlow?.ourTransfers || []}
-                                                    />
+                                                    <JettonFlow transfers={preview.moneyFlow?.ourTransfers || []} />
                                                 )}
                                             </div>
                                         </div>
@@ -245,10 +268,10 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                                     </>
                                 )}
 
-                                {(request.preview.data.result === 'failure' || request.preview.data.error) && (
+                                {preview && (preview.result === 'failure' || preview.error) && (
                                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                         <p className="text-sm text-red-800">
-                                            <strong>Error:</strong> {request.preview.data.error?.message}
+                                            <strong>Error:</strong> {preview.error?.message}
                                         </p>
                                     </div>
                                 )}

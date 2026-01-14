@@ -282,9 +282,8 @@ export class SessionManager {
                         if (wallet) {
                             session.walletAddress = wallet.getAddress();
                         } else {
-                            log.warn('Wallet not found for session', { sessionId: session.sessionId });
-                            this.removeSession(session.sessionId);
-                            return this.loadSessions();
+                            log.warn('Session Wallet not found for session', { sessionId: session.sessionId });
+                            continue;
                         }
                     }
                     this.sessions.set(session.sessionId, {

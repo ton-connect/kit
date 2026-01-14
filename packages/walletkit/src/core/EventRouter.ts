@@ -28,6 +28,7 @@ import type {
     SignDataRequestEvent,
     ConnectionRequestEvent,
 } from '../api/models';
+import type { TonWalletKitOptions } from '../types/config';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -43,6 +44,7 @@ export class EventRouter {
     private errorCallback: EventCallback<RequestErrorEvent> | undefined = undefined;
 
     constructor(
+        private config: TonWalletKitOptions,
         private eventEmitter: EventEmitter,
         private sessionManager: SessionManager,
         private walletManager: WalletManager,
@@ -155,6 +157,7 @@ export class EventRouter {
             new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.analyticsManager),
             new TransactionHandler(
                 this.notifyTransactionRequestCallbacks.bind(this),
+                this.config,
                 this.eventEmitter,
                 this.walletManager,
                 this.sessionManager,

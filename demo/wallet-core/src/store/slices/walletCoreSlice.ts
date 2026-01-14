@@ -54,6 +54,10 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             enabled: true,
         },
 
+        eventProcessor: {
+            disableTranscationEmulation: walletKitConfig?.disableAutoEmulation,
+        },
+
         dev: {
             disableNetworkSend: walletKitConfig?.disableNetworkSend,
         },

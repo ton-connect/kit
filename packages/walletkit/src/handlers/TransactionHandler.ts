@@ -10,7 +10,7 @@ import { Address } from '@ton/core';
 import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
 import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
-import type { ValidationResult } from '../types';
+import type { TonWalletKitOptions, ValidationResult } from '../types';
 import { toTransactionRequest } from '../types/internal';
 import type {
     RawBridgeEvent,
@@ -45,6 +45,7 @@ export class TransactionHandler
 
     constructor(
         notify: (event: TransactionRequestEvent) => void,
+        private readonly config: TonWalletKitOptions,
         eventEmitter: EventEmitter,
         private readonly walletManager: WalletManager,
         private readonly sessionManager: SessionManager,
@@ -103,33 +104,34 @@ export class TransactionHandler
         }
         const request = requestValidation.result;
 
-        let preview: TransactionEmulatedPreview;
-        try {
-            preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
-            // Emit emulation result event for jetton caching and other components
-            if (preview.result === Result.success && preview.trace) {
-                try {
-                    this.eventEmitter.emit('emulation:result', preview.trace);
-                } catch (error) {
-                    log.warn('Error emitting emulation result event', { error });
+        let preview: TransactionEmulatedPreview | undefined;
+        if (!this.config.eventProcessor?.disableTranscationEmulation) {
+            try {
+                preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
+                // Emit emulation result event for jetton caching and other components
+                if (preview.result === Result.success && preview.trace) {
+                    try {
+                        this.eventEmitter.emit('emulation:result', preview.trace);
+                    } catch (error) {
+                        log.warn('Error emitting emulation result event', { error });
+                    }
                 }
+            } catch (error) {
+                log.error('Failed to create transaction preview', { error });
+                preview = {
+                    error: {
+                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                        message: 'Unknown emulation error',
+                    },
+                    result: Result.failure,
+                };
             }
-        } catch (error) {
-            log.error('Failed to create transaction preview', { error });
-            preview = {
-                error: {
-                    code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                    message: 'Unknown emulation error',
-                },
-                result: Result.failure,
-            };
         }
 
         const txEvent: TransactionRequestEvent = {
             ...event,
             request,
             preview: {
-                dAppInfo: event.dAppInfo ?? {},
                 data: preview,
             },
             dAppInfo: event.dAppInfo ?? {},

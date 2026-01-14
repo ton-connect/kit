@@ -120,6 +120,7 @@ export interface WalletKitConfig {
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
     analytics?: AnalyticsManagerOptions;
+    disableAutoEmulation?: boolean;
     /**
      * Factory function to create Ledger transport.
      * For web: () => TransportWebHID.create()

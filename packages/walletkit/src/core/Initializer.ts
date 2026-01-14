@@ -146,7 +146,13 @@ export class Initializer {
         await sessionManager.initialize();
 
         const eventStore = new StorageEventStore(storage);
-        const eventRouter = new EventRouter(this.eventEmitter, sessionManager, walletManager, this.analyticsManager);
+        const eventRouter = new EventRouter(
+            options,
+            this.eventEmitter,
+            sessionManager,
+            walletManager,
+            this.analyticsManager,
+        );
 
         const bridgeManager = new BridgeManager(
             options?.walletManifest,

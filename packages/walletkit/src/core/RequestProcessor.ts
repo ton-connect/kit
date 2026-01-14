@@ -452,8 +452,8 @@ export class RequestProcessor {
                 this.analytics.emitWalletTransactionDeclined({
                     wallet_id: sessionData?.publicKey,
                     trace_id: event.traceId,
-                    dapp_name: event.preview.dAppInfo?.name,
-                    origin_url: event.preview.dAppInfo?.url,
+                    dapp_name: event.dAppInfo?.name,
+                    origin_url: event.dAppInfo?.url,
                     network_id: wallet?.getNetwork().chainId,
                     client_id: event.from,
                     decline_reason: typeof reason === 'string' ? reason : reason?.message,

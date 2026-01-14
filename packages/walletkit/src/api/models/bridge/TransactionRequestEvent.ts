@@ -6,7 +6,6 @@
  *
  */
 
-import type { DAppInfo } from '../core/DAppInfo';
 import type { TransactionEmulatedPreview } from '../transactions/emulation/TransactionEmulatedPreview';
 import type { TransactionRequest } from '../transactions/TransactionRequest';
 import type { BridgeEvent } from './BridgeEvent';
@@ -30,11 +29,7 @@ export interface TransactionRequestEvent extends BridgeEvent {
  */
 export interface TransactionRequestEventPreview {
     /**
-     * Information about the requesting dApp
-     */
-    dAppInfo?: DAppInfo;
-    /**
      * Emulated transaction preview with actions and traces
      */
-    data: TransactionEmulatedPreview;
+    data?: TransactionEmulatedPreview;
 }
