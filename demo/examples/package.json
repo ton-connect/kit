@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Examples for @ton/walletkit",
   "scripts": {
-    "_quality": "pnpm test",
-    "_test": "tsx src/index.ts"
+    "quality": "pnpm test --coverage",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*",
@@ -14,5 +14,9 @@
     "react": "^18.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.8",
+    "vitest": "^4.0.8"
   }
 }

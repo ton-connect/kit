@@ -15,7 +15,7 @@ import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
 /**
  * pnpm tsx src/jettons.ts
  */
-async function main() {
+export async function main() {
     const kit = await walletKitInitializeSample();
     const jettonAddress = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
     // SAMPLE_START: GET_JETTON_INFO
@@ -25,7 +25,10 @@ async function main() {
     console.log(info);
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

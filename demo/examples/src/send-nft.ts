@@ -14,7 +14,7 @@ import type { NFTTransferRequest } from '@ton/walletkit';
 
 import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
 
-async function main() {
+export async function main() {
     const kit = await walletKitInitializeSample();
     // SAMPLE_START: SEND_NFTS_2
     const wallet = kit.getWallet(getSelectedWalletAddress());
@@ -32,7 +32,10 @@ async function main() {
     // SAMPLE_END: SEND_NFTS_2
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

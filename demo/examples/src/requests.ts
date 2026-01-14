@@ -23,7 +23,7 @@ const isCI = process.env.CI === 'true' || process.env.CI === '1';
 /**
  * npx tsx src/requests.ts
  */
-async function main() {
+export async function main() {
     console.log('=== Listen for requests from dApps ===');
     const kit = await walletKitInitializeSample();
 
@@ -144,7 +144,10 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

@@ -18,7 +18,7 @@ import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walle
  * connect and transaction requests.
  */
 
-async function main() {
+export async function main() {
     console.log('=== Minimal UI State Wiring Example ===');
     const kit = await walletKitInitializeSample();
 
@@ -82,7 +82,10 @@ async function main() {
     await kit.close();
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

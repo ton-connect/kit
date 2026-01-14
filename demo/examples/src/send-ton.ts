@@ -14,7 +14,7 @@ import type { TONTransferRequest } from '@ton/walletkit';
 
 import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
 
-async function main() {
+export async function main() {
     const kit = await walletKitInitializeSample();
     // SAMPLE_START: SEND_TON_2
     const from = kit.getWallet(getSelectedWalletAddress());
@@ -35,7 +35,10 @@ async function main() {
     // SAMPLE_END: SEND_TON_2
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

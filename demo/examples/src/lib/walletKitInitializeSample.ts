@@ -33,6 +33,11 @@ export function getSelectedWalletAddress() {
     return wallets.length > 0 ? wallets[0].getAddress() : '';
 }
 
+// Reset cache for testing purposes
+export function resetKitCache() {
+    kitCache = undefined;
+}
+
 export async function walletKitInitializeSample(): Promise<TonWalletKit> {
     console.log('=== WalletKit Initialize ===');
     console.log('Step 1: Creating WalletKit instance...');
