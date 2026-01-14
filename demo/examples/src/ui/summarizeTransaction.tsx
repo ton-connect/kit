@@ -13,8 +13,8 @@ import { AssetType } from '@ton/walletkit';
 
 // SAMPLE_START: SUMMARIZE_TRANSACTION_2
 function summarizeTransaction(preview: TransactionEmulatedPreview) {
-    if (preview.result === 'error' && preview.error) {
-        return { kind: 'error', message: preview.error.message } as const;
+    if (preview.result === 'failure') {
+        return { kind: 'error', message: preview?.error?.message ?? 'Unknown error' };
     }
 
     // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
