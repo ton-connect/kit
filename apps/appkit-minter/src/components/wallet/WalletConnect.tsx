@@ -7,42 +7,20 @@
  */
 
 import type React from 'react';
-import { TonConnectButton } from '@tonconnect/ui-react';
 
 import { Card } from '@/components/common';
-import { useAppKit } from '@/hooks';
 
 interface WalletConnectProps {
     className?: string;
 }
 
 export const WalletConnect: React.FC<WalletConnectProps> = ({ className }) => {
-    const { isConnected, address } = useAppKit();
-
-    if (isConnected && address) {
-        return (
-            <Card className={className}>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Wallet Connected</h3>
-                        <TonConnectButton />
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Address</p>
-                        <p className="font-mono text-sm text-gray-900 break-all">{address}</p>
-                    </div>
-                </div>
-            </Card>
-        );
-    }
-
     return (
         <Card className={className}>
-            <div className="space-y-4">
-                <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center justify-between gap-4 py-1">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -51,14 +29,7 @@ export const WalletConnect: React.FC<WalletConnectProps> = ({ className }) => {
                             />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
-                    <p className="text-gray-600 text-sm mb-4">
-                        Connect your TON wallet to mint NFT cards to your collection.
-                    </p>
-
-                    <div className="flex justify-center">
-                        <TonConnectButton />
-                    </div>
+                    <p className="text-gray-600 text-sm">Connect wallet to mint</p>
                 </div>
             </div>
         </Card>

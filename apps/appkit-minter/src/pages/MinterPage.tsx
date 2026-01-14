@@ -8,7 +8,7 @@
 
 import type React from 'react';
 
-import { Layout, CardGenerator, WalletConnect, MintButton } from '@/components';
+import { Layout, CardGenerator, WalletConnect } from '@/components';
 import { useAppKit } from '@/hooks';
 
 export const MinterPage: React.FC = () => {
@@ -16,18 +16,12 @@ export const MinterPage: React.FC = () => {
 
     return (
         <Layout title="NFT Minter">
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {/* Wallet Connection - shown when not connected */}
                 {!isConnected && <WalletConnect />}
 
-                {/* Card Generator */}
+                {/* Card Generator with integrated mint button */}
                 <CardGenerator />
-
-                {/* Mint Button */}
-                <MintButton />
-
-                {/* Connected wallet details - shown when connected */}
-                {isConnected && <WalletConnect />}
             </div>
         </Layout>
     );

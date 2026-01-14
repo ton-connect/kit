@@ -36,9 +36,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'NFT Minter' }
                 </div>
             </header>
 
-            <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
+            <main className="max-w-2xl mx-auto px-4 py-4">{children}</main>
 
-            <footer className="text-center py-4 text-sm text-gray-500">
+            <footer className="text-center py-2 text-xs text-gray-500">
                 <p>Powered by AppKit & TonConnect</p>
             </footer>
         </div>

@@ -83,15 +83,17 @@ export const CardPreview: React.FC<CardPreviewProps> = ({ card, className }) => 
                 </div>
 
                 {/* Card info */}
-                <div className="space-y-2">
+                <div className="h-14">
                     <h3
-                        className="text-xl font-bold text-gray-900 text-center"
+                        className="text-lg font-bold text-gray-900 text-center truncate"
                         style={{ textShadow: isLegendary ? '0 0 10px rgba(245, 158, 11, 0.3)' : 'none' }}
                     >
                         {card.name}
                     </h3>
 
-                    {card.description && <p className="text-sm text-gray-600 text-center italic">{card.description}</p>}
+                    {card.description && (
+                        <p className="text-xs text-gray-600 text-center italic line-clamp-2">{card.description}</p>
+                    )}
                 </div>
             </div>
 
