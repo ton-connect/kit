@@ -17,7 +17,6 @@ import type { Network } from '../api/models/core/Network';
 import type { WalletId } from '../utils/walletId';
 import type {
     TransactionRequest,
-    UserFriendlyAddress,
     TransactionRequestEvent,
     RequestErrorEvent,
     DisconnectionEvent,
@@ -55,9 +54,6 @@ export interface ITonWalletKit {
 
     /** Get wallet by wallet ID (network:address format) */
     getWallet(walletId: WalletId): Wallet | undefined;
-
-    /** Get wallet by address and network */
-    getWalletByAddressAndNetwork(address: UserFriendlyAddress, network: Network): Wallet | undefined;
 
     /** Add a new wallet, returns wallet ID */
     addWallet(adapter: WalletAdapter): Promise<Wallet | undefined>;

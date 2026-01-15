@@ -50,7 +50,6 @@ import type { Wallet, WalletAdapter } from '../api/interfaces';
 import type {
     Network,
     TransactionRequest,
-    UserFriendlyAddress,
     TransactionRequestEvent,
     BridgeEvent,
     RequestErrorEvent,
@@ -278,17 +277,6 @@ export class TonWalletKit implements ITonWalletKit {
             return undefined;
         }
         return this.walletManager.getWallet(walletId);
-    }
-
-    /**
-     * Get wallet by address and network
-     */
-    getWalletByAddressAndNetwork(address: UserFriendlyAddress, network: Network): Wallet | undefined {
-        if (!this.isInitialized) {
-            log.warn('TonWalletKit not yet initialized, returning undefined');
-            return undefined;
-        }
-        return this.walletManager.getWalletByAddressAndNetwork(address, network);
     }
 
     async addWallet(adapter: WalletAdapter): Promise<Wallet | undefined> {

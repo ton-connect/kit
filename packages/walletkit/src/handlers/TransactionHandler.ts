@@ -105,7 +105,7 @@ export class TransactionHandler
         const request = requestValidation.result;
 
         let preview: TransactionEmulatedPreview | undefined;
-        if (!this.config.eventProcessor?.disableTranscationEmulation) {
+        if (!this.config.eventProcessor?.disableTransactionEmulation) {
             try {
                 preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
                 // Emit emulation result event for jetton caching and other components
