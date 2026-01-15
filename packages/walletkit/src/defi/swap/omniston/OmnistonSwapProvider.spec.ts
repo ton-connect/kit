@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
+import { Address } from '@ton/core';
 
 import { OmnistonSwapProvider } from './OmnistonSwapProvider';
 import { Network } from '../../../api/models';
@@ -43,7 +44,9 @@ describe('OmnistonSwapProvider.getQuote', () => {
 
     it('should build tx for quote', async () => {
         const quote = await provider.getQuote(usdtQuoteParams);
-        const userAddress = 'UQAXl6XExQorMSzpkn_28S79OwtY_zEURRGMLS5kMStdeVQl';
+        const randomBytes = Buffer.from(crypto.getRandomValues(new Uint8Array(32)));
+        const randomAddress = Address.parseRaw(`0:${randomBytes.toString('hex')}`);
+        const userAddress = randomAddress.toString();
         const tx = await provider.buildSwapTransaction({
             quote,
             userAddress,

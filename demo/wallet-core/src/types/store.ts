@@ -19,6 +19,7 @@ import type {
     SignDataRequestEvent,
     DisconnectionEvent,
     WalletAdapter,
+    SwapQuote,
 } from '@ton/walletkit';
 
 import type {
@@ -200,9 +201,34 @@ export interface NftsSlice {
     formatNftIndex: (index: string) => string;
 }
 
+// Swap slice interface
+export interface SwapSlice {
+    swap: {
+        fromToken: string;
+        toToken: string;
+        fromAmount: string;
+        toAmount: string;
+        currentQuote: SwapQuote | null;
+        isLoadingQuote: boolean;
+        isSwapping: boolean;
+        error: string | null;
+        slippageBps: number;
+        lastQuoteUpdate: number;
+    };
+
+    setFromToken: (token: string) => void;
+    setToToken: (token: string) => void;
+    setFromAmount: (amount: string) => void;
+    setSlippageBps: (slippage: number) => void;
+    swapTokens: () => void;
+    getQuote: () => Promise<void>;
+    executeSwap: () => Promise<void>;
+    clearSwap: () => void;
+}
+
 // Combined app state
 export interface AppState
-    extends AuthSlice, WalletCoreSlice, WalletManagementSlice, TonConnectSlice, JettonsSlice, NftsSlice {
+    extends AuthSlice, WalletCoreSlice, WalletManagementSlice, TonConnectSlice, JettonsSlice, NftsSlice, SwapSlice {
     isHydrated: boolean;
 }
 
@@ -223,6 +249,8 @@ export type TonConnectSliceCreator = StateCreator<AppState, [], [], TonConnectSl
 export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
 
 export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
+
+export type SwapSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], SwapSlice>;
 
 // Migration types
 export interface MigrationState {
