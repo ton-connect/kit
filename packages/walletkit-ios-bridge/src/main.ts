@@ -47,8 +47,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
         walletManifest: configuration.walletManifest,
         deviceInfo: configuration.deviceInfo,
         bridge: configuration.bridge,
-        eventProcessor: {},
-
+        eventProcessor: configuration.eventsConfiguration,
         storage: storage ? new SwiftStorageAdapter(storage) : new MemoryStorageAdapter({}),
     });
 
