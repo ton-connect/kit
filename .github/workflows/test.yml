@@ -35,18 +35,6 @@ jobs:
       run: pnpm i --frozen-lockfile
 
     - name: test
-      working-directory: packages/walletkit
-      run: pnpm quality
-      env:
-        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
-
-    # - name: test
-    #   working-directory: demo/examples
-    #   run: pnpm quality
-    #   env:
-    #     WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
-
-    - name: test
       run: pnpm quality
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
