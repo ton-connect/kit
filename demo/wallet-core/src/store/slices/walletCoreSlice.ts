@@ -55,7 +55,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         },
 
         eventProcessor: {
-            disableTranscationEmulation: walletKitConfig?.disableAutoEmulation,
+            disableTransactionEmulation: walletKitConfig?.disableAutoEmulation,
         },
 
         dev: {
