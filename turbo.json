@@ -21,7 +21,7 @@
     },
     "quality": {
       "dependsOn": ["verify", "^quality"],
-      "env": ["WALLET_MNEMONIC"]
+      "env": ["WALLET_MNEMONIC", "CI"]
     },
     "e2e": {
       "dependsOn": ["build", "^e2e"]
