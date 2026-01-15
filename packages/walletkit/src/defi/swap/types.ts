@@ -28,6 +28,7 @@ export interface SwapQuote {
     fromAmount: string;
     toAmount: string;
     minReceived: string;
+    network: Network;
     priceImpact?: number;
     fee?: SwapFee[];
     provider: string;

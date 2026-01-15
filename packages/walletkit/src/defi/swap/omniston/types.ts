@@ -8,14 +8,11 @@
 
 import type { Quote } from '@ston-fi/omniston-sdk';
 
-import type { Network } from '../../../api/models';
-
 export interface OmnistonQuoteMetadata {
     quoteId: string;
     resolverId: string;
     resolverName?: string;
     omnistonQuote: Quote;
-    network: Network;
     gasBudget?: string;
     estimatedGasConsumption?: string;
 }

@@ -8,6 +8,7 @@
 
 import { SettlementMethod, Omniston, GaslessSettlement } from '@ston-fi/omniston-sdk';
 import type { Quote, QuoteResponseEvent, QuoteRequest } from '@ston-fi/omniston-sdk';
+import { Address } from '@ton/core';
 
 import type { OmnistonQuoteMetadata } from './types';
 import { SwapProvider } from '../SwapProvider';
@@ -17,7 +18,8 @@ import type { NetworkManager } from '../../../core/NetworkManager';
 import type { EventEmitter } from '../../../core/EventEmitter';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
-import type { TransactionRequest } from '../../../api/models';
+import type { Base64String, TransactionRequest } from '../../../api/models';
+import { getUnixtime } from '../../../utils';
 
 const log = globalLogger.createChild('OmnistonSwapProvider');
 
@@ -118,6 +120,7 @@ export class OmnistonSwapProvider extends SwapProvider {
                 settlementParams: {
                     gaslessSettlement: GaslessSettlement.GASLESS_SETTLEMENT_POSSIBLE,
                     maxPriceSlippageBps: slippageBps,
+                    // TODO: get from device info
                     maxOutgoingMessages: 4,
                     flexibleReferrerFee: this.flexibleReferrerFee,
                 },
@@ -206,13 +209,76 @@ export class OmnistonSwapProvider extends SwapProvider {
     }
 
     async buildSwapTransaction(params: SwapParams): Promise<TransactionRequest> {
+        log.debug('Building Omniston swap transaction', params);
+
         const metadata = params.quote.metadata;
 
         if (!metadata || !isOmnistonQuoteMetadata(metadata)) {
             throw new SwapError('Invalid quote: missing Omniston quote data', SwapError.INVALID_QUOTE);
         }
 
-        throw new Error('buildSwapTransaction is not implemented');
+        try {
+            const omnistonQuote = metadata.omnistonQuote;
+            const now = getUnixtime();
+
+            if (omnistonQuote.tradeStartDeadline && omnistonQuote.tradeStartDeadline < now) {
+                throw new SwapError('Quote has expired, please request a new one', SwapError.QUOTE_EXPIRED);
+            }
+
+            const userAddress = Address.parse(params.userAddress).toRawString();
+            const omnistonUserAddress = toOmnistonAddress(userAddress, params.quote.network);
+
+            const transactionRequest = {
+                quote: omnistonQuote,
+                sourceAddress: omnistonUserAddress,
+                destinationAddress: omnistonUserAddress,
+                gasExcessAddress: omnistonUserAddress,
+                refundAddress: omnistonUserAddress,
+                useRecommendedSlippage: true,
+            };
+
+            const buildResult = await this.omniston.buildTransfer(transactionRequest);
+            const messages = buildResult?.ton?.messages;
+
+            if (!messages || messages.length === 0) {
+                throw new SwapError('Failed to build transaction: no messages returned', SwapError.BUILD_TX_FAILED);
+            }
+
+            const transaction: TransactionRequest = {
+                messages: messages.map((message) => ({
+                    address: message.targetAddress,
+                    amount: message.sendAmount,
+                    payload: message.payload as Base64String,
+                    stateInit: message.jettonWalletStateInit as Base64String,
+                })),
+                network: params.quote.network,
+            };
+
+            log.debug('Built Omniston swap transaction', {
+                quoteId: metadata.quoteId,
+                transaction,
+            });
+
+            this.emitEvent('swap:transaction:built', {
+                provider: 'omniston',
+                quoteId: metadata.quoteId,
+                transaction,
+            });
+
+            return transaction;
+        } catch (error) {
+            log.error('Failed to build Omniston swap transaction', { error, params });
+
+            if (error instanceof SwapError) {
+                throw error;
+            }
+
+            throw new SwapError(
+                `Failed to build Omniston transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                SwapError.NETWORK_ERROR,
+                error,
+            );
+        }
     }
 
     private mapOmnistonQuoteToSwapQuote(quote: Quote, params: SwapQuoteParams): SwapQuote {
@@ -221,7 +287,6 @@ export class OmnistonSwapProvider extends SwapProvider {
             resolverId: quote.resolverId,
             resolverName: quote.resolverName,
             omnistonQuote: quote,
-            network: params.network,
             gasBudget: quote.gasBudget,
             estimatedGasConsumption: quote.estimatedGasConsumption,
         };
@@ -250,6 +315,7 @@ export class OmnistonSwapProvider extends SwapProvider {
             fromAmount: quote.bidUnits,
             toAmount: quote.askUnits,
             minReceived: quote.askUnits,
+            network: params.network,
             expiresAt: quote.tradeStartDeadline ? quote.tradeStartDeadline : undefined,
             fee: fee?.length ? fee : undefined,
         };

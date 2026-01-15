@@ -60,8 +60,6 @@ export const isOmnistonQuoteMetadata = (metadata: unknown): metadata is Omniston
         typeof meta.quoteId === 'string' &&
         typeof meta.resolverId === 'string' &&
         typeof meta.omnistonQuote === 'object' &&
-        meta.omnistonQuote !== null &&
-        typeof meta.network === 'object' &&
-        meta.network !== null
+        meta.omnistonQuote !== null
     );
 };

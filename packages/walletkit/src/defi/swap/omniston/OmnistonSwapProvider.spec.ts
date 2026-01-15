@@ -15,29 +15,61 @@ import type { EventEmitter } from '../../../core/EventEmitter';
 import { isOmnistonQuoteMetadata } from './utils';
 
 // Skip integration tests
-describe.skip('OmnistonSwapProvider.getQuote', () => {
+describe('OmnistonSwapProvider.getQuote', () => {
     let mockNetworkManager: NetworkManager = {} as NetworkManager;
     let mockEventEmitter = {
         emit: vi.fn(),
         on: vi.fn(),
         off: vi.fn(),
     } as unknown as EventEmitter;
+    const provider = new OmnistonSwapProvider(mockNetworkManager, mockEventEmitter, {
+        defaultSlippageBps: 100,
+        quoteTimeoutMs: 30000,
+    });
+    const usdtQuoteParams = {
+        fromToken: 'TON',
+        toToken: 'EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO', // USDT
+        amount: '1000000000', // 1 TON
+        network: Network.mainnet(),
+    };
 
     it('should return quote for TON to USDT swap', async () => {
-        const provider = new OmnistonSwapProvider(mockNetworkManager, mockEventEmitter, {
-            defaultSlippageBps: 100,
-            quoteTimeoutMs: 30000,
-        });
-
-        const quote = await provider.getQuote({
-            fromToken: 'TON',
-            toToken: 'EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO', // USDT
-            amount: '1000000000', // 1 TON
-            network: Network.mainnet(),
-        });
+        const quote = await provider.getQuote(usdtQuoteParams);
 
         expect(BigInt(quote.toAmount)).toBeGreaterThan(0);
         expect(isOmnistonQuoteMetadata(quote.metadata)).toBeTruthy();
         expect(mockEventEmitter.emit).toHaveBeenCalledWith('swap:quote:received', expect.any(Object));
+    }, 30000);
+
+    it('should build tx for quote', async () => {
+        const quote = await provider.getQuote(usdtQuoteParams);
+        const userAddress = 'UQAXl6XExQorMSzpkn_28S79OwtY_zEURRGMLS5kMStdeVQl';
+        const tx = await provider.buildSwapTransaction({
+            quote,
+            userAddress,
+        });
+
+        expect(tx).toBeDefined();
+        expect(tx.messages).toBeDefined();
+        expect(Array.isArray(tx.messages)).toBe(true);
+        expect(tx.messages.length).toBeGreaterThan(0);
+
+        tx.messages.forEach((msg) => {
+            expect(msg.address).toBeDefined();
+            expect(typeof msg.address).toBe('string');
+            expect(msg.address.length).toBeGreaterThan(0);
+            expect(msg.amount).toBeDefined();
+            expect(typeof msg.amount).toBe('string');
+            expect(BigInt(msg.amount)).toBeGreaterThanOrEqual(0n);
+        });
+
+        if (tx.validUntil) {
+            expect(typeof tx.validUntil).toBe('number');
+            expect(tx.validUntil).toBeGreaterThan(Date.now() / 1000);
+        }
+
+        if (tx.network) {
+            expect(tx.network).toBeDefined();
+        }
     }, 30000);
 });
