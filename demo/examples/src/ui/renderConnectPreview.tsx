@@ -10,9 +10,9 @@ import type { ConnectionRequestEvent } from '@ton/walletkit';
 
 // SAMPLE_START: RENDER_CONNECT_PREVIEW
 function renderConnectPreview(req: ConnectionRequestEvent) {
-    const name = req.preview.manifest?.name ?? req.dAppInfo?.name;
-    const description = req.preview.manifest?.description;
-    const iconUrl = req.preview.manifest?.iconUrl;
+    const name = req.preview.dAppInfo?.name ?? req.dAppInfo?.name;
+    const description = req.preview.dAppInfo?.description;
+    const iconUrl = req.preview.dAppInfo?.iconUrl;
     const permissions = req.preview.permissions ?? [];
 
     return {

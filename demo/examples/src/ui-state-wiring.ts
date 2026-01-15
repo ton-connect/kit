@@ -21,7 +21,30 @@ import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walle
 export async function main() {
     console.log('=== Minimal UI State Wiring Example ===');
     const kit = await walletKitInitializeSample();
+    const wiring = createMinimalUiStateWiring(kit);
+    console.log('✓ UI state wiring example completed');
+    console.log('State management functions are ready to use:');
+    console.log('  - approveConnect()');
+    await wiring.approveConnect();
+    console.log('  - rejectConnect()');
+    await wiring.rejectConnect();
+    console.log('  - approveTx()');
+    await wiring.approveTx();
+    console.log('  - rejectTx()');
+    await wiring.rejectTx();
 
+    await kit.close();
+}
+
+export function createMinimalUiStateWiring(kit: {
+    onConnectRequest: (handler: (req: ConnectionRequestEvent) => void) => void;
+    onTransactionRequest: (handler: (tx: TransactionRequestEvent) => void) => void;
+    getWallet: (idOrAddress: string) => { getAddress: () => string } | undefined;
+    approveConnectRequest: (req: ConnectionRequestEvent) => Promise<unknown>;
+    rejectConnectRequest: (req: ConnectionRequestEvent, reason: string) => Promise<unknown>;
+    approveTransactionRequest: (req: TransactionRequestEvent) => Promise<unknown>;
+    rejectTransactionRequest: (req: TransactionRequestEvent, reason: string) => Promise<unknown>;
+}) {
     // SAMPLE_START: MINIMAL_UI_STATE_WIRING
     type AppState = {
         connectModal?: { request: ConnectionRequestEvent };
@@ -67,19 +90,7 @@ export async function main() {
         state.txModal = undefined;
     }
     // SAMPLE_END: MINIMAL_UI_STATE_WIRING
-
-    console.log('✓ UI state wiring example completed');
-    console.log('State management functions are ready to use:');
-    console.log('  - approveConnect()');
-    await approveConnect();
-    console.log('  - rejectConnect()');
-    await rejectConnect();
-    console.log('  - approveTx()');
-    await approveTx();
-    console.log('  - rejectTx()');
-    await rejectTx();
-
-    await kit.close();
+    return { state, approveConnect, rejectConnect, approveTx, rejectTx };
 }
 
 /* istanbul ignore next */

@@ -28,16 +28,14 @@ export function getTonConnectWalletManifest(): WalletInfo {
         universalLink: 'https://walletkit-demo-wallet.vercel.app/ton-connect',
         // About page URL
         aboutUrl: 'https://walletkit-demo-wallet.vercel.app',
-        // Supported platforms
-        platforms: ['macos', 'windows', 'linux'],
     });
 }
 
-function detectPlatform(): 'linux' | 'macos' | 'windows' {
+function detectPlatform(): 'linux' | 'mac' | 'windows' {
     const platform = process.platform;
     switch (platform) {
         case 'darwin':
-            return 'macos';
+            return 'mac';
         case 'win32':
             return 'windows';
         case 'linux':

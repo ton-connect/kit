@@ -221,9 +221,9 @@ Render Connect preview:
 
 ```ts
 function renderConnectPreview(req: ConnectionRequestEvent) {
-    const name = req.preview.manifest?.name ?? req.dAppInfo?.name;
-    const description = req.preview.manifest?.description;
-    const iconUrl = req.preview.manifest?.iconUrl;
+    const name = req.preview.dAppInfo?.name ?? req.dAppInfo?.name;
+    const description = req.preview.dAppInfo?.description;
+    const iconUrl = req.preview.dAppInfo?.iconUrl;
     const permissions = req.preview.permissions ?? [];
 
     return {
@@ -239,11 +239,11 @@ Render Transaction preview (money flow overview):
 
 ```ts
 import type { TransactionEmulatedPreview } from '@ton/walletkit';
-import { AssetType } from '@ton/walletkit';
+import { AssetType, Result } from '@ton/walletkit';
 
 function summarizeTransaction(preview: TransactionEmulatedPreview) {
-    if (preview.result === 'error' && preview.error) {
-        return { kind: 'error', message: preview.error.message } as const;
+    if (preview.result === Result.failure) {
+        return { kind: 'error', message: preview?.error?.message ?? 'Unknown error' };
     }
 
     // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
@@ -299,17 +299,17 @@ Render Sign-Data preview:
 
 ```ts
 function renderSignDataPreview(preview: SignDataPreview) {
-    switch (preview.kind) {
+    switch (preview.type) {
         case 'text':
-            return { type: 'text', content: preview.content };
+            return { type: 'text', content: preview.value.content };
         case 'binary':
-            return { type: 'binary', content: preview.content };
+            return { type: 'binary', content: preview.value.content };
         case 'cell':
             return {
                 type: 'cell',
-                content: preview.content,
-                schema: preview.schema,
-                parsed: preview.parsed,
+                content: preview.value.content,
+                schema: preview.value.schema,
+                parsed: preview.value.parsed,
             };
     }
 }
@@ -318,7 +318,7 @@ function renderSignDataPreview(preview: SignDataPreview) {
 **Tip:** For jetton names/symbols and images in transaction previews, you can enrich the UI using:
 
 ```ts
-const info = kit.jettons.getJettonInfo(jettonAddress, CHAIN.MAINNET);
+const info = kit.jettons.getJettonInfo(jettonAddress, Network.mainnet());
 // info?.name, info?.symbol, info?.image
 ```
 

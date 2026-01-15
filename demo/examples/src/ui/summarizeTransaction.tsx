@@ -8,12 +8,13 @@
 
 // SAMPLE_START: SUMMARIZE_TRANSACTION_1
 import type { TransactionEmulatedPreview } from '@ton/walletkit';
-import { AssetType } from '@ton/walletkit';
+import { AssetType, Result } from '@ton/walletkit';
 // SAMPLE_END: SUMMARIZE_TRANSACTION_1
 
 // SAMPLE_START: SUMMARIZE_TRANSACTION_2
+
 function summarizeTransaction(preview: TransactionEmulatedPreview) {
-    if (preview.result === 'failure') {
+    if (preview.result === Result.failure) {
         return { kind: 'error', message: preview?.error?.message ?? 'Unknown error' };
     }
 

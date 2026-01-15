@@ -8,7 +8,7 @@
 
 import 'dotenv/config';
 
-import { CHAIN } from '@ton/walletkit';
+import { Network } from '@ton/walletkit';
 
 import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
 
@@ -19,7 +19,7 @@ export async function main() {
     const kit = await walletKitInitializeSample();
     const jettonAddress = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
     // SAMPLE_START: GET_JETTON_INFO
-    const info = kit.jettons.getJettonInfo(jettonAddress, CHAIN.MAINNET);
+    const info = kit.jettons.getJettonInfo(jettonAddress, Network.mainnet());
     // info?.name, info?.symbol, info?.image
     // SAMPLE_END: GET_JETTON_INFO
     console.log(info);

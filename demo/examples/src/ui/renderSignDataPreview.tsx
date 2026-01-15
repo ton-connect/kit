@@ -10,17 +10,17 @@ import type { SignDataPreview } from '@ton/walletkit';
 
 // SAMPLE_START: RENDER_SIGN_DATA_PREVIEW
 function renderSignDataPreview(preview: SignDataPreview) {
-    switch (preview.kind) {
+    switch (preview.type) {
         case 'text':
-            return { type: 'text', content: preview.content };
+            return { type: 'text', content: preview.value.content };
         case 'binary':
-            return { type: 'binary', content: preview.content };
+            return { type: 'binary', content: preview.value.content };
         case 'cell':
             return {
                 type: 'cell',
-                content: preview.content,
-                schema: preview.schema,
-                parsed: preview.parsed,
+                content: preview.value.content,
+                schema: preview.value.schema,
+                parsed: preview.value.parsed,
             };
     }
 }

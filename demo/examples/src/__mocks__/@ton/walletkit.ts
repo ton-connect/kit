@@ -29,7 +29,7 @@ export type WalletInfo = {
 
 export type ConnectionRequestEvent = {
     preview: {
-        manifest?: {
+        dAppInfo?: {
             name?: string;
             description?: string;
             iconUrl?: string;
@@ -54,7 +54,7 @@ export type DisconnectionEvent = {
 };
 
 export type TransactionEmulatedPreview = {
-    result: 'success' | 'error';
+    result: (typeof Result)[keyof typeof Result];
     error?: { message: string };
     moneyFlow?: {
         ourTransfers: TransactionTraceMoneyFlowItem[];
@@ -68,10 +68,12 @@ export type TransactionTraceMoneyFlowItem = {
 };
 
 export type SignDataPreview = {
-    kind: 'text' | 'binary' | 'cell';
-    content: string;
-    schema?: string;
-    parsed?: unknown;
+    type: 'text' | 'binary' | 'cell';
+    value: {
+        content: string;
+        schema?: string;
+        parsed?: unknown;
+    };
 };
 
 export type TONTransferRequest = {
@@ -107,6 +109,11 @@ export const AssetType = {
     nft: 'nft',
 } as const;
 
+export const Result = {
+    success: 'success',
+    failure: 'failure',
+} as const;
+
 // Mock wallet instance
 const createMockWallet = () => ({
     getWalletId: vi.fn(() => 'mock-wallet-id'),
@@ -137,11 +144,17 @@ export class TonWalletKit {
     waitForReady = vi.fn(() => Promise.resolve());
     close = vi.fn(() => Promise.resolve());
     getStatus = vi.fn(() => ({ ready: true }));
-    getConfiguredNetworks = vi.fn(() => [CHAIN.MAINNET]);
+    getConfiguredNetworks = vi.fn(() => ['-239']);
     getApiClient = vi.fn(() => ({}));
 
-    getWallets = vi.fn(() => this.wallets);
-    getWallet = vi.fn((id: string) => (id ? this.wallets[0] : undefined));
+    getWallets = vi.fn(() => [...this.wallets]);
+    getWallet = vi.fn((idOrAddress: string) => {
+        if (!idOrAddress) return undefined;
+        const byId = this.wallets.find((w) => w.getWalletId() === idOrAddress);
+        if (byId) return byId;
+        const byAddress = this.wallets.find((w) => w.getAddress() === idOrAddress);
+        return byAddress ?? this.wallets[0];
+    });
     addWallet = vi.fn(() => {
         const wallet = createMockWallet();
         this.wallets.push(wallet);
@@ -186,12 +199,6 @@ export const Signer = {
     ),
 };
 
-// Mock Network
-export const Network = {
-    mainnet: vi.fn(() => ({ chain: CHAIN.MAINNET })),
-    testnet: vi.fn(() => ({ chain: CHAIN.TESTNET })),
-};
-
 // Mock WalletV5R1Adapter
 export const WalletV5R1Adapter = {
     create: vi.fn(() =>
@@ -200,6 +207,11 @@ export const WalletV5R1Adapter = {
         }),
     ),
 };
+
+export const Network = {
+    mainnet: () => ({ chain: CHAIN.MAINNET }),
+    testnet: () => ({ chain: CHAIN.TESTNET }),
+} as const;
 
 // Mock MemoryStorageAdapter
 export class MemoryStorageAdapter {

@@ -49,6 +49,8 @@ export async function main() {
     getWalletInfo();
 
     function yourConfirmLogic(message: string): boolean {
+        if (process.env.EXAMPLES_AUTO_APPROVE === 'true') return true;
+        if (process.env.EXAMPLES_AUTO_REJECT === 'true') return false;
         return message.startsWith('Connect to');
     }
 

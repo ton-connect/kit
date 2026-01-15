@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { Result, AssetType } from '@ton/walletkit';
 
 import { applyRenderConnectPreview } from '../ui/renderConnectPreview';
 import { applySummarizeTransaction } from '../ui/summarizeTransaction';
@@ -17,8 +18,10 @@ describe('UI rendering functions', () => {
     describe('renderConnectPreview', () => {
         it('should render connect preview with manifest', () => {
             const req = {
+                id: 'test-id-1',
+                requestedItems: [{ type: 'ton_addr' as const }],
                 preview: {
-                    manifest: {
+                    dAppInfo: {
                         name: 'Test dApp',
                         description: 'Test description',
                         iconUrl: 'https://example.com/icon.png',
@@ -36,8 +39,25 @@ describe('UI rendering functions', () => {
             expect(result.permissions).toHaveLength(1);
         });
 
+        it('should handle missing permissions field', () => {
+            const req = {
+                id: 'test-id-3',
+                requestedItems: [{ type: 'ton_addr' as const }],
+                preview: {
+                    dAppInfo: { name: 'Test dApp' },
+                    permissions: undefined as unknown as [],
+                },
+                dAppInfo: { name: 'Fallback Name' },
+            };
+
+            const result = applyRenderConnectPreview(req);
+            expect(result.permissions).toHaveLength(0);
+        });
+
         it('should fallback to dAppInfo name', () => {
             const req = {
+                id: 'test-id-2',
+                requestedItems: [{ type: 'ton_addr' as const }],
                 preview: {
                     permissions: [],
                 },
@@ -52,7 +72,7 @@ describe('UI rendering functions', () => {
     describe('summarizeTransaction', () => {
         it('should return error for failed transaction', () => {
             const preview = {
-                result: 'error' as const,
+                result: Result.failure,
                 error: { message: 'Transaction failed' },
             };
 
@@ -64,13 +84,29 @@ describe('UI rendering functions', () => {
             }
         });
 
+        it('should return unknown error when error message missing', () => {
+            const preview = {
+                result: Result.failure,
+            };
+
+            const result = applySummarizeTransaction(preview);
+
+            expect(result.kind).toBe('error');
+            if (result.kind === 'error') {
+                expect(result.message).toBe('Unknown error');
+            }
+        });
+
         it('should summarize successful transaction with transfers', () => {
             const preview = {
-                result: 'success' as const,
+                result: Result.success,
                 moneyFlow: {
+                    outputs: '0',
+                    inputs: '0',
+                    allJettonTransfers: [],
                     ourTransfers: [
-                        { assetType: 'ton' as const, amount: '-1000000000' },
-                        { assetType: 'jetton' as const, amount: '500', tokenAddress: 'EQJetton123' },
+                        { assetType: AssetType.ton, amount: '-1000000000' },
+                        { assetType: AssetType.jetton, amount: '500', tokenAddress: 'EQJetton123' },
                     ],
                 },
             };
@@ -78,7 +114,7 @@ describe('UI rendering functions', () => {
             const result = applySummarizeTransaction(preview);
 
             expect(result.kind).toBe('success');
-            if (result.kind === 'success') {
+            if (result.kind === 'success' && result.transfers) {
                 expect(result.transfers).toHaveLength(2);
                 expect(result.transfers[0].jettonAddress).toBe('TON');
                 expect(result.transfers[0].isIncoming).toBe(false);
@@ -89,13 +125,13 @@ describe('UI rendering functions', () => {
 
         it('should handle empty money flow', () => {
             const preview = {
-                result: 'success' as const,
+                result: Result.success,
             };
 
             const result = applySummarizeTransaction(preview);
 
             expect(result.kind).toBe('success');
-            if (result.kind === 'success') {
+            if (result.kind === 'success' && result.transfers) {
                 expect(result.transfers).toHaveLength(0);
             }
         });
@@ -109,8 +145,8 @@ describe('UI rendering functions', () => {
 
         it('should render money flow for transfers', () => {
             const transfers = [
-                { assetType: 'ton' as const, amount: '1000000000' },
-                { assetType: 'jetton' as const, amount: '-500', tokenAddress: 'EQJetton123' },
+                { assetType: AssetType.ton, amount: '1000000000' },
+                { assetType: AssetType.jetton, amount: '-500', tokenAddress: 'EQJetton123' },
             ];
 
             const result = applyRenderMoneyFlow(transfers);
@@ -121,42 +157,54 @@ describe('UI rendering functions', () => {
     describe('renderSignDataPreview', () => {
         it('should render text preview', () => {
             const preview = {
-                kind: 'text' as const,
-                content: 'Hello World',
+                type: 'text' as const,
+                value: { content: 'Hello World' },
             };
 
             const result = applyRenderSignDataPreview(preview);
 
-            expect(result.type).toBe('text');
-            expect(result.content).toBe('Hello World');
+            if (result) {
+                expect(result.type).toBe('text');
+                expect(result.content).toBe('Hello World');
+            }
         });
 
         it('should render binary preview', () => {
-            const preview = {
-                kind: 'binary' as const,
-                content: '0x123456',
+            // Base64String is a branded type, so we need to cast for test purposes
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const preview: any = {
+                type: 'binary' as const,
+                value: { content: '0x123456' },
             };
 
             const result = applyRenderSignDataPreview(preview);
 
-            expect(result.type).toBe('binary');
-            expect(result.content).toBe('0x123456');
+            if (result) {
+                expect(result.type).toBe('binary');
+                expect(result.content).toBe('0x123456');
+            }
         });
 
         it('should render cell preview', () => {
-            const preview = {
-                kind: 'cell' as const,
-                content: 'te6cck...',
-                schema: 'SomeSchema',
-                parsed: { key: 'value' },
+            // Base64String is a branded type, so we need to cast for test purposes
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const preview: any = {
+                type: 'cell' as const,
+                value: {
+                    content: 'te6cck...',
+                    schema: 'SomeSchema',
+                    parsed: { key: 'value' },
+                },
             };
 
             const result = applyRenderSignDataPreview(preview);
 
-            expect(result.type).toBe('cell');
-            expect(result.content).toBe('te6cck...');
-            expect(result.schema).toBe('SomeSchema');
-            expect(result.parsed).toEqual({ key: 'value' });
+            if (result) {
+                expect(result.type).toBe('cell');
+                expect(result.content).toBe('te6cck...');
+                expect(result.schema).toBe('SomeSchema');
+                expect(result.parsed).toEqual({ key: 'value' });
+            }
         });
     });
 });
