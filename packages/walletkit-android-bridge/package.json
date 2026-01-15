@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 6000",
     "build": "node build.cjs",
     "build:quickjs": "vite build --config vite.config.quickjs.ts",
     "build:all": "pnpm run build && pnpm run build:quickjs",
