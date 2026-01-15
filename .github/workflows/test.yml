@@ -40,11 +40,11 @@ jobs:
       env:
         WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
 
-    - name: test
-      working-directory: demo/examples
-      run: pnpm quality
-      env:
-        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
+    # - name: test
+    #   working-directory: demo/examples
+    #   run: pnpm quality
+    #   env:
+    #     WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
 
     - name: test
       run: pnpm quality

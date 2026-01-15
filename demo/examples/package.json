@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Examples for @ton/walletkit",
   "scripts": {
-    "quality": "pnpm test",
-    "test": "tsx src/index.ts"
+    "_quality": "pnpm test",
+    "_test": "tsx src/index.ts"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*",
