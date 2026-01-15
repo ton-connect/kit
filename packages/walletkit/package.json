@@ -27,14 +27,14 @@
         "default": "./dist/cjs/bridge/JSBridgeInjector.js"
       }
     },
-    "./swap/omniston": {
+    "./defi/swap/omniston": {
       "import": {
-        "types": "./dist/esm/swap/omniston.d.ts",
-        "default": "./dist/esm/swap/omniston.js"
+        "types": "./dist/esm/defi/swap/omniston.d.ts",
+        "default": "./dist/esm/defi/swap/omniston.js"
       },
       "require": {
-        "types": "./dist/cjs/swap/omniston.d.ts",
-        "default": "./dist/cjs/swap/omniston.js"
+        "types": "./dist/cjs/defi/swap/omniston.d.ts",
+        "default": "./dist/cjs/defi/swap/omniston.js"
       }
     }
   },

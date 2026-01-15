@@ -9,9 +9,9 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import { OmnistonSwapProvider } from './OmnistonSwapProvider';
-import { Network } from '../../api/models';
-import type { NetworkManager } from '../../core/NetworkManager';
-import type { EventEmitter } from '../../core/EventEmitter';
+import { Network } from '../../../api/models';
+import type { NetworkManager } from '../../../core/NetworkManager';
+import type { EventEmitter } from '../../../core/EventEmitter';
 import { isOmnistonQuoteMetadata } from './utils';
 
 // Skip integration tests

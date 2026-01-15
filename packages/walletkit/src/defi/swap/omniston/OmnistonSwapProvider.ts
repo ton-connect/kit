@@ -12,12 +12,12 @@ import type { Quote, QuoteResponseEvent, QuoteRequest } from '@ston-fi/omniston-
 import type { OmnistonQuoteMetadata } from './types';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../types';
-import { SwapError, SwapErrorCode } from '../errors';
-import type { NetworkManager } from '../../core/NetworkManager';
-import type { EventEmitter } from '../../core/EventEmitter';
-import { globalLogger } from '../../core/Logger';
+import { SwapError } from '../errors';
+import type { NetworkManager } from '../../../core/NetworkManager';
+import type { EventEmitter } from '../../../core/EventEmitter';
+import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
-import type { TransactionRequest } from '../../api/models';
+import type { TransactionRequest } from '../../../api/models';
 
 const log = globalLogger.createChild('OmnistonSwapProvider');
 
@@ -133,7 +133,7 @@ export class OmnistonSwapProvider extends SwapProvider {
 
                     if (!isSettled) {
                         isSettled = true;
-                        reject(new SwapError('Quote request timed out', SwapErrorCode.NETWORK_ERROR));
+                        reject(new SwapError('Quote request timed out', SwapError.NETWORK_ERROR));
                     }
 
                     unsubscribe.unsubscribe();
@@ -149,9 +149,7 @@ export class OmnistonSwapProvider extends SwapProvider {
                             isSettled = true;
                             clearTimeout(timeoutId);
                             unsubscribe.unsubscribe();
-                            reject(
-                                new SwapError('No quote available for this swap', SwapErrorCode.INSUFFICIENT_LIQUIDITY),
-                            );
+                            reject(new SwapError('No quote available for this swap', SwapError.INSUFFICIENT_LIQUIDITY));
                             return;
                         }
 
@@ -174,7 +172,7 @@ export class OmnistonSwapProvider extends SwapProvider {
             });
 
             if (quoteEvent.type !== 'quoteUpdated') {
-                throw new SwapError('Quote data is missing', SwapErrorCode.INVALID_QUOTE);
+                throw new SwapError('Quote data is missing', SwapError.INVALID_QUOTE);
             }
 
             const quote = quoteEvent.quote;
@@ -201,7 +199,7 @@ export class OmnistonSwapProvider extends SwapProvider {
 
             throw new SwapError(
                 `Omniston quote request failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                SwapErrorCode.NETWORK_ERROR,
+                SwapError.NETWORK_ERROR,
                 error,
             );
         }
@@ -211,7 +209,7 @@ export class OmnistonSwapProvider extends SwapProvider {
         const metadata = params.quote.metadata;
 
         if (!metadata || !isOmnistonQuoteMetadata(metadata)) {
-            throw new SwapError('Invalid quote: missing Omniston quote data', SwapErrorCode.INVALID_QUOTE);
+            throw new SwapError('Invalid quote: missing Omniston quote data', SwapError.INVALID_QUOTE);
         }
 
         throw new Error('buildSwapTransaction is not implemented');

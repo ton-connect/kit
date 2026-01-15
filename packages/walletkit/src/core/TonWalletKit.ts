@@ -28,8 +28,7 @@ import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
-import { SwapManager } from '../swap/SwapManager';
-import type { SwapAPI } from '../swap/types';
+import { SwapManager } from '../defi/swap';
 import type {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
@@ -753,7 +752,7 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Swap API access
      */
-    get swap(): SwapAPI {
+    get swap(): SwapManager {
         return this.swapManager;
     }
 

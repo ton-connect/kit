@@ -6,7 +6,7 @@
  *
  */
 
-import type { Network, TransactionRequest, UserFriendlyAddress } from '../api/models';
+import type { Network, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 
 /**
  * Parameters for requesting a swap quote
@@ -58,13 +58,8 @@ export interface SwapParams {
  * Swap API interface exposed by SwapManager
  */
 export interface SwapAPI {
-    registerProvider(name: string, provider: SwapProviderInterface): void;
-    setDefaultProvider(name: string): void;
-    getProvider(name?: string): SwapProviderInterface;
     getQuote(params: SwapQuoteParams, provider?: string): Promise<SwapQuote>;
     buildSwapTransaction(params: SwapParams, provider?: string): Promise<TransactionRequest>;
-    getRegisteredProviders(): string[];
-    hasProvider(name: string): boolean;
 }
 
 /**

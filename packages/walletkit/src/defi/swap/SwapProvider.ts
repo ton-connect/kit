@@ -6,10 +6,10 @@
  *
  */
 
-import type { ApiClient } from '../types/toncenter/ApiClient';
-import type { Network, TransactionRequest } from '../api/models';
-import type { NetworkManager } from '../core/NetworkManager';
-import type { EventEmitter } from '../core/EventEmitter';
+import type { ApiClient } from '../../types/toncenter/ApiClient';
+import type { Network, TransactionRequest } from '../../api/models';
+import type { NetworkManager } from '../../core/NetworkManager';
+import type { EventEmitter } from '../../core/EventEmitter';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderInterface } from './types';
 
 /**
