@@ -52,7 +52,6 @@ import {
     Signer, // Handles cryptographic signing
     WalletV5R1Adapter, // Latest wallet version (recommended)
     Network, // Network configuration (mainnet/testnet)
-    CHAIN, // Chain constants (mainnet/testnet)
     MemoryStorageAdapter,
 } from '@ton/walletkit';
 
@@ -64,7 +63,7 @@ const kit = new TonWalletKit({
     storage: new MemoryStorageAdapter({}),
     // Multi-network API configuration
     networks: {
-        [CHAIN.MAINNET]: {
+        [Network.mainnet().chainId]: {
             apiClient: {
                 // Optional API key for Toncenter get on https://t.me/toncenter
                 key: process.env.APP_TONCENTER_KEY,
