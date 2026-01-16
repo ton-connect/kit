@@ -8,13 +8,17 @@
 
 import { DefiManagerError } from '../errors';
 
-export class StakingError extends DefiManagerError {
-    static readonly INVALID_QUOTE = 'INVALID_QUOTE'; // TODO rewrite
-    static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY'; // TODO rewrite
-    static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED'; // TODO rewrite
+export enum StakingErrorCode {
+    InvalidParams = 'INVALID_PARAMS',
+    UnsupportedOperation = 'UNSUPPORTED_OPERATION',
+}
 
-    constructor(message: string, code: string, details?: unknown) {
+export class StakingError extends DefiManagerError {
+    public readonly code: StakingErrorCode;
+
+    constructor(message: string, code: StakingErrorCode, details?: unknown) {
         super(message, code, details);
         this.name = 'StakingError';
+        this.code = code;
     }
 }

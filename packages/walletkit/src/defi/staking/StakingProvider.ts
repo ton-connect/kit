@@ -7,11 +7,25 @@
  */
 
 import type { ApiClient } from '../../types/toncenter/ApiClient';
-import type { Network, TransactionRequest } from '../../api/models';
+import type { Network, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 import type { NetworkManager } from '../../core/NetworkManager';
 import type { EventEmitter } from '../../core/EventEmitter';
-import type { SwapQuoteParams, SwapQuote, SwapParams, StakingProviderInterface } from './types';
+import type {
+    StakeParams,
+    UnstakeParams,
+    StakingBalance,
+    StakingInfo,
+    StakingProviderInterface,
+    StakingQuoteParams,
+    StakingQuote,
+} from './types';
 
+/**
+ * Abstract base class for staking providers
+ *
+ * Provides common utilities and enforces implementation of core staking methods.
+ * Users can extend this class to create custom staking providers.
+ */
 export abstract class StakingProvider implements StakingProviderInterface {
     protected networkManager: NetworkManager;
     protected eventEmitter: EventEmitter;
@@ -22,18 +36,37 @@ export abstract class StakingProvider implements StakingProviderInterface {
     }
 
     /**
-     * Get a quote for swapping tokens
-     * @param params - Quote parameters including tokens, amount, and network
-     * @returns Promise resolving to swap quote with pricing information
+     * Get a quote for staking or unstaking
+     * @param params - Quote parameters including direction and amount
      */
-    abstract getQuote(params: SwapQuoteParams): Promise<SwapQuote>;
+    abstract getQuote(params: StakingQuoteParams): Promise<StakingQuote>;
 
     /**
-     * Build a transaction for executing the swap
-     * @param params - Swap parameters including quote and user address
+     * Build a transaction for staking
+     * @param params - Staking parameters including amount and user address
      * @returns Promise resolving to transaction request ready to be signed
      */
-    abstract buildSwapTransaction(params: SwapParams): Promise<TransactionRequest>;
+    abstract stake(params: StakeParams): Promise<TransactionRequest>;
+
+    /**
+     * Build a transaction for unstaking
+     * @param params - Unstaking parameters including amount and user address
+     * @returns Promise resolving to transaction request ready to be signed
+     */
+    abstract unstake(params: UnstakeParams): Promise<TransactionRequest>;
+
+    /**
+     * Get staking balance for a user
+     * @param userAddress - User address to fetch balance for
+     * @param network - Optional network to use for balance query
+     */
+    abstract getBalance(userAddress: UserFriendlyAddress, network?: Network): Promise<StakingBalance>;
+
+    /**
+     * Get staking information for a network
+     * @param network - Optional network to fetch info for
+     */
+    abstract getStakingInfo(network?: Network): Promise<StakingInfo>;
 
     /**
      * Get API client for a specific network

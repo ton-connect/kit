@@ -6,106 +6,122 @@
  *
  */
 
-import type { Network, TransactionRequest, UserFriendlyAddress, TokenAmount } from '../../api/models';
-import {StakingError} from "./errors";
+import type { Network, TokenAmount, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 
-/**
- * Parameters for requesting a swap quote
- */
-export interface SwapQuoteParams {
-    fromToken: UserFriendlyAddress | 'TON';
-    toToken: UserFriendlyAddress | 'TON';
-    amount: string;
-    network: Network;
-    slippageBps?: number;
+export enum StakingQuoteDirection {
+    Stake = 'stake',
+    Unstake = 'unstake',
+}
+
+export enum UnstakeMode {
+    Instant = 'instant',
+    Delayed = 'delayed',
 }
 
 /**
- * Swap quote response with pricing information
+ * Parameters for requesting a staking quote
  */
-export interface SwapQuote {
-    fromToken: UserFriendlyAddress | 'TON';
-    toToken: UserFriendlyAddress | 'TON';
-    fromAmount: string;
-    toAmount: string;
-    minReceived: string;
-    priceImpact?: number;
-    fee?: SwapFee[];
+export interface StakingQuoteParams {
+    direction: StakingQuoteDirection;
+    amount: TokenAmount;
+    userAddress?: UserFriendlyAddress;
+    network?: Network;
+    unstakeMode?: UnstakeMode;
+}
+
+/**
+ * Staking quote response with pricing information
+ */
+export interface StakingQuote {
+    direction: StakingQuoteDirection;
+    amountIn: TokenAmount;
+    amountOut: TokenAmount;
     provider: string;
-    expiresAt?: number; // Unix timestamp in seconds
+    apy?: number;
+    unstakeMode?: UnstakeMode;
+    estimatedUnstakeDelayHours?: number;
+    instantUnstakeAvailable?: TokenAmount;
     metadata?: unknown;
 }
 
 /**
- * Fee information for swap
+ * Parameters for building a market swap transaction for st-tokens
  */
-export interface SwapFee {
-    amount: string;
-    token: UserFriendlyAddress | 'TON';
+export interface StakingMarketSwapParams {
+    quote: StakingQuote;
+    userAddress: UserFriendlyAddress;
 }
 
 /**
- * Parameters for building swap transaction
+ * Parameters for staking TON
  */
-export interface SwapParams {
-    quote: SwapQuote;
-    userAddress: UserFriendlyAddress;
-    slippageBps?: number;
-    deadline?: number;
-    referralAddress?: UserFriendlyAddress;
-}
-
-export interface StakingAPI {
-    getQuote(params: SwapQuoteParams, provider?: string): Promise<SwapQuote>;
-    buildStakingTransaction(params: SwapParams, provider?: string): Promise<TransactionRequest>;
-}
-
-export interface StakingProviderInterface {
-    getQuote(params: SwapQuoteParams): Promise<SwapQuote>;
-    buildSwapTransaction(params: SwapParams): Promise<TransactionRequest>;
-}
-
 export interface StakeParams {
     amount: TokenAmount;
     userAddress: UserFriendlyAddress;
-    network: Network;
+    network?: Network;
 }
 
+/**
+ * Parameters for unstaking TON
+ */
 export interface UnstakeParams {
     amount: TokenAmount;
     userAddress: UserFriendlyAddress;
-    network: Network;
+    network?: Network;
+    unstakeMode?: UnstakeMode;
+    /**
+     * Optional upper bound for delayed unstake waiting time.
+     * Providers can use this to decide between instant and delayed flows.
+     */
+    maxDelayHours?: number;
 }
 
+/**
+ * Staking balance information for a user
+ */
 export interface StakingBalance {
     stakedBalance: TokenAmount;
     availableBalance: TokenAmount;
     instantUnstakeAvailable: TokenAmount;
-    network: Network;
     provider: string;
 }
 
+/**
+ * Staking information for a provider
+ */
 export interface StakingInfo {
     apy: number;
-    network: Network;
+    instantUnstakeAvailable?: TokenAmount;
     provider: string;
 }
 
+/**
+ * Staking API interface exposed by StakingManager
+ */
 export interface StakingAPI {
-    registerProvider(name: string, provider: StakingProviderInterface): void;
-    setDefaultProvider(name: string): void;
-    getProvider(name?: string): StakingProviderInterface;
+    getQuote(params: StakingQuoteParams, provider?: string): Promise<StakingQuote>;
     stake(params: StakeParams, provider?: string): Promise<TransactionRequest>;
     unstake(params: UnstakeParams, provider?: string): Promise<TransactionRequest>;
-    getBalance(userAddress: UserFriendlyAddress, network: Network, provider?: string): Promise<StakingBalance>;
-    getStakingInfo(network: Network, provider?: string): Promise<StakingInfo>;
-    getRegisteredProviders(): string[];
-    hasProvider(name: string): boolean;
+    getBalance(userAddress: UserFriendlyAddress, network?: Network, provider?: string): Promise<StakingBalance>;
+    getStakingInfo(network?: Network, provider?: string): Promise<StakingInfo>;
 }
 
+/**
+ * Interface that all staking providers must implement
+ */
 export interface StakingProviderInterface {
+    getQuote(params: StakingQuoteParams): Promise<StakingQuote>;
     stake(params: StakeParams): Promise<TransactionRequest>;
     unstake(params: UnstakeParams): Promise<TransactionRequest>;
-    getBalance(userAddress: UserFriendlyAddress, network: Network): Promise<StakingBalance>;
-    getStakingInfo(network: Network): Promise<StakingInfo>;
+    getBalance(userAddress: UserFriendlyAddress, network?: Network): Promise<StakingBalance>;
+    getStakingInfo(network?: Network): Promise<StakingInfo>;
+}
+
+/**
+ * Optional interface for market providers that exchange st-tokens.
+ * This should remain separate from staking provider logic.
+ */
+export interface StakingMarketProviderInterface {
+    getQuote(params: StakingQuoteParams): Promise<StakingQuote>;
+    buildSwapTransaction(params: StakingMarketSwapParams): Promise<TransactionRequest>;
 }

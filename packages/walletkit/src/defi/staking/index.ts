@@ -9,4 +9,7 @@
 export { StakingProvider } from './StakingProvider';
 export { StakingManager } from './StakingManager';
 export { StakingError } from './errors';
+export type { StakingErrorCode } from './errors';
 export type * from './types';
+export { TonStakersStakingProvider } from './tonstakers/TonStakersStakingProvider';
+export type { TonStakersProviderConfig } from './tonstakers/types';
