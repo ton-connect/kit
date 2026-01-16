@@ -104,6 +104,36 @@ export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/ut
 export { CreateTonProofMessageBytes } from './utils/tonProof';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 export { asHex } from './utils/hex';
+export {
+    // Message builders
+    storeJettonTransferMessage,
+    storeNftTransferMessage,
+    createJettonTransferPayload,
+    createNftTransferPayload,
+    createNftTransferRawPayload,
+    createCommentPayload,
+    createCommentPayloadBase64,
+    createTransferTransaction,
+    // Constants
+    DEFAULT_JETTON_GAS_FEE,
+    DEFAULT_NFT_GAS_FEE,
+    DEFAULT_FORWARD_AMOUNT,
+} from './utils/messageBuilders';
+export type {
+    JettonTransferMessage,
+    NftTransferMessage,
+    NftTransferRawParams,
+    CreateTransferTransactionParams,
+} from './utils/messageBuilders';
+
+// Asset helpers
+export {
+    getJettonWalletAddressFromClient,
+    getJettonBalanceFromClient,
+    getJettonsFromClient,
+    getNftsFromClient,
+    getNftFromClient,
+} from './utils/assetHelpers';
 
 // API Interfaces
 export type * from './api/interfaces';
