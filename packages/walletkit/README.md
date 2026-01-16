@@ -15,6 +15,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 - 🌉 **Bridge & JS Bridge** - HTTP bridge and browser extension support
 - 🎨 **Previews for actions** - Transaction emulation with money flow analysis
 - 🪙 **Asset Support** - TON, Jettons, NFTs with metadata
+- 🔄 **Token Swaps** - Multi-DEX swap aggregation
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
@@ -24,6 +25,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 - **[Browser Extension Build](/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
+- **[Token Swaps](/packages/walletkit/src/defi/swap/README.md)** - Multi-DEX swap integration with custom provider support
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
 
