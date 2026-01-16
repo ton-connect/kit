@@ -1,5 +1,13 @@
 # @ton/walletkit
 
+## 0.0.5
+
+### Patch Changes
+
+-   Update WalletKit to use Network object instead of CHAIN constants
+-   Generate README.md samples from real example files
+-   Remove function exports from types (SendModeFromValue, SendModeToValue, asHex)
+
 ## 0.0.4
 
 ### Patch Changes
