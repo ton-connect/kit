@@ -4,9 +4,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 [![npm @ton/walletkit version](https://img.shields.io/npm/v/@ton/walletkit)](https://www.npmjs.com/package/@ton/walletkit)
 [![Release](https://github.com/ton-connect/kit/actions/workflows/release.yml/badge.svg)](https://github.com/ton-connect/kit/actions/workflows/release.yml)
-[![Basic build and tests](https://github.com/ton-connect/kit/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/test.yml)
-[![e2e extension](https://github.com/ton-connect/kit/actions/workflows/e2e_extension.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/e2e_extension.yml)
-[![e2e web](https://github.com/ton-connect/kit/actions/workflows/e2e_web.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/e2e_web.yml)
+[![Tests](https://github.com/ton-connect/kit/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/test.yml)
 
 ## Overview
 
@@ -22,7 +20,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-ton--connect%2Fkit-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/ton-connect/kit)
 
-- **[Browser Extension Build](/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
+- **[Browser Extension Build](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
@@ -451,10 +449,10 @@ async function rejectTx() {
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
-- **Web**: See `apps/demo-wallet` for the full implementation.
-- **React Native**: See `apps/demo-wallet-native` for the Expo-based mobile wallet.
+- **Web**: See [apps/demo-wallet](https://github.com/ton-connect/kit/tree/main/apps/demo-wallet) for the full implementation.
+- **React Native**: See [apps/demo-wallet-native](https://github.com/ton-connect/kit/tree/main/apps/demo-wallet-native) for the Expo-based mobile wallet.
 
-The store slices [walletCoreSlice.ts](/packages/demo-core/src/store/slices/walletCoreSlice.ts) and [tonConnectSlice.ts](/packages/demo-core/src/store/slices/tonConnectSlice.ts) show how to:
+The store slices [walletCoreSlice.ts](https://github.com/ton-connect/kit/blob/main/demo/wallet-core/src/store/slices/walletCoreSlice.ts) and [tonConnectSlice.ts](https://github.com/ton-connect/kit/blob/main/demo/wallet-core/src/store/slices/tonConnectSlice.ts) show how to:
 
 - Initialize the kit and add a wallet from mnemonic
 - Wire `onConnectRequest` and `onTransactionRequest` to open modals
@@ -463,8 +461,8 @@ The store slices [walletCoreSlice.ts](/packages/demo-core/src/store/slices/walle
 ## Resources
 
 - [TON Connect Protocol](https://github.com/ton-blockchain/ton-connect) - Official TON Connect protocol specification
-- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](/apps/demo-wallet)
-- [Complete development guide](DEVELOPMENT.md)
+- [Live Demo](https://walletkit-demo-wallet.vercel.app/) - Reference implementation [sources](https://github.com/ton-connect/kit/tree/main/apps/demo-wallet)
+- [Complete development guide](https://github.com/ton-connect/kit/blob/main/packages/walletkit/DEVELOPMENT.md)
 
 ## License
 
