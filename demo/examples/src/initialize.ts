@@ -20,7 +20,7 @@ import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
  * 5. Exiting the process
  */
 
-async function main() {
+export async function main() {
     const kit = await walletKitInitializeSample();
     console.log('Step 3: Closing WalletKit...');
     await kit.close();
@@ -31,7 +31,10 @@ async function main() {
     console.log('✓ WalletKit Initialize completed successfully');
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exit(1);
-});
+/* istanbul ignore next */
+if (process.env.VITEST !== 'true') {
+    main().catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
+}

@@ -220,71 +220,78 @@ The snippets below mirror how the demo wallet renders previews in its modals. Ad
 Render Connect preview:
 
 ```ts
-function renderConnectPreview(req: EventConnectRequest) {
-  const name = req.preview.manifest?.name ?? req.dAppInfo?.name;
-  const description = req.preview.manifest?.description;
-  const iconUrl = req.preview.manifest?.iconUrl;
-  const permissions = req.preview.permissions ?? [];
+function renderConnectPreview(req: ConnectionRequestEvent) {
+    const name = req.preview.dAppInfo?.name ?? req.dAppInfo?.name;
+    const description = req.preview.dAppInfo?.description;
+    const iconUrl = req.preview.dAppInfo?.iconUrl;
+    const permissions = req.preview.permissions ?? [];
 
-  return {
-    title: `Connect to ${name}?`,
-    iconUrl,
-    description,
-    permissions: permissions.map((p) => ({ title: p.title, description: p.description })),
-  };
+    return {
+        title: `Connect to ${name}?`,
+        iconUrl,
+        description,
+        permissions: permissions.map((p) => ({ title: p.title, description: p.description })),
+    };
 }
 ```
 
 Render Transaction preview (money flow overview):
 
 ```ts
-import type { MoneyFlowSelf } from '@ton/walletkit';
+import type { TransactionEmulatedPreview } from '@ton/walletkit';
+import { AssetType, Result } from '@ton/walletkit';
 
-function summarizeTransaction(preview: TransactionPreview) {
-  if (preview.result === 'error') {
-    return { kind: 'error', message: preview.emulationError.message } as const;
-  }
+function summarizeTransaction(preview: TransactionEmulatedPreview) {
+    if (preview.result === Result.failure) {
+        return { kind: 'error', message: preview?.error?.message ?? 'Unknown error' };
+    }
 
-  // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
-  const transfers = preview.moneyFlow.ourTransfers; // Array of MoneyFlowSelf
+    // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
+    const transfers = preview.moneyFlow ? preview.moneyFlow.ourTransfers : []; // Array of TransactionTraceMoneyFlow
 
-  // Each transfer has:
-  // - type: 'ton' | 'jetton'
-  // - amount: string (positive for incoming, negative for outgoing)
-  // - jetton?: string (jetton master address, if type === 'jetton')
+    // Each transfer has:
+    // - assetType: 'ton' | 'jetton' | 'nft'
+    // - amount: string (positive for incoming, negative for outgoing)
+    // - tokenAddress?: string (jetton master address, if type === 'jetton' or 'nft')
 
-  return {
-    kind: 'success' as const,
-    transfers: transfers.map((transfer) => ({
-      type: transfer.type,
-      jettonAddress: transfer.type === 'jetton' ? transfer.jetton : 'TON',
-      amount: transfer.amount, // string, can be positive or negative
-      isIncoming: BigInt(transfer.amount) >= 0n,
-    })),
-  };
+    return {
+        kind: 'success' as const,
+        transfers: transfers.map((transfer) => ({
+            assetType: transfer.assetType,
+            jettonAddress: transfer.assetType === AssetType.ton ? 'TON' : (transfer.tokenAddress ?? ''),
+            amount: transfer.amount, // string, can be positive or negative
+            isIncoming: BigInt(transfer.amount) >= 0n,
+        })),
+    };
 }
 ```
 
 Example UI rendering:
 
 ```tsx
-function renderMoneyFlow(transfers: MoneyFlowSelf[]) {
-  if (transfers.length === 0) {
-    return <div>This transaction doesn't involve any token transfers</div>;
-  }
+import type { TransactionTraceMoneyFlowItem } from '@ton/walletkit';
+import { AssetType } from '@ton/walletkit';
 
-  return transfers.map((transfer) => {
-    const amount = BigInt(transfer.amount);
-    const isIncoming = amount >= 0n;
-    const jettonAddress = transfer.type === 'jetton' ? transfer.jetton : 'TON';
+function renderMoneyFlow(transfers: TransactionTraceMoneyFlowItem[]) {
+    if (transfers.length === 0) {
+        return <div>This transaction doesn't involve any token transfers</div>;
+    }
 
-    return (
-      <div key={jettonAddress}>
-        <span>{isIncoming ? '+' : ''}{transfer.amount}</span>
-        <span>{jettonAddress}</span>
-      </div>
-    );
-  });
+    return transfers.map((transfer: TransactionTraceMoneyFlowItem) => {
+        const amount = BigInt(transfer.amount);
+        const isIncoming = amount >= 0n;
+        const jettonAddress = transfer.assetType === AssetType.ton ? 'TON' : (transfer.tokenAddress ?? '');
+
+        return (
+            <div key={jettonAddress}>
+                <span>
+                    {isIncoming ? '+' : ''}
+                    {transfer.amount}
+                </span>
+                <span>{jettonAddress}</span>
+            </div>
+        );
+    });
 }
 ```
 
@@ -292,26 +299,26 @@ Render Sign-Data preview:
 
 ```ts
 function renderSignDataPreview(preview: SignDataPreview) {
-  switch (preview.kind) {
-    case 'text':
-      return { type: 'text', content: preview.content };
-    case 'binary':
-      return { type: 'binary', content: preview.content };
-    case 'cell':
-      return {
-        type: 'cell',
-        content: preview.content,
-        schema: preview.schema,
-        parsed: preview.parsed,
-      };
-  }
+    switch (preview.type) {
+        case 'text':
+            return { type: 'text', content: preview.value.content };
+        case 'binary':
+            return { type: 'binary', content: preview.value.content };
+        case 'cell':
+            return {
+                type: 'cell',
+                content: preview.value.content,
+                schema: preview.value.schema,
+                parsed: preview.value.parsed,
+            };
+    }
 }
 ```
 
 **Tip:** For jetton names/symbols and images in transaction previews, you can enrich the UI using:
 
 ```ts
-const info = kit.jettons.getJettonInfo(jettonAddress);
+const info = kit.jettons.getJettonInfo(jettonAddress, Network.mainnet());
 // info?.name, info?.symbol, info?.image
 ```
 
@@ -322,16 +329,16 @@ You can create transactions from your wallet app (not from dApps) and feed them 
 ### Send TON
 
 ```ts
-import type { TonTransferParams } from '@ton/walletkit';
+import type { TONTransferRequest } from '@ton/walletkit';
 
 const from = kit.getWallet(getSelectedWalletAddress());
 if (!from) throw new Error('No wallet');
 
-const tonTransfer: TonTransferParams = {
-  toAddress: 'EQC...recipient...',
-  amount: (1n * 10n ** 9n).toString(), // 1 TON in nanotons
-  // Optional comment OR body (base64 BOC), not both
-  comment: 'Thanks!'
+const tonTransfer: TONTransferRequest = {
+    recipientAddress: 'EQC...recipient...',
+    transferAmount: (1n * 10n ** 9n).toString(), // 1 TON in nanotons
+    // Optional comment OR body (base64 BOC), not both
+    comment: 'Thanks!',
 };
 
 // 1) Build transaction content
@@ -344,16 +351,16 @@ await kit.handleNewTransaction(from, tx);
 ### Send Jettons (fungible tokens)
 
 ```ts
-import type { JettonTransferParams } from '@ton/walletkit';
+import type { JettonsTransferRequest } from '@ton/walletkit';
 
 const wallet = kit.getWallet(getSelectedWalletAddress());
 if (!wallet) throw new Error('No wallet');
 
-const jettonTransfer: JettonTransferParams = {
-  toAddress: 'EQC...recipient...',
-  jettonAddress: 'EQD...jetton-master...',
-  amount: '1000000000', // raw amount per token decimals
-  comment: 'Payment'
+const jettonTransfer: JettonsTransferRequest = {
+    recipientAddress: 'EQC...recipient...',
+    jettonAddress: 'EQD...jetton-master...',
+    transferAmount: '1000000000', // raw amount per token decimals
+    comment: 'Payment',
 };
 
 const tx = await wallet.createTransferJettonTransaction(jettonTransfer);
@@ -367,16 +374,16 @@ await kit.handleNewTransaction(wallet, tx);
 ### Send NFTs
 
 ```ts
-import type { NftTransferParamsHuman } from '@ton/walletkit';
+import type { NFTTransferRequest } from '@ton/walletkit';
 
 const wallet = kit.getWallet(getSelectedWalletAddress());
 if (!wallet) throw new Error('No wallet');
 
-const nftTransfer: NftTransferParamsHuman = {
-  nftAddress: 'EQD...nft-item...',
-  toAddress: 'EQC...recipient...',
-  transferAmount: 10000000n, // TON used to invoke NFT transfer (nanotons)
-  comment: 'Gift'
+const nftTransfer: NFTTransferRequest = {
+    nftAddress: 'EQD...nft-item...',
+    recipientAddress: 'EQC...recipient...',
+    transferAmount: '1', // TON used to invoke NFT transfer (nanotons)
+    comment: 'Gift',
 };
 
 const tx = await wallet.createTransferNftTransaction(nftTransfer);
@@ -386,55 +393,58 @@ await kit.handleNewTransaction(wallet, tx);
 **Fetching NFTs:**
 
 ```ts
-const items = await wallet.getNfts({ offset: 0, limit: 50 });
+const items = await wallet.getNfts({ pagination: { offset: 0, limit: 50 } });
 // items.items is an array of NftItem
+console.log(`✓ Fetched ${items?.nfts?.length ?? 0} NFTs`);
 ```
+
+Note: The `getNfts` method returns `NFTsResponse` with a `nfts` field (not `items`).
 
 ## Example: minimal UI state wiring
 
 ```ts
 type AppState = {
-  connectModal?: { request: any };
-  txModal?: { request: any };
+    connectModal?: { request: ConnectionRequestEvent };
+    txModal?: { request: TransactionRequestEvent };
 };
 
 const state: AppState = {};
 
 kit.onConnectRequest((req) => {
-  state.connectModal = { request: req };
+    state.connectModal = { request: req };
 });
 
 kit.onTransactionRequest((tx) => {
-  state.txModal = { request: tx };
+    state.txModal = { request: tx };
 });
 
 async function approveConnect() {
-  if (!state.connectModal) return;
-  const address = getSelectedWalletAddress();
-  const wallet = kit.getWallet(address);
-  if (!wallet) return;
-  // Set wallet address on the request
-  state.connectModal.request.walletAddress = wallet.getAddress();
-  await kit.approveConnectRequest(state.connectModal.request);
-  state.connectModal = undefined;
+    if (!state.connectModal) return;
+    const address = getSelectedWalletAddress();
+    const wallet = kit.getWallet(address);
+    if (!wallet) return;
+    // Set wallet address on the request
+    state.connectModal.request.walletAddress = wallet.getAddress();
+    await kit.approveConnectRequest(state.connectModal.request);
+    state.connectModal = undefined;
 }
 
 async function rejectConnect() {
-  if (!state.connectModal) return;
-  await kit.rejectConnectRequest(state.connectModal.request, 'User rejected');
-  state.connectModal = undefined;
+    if (!state.connectModal) return;
+    await kit.rejectConnectRequest(state.connectModal.request, 'User rejected');
+    state.connectModal = undefined;
 }
 
 async function approveTx() {
-  if (!state.txModal) return;
-  await kit.approveTransactionRequest(state.txModal.request);
-  state.txModal = undefined;
+    if (!state.txModal) return;
+    await kit.approveTransactionRequest(state.txModal.request);
+    state.txModal = undefined;
 }
 
 async function rejectTx() {
-  if (!state.txModal) return;
-  await kit.rejectTransactionRequest(state.txModal.request, 'User rejected');
-  state.txModal = undefined;
+    if (!state.txModal) return;
+    await kit.rejectTransactionRequest(state.txModal.request, 'User rejected');
+    state.txModal = undefined;
 }
 ```
 
