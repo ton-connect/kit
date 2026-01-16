@@ -11,7 +11,7 @@
 // eslint-disable-next-line no-console
 console.log('TON Wallet Demo extension background script loaded');
 
-import { CHAIN, ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
+import { Network, ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import browser from 'webextension-polyfill';
 import { onMessage } from '@truecarry/webext-bridge/background';
@@ -41,13 +41,13 @@ async function initializeWalletKit() {
                 jsBridgeTransport: SendMessageToExtensionContentFromBackground,
             },
             networks: {
-                [CHAIN.MAINNET]: {
+                [Network.mainnet().chainId]: {
                     apiClient: {
                         url: 'https:/toncenter.com',
                         key: ENV_TON_API_KEY_MAINNET,
                     },
                 },
-                [CHAIN.TESTNET]: {
+                [Network.testnet().chainId]: {
                     apiClient: {
                         url: 'https://testnet.toncenter.com',
                         key: ENV_TON_API_KEY_TESTNET,

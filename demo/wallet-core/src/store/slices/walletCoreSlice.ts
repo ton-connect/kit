@@ -6,7 +6,7 @@
  *
  */
 
-import { TonWalletKit, CHAIN, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import { TonWalletKit, Network, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
@@ -33,13 +33,13 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         },
 
         networks: {
-            [CHAIN.MAINNET]: {
+            [Network.mainnet().chainId]: {
                 apiClient: {
                     url: 'https:/toncenter.com',
                     key: walletKitConfig?.tonApiKeyMainnet,
                 },
             },
-            [CHAIN.TESTNET]: {
+            [Network.testnet().chainId]: {
                 apiClient: {
                     url: 'https://testnet.toncenter.com',
                     key: walletKitConfig?.tonApiKeyTestnet,
