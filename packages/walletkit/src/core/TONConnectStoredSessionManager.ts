@@ -10,7 +10,6 @@
 
 import { SessionCrypto } from '@tonconnect/protocol';
 
-import type { SessionInfo } from '../types';
 import type { WalletManager } from '../core/WalletManager';
 import type { Storage } from '../storage';
 import { globalLogger } from './Logger';
@@ -146,11 +145,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     /**
      * Remove all sessions for a wallet by wallet ID or wallet adapter
      */
-    async removeSessionsForWallet(walletOrId: WalletId | Wallet): Promise<number> {
-        const walletId =
-            typeof walletOrId === 'string'
-                ? walletOrId
-                : createWalletId(walletOrId.getNetwork(), walletOrId.getAddress());
+    async removeSessionsForWallet(walletId: WalletId): Promise<void> {
         const sessionsToRemove = this.getSessionsForWallet(walletId);
 
         let removedCount = 0;
@@ -163,8 +158,6 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         if (removedCount > 0) {
             await this.persistSessions();
         }
-
-        return removedCount;
     }
 
     /**
@@ -214,20 +207,6 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         }
 
         return sessionsToRemove.length;
-    }
-
-    /**
-     * Get sessions as the format expected by the main API
-     */
-    getSessionsForAPI(): Array<SessionInfo> {
-        return this.getSessions().map((session) => ({
-            sessionId: session.sessionId,
-            dAppName: session.dAppInfo.name ?? '',
-            walletId: session.walletId,
-            walletAddress: session.walletAddress,
-            dAppUrl: session.dAppInfo.url ?? '',
-            dAppIconUrl: session.dAppInfo.iconUrl ?? '',
-        }));
     }
 
     /**

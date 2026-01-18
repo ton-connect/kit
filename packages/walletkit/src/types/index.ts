@@ -19,7 +19,7 @@ export type { EventTransactionApproval, EventSignDataApproval } from './events';
 export type { TonWalletKitOptions, NetworkConfig, NetworkAdapters, ApiClientConfig } from './config';
 
 // Main kit interface
-export type { ITonWalletKit, SessionInfo } from './kit';
+export type { ITonWalletKit } from './kit';
 
 // Internal types (re-export from internal.ts)
 export type { BridgeConfig, EventCallback, RawBridgeEvent, EventType, EventHandler } from './internal';

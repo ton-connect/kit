@@ -18,7 +18,7 @@ import type {
 } from '@tonconnect/protocol';
 import { CHAIN } from '@tonconnect/protocol';
 
-import type { ITonWalletKit, TonWalletKitOptions, SessionInfo } from '../types';
+import type { ITonWalletKit, TonWalletKitOptions } from '../types';
 import { Initializer, wrapWalletInterface } from './Initializer';
 import type { InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
