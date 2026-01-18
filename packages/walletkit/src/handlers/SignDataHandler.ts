@@ -20,7 +20,7 @@ import type { WalletManager } from '../core/WalletManager';
 import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview, Base64String } from '../api/models';
 import { Network } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
-import type { SessionManager } from '../core/SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -30,12 +30,12 @@ export class SignDataHandler
 {
     private analytics?: Analytics;
     private walletManager: WalletManager;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
 
     constructor(
         notify: (event: SignDataRequestEvent) => void,
         walletManager: WalletManager,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
     ) {
         super(notify);

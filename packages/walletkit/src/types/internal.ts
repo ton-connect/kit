@@ -32,25 +32,6 @@ import { asAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';
 
-export interface SessionData {
-    sessionId: string;
-
-    walletId: WalletId;
-    walletAddress: UserFriendlyAddress;
-    createdAt: string; // date
-    lastActivityAt: string; // date
-    privateKey: string;
-    publicKey: string;
-
-    dAppName: string;
-    dAppDescription: string;
-    domain: string;
-    dAppIconUrl: string;
-
-    // Bridge type indicator (needed to determine how to send disconnect events)
-    isJsBridge?: boolean; // true if session was created via JS Bridge, false/undefined for HTTP Bridge
-}
-
 export interface BridgeConfig {
     bridgeUrl?: string; // defaults to WalletInfo.bridgeUrl if exists
     enableJsBridge?: boolean; // default to true if WalletInfo.jsBridgeKey exists

@@ -28,7 +28,7 @@ import {
 import { getSecureRandomBytes } from '@ton/crypto';
 
 import type { EventSignDataApproval, TonWalletKitOptions } from '../types';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
 import { CreateTonProofMessage } from '../utils/tonProof';
@@ -62,7 +62,7 @@ export class RequestProcessor {
 
     constructor(
         private walletKitOptions: TonWalletKitOptions,
-        private sessionManager: SessionManager,
+        private sessionManager: TONConnectSessionManager,
         private bridgeManager: BridgeManager,
         private walletManager: WalletManager,
         analyticsManager?: AnalyticsManager,
@@ -128,10 +128,12 @@ export class RequestProcessor {
                 const domain = url.host;
                 const newSession = await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
-                    event.preview.dAppInfo?.name || '',
-                    domain,
-                    event.preview.dAppInfo?.iconUrl || '',
-                    event.preview.dAppInfo?.description || '',
+                    {
+                        name: event.preview.dAppInfo?.name || '',
+                        url: domain,
+                        iconUrl: event.preview.dAppInfo?.iconUrl || '',
+                        description: event.preview.dAppInfo?.description || '',
+                    },
                     wallet,
                     {
                         isJsBridge: event.isJsBridge,
@@ -206,10 +208,12 @@ export class RequestProcessor {
                 const domain = url.host;
                 await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
-                    event.result.dAppName,
-                    domain,
-                    event.result.dAppIconUrl,
-                    event.result.dAppDescription,
+                    {
+                        name: event.result.dAppName,
+                        url: domain,
+                        iconUrl: event.result.dAppIconUrl,
+                        description: event.result.dAppDescription,
+                    },
                     wallet,
                 );
                 await this.bridgeManager.sendResponse(event, event.result.response);
@@ -294,10 +298,12 @@ export class RequestProcessor {
             };
             const newSession = await this.sessionManager.createSession(
                 event.from || '',
-                event.preview.dAppInfo?.name || '',
-                '',
-                '',
-                '',
+                {
+                    name: event.preview.dAppInfo?.name || '',
+                    url: '',
+                    iconUrl: '',
+                    description: '',
+                },
                 undefined,
                 {
                     disablePersist: true,

@@ -12,12 +12,12 @@ import { SessionCrypto } from '@tonconnect/protocol';
 import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 import { BridgeProvider } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, RawBridgeEvent, SessionData } from '../types/internal';
+import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
 import type { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type {
     BridgeEventMessageInfo,
@@ -30,14 +30,14 @@ import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TonWalletKitOptions } from '../types/config';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
-import type { BridgeEvent } from '../api/models';
+import type { BridgeEvent, TONConnectSession } from '../api/models';
 
 const log = globalLogger.createChild('BridgeManager');
 
 export class BridgeManager {
     private config: BridgeConfig;
     private bridgeProvider?: BridgeProvider<WalletConsumer>;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
     private storage: Storage;
     private isConnected = false;
     private reconnectAttempts = 0;
@@ -62,7 +62,7 @@ export class BridgeManager {
     constructor(
         walletManifest: WalletInfo | undefined,
         config: BridgeConfig | undefined,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         storage: Storage,
         eventStore: EventStore,
         eventRouter: EventRouter,
@@ -188,7 +188,7 @@ export class BridgeManager {
         event: BridgeEvent,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         response: any,
-        _session?: SessionData,
+        _session?: TONConnectSession,
     ): Promise<void> {
         if (event.isLocal) {
             return;
@@ -261,7 +261,7 @@ export class BridgeManager {
         response: any,
         options?: {
             traceId?: string;
-            session?: SessionData;
+            session?: TONConnectSession;
         },
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
@@ -591,10 +591,9 @@ export class BridgeManager {
                 rawEvent.traceId = uuidv7();
             }
 
-            await this.sessionManager.initialize();
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);
-                rawEvent.domain = session?.domain || '';
+                rawEvent.domain = session?.dAppInfo?.url || '';
                 if (session) {
                     if (session?.walletId) {
                         rawEvent.walletId = session.walletId;
@@ -604,10 +603,10 @@ export class BridgeManager {
                     }
 
                     rawEvent.dAppInfo = {
-                        name: session.dAppName,
-                        description: session.dAppDescription,
-                        url: session.dAppIconUrl,
-                        iconUrl: session.dAppIconUrl,
+                        name: session.dAppInfo?.name,
+                        description: session.dAppInfo?.description,
+                        url: session.dAppInfo?.url,
+                        iconUrl: session.dAppInfo?.iconUrl,
                     };
                 }
             } else if (rawEvent.domain) {
@@ -625,10 +624,10 @@ export class BridgeManager {
 
                 if (session) {
                     rawEvent.dAppInfo = {
-                        name: session.dAppName,
-                        description: session.dAppDescription,
-                        url: session.dAppIconUrl,
-                        iconUrl: session.dAppIconUrl,
+                        name: session.dAppInfo?.name,
+                        description: session.dAppInfo?.description,
+                        url: session.dAppInfo?.url,
+                        iconUrl: session.dAppInfo?.iconUrl,
                     };
 
                     if (!rawEvent.from) {

@@ -37,6 +37,7 @@ export type { SignDataRequestEvent, SignDataRequestEventPreview, SignDataPreview
 export type { TransactionApprovalResponse } from './bridge/TransactionApprovalResponse';
 export type { TransactionRequestEvent, TransactionRequestEventPreview } from './bridge/TransactionRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
+export type { TONConnectSession } from './bridge/TONConnectSession';
 
 // Jetton models
 export type { Jetton } from './jettons/Jetton';

@@ -24,6 +24,7 @@ import type {
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
+    TONConnectSession,
 } from '../api/models';
 
 /**
@@ -70,7 +71,7 @@ export interface ITonWalletKit {
     disconnect(sessionId?: string): Promise<void>;
 
     /** List all active sessions */
-    listSessions(): Promise<SessionInfo[]>;
+    listSessions(): Promise<TONConnectSession[]>;
 
     // === URL Processing ===
 

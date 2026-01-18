@@ -12,17 +12,18 @@ import { SessionCrypto } from '@tonconnect/protocol';
 
 import type { SessionInfo } from '../types';
 import type { WalletManager } from '../core/WalletManager';
-import type { SessionData } from '../types/internal';
 import type { Storage } from '../storage';
 import { globalLogger } from './Logger';
 import type { WalletId } from '../utils/walletId';
 import { createWalletId } from '../utils/walletId';
 import type { Wallet } from '../api/interfaces';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
+import type { DAppInfo, TONConnectSession } from '../api/models';
 
-const log = globalLogger.createChild('SessionManager');
+const log = globalLogger.createChild('TONConnectStoredSessionManager');
 
-export class SessionManager {
-    private sessions: Map<string, SessionData> = new Map();
+export class TONConnectStoredSessionManager implements TONConnectSessionManager {
+    private sessions: Map<string, TONConnectSession> = new Map();
     private storage: Storage;
     private walletManager: WalletManager;
     private storageKey = 'sessions';
@@ -41,96 +42,57 @@ export class SessionManager {
 
     /**
      * Create new session
+     * @param sessionId - Unique session identifier
+     * @param dAppInfo - Information about the dApp
      * @param wallet - The wallet to associate with this session (optional for connect requests before wallet selection)
+     * @param options - Additional options for session creation
      */
     async createSession(
         sessionId: string,
-        dAppName: string,
-        domain: string,
-        dAppIconUrl: string,
-        dAppDescription: string,
+        dAppInfo: DAppInfo,
         wallet?: Wallet,
         { disablePersist = false, isJsBridge = false }: { disablePersist?: boolean; isJsBridge?: boolean } = {},
-    ): Promise<SessionData> {
+    ): Promise<TONConnectSession> {
         const now = new Date();
-        // const randomKeyPair = keyPairFromSeed(Buffer.from(crypto.getRandomValues(new Uint8Array(32))));
         const randomKeyPair = new SessionCrypto().stringifyKeypair();
 
         // Create walletId from wallet if provided
         const walletId = wallet ? createWalletId(wallet.getNetwork(), wallet.getAddress()) : '';
 
-        const sessionData: SessionData = {
+        const session: TONConnectSession = {
             sessionId,
-            dAppName,
-            domain,
             walletId,
             walletAddress: wallet?.getAddress() ?? '',
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
-            dAppIconUrl: dAppIconUrl,
-            dAppDescription: dAppDescription,
+            dAppInfo: {
+                name: dAppInfo.name ?? '',
+                description: dAppInfo.description ?? '',
+                url: dAppInfo.url ?? '',
+                iconUrl: dAppInfo.iconUrl ?? '',
+            },
             isJsBridge,
         };
 
         if (disablePersist) {
-            return SessionManager.toSessionData(sessionData);
+            return session;
         }
-        this.sessions.set(sessionId, sessionData);
+        this.sessions.set(sessionId, session);
         await this.persistSessions();
 
         return (await this.getSession(sessionId))!;
     }
 
-    static toSessionData(session: SessionData): SessionData {
-        return {
-            sessionId: session.sessionId,
-            dAppName: session.dAppName,
-            walletId: session.walletId,
-            walletAddress: session.walletAddress,
-            privateKey: session.privateKey,
-            publicKey: session.publicKey,
-            createdAt: session.createdAt,
-            lastActivityAt: session.lastActivityAt,
-            domain: session.domain,
-            dAppIconUrl: session.dAppIconUrl,
-            dAppDescription: session.dAppDescription,
-            isJsBridge: session.isJsBridge,
-        };
-    }
-
-    // async getSessionData(sessionId: string): Promise<SessionData | undefined> {}
-
     /**
      * Get session by ID
      */
-    async getSession(sessionId: string): Promise<SessionData | undefined> {
-        const session = this.sessions.get(sessionId);
-        if (session) {
-            return {
-                sessionId: session.sessionId,
-                dAppName: session.dAppName,
-                walletId: session.walletId,
-                walletAddress: session.walletAddress,
-                privateKey: session.privateKey,
-                publicKey: session.publicKey,
-                createdAt: session.createdAt,
-                lastActivityAt: session.lastActivityAt,
-                domain: session.domain,
-                dAppIconUrl: session.dAppIconUrl,
-                dAppDescription: session.dAppDescription,
-                isJsBridge: session.isJsBridge,
-            };
-        }
-        return undefined;
+    async getSession(sessionId: string): Promise<TONConnectSession | undefined> {
+        return this.sessions.get(sessionId);
     }
 
-    async getSessionByDomain(domain: string): Promise<SessionData | undefined> {
-        // const session = this.sessions(domain);
-        // if (session) {
-        //     return this.getSession(session.sessionId);
-        // }
+    async getSessionByDomain(domain: string): Promise<TONConnectSession | undefined> {
         let host;
         try {
             host = new URL(domain).host;
@@ -138,7 +100,7 @@ export class SessionManager {
             return undefined;
         }
         for (const session of this.sessions.values()) {
-            if (session.domain === host) {
+            if (session.dAppInfo.url === host) {
                 return this.getSession(session.sessionId);
             }
         }
@@ -148,14 +110,14 @@ export class SessionManager {
     /**
      * Get all sessions as array
      */
-    getSessions(): SessionData[] {
+    getSessions(): TONConnectSession[] {
         return Array.from(this.sessions.values());
     }
 
     /**
      * Get sessions for specific wallet by wallet ID
      */
-    getSessionsForWallet(walletId: WalletId): SessionData[] {
+    getSessionsForWallet(walletId: WalletId): TONConnectSession[] {
         return this.getSessions().filter((session) => session.walletId === walletId);
     }
 
@@ -260,11 +222,11 @@ export class SessionManager {
     getSessionsForAPI(): Array<SessionInfo> {
         return this.getSessions().map((session) => ({
             sessionId: session.sessionId,
-            dAppName: session.dAppName,
+            dAppName: session.dAppInfo.name ?? '',
             walletId: session.walletId,
             walletAddress: session.walletAddress,
-            dAppUrl: session.domain,
-            dAppIconUrl: session.dAppIconUrl,
+            dAppUrl: session.dAppInfo.url ?? '',
+            dAppIconUrl: session.dAppInfo.iconUrl ?? '',
         }));
     }
 
@@ -273,10 +235,10 @@ export class SessionManager {
      */
     private async loadSessions(): Promise<void> {
         try {
-            const sessionData = await this.storage.get<SessionData[]>(this.storageKey);
+            const storedSessions = await this.storage.get<TONConnectSession[]>(this.storageKey);
 
-            if (sessionData && Array.isArray(sessionData)) {
-                for (const session of sessionData) {
+            if (storedSessions && Array.isArray(storedSessions)) {
+                for (const session of storedSessions) {
                     if (session.walletId && !session.walletAddress) {
                         const wallet = this.walletManager.getWallet(session.walletId);
                         if (wallet) {
@@ -286,11 +248,9 @@ export class SessionManager {
                             continue;
                         }
                     }
-                    this.sessions.set(session.sessionId, {
-                        ...session,
-                    });
+                    this.sessions.set(session.sessionId, session);
                 }
-                log.debug('Loaded session metadata', { count: sessionData.length });
+                log.debug('Loaded session metadata', { count: storedSessions.length });
             }
         } catch (error) {
             log.warn('Failed to load sessions from storage', { error });
@@ -302,23 +262,8 @@ export class SessionManager {
      */
     private async persistSessions(): Promise<void> {
         try {
-            // Store session metadata (wallet references need special handling)
-            const sessionMetadata: SessionData[] = this.getSessions().map((session) => ({
-                sessionId: session.sessionId,
-                dAppName: session.dAppName,
-                domain: session.domain,
-                walletId: session.walletId,
-                walletAddress: session.walletAddress,
-                createdAt: session.createdAt,
-                lastActivityAt: session.lastActivityAt,
-                privateKey: session.privateKey,
-                publicKey: session.publicKey,
-                dAppIconUrl: session.dAppIconUrl,
-                dAppDescription: session.dAppDescription,
-                isJsBridge: session.isJsBridge,
-            }));
-
-            await this.storage.set(this.storageKey, sessionMetadata);
+            const sessionsToStore: TONConnectSession[] = Array.from(this.sessions.values());
+            await this.storage.set(this.storageKey, sessionsToStore);
         } catch (error) {
             log.warn('Failed to persist sessions to storage', { error });
         }

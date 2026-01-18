@@ -23,7 +23,7 @@ import { Initializer, wrapWalletInterface } from './Initializer';
 import type { InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
 import type { WalletManager } from './WalletManager';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
@@ -58,6 +58,7 @@ import type {
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
+    TONConnectSession,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
 
@@ -77,7 +78,7 @@ const log = globalLogger.createChild('TonWalletKit');
 export class TonWalletKit implements ITonWalletKit {
     // Component references
     private walletManager!: WalletManager;
-    private sessionManager!: SessionManager;
+    private sessionManager!: TONConnectSessionManager;
     private eventRouter!: EventRouter;
     private requestProcessor!: RequestProcessor;
     // private responseHandler!: ResponseHandler;
@@ -399,9 +400,9 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async listSessions(): Promise<SessionInfo[]> {
+    async listSessions(): Promise<TONConnectSession[]> {
         await this.ensureInitialized();
-        return this.sessionManager.getSessionsForAPI();
+        return this.sessionManager.getSessions();
     }
 
     // === Event Handler Registration (Delegated) ===

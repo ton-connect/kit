@@ -9,3 +9,4 @@
 export type { Wallet, WalletTonInterface, WalletNftInterface, WalletJettonInterface } from './Wallet';
 export type { WalletAdapter } from './WalletAdapter';
 export type { WalletSigner, ISigner } from './WalletSigner';
+export type { TONConnectSessionManager } from './TONConnectSessionManager';

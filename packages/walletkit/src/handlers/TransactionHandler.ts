@@ -32,7 +32,7 @@ import type { Wallet } from '../api/interfaces';
 import type { TransactionEmulatedPreview, TransactionRequest, TransactionRequestEvent } from '../api/models';
 import { Result } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
-import type { SessionManager } from '../core/SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -48,7 +48,7 @@ export class TransactionHandler
         private readonly config: TonWalletKitOptions,
         eventEmitter: EventEmitter,
         private readonly walletManager: WalletManager,
-        private readonly sessionManager: SessionManager,
+        private readonly sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
     ) {
         super(notify);

@@ -16,7 +16,7 @@ import { DisconnectHandler } from '../handlers/DisconnectHandler';
 import { validateBridgeEvent } from '../validation/events';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { WalletManager } from './WalletManager';
 import type { BridgeManager } from './BridgeManager';
 import type { AnalyticsManager } from '../analytics';
@@ -46,7 +46,7 @@ export class EventRouter {
     constructor(
         private config: TonWalletKitOptions,
         private eventEmitter: EventEmitter,
-        private sessionManager: SessionManager,
+        private sessionManager: TONConnectSessionManager,
         private walletManager: WalletManager,
         private analyticsManager?: AnalyticsManager,
     ) {

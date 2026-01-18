@@ -13,7 +13,8 @@ import { DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
 import type { StorageAdapter, StorageConfig } from '../storage';
 import { createStorageAdapter, Storage } from '../storage';
 import { WalletManager } from './WalletManager';
-import { SessionManager } from './SessionManager';
+import { TONConnectStoredSessionManager } from './TONConnectStoredSessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import { BridgeManager } from './BridgeManager';
 import { EventRouter } from './EventRouter';
 import { RequestProcessor } from './RequestProcessor';
@@ -35,7 +36,7 @@ const log = globalLogger.createChild('Initializer');
  */
 export interface InitializationResult {
     walletManager: WalletManager;
-    sessionManager: SessionManager;
+    sessionManager: TONConnectSessionManager;
     bridgeManager: BridgeManager;
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
@@ -133,7 +134,7 @@ export class Initializer {
         storage: Storage,
     ): Promise<{
         walletManager: WalletManager;
-        sessionManager: SessionManager;
+        sessionManager: TONConnectSessionManager;
         bridgeManager: BridgeManager;
         eventRouter: EventRouter;
         eventProcessor: StorageEventProcessor;
@@ -142,8 +143,15 @@ export class Initializer {
         const walletManager = new WalletManager(storage);
         await walletManager.initialize();
 
-        const sessionManager = new SessionManager(storage, walletManager);
-        await sessionManager.initialize();
+        // Use provided session manager or create default one
+        let sessionManager: TONConnectSessionManager;
+        if (options.sessionManager) {
+            sessionManager = options.sessionManager;
+        } else {
+            const storedSessionManager = new TONConnectStoredSessionManager(storage, walletManager);
+            await storedSessionManager.initialize();
+            sessionManager = storedSessionManager;
+        }
 
         const eventStore = new StorageEventStore(storage);
         const eventRouter = new EventRouter(
@@ -200,7 +208,7 @@ export class Initializer {
      * Initialize processors
      */
     private initializeProcessors(
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         bridgeManager: BridgeManager,
         walletManager: WalletManager,
     ): {

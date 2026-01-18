@@ -12,7 +12,7 @@ import { StorageEventProcessor } from './EventProcessor';
 import { StorageEventStore } from './EventStore';
 import type { DurableEventsConfig } from '../types/durableEvents';
 import type { WalletManager } from './WalletManager';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type { EventEmitter } from './EventEmitter';
 import type { RawBridgeEvent } from '../types/internal';
@@ -25,7 +25,7 @@ describe('EventProcessor with Real EventStore', () => {
     let eventStore: StorageEventStore;
     let storage: Storage;
     let walletManager: WalletManager;
-    let sessionManager: SessionManager;
+    let sessionManager: TONConnectSessionManager;
     let eventRouter: EventRouter;
     let eventEmitter: EventEmitter;
     let config: DurableEventsConfig;
@@ -39,16 +39,24 @@ describe('EventProcessor with Real EventStore', () => {
 
         // Mock SessionManager
         sessionManager = {
-            getSessionsForAPI: vi.fn().mockReturnValue([
+            getSessions: vi.fn().mockReturnValue([
                 {
                     sessionId: 'session-1',
                     walletId: createWalletId(Network.mainnet(), 'wallet-1'),
-                    dAppName: 'Test DApp',
-                    dAppUrl: 'https://test.com',
-                    dAppIconUrl: 'https://test.com/icon.png',
+                    walletAddress: 'wallet-1',
+                    createdAt: new Date().toISOString(),
+                    lastActivityAt: new Date().toISOString(),
+                    privateKey: 'test-private-key',
+                    publicKey: 'test-public-key',
+                    dAppInfo: {
+                        name: 'Test DApp',
+                        url: 'https://test.com',
+                        iconUrl: 'https://test.com/icon.png',
+                        description: 'Test DApp Description',
+                    },
                 },
             ]),
-        } as unknown as SessionManager;
+        } as unknown as TONConnectSessionManager;
 
         // Mock EventRouter
         eventRouter = {
@@ -436,20 +444,36 @@ describe('EventProcessor with Real EventStore', () => {
     describe('Multi-Wallet Processing', () => {
         it('should process events from multiple wallets in chronological order', async () => {
             // Set up two wallets
-            vi.mocked(sessionManager.getSessionsForAPI).mockReturnValue([
+            vi.mocked(sessionManager.getSessions).mockReturnValue([
                 {
                     sessionId: 'session-1',
                     walletId: createWalletId(Network.mainnet(), 'wallet-1'),
-                    dAppName: 'Test DApp 1',
-                    dAppUrl: 'https://test1.com',
-                    dAppIconUrl: 'https://test1.com/icon.png',
+                    walletAddress: 'wallet-1',
+                    createdAt: new Date().toISOString(),
+                    lastActivityAt: new Date().toISOString(),
+                    privateKey: 'test-private-key-1',
+                    publicKey: 'test-public-key-1',
+                    dAppInfo: {
+                        name: 'Test DApp 1',
+                        url: 'https://test1.com',
+                        iconUrl: 'https://test1.com/icon.png',
+                        description: 'Test DApp 1 Description',
+                    },
                 },
                 {
                     sessionId: 'session-2',
                     walletId: createWalletId(Network.mainnet(), 'wallet-2'),
-                    dAppName: 'Test DApp 2',
-                    dAppUrl: 'https://test2.com',
-                    dAppIconUrl: 'https://test2.com/icon.png',
+                    walletAddress: 'wallet-2',
+                    createdAt: new Date().toISOString(),
+                    lastActivityAt: new Date().toISOString(),
+                    privateKey: 'test-private-key-2',
+                    publicKey: 'test-public-key-2',
+                    dAppInfo: {
+                        name: 'Test DApp 2',
+                        url: 'https://test2.com',
+                        iconUrl: 'https://test2.com/icon.png',
+                        description: 'Test DApp 2 Description',
+                    },
                 },
             ]);
 
