@@ -24,5 +24,5 @@ export type WalletId = string;
  * Creates a wallet ID from network and address
  */
 export function createWalletId(network: Network, address: string): WalletId {
-    return sha256_sync(`${network.chainId}:${address}`).toString('base64');
+    return sha256_sync(`${network.chainId}:${address}`).toString('hex');
 }
