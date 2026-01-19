@@ -66,12 +66,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
             publicKey: randomKeyPair.publicKey,
-            dAppInfo: {
-                name: dAppInfo.name ?? '',
-                description: dAppInfo.description ?? '',
-                url: dAppInfo.url ?? '',
-                iconUrl: dAppInfo.iconUrl ?? '',
-            },
+            dAppInfo: dAppInfo,
             isJsBridge,
         };
 
@@ -99,8 +94,18 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
             return undefined;
         }
         for (const session of this.sessions.values()) {
-            if (session.dAppInfo.url === host) {
-                return this.getSession(session.sessionId);
+            try {
+                if (session.dAppInfo.url === undefined) {
+                    continue;
+                }
+
+                let dAppHost = new URL(session.dAppInfo.url).host;
+
+                if (dAppHost === host) {
+                    return this.getSession(session.sessionId);
+                }
+            } catch {
+                continue;
             }
         }
         return undefined;

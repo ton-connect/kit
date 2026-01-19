@@ -124,13 +124,11 @@ export class RequestProcessor {
                 }
 
                 // Create session for this connection'
-                const url = new URL(event.preview.dAppInfo?.url || '');
-                const domain = url.host;
                 const newSession = await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     {
                         name: event.preview.dAppInfo?.name || '',
-                        url: domain,
+                        url: event.preview.dAppInfo?.url || '',
                         iconUrl: event.preview.dAppInfo?.iconUrl || '',
                         description: event.preview.dAppInfo?.description || '',
                     },
@@ -204,13 +202,11 @@ export class RequestProcessor {
                 }
 
                 // If event is EventConnectApproval, we need to send response to dApp and create session
-                const url = new URL(event.result.dAppUrl);
-                const domain = url.host;
                 await this.sessionManager.createSession(
                     event.from || (await getSecureRandomBytes(32)).toString('hex'),
                     {
                         name: event.result.dAppName,
-                        url: domain,
+                        url: event.result.dAppUrl,
                         iconUrl: event.result.dAppIconUrl,
                         description: event.result.dAppDescription,
                     },
