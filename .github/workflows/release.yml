@@ -105,7 +105,8 @@ jobs:
         env:
           NPM_CONFIG_PROVENANCE: "true"
         run: |
-          NODE_AUTH_TOKEN="" pnpm publish \
+          npm config delete //registry.npmjs.org/:_authToken || true
+          pnpm publish \
             --filter="@ton/walletkit" \
             --access=public \
             --publish-branch=release
