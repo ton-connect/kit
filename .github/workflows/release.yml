@@ -31,6 +31,8 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      - name: Update npm
+        run: npm install -g npm@latest && npm -v
       - name: Get current tag
         id: get_tag
         run: |
