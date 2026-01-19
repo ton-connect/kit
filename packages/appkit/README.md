@@ -33,17 +33,27 @@ npm install @ton/appkit @tonconnect/sdk
 
 ```ts
 import { CreateAppKit } from '@ton/appkit';
-import type { ITonConnect, Wallet } from '@tonconnect/sdk';
+import { Network } from '@ton/walletkit';
 
-// Create AppKit instance - typically done once at app startup
-const appKit = CreateAppKit({});
-
-// After user connects via TonConnect, wrap their wallet
-function getWrappedWallet(tonConnectWallet: Wallet, tonConnect: ITonConnect) {
-    return appKit.wrapTonConnectWallet(tonConnectWallet, tonConnect);
-}
-
-export { appKit, getWrappedWallet };
+// Create AppKit instance with network configuration
+const appKit = CreateAppKit({
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                // Optional API key for Toncenter - get one at https://t.me/toncenter
+                key: process.env.APP_TONCENTER_KEY,
+                url: 'https://toncenter.com', // default
+            },
+        },
+        // Optionally configure testnet as well
+        // [Network.testnet().chainId]: {
+        //     apiClient: {
+        //         key: process.env.APP_TONCENTER_KEY_TESTNET,
+        //         url: 'https://testnet.toncenter.com',
+        //     },
+        // },
+    },
+});
 ```
 
 ## Send TON
@@ -150,6 +160,7 @@ For React/Next.js apps using `@tonconnect/ui-react`:
 import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { CreateAppKit } from '@ton/appkit';
+import { Network } from '@ton/walletkit';
 import type { AppKit } from '@ton/appkit';
 
 export function useAppKit() {
@@ -160,7 +171,15 @@ export function useAppKit() {
     // Initialize AppKit when TonConnect is ready
     useEffect(() => {
         if (tonConnectUI.connector && !appKitRef.current) {
-            appKitRef.current = CreateAppKit({});
+            appKitRef.current = CreateAppKit({
+                networks: {
+                    [Network.mainnet().chainId]: {
+                        apiClient: {
+                            key: process.env.NEXT_PUBLIC_TONCENTER_KEY,
+                        },
+                    },
+                },
+            });
         }
     }, [tonConnectUI.connector]);
 
@@ -198,12 +217,29 @@ See [apps/appkit-minter](https://github.com/ton-connect/kit/tree/main/apps/appki
 
 ### CreateAppKit
 
-Creates a new AppKit instance.
+Creates a new AppKit instance with network configuration.
 
 ```typescript
 import { CreateAppKit } from '@ton/appkit';
+import { Network } from '@ton/walletkit';
 
-const appKit = CreateAppKit({});
+const appKit = CreateAppKit({
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                key: process.env.APP_TONCENTER_KEY, // optional, for better rate limits
+                url: 'https://toncenter.com', // default for mainnet
+            },
+        },
+        // Add testnet if needed
+        // [Network.testnet().chainId]: {
+        //     apiClient: {
+        //         key: process.env.APP_TONCENTER_KEY_TESTNET,
+        //         url: 'https://testnet.toncenter.com',
+        //     },
+        // },
+    },
+});
 ```
 
 ### wrapTonConnectWallet

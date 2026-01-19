@@ -8,15 +8,27 @@
 
 // SAMPLE_START: APPKIT_INIT
 import { CreateAppKit } from '@ton/appkit';
-import type { ITonConnect, Wallet } from '@tonconnect/sdk';
+import { Network } from '@ton/walletkit';
 
-// Create AppKit instance - typically done once at app startup
-const appKit = CreateAppKit({});
-
-// After user connects via TonConnect, wrap their wallet
-function getWrappedWallet(tonConnectWallet: Wallet, tonConnect: ITonConnect) {
-    return appKit.wrapTonConnectWallet(tonConnectWallet, tonConnect);
-}
-
-export { appKit, getWrappedWallet };
+// Create AppKit instance with network configuration
+const appKit = CreateAppKit({
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                // Optional API key for Toncenter - get one at https://t.me/toncenter
+                key: process.env.APP_TONCENTER_KEY,
+                url: 'https://toncenter.com', // default
+            },
+        },
+        // Optionally configure testnet as well
+        // [Network.testnet().chainId]: {
+        //     apiClient: {
+        //         key: process.env.APP_TONCENTER_KEY_TESTNET,
+        //         url: 'https://testnet.toncenter.com',
+        //     },
+        // },
+    },
+});
 // SAMPLE_END: APPKIT_INIT
+
+export { appKit };

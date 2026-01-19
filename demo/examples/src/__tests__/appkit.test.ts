@@ -16,11 +16,7 @@ vi.mock('@tonconnect/sdk', () => import('../__mocks__/@tonconnect/sdk'));
 vi.mock('@tonconnect/ui-react', () => import('../__mocks__/@tonconnect/ui-react'));
 
 // Mock walletkit to use our mock types in the example modules
-vi.mock('@ton/walletkit', async () => {
-    return {
-        // Re-export the mock types - the actual implementation comes from our mocks
-    };
-});
+vi.mock('@ton/walletkit', () => import('../__mocks__/@ton/walletkit'));
 
 describe('appkit examples', () => {
     beforeEach(() => {
@@ -29,17 +25,15 @@ describe('appkit examples', () => {
 
     describe('initialize', () => {
         it('should create AppKit and wrap wallet', async () => {
-            const { appKit, getWrappedWallet } = await import('../appkit/initialize');
+            const { appKit } = await import('../appkit/initialize');
             const { mockWallet, mockTonConnect } = await import('../__mocks__/@tonconnect/sdk');
 
             expect(appKit).toBeDefined();
             expect(appKit.wrapTonConnectWallet).toBeDefined();
 
             // Use type assertion through unknown for test mocks
-            const wrappedWallet = getWrappedWallet(
-                mockWallet as unknown as Parameters<typeof getWrappedWallet>[0],
-                mockTonConnect as unknown as Parameters<typeof getWrappedWallet>[1],
-            );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const wrappedWallet = appKit.wrapTonConnectWallet(mockWallet as any, mockTonConnect as any);
             expect(wrappedWallet).toBeDefined();
             expect(appKit.wrapTonConnectWallet).toHaveBeenCalledWith(mockWallet, mockTonConnect);
         });

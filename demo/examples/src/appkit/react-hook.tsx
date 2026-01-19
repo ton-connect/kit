@@ -10,6 +10,7 @@
 import { useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { CreateAppKit } from '@ton/appkit';
+import { Network } from '@ton/walletkit';
 import type { AppKit } from '@ton/appkit';
 
 export function useAppKit() {
@@ -20,7 +21,15 @@ export function useAppKit() {
     // Initialize AppKit when TonConnect is ready
     useEffect(() => {
         if (tonConnectUI.connector && !appKitRef.current) {
-            appKitRef.current = CreateAppKit({});
+            appKitRef.current = CreateAppKit({
+                networks: {
+                    [Network.mainnet().chainId]: {
+                        apiClient: {
+                            key: process.env.NEXT_PUBLIC_TONCENTER_KEY,
+                        },
+                    },
+                },
+            });
         }
     }, [tonConnectUI.connector]);
 

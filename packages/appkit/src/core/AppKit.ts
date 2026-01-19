@@ -18,24 +18,22 @@ import { TonConnectWalletWrapperImpl } from '../adapters/TonConnectWalletWrapper
  * Wraps TonConnect wallets to provide TonWalletKit-compatible interface.
  */
 export class AppKitImpl implements AppKit {
-    // private readonly tonConnect: ITonConnect;
-    // private readonly client: ApiClient;
     private networkManager!: NetworkManager;
 
     private constructor() {}
 
     /**
      * Create a new AppKit instance
-     * @param config - Configuration options
      */
-    static create(_config: AppKitConfig): AppKit {
+    static create(config: AppKitConfig): AppKit {
         const appKit = new AppKitImpl();
 
-        const networkManager = new KitNetworkManager({
-            networks: {
-                [Network.mainnet().chainId]: {},
-            },
-        });
+        // Use provided networks config or default to mainnet
+        const networks = config.networks ?? {
+            [Network.mainnet().chainId]: {},
+        };
+
+        const networkManager = new KitNetworkManager({ networks });
         appKit.networkManager = networkManager;
 
         return appKit;
@@ -51,27 +49,6 @@ export class AppKitImpl implements AppKit {
             client: this.networkManager.getClient(Network.custom(wallet.account.chain)),
         });
     }
-
-    /**
-     * Handle a new transaction request through TonConnect
-     */
-    // async handleNewTransaction(
-    //     wallet: TonConnectWalletWrapper,
-    //     transaction: TransactionRequest,
-    // ): Promise<TransactionResult> {
-    //     const connectedWallet = this.tonConnect.wallet;
-
-    //     if (!connectedWallet) {
-    //         throw new Error('TonConnect wallet is not connected');
-    //     }
-
-    //     if (connectedWallet.account.address !== wallet.getAddress()) {
-    //         throw new Error('Wallet address mismatch: connected wallet does not match the provided wrapper');
-    //     }
-
-    //     const tonConnectTransaction = toTonConnectTransaction(transaction);
-    //     return await this.tonConnect.sendTransaction(tonConnectTransaction);
-    // }
 }
 
 export function CreateAppKit(config: AppKitConfig): AppKit {

@@ -11,6 +11,7 @@
 // Example: AppKit usage with TonConnect
 
 import TonConnect from '@tonconnect/sdk';
+import { Network } from '@ton/walletkit';
 
 import { CreateAppKit } from '../index';
 import { FSStorage } from './FSStorage';
@@ -20,7 +21,26 @@ async function main() {
         storage: new FSStorage('./temp/storage.json'),
         manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
     });
-    const appKit = CreateAppKit({});
+
+    // Create AppKit with network configuration
+    const appKit = CreateAppKit({
+        networks: {
+            [Network.mainnet().chainId]: {
+                apiClient: {
+                    // Optional API key for Toncenter - get one at https://t.me/toncenter
+                    key: process.env.APP_TONCENTER_KEY,
+                    url: 'https://toncenter.com', // default
+                },
+            },
+            // Optionally configure testnet as well
+            // [Network.testnet().chainId]: {
+            //     apiClient: {
+            //         key: process.env.APP_TONCENTER_KEY_TESTNET,
+            //         url: 'https://testnet.toncenter.com',
+            //     },
+            // },
+        },
+    });
 
     tonConnect.onStatusChange(async (wallet) => {
         console.log('Status changed:', wallet);

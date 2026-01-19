@@ -78,12 +78,29 @@ See [apps/appkit-minter](https://github.com/ton-connect/kit/tree/main/apps/appki
 
 ### CreateAppKit
 
-Creates a new AppKit instance.
+Creates a new AppKit instance with network configuration.
 
 ```typescript
 import { CreateAppKit } from '@ton/appkit';
+import { Network } from '@ton/walletkit';
 
-const appKit = CreateAppKit({});
+const appKit = CreateAppKit({
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                key: process.env.APP_TONCENTER_KEY, // optional, for better rate limits
+                url: 'https://toncenter.com', // default for mainnet
+            },
+        },
+        // Add testnet if needed
+        // [Network.testnet().chainId]: {
+        //     apiClient: {
+        //         key: process.env.APP_TONCENTER_KEY_TESTNET,
+        //         url: 'https://testnet.toncenter.com',
+        //     },
+        // },
+    },
+});
 ```
 
 ### wrapTonConnectWallet
