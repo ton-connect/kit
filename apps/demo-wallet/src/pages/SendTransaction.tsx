@@ -10,12 +10,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { isValidAddress } from '@ton/walletkit';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
-import { useWallet, useJettons, useWalletKit } from '@demo/wallet-core';
+import { useWallet, useJettons, useWalletKit, parseUnits } from '@demo/wallet-core';
 
 import { Layout, Button, Input, Card } from '../components';
 import { createComponentLogger } from '../utils/logger';
 
 import { useFormattedJetton } from '@/hooks/useFormattedJetton';
+import { formatDisplayTonAmount } from '@/utils';
 
 // Create logger for send transaction
 const log = createComponentLogger('SendTransaction');
@@ -46,14 +47,9 @@ export const SendTransaction: React.FC = () => {
         loadUserJettons();
     }, []);
 
-    const formatTonAmount = (amount: string): string => {
-        const tonAmount = parseFloat(amount || '0') / 1000000000;
-        return tonAmount.toFixed(4);
-    };
-
     const getCurrentTokenBalance = (): string => {
         if (selectedToken.type === 'TON') {
-            return formatTonAmount(balance || '0');
+            return formatDisplayTonAmount(balance || '0');
         } else if (selectedJettonInfo?.balance) {
             return selectedJettonInfo?.balance;
         }
@@ -109,7 +105,7 @@ export const SendTransaction: React.FC = () => {
                     recipient,
                 });
 
-                const nanoTonAmount = Math.floor(inputAmount * 1000000000).toString();
+                const nanoTonAmount = parseUnits(inputAmount.toString(), 9).toString();
 
                 const tonTransferParams: TONTransferRequest = {
                     recipientAddress: recipient,
@@ -139,7 +135,7 @@ export const SendTransaction: React.FC = () => {
                 });
 
                 // Convert the display amount to the smallest unit based on decimals
-                const jettonAmount = Math.floor(inputAmount * Math.pow(10, decimals)).toString();
+                const jettonAmount = parseUnits(inputAmount.toString(), decimals).toString();
 
                 // Create jetton transfer transaction
                 const jettonTransaction = await currentWallet.createTransferJettonTransaction({
@@ -265,7 +261,7 @@ export const SendTransaction: React.FC = () => {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-medium text-gray-900">
-                                            {formatTonAmount(balance || '0')}
+                                            {formatDisplayTonAmount(balance || '0')}
                                         </p>
                                         <p className="text-xs text-gray-500">TON</p>
                                     </div>

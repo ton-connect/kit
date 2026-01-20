@@ -15,7 +15,7 @@ import type {
     TransactionTraceMoneyFlowItem,
 } from '@ton/walletkit';
 import { Address } from '@ton/core';
-import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@demo/wallet-core';
+import { useWalletKit, useAuth, useWalletStore, useTransactionRequests, formatUnits } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
@@ -25,7 +25,6 @@ import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
 import { HoldToSignButton } from './HoldToSignButton';
 import { createComponentLogger } from '../utils/logger';
-import { formatUnits } from '../utils/units';
 // Create logger for transaction request modal
 
 const log = createComponentLogger('TransactionRequestModal');

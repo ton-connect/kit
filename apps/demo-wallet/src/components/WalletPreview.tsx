@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { formatUnits } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
 
 /**
@@ -71,8 +72,8 @@ export const WalletPreview: React.FC<WalletPreviewProps> = ({
 
         try {
             // Balance is in nanotons, convert to TON (1 TON = 1e9 nanotons)
-            const balanceNum = BigInt(balanceStr);
-            const ton = Number(balanceNum) / 1e9;
+            const tonStr = formatUnits(balanceStr, 9);
+            const ton = parseFloat(tonStr);
 
             // Format with appropriate decimal places
             if (ton >= 1000) {

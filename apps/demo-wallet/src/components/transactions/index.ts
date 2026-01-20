@@ -7,5 +7,4 @@
  */
 
 export * from './TransactionStates';
-export * from './TonTransferCard';
 export * from './ActionCard';

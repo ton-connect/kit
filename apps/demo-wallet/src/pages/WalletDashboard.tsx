@@ -27,6 +27,8 @@ import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
 
+import { formatDisplayTonAmount } from '@/utils';
+
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
 
@@ -115,11 +117,6 @@ export const WalletDashboard: React.FC = () => {
         }
     }, [walletKit]);
 
-    const formatTonAmount = (amount: string): string => {
-        const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
-        return tonAmount.toFixed(4);
-    };
-
     const handleSwitchWallet = async (walletId: string) => {
         try {
             await switchWallet(walletId);
@@ -162,7 +159,7 @@ export const WalletDashboard: React.FC = () => {
                         <div>
                             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Balance</h3>
                             <p className="text-3xl font-bold text-gray-900 mt-2">
-                                {formatTonAmount(balance || '0')} TON
+                                {formatDisplayTonAmount(balance || '0')} TON
                             </p>
                         </div>
 

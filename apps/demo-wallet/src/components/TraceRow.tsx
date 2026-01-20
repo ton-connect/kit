@@ -14,6 +14,7 @@ import type { ToncenterTraceItem } from '@ton/walletkit';
 import { useWalletKit, useWalletStore } from '@demo/wallet-core';
 
 import { log } from '@/utils/logger';
+import { formatDisplayTonAmount } from '@/utils';
 
 // Local type definitions for transaction data
 interface TransactionMessage {
@@ -63,11 +64,6 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
     const walletNetwork = activeWallet?.network || 'testnet';
     const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
-    const formatTonAmount = (amount: string): string => {
-        const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
-        return tonAmount.toFixed(4);
-    };
-
     const formatAddress = (addr: string): string => {
         if (!addr) return '';
         return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
@@ -97,7 +93,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                         </span>
                         <span className="text-xs text-gray-500">{formatAddress(tx.account)}</span>
                     </div>
-                    <div className="text-xs text-gray-500">Fee: {formatTonAmount(tx.total_fees || '0')} TON</div>
+                    <div className="text-xs text-gray-500">Fee: {formatDisplayTonAmount(tx.total_fees || '0')} TON</div>
                 </div>
 
                 {/* Incoming message */}
@@ -112,7 +108,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                                     d="M17 13l-5 5m0 0l-5-5m5 5V6"
                                 />
                             </svg>
-                            <span>In: +{formatTonAmount(tx.in_msg!.value!)} TON</span>
+                            <span>In: +{formatDisplayTonAmount(tx.in_msg!.value!)} TON</span>
                             <span className="text-gray-500">from {formatAddress(tx.in_msg!.source || '')}</span>
                             <span className="text-gray-400">({formatMessageType(tx.in_msg || null)})</span>
                         </div>
@@ -132,7 +128,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                                         d="M7 11l5-5m0 0l5 5m-5-5v12"
                                     />
                                 </svg>
-                                <span>Out: -{formatTonAmount(msg.value || '0')} TON</span>
+                                <span>Out: -{formatDisplayTonAmount(msg.value || '0')} TON</span>
                                 <span className="text-gray-500">to {formatAddress(msg.destination)}</span>
                                 <span className="text-gray-400">({formatMessageType(msg)})</span>
                             </div>
@@ -477,7 +473,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                             }`}
                         >
                             {traceInfo.type === 'send' ? '-' : traceInfo.type === 'receive' ? '+' : ''}
-                            {traceInfo.amount !== '0' ? `${formatTonAmount(traceInfo.amount)} TON` : 'Contract'}
+                            {traceInfo.amount !== '0' ? `${formatDisplayTonAmount(traceInfo.amount)} TON` : 'Contract'}
                         </p>
                         <p
                             className={`text-xs ${traceInfo.status === 'confirmed' ? 'text-green-500' : 'text-red-500'}`}
