@@ -605,7 +605,7 @@ class DiscriminatedUnionTypeFormatter {
      * Check if any union variant has a value property that is an array type
      * Arrays in value properties of discriminated unions cause issues with Swift generators
      */
-    hasRecursiveReference(type) {
+    hasRecursiveReference() {
         // Don't skip any discriminated unions - Swift can handle recursive enums with `indirect`
         return false;
     }
