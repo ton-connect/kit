@@ -336,9 +336,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             queueSize: state.tonConnect.requestQueue.items.length + 1,
         });
 
-        if (!state.tonConnect.requestQueue.isProcessing) {
-            get().processNextRequest();
-        }
+        get().processNextRequest();
     },
 
     processNextRequest: () => {

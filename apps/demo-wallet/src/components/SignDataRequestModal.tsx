@@ -18,6 +18,8 @@ import { WalletPreview } from './WalletPreview';
 import { HoldToSignButton } from './HoldToSignButton';
 import { createComponentLogger } from '../utils/logger';
 
+import { SignDataRequestPreview } from '@/components/SignDataRequestPreview';
+
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
 
@@ -76,68 +78,6 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
         onReject('User rejected the sign data request');
     };
 
-    const renderDataPreview = () => {
-        const { preview } = request;
-
-        switch (preview.data.type) {
-            case 'text':
-                return (
-                    <div className="border rounded-lg p-3 bg-blue-50">
-                        <h4 className="font-medium text-blue-900 mb-2">Text Message</h4>
-                        <p className="text-sm text-blue-800 break-words">{preview.data.value.content}</p>
-                    </div>
-                );
-            case 'binary':
-                return (
-                    <div className="border rounded-lg p-3 bg-green-50">
-                        <h4 className="font-medium text-green-900 mb-2">Binary Data</h4>
-                        <div className="space-y-2">
-                            <p className="text-sm text-green-800">Content: {preview.data.value.content}</p>
-                        </div>
-                    </div>
-                );
-            case 'cell':
-                return (
-                    <div className="">
-                        {/* <h4 className="font-medium mb-2">TON Cell Data</h4> */}
-                        <div className="space-y-2">
-                            <div>
-                                <p className="font-medium">Content</p>
-                                <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
-                                    {preview.data.value.content}
-                                </p>
-                            </div>
-                            {preview.data.value.schema && (
-                                <div>
-                                    <p className="font-medium">Schema</p>
-                                    <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
-                                        {preview.data.value.schema}
-                                    </p>
-                                </div>
-                            )}
-                            {/* <p className="text-sm overflow-x-auto whitespace-pre-wrap">Content: {preview.content}</p> */}
-                            {/* {preview.schema && <p className="text-sm">Schema: {preview.schema}</p>} */}
-                            {preview.data.value.parsed && (
-                                <div>
-                                    <p className="font-medium mb-1">Parsed Data:</p>
-                                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap bg-gray-100 p-2 rounded-lg">
-                                        {JSON.stringify(preview.data.value.parsed, null, 2)}
-                                    </pre>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            default:
-                return (
-                    <div className="border rounded-lg p-3 bg-gray-50">
-                        {/* <h4 className="font-medium text-gray-900 mb-2">Data to Sign</h4> */}
-                        <p className="text-sm text-gray-600">Unknown data format</p>
-                    </div>
-                );
-        }
-    };
-
     if (!isOpen) return null;
 
     // Success state view
@@ -159,6 +99,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
                         animation: scale-in 0.3s ease-out;
                     }
                 `}</style>
+
                 <div className="bg-gradient-to-br from-green-400 to-green-600 rounded-lg max-w-md w-full p-8 relative overflow-hidden success-card">
                     {/* Success Content */}
                     <div className="relative z-10 text-center text-white space-y-6">
@@ -224,7 +165,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
                         {/* Data Preview */}
                         <div>
                             <h4 className="font-medium text-gray-900 mb-3">Data to Sign</h4>
-                            {renderDataPreview()}
+                            <SignDataRequestPreview preview={request.preview} />
                         </div>
 
                         {/* Warning */}

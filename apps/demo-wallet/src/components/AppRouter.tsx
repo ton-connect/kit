@@ -28,6 +28,7 @@ import { Button } from '@/components/Button';
 export const AppRouter: React.FC = () => {
     const isPasswordSet = useWalletStore((state) => state.auth.isPasswordSet);
     const isUnlocked = useWalletStore((state) => state.auth.isUnlocked);
+    const isHydrated = useWalletStore((state) => state.isHydrated);
     const isWalletKitInitialized = useWalletStore((state) => state.walletCore.isWalletKitInitialized);
     const initializationError = useWalletStore((state) => state.walletCore.initializationError);
     const { hasWallet } = useWallet();
@@ -72,7 +73,7 @@ export const AppRouter: React.FC = () => {
         );
     }
 
-    if (!isWalletKitInitialized) {
+    if (!isWalletKitInitialized || !isHydrated) {
         return <LoaderCircle />;
     }
 

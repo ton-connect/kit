@@ -245,10 +245,12 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                     log.info('Calling processNextRequest after timeout');
                                     state.processNextRequest();
                                 }
+
+                                log.info('Calling processTimeoutCallback in loop');
                                 setTimeout(() => processTimeoutCallback(), 1000);
                             };
+
                             processTimeoutCallback();
-                            // setTimeout(() => {}, 1000);
                         },
                     },
                 ),
