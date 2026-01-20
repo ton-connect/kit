@@ -20,7 +20,7 @@ import { SwiftAPIClientAdapter } from './SwiftAPIClientAdapter';
 declare global {
     interface Window {
         walletKit?: any;
-        initWalletKit: (configuration, storage, bridgeTransport: (response) => void) => Promise<void>;
+        initWalletKit: (configuration, storage, bridgeTransport: (response) => void, apiClients) => Promise<void>;
     }
 }
 
