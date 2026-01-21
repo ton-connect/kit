@@ -397,6 +397,21 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
             }
         },
 
+        // Jettons
+        async getJettons(walletAddress) {
+            if (!initialized) throw new Error('WalletKit Bridge not initialized');
+            console.log('🪙 Bridge: Getting jettons for:', walletAddress);
+
+            try {
+                const jettons = await walletKit.jettons.getAddressJettons(walletAddress);
+                console.log('✅ Got jettons for', walletAddress, ':', jettons);
+                return jettons;
+            } catch (error) {
+                console.error('❌ Failed to get jettons:', error);
+                throw error;
+            }
+        },
+
         async sendTransaction(wallet, transaction) {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('🪙 Bridge: Sending transaction:', transaction);
