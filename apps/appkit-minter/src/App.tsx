@@ -6,7 +6,7 @@
  *
  */
 
-import { TonConnectUIProvider } from '@tonconnect/ui-react';
+import { TonConnectUIProvider } from '@ton/appkit-ui-react';
 import { Toaster } from 'sonner';
 
 import { AppRouter } from '@/components';

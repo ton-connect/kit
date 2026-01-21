@@ -1,0 +1,114 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import { createMemo, createSignal } from 'solid-js';
+import type { WalletInfoWithOpenMethod, WalletOpenMethod } from 'src/models/connected-wallet';
+import { LastSelectedWalletInfoStorage } from 'src/storage';
+import type { ReturnStrategy } from 'src/models';
+import type { WalletsModalState } from 'src/models/wallets-modal';
+import type { SingleWalletModalState } from 'src/models/single-wallet-modal';
+import type { UIWalletInfo } from 'src/app/models/ui-wallet-info';
+
+export type ActionName =
+    | 'confirm-transaction'
+    | 'transaction-sent'
+    | 'transaction-canceled'
+    | 'confirm-sign-data'
+    | 'data-signed'
+    | 'sign-data-canceled';
+
+export type Action = BasicAction | ConfirmTransactionAction | ConfirmSignDataAction;
+
+type BasicAction = {
+    name: ActionName;
+    openModal: boolean;
+    showNotification: boolean;
+    sessionId?: string;
+    traceId: string;
+};
+
+export type ConfirmTransactionAction = BasicAction & {
+    name: 'confirm-transaction';
+    returnStrategy: ReturnStrategy;
+    twaReturnUrl: `${string}://${string}`;
+    sent: boolean;
+};
+
+export type ConfirmSignDataAction = BasicAction & {
+    name: 'confirm-sign-data';
+    returnStrategy: ReturnStrategy;
+    twaReturnUrl: `${string}://${string}`;
+    signed: boolean;
+};
+
+export const [walletsModalState, setWalletsModalState] = createSignal<WalletsModalState>({
+    status: 'closed',
+    closeReason: null,
+});
+
+export const getWalletsModalIsOpened = createMemo(() => walletsModalState().status === 'opened');
+
+export const [singleWalletModalState, setSingleWalletModalState] = createSignal<SingleWalletModalState>({
+    status: 'closed',
+    closeReason: null,
+});
+
+export const getSingleWalletModalIsOpened = createMemo(() => singleWalletModalState().status === 'opened');
+
+export const getSingleWalletModalWalletInfo = createMemo(() => {
+    const state = singleWalletModalState();
+    if (state.status === 'opened') {
+        return state.walletInfo;
+    }
+
+    return null;
+});
+
+let lastSelectedWalletInfoStorage = typeof window !== 'undefined' ? new LastSelectedWalletInfoStorage() : undefined;
+export const [lastSelectedWalletInfo, _setLastSelectedWalletInfo] = createSignal<
+    | WalletInfoWithOpenMethod
+    | {
+          openMethod: WalletOpenMethod;
+      }
+    | null
+>(lastSelectedWalletInfoStorage?.getLastSelectedWalletInfo() || null);
+
+export const setLastSelectedWalletInfo = (
+    walletInfo:
+        | WalletInfoWithOpenMethod
+        | {
+              openMethod: WalletOpenMethod;
+          }
+        | null,
+): void => {
+    if (!lastSelectedWalletInfoStorage) {
+        lastSelectedWalletInfoStorage = new LastSelectedWalletInfoStorage();
+    }
+
+    if (walletInfo) {
+        lastSelectedWalletInfoStorage.setLastSelectedWalletInfo(walletInfo);
+    } else {
+        lastSelectedWalletInfoStorage.removeLastSelectedWalletInfo();
+    }
+    _setLastSelectedWalletInfo(walletInfo);
+};
+
+export const [action, setAction] = createSignal<Action | null>(null);
+export const [lastVisibleWalletsInfo, setLastVisibleWalletsInfo] = createSignal<{
+    walletsMenu: 'explicit_wallet' | 'main_screen' | 'other_wallets';
+    wallets: UIWalletInfo[];
+}>({
+    walletsMenu: 'explicit_wallet',
+    wallets: [],
+});
+export const [lastOpenedLink, setLastOpenedLink] = createSignal<{
+    link: string;
+    type?: 'tg_link' | 'external_link';
+}>({
+    link: '',
+});

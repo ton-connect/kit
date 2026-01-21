@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useCallback, useRef } from 'react';
-import { useTonConnectUI, useTonWallet, useTonAddress } from '@tonconnect/ui-react';
+import { useTonConnectUI, useTonWallet, useTonAddress } from '@ton/appkit-ui-react';
 import { CreateAppKit } from '@ton/appkit';
 import type { AppKit } from '@ton/appkit';
 

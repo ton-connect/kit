@@ -34,7 +34,8 @@ export {
     DEFAULT_TRANSACTION_VALIDITY_SECONDS,
 } from './utils';
 
-// Re-export commonly used types from dependencies
+// Re-export from @tonconnect/sdk
+export * from '@tonconnect/sdk';
 export type { Wallet } from '@tonconnect/sdk';
 export type {
     TonWalletKit,

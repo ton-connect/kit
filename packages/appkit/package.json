@@ -25,7 +25,7 @@
     "@ton/core": "^0.61.0",
     "@ton/walletkit": "workspace:*",
     "@tonconnect/protocol": "^2.2.6",
-    "@tonconnect/sdk": "^3.2.0"
+     "@tonconnect/sdk": "catalog:"
   },
   "keywords": [],
   "author": "",

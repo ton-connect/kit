@@ -7,7 +7,7 @@
  */
 
 import type React from 'react';
-import { TonConnectButton } from '@tonconnect/ui-react';
+import { TonConnectButton } from '@ton/appkit-ui-react';
 
 interface LayoutProps {
     children: React.ReactNode;

@@ -10,8 +10,8 @@
   "dependencies": {
     "@ton/appkit": "workspace:*",
     "@ton/walletkit": "workspace:*",
-    "@tonconnect/sdk": "^3.2.0",
-    "@tonconnect/ui-react": "^2.0.0",
+    "@tonconnect/sdk": "catalog:",
+    "@ton/appkit-ui-react": "workspace:*",
     "@types/node": "^24.10.1",
     "@types/react": "catalog:",
     "dotenv": "^17.2.3",

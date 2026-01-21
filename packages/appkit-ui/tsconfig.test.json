@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals", "jest", "node", "@types/jest", "@jest/globals", "vite/client"],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "moduleResolution": "bundler",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "allowJs": true
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*",
+    "**/*.spec.ts",
+    "**/*.fixture.ts",
+    "**/*.test.ts"
+  ]
+}

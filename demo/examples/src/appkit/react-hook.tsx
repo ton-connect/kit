@@ -8,7 +8,7 @@
 
 // SAMPLE_START: APPKIT_REACT_HOOK
 import { useEffect, useCallback, useRef, useMemo } from 'react';
-import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { useTonConnectUI, useTonWallet } from '@ton/appkit-ui-react';
 import { CreateAppKit } from '@ton/appkit';
 import { Network } from '@ton/walletkit';
 import type { AppKit } from '@ton/appkit';

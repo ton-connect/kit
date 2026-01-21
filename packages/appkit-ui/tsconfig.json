@@ -1,0 +1,50 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "target": "ES6",
+        "jsx": "preserve",
+        "jsxImportSource": "solid-js",
+        "types": ["vite/client", "node"],
+        "emitDeclarationOnly": true,
+        "noEmit": false,
+        "isolatedModules": false,
+        "baseUrl": "./",
+        "paths": {
+            "src/*": ["./src/*"]
+        },
+        "rootDir": "src",
+        "outDir": "./lib",
+        "declaration": true,
+        "lib": ["ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ESNext", "dom"],
+        "resolveJsonModule": true,
+        "experimentalDecorators": false,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "useUnknownInCatchVariables": false,
+        "noUncheckedIndexedAccess": true,
+        "emitDecoratorMetadata": false,
+        "importHelpers": false,
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "allowJs": true,
+    },
+    "include": [
+        "./src"
+    ],
+    "exclude": ["./__tests__", "node_modules", "lib", "types"]
+
+}
