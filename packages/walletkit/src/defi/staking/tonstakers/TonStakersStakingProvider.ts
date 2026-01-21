@@ -6,14 +6,7 @@
  *
  */
 
-import { Address, beginCell } from '@ton/core';
-
-import type {
-    TransactionRequest,
-    UserFriendlyAddress,
-    TransactionRequestMessage,
-    Base64String,
-} from '../../../api/models';
+import type { TransactionRequest, UserFriendlyAddress } from '../../../api/models';
 import { Network } from '../../../api/models';
 import { globalLogger } from '../../../core/Logger';
 import type { NetworkManager } from '../../../core/NetworkManager';
@@ -31,7 +24,7 @@ import { StakingError, StakingErrorCode } from '../errors';
 import { StakingQuoteDirection, UnstakeMode } from '../types';
 import type { TonStakersProviderConfig } from './types';
 import { CONTRACT } from './constants';
-import { ParseStack } from '../../../utils';
+import { TonStakersContract } from './TonStakersContract';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');
 
@@ -65,6 +58,13 @@ export class TonStakersStakingProvider extends StakingProvider {
         }
 
         return networkConfig.contractAddress;
+    }
+
+    private getContract(network?: Network): TonStakersContract {
+        const targetNetwork = network ?? Network.mainnet();
+        const apiClient = this.getApiClient(targetNetwork);
+        const contractAddress = this.getStakingContractAddress(targetNetwork);
+        return new TonStakersContract(contractAddress, apiClient);
     }
 
     async getQuote(params: StakingQuoteParams): Promise<StakingQuote> {
@@ -104,18 +104,13 @@ export class TonStakersStakingProvider extends StakingProvider {
         const amount = BigInt(params.amount);
         const totalAmount = amount + CONTRACT.STAKE_FEE_RES;
 
-        const payload = beginCell()
-            .storeUint(CONTRACT.PAYLOAD_STAKE, 32)
-            .storeUint(1, 64)
-            .storeUint(CONTRACT.PARTNER_CODE, 64)
-            .endCell()
-            .toBoc()
-            .toString('base64');
+        const contract = this.getContract(network);
+        const payload = contract.buildStakePayload(1n);
 
-        const message: TransactionRequestMessage = {
+        const message = {
             address: contractAddress,
             amount: totalAmount.toString(),
-            payload: payload as Base64String,
+            payload,
         };
 
         return {
@@ -134,29 +129,13 @@ export class TonStakersStakingProvider extends StakingProvider {
         const waitTillRoundEnd = unstakeMode === UnstakeMode.Delayed && params.maxDelayHours !== undefined;
         const fillOrKill = unstakeMode === UnstakeMode.Instant;
 
-        // Get jetton wallet address
-        const jettonWalletAddress = await this.getJettonWalletAddress(params.userAddress, network);
-
-        const payload = beginCell()
-            .storeUint(CONTRACT.PAYLOAD_UNSTAKE, 32)
-            .storeUint(0, 64)
-            .storeCoins(amount)
-            .storeAddress(Address.parse(params.userAddress))
-            .storeMaybeRef(
-                beginCell()
-                    .storeUint(waitTillRoundEnd ? 1 : 0, 1)
-                    .storeUint(fillOrKill ? 1 : 0, 1)
-                    .endCell(),
-            )
-            .endCell()
-            .toBoc()
-            .toString('base64');
-
-        const message: TransactionRequestMessage = {
-            address: jettonWalletAddress,
-            amount: CONTRACT.UNSTAKE_FEE_RES.toString(),
-            payload: payload as Base64String,
-        };
+        const contract = this.getContract(network);
+        const message = await contract.buildUnstakeMessage({
+            amount,
+            userAddress: params.userAddress,
+            waitTillRoundEnd,
+            fillOrKill,
+        });
 
         return {
             messages: [message],
@@ -182,16 +161,8 @@ export class TonStakersStakingProvider extends StakingProvider {
             let instantUnstakeAvailable = 0n;
 
             try {
-                const jettonWalletAddress = await this.getJettonWalletAddress(userAddress, network);
-                const result = await apiClient.runGetMethod(jettonWalletAddress, 'get_wallet_data');
-
-                // Parse balance from stack (first item is balance)
-                if (result.stack && result.stack.length > 0) {
-                    const parsedStack = ParseStack(result.stack);
-                    if (parsedStack.length > 0 && parsedStack[0].type === 'int') {
-                        stakedBalance = parsedStack[0].value;
-                    }
-                }
+                const contract = this.getContract(network);
+                stakedBalance = await contract.getStakedBalance(userAddress);
             } catch (error) {
                 log.warn('Failed to get staked balance', { error });
             }
@@ -222,83 +193,5 @@ export class TonStakersStakingProvider extends StakingProvider {
             instantUnstakeAvailable: '0',
             provider: 'tonstakers',
         });
-    }
-
-    private async getJettonWalletAddress(
-        userAddress: UserFriendlyAddress,
-        network?: Network,
-    ): Promise<UserFriendlyAddress> {
-        try {
-            const targetNetwork = network ?? Network.mainnet();
-            const contractAddress = this.getStakingContractAddress(targetNetwork);
-            const apiClient = this.getApiClient(targetNetwork);
-
-            // 1. Get pool info (get_pool_full_data) to find jetton minter
-            // runGetMethod is used instead of fetch to avoid external API dependencies
-            const poolInfoResult = await apiClient.runGetMethod(contractAddress, 'get_pool_full_data');
-
-            let jettonMinterAddress: string | undefined;
-
-            if (poolInfoResult.stack && poolInfoResult.stack.length > 0) {
-                const parsedStack = ParseStack(poolInfoResult.stack);
-                // Look for an address in the stack which is likely the jetton minter
-                // Based on observation, it is usually one of the addresses in the stack
-                for (const item of parsedStack) {
-                    if (item.type === 'cell') {
-                        try {
-                            const slice = item.cell.beginParse();
-                            const addr = slice.loadAddress();
-                            // Basic check if it looks like a valid address (not null address)
-                            if (
-                                addr &&
-                                addr.hash &&
-                                addr.hash.length > 0 &&
-                                !addr.equals(Address.parse(contractAddress))
-                            ) {
-                                jettonMinterAddress = addr.toString();
-                                break; // Take the first valid address found
-                            }
-                        } catch {
-                            // Ignore parse errors
-                        }
-                    }
-                }
-            }
-
-            if (!jettonMinterAddress) {
-                throw new Error('Jetton minter address not found in pool data');
-            }
-
-            // 2. Get jetton wallet address using API client via get_wallet_address method on minter
-            const addressCell = beginCell()
-                .storeAddress(Address.parse(userAddress))
-                .endCell()
-                .toBoc()
-                .toString('base64');
-
-            const result = await apiClient.runGetMethod(jettonMinterAddress, 'get_wallet_address', [
-                { type: 'cell', value: addressCell },
-            ]);
-
-            // Parse result from stack
-            if (result.stack && result.stack.length > 0) {
-                const parsedStack = ParseStack(result.stack);
-                if (parsedStack.length > 0 && parsedStack[0].type === 'cell') {
-                    // Extract address from cell
-                    const addressSlice = parsedStack[0].cell.beginParse();
-                    const address = addressSlice.loadAddress();
-                    return address.toString() as UserFriendlyAddress;
-                }
-            }
-
-            throw new Error('Failed to get jetton wallet address from minter');
-        } catch (error) {
-            log.error('Failed to get jetton wallet address', { error, userAddress, network });
-            throw new StakingError('Failed to get jetton wallet address', StakingErrorCode.InvalidParams, {
-                error,
-                userAddress,
-                network,
-            });
-        }
     }
 }
