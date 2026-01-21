@@ -1,0 +1,34 @@
+name: Additional check for bridge packages
+
+on:
+  push:
+  workflow_dispatch: {}
+
+jobs:
+  typecheck-bridges:
+    name: Typecheck Bridge Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Read .nvmrc
+        run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '${{ env.NVMRC }}'
+          cache: 'pnpm'
+
+      - name: Set up dependencies
+        run: pnpm i --frozen-lockfile
+
+      - name: Typecheck iOS Bridge
+        run: pnpm --filter walletkit-ios-bridge typecheck:bridge
+
+      - name: Typecheck Android Bridge
+        run: pnpm --filter walletkit-android-bridge typecheck:bridge

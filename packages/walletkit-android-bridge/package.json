@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "copy:demo": "rm -rf AndroidDemo/app/src/main/assets/walletkit && mkdir -p AndroidDemo/app/src/main/assets/walletkit && cp -R dist-android/* AndroidDemo/app/src/main/assets/walletkit/ && mkdir -p AndroidDemo/app/src/main/assets/walletkit/quickjs && cp dist-android-quickjs/walletkit.quickjs.js AndroidDemo/app/src/main/assets/walletkit/quickjs/index.js",
     "clean": "git clean -xdf dist node_modules .turbo",
-    "typecheck": "tsc --noEmit"
+    "typecheck:bridge": "tsc --noEmit"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*",
