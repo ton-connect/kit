@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - release
-  # Allows manual workflow runs with branch selection in UI
-  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -27,7 +25,7 @@ jobs:
       #     apt-get install -y git
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -47,15 +45,12 @@ jobs:
           echo "Found tag on current commit: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Read .nvmrc
-        run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
-
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '${{ env.NVMRC }}'
+          node-version: 24
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
@@ -102,10 +97,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish NPM package (OIDC)
-        env:
-          NPM_CONFIG_PROVENANCE: "true"
         run: |
-          NODE_AUTH_TOKEN="" pnpm publish \
+          pnpm publish \
             --filter="@ton/walletkit" \
             --access=public \
-            --publish-branch=release
+            --publish-branch=release \
+            --verbose
