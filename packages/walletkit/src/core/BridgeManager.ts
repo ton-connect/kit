@@ -601,7 +601,7 @@ export class BridgeManager {
 
             if (rawEvent.from) {
                 const session = await this.sessionManager.getSession(rawEvent.from);
-                rawEvent.domain = session?.dAppInfo?.url || '';
+                rawEvent.domain = session?.domain || '';
                 if (session) {
                     if (session?.walletId) {
                         rawEvent.walletId = session.walletId;
