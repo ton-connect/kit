@@ -7,7 +7,6 @@
  */
 
 export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
-export { CHAIN } from '@tonconnect/protocol';
 export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export type * from './types/internal';
@@ -103,7 +102,7 @@ export type {
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
-export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';
+export { createDeviceInfo, createWalletManifest, getMaxOutgoingMessages } from './utils/getDefaultWalletConfig';
 export { Signer } from './utils/Signer';
 export { ParseStack, SerializeStack } from './utils/tvmStack';
 export { Transport } from './bridge/transport/Transport';

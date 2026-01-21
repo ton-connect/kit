@@ -47,8 +47,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
         walletManifest: configuration.walletManifest,
         deviceInfo: configuration.deviceInfo,
         bridge: configuration.bridge,
-        eventProcessor: {},
-
+        eventProcessor: configuration.eventsConfiguration,
         storage: storage ? new SwiftStorageAdapter(storage) : new MemoryStorageAdapter({}),
     });
 
@@ -61,6 +60,13 @@ window.initWalletKit = async (configuration, storage, bridgeTransport) => {
     // Events from WalletKit will be forwarded to Swift via the bridge
 
     console.log('🔄 Initializing WalletKit Bridge');
+
+    try {
+        await walletKit.ensureInitialized();
+    } catch (error) {
+        console.error('Failed to initialize WalletKit:', error);
+        throw error;
+    }
 
     // WalletKit is already constructed with config, just set up the bridge
     console.log('✅ WalletKit instance ready');

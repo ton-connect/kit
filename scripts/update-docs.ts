@@ -34,16 +34,26 @@ function validateDirPath(dirPath: string): void {
     }
 }
 
+function isJSXCode(code: string): boolean {
+    // Check if code contains JSX syntax (tags like <div>, <span>, etc.)
+    const jsxPattern = /<[A-Za-z][A-Za-z0-9]*(\s|>)/;
+    return jsxPattern.test(code);
+}
+
 async function formatSampleCode(sample: string): Promise<string> {
     const trimmed = sample.trim();
     if (trimmed === '') {
         return '';
     }
 
+    const isJSX = isJSXCode(trimmed);
+    const parser = isJSX ? 'typescript' : 'typescript';
+    const tempFilePath = isJSX ? 'temp.tsx' : 'temp.ts';
+
     const prettierConfig = await prettier.resolveConfig(process.cwd());
     let formatted = await prettier.format(trimmed, {
         ...prettierConfig,
-        parser: 'typescript',
+        parser,
     });
     formatted = formatted.trimEnd();
 
@@ -60,7 +70,7 @@ async function formatSampleCode(sample: string): Promise<string> {
     });
 
     const results = await eslint.lintText(formatted, {
-        filePath: 'temp.ts',
+        filePath: tempFilePath,
     });
 
     if (results.length > 0 && results[0].output) {
@@ -123,7 +133,7 @@ async function findTypeScriptFiles(dirPath: string): Promise<string[]> {
         if (entry.isDirectory()) {
             const subFiles = await findTypeScriptFiles(fullPath);
             files.push(...subFiles);
-        } else if (entry.isFile() && entry.name.endsWith('.ts')) {
+        } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx'))) {
             files.push(fullPath);
         }
     }
@@ -182,6 +192,7 @@ async function resolvePlaceholder(
     const files = await findTypeScriptFiles(dirPath);
 
     const allSamples = new Map<string, string>();
+    let sourceFilePath: string | undefined;
     for (const file of files) {
         let fileSamples = sampleCache.get(file);
         if (!fileSamples) {
@@ -191,6 +202,11 @@ async function resolvePlaceholder(
         }
 
         for (const [name, code] of fileSamples.entries()) {
+            if (name === placeholder.sampleName || name.startsWith(`${placeholder.sampleName}_`)) {
+                if (!sourceFilePath) {
+                    sourceFilePath = file;
+                }
+            }
             allSamples.set(name, code);
         }
     }
@@ -208,6 +224,16 @@ async function resolvePlaceholder(
                 const index = parseInt(suffix, 10);
                 if (!isNaN(index)) {
                     parts.push({ name, code, index });
+                    if (!sourceFilePath) {
+                        // Find the file that contains this sample
+                        for (const file of files) {
+                            const fileSamples = sampleCache.get(file);
+                            if (fileSamples?.has(name)) {
+                                sourceFilePath = file;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -220,11 +246,22 @@ async function resolvePlaceholder(
 
         parts.sort((a, b) => a.index - b.index);
         sample = parts.map((p) => p.code).join('\n\n');
+    } else {
+        // Find the file that contains this sample
+        for (const file of files) {
+            const fileSamples = sampleCache.get(file);
+            if (fileSamples?.has(placeholder.sampleName)) {
+                sourceFilePath = file;
+                break;
+            }
+        }
     }
 
-    const formatted = await formatSampleCode(sample);
+    const formatted = await formatSampleCode(sample, sourceFilePath);
+    const isJSX = isJSXCode(sample);
+    const codeBlockLang = isJSX ? 'tsx' : 'ts';
 
-    return ['```ts', formatted, '```'].join('\n');
+    return ['```' + codeBlockLang, formatted, '```'].join('\n');
 }
 
 async function processTemplateFile(templatePath: string): Promise<void> {

@@ -12,6 +12,7 @@ export class SwapError extends DefiManagerError {
     static readonly INVALID_QUOTE = 'INVALID_QUOTE';
     static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY';
     static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED';
+    static readonly BUILD_TX_FAILED = 'BUILD_TX_FAILED';
 
     constructor(message: string, code: string, details?: unknown) {
         super(message, code, details);

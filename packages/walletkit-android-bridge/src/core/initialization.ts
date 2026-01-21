@@ -9,10 +9,10 @@
 /**
  * WalletKit initialization helpers used by the bridge entry point.
  */
-import { CHAIN, TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
+import { Network, TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
-import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent } from '../types';
+import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent, WalletKitInstance } from '../types';
 import { log, warn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
 import { ensureWalletKitLoaded, TonWalletKit } from './moduleLoader';
@@ -62,7 +62,7 @@ export async function initTonWalletKit(
     await ensureWalletKitLoaded();
 
     const networkRaw = (config?.network as string | undefined) ?? 'testnet';
-    const network = networkRaw === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+    const network = networkRaw === 'mainnet' ? Network.mainnet().chainId : Network.testnet().chainId;
 
     const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl;
     const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl;
@@ -167,8 +167,8 @@ export async function initTonWalletKit(
     }
     setWalletKit(new TonWalletKit(kitOptions));
 
-    if (walletKit.ensureInitialized) {
-        await walletKit?.ensureInitialized();
+    if ((walletKit as unknown as WalletKitInstance)?.ensureInitialized) {
+        await (walletKit as unknown as WalletKitInstance)?.ensureInitialized?.();
     }
 
     deps.emit('ready', { network: networkRaw, tonApiUrl, tonClientEndpoint: clientEndpoint });

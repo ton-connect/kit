@@ -4,23 +4,27 @@
   "description": "Examples for @ton/walletkit",
   "type": "module",
   "scripts": {
+    "quality": "pnpm test --coverage",
+    "test": "vitest run",
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview",
-    "quality": "pnpm test",
-    "test": "tsx src/index.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@ton/core": "^0.62.0",
     "@ton/walletkit": "workspace:*",
     "@types/node": "^24.10.1",
+    "@types/react": "catalog:",
     "buffer": "^6.0.3",
     "dotenv": "^17.2.3",
+    "react": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
     "vite": "^7.2.2",
-    "vite-plugin-node-polyfills": "^0.25.0"
+    "vite-plugin-node-polyfills": "^0.25.0",
+    "@vitest/coverage-v8": "^4.0.17",
+    "vitest": "^4.0.17"
   }
 }

@@ -6,18 +6,46 @@
  *
  */
 
+import type { DefiManagerAPI } from '../types';
 import type { Network, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 
 /**
- * Parameters for requesting a swap quote
+ * Base parameters for requesting a swap quote
  */
-export interface SwapQuoteParams {
+interface SwapQuoteParamsBase<TProviderOptions = unknown> {
     fromToken: UserFriendlyAddress | 'TON';
     toToken: UserFriendlyAddress | 'TON';
-    amount: string;
     network: Network;
     slippageBps?: number;
+    maxOutgoingMessages?: number;
+    providerOptions?: TProviderOptions;
 }
+
+/**
+ * Parameters for requesting a swap quote with specified input amount
+ */
+export interface SwapQuoteParamsWithAmountFrom<
+    TProviderOptions = unknown,
+> extends SwapQuoteParamsBase<TProviderOptions> {
+    amountFrom: string;
+    amountTo?: never;
+}
+
+/**
+ * Parameters for requesting a swap quote with specified output amount
+ */
+export interface SwapQuoteParamsWithAmountTo<TProviderOptions = unknown> extends SwapQuoteParamsBase<TProviderOptions> {
+    amountFrom?: never;
+    amountTo: string;
+}
+
+/**
+ * Parameters for requesting a swap quote
+ * Can specify either amountFrom (how much to swap) or amountTo (how much to receive)
+ */
+export type SwapQuoteParams<TProviderOptions = unknown> =
+    | SwapQuoteParamsWithAmountFrom<TProviderOptions>
+    | SwapQuoteParamsWithAmountTo<TProviderOptions>;
 
 /**
  * Swap quote response with pricing information
@@ -28,6 +56,7 @@ export interface SwapQuote {
     fromAmount: string;
     toAmount: string;
     minReceived: string;
+    network: Network;
     priceImpact?: number;
     fee?: SwapFee[];
     provider: string;
@@ -46,18 +75,19 @@ export interface SwapFee {
 /**
  * Parameters for building swap transaction
  */
-export interface SwapParams {
+export interface SwapParams<TProviderOptions = unknown> {
     quote: SwapQuote;
     userAddress: UserFriendlyAddress;
+    destinationAddress?: UserFriendlyAddress;
     slippageBps?: number;
     deadline?: number;
-    referralAddress?: UserFriendlyAddress;
+    providerOptions?: TProviderOptions;
 }
 
 /**
  * Swap API interface exposed by SwapManager
  */
-export interface SwapAPI {
+export interface SwapAPI extends DefiManagerAPI<SwapProviderInterface> {
     getQuote(params: SwapQuoteParams, provider?: string): Promise<SwapQuote>;
     buildSwapTransaction(params: SwapParams, provider?: string): Promise<TransactionRequest>;
 }
@@ -65,7 +95,7 @@ export interface SwapAPI {
 /**
  * Interface that all swap providers must implement
  */
-export interface SwapProviderInterface {
-    getQuote(params: SwapQuoteParams): Promise<SwapQuote>;
-    buildSwapTransaction(params: SwapParams): Promise<TransactionRequest>;
+export interface SwapProviderInterface<TQuoteOptions = unknown, TSwapOptions = unknown> {
+    getQuote(params: SwapQuoteParams<TQuoteOptions>): Promise<SwapQuote>;
+    buildSwapTransaction(params: SwapParams<TSwapOptions>): Promise<TransactionRequest>;
 }

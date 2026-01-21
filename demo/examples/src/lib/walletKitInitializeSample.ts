@@ -12,16 +12,37 @@ import {
     Signer, // Handles cryptographic signing
     WalletV5R1Adapter, // Latest wallet version (recommended)
     Network, // Network configuration (mainnet/testnet)
-    CHAIN, // Chain constants (mainnet/testnet)
     MemoryStorageAdapter,
 } from '@ton/walletkit';
 
 import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './walletManifest';
 // SAMPLE_END: INIT_KIT_1
 
+let kitCache: TonWalletKit | undefined;
+
+export function tryGetKitSample(): TonWalletKit {
+    if (!kitCache) throw new Error('Wallet Kit not Initialized');
+    return kitCache;
+}
+
+// Helper function (placeholder for your own wallet selection logic)
+export function getSelectedWalletAddress() {
+    const kit = tryGetKitSample();
+    const wallets = kit.getWallets();
+    return wallets.length > 0 ? wallets[0].getAddress() : '';
+}
+
+// Reset cache for testing purposes
+export function resetKitCache() {
+    kitCache = undefined;
+}
+
 export async function walletKitInitializeSample(): Promise<TonWalletKit> {
     console.log('=== WalletKit Initialize ===');
     console.log('Step 1: Creating WalletKit instance...');
+    if (kitCache) {
+        return kitCache;
+    }
     // SAMPLE_START: INIT_KIT_2
     const kit = new TonWalletKit({
         deviceInfo: getTonConnectDeviceInfo(),
@@ -29,7 +50,7 @@ export async function walletKitInitializeSample(): Promise<TonWalletKit> {
         storage: new MemoryStorageAdapter({}),
         // Multi-network API configuration
         networks: {
-            [CHAIN.MAINNET]: {
+            [Network.mainnet().chainId]: {
                 apiClient: {
                     // Optional API key for Toncenter get on https://t.me/toncenter
                     key: process.env.APP_TONCENTER_KEY,
@@ -80,5 +101,6 @@ export async function walletKitInitializeSample(): Promise<TonWalletKit> {
         console.log('V5R1 Balance:', await walletV5R1.getBalance());
     }
     // SAMPLE_END: INIT_KIT_4
+    kitCache = kit;
     return kit;
 }

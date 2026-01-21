@@ -26,7 +26,8 @@ import type {
     UserFriendlyAddress,
     Base64String,
 } from '../api/models';
-import { SendModeFromValue, SendModeToValue } from '../api/models';
+import { SendModeFromValue } from '../utils/sendMode';
+import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';

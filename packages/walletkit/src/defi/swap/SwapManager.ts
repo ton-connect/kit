@@ -27,11 +27,23 @@ export class SwapManager extends DefiManager<SwapProviderInterface> implements S
      * @param provider - Optional provider name to use
      * @returns Promise resolving to swap quote
      */
-    async getQuote(params: SwapQuoteParams, provider?: string): Promise<SwapQuote> {
+    async getQuote<TProviderOptions = unknown>(
+        params: SwapQuoteParams<TProviderOptions>,
+        provider?: string,
+    ): Promise<SwapQuote> {
+        if (params.amountFrom && params.amountTo) {
+            throw new SwapError('Cannot specify both amountFrom and amountTo', SwapError.INVALID_PARAMS);
+        }
+
+        if (!params.amountFrom && !params.amountTo) {
+            throw new SwapError('Must specify either amountFrom or amountTo', SwapError.INVALID_PARAMS);
+        }
+
         log.debug('Getting swap quote', {
             fromToken: params.fromToken,
             toToken: params.toToken,
-            amount: params.amount,
+            amountFrom: params.amountFrom,
+            amountTo: params.amountTo,
             provider: provider || this.defaultProvider,
         });
 
@@ -57,7 +69,10 @@ export class SwapManager extends DefiManager<SwapProviderInterface> implements S
      * @param provider - Optional provider name to use
      * @returns Promise resolving to transaction request
      */
-    async buildSwapTransaction(params: SwapParams, provider?: string): Promise<TransactionRequest> {
+    async buildSwapTransaction<TProviderOptions = unknown>(
+        params: SwapParams<TProviderOptions>,
+        provider?: string,
+    ): Promise<TransactionRequest> {
         log.debug('Building swap transaction', {
             userAddress: params.userAddress,
             provider: provider || this.defaultProvider,

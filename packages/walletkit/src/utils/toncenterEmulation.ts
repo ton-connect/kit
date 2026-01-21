@@ -20,7 +20,8 @@ import type {
     TransactionTraceMoneyFlowItem,
     TransactionRequest,
 } from '../api/models';
-import { Result, SendModeToValue, AssetType } from '../api/models';
+import { Result, AssetType } from '../api/models';
+import { SendModeToValue } from './sendMode';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
 import type { ApiClient } from '../types/toncenter/ApiClient';

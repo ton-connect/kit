@@ -16,6 +16,7 @@ import { createWalletManagementSlice } from './slices/walletManagementSlice';
 import { createTonConnectSlice } from './slices/tonConnectSlice';
 import { createJettonsSlice } from './slices/jettonsSlice';
 import { createNftsSlice } from './slices/nftsSlice';
+import { createSwapSlice } from './slices/swapSlice';
 import type { AppState } from '../types/store';
 import type { StorageAdapter } from '../adapters/storage/types';
 import type { WalletKitConfig } from '../types/wallet';
@@ -137,6 +138,9 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         ...createNftsSlice(...a),
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        ...createSwapSlice(...a),
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     })) as unknown as any,
                     {

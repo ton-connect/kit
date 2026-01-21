@@ -13,7 +13,6 @@ import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
 import type { WalletId } from '../utils/walletId';
 import { createWalletId } from '../utils/walletId';
-import type { Network } from '../api/models';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 
 const _log = globalLogger.createChild('WalletManager');
@@ -46,14 +45,6 @@ export class WalletManager {
      */
     getWallet(walletId: WalletId): Wallet | undefined {
         return this.wallets.get(walletId) || undefined;
-    }
-
-    /**
-     * Get wallet by address and network (convenience method)
-     */
-    getWalletByAddressAndNetwork(address: string, network: Network): Wallet | undefined {
-        const walletId = createWalletId(network, address);
-        return this.getWallet(walletId);
     }
 
     /**

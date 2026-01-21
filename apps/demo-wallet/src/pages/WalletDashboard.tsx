@@ -157,7 +157,29 @@ export const WalletDashboard: React.FC = () => {
                 />
 
                 {/* Balance Card */}
-                <Card>
+                <Card className="relative">
+                    <button
+                        onClick={handleRefreshBalance}
+                        disabled={isRefreshing}
+                        className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50"
+                        title="Refresh balance"
+                        aria-label="Refresh balance"
+                    >
+                        <svg
+                            className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                        </svg>
+                    </button>
+
                     <div className="text-center space-y-4">
                         <div>
                             <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Balance</h3>
@@ -246,17 +268,12 @@ export const WalletDashboard: React.FC = () => {
                         )}
 
                         <div className="flex space-x-3">
-                            <Button
-                                variant="secondary"
-                                onClick={handleRefreshBalance}
-                                isLoading={isRefreshing}
-                                className="flex-1"
-                            >
-                                Refresh
-                            </Button>
-
                             <Button onClick={() => navigate('/send')} className="flex-1" data-testid="send-button">
                                 Send
+                            </Button>
+
+                            <Button variant="secondary" onClick={() => navigate('/swap')} className="flex-1">
+                                Swap
                             </Button>
                         </div>
                     </div>
@@ -339,7 +356,7 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingConnectRequest}
                     availableWallets={getAvailableWallets()}
                     savedWallets={savedWallets}
-                    currentWallet={getAvailableWallets().find((w) => w.getWalletId() === activeWalletId)}
+                    currentWallet={getAvailableWallets().find((w) => w.getWalletId() === activeWallet?.kitWalletId)}
                     isOpen={isConnectModalOpen}
                     onApprove={approveConnectRequest}
                     onReject={rejectConnectRequest}

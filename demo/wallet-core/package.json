@@ -35,15 +35,15 @@
     "@ton/walletkit": "workspace:*"
   },
   "peerDependencies": {
-    "react": "catalog:",
     "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0",
-    "zustand": "^5.0.8",
-    "immer": "^10.2.0"
+    "immer": "^10.2.0",
+    "react": "catalog:",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "catalog:",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.2",
     "typescript": "~5.9.3"
   }
 }

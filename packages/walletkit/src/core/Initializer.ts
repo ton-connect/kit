@@ -166,7 +166,14 @@ export class Initializer {
             this.analyticsManager,
         );
         eventRouter.setBridgeManager(bridgeManager);
-        await bridgeManager.start();
+        bridgeManager
+            .start()
+            .then(() => {
+                log.info('Bridge manager started successfully');
+            })
+            .catch((e) => {
+                log.error('Could not start bridge manager', { error: e?.toString?.() });
+            });
 
         // Create event processor for durable events
         // TODO - change default values

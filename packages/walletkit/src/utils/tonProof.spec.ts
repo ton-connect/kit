@@ -12,7 +12,7 @@ import { ed25519 } from '@noble/curves/ed25519';
 import { SignatureVerify, CreateTonProofMessageBytes, CreateTonProofMessage } from './tonProof';
 import { Uint8ArrayToHex } from './base64';
 import type { ProofMessage } from '../api/models';
-import { asHex } from '../api/models';
+import { asHex } from './hex';
 
 describe('tonProof', () => {
     describe('SignatureVerify', () => {

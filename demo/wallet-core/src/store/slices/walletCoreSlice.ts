@@ -6,8 +6,9 @@
  *
  */
 
-import { TonWalletKit, CHAIN, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import { TonWalletKit, Network, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
+import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 import { createComponentLogger } from '../../utils/logger';
 import { isExtension } from '../../utils/isExtension';
@@ -33,13 +34,13 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         },
 
         networks: {
-            [CHAIN.MAINNET]: {
+            [Network.mainnet().chainId]: {
                 apiClient: {
                     url: 'https:/toncenter.com',
                     key: walletKitConfig?.tonApiKeyMainnet,
                 },
             },
-            [CHAIN.TESTNET]: {
+            [Network.testnet().chainId]: {
                 apiClient: {
                     url: 'https://testnet.toncenter.com',
                     key: walletKitConfig?.tonApiKeyTestnet,
@@ -55,13 +56,15 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         },
 
         eventProcessor: {
-            disableTranscationEmulation: walletKitConfig?.disableAutoEmulation,
+            disableTransactionEmulation: walletKitConfig?.disableAutoEmulation,
         },
 
         dev: {
             disableNetworkSend: walletKitConfig?.disableNetworkSend,
         },
     }) as ITonWalletKit;
+
+    walletKit.swap.registerProvider('omniston', new OmnistonSwapProvider());
 
     log.info(`WalletKit initialized with network: ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;

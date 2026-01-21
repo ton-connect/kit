@@ -1,11 +1,15 @@
 {
   "name": "@ton/walletkit",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Wallet kit for TON Connect",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/cjs/index.d.ts",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ton-connect/kit"
+  },
   "exports": {
     ".": {
       "import": {
@@ -27,14 +31,14 @@
         "default": "./dist/cjs/bridge/JSBridgeInjector.js"
       }
     },
-    "./defi/swap/omniston": {
+    "./swap/omniston": {
       "import": {
-        "types": "./dist/esm/defi/swap/omniston.d.ts",
-        "default": "./dist/esm/defi/swap/omniston.js"
+        "types": "./dist/esm/defi/swap/omniston/index.d.ts",
+        "default": "./dist/esm/defi/swap/omniston/index.js"
       },
       "require": {
-        "types": "./dist/cjs/defi/swap/omniston.d.ts",
-        "default": "./dist/cjs/defi/swap/omniston.js"
+        "types": "./dist/cjs/defi/swap/omniston/index.d.ts",
+        "default": "./dist/cjs/defi/swap/omniston/index.js"
       }
     }
   },
@@ -72,7 +76,7 @@
     "@tonconnect/protocol": "^2.3.0",
     "@tonconnect/sdk": "^3.3.1",
     "bip39": "^3.1.0",
-    "lru-cache": "^11.2.2",
+    "lru-cache": "^11.2.4",
     "uuid": "^13.0.0"
   },
   "peerDependencies": {
@@ -91,31 +95,31 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
-    "@stryker-mutator/core": "^9.3.0",
+    "@stryker-mutator/core": "^9.4.0",
     "@ton-community/tlb-runtime": "1.0.0-alpha.3",
-    "@ton/core": "^0.62.0",
+    "@ton/core": "^0.62.1",
     "@ton/crypto": "^3.3.0",
     "@truecarry/tlb-abi": "^0.2.0",
-    "@types/chrome": "^0.1.28",
+    "@types/chrome": "^0.1.33",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
     "@types/webextension-polyfill": "^0.12.4",
-    "@vitest/coverage-v8": "4.0.8",
-    "@vitest/ui": "^4.0.8",
+    "@vitest/coverage-v8": "4.0.17",
+    "@vitest/ui": "^4.0.17",
     "chalk": "^5.6.2",
     "dotenv": "^17.2.3",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "jest": "^30.2.0",
     "node-hid": "^3.2.0",
-    "rimraf": "^6.1.0",
+    "rimraf": "^6.1.2",
     "swagger-typescript-api": "13.2.16",
-    "ts-jest": "^29.4.5",
+    "ts-jest": "^29.4.6",
     "ts-json-schema-generator": "^2.4.0",
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.6",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
-    "vite": "^7.2.2",
-    "vite-bundle-analyzer": "^1.2.3",
-    "vitest": "^4.0.8"
+    "vite": "^7.3.1",
+    "vite-bundle-analyzer": "^1.3.2",
+    "vitest": "^4.0.17"
   }
 }

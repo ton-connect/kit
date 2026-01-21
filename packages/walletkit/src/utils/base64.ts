@@ -6,9 +6,29 @@
  *
  */
 
-import type { Hex } from '../api/models';
-import { asHex } from '../api/models';
+import type { Hex, Base64String } from '../api/models';
+import { asHex } from './hex';
 import { WalletKitError, ERROR_CODES } from '../errors';
+
+export function asBase64(data: string): Base64String {
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(data)) {
+        throw new Error('Not a valid base64');
+    }
+
+    try {
+        // Validate by attempting to decode
+        const buffer = Buffer.from(data, 'base64');
+
+        // Check that re-encoding gives the same result (catches invalid padding)
+        if (buffer.toString('base64') !== data) {
+            throw new Error('Not a valid base64');
+        }
+    } catch (_e) {
+        throw new Error('Not a valid base64');
+    }
+
+    return data as Base64String;
+}
 
 /**
  * Normalize base64 string
