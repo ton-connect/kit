@@ -6,6 +6,8 @@
  *
  */
 
+import { toNano } from '@ton/core';
+
 // Timing-related constants
 export const TIMING = {
     DEFAULT_INTERVAL: 5000,
@@ -15,13 +17,6 @@ export const TIMING = {
     ESTIMATED_TIME_AFTER_ROUND_S: 10 * 60,
 };
 
-// Blockchain-related constants
-export const BLOCKCHAIN = {
-    CHAIN_DEV: '-3',
-    API_URL: 'https://tonapi.io',
-    API_URL_TESTNET: 'https://testnet.tonapi.io',
-};
-
 // Contract-related constants
 export const CONTRACT = {
     STAKING_CONTRACT_ADDRESS: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR',
@@ -29,7 +24,14 @@ export const CONTRACT = {
     PARTNER_CODE: 0x000000106796caef,
     PAYLOAD_UNSTAKE: 0x595f07bc,
     PAYLOAD_STAKE: 0x47d54391,
-    STAKE_FEE_RES: 1,
-    UNSTAKE_FEE_RES: 1.05,
-    RECOMMENDED_FEE_RESERVE: 1.1,
+    STAKE_FEE_RES: toNano('1'),
+    UNSTAKE_FEE_RES: toNano('1.05'),
+    RECOMMENDED_FEE_RESERVE: toNano('1.1'),
 };
+
+// Blockchain identifiers exposed as part of the public staking API.
+// Currently not used internally but kept for library consumers.
+export const BLOCKCHAIN = {
+    MAINNET: 'mainnet',
+    TESTNET: 'testnet',
+} as const;

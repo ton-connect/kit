@@ -6,6 +6,8 @@
  *
  */
 
-export interface TonStakersProviderConfig {
-    apiUrl?: string;
-}
+export type TonStakersProviderConfig = {
+    [key: string]: {
+        contractAddress: string;
+    };
+};

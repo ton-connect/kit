@@ -13,3 +13,4 @@ export type { StakingErrorCode } from './errors';
 export type * from './types';
 export { TonStakersStakingProvider } from './tonstakers/TonStakersStakingProvider';
 export type { TonStakersProviderConfig } from './tonstakers/types';
+export { CONTRACT, BLOCKCHAIN, TIMING } from './tonstakers/constants';
