@@ -12,6 +12,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     environment: Release
     # container:
