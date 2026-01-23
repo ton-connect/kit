@@ -44,4 +44,11 @@ export type {
     TransactionRequest,
 } from '@ton/walletkit';
 
-export { CreateAppKit } from './core/AppKit';
+export { CreateAppKit } from './core/app-kit';
+
+// Core exports
+export * from './core/events';
+export * from './providers/ton-connect-provider';
+
+// Provider types
+export type { WalletProvider } from './types';

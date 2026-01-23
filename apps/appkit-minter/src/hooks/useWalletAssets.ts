@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Jetton, NFT } from '@ton/walletkit';
 import { isValidAddress } from '@ton/walletkit';
-import { useAppKitWallet } from '@ton/appkit-ui-react';
+import { useAppKit } from '@ton/appkit-ui-react';
 
 interface WalletAssetsState {
     jettons: Jetton[];
@@ -26,7 +26,8 @@ interface TransferState {
 }
 
 export function useWalletAssets() {
-    const wallet = useAppKitWallet();
+    const { connectedWallets } = useAppKit();
+    const wallet = connectedWallets[0] || null;
 
     const [state, setState] = useState<WalletAssetsState>({
         jettons: [],

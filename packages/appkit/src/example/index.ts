@@ -13,8 +13,8 @@
 import TonConnect from '@tonconnect/sdk';
 import { Network } from '@ton/walletkit';
 
-import { CreateAppKit } from '../index';
-import { FSStorage } from './FSStorage';
+import { CreateAppKit, TonConnectProvider, WALLET_EVENTS } from '../index';
+import { FSStorage } from './fs-storage';
 
 async function main() {
     const tonConnect = new TonConnect({
@@ -32,22 +32,21 @@ async function main() {
                     url: 'https://toncenter.com', // default
                 },
             },
-            // Optionally configure testnet as well
-            // [Network.testnet().chainId]: {
-            //     apiClient: {
-            //         key: process.env.APP_TONCENTER_KEY_TESTNET,
-            //         url: 'https://testnet.toncenter.com',
-            //     },
-            // },
         },
     });
 
-    tonConnect.onStatusChange(async (wallet) => {
-        console.log('Status changed:', wallet);
+    // Register TonConnect provider
+    const tonConnectProvider = new TonConnectProvider({ tonConnect });
+    appKit.registerProvider(tonConnectProvider);
 
-        if (wallet) {
-            const tonWallet = appKit.wrapTonConnectWallet(wallet, tonConnect);
+    // Listen for wallet events
+    appKit.eventBus.on(WALLET_EVENTS.CONNECTED, async () => {
+        console.log('Wallet connected!');
 
+        const wallets = await appKit.getConnectedWallets();
+        const tonWallet = wallets[0];
+
+        if (tonWallet) {
             await tonWallet.createTransferJettonTransaction({
                 transferAmount: '1',
                 jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
@@ -57,13 +56,12 @@ async function main() {
         }
     });
 
-    await tonConnect.restoreConnection();
-    const wallets = await tonConnect.getWallets();
-    console.log('Wallets:', wallets[1]);
+    appKit.eventBus.on(WALLET_EVENTS.DISCONNECTED, () => {
+        console.log('Wallet disconnected!');
+    });
 
-    const wallet = wallets[1];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (wallet as any).jsBridgeKey = undefined;
+    const wallets = await tonConnect.getWallets();
+    console.log('Available wallets:', wallets.length);
 
     while (true) {
         await new Promise((resolve) => setTimeout(resolve, 1000));

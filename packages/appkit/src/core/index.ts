@@ -6,4 +6,4 @@
  *
  */
 
-export { AppKitImpl } from './AppKit';
+export { AppKitImpl } from './app-kit';

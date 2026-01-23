@@ -24,8 +24,8 @@
     "@ton-community/assets-sdk": "^0.0.5",
     "@ton/core": "^0.61.0",
     "@ton/walletkit": "workspace:*",
-    "@tonconnect/protocol": "^2.2.6",
-     "@tonconnect/sdk": "catalog:"
+    "@tonconnect/protocol": "catalog:",
+    "@tonconnect/sdk": "catalog:"
   },
   "keywords": [],
   "author": "",

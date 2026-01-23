@@ -18,6 +18,8 @@
     "@ton/appkit-ui-react": "workspace:*",
     "@ton/core": "^0.62.1",
     "@ton/walletkit": "workspace:*",
+    "@tonconnect/sdk": "catalog:",
+    "@tonconnect/ui-react": "catalog:",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

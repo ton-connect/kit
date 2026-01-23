@@ -6,5 +6,5 @@
  *
  */
 
-export { TonConnectWalletWrapperImpl } from './TonConnectWalletWrapper';
-export type { TonConnectWalletWrapperConfig } from './TonConnectWalletWrapper';
+export { TonConnectWalletWrapperImpl } from './ton-connect-wallet-wrapper';
+export type { TonConnectWalletWrapperConfig } from './ton-connect-wallet-wrapper';

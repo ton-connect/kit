@@ -19,7 +19,7 @@
   "dependencies": {
     "@ton/walletkit": "workspace:*",
     "@tonconnect/bridge-sdk": "^0.2.4",
-    "@tonconnect/protocol": "^2.3.0",
+    "@tonconnect/protocol": "catalog:",
     "buffer": "^6.0.3"
   },
   "peerDependencies": {

@@ -63,8 +63,8 @@
   "dependencies": {
     "@noble/curves": "^1.9.7",
     "@tonconnect/bridge-sdk": "https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz",
-    "@tonconnect/protocol": "^2.3.0",
-     "@tonconnect/sdk": "catalog:",
+    "@tonconnect/protocol": "catalog:",
+    "@tonconnect/sdk": "catalog:",
     "bip39": "^3.1.0",
     "lru-cache": "^11.2.4",
     "uuid": "^13.0.0"

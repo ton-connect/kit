@@ -6,8 +6,14 @@
  *
  */
 
+import React, { useMemo } from 'react';
 import { AppKitProvider } from '@ton/appkit-ui-react';
+import { TonConnectUIProvider, useTonConnectUI } from '@tonconnect/ui-react';
+import { CreateAppKit, TonConnectProvider } from '@ton/appkit';
+import { Network } from '@ton/walletkit';
 import { Toaster } from 'sonner';
+
+import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from './core/configs/env';
 
 import { AppRouter } from '@/components';
 
@@ -16,12 +22,54 @@ import './App.css';
 // TonConnect manifest URL - in production, host your own manifest
 const MANIFEST_URL = 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json';
 
+function AppKitBridge({ children }: { children: React.ReactNode }) {
+    const [tonConnectUI] = useTonConnectUI();
+
+    const appKit = useMemo(() => {
+        if (!tonConnectUI) return null;
+
+        // Create AppKit instance with networks configuration
+        const kit = CreateAppKit({
+            networks: {
+                [Network.mainnet().chainId]: {
+                    apiClient: {
+                        url: 'https://toncenter.com',
+                        key: ENV_TON_API_KEY_MAINNET,
+                    },
+                },
+                [Network.testnet().chainId]: {
+                    apiClient: {
+                        url: 'https://testnet.toncenter.com',
+                        key: ENV_TON_API_KEY_TESTNET,
+                    },
+                },
+            },
+        });
+
+        // Register TonConnect provider - networkManager is passed during initialize
+        kit.registerProvider(
+            new TonConnectProvider({
+                tonConnect: tonConnectUI.connector,
+            }),
+        );
+
+        return kit;
+    }, [tonConnectUI]);
+
+    // Wait for appKit
+    if (!appKit) return null;
+
+    return <AppKitProvider appKit={appKit}>{children}</AppKitProvider>;
+}
+
 function App() {
     return (
-        <AppKitProvider manifestUrl={MANIFEST_URL}>
-            <AppRouter />
-            <Toaster position="top-right" richColors />
-        </AppKitProvider>
+        <TonConnectUIProvider manifestUrl={MANIFEST_URL}>
+            <AppKitBridge>
+                <AppRouter />
+                <Toaster position="top-right" richColors />
+            </AppKitBridge>
+        </TonConnectUIProvider>
     );
 }
 

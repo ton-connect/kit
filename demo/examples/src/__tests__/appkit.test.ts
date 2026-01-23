@@ -24,18 +24,15 @@ describe('appkit examples', () => {
     });
 
     describe('initialize', () => {
-        it('should create AppKit and wrap wallet', async () => {
+        it('should create AppKit and get connected wallets', async () => {
             const { appKit } = await import('../appkit/initialize');
-            const { mockWallet, mockTonConnect } = await import('../__mocks__/@tonconnect/sdk');
 
             expect(appKit).toBeDefined();
-            expect(appKit.wrapTonConnectWallet).toBeDefined();
+            expect(appKit.getConnectedWallets).toBeDefined();
 
-            // Use type assertion through unknown for test mocks
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const wrappedWallet = appKit.wrapTonConnectWallet(mockWallet as any, mockTonConnect as any);
-            expect(wrappedWallet).toBeDefined();
-            expect(appKit.wrapTonConnectWallet).toHaveBeenCalledWith(mockWallet, mockTonConnect);
+            const wallets = await appKit.getConnectedWallets();
+            expect(wallets).toBeDefined();
+            expect(Array.isArray(wallets)).toBe(true);
         });
     });
 

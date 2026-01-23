@@ -6,5 +6,6 @@
  *
  */
 
-export * from './use-app-kit';
-export * from './use-app-kit-wallet';
+// Export standard providers
+export { TonConnectProvider } from './ton-connect-provider';
+export type { TonConnectProviderConfig } from './ton-connect-provider';

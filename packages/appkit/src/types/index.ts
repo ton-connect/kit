@@ -14,3 +14,6 @@ export type { TonConnectWalletWrapper, WalletConnectionInfo } from './wallet';
 
 // AppKit types
 export type { AppKit, TransactionResult } from './appkit';
+
+// Provider types
+export type { WalletProvider } from './wallet-provider';

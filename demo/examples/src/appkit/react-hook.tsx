@@ -7,21 +7,23 @@
  */
 
 // SAMPLE_START: APPKIT_REACT_HOOK
-import { useEffect, useCallback, useRef, useMemo } from 'react';
-import { useTonConnectUI, useTonWallet } from '@ton/appkit-ui-react';
-import { CreateAppKit } from '@ton/appkit';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { CreateAppKit, TonConnectProvider, WALLET_EVENTS } from '@ton/appkit';
 import { Network } from '@ton/walletkit';
 import type { AppKit } from '@ton/appkit';
+import type { Wallet } from '@ton/walletkit';
 
 export function useAppKit() {
     const [tonConnectUI] = useTonConnectUI();
     const wallet = useTonWallet();
     const appKitRef = useRef<AppKit | null>(null);
+    const [connectedWallet, setConnectedWallet] = useState<Wallet | null>(null);
 
     // Initialize AppKit when TonConnect is ready
     useEffect(() => {
         if (tonConnectUI.connector && !appKitRef.current) {
-            appKitRef.current = CreateAppKit({
+            const appKit = CreateAppKit({
                 networks: {
                     [Network.mainnet().chainId]: {
                         apiClient: {
@@ -30,16 +32,24 @@ export function useAppKit() {
                     },
                 },
             });
+
+            // Register TonConnect provider
+            const provider = new TonConnectProvider({ tonConnect: tonConnectUI.connector });
+            appKit.registerProvider(provider);
+
+            // Listen for wallet changes
+            const syncWallet = async () => {
+                const wallets = await appKit.getConnectedWallets();
+                setConnectedWallet(wallets[0] ?? null);
+            };
+
+            appKit.eventBus.on(WALLET_EVENTS.CONNECTED, syncWallet);
+            appKit.eventBus.on(WALLET_EVENTS.DISCONNECTED, syncWallet);
+            appKit.eventBus.on(WALLET_EVENTS.CHANGED, syncWallet);
+
+            appKitRef.current = appKit;
         }
     }, [tonConnectUI.connector]);
-
-    // Create wrapped wallet when connected
-    const wrappedWallet = useMemo(() => {
-        if (!wallet || !appKitRef.current || !tonConnectUI.connector) {
-            return null;
-        }
-        return appKitRef.current.wrapTonConnectWallet(wallet, tonConnectUI.connector);
-    }, [wallet, tonConnectUI.connector]);
 
     const disconnect = useCallback(async () => {
         await tonConnectUI.disconnect();
@@ -48,7 +58,7 @@ export function useAppKit() {
     return {
         isConnected: !!wallet,
         address: wallet?.account.address ?? null,
-        wallet: wrappedWallet,
+        wallet: connectedWallet,
         disconnect,
     };
 }

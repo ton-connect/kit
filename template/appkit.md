@@ -103,15 +103,16 @@ const appKit = CreateAppKit({
 });
 ```
 
-### wrapTonConnectWallet
+### getConnectedWallets
 
-Wraps a TonConnect wallet to access asset operations.
+Get all connected wallets from registered providers.
 
 ```typescript
-const wallet = appKit.wrapTonConnectWallet(tonConnectWallet, tonConnect);
+const wallets = await appKit.getConnectedWallets();
+const wallet = wallets[0]; // First connected wallet
 ```
 
-The wrapped wallet provides:
+The wallet provides:
 
 | Method | Description |
 |--------|-------------|

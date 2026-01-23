@@ -111,12 +111,12 @@ export const createMockWrappedWallet = (): MockWrappedWallet => {
 
 // Mock AppKit
 export interface MockAppKit {
-    wrapTonConnectWallet: ReturnType<typeof vi.fn>;
+    getConnectedWallets: ReturnType<typeof vi.fn>;
 }
 
 export const CreateAppKit = vi.fn(
     (): MockAppKit => ({
-        wrapTonConnectWallet: vi.fn(() => createMockWrappedWallet()),
+        getConnectedWallets: vi.fn(() => Promise.resolve([createMockWrappedWallet()])),
     }),
 );
 
