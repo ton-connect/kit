@@ -12,7 +12,6 @@ import type { Storage } from '../storage';
 import { validateWallet } from '../validation';
 import { globalLogger } from './Logger';
 import type { WalletId } from '../utils/walletId';
-import { createWalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 
 const _log = globalLogger.createChild('WalletManager');
@@ -56,7 +55,7 @@ export class WalletManager {
             throw new Error(`Invalid wallet: ${validation.errors.join(', ')}`);
         }
 
-        const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
+        const walletId = wallet.getWalletId();
         if (this.wallets.has(walletId)) {
             return walletId;
         }
@@ -73,7 +72,7 @@ export class WalletManager {
         if (typeof walletIdOrAdapter === 'string') {
             walletId = walletIdOrAdapter;
         } else {
-            walletId = createWalletId(walletIdOrAdapter.getNetwork(), walletIdOrAdapter.getAddress());
+            walletId = walletIdOrAdapter.getWalletId();
         }
 
         const removed = this.wallets.delete(walletId);
@@ -84,7 +83,7 @@ export class WalletManager {
      * Update existing wallet
      */
     async updateWallet(wallet: Wallet): Promise<void> {
-        const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
+        const walletId = wallet.getWalletId();
         if (!this.wallets.has(walletId)) {
             throw new Error(`Wallet with ID ${walletId} not found`);
         }
@@ -122,6 +121,6 @@ export class WalletManager {
      * Get wallet ID for a wallet adapter
      */
     getWalletId(wallet: WalletAdapter): WalletId {
-        return createWalletId(wallet.getNetwork(), wallet.getAddress());
+        return wallet.getWalletId();
     }
 }
