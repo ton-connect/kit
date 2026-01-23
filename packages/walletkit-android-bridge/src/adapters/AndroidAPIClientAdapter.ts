@@ -40,6 +40,7 @@ type AndroidAPIClientBridge = {
     apiGetNetworks: () => string;
     apiSendBoc: (networkJson: string, boc: string) => string;
     apiRunGetMethod: (networkJson: string, address: string, method: string, stackJson: string | null, seqno: number) => string;
+    apiGetBalance: (networkJson: string, address: string, seqno: number) => string;
 };
 
 type AndroidWindow = Window & {
@@ -142,8 +143,18 @@ export class AndroidAPIClientAdapter implements ApiClient {
         throw new Error('getAccountState is not implemented yet');
     }
 
-    async getBalance(_address: UserFriendlyAddress, _seqno?: number): Promise<TokenAmount> {
-        throw new Error('getBalance is not implemented yet');
+    async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
+        log('[AndroidAPIClientAdapter] getBalance:', address);
+        try {
+            const networkJson = JSON.stringify(this.network);
+            const seqnoArg = seqno ?? -1; // Use -1 to represent null
+            const result = this.androidBridge.apiGetBalance(networkJson, address, seqnoArg);
+            log('[AndroidAPIClientAdapter] getBalance result:', result);
+            return result;
+        } catch (err) {
+            error('[AndroidAPIClientAdapter] getBalance failed:', err);
+            throw err;
+        }
     }
 
     async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
