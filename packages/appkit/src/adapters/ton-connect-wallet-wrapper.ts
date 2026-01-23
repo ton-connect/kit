@@ -127,7 +127,7 @@ export class TonConnectWalletWrapperImpl implements TonConnectWalletWrapper {
         if (!account) {
             throw new Error('Wallet not connected');
         }
-        return account.address;
+        return Address.parse(account.address).toString();
     }
 
     getWalletId(): WalletId {
