@@ -45,7 +45,6 @@ import { WalletKitError, ERROR_CODES } from '../errors';
 import { CallForSuccess } from '../utils/retry';
 import { NetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
-import { createWalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import type {
     Network,
@@ -231,7 +230,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         for (const wallet of wallets) {
             try {
-                const walletId = createWalletId(wallet.getNetwork(), wallet.getAddress());
+                const walletId = wallet.getWalletId();
                 await this.eventProcessor.startProcessing(walletId);
             } catch (error) {
                 log.error('Failed to start event processing for wallet', {
