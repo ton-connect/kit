@@ -38,6 +38,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
      */
     async initialize(): Promise<void> {
         await this.loadSessions();
+        await this.migrateSessions();
     }
 
     /**
@@ -252,5 +253,28 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         } catch (error) {
             log.warn('Failed to persist sessions to storage', { error });
         }
+    }
+
+    private async migrateSessions(): Promise<void> {
+        for (const [sessionId, session] of this.sessions.entries()) {
+            const migratedSession = this.migrate(session);
+
+            if (migratedSession) {
+                this.sessions.set(sessionId, migratedSession);
+            } else {
+                this.sessions.delete(sessionId);
+            }
+        }
+
+        await this.persistSessions();
+    }
+
+    private migrate(session: TONConnectSession): TONConnectSession | undefined {
+        if (session.schemaVersion === this.schemaVersion) {
+            return session;
+        }
+
+        // Currently there is no session versions other that 1, so we just return undefined for all unknown or undefined versions
+        return undefined;
     }
 }
