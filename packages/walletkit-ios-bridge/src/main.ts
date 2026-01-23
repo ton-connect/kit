@@ -21,7 +21,13 @@ import { SwiftTONConnectSessionsManager } from './SwiftTONConnectSessionsManager
 declare global {
     interface Window {
         walletKit?: any;
-        initWalletKit: (configuration, storage, bridgeTransport: (response) => void, sessionManager, apiClients) => Promise<void>;
+        initWalletKit: (
+            configuration,
+            storage,
+            bridgeTransport: (response) => void,
+            sessionManager,
+            apiClients,
+        ) => Promise<void>;
     }
 }
 
