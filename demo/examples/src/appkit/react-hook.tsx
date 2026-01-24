@@ -9,7 +9,7 @@
 // SAMPLE_START: APPKIT_REACT_HOOK
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
-import { AppKit, WALLET_EVENTS } from '@ton/appkit';
+import { AppKit, PROVIDER_EVENTS } from '@ton/appkit';
 import { TonConnectProvider } from '@ton/appkit/tonconnect';
 import { Network } from '@ton/walletkit';
 import type { Wallet } from '@ton/walletkit';
@@ -39,13 +39,12 @@ export function useAppKit() {
 
             // Listen for wallet changes
             const syncWallet = async () => {
-                const wallets = await appKit.getConnectedWallets();
+                const wallets = appKit.getConnectedWallets();
                 setConnectedWallet(wallets[0] ?? null);
             };
 
-            appKit.eventBus.on(WALLET_EVENTS.CONNECTED, syncWallet);
-            appKit.eventBus.on(WALLET_EVENTS.DISCONNECTED, syncWallet);
-            appKit.eventBus.on(WALLET_EVENTS.CHANGED, syncWallet);
+            appKit.eventBus.on(PROVIDER_EVENTS.CONNECTED, syncWallet);
+            appKit.eventBus.on(PROVIDER_EVENTS.DISCONNECTED, syncWallet);
 
             appKitRef.current = appKit;
         }

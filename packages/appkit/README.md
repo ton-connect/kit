@@ -159,16 +159,16 @@ For React/Next.js apps using `@ton/appkit-ui-react`:
 ```tsx
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@ton/appkit-ui-react';
-import { AppKit, WALLET_EVENTS } from '@ton/appkit';
+import { AppKit, PROVIDER_EVENTS } from '@ton/appkit';
 import { TonConnectProvider } from '@ton/appkit/tonconnect';
 import { Network } from '@ton/walletkit';
-import type { IAppKit } from '@ton/appkit';
+import { AppKit } from '@ton/appkit';
 import type { Wallet } from '@ton/walletkit';
 
 export function useAppKit() {
     const [tonConnectUI] = useTonConnectUI();
     const wallet = useTonWallet();
-    const appKitRef = useRef<IAppKit | null>(null);
+    const appKitRef = useRef<AppKit | null>(null);
     const [connectedWallet, setConnectedWallet] = useState<Wallet | null>(null);
 
     // Initialize AppKit when TonConnect is ready
@@ -194,8 +194,8 @@ export function useAppKit() {
                 setConnectedWallet(wallets[0] ?? null);
             };
 
-            appKit.eventBus.on(WALLET_EVENTS.CONNECTED, syncWallet);
-            appKit.eventBus.on(WALLET_EVENTS.DISCONNECTED, syncWallet);
+            appKit.eventBus.on(PROVIDER_EVENTS.CONNECTED, syncWallet);
+            appKit.eventBus.on(PROVIDER_EVENTS.DISCONNECTED, syncWallet);
 
             appKitRef.current = appKit;
         }

@@ -8,7 +8,7 @@
 
 import type { NetworkManager } from '@ton/walletkit';
 
-import type { IEventBus } from '../features/events';
+import type { EventBus } from '../features/events';
 import type { WalletInterface } from './wallet';
 
 /**
@@ -22,7 +22,7 @@ export interface WalletProvider {
     readonly type: string;
 
     /** Initialize provider (restore connections, setup event listeners) */
-    initialize(eventBus: IEventBus, networkManager: NetworkManager): Promise<void>;
+    initialize(eventBus: EventBus, networkManager: NetworkManager): Promise<void>;
 
     /** Cleanup provider resources */
     destroy(): void;
@@ -34,5 +34,5 @@ export interface WalletProvider {
     disconnectWallet(): Promise<void>;
 
     /** Get connected wallets */
-    getConnectedWallets(): WalletInterface[] | Promise<WalletInterface[]>;
+    getConnectedWallets(): WalletInterface[];
 }

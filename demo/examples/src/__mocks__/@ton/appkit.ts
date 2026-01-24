@@ -129,8 +129,8 @@ export class AppKit {
     ) {}
 }
 
-// WALLET_EVENTS constant
-export const WALLET_EVENTS = {
+// PROVIDER_EVENTS constant
+export const PROVIDER_EVENTS = {
     CONNECTED: 'wallet:connected',
     DISCONNECTED: 'wallet:disconnected',
     CHANGED: 'wallet:changed',

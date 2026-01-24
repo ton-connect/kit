@@ -7,4 +7,4 @@
  */
 
 export { AppKit } from './app-kit';
-export type { IAppKit, AppKitConfig } from './types';
+export type { AppKitConfig } from './types';

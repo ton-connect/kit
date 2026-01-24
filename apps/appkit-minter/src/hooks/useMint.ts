@@ -8,13 +8,13 @@
 
 import { useCallback } from 'react';
 import { toNano } from '@ton/core';
-import { useAppKit } from '@ton/appkit-ui-react';
+import { useConnectedWallets } from '@ton/appkit-ui-react';
 
 import { useMinterStore } from '@/store';
 
 export function useMint() {
     const { currentCard, isMinting, mintError, setMinting, setMintError, mintCard } = useMinterStore();
-    const { connectedWallets } = useAppKit();
+    const connectedWallets = useConnectedWallets();
     const wallet = connectedWallets[0] || null;
     const isConnected = !!wallet;
 

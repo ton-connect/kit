@@ -6,12 +6,12 @@
  *
  */
 
-import type { EventPayload, EventListener, AppKitEvent, IEventBus } from '../types/event-bus';
+import type { EventPayload, EventListener, AppKitEvent } from '../types/event-bus';
 
 /**
  * Centralized EventBus for appkit plugin communication
  */
-export class EventBus implements IEventBus {
+export class EventBus {
     private listeners = new Map<string, Set<EventListener>>();
 
     emit<T extends EventPayload>(type: string, payload: T, source: string): void {

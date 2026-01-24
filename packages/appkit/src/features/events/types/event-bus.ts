@@ -16,10 +16,3 @@ export interface AppKitEvent<T extends EventPayload = EventPayload> {
 }
 
 export type EventListener<T extends EventPayload = EventPayload> = (event: AppKitEvent<T>) => void;
-
-export interface IEventBus {
-    emit<T extends EventPayload>(type: string, payload: T, source: string): void;
-    on<T extends EventPayload>(type: string, listener: EventListener<T>): () => void;
-    off(type: string, listener: EventListener): void;
-    once<T extends EventPayload>(type: string, listener: EventListener<T>): () => void;
-}

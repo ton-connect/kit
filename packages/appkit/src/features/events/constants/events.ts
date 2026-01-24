@@ -7,12 +7,18 @@
  */
 
 /**
+ * Provider events
+ */
+export const PROVIDER_EVENTS = {
+    CONNECTED: 'provider:wallet-connected',
+    DISCONNECTED: 'provider:wallet-disconnected',
+} as const;
+
+/**
  * Wallet events
  */
-export const WALLET_EVENTS = {
-    CONNECTED: 'wallet:connected',
-    DISCONNECTED: 'wallet:disconnected',
-    CHANGED: 'wallet:changed',
+export const WALLETS_EVENTS = {
+    UPDATED: 'wallets:updated',
 } as const;
 
 /**

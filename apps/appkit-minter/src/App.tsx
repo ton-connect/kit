@@ -48,11 +48,7 @@ function AppKitBridge({ children }: { children: React.ReactNode }) {
         });
 
         // Register TonConnect provider - networkManager is passed during initialize
-        kit.registerProvider(
-            new TonConnectProvider({
-                tonConnect: tonConnectUI.connector,
-            }),
-        );
+        kit.registerProvider(new TonConnectProvider({ tonConnect: tonConnectUI.connector }));
 
         return kit;
     }, [tonConnectUI]);

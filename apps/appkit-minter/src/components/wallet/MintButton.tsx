@@ -8,7 +8,7 @@
 
 import type React from 'react';
 import { Coins, AlertCircle, Wallet } from 'lucide-react';
-import { useAppKit } from '@ton/appkit-ui-react';
+import { useConnectedWallets } from '@ton/appkit-ui-react';
 
 import { Button, Card } from '@/components/common';
 import { useMint } from '@/hooks';
@@ -19,7 +19,7 @@ interface MintButtonProps {
 
 export const MintButton: React.FC<MintButtonProps> = ({ className }) => {
     const { mint, isMinting, mintError, canMint } = useMint();
-    const { connectedWallets } = useAppKit();
+    const connectedWallets = useConnectedWallets();
     const wallet = connectedWallets[0] || null;
     const isConnected = !!wallet;
 

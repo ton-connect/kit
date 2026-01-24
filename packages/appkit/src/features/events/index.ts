@@ -13,8 +13,8 @@
  * Provides EventBus implementation and predefined event types.
  */
 export { EventBus } from './services/event-bus';
-export type { IEventBus, EventPayload, AppKitEvent, EventListener } from './types/event-bus';
-export { WALLET_EVENTS, PLUGIN_EVENTS } from './constants/events';
+export type { EventPayload, AppKitEvent, EventListener } from './types/event-bus';
+export { PROVIDER_EVENTS, WALLETS_EVENTS, PLUGIN_EVENTS } from './constants/events';
 export type {
     WalletConnectedPayload,
     WalletDisconnectedPayload,
