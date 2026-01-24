@@ -6,15 +6,13 @@
  *
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { AppKitProvider } from '@ton/appkit-ui-react';
 import { TonConnectUIProvider, useTonConnectUI } from '@tonconnect/ui-react';
-import { AppKit } from '@ton/appkit';
 import { TonConnectProvider } from '@ton/appkit/tonconnect';
-import { Network } from '@ton/walletkit';
 import { Toaster } from 'sonner';
 
-import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from './core/configs/env';
+import { appKit } from './services/app-kit';
 
 import { AppRouter } from '@/components';
 
@@ -26,35 +24,18 @@ const MANIFEST_URL = 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonc
 function AppKitBridge({ children }: { children: React.ReactNode }) {
     const [tonConnectUI] = useTonConnectUI();
 
-    const appKit = useMemo(() => {
-        if (!tonConnectUI) return null;
+    // Register TonConnect provider
+    useEffect(() => {
+        if (!tonConnectUI) return;
 
-        // Create AppKit instance with networks configuration
-        const kit = new AppKit({
-            networks: {
-                [Network.mainnet().chainId]: {
-                    apiClient: {
-                        url: 'https://toncenter.com',
-                        key: ENV_TON_API_KEY_MAINNET,
-                    },
-                },
-                [Network.testnet().chainId]: {
-                    apiClient: {
-                        url: 'https://testnet.toncenter.com',
-                        key: ENV_TON_API_KEY_TESTNET,
-                    },
-                },
-            },
-        });
+        const unregister = appKit.registerProvider(
+            new TonConnectProvider({
+                tonConnect: tonConnectUI.connector,
+            }),
+        );
 
-        // Register TonConnect provider - networkManager is passed during initialize
-        kit.registerProvider(new TonConnectProvider({ tonConnect: tonConnectUI.connector }));
-
-        return kit;
+        return unregister;
     }, [tonConnectUI]);
-
-    // Wait for appKit
-    if (!appKit) return null;
 
     return <AppKitProvider appKit={appKit}>{children}</AppKitProvider>;
 }

@@ -24,7 +24,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
 
     private networkManager: NetworkManager;
-    private providers: WalletProvider[] = [];
+    private providers: Map<string, WalletProvider> = new Map();
 
     constructor(config: AppKitConfig) {
         // Use provided networks config or default to mainnet
@@ -43,9 +43,32 @@ export class AppKit {
     /**
      * Register a wallet provider
      */
-    registerProvider(provider: WalletProvider): void {
-        this.providers.push(provider);
+    registerProvider(provider: WalletProvider): () => void {
+        const id = provider.id;
+
+        if (this.providers.has(id)) {
+            const oldProvider = this.providers.get(id);
+            oldProvider?.destroy();
+        }
+
+        this.providers.set(id, provider);
         provider.initialize(this.eventBus, this.networkManager);
+
+        return () => this.unregisterProvider(id);
+    }
+
+    /**
+     * Unregister a wallet provider
+     */
+    unregisterProvider(providerId: string): void {
+        const provider = this.providers.get(providerId);
+
+        if (!provider) {
+            throw new Error(`Provider with id "${providerId}" not found`);
+        }
+
+        provider.destroy();
+        this.providers.delete(providerId);
     }
 
     /**
@@ -59,7 +82,7 @@ export class AppKit {
      * Connect wallet using specific provider
      */
     async connectWallet(providerId: string): Promise<void> {
-        const provider = this.providers.find((p) => p.id === providerId);
+        const provider = this.providers.get(providerId);
 
         if (!provider) {
             throw new Error(`Provider with id "${providerId}" not found`);
@@ -72,7 +95,7 @@ export class AppKit {
      * Disconnect wallet using specific provider
      */
     async disconnectWallet(providerId: string): Promise<void> {
-        const provider = this.providers.find((p) => p.id === providerId);
+        const provider = this.providers.get(providerId);
 
         if (!provider) {
             throw new Error(`Provider with id "${providerId}" not found`);
@@ -87,7 +110,7 @@ export class AppKit {
     private updateWalletsFromProviders(): void {
         const allWallets: WalletInterface[] = [];
 
-        for (const provider of this.providers) {
+        for (const provider of this.providers.values()) {
             const wallets = provider.getConnectedWallets();
             allWallets.push(...wallets);
         }
