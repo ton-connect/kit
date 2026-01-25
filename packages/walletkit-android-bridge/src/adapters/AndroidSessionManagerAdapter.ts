@@ -61,6 +61,15 @@ export class AndroidSessionManagerAdapter implements TONConnectSessionManager {
         this.androidBridge = androidWindow.WalletKitNative as AndroidSessionBridge;
     }
 
+    /**
+     * Initialize the session manager.
+     * For Android, sessions are managed natively - no JS-side initialization needed.
+     */
+    async initialize(): Promise<void> {
+        log('[AndroidSessionManagerAdapter] initialize called (no-op for Android)');
+        // No-op: Android session manager is already initialized on the native side
+    }
+
     async createSession(
         sessionId: string,
         dAppInfo: DAppInfo,
