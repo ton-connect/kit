@@ -115,8 +115,7 @@ export type {
     GetEventsRequest,
     GetEventsResponse,
 } from './types/toncenter/ApiClient';
-export type { FullAccountState, GetResult as GetMethodResult } from './types/toncenter/api';
-export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
+export type { FullAccountState } from './types/toncenter/api';
 export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
 
 // API Interfaces

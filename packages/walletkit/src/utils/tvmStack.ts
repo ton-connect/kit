@@ -10,6 +10,7 @@ import type { TupleItem } from '@ton/core';
 import { Cell } from '@ton/core';
 
 import type { RawStackItem } from '../api/models/';
+export type { RawStackItem };
 
 function ParseStackItem(item: RawStackItem): TupleItem {
     switch (item.type) {
