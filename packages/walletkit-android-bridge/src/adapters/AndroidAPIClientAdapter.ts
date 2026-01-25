@@ -39,7 +39,13 @@ import { log, error } from '../utils/logger';
 type AndroidAPIClientBridge = {
     apiGetNetworks: () => string;
     apiSendBoc: (networkJson: string, boc: string) => string;
-    apiRunGetMethod: (networkJson: string, address: string, method: string, stackJson: string | null, seqno: number) => string;
+    apiRunGetMethod: (
+        networkJson: string,
+        address: string,
+        method: string,
+        stackJson: string | null,
+        seqno: number,
+    ) => string;
     apiGetBalance: (networkJson: string, address: string, seqno: number) => string;
 };
 
