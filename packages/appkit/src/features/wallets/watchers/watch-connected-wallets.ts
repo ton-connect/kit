@@ -6,8 +6,8 @@
  *
  */
 
-import type { AppKit } from '../../../core';
-import { WALLETS_EVENTS } from '../../events';
+import type { AppKit } from '../../../core/app-kit';
+import { WALLETS_EVENTS } from '../../../core/events';
 import type { WalletInterface } from '../types/wallet';
 
 export type WatchConnectedWalletsParameters = {

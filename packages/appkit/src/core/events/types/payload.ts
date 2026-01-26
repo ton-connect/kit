@@ -6,7 +6,7 @@
  *
  */
 
-import type { WalletInterface } from '../../wallets/types/wallet';
+import type { WalletInterface } from '../../../features/wallets';
 
 export interface WalletConnectedPayload {
     wallets: WalletInterface[];

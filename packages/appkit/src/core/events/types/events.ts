@@ -8,7 +8,18 @@
 
 import type { CONNECTOR_EVENTS, WALLETS_EVENTS, PLUGIN_EVENTS } from '../constants/events';
 import type { WalletConnectedPayload, WalletDisconnectedPayload, PluginRegisteredPayload } from './payload';
-import type { WalletInterface } from '../../wallets/types/wallet';
+import type { WalletInterface } from '../../../features/wallets';
+
+export type EventPayload = object;
+
+export interface AppKitEvent<T extends EventPayload = EventPayload> {
+    type: string;
+    payload: T;
+    source: string;
+    timestamp: number;
+}
+
+export type EventListener<T extends EventPayload = EventPayload> = (event: AppKitEvent<T>) => void;
 
 export interface AppKitEvents {
     // Connector events

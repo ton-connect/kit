@@ -6,8 +6,7 @@
  *
  */
 
-import type { EventListener, AppKitEvent, EventPayload } from '../types/event-bus';
-import type { AppKitEvents } from '../types/events-map';
+import type { EventListener, AppKitEvent, EventPayload, AppKitEvents } from '../types/events';
 
 export class Emitter<Events extends { [K in keyof Events]: EventPayload } = AppKitEvents> {
     private listeners = new Map<keyof Events, Set<unknown>>();

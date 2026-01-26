@@ -6,7 +6,7 @@
  *
  */
 
-import type { AppKit } from '../../../core';
+import type { AppKit } from '../../../core/app-kit';
 import type { WalletInterface } from '../types/wallet';
 
 export type GetSelectedWalletReturnType = WalletInterface | null;

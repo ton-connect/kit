@@ -11,8 +11,8 @@ import { Network } from '@ton/walletkit';
 import type { ITonConnect } from '@tonconnect/sdk';
 
 import { TonConnectWalletAdapter } from '../adapters/ton-connect-wallet-adapter';
-import type { Emitter } from '../../../features/events';
-import { CONNECTOR_EVENTS } from '../../../features/events';
+import type { Emitter } from '../../../core/events';
+import { CONNECTOR_EVENTS } from '../../../core/events';
 import type { Connector } from '../../../types/connector';
 import type { WalletInterface } from '../../../features/wallets';
 

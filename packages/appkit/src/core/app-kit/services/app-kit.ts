@@ -10,11 +10,11 @@ import type { NetworkManager } from '@ton/walletkit';
 import { Network, KitNetworkManager } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
-import type { Connector } from '../../types/connector';
-import { Emitter, CONNECTOR_EVENTS, WALLETS_EVENTS } from '../../features/events';
-import type { AppKitEvents } from '../../features/events';
-import type { WalletInterface } from '../../features/wallets';
-import { WalletsManager } from '../../features/wallets';
+import type { Connector } from '../../../types/connector';
+import { Emitter, CONNECTOR_EVENTS, WALLETS_EVENTS } from '../../events';
+import type { AppKitEvents } from '../../events';
+import type { WalletInterface } from '../../../features/wallets';
+import { WalletsManager } from '../../../features/wallets';
 
 /**
  * Central hub for wallet management.

@@ -25,11 +25,15 @@
  * ```
  */
 
+// Core
+export * from './core/app-kit';
+export * from './core/events';
+export * from './core/query';
+
 // Features
-export * from './core';
-export * from './features/events';
 export * from './features/wallets';
 
+// Types
 export * from './types/connector';
 
 // Re-export from @ton/walletkit for convenience

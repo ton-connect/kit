@@ -6,8 +6,8 @@
  *
  */
 
-import { WALLETS_EVENTS } from '../../events';
-import type { Emitter } from '../../events';
+import { WALLETS_EVENTS } from '../../../core/events';
+import type { Emitter } from '../../../core/events';
 import type { WalletInterface } from '../types/wallet';
 
 /**

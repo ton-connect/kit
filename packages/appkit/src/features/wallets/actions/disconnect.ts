@@ -6,7 +6,7 @@
  *
  */
 
-import type { AppKit } from '../../../core';
+import type { AppKit } from '../../../core/app-kit';
 
 export type DisconnectParameters = {
     connectorId: string;
