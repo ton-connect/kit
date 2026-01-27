@@ -15,12 +15,22 @@ export default defineConfig({
         environment: 'node',
         alias: {
             '@ton/walletkit': path.resolve(__dirname, 'src/__mocks__/@ton/walletkit.ts'),
+            '@ton/appkit/tonconnect': path.resolve(__dirname, 'src/__mocks__/@ton/appkit-tonconnect.ts'),
+            '@ton/appkit': path.resolve(__dirname, 'src/__mocks__/@ton/appkit.ts'),
+            '@tonconnect/sdk': path.resolve(__dirname, 'src/__mocks__/@tonconnect/sdk.ts'),
+            '@tonconnect/ui-react': path.resolve(__dirname, 'src/__mocks__/@tonconnect/ui-react.ts'),
         },
         setupFiles: ['./src/__tests__/setup.ts'],
         coverage: {
             provider: 'v8',
             include: ['src/**/*.ts', 'src/**/*.tsx'],
-            exclude: ['src/index.ts', 'src/lib/walletManifest.ts', 'src/__mocks__/**', 'src/__tests__/**'],
+            exclude: [
+                'src/index.ts',
+                'src/lib/walletManifest.ts',
+                'src/__mocks__/**',
+                'src/__tests__/**',
+                'src/appkit/react-hook.tsx', // React hook requires browser environment
+            ],
             thresholds: {
                 lines: 83,
                 branches: 77,

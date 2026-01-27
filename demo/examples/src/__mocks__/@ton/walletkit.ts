@@ -209,8 +209,9 @@ export const WalletV5R1Adapter = {
 };
 
 export const Network = {
-    mainnet: () => ({ chain: CHAIN.MAINNET }),
-    testnet: () => ({ chain: CHAIN.TESTNET }),
+    mainnet: () => ({ chainId: CHAIN.MAINNET }),
+    testnet: () => ({ chainId: CHAIN.TESTNET }),
+    custom: (chainId: string) => ({ chainId }),
 } as const;
 
 // Mock MemoryStorageAdapter

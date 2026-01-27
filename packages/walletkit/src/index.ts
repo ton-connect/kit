@@ -22,7 +22,8 @@ export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './core/ApiClientToncenter';
-export { NetworkManager } from './core/NetworkManager';
+export type { NetworkManager } from './core/NetworkManager';
+export { KitNetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
 export { ConnectHandler } from './handlers/ConnectHandler';
@@ -91,17 +92,18 @@ export type {
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
+export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';
+
+export { isValidAddress } from './utils/address';
+export { validateTransactionMessage } from './validation';
 export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';
 export { Signer } from './utils/Signer';
 export { ParseStack, SerializeStack } from './utils/tvmStack';
-export type { RawStackItem } from './utils/tvmStack';
 export { Transport } from './bridge/transport/Transport';
 export { TONCONNECT_BRIDGE_EVENT } from './bridge/utils/messageTypes';
 export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/utils/timeouts';
 export { CreateTonProofMessageBytes } from './utils/tonProof';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
-export { isValidAddress } from './utils/address';
-export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
 
 // API Client types (ApiClient is exported above)
 export type {
@@ -116,7 +118,39 @@ export type {
     GetEventsResponse,
 } from './types/toncenter/ApiClient';
 export type { FullAccountState } from './types/toncenter/api';
+export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
 export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
+export { asHex } from './utils/hex';
+export {
+    // Message builders
+    storeJettonTransferMessage,
+    storeNftTransferMessage,
+    createJettonTransferPayload,
+    createNftTransferPayload,
+    createNftTransferRawPayload,
+    createCommentPayload,
+    createCommentPayloadBase64,
+    createTransferTransaction,
+    // Constants
+    DEFAULT_JETTON_GAS_FEE,
+    DEFAULT_NFT_GAS_FEE,
+    DEFAULT_FORWARD_AMOUNT,
+} from './utils/messageBuilders';
+export type {
+    JettonTransferMessage,
+    NftTransferMessage,
+    NftTransferRawParams,
+    CreateTransferTransactionParams,
+} from './utils/messageBuilders';
+
+// Asset helpers
+export {
+    getJettonWalletAddressFromClient,
+    getJettonBalanceFromClient,
+    getJettonsFromClient,
+    getNftsFromClient,
+    getNftFromClient,
+} from './utils/assetHelpers';
 
 // API Interfaces
 export type * from './api/interfaces';

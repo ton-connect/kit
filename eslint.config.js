@@ -9,7 +9,6 @@
 const toolchainConfig = require('@ton/toolchain');
 const globals = require('globals');
 const licenseHeader = require('eslint-plugin-license-header');
-const importPlugin = require('eslint-plugin-import');
 
 module.exports = [
     ...toolchainConfig,
@@ -59,9 +58,9 @@ module.exports = [
     },
     {
         files: ['**/**/*.ts', '**/**/*.tsx'],
-        plugins: {
-            import: importPlugin,
-        },
+        // plugins: {
+        //     import: importPlugin,
+        // },
         rules: {
             'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
             '@typescript-eslint/consistent-type-imports': [

@@ -24,9 +24,9 @@
   "dependencies": {
     "@ledgerhq/hw-transport": "^6.31.16",
     "@ton-community/ton-ledger": "^7.3.0",
-    "@ton/core": "^0.62.1",
+    "@ton/core": "catalog:",
     "@ton/walletkit": "workspace:*",
-    "@tonconnect/protocol": "^2.3.0"
+    "@tonconnect/protocol": "catalog:"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.29.17",

@@ -1825,7 +1825,7 @@ export interface TONConnectEvent {
   /** @example "8d5e90bd-d6f8-4ab0-bff8-0ee2f26b44c3" */
   user_id?: string;
   /** @example 1756253085 */
-  valid_until?: number;
+  validUntil?: number;
   /** @example "ok" */
   verification_result?: "unknown" | "ok" | "warning" | "danger" | string;
   verify_type?: "connect" | string;

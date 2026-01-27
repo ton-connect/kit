@@ -10,7 +10,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ton/appkit": "workspace:*",
+    "@ton/appkit-ui-react": "workspace:*",
     "@ton/walletkit": "workspace:*",
+    "@tonconnect/sdk": "catalog:",
+    "@tonconnect/ui-react": "catalog:",
     "@types/node": "^24.10.1",
     "@types/react": "catalog:",
     "dotenv": "^17.2.3",

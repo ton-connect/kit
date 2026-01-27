@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "outDir": "dist",
+        "module": "es2020",
+        "baseUrl": "./",
+        "moduleResolution": "bundler",
+        "declaration": true,
+        "declarationDir": "dist",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "skipLibCheck": true,
+        "removeComments": false,
+        "declarationMap": true,
+        "paths": {
+            "swrev": ["../../node_modules/swrev/dist/swrev.d.ts"]
+        }
+    },
+    "exclude": [
+        "**/*.spec.ts",
+        "**/*.fixture.ts",
+        "**/*.config.ts",
+        "node_modules",
+        "coverage",
+        ".stryker-tmp",
+        "coverage",
+        "dist"
+    ],
+    "include": [
+        "src/**/*"
+    ]
+}

@@ -212,7 +212,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             if (input.validUntil < now) {
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
-                    'Transaction valid_until timestamp is in the past',
+                    'Transaction validUntil timestamp is in the past',
                     undefined,
                     { validUntil: input.validUntil, currentTime: now },
                 );

@@ -6,12 +6,11 @@
  *
  */
 
-import { beginCell } from '@ton/core';
-
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
+import { createCommentPayloadBase64 } from '../../../utils/messageBuilders';
 import { ERROR_CODES, WalletKitError } from '../../../errors';
 import { globalLogger } from '../../Logger';
 import type {
@@ -39,12 +38,7 @@ export class WalletTonClass implements WalletTonInterface {
         if (param.payload) {
             body = param.payload;
         } else if (param.comment) {
-            body = beginCell()
-                .storeUint(0, 32)
-                .storeStringTail(param.comment)
-                .endCell()
-                .toBoc()
-                .toString('base64') as Base64String;
+            body = createCommentPayloadBase64(param.comment);
         }
         const message: TransactionRequestMessage = {
             address: param.recipientAddress,
@@ -65,7 +59,7 @@ export class WalletTonClass implements WalletTonInterface {
         };
     }
     async createTransferMultiTonTransaction(this: Wallet, params: TONTransferRequest[]): Promise<TransactionRequest> {
-        let messages: TransactionRequestMessage[] = [];
+        const messages: TransactionRequestMessage[] = [];
         for (const param of params) {
             if (!isValidAddress(param.recipientAddress)) {
                 throw new Error(`Invalid to address: ${param.recipientAddress}`);
@@ -78,12 +72,7 @@ export class WalletTonClass implements WalletTonInterface {
             if (param.payload) {
                 body = param.payload;
             } else if (param.comment) {
-                body = beginCell()
-                    .storeUint(0, 32)
-                    .storeStringTail(param.comment)
-                    .endCell()
-                    .toBoc()
-                    .toString('base64') as Base64String;
+                body = createCommentPayloadBase64(param.comment);
             }
             const message: TransactionRequestMessage = {
                 address: param.recipientAddress,

@@ -4,6 +4,10 @@ packages:
   - demo/*
 
 catalog:
+  '@ton/core': ^0.63.0
+  '@tonconnect/sdk': 3.3.1
+  '@tonconnect/ui-react': 2.3.1
+  '@tonconnect/protocol': 2.3.0
   '@types/react': 19.2.8
   '@types/react-dom': 19.2.3
   react: 19.2.3

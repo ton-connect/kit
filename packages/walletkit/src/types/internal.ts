@@ -13,6 +13,7 @@ import type {
     SendTransactionRpcRequest,
     SignDataRpcRequest,
     WalletResponseTemplateError,
+    CHAIN,
 } from '@tonconnect/protocol';
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
@@ -123,8 +124,8 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
 
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: string;
-    valid_until?: number; // unixtime
+    network?: CHAIN;
+    validUntil?: number; // unixtime
     from?: string;
 }
 
@@ -157,7 +158,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
     return {
         messages: params.messages.map(toTransactionRequestMessage),
         network: params.network ? { chainId: params.network } : undefined,
-        validUntil: params.valid_until,
+        validUntil: params.validUntil,
         fromAddress: params.from,
     };
 }
@@ -165,8 +166,8 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
 export function toConnectTransactionParamContent(request: TransactionRequest): ConnectTransactionParamContent {
     return {
         messages: request.messages.map(toConnectTransactionParamMessage),
-        network: request.network?.chainId,
-        valid_until: request.validUntil,
+        network: request.network?.chainId as CHAIN,
+        validUntil: request.validUntil,
         from: request.fromAddress,
     };
 }

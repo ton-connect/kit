@@ -31,7 +31,7 @@ export const JettonRow: React.FC<JettonRowProps> = ({
         target.style.display = 'none';
         const parent = target.parentElement;
         if (parent) {
-            parent.innerHTML = jettonInfo?.symbol?.slice(0, 2)?.toUpperCase() || '';
+            parent.innerHTML = '';
             parent.className = parent.className.replace('bg-gray-100', 'bg-gradient-to-br from-blue-500 to-purple-600');
             parent.className += ' text-xs font-bold text-white flex items-center justify-center';
         }

@@ -1,0 +1,40 @@
+{
+  "name": "@ton/appkit-ui",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "clean": "git clean -xdf .turbo dist node_modules",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ton-connect/kit.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.cjs"
+    }
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "tsup-preset-solid": "^2.2.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@ton/appkit": "workspace:*",
+    "@ton/walletkit": "workspace:^"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.8.0"
+  }
+}

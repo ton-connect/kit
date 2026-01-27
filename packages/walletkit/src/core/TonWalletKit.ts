@@ -43,7 +43,8 @@ import { AnalyticsManager } from '../analytics';
 import { getDeviceInfoForWallet } from '../utils/getDefaultWalletConfig';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { CallForSuccess } from '../utils/retry';
-import { NetworkManager } from './NetworkManager';
+import type { NetworkManager } from './NetworkManager';
+import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import type {
@@ -112,7 +113,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
 
         // Initialize NetworkManager for multi-network support
-        this.networkManager = new NetworkManager(options);
+        this.networkManager = new KitNetworkManager(options);
 
         this.eventEmitter = new EventEmitter();
         this.initializer = new Initializer(options, this.eventEmitter, this.analyticsManager);
