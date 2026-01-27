@@ -11,9 +11,10 @@ import { Network, KitNetworkManager } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
 import type { Connector } from '../../../types/connector';
-import { Emitter, CONNECTOR_EVENTS, WALLETS_EVENTS } from '../../events';
-import type { AppKitEvents } from '../../events';
-import { QueryClient } from '../../query';
+import { Emitter } from '../../events';
+import { CacheClient } from '../../watcher';
+import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../features/wallets';
 import { WalletsManager } from '../../../features/wallets';
 
@@ -22,14 +23,18 @@ import { WalletsManager } from '../../../features/wallets';
  * Stores emitter, providers, and manages wallet connections.
  */
 export class AppKit {
-    readonly emitter: Emitter<AppKitEvents>;
-    readonly queryClient: QueryClient;
+    readonly emitter: AppKitEmitter;
     readonly connectors: Map<string, Connector> = new Map();
     readonly walletsManager: WalletsManager;
 
     readonly networkManager: NetworkManager;
+    readonly config: AppKitConfig; // Added config property
+    public readonly swr: CacheClient; // Added swr property
 
     constructor(config: AppKitConfig) {
+        this.config = config; // Initialized config
+        this.swr = new CacheClient(); // Initialized swr
+
         // Use provided networks config or default to mainnet
         const networks = config.networks ?? {
             [Network.mainnet().chainId]: {},
@@ -41,7 +46,6 @@ export class AppKit {
         this.emitter.on(CONNECTOR_EVENTS.CONNECTED, this.updateWalletsFromConnectors.bind(this));
         this.emitter.on(CONNECTOR_EVENTS.DISCONNECTED, this.updateWalletsFromConnectors.bind(this));
 
-        this.queryClient = new QueryClient();
         this.walletsManager = new WalletsManager(this.emitter);
     }
 

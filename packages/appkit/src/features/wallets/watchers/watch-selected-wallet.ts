@@ -7,7 +7,7 @@
  */
 
 import type { AppKit } from '../../../core/app-kit';
-import { WALLETS_EVENTS } from '../../../core/events';
+import { WALLETS_EVENTS } from '../../../core/app-kit';
 import { getSelectedWallet } from '../actions/get-selected-wallet';
 import type { WalletInterface } from '../types/wallet';
 

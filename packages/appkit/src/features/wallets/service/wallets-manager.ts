@@ -6,8 +6,8 @@
  *
  */
 
-import { WALLETS_EVENTS } from '../../../core/events';
-import type { Emitter } from '../../../core/events';
+import type { AppKitEmitter } from '../../../core/app-kit';
+import { WALLETS_EVENTS } from '../../../core/app-kit';
 import type { WalletInterface } from '../types/wallet';
 
 /**
@@ -16,9 +16,9 @@ import type { WalletInterface } from '../types/wallet';
 export class WalletsManager {
     private _wallets: WalletInterface[];
     private _selectedWalletId: string | null;
-    private emitter: Emitter;
+    private emitter: AppKitEmitter;
 
-    constructor(emitter: Emitter) {
+    constructor(emitter: AppKitEmitter) {
         this._wallets = [];
         this._selectedWalletId = null;
         this.emitter = emitter;

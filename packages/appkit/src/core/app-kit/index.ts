@@ -7,4 +7,13 @@
  */
 
 export { AppKit } from './services/app-kit';
+export { CONNECTOR_EVENTS, WALLETS_EVENTS, PLUGIN_EVENTS } from './constants/events';
+
 export type { AppKitConfig } from './types/config';
+export type {
+    AppKitEmitter,
+    AppKitEvents,
+    WalletConnectedPayload,
+    WalletDisconnectedPayload,
+    PluginRegisteredPayload,
+} from './types/events';

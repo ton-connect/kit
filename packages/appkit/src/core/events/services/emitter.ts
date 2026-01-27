@@ -6,9 +6,9 @@
  *
  */
 
-import type { EventListener, AppKitEvent, EventPayload, AppKitEvents } from '../types/events';
+import type { EventListener, AppKitEvent, EventPayload } from '../types/events';
 
-export class Emitter<Events extends { [K in keyof Events]: EventPayload } = AppKitEvents> {
+export class Emitter<Events extends { [K in keyof Events]: EventPayload }> {
     private listeners = new Map<keyof Events, Set<unknown>>();
 
     emit<K extends keyof Events>(type: K, payload: Events[K], source: string): void {

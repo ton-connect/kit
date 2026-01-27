@@ -6,8 +6,4 @@
  *
  */
 
-export * from './services/query-client';
-export * from './services/query';
-export * from './services/query-cache';
-
-export type * from './types/query';
+export * from './watcher';

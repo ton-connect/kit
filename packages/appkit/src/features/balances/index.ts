@@ -6,8 +6,13 @@
  *
  */
 
+// Actions
 export * from './actions/get-balance';
 export * from './actions/get-balance-of-selected-wallet';
-export * from './queries/query-balance';
-export * from './queries/query-balance-of-selected-wallet';
+export * from './actions/get-balance';
+export * from './actions/get-balance-of-selected-wallet';
+
+// Watchers
+export * from './watchers/watch-balance';
+
 export * from './types';

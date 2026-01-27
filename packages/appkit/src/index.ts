@@ -28,10 +28,11 @@
 // Core
 export * from './core/app-kit';
 export * from './core/events';
-export * from './core/query';
+export * from './core/watcher';
 
 // Features
 export * from './features/wallets';
+export * from './features/balances';
 
 // Types
 export * from './types/connector';

@@ -8,12 +8,8 @@
 
 /**
  * Events Feature
- *
- * Centralized event system for AppKit plugin communication.
- * Provides Emitter implementation and predefined event types.
+ * Provides Emitter implementation
  */
 export { Emitter } from './services/emitter';
-export { CONNECTOR_EVENTS, WALLETS_EVENTS, PLUGIN_EVENTS } from './constants/events';
 
-export type { EventPayload, AppKitEvent, EventListener, AppKitEvents } from './types/events';
-export type { WalletConnectedPayload, WalletDisconnectedPayload, PluginRegisteredPayload } from './types/payload';
+export type { EventPayload, AppKitEvent, EventListener } from './types/events';

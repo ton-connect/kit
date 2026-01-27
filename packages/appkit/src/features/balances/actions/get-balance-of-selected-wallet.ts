@@ -22,7 +22,7 @@ export async function getBalanceOfSelectedWallet(
     const selectedWallet = appKit.walletsManager.selectedWallet;
 
     if (!selectedWallet) {
-        return null; // Or throw? Tanstack query returning null is fine.
+        return null;
     }
 
     return getBalance(appKit, {

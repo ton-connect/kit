@@ -31,7 +31,9 @@
   },
   "typesVersions": {
     "*": {
-      "tonconnect": ["./dist/connectors/tonconnect/index.d.ts"]
+      "tonconnect": [
+        "./dist/connectors/tonconnect/index.d.ts"
+      ]
     }
   },
   "scripts": {
@@ -40,7 +42,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ton/walletkit": "workspace:*"
+    "@ton/walletkit": "workspace:*",
+    "swrev": "4.0.0"
   },
   "peerDependencies": {
     "@ton/core": "^0.62.0 || ^0.63.0",
