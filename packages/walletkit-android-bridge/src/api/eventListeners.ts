@@ -15,6 +15,7 @@ export const eventListeners = {
     onConnectListener: null as BridgeEventListener,
     onTransactionListener: null as BridgeEventListener,
     onSignDataListener: null as BridgeEventListener,
+    onSignMessageListener: null as BridgeEventListener,
     onDisconnectListener: null as BridgeEventListener,
     onErrorListener: null as BridgeEventListener,
 };

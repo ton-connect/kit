@@ -75,6 +75,17 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
 
     kit.onSignDataRequest(eventListeners.onSignDataListener);
 
+    // Register signMessage listener for gasless transactions
+    if (eventListeners.onSignMessageListener) {
+        kit.removeSignMessageRequestCallback?.();
+    }
+
+    eventListeners.onSignMessageListener = (event: unknown) => {
+        callback('signMessage', event);
+    };
+
+    kit.onSignMessageRequest?.(eventListeners.onSignMessageListener);
+
     if (eventListeners.onDisconnectListener) {
         kit.removeDisconnectCallback();
     }
@@ -118,6 +129,11 @@ export function removeEventListeners(): { ok: true } {
     if (eventListeners.onSignDataListener) {
         kit.removeSignDataRequestCallback();
         eventListeners.onSignDataListener = null;
+    }
+
+    if (eventListeners.onSignMessageListener) {
+        kit.removeSignMessageRequestCallback?.();
+        eventListeners.onSignMessageListener = null;
     }
 
     if (eventListeners.onDisconnectListener) {

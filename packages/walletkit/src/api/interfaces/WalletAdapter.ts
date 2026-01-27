@@ -36,13 +36,27 @@ export interface WalletAdapter {
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<Base64String>;
 
-    /** Get the signed send transaction */
+    /** Get the signed send transaction (external message) */
     getSignedSendTransaction(
         input: TransactionRequest,
         options?: {
             fakeSignature: boolean;
         },
     ): Promise<Base64String>;
+
+    /**
+     * Get signed internal message for gasless transactions (V5+ only).
+     * Returns a signed internal message BOC that can be sent to a gasless provider.
+     * Unlike getSignedSendTransaction which creates an external message,
+     * this creates an internal message that gasless providers can wrap and send.
+     */
+    getSignedInternalMessage?(
+        input: TransactionRequest,
+        options?: {
+            fakeSignature: boolean;
+        },
+    ): Promise<Base64String>;
+
     getSignedSignData(
         input: PreparedSignData,
         options?: {

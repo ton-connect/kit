@@ -12,6 +12,7 @@ import type { RawBridgeEvent, EventHandler, EventCallback, EventType } from '../
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
 import { SignDataHandler } from '../handlers/SignDataHandler';
+import { SignMessageHandler } from '../handlers/SignMessageHandler';
 import { DisconnectHandler } from '../handlers/DisconnectHandler';
 import { validateBridgeEvent } from '../validation/events';
 import { globalLogger } from './Logger';
@@ -26,6 +27,7 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types/config';
@@ -40,6 +42,7 @@ export class EventRouter {
     private connectRequestCallback: EventCallback<ConnectionRequestEvent> | undefined = undefined;
     private transactionRequestCallback: EventCallback<TransactionRequestEvent> | undefined = undefined;
     private signDataRequestCallback: EventCallback<SignDataRequestEvent> | undefined = undefined;
+    private signMessageRequestCallback: EventCallback<SignMessageRequestEvent> | undefined = undefined;
     private disconnectCallback: EventCallback<DisconnectionEvent> | undefined = undefined;
     private errorCallback: EventCallback<RequestErrorEvent> | undefined = undefined;
 
@@ -107,6 +110,10 @@ export class EventRouter {
         this.signDataRequestCallback = callback;
     }
 
+    onSignMessageRequest(callback: EventCallback<SignMessageRequestEvent>): void {
+        this.signMessageRequestCallback = callback;
+    }
+
     onDisconnect(callback: EventCallback<DisconnectionEvent>): void {
         this.disconnectCallback = callback;
     }
@@ -130,6 +137,10 @@ export class EventRouter {
         this.signDataRequestCallback = undefined;
     }
 
+    removeSignMessageRequestCallback(): void {
+        this.signMessageRequestCallback = undefined;
+    }
+
     removeDisconnectCallback(): void {
         this.disconnectCallback = undefined;
     }
@@ -145,6 +156,7 @@ export class EventRouter {
         this.connectRequestCallback = undefined;
         this.transactionRequestCallback = undefined;
         this.signDataRequestCallback = undefined;
+        this.signMessageRequestCallback = undefined;
         this.disconnectCallback = undefined;
         this.errorCallback = undefined;
     }
@@ -165,6 +177,14 @@ export class EventRouter {
             ),
             new SignDataHandler(
                 this.notifySignDataRequestCallbacks.bind(this),
+                this.walletManager,
+                this.sessionManager,
+                this.analyticsManager,
+            ),
+            new SignMessageHandler(
+                this.notifySignMessageRequestCallbacks.bind(this),
+                this.config,
+                this.eventEmitter,
                 this.walletManager,
                 this.sessionManager,
                 this.analyticsManager,
@@ -195,6 +215,13 @@ export class EventRouter {
     }
 
     /**
+     * Notify sign message request callbacks (gasless transactions)
+     */
+    private async notifySignMessageRequestCallbacks(event: SignMessageRequestEvent): Promise<void> {
+        return await this.signMessageRequestCallback?.(event);
+    }
+
+    /**
      * Notify disconnect callbacks
      */
     private async notifyDisconnectCallbacks(event: DisconnectionEvent): Promise<void> {
@@ -222,6 +249,9 @@ export class EventRouter {
         }
         if (this.signDataRequestCallback) {
             enabledTypes.push('signData');
+        }
+        if (this.signMessageRequestCallback) {
+            enabledTypes.push('signMessage');
         }
         if (this.disconnectCallback) {
             enabledTypes.push('disconnect');

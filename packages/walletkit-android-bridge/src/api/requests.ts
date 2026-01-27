@@ -20,6 +20,8 @@ import type {
     RejectTransactionRequestArgs,
     ApproveSignDataRequestArgs,
     RejectSignDataRequestArgs,
+    ApproveSignMessageRequestArgs,
+    RejectSignMessageRequestArgs,
 } from '../types';
 import { callBridge } from '../utils/bridgeWrapper';
 import { log } from '../utils/logger';
@@ -105,6 +107,37 @@ export async function rejectSignDataRequest(args: RejectSignDataRequestArgs) {
                 : args.reason;
 
         const result = await kit.rejectSignDataRequest(args.event, reason);
+        return result ?? { success: true };
+    });
+}
+
+/**
+ * Approves a signMessage request (for gasless transactions).
+ * Returns a signed internal message BOC that can be sent to a gasless provider.
+ */
+export async function approveSignMessageRequest(args: ApproveSignMessageRequestArgs) {
+    return callBridge('approveSignMessageRequest', async (kit) => {
+        // Enrich event with walletId (same pattern as approveTransactionRequest)
+        if (args.walletId) {
+            args.event.walletId = args.walletId;
+        }
+
+        return await kit.approveSignMessageRequest(args.event);
+    });
+}
+
+/**
+ * Rejects a signMessage request.
+ */
+export async function rejectSignMessageRequest(args: RejectSignMessageRequestArgs) {
+    return callBridge('rejectSignMessageRequest', async (kit) => {
+        // If errorCode is provided, pass it as an error object; otherwise just pass the reason string
+        const reason =
+            args.errorCode !== undefined
+                ? { code: args.errorCode, message: args.reason || 'SignMessage rejected' }
+                : args.reason;
+
+        const result = await kit.rejectSignMessageRequest(args.event, reason);
         return result ?? { success: true };
     });
 }

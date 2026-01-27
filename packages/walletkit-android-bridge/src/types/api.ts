@@ -135,6 +135,23 @@ export interface RejectSignDataRequestArgs {
     errorCode?: number;
 }
 
+/**
+ * Args for approving a signMessage request (gasless transactions).
+ */
+export interface ApproveSignMessageRequestArgs {
+    event: TonConnectRequestEvent;
+    walletId?: string;
+}
+
+/**
+ * Args for rejecting a signMessage request.
+ */
+export interface RejectSignMessageRequestArgs {
+    event: TonConnectRequestEvent;
+    reason?: string;
+    errorCode?: number;
+}
+
 export interface DisconnectSessionArgs {
     sessionId?: string;
 }
@@ -272,6 +289,9 @@ export interface WalletKitBridgeApi {
     rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<object>;
     approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<unknown>;
     rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<object>;
+    // SignMessage methods for gasless transactions
+    approveSignMessageRequest(args: ApproveSignMessageRequestArgs): PromiseOrValue<unknown>;
+    rejectSignMessageRequest(args: RejectSignMessageRequestArgs): PromiseOrValue<object>;
     listSessions(): PromiseOrValue<unknown>;
     disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<unknown>;
     getNfts(args: GetNftsArgs): PromiseOrValue<unknown>;

@@ -174,6 +174,17 @@ export function toConnectTransactionParamContent(request: TransactionRequest): C
 export type RawBridgeEventTransaction = BridgeEvent & SendTransactionRpcRequest;
 export type RawBridgeEventSignData = BridgeEvent & SignDataRpcRequest;
 
+/**
+ * Raw bridge event for signMessage requests (gasless transactions).
+ * Uses the same structure as sendTransaction but with 'signMessage' method.
+ */
+export interface RawBridgeEventSignMessage extends BridgeEvent {
+    id: string;
+    method: 'signMessage';
+    params: [string]; // JSON stringified ConnectTransactionParamContent (same as sendTransaction)
+    timestamp?: number;
+}
+
 export interface RawBridgeEventDisconnect extends BridgeEvent {
     id: string;
     method: 'disconnect';
@@ -189,10 +200,11 @@ export type RawBridgeEvent =
     | RawBridgeEventRestoreConnection
     | RawBridgeEventTransaction
     | RawBridgeEventSignData
+    | RawBridgeEventSignMessage
     | RawBridgeEventDisconnect;
 
 // Internal event routing types
-export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
+export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'signMessage' | 'disconnect' | 'restoreConnection';
 
 export interface EventHandler<T extends BridgeEvent = BridgeEvent, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;
