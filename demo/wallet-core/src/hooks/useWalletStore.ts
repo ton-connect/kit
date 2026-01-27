@@ -198,3 +198,34 @@ export const useJettons = () => {
         })),
     );
 };
+
+/**
+ * Hook for Swap
+ */
+export const useSwap = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            fromToken: state.swap.fromToken,
+            toToken: state.swap.toToken,
+            fromAmount: state.swap.fromAmount,
+            toAmount: state.swap.toAmount,
+            destinationAddress: state.swap.destinationAddress,
+            currentQuote: state.swap.currentQuote,
+            isLoadingQuote: state.swap.isLoadingQuote,
+            isSwapping: state.swap.isSwapping,
+            error: state.swap.error,
+            slippageBps: state.swap.slippageBps,
+            setFromToken: state.setFromToken,
+            setToToken: state.setToToken,
+            setFromAmount: state.setFromAmount,
+            setToAmount: state.setToAmount,
+            setDestinationAddress: state.setDestinationAddress,
+            setSlippageBps: state.setSlippageBps,
+            swapTokens: state.swapTokens,
+            getQuote: state.getQuote,
+            executeSwap: state.executeSwap,
+            clearSwap: state.clearSwap,
+            validateSwapInputs: state.validateSwapInputs,
+        })),
+    );
+};

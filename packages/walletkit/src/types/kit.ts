@@ -26,6 +26,7 @@ import type {
     SignDataApprovalResponse,
     TONConnectSession,
 } from '../api/models';
+import type { SwapAPI } from '../defi/swap';
 
 /**
  * Main TonWalletKit interface
@@ -135,4 +136,9 @@ export interface ITonWalletKit {
 
     /** Jettons API access */
     jettons: JettonsAPI;
+
+    // === Swaps API ===
+
+    /** Jettons API access */
+    swap: SwapAPI;
 }

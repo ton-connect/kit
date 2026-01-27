@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ES2024",
     "outDir": "dist/cjs",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "es2022",
+    "moduleResolution": "bundler",
     "declaration": true,
     "declarationDir": "dist/cjs",
     "esModuleInterop": true,

@@ -13,3 +13,4 @@ export * from './WalletDashboard';
 export * from './SendTransaction';
 export * from './TracePage';
 export * from './TransactionDetail';
+export * from './Swap';
