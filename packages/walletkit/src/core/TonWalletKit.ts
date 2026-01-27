@@ -444,6 +444,16 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void {
+        if (this.eventRouter) {
+            this.eventRouter.onSignMessageRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.eventRouter.onSignMessageRequest(cb);
+            });
+        }
+    }
+
     onDisconnect(cb: (event: DisconnectionEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onDisconnect(cb);
@@ -464,6 +474,10 @@ export class TonWalletKit implements ITonWalletKit {
 
     removeSignDataRequestCallback(): void {
         this.eventRouter.removeSignDataRequestCallback();
+    }
+
+    removeSignMessageRequestCallback(): void {
+        this.eventRouter.removeSignMessageRequestCallback();
     }
 
     removeDisconnectCallback(): void {

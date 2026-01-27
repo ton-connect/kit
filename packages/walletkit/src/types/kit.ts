@@ -21,6 +21,7 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
@@ -118,6 +119,9 @@ export interface ITonWalletKit {
     /** Register sign data request handler */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
 
+    /** Register sign message request handler (gasless transactions) */
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void;
+
     /** Register disconnect handler */
     onDisconnect(cb: (event: DisconnectionEvent) => void): void;
 
@@ -128,6 +132,7 @@ export interface ITonWalletKit {
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
     removeTransactionRequestCallback(cb: (event: TransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
+    removeSignMessageRequestCallback(cb: (event: SignMessageRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
 

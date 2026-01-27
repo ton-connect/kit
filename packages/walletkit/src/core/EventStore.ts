@@ -398,6 +398,8 @@ export class StorageEventStore implements EventStore {
                 return 'sendTransaction';
             case 'signData':
                 return 'signData';
+            case 'signMessage':
+                return 'signMessage';
             case 'disconnect':
                 return 'disconnect';
             case 'restoreConnection':

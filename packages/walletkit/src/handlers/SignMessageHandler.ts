@@ -117,13 +117,16 @@ export class SignMessageHandler
 
         const requestValidation = this.parseSignMessageRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
-            log.error('Failed to parse signMessage request', { event, requestValidation });
+            log.error('Failed to parse signMessage request', { 
+                errors: requestValidation?.validation?.errors,
+                eventId: event.id 
+            });
             this.eventEmitter.emit('event:error', event);
 
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                    message: 'Failed to parse signMessage request',
+                    message: `Failed to parse signMessage request: ${requestValidation?.validation?.errors?.join(', ') || 'unknown error'}`,
                 },
                 id: event.id,
             };
@@ -192,14 +195,15 @@ export class SignMessageHandler
     } {
         let errors: string[] = [];
         try {
-            if (event.params.length !== 1) {
+            if (!event.params || event.params.length !== 1) {
                 throw new WalletKitError(
                     ERROR_CODES.INVALID_REQUEST_EVENT,
                     'Invalid signMessage request - expected exactly 1 parameter',
                     undefined,
-                    { paramCount: event.params.length, eventId: event.id },
+                    { paramCount: event.params?.length, eventId: event.id },
                 );
             }
+
             const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
 
             const validUntilValidation = this.validateValidUntil(params.valid_until);
