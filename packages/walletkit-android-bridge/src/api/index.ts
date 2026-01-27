@@ -60,6 +60,8 @@ const apiImpl: WalletKitBridgeApi = {
     rejectTransactionRequest: requests.rejectTransactionRequest,
     approveSignDataRequest: requests.approveSignDataRequest,
     rejectSignDataRequest: requests.rejectSignDataRequest,
+    approveSignMessageRequest: requests.approveSignMessageRequest,
+    rejectSignMessageRequest: requests.rejectSignMessageRequest,
 
     // TonConnect & sessions
     handleTonConnectUrl: tonconnect.handleTonConnectUrl,

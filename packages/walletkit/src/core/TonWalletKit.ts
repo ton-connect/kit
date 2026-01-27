@@ -54,6 +54,8 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
+    SignMessageApprovalResponse,
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
@@ -639,6 +641,19 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<void> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectTransactionRequest(event, reason);
+    }
+
+    async approveSignMessageRequest(event: SignMessageRequestEvent): Promise<SignMessageApprovalResponse> {
+        await this.ensureInitialized();
+        return this.requestProcessor.approveSignMessageRequest(event);
+    }
+
+    async rejectSignMessageRequest(
+        event: SignMessageRequestEvent,
+        reason?: string | SendTransactionRpcResponseError['error'],
+    ): Promise<void> {
+        await this.ensureInitialized();
+        return this.requestProcessor.rejectSignMessageRequest(event, reason);
     }
 
     async approveSignDataRequest(event: SignDataRequestEvent): Promise<SignDataApprovalResponse> {

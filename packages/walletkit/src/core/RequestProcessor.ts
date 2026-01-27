@@ -28,7 +28,7 @@ import {
 } from '@tonconnect/protocol';
 import { getSecureRandomBytes } from '@ton/crypto';
 
-import type { EventSignDataApproval, TonWalletKitOptions } from '../types';
+import type { EventSignDataApproval, TonWalletKitOptions, EventSignMessageApproval } from '../types';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -44,6 +44,8 @@ import type {
     SignDataPayload,
     TransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
+    SignMessageApprovalResponse,
     ConnectionRequestEvent,
     TransactionApprovalResponse,
     SignDataApprovalResponse,
@@ -457,6 +459,170 @@ export class RequestProcessor {
             log.error('Failed to reject transaction request', { error });
             throw error;
         }
+    }
+
+    /**
+     * Process signMessage request approval (for gasless transactions).
+     * Signs the transaction and returns a signed internal message BOC.
+     * Does NOT send to network - the gasless provider will do that.
+     */
+    async approveSignMessageRequest(
+        event: SignMessageRequestEvent | EventSignMessageApproval,
+    ): Promise<SignMessageApprovalResponse> {
+        try {
+            if ('result' in event) {
+                // Already signed - just send response
+                const response: SendTransactionRpcResponseSuccess = {
+                    result: event.result.signedInternalBoc,
+                    id: event.id || '',
+                };
+
+                await this.bridgeManager.sendResponse(event, response);
+                this.sendSignMessageAnalytics(event, event.result.signedInternalBoc);
+                return { signedInternalBoc: event.result.signedInternalBoc };
+            } else {
+                // Sign the internal message
+                const signedInternalBoc = await this.signInternalMessage(event);
+
+                // NOTE: We do NOT send to network - gasless provider will do that
+
+                // Send approval response (same format as sendTransaction)
+                const response: SendTransactionRpcResponseSuccess = {
+                    result: signedInternalBoc,
+                    id: event.id || '',
+                };
+
+                await this.bridgeManager.sendResponse(event, response);
+                this.sendSignMessageAnalytics(event, signedInternalBoc);
+                return { signedInternalBoc };
+            }
+        } catch (error) {
+            log.error('Failed to approve signMessage request', { error });
+
+            if (error instanceof WalletKitError) {
+                throw error;
+            }
+            if ((error as { message: string })?.message?.includes('Ledger device')) {
+                throw new WalletKitError(ERROR_CODES.LEDGER_DEVICE_ERROR, 'Ledger device error', error as Error);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Send signMessage analytics events
+     */
+    private sendSignMessageAnalytics(
+        event: SignMessageRequestEvent | EventSignMessageApproval,
+        signedBoc: string,
+    ): void {
+        if (!this.analytics) return;
+
+        const wallet = this.getWalletFromEvent(event);
+
+        // Use same analytics event as transaction (but could be extended for gasless-specific tracking)
+        this.analytics.emitWalletTransactionSent({
+            trace_id: event.traceId,
+            network_id: wallet?.getNetwork().chainId,
+            client_id: event.from,
+            signed_boc: signedBoc,
+        });
+    }
+
+    /**
+     * Process signMessage request rejection
+     */
+    async rejectSignMessageRequest(
+        event: SignMessageRequestEvent,
+        reason?: string | SendTransactionRpcResponseError['error'],
+    ): Promise<void> {
+        try {
+            const response: SendTransactionRpcResponseError =
+                typeof reason === 'string' || typeof reason === 'undefined'
+                    ? {
+                          error: {
+                              code: SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR,
+                              message: reason || 'User rejected signMessage',
+                          },
+                          id: event.id,
+                      }
+                    : {
+                          error: reason,
+                          id: event.id,
+                      };
+
+            await this.bridgeManager.sendResponse(event, response);
+            const wallet = this.getWalletFromEvent(event);
+
+            if (this.analytics) {
+                const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
+
+                this.analytics.emitWalletTransactionDeclined({
+                    wallet_id: sessionData?.publicKey,
+                    trace_id: event.traceId,
+                    dapp_name: event.dAppInfo?.name,
+                    origin_url: event.dAppInfo?.url,
+                    network_id: wallet?.getNetwork().chainId,
+                    client_id: event.from,
+                    decline_reason: typeof reason === 'string' ? reason : reason?.message,
+                });
+            }
+
+            return;
+        } catch (error) {
+            log.error('Failed to reject signMessage request', { error });
+            throw error;
+        }
+    }
+
+    /**
+     * Sign internal message for gasless transactions
+     */
+    private async signInternalMessage(event: SignMessageRequestEvent): Promise<Base64String> {
+        const walletId = event.walletId;
+        const walletAddress = this.getWalletAddressFromEvent(event);
+
+        if (!walletId && !walletAddress) {
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_REQUIRED,
+                'Wallet ID is required for signMessage',
+                undefined,
+                { eventId: event.id },
+            );
+        }
+        const wallet = this.getWalletFromEvent(event);
+        if (!wallet) {
+            throw new WalletKitError(
+                ERROR_CODES.WALLET_NOT_FOUND,
+                'Wallet not found for signMessage',
+                undefined,
+                { walletId, walletAddress, eventId: event.id },
+            );
+        }
+
+        if (!wallet.getSignedInternalMessage) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                'Wallet does not support signMessage (requires V5 wallet)',
+                undefined,
+                { walletId, eventId: event.id },
+            );
+        }
+
+        const validUntil = event.request.validUntil;
+        if (validUntil) {
+            const now = Math.floor(Date.now() / 1000);
+            if (validUntil < now) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Transaction valid_until timestamp is in the past',
+                    undefined,
+                    { validUntil, currentTime: now },
+                );
+            }
+        }
+
+        return await wallet.getSignedInternalMessage(event.request, { fakeSignature: false });
     }
 
     /**

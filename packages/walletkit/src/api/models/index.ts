@@ -37,6 +37,11 @@ export type { SignDataApprovalResponse } from './bridge/SignDataApprovalResponse
 export type { SignDataRequestEvent, SignDataRequestEventPreview, SignDataPreview } from './bridge/SignDataRequestEvent';
 export type { TransactionApprovalResponse } from './bridge/TransactionApprovalResponse';
 export type { TransactionRequestEvent, TransactionRequestEventPreview } from './bridge/TransactionRequestEvent';
+export type {
+    SignMessageRequestEvent,
+    SignMessageRequestEventPreview,
+    SignMessageApprovalResponse,
+} from './bridge/SignMessageRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
 export type { TONConnectSession } from './bridge/TONConnectSession';
 

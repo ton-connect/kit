@@ -47,3 +47,18 @@ export interface SignDataApproval {
     domain: string;
     payload: SignDataPayload;
 }
+
+/**
+ * Approval event for signMessage requests (gasless transactions)
+ */
+export interface EventSignMessageApproval extends EventApprovalBase {
+    result: SignMessageApproval;
+}
+
+/**
+ * Approval data for signMessage (gasless) requests
+ */
+export interface SignMessageApproval {
+    /** The signed internal message BOC (Base64 encoded) */
+    signedInternalBoc: Base64String;
+}

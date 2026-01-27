@@ -9,7 +9,7 @@
 // WalletV5R1 adapter that implements WalletInterface
 
 import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeStateInit } from '@ton/core';
+import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeMessageRelaxed, storeStateInit } from '@ton/core';
 import { external, internal } from '@ton/core';
 
 import { WalletV5, WalletV5R1Id } from './WalletV5R1';
@@ -234,7 +234,10 @@ export class WalletV5R1Adapter implements WalletAdapter {
             throw new Error('Failed to get seqno or walletId');
         }
 
-        const transfer = await this.createBodyV5(seqno, walletId, actions, createBodyOptions);
+        const transfer = await this.createBodyV5(seqno, walletId, actions, {
+            ...createBodyOptions,
+            internalMessage: false, // Use external opcode (0x7369676e) for regular transactions
+        });
 
         const ext = external({
             to: this.walletContract.address,
@@ -242,6 +245,115 @@ export class WalletV5R1Adapter implements WalletAdapter {
             body: transfer,
         });
         return beginCell().store(storeMessage(ext)).endCell().toBoc().toString('base64') as Base64String;
+    }
+
+    /**
+     * Get signed internal message for gasless transactions.
+     * Creates a signed internal message BOC that can be sent to a gasless provider.
+     * The gasless provider will wrap this in an external message and pay for gas.
+     * 
+     * This is used for V5 wallets where the wallet signs the action body,
+     * and a gasless provider can then send this as an internal message.
+     */
+    async getSignedInternalMessage(
+        input: TransactionRequest,
+        options: { fakeSignature: boolean },
+    ): Promise<Base64String> {
+        const actions = packActionsList(
+            input.messages.map((m) => {
+                let bounce = true;
+                const parsedAddress = Address.parseFriendly(m.address);
+                if (parsedAddress.isBounceable === false) {
+                    bounce = false;
+                }
+
+                const msg = internal({
+                    to: m.address,
+                    value: BigInt(m.amount),
+                    bounce: bounce,
+                    extracurrency: m.extraCurrency
+                        ? Object.fromEntries(Object.entries(m.extraCurrency).map(([k, v]) => [Number(k), BigInt(v)]))
+                        : undefined,
+                });
+
+                if (m.payload) {
+                    try {
+                        msg.body = Cell.fromBase64(m.payload);
+                    } catch (error) {
+                        log.warn('Failed to load payload for internal message', { error });
+                        throw WalletKitError.fromError(
+                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                            'Failed to parse transaction payload',
+                            error,
+                        );
+                    }
+                }
+
+                if (m.stateInit) {
+                    try {
+                        msg.init = loadStateInit(Cell.fromBase64(m.stateInit).asSlice());
+                    } catch (error) {
+                        log.warn('Failed to load state init for internal message', { error });
+                        throw WalletKitError.fromError(
+                            ERROR_CODES.CONTRACT_VALIDATION_FAILED,
+                            'Failed to parse state init',
+                            error,
+                        );
+                    }
+                }
+                return new ActionSendMsg(SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS, msg);
+            }),
+        );
+
+        const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
+            ...options,
+            validUntil: undefined,
+        };
+        // add valid until
+        if (input.validUntil) {
+            const now = Math.floor(Date.now() / 1000);
+            const maxValidUntil = now + 600;
+            if (input.validUntil < now) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Transaction valid_until timestamp is in the past',
+                    undefined,
+                    { validUntil: input.validUntil, currentTime: now },
+                );
+            } else if (input.validUntil > maxValidUntil) {
+                createBodyOptions.validUntil = maxValidUntil;
+            } else {
+                createBodyOptions.validUntil = input.validUntil;
+            }
+        }
+
+        let seqno = 0;
+        try {
+            seqno = await CallForSuccess(async () => this.getSeqno(), 5, 1000);
+        } catch (_) {
+            //
+        }
+        const walletId = (await this.walletContract.walletId).serialized;
+        if (!walletId) {
+            throw new Error('Failed to get seqno or walletId');
+        }
+
+        // Create the signed body with internal opcode for gasless transactions
+        const signedBody = await this.createBodyV5(seqno, walletId, actions, {
+            ...createBodyOptions,
+            internalMessage: true, // Use internal opcode (0x73696e74) for gasless
+        });
+
+        // Create internal message with signed body to the wallet's own address
+        // This is what the gasless provider will use to execute the transaction
+        const internalMsg = internal({
+            to: this.walletContract.address,
+            value: BigInt(0), // Gasless provider will set the actual value
+            bounce: true,
+            body: signedBody,
+        });
+
+        return beginCell().store(storeMessageRelaxed(internalMsg)).endCell().toBoc().toString('base64') as Base64String;
     }
 
     /**
@@ -309,15 +421,17 @@ export class WalletV5R1Adapter implements WalletAdapter {
         seqno: number,
         walletId: bigint,
         actionsList: Cell,
-        options: { validUntil: number | undefined; fakeSignature: boolean },
+        options: { validUntil: number | undefined; fakeSignature: boolean; internalMessage?: boolean },
     ) {
         const Opcodes = {
-            auth_signed: 0x7369676e,
+            auth_signed_external: 0x7369676e, // "sign" in ASCII - for external messages
+            auth_signed_internal: 0x73696e74, // "sint" in ASCII - for internal messages (gasless)
         };
 
+        const opcode = options.internalMessage ? Opcodes.auth_signed_internal : Opcodes.auth_signed_external;
         const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
         const payload = beginCell()
-            .storeUint(Opcodes.auth_signed, 32)
+            .storeUint(opcode, 32)
             .storeUint(walletId, 32)
             .storeUint(expireAt, 32)
             .storeUint(seqno, 32) // seqno

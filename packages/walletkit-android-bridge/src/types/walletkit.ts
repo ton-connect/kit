@@ -94,4 +94,9 @@ export interface WalletKitInstance {
     rejectTransactionRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
     approveSignDataRequest(event: unknown): Promise<unknown>;
     rejectSignDataRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
+    // SignMessage methods for gasless transactions
+    onSignMessageRequest?(callback: (event: unknown) => void): void;
+    removeSignMessageRequestCallback?(): void;
+    approveSignMessageRequest(event: unknown): Promise<unknown>;
+    rejectSignMessageRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
 }
