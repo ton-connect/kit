@@ -9,7 +9,17 @@
 // WalletV5R1 adapter that implements WalletInterface
 
 import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeMessageRelaxed, storeStateInit } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Dictionary,
+    loadStateInit,
+    SendMode,
+    storeMessage,
+    storeMessageRelaxed,
+    storeStateInit,
+} from '@ton/core';
 import { external, internal } from '@ton/core';
 
 import { WalletV5, WalletV5R1Id } from './WalletV5R1';
@@ -251,7 +261,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
      * Get signed internal message for gasless transactions.
      * Creates a signed internal message BOC that can be sent to a gasless provider.
      * The gasless provider will wrap this in an external message and pay for gas.
-     * 
+     *
      * This is used for V5 wallets where the wallet signs the action body,
      * and a gasless provider can then send this as an internal message.
      */

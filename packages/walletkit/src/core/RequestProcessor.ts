@@ -583,21 +583,17 @@ export class RequestProcessor {
         const walletAddress = this.getWalletAddressFromEvent(event);
 
         if (!walletId && !walletAddress) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_REQUIRED,
-                'Wallet ID is required for signMessage',
-                undefined,
-                { eventId: event.id },
-            );
+            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'Wallet ID is required for signMessage', undefined, {
+                eventId: event.id,
+            });
         }
         const wallet = this.getWalletFromEvent(event);
         if (!wallet) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_NOT_FOUND,
-                'Wallet not found for signMessage',
-                undefined,
-                { walletId, walletAddress, eventId: event.id },
-            );
+            throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, 'Wallet not found for signMessage', undefined, {
+                walletId,
+                walletAddress,
+                eventId: event.id,
+            });
         }
 
         if (!wallet.getSignedInternalMessage) {

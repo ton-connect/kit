@@ -14,7 +14,7 @@ import type { BridgeEvent } from './BridgeEvent';
  * Event containing a signMessage request from a dApp via TON Connect.
  * This is used for gasless transactions where the wallet signs an internal message
  * that a gasless provider will wrap and send to the network.
- * 
+ *
  * The request structure is identical to sendTransaction, but the result
  * is a signed internal message BOC instead of an external message.
  */

@@ -8,7 +8,7 @@
 
 /**
  * SignMessageHandler - handles signMessage requests for gasless transactions.
- * 
+ *
  * This handler works similarly to TransactionHandler but:
  * 1. Returns a signed internal message BOC (not external)
  * 2. Does NOT send the message to the network (gasless provider does that)
@@ -117,9 +117,9 @@ export class SignMessageHandler
 
         const requestValidation = this.parseSignMessageRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
-            log.error('Failed to parse signMessage request', { 
+            log.error('Failed to parse signMessage request', {
                 errors: requestValidation?.validation?.errors,
-                eventId: event.id 
+                eventId: event.id,
             });
             this.eventEmitter.emit('event:error', event);
 
