@@ -19,6 +19,7 @@ export default defineConfig({
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
     },
     resolve: {
+        dedupe: ['react', 'react-dom'],
         alias: {
             '@': path.resolve(__dirname, './src'),
         },
