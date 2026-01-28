@@ -39,11 +39,11 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@ton/walletkit": "workspace:*",
-    "swrev": "4.0.0"
+    "@ton/walletkit": "workspace:*"
   },
   "peerDependencies": {
     "@ton/core": "^0.62.0 || ^0.63.0",
@@ -68,6 +68,7 @@
     "@tonconnect/sdk": "catalog:",
     "tsup": "^8.5.0",
     "tsx": "^4.20.5",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "vitest": "^4.0.17"
   }
 }

@@ -6,7 +6,9 @@
  *
  */
 
-export type WatcherKey = string; // swrev prefers string keys. Complex keys can be stringified.
+import type { Retry, RetryDelay } from './config';
+
+export type WatcherKey = string | number | (string | number)[];
 
 export interface WatcherContext {
     watcherKey: WatcherKey;
@@ -20,4 +22,9 @@ export interface WatcherOptions<T = unknown> {
     watcherFn?: WatcherFunction<T>;
     initialData?: T;
     enabled?: boolean;
+    staleTime?: number;
+    cacheTime?: number;
+    retry?: Retry;
+    retryDelay?: RetryDelay;
+    refetchInterval?: number;
 }

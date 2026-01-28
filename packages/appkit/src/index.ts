@@ -28,7 +28,7 @@
 // Core
 export * from './core/app-kit';
 export * from './core/events';
-export * from './core/watcher';
+export * from './core/cache';
 
 // Features
 export * from './features/wallets';

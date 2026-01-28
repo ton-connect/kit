@@ -6,17 +6,18 @@
  *
  */
 
-import type { CreateWatcherOptions, WatchBalanceParameters } from '@ton/appkit';
+import type { WatcherOptions, WatchBalanceParameters } from '@ton/appkit';
 import type { TokenAmount } from '@ton/walletkit';
 import { watchBalance } from '@ton/appkit';
 
 import { useWatcher } from './use-watcher';
 
-export type UseBalanceOptions = CreateWatcherOptions<TokenAmount>;
+export type UseBalanceOptions = Partial<WatcherOptions<TokenAmount>>;
 
 /**
  * Hook to get balance
  */
 export function useBalance(params: WatchBalanceParameters, options?: UseBalanceOptions): TokenAmount | undefined {
-    return useWatcher(watchBalance, params, options);
+    const { data } = useWatcher(watchBalance, params, options);
+    return data;
 }

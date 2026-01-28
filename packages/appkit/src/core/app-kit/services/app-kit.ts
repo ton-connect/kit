@@ -12,7 +12,7 @@ import { Network, KitNetworkManager } from '@ton/walletkit';
 import type { AppKitConfig } from '../types/config';
 import type { Connector } from '../../../types/connector';
 import { Emitter } from '../../events';
-import { CacheClient } from '../../watcher';
+import { Cache } from '../../cache';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../features/wallets';
@@ -28,12 +28,14 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
 
     readonly networkManager: NetworkManager;
-    readonly config: AppKitConfig; // Added config property
-    public readonly swr: CacheClient; // Added swr property
+    readonly config: AppKitConfig;
+    public readonly cache: Cache;
 
     constructor(config: AppKitConfig) {
-        this.config = config; // Initialized config
-        this.swr = new CacheClient(); // Initialized swr
+        this.config = config;
+        this.cache = new Cache({
+            storage: window.localStorage,
+        });
 
         // Use provided networks config or default to mainnet
         const networks = config.networks ?? {

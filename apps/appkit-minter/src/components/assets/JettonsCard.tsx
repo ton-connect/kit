@@ -8,6 +8,7 @@
 
 import React, { useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
+import { useBalance, useSelectedWallet } from '@ton/appkit-ui-react';
 
 import { JettonTransferModal } from './JettonTransferModal';
 
@@ -83,6 +84,15 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
     isTransferring = false,
 }) => {
     const [selectedJetton, setSelectedJetton] = useState<Jetton | null>(null);
+
+    const [wallet] = useSelectedWallet();
+    const isConnected = !!wallet;
+    const balance = useBalance(
+        { address: wallet?.getAddress() || '', network: wallet?.getNetwork() },
+        { enabled: isConnected, refetchInterval: 5000 },
+    );
+
+    console.log('balance jetton', balance);
 
     if (error) {
         return (

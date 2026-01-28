@@ -6,10 +6,9 @@
  *
  */
 
-import type { TokenAmount } from '@ton/walletkit';
 import { Network } from '@ton/walletkit';
 
-import { createWatcher } from '../../../core/watcher';
+import type { AppKit } from '../../../core/app-kit';
 import { getBalance } from '../actions/get-balance';
 
 export interface WatchBalanceParameters {
@@ -17,12 +16,12 @@ export interface WatchBalanceParameters {
     network?: Network;
 }
 
-export const watchBalance = createWatcher<WatchBalanceParameters, TokenAmount>((appKit, params) => {
+export const watchBalance = (appKit: AppKit, params: WatchBalanceParameters) => {
     const { address, network: paramsNetwork } = params;
     const network = paramsNetwork || Network.mainnet();
 
     return {
-        watcherKey: `balance-${address}-${network.chainId}`,
+        watcherKey: ['balance', address, network.chainId],
         watcherFn: async () => getBalance(appKit, params),
     };
-});
+};

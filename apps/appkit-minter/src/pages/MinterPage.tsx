@@ -7,7 +7,7 @@
  */
 
 import type React from 'react';
-import { useSelectedWallet } from '@ton/appkit-ui-react';
+import { useBalance, useSelectedWallet } from '@ton/appkit-ui-react';
 
 import { Layout, CardGenerator, WalletConnect, JettonsCard, NftsCard } from '@/components';
 import { useWalletAssets } from '@/hooks';
@@ -28,6 +28,12 @@ export const MinterPage: React.FC = () => {
         transferNft,
         isTransferring,
     } = useWalletAssets();
+    const balance = useBalance(
+        { address: wallet?.getAddress() || '', network: wallet?.getNetwork() },
+        { enabled: !!wallet, refetchInterval: 6000 },
+    );
+
+    console.log('balance', balance);
 
     return (
         <Layout title="NFT Minter">

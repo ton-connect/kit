@@ -6,4 +6,6 @@
  *
  */
 
-export * from './watcher';
+export const passThrough = (value: unknown) => value;
+
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

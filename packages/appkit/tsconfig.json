@@ -14,9 +14,7 @@
         "skipLibCheck": true,
         "removeComments": false,
         "declarationMap": true,
-        "paths": {
-            "swrev": ["../../node_modules/swrev/dist/swrev.d.ts"]
-        }
+        "typeRoots": []
     },
     "exclude": [
         "**/*.spec.ts",

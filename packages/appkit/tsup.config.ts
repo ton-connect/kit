@@ -11,7 +11,7 @@ import { defineConfig } from 'tsup';
 import * as packageJson from './package.json';
 
 export default defineConfig({
-    entry: ['src/**/*.ts'],
+    entry: ['src/**/*.ts', '!src/**/*.test.ts', '!src/**/__tests__/**'],
     format: ['esm', 'cjs'],
     bundle: false,
     dts: true,
