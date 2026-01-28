@@ -21,6 +21,7 @@ import {
     hasAndroidSessionManager,
     AndroidTONConnectSessionsManager,
 } from '../adapters/AndroidTONConnectSessionsManager';
+import { AndroidAPIClientAdapter } from '../adapters/AndroidAPIClientAdapter';
 
 export interface InitTonWalletKitDeps {
     emit: (type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeEvent['data']) => void;
@@ -75,9 +76,23 @@ export async function initTonWalletKit(
 
     // Build networks config - the new SDK requires networks as an object keyed by chain ID
     const apiClientConfig = clientEndpoint ? { url: clientEndpoint } : undefined;
-    const networksConfig: Record<string, { apiClient?: { url: string } }> = {
+    const networksConfig: Record<string, { apiClient?: { url: string } | AndroidAPIClientAdapter }> = {
         [network]: { apiClient: apiClientConfig },
     };
+
+    // Check if native API clients are available and use them if so
+    if (AndroidAPIClientAdapter.isAvailable()) {
+        log('[walletkitBridge] Native API clients available, checking for configured networks');
+        const availableNetworks = AndroidAPIClientAdapter.getAvailableNetworks();
+        log('[walletkitBridge] Available native API networks:', JSON.stringify(availableNetworks));
+
+        for (const nativeNetwork of availableNetworks) {
+            log('[walletkitBridge] Using native API client for network:', nativeNetwork.chainId);
+            networksConfig[nativeNetwork.chainId] = {
+                apiClient: new AndroidAPIClientAdapter(nativeNetwork),
+            };
+        }
+    }
 
     const kitOptions: Record<string, unknown> = {
         network,
