@@ -15,7 +15,7 @@ import type {
     NFT,
     Jetton,
     ConnectionRequestEvent,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     SignDataRequestEvent,
     DisconnectionEvent,
     WalletAdapter,
@@ -112,11 +112,11 @@ export interface WalletManagementSlice {
 export interface TonConnectSlice {
     tonConnect: {
         requestQueue: RequestQueue;
-        pendingConnectRequest?: ConnectionRequestEvent;
+        pendingConnectRequestEvent?: ConnectionRequestEvent;
         isConnectModalOpen: boolean;
-        pendingTransactionRequest?: TransactionRequestEvent;
+        pendingTransactionRequestEvent?: SendTransactionRequestEvent;
         isTransactionModalOpen: boolean;
-        pendingSignDataRequest?: SignDataRequestEvent;
+        pendingSignDataRequestEvent?: SignDataRequestEvent;
         isSignDataModalOpen: boolean;
         disconnectedSessions: DisconnectNotification[];
     };
@@ -129,7 +129,7 @@ export interface TonConnectSlice {
     closeConnectModal: () => void;
 
     // Transaction request actions
-    showTransactionRequest: (request: TransactionRequestEvent) => void;
+    showTransactionRequest: (request: SendTransactionRequestEvent) => void;
     approveTransactionRequest: () => Promise<void>;
     rejectTransactionRequest: (reason?: string) => Promise<void>;
     closeTransactionModal: () => void;

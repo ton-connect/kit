@@ -11,7 +11,7 @@ import type {
     JSBridgeTransportFunction,
     StorageAdapter as KitStorageAdapter,
     SignDataRequestEvent,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     AnalyticsManagerOptions,
 } from '@ton/walletkit';
 import type Transport from '@ledgerhq/hw-transport';
@@ -83,7 +83,7 @@ export interface QueuedRequestConnect {
 
 export interface QueuedRequestTransaction {
     type: 'transaction';
-    request: TransactionRequestEvent;
+    request: SendTransactionRequestEvent;
 }
 
 export interface QueuedRequestSignData {

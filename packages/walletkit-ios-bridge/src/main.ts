@@ -16,16 +16,16 @@ import type {
     NetworkAdapters,
     Wallet,
     TransactionRequest,
-    SignDataRequestEvent,
-    TransactionRequestEvent,
-    ConnectionRequestEvent,
+    SignDataRequest,
+    ConnectionRequest,
     Network,
     StorageAdapter,
     TONConnectSessionManager,
     JettonsAPI,
     TONConnectSession,
-    TransactionApprovalResponse,
     SignDataApprovalResponse,
+    SendTransactionRequest,
+    SendTransactionApprovalResponse,
 } from '@ton/walletkit';
 import { MemoryStorageAdapter, Signer, WalletV4R2Adapter, WalletV5R1Adapter, TonWalletKit } from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
@@ -353,13 +353,13 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             }
         },
 
-        async approveConnectRequest(request: ConnectionRequestEvent): Promise<void> {
+        async approveConnectRequest(request: ConnectionRequest): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('✅ Bridge: Approving connect request:', request, request.walletAddress);
+            console.log('✅ Bridge: Approving connect request:', request, request.event.walletAddress);
 
             try {
                 const result = await walletKit.approveConnectRequest(request);
-                console.log('✅ Connect request approved for wallet:', request.walletAddress, result);
+                console.log('✅ Connect request approved for wallet:', request.event.walletAddress, result);
                 return result;
             } catch (error) {
                 console.error('❌ Failed to approve connect request:', error);
@@ -367,9 +367,9 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             }
         },
 
-        async rejectConnectRequest(request: ConnectionRequestEvent, reason?: string): Promise<void> {
+        async rejectConnectRequest(request: ConnectionRequest, reason?: string): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
-            console.log('❌ Bridge: Rejecting connect request:', request.id, reason || 'User rejected');
+            console.log('❌ Bridge: Rejecting connect request:', request.event.id, reason || 'User rejected');
 
             try {
                 const result = await walletKit.rejectConnectRequest(request, reason);
@@ -382,7 +382,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         },
 
         // Transaction handling
-        async approveTransactionRequest(request: TransactionRequestEvent): Promise<TransactionApprovalResponse> {
+        async approveTransactionRequest(request: SendTransactionRequest): Promise<SendTransactionApprovalResponse> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('✅ Bridge: Approving transaction request:', request);
 
@@ -396,7 +396,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             }
         },
 
-        async rejectTransactionRequest(request: TransactionRequestEvent, reason?: string): Promise<void> {
+        async rejectTransactionRequest(request: SendTransactionRequest, reason?: string): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('❌ Bridge: Rejecting transaction request:', request, reason);
 
@@ -411,7 +411,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         },
 
         // Sign data handling
-        async approveSignDataRequest(request: SignDataRequestEvent): Promise<SignDataApprovalResponse> {
+        async approveSignDataRequest(request: SignDataRequest): Promise<SignDataApprovalResponse> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('✅ Bridge: Approving sign data request:', request);
 
@@ -425,7 +425,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             }
         },
 
-        async rejectSignDataRequest(request: SignDataRequestEvent, reason?: string): Promise<void> {
+        async rejectSignDataRequest(request: SignDataRequest, reason?: string): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('❌ Bridge: Rejecting sign data request:', request, reason);
 

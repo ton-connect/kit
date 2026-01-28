@@ -29,7 +29,7 @@ import type { WalletManager } from '../core/WalletManager';
 import type { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
-import type { TransactionEmulatedPreview, TransactionRequest, TransactionRequestEvent } from '../api/models';
+import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
 import { Result } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
@@ -37,14 +37,14 @@ import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessi
 const log = globalLogger.createChild('TransactionHandler');
 
 export class TransactionHandler
-    extends BasicHandler<TransactionRequestEvent>
-    implements EventHandler<TransactionRequestEvent, RawBridgeEventTransaction>
+    extends BasicHandler<SendTransactionRequestEvent>
+    implements EventHandler<SendTransactionRequestEvent, RawBridgeEventTransaction>
 {
     private eventEmitter: EventEmitter;
     private analytics?: Analytics;
 
     constructor(
-        notify: (event: TransactionRequestEvent) => void,
+        notify: (event: SendTransactionRequestEvent) => void,
         private readonly config: TonWalletKitOptions,
         eventEmitter: EventEmitter,
         private readonly walletManager: WalletManager,
@@ -60,7 +60,7 @@ export class TransactionHandler
         return event.method === 'sendTransaction';
     }
 
-    async handle(event: RawBridgeEventTransaction): Promise<TransactionRequestEvent | WalletResponseTemplateError> {
+    async handle(event: RawBridgeEventTransaction): Promise<SendTransactionRequestEvent | WalletResponseTemplateError> {
         // Support both walletId (new) and walletAddress (legacy)
         const walletId = event.walletId;
         const walletAddress = event.walletAddress;
@@ -128,7 +128,7 @@ export class TransactionHandler
             }
         }
 
-        const txEvent: TransactionRequestEvent = {
+        const txEvent: SendTransactionRequestEvent = {
             ...event,
             request,
             preview: {

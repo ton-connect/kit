@@ -6,7 +6,7 @@
  *
  */
 
-import type { Base64String, Hex } from '../core/Primitives';
+import type { Base64String } from '../core/Primitives';
 
 /**
  * Response after user approves a connection request.

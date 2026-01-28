@@ -6,7 +6,7 @@
  *
  */
 
-import type { TransactionRequestEvent } from '@ton/walletkit';
+import type { SendTransactionRequestEvent } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
@@ -31,7 +31,7 @@ import { getLedgerErrorMessage } from '@/features/ledger';
 import { useAppToasts } from '@/features/toasts';
 
 interface TransactionRequestModalProps {
-    request: TransactionRequestEvent;
+    request: SendTransactionRequestEvent;
     isOpen: boolean;
     onApprove: () => void;
     onReject: (reason?: string) => void;

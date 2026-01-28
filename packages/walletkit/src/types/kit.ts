@@ -17,15 +17,17 @@ import type { Network } from '../api/models/core/Network';
 import type { WalletId } from '../utils/walletId';
 import type {
     TransactionRequest,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
     ConnectionRequestEvent,
-    TransactionApprovalResponse,
     SignDataApprovalResponse,
     TONConnectSession,
-    ConnectionApprovalResponse,
+    ConnectionRequest,
+    SendTransactionRequest,
+    SignDataRequest,
+    SendTransactionApprovalResponse,
 } from '../api/models';
 
 /**
@@ -85,37 +87,28 @@ export interface ITonWalletKit {
     // === Request Processing ===
 
     /** Approve a connect request */
-    approveConnectRequest(
-        event: ConnectionRequestEvent,
-        response: ConnectionApprovalResponse | undefined,
-    ): Promise<void>;
+    approveConnectRequest(request: ConnectionRequest): Promise<void>;
     /** Reject a connect request */
     rejectConnectRequest(
-        event: ConnectionRequestEvent,
+        request: ConnectionRequest,
         reason?: string,
         errorCode?: CONNECT_EVENT_ERROR_CODES,
     ): Promise<void>;
 
     /** Approve a transaction request */
-    approveTransactionRequest(
-        event: TransactionRequestEvent,
-        response: TransactionApprovalResponse | undefined,
-    ): Promise<TransactionApprovalResponse>;
+    approveTransactionRequest(request: SendTransactionRequest): Promise<SendTransactionApprovalResponse>;
 
     /** Reject a transaction request */
     rejectTransactionRequest(
-        event: TransactionRequestEvent,
+        request: SendTransactionRequest,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
 
     /** Approve a sign data request */
-    approveSignDataRequest(
-        event: SignDataRequestEvent,
-        response: SignDataApprovalResponse | undefined,
-    ): Promise<SignDataApprovalResponse>;
+    approveSignDataRequest(event: SignDataRequest): Promise<SignDataApprovalResponse>;
 
     /** Reject a sign data request */
-    rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
+    rejectSignDataRequest(event: SignDataRequest, reason?: string): Promise<void>;
 
     // === Event Handlers ===
 
@@ -123,7 +116,7 @@ export interface ITonWalletKit {
     onConnectRequest(cb: (event: ConnectionRequestEvent) => void): void;
 
     /** Register transaction request handler */
-    onTransactionRequest(cb: (event: TransactionRequestEvent) => void): void;
+    onTransactionRequest(cb: (event: SendTransactionRequestEvent) => void): void;
 
     /** Register sign data request handler */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
@@ -136,7 +129,7 @@ export interface ITonWalletKit {
 
     /** Remove request handlers */
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
-    removeTransactionRequestCallback(cb: (event: TransactionRequestEvent) => void): void;
+    removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;

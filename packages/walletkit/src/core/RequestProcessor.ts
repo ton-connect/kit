@@ -16,7 +16,6 @@ import type {
     SendTransactionRpcResponseSuccess,
     SignDataRpcResponseError,
     SignDataRpcResponseSuccess,
-    TonProofItemReplySuccess,
     SignDataPayload as TonConnectSignDataPayload,
 } from '@tonconnect/protocol';
 import {
@@ -28,7 +27,7 @@ import {
 } from '@tonconnect/protocol';
 import { getSecureRandomBytes } from '@ton/crypto';
 
-import type { EventSignDataApproval, TonWalletKitOptions } from '../types';
+import type { TonWalletKitOptions } from '../types';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { BridgeManager } from './BridgeManager';
 import { globalLogger } from './Logger';
@@ -36,21 +35,20 @@ import { CreateTonProofMessage } from '../utils/tonProof';
 import { CallForSuccess } from '../utils/retry';
 import { getDeviceInfoForWallet } from '../utils/getDefaultWalletConfig';
 import type { WalletManager } from './WalletManager';
-import type { EventConnectApproval, EventTransactionApproval } from '../types/events';
+import type { EventTransactionApproval } from '../types/events';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { Base64ToHex, HexToBase64 } from '../utils/base64';
+import { HexToBase64 } from '../utils/base64';
 import type {
     TransactionRequest,
     SignDataPayload,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     SignDataRequestEvent,
     ConnectionRequestEvent,
-    TransactionApprovalResponse,
+    SendTransactionApprovalResponse,
     SignDataApprovalResponse,
     Base64String,
     ConnectionApprovalResponse,
     ConnectionApprovalProof,
-    ConnectionApprovalProofDomain,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
 import type { Wallet } from '../api/interfaces';
@@ -260,9 +258,9 @@ export class RequestProcessor {
      * Process transaction request approval
      */
     async approveTransactionRequest(
-        event: TransactionRequestEvent,
-        response: TransactionApprovalResponse | undefined,
-    ): Promise<TransactionApprovalResponse> {
+        event: SendTransactionRequestEvent,
+        response: SendTransactionApprovalResponse | undefined,
+    ): Promise<SendTransactionApprovalResponse> {
         try {
             if (response) {
                 const tonConnectResponse: SendTransactionRpcResponseSuccess = {
@@ -308,7 +306,7 @@ export class RequestProcessor {
      * Send transaction analytics events
      */
     private sendTransactionAnalytics(
-        event: TransactionRequestEvent | EventTransactionApproval,
+        event: SendTransactionRequestEvent | EventTransactionApproval,
         signedBoc: string,
     ): void {
         if (!this.analytics) return;
@@ -327,7 +325,7 @@ export class RequestProcessor {
      * Process transaction request rejection
      */
     async rejectTransactionRequest(
-        event: TransactionRequestEvent,
+        event: SendTransactionRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void> {
         try {
@@ -699,7 +697,7 @@ export class RequestProcessor {
     /**
      * Sign transaction and return BOC
      */
-    private async signTransaction(event: TransactionRequestEvent): Promise<Base64String> {
+    private async signTransaction(event: SendTransactionRequestEvent): Promise<Base64String> {
         const walletId = event.walletId;
         const walletAddress = this.getWalletAddressFromEvent(event);
 

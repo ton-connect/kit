@@ -15,15 +15,15 @@ import type {
     WalletAdapter,
     Wallet,
     TransactionRequest,
-    SignDataRequestEvent,
-    TransactionRequestEvent,
-    ConnectionRequestEvent,
     BridgeEventMessageInfo,
     InjectedToExtensionBridgeRequestPayload,
     JettonsAPI,
     TONConnectSession,
-    TransactionApprovalResponse,
     SignDataApprovalResponse,
+    ConnectionRequest,
+    SendTransactionRequest,
+    SignDataRequest,
+    SendTransactionApprovalResponse,
 } from '@ton/walletkit';
 
 export interface SwiftApiClient extends ApiClient {
@@ -96,17 +96,16 @@ export interface SwiftWalletKit {
 
     handleTonConnectUrl(url: string): Promise<void>;
 
-    approveConnectRequest(request: ConnectionRequestEvent): Promise<void>;
+    approveConnectRequest(request: ConnectionRequest): Promise<void>;
 
-    rejectConnectRequest(request: ConnectionRequestEvent, reason?: string): Promise<void>;
+    rejectConnectRequest(request: ConnectionRequest, reason?: string): Promise<void>;
 
-    approveTransactionRequest(request: TransactionRequestEvent): Promise<TransactionApprovalResponse>;
+    approveTransactionRequest(request: SendTransactionRequest): Promise<SendTransactionApprovalResponse>;
+    rejectTransactionRequest(request: SendTransactionRequest, reason?: string): Promise<void>;
 
-    rejectTransactionRequest(request: TransactionRequestEvent, reason?: string): Promise<void>;
+    approveSignDataRequest(request: SignDataRequest): Promise<SignDataApprovalResponse>;
 
-    approveSignDataRequest(request: SignDataRequestEvent): Promise<SignDataApprovalResponse>;
-
-    rejectSignDataRequest(request: SignDataRequestEvent, reason?: string): Promise<void>;
+    rejectSignDataRequest(request: SignDataRequest, reason?: string): Promise<void>;
 
     disconnect(sessionId: string): Promise<void>;
 

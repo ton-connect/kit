@@ -43,8 +43,6 @@ export class WalletManager {
      * Get wallet by wallet ID (network:address format)
      */
     getWallet(walletId: WalletId): Wallet | undefined {
-        console.log('Getting wallet with ID:', walletId);
-        console.log('Wallets IDs:', Array.from(this.wallets.keys()));
         return this.wallets.get(walletId) || undefined;
     }
 
