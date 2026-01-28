@@ -17,6 +17,10 @@ import { log, warn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
 import { ensureWalletKitLoaded, TonWalletKit } from './moduleLoader';
 import { getInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
+import {
+    hasAndroidSessionManager,
+    AndroidTONConnectSessionsManager,
+} from '../adapters/AndroidTONConnectSessionsManager';
 
 export interface InitTonWalletKitDeps {
     emit: (type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeEvent['data']) => void;
@@ -160,6 +164,14 @@ export async function initTonWalletKit(
         kitOptions.storage = {
             allowMemory: true,
         };
+    }
+
+    // Set up custom session manager if native bridge provides session management
+    if (hasAndroidSessionManager()) {
+        log('[walletkitBridge] Using Android native session manager');
+        kitOptions.sessionManager = new AndroidTONConnectSessionsManager();
+    } else {
+        log('[walletkitBridge] Using default WalletKit session manager');
     }
 
     if (!TonWalletKit) {
