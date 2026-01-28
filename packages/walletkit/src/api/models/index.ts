@@ -32,6 +32,11 @@ export type {
     ConnectionRequestEventRequestedItem,
     ConnectionRequestEventPreviewPermission,
 } from './bridge/ConnectionRequestEvent';
+export type {
+    ConnectionApprovalResponse,
+    ConnectionApprovalProof,
+    ConnectionApprovalProofDomain,
+} from './bridge/ConnectionApprovalResponse';
 export type { DisconnectionEvent } from './bridge/DisconnectionEvent';
 export type { SignDataApprovalResponse } from './bridge/SignDataApprovalResponse';
 export type { SignDataRequestEvent, SignDataRequestEventPreview, SignDataPreview } from './bridge/SignDataRequestEvent';

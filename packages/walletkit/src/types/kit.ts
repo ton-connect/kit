@@ -25,6 +25,7 @@ import type {
     TransactionApprovalResponse,
     SignDataApprovalResponse,
     TONConnectSession,
+    ConnectionApprovalResponse,
 } from '../api/models';
 
 /**
@@ -84,7 +85,10 @@ export interface ITonWalletKit {
     // === Request Processing ===
 
     /** Approve a connect request */
-    approveConnectRequest(event: ConnectionRequestEvent): Promise<void>;
+    approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response: ConnectionApprovalResponse | undefined,
+    ): Promise<void>;
     /** Reject a connect request */
     rejectConnectRequest(
         event: ConnectionRequestEvent,
@@ -93,7 +97,10 @@ export interface ITonWalletKit {
     ): Promise<void>;
 
     /** Approve a transaction request */
-    approveTransactionRequest(event: TransactionRequestEvent): Promise<TransactionApprovalResponse>;
+    approveTransactionRequest(
+        event: TransactionRequestEvent,
+        response: TransactionApprovalResponse | undefined,
+    ): Promise<TransactionApprovalResponse>;
 
     /** Reject a transaction request */
     rejectTransactionRequest(
@@ -102,7 +109,10 @@ export interface ITonWalletKit {
     ): Promise<void>;
 
     /** Approve a sign data request */
-    approveSignDataRequest(event: SignDataRequestEvent): Promise<SignDataApprovalResponse>;
+    approveSignDataRequest(
+        event: SignDataRequestEvent,
+        response: SignDataApprovalResponse | undefined,
+    ): Promise<SignDataApprovalResponse>;
 
     /** Reject a sign data request */
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;

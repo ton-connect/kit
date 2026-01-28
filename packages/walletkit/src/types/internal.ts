@@ -69,6 +69,7 @@ export type EventApprovalBase = {
     messageId?: string;
 
     traceId?: string;
+    isJsBridge?: boolean;
 };
 
 // Bridge event types (raw from bridge)

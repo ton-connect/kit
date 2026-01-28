@@ -13,7 +13,7 @@ export type { HumanReadableTx } from '../validation/transaction';
 export type { ValidationResult } from '../validation/types';
 
 // Event types
-export type { EventTransactionApproval, EventSignDataApproval } from './events';
+export type { EventConnectApproval, EventTransactionApproval, EventSignDataApproval } from './events';
 
 // Configuration types
 export type { TonWalletKitOptions, NetworkConfig, NetworkAdapters, ApiClientConfig } from './config';

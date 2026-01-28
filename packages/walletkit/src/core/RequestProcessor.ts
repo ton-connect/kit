@@ -48,6 +48,9 @@ import type {
     TransactionApprovalResponse,
     SignDataApprovalResponse,
     Base64String,
+    ConnectionApprovalResponse,
+    ConnectionApprovalProof,
+    ConnectionApprovalProofDomain,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
 import type { Wallet } from '../api/interfaces';
@@ -97,170 +100,84 @@ export class RequestProcessor {
     /**
      * Process connect request approval
      */
-    async approveConnectRequest(event: ConnectionRequestEvent | EventConnectApproval): Promise<void> {
+    async approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response: ConnectionApprovalResponse | undefined,
+    ): Promise<void> {
         try {
             // If event is ConnectionRequestEvent, we need to create approval ourself
-            if ('preview' in event) {
-                const walletId = event.walletId;
+            const walletId = event.walletId;
 
-                if (!walletId) {
-                    const error = new WalletKitError(
-                        ERROR_CODES.WALLET_REQUIRED,
-                        'Wallet is required for connect request approval',
-                        undefined,
-                        { eventId: event.id },
-                    );
-                    throw error;
-                }
-
-                const wallet = this.getWalletFromEvent(event);
-                if (!wallet) {
-                    const error = new WalletKitError(
-                        ERROR_CODES.WALLET_NOT_FOUND,
-                        'Wallet not found for connect request',
-                        undefined,
-                        { walletId, eventId: event.id },
-                    );
-                    throw error;
-                }
-
-                // Create session for this connection'
-                const newSession = await this.sessionManager.createSession(
-                    event.from || (await getSecureRandomBytes(32)).toString('hex'),
-                    {
-                        name: event.preview.dAppInfo?.name || '',
-                        url: event.preview.dAppInfo?.url || '',
-                        iconUrl: event.preview.dAppInfo?.iconUrl || '',
-                        description: event.preview.dAppInfo?.description || '',
-                    },
-                    wallet,
-                    event.isJsBridge ?? false,
-                );
-                // Create bridge session
-                await this.bridgeManager.createSession(newSession.sessionId);
-                // Send approval response
-                const response = await this.createConnectApprovalResponse(event);
-                // event.from = newSession.sessionId;
-                await this.bridgeManager.sendResponse(event, response.result);
-
-                if (this.analytics) {
-                    const sessionData = event.from
-                        ? await this.sessionManager.getSession(newSession.sessionId)
-                        : undefined;
-
-                    // Send wallet-sign-data-request-received event
-                    this.analytics.emitWalletConnectAccepted({
-                        client_id: event.from,
-                        wallet_id: sessionData?.publicKey,
-                        trace_id: event.traceId,
-                        network_id: wallet.getNetwork().chainId,
-                        origin_url: event.dAppInfo?.url,
-                        dapp_name: event.dAppInfo?.name,
-                        is_ton_addr: event.requestedItems.some((item) => item.type === 'ton_addr'),
-                        is_ton_proof: event.requestedItems.some((item) => item.type === 'ton_proof'),
-                        manifest_json_url: event.dAppInfo?.manifestUrl,
-                        proof_payload_size: event.requestedItems.find((item) => item.type === 'ton_proof')?.value
-                            ?.payload?.length,
-                    });
-                    this.analytics.emitWalletConnectResponseSent({
-                        client_id: event.from,
-                        wallet_id: sessionData?.publicKey,
-                        trace_id: event.traceId,
-                        dapp_name: event.dAppInfo?.name,
-                        origin_url: event.dAppInfo?.url,
-                        is_ton_addr: event.requestedItems.some((item) => item.type === 'ton_addr'),
-                        is_ton_proof: event.requestedItems.some((item) => item.type === 'ton_proof'),
-                        manifest_json_url: event.preview.dAppInfo?.manifestUrl,
-                        proof_payload_size: event.requestedItems.find((item) => item.type === 'ton_proof')?.value
-                            .payload?.length,
-                        network_id: wallet.getNetwork().chainId,
-                    });
-                }
-            } else if ('result' in event) {
-                const walletId = event.walletId;
-
-                if (!walletId) {
-                    const error = new WalletKitError(
-                        ERROR_CODES.WALLET_REQUIRED,
-                        'Wallet is required for connect approval result',
-                        undefined,
-                        { eventId: event.id },
-                    );
-                    throw error;
-                }
-
-                const wallet = this.getWalletFromEvent(event);
-                if (!wallet) {
-                    const error = new WalletKitError(
-                        ERROR_CODES.WALLET_NOT_FOUND,
-                        'Wallet not found for connect approval result',
-                        undefined,
-                        { walletId, eventId: event.id },
-                    );
-                    throw error;
-                }
-
-                const isJsBridge = false;
-                // If event is EventConnectApproval, we need to send response to dApp and create session
-                await this.sessionManager.createSession(
-                    event.from || (await getSecureRandomBytes(32)).toString('hex'),
-                    {
-                        name: event.result.dAppName,
-                        url: event.result.dAppUrl,
-                        iconUrl: event.result.dAppIconUrl,
-                        description: event.result.dAppDescription,
-                    },
-                    wallet,
-                    isJsBridge,
-                );
-                await this.bridgeManager.sendResponse(event, event.result.response);
-
-                if (this.analytics) {
-                    const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
-
-                    // Send wallet-sign-data-request-received event
-                    this.analytics.emitWalletConnectAccepted({
-                        client_id: event.from,
-                        wallet_id: sessionData?.publicKey,
-                        trace_id: event.traceId,
-                        network_id: wallet.getNetwork().chainId,
-                        is_ton_addr: event.result.response.payload.items.some((item) => item.name === 'ton_addr'),
-                        is_ton_proof: event.result.response.payload.items.some((item) => item.name === 'ton_proof'),
-                        manifest_json_url: event.result.dAppUrl,
-                        proof_payload_size: (
-                            event.result.response.payload.items.find(
-                                (item) => item.name === 'ton_proof',
-                            ) as TonProofItemReplySuccess
-                        )?.proof?.payload?.length,
-                        dapp_name: event.result.dAppName,
-                        origin_url: event.result.dAppUrl,
-                    });
-                    this.analytics.emitWalletConnectResponseSent({
-                        client_id: event.from,
-                        wallet_id: sessionData?.publicKey,
-                        trace_id: event.traceId,
-                        dapp_name: event.result.dAppName,
-                        origin_url: event.result.dAppUrl,
-                        is_ton_addr: event.result.response.payload.items.some((item) => item.name === 'ton_addr'),
-                        is_ton_proof: event.result.response.payload.items.some((item) => item.name === 'ton_proof'),
-                        manifest_json_url: event.result.dAppUrl,
-                        proof_payload_size: (
-                            event.result.response.payload.items.find(
-                                (item) => item.name === 'ton_proof',
-                            ) as TonProofItemReplySuccess
-                        )?.proof?.payload?.length,
-                        network_id: wallet.getNetwork().chainId,
-                    });
-                }
-            } else {
-                log.error('Invalid event', { event });
+            if (!walletId) {
                 const error = new WalletKitError(
-                    ERROR_CODES.INVALID_REQUEST_EVENT,
-                    'Invalid connect request event',
+                    ERROR_CODES.WALLET_REQUIRED,
+                    'Wallet is required for connect request approval',
                     undefined,
-                    { event },
+                    { eventId: event.id },
                 );
                 throw error;
+            }
+
+            const wallet = this.getWalletFromEvent(event);
+            if (!wallet) {
+                const error = new WalletKitError(
+                    ERROR_CODES.WALLET_NOT_FOUND,
+                    'Wallet not found for connect request',
+                    undefined,
+                    { walletId, eventId: event.id },
+                );
+                throw error;
+            }
+
+            // Create session for this connection'
+            const newSession = await this.sessionManager.createSession(
+                event.from || (await getSecureRandomBytes(32)).toString('hex'),
+                {
+                    name: event.preview.dAppInfo?.name || '',
+                    url: event.preview.dAppInfo?.url || '',
+                    iconUrl: event.preview.dAppInfo?.iconUrl || '',
+                    description: event.preview.dAppInfo?.description || '',
+                },
+                wallet,
+                event.isJsBridge ?? false,
+            );
+            // Create bridge session
+            await this.bridgeManager.createSession(newSession.sessionId);
+            // Send approval response
+            const tonConnectResponse = await this.createConnectApprovalResponse(event, response?.proof);
+            // event.from = newSession.sessionId;
+            await this.bridgeManager.sendResponse(event, tonConnectResponse.result);
+
+            if (this.analytics) {
+                const sessionData = event.from ? await this.sessionManager.getSession(newSession.sessionId) : undefined;
+
+                // Send wallet-sign-data-request-received event
+                this.analytics.emitWalletConnectAccepted({
+                    client_id: event.from,
+                    wallet_id: sessionData?.publicKey,
+                    trace_id: event.traceId,
+                    network_id: wallet.getNetwork().chainId,
+                    origin_url: event.dAppInfo?.url,
+                    dapp_name: event.dAppInfo?.name,
+                    is_ton_addr: event.requestedItems.some((item) => item.type === 'ton_addr'),
+                    is_ton_proof: event.requestedItems.some((item) => item.type === 'ton_proof'),
+                    manifest_json_url: event.dAppInfo?.manifestUrl,
+                    proof_payload_size: event.requestedItems.find((item) => item.type === 'ton_proof')?.value?.payload
+                        ?.length,
+                });
+                this.analytics.emitWalletConnectResponseSent({
+                    client_id: event.from,
+                    wallet_id: sessionData?.publicKey,
+                    trace_id: event.traceId,
+                    dapp_name: event.dAppInfo?.name,
+                    origin_url: event.dAppInfo?.url,
+                    is_ton_addr: event.requestedItems.some((item) => item.type === 'ton_addr'),
+                    is_ton_proof: event.requestedItems.some((item) => item.type === 'ton_proof'),
+                    manifest_json_url: event.preview.dAppInfo?.manifestUrl,
+                    proof_payload_size: event.requestedItems.find((item) => item.type === 'ton_proof')?.value.payload
+                        ?.length,
+                    network_id: wallet.getNetwork().chainId,
+                });
             }
 
             return;
@@ -343,25 +260,18 @@ export class RequestProcessor {
      * Process transaction request approval
      */
     async approveTransactionRequest(
-        event: TransactionRequestEvent | EventTransactionApproval,
+        event: TransactionRequestEvent,
+        response: TransactionApprovalResponse | undefined,
     ): Promise<TransactionApprovalResponse> {
         try {
-            if ('result' in event) {
-                if (!this.walletKitOptions.dev?.disableNetworkSend) {
-                    // Get the client for the wallet's network
-                    const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(event.result.signedBoc));
-                }
-
-                // Send approval response
-                const response: SendTransactionRpcResponseSuccess = {
-                    result: event.result.signedBoc,
+            if (response) {
+                const tonConnectResponse: SendTransactionRpcResponseSuccess = {
+                    result: response.signedBoc,
                     id: event.id || '',
                 };
-
-                await this.bridgeManager.sendResponse(event, response);
-                this.sendTransactionAnalytics(event, event.result.signedBoc);
-                return { signedBoc: event.result.signedBoc };
+                await this.bridgeManager.sendResponse(event, tonConnectResponse);
+                this.sendTransactionAnalytics(event, response.signedBoc);
+                return response;
             } else {
                 const signedBoc = await this.signTransaction(event);
 
@@ -463,24 +373,35 @@ export class RequestProcessor {
      * Process sign data request approval
      */
     async approveSignDataRequest(
-        event: SignDataRequestEvent | EventSignDataApproval,
+        event: SignDataRequestEvent,
+        response: SignDataApprovalResponse | undefined,
     ): Promise<SignDataApprovalResponse> {
         try {
-            if ('result' in event) {
-                // Send approval response
-                const response: SignDataRpcResponseSuccess = {
+            if (response) {
+                const wallet = this.getWalletFromEvent(event);
+
+                if (!wallet) {
+                    const error = new WalletKitError(
+                        ERROR_CODES.WALLET_REQUIRED,
+                        'Wallet approving for sign data request',
+                        undefined,
+                        { eventId: event.id },
+                    );
+                    throw error;
+                }
+
+                const tonConnectResponse: SignDataRpcResponseSuccess = {
                     id: event.id || '',
                     result: {
-                        signature: event.result.signature,
-                        address: event.result.address,
-                        timestamp: event.result.timestamp,
-                        domain: event.result.domain,
-                        payload: toTonConnectSignDataPayload(event.result.payload),
+                        signature: HexToBase64(response.signature),
+                        address: Address.parse(wallet.getAddress()).toRawString(),
+                        timestamp: response.timestamp,
+                        domain: response.domain,
+                        payload: toTonConnectSignDataPayload(event.payload),
                     },
                 };
 
-                await this.bridgeManager.sendResponse(event, response);
-                const wallet = this.getWalletFromEvent(event);
+                await this.bridgeManager.sendResponse(event, tonConnectResponse);
 
                 if (this.analytics) {
                     const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
@@ -499,7 +420,7 @@ export class RequestProcessor {
                     });
                 }
 
-                return { signature: Base64ToHex(event.result.signature) };
+                return response;
             } else {
                 if (!event.domain) {
                     const error = new WalletKitError(
@@ -586,7 +507,11 @@ export class RequestProcessor {
                     });
                 }
 
-                return { signature: signature };
+                return {
+                    timestamp: signData.timestamp,
+                    domain: signData.domain,
+                    signature: signature,
+                };
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -647,6 +572,7 @@ export class RequestProcessor {
      */
     private async createConnectApprovalResponse(
         event: ConnectionRequestEvent,
+        proof: ConnectionApprovalProof | undefined,
     ): Promise<{ result: ConnectEventSuccess }> {
         const walletId = event.walletId;
         const walletAddress = this.getWalletAddressFromEvent(event);
@@ -707,46 +633,62 @@ export class RequestProcessor {
         // This would require access to the original connect request items
         // and the ability to sign the proof with the wallet's private key
         const proofItem = event.requestedItems.find((item) => item.type === 'ton_proof');
+
         if (proofItem) {
-            let domain = {
-                lengthBytes: 0,
-                value: '',
-            };
-            try {
-                const dAppUrl = new URL(event.preview.dAppInfo?.url || '');
-                domain = {
-                    lengthBytes: Buffer.from(dAppUrl.host).length,
-                    value: dAppUrl.host,
+            if (!proof) {
+                let domain = {
+                    lengthBytes: 0,
+                    value: '',
                 };
-            } catch (error) {
-                log.error('Failed to parse domain', { error });
-            }
-            // const walletKeyPair = secretKeyToED25519(decryptedData.seed);
+                try {
+                    const dAppUrl = new URL(event.preview.dAppInfo?.url || '');
+                    domain = {
+                        lengthBytes: Buffer.from(dAppUrl.host).length,
+                        value: dAppUrl.host,
+                    };
+                } catch (error) {
+                    log.error('Failed to parse domain', { error });
+                }
 
-            const timestamp = Math.floor(Date.now() / 1000);
-            const signMessage = CreateTonProofMessage({
-                address: Address.parse(address),
-                domain,
-                payload: proofItem.value.payload,
-                stateInit: walletStateInit,
-                timestamp,
-            });
-
-            const signature = await wallet.getSignedTonProof(signMessage);
-            // remove 0x
-            const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
-            connectResponse.payload.items.push({
-                name: 'ton_proof',
-                proof: {
-                    timestamp,
-                    domain: {
-                        lengthBytes: domain.lengthBytes,
-                        value: domain.value,
-                    },
+                const timestamp = Math.floor(Date.now() / 1000);
+                const signMessage = CreateTonProofMessage({
+                    address: Address.parse(address),
+                    domain,
                     payload: proofItem.value.payload,
-                    signature: signatureBase64,
-                },
-            });
+                    stateInit: walletStateInit,
+                    timestamp,
+                });
+
+                const signature = await wallet.getSignedTonProof(signMessage);
+                // remove 0x
+                const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
+
+                connectResponse.payload.items.push({
+                    name: 'ton_proof',
+                    proof: {
+                        timestamp,
+                        domain: {
+                            lengthBytes: domain.lengthBytes,
+                            value: domain.value,
+                        },
+                        payload: proofItem.value.payload,
+                        signature: signatureBase64,
+                    },
+                });
+            } else {
+                connectResponse.payload.items.push({
+                    name: 'ton_proof',
+                    proof: {
+                        timestamp: proof.timestamp,
+                        domain: {
+                            lengthBytes: proof.domain.lengthBytes,
+                            value: proof.domain.value,
+                        },
+                        payload: proofItem.value.payload,
+                        signature: proof.signature,
+                    },
+                });
+            }
         }
 
         return {

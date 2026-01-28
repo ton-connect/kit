@@ -18,7 +18,7 @@ import type {
 } from '@tonconnect/protocol';
 import { CHAIN, SessionCrypto } from '@tonconnect/protocol';
 
-import type { ITonWalletKit, TonWalletKitOptions } from '../types';
+import type { EventConnectApproval, ITonWalletKit, TonWalletKitOptions } from '../types';
 import { Initializer, wrapWalletInterface } from './Initializer';
 import type { InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
@@ -58,6 +58,7 @@ import type {
     TransactionApprovalResponse,
     SignDataApprovalResponse,
     TONConnectSession,
+    ConnectionApprovalResponse,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
 
@@ -614,9 +615,12 @@ export class TonWalletKit implements ITonWalletKit {
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: ConnectionRequestEvent): Promise<void> {
+    async approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response: ConnectionApprovalResponse | undefined,
+    ): Promise<void> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveConnectRequest(event);
+        return this.requestProcessor.approveConnectRequest(event, response);
     }
 
     async rejectConnectRequest(
@@ -628,9 +632,12 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.rejectConnectRequest(event, reason, errorCode);
     }
 
-    async approveTransactionRequest(event: TransactionRequestEvent): Promise<TransactionApprovalResponse> {
+    async approveTransactionRequest(
+        event: TransactionRequestEvent,
+        response: TransactionApprovalResponse | undefined,
+    ): Promise<TransactionApprovalResponse> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveTransactionRequest(event);
+        return this.requestProcessor.approveTransactionRequest(event, response);
     }
 
     async rejectTransactionRequest(
@@ -641,9 +648,12 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async approveSignDataRequest(event: SignDataRequestEvent): Promise<SignDataApprovalResponse> {
+    async approveSignDataRequest(
+        event: SignDataRequestEvent,
+        response: SignDataApprovalResponse | undefined,
+    ): Promise<SignDataApprovalResponse> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveSignDataRequest(event);
+        return this.requestProcessor.approveSignDataRequest(event, response);
     }
 
     async rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void> {

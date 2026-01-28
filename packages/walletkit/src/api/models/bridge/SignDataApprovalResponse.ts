@@ -16,4 +16,13 @@ export interface SignDataApprovalResponse {
      * Cryptographic signature of the signed data in hexadecimal format
      */
     signature: Hex;
+    /**
+     * Timestamp when the data was signed
+     * @format int
+     */
+    timestamp: number;
+    /**
+     * Domain associated with the sign request
+     */
+    domain: string;
 }
