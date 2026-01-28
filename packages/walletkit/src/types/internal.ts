@@ -17,13 +17,11 @@ import type {
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
-import type { WalletId } from '../utils/walletId';
 import type {
     ExtraCurrencies,
     TransactionRequest,
     TransactionRequestMessage,
     BridgeEvent,
-    UserFriendlyAddress,
     Base64String,
 } from '../api/models';
 import { SendModeFromValue } from '../utils/sendMode';
@@ -58,18 +56,6 @@ export interface StorageAdapter {
 export interface EventCallback<T = any> {
     (event: T): void | Promise<void>;
 }
-
-export type EventApprovalBase = {
-    id: string;
-    from: string;
-    sessionId: string;
-    walletId: WalletId;
-    walletAddress?: UserFriendlyAddress;
-
-    messageId?: string;
-
-    traceId?: string;
-};
 
 // Bridge event types (raw from bridge)
 export interface RawBridgeEventGeneric extends BridgeEvent {

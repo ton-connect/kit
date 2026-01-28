@@ -7,7 +7,12 @@
  */
 
 import 'dotenv/config';
-import type { ConnectionRequestEvent, TransactionRequestEvent } from '@ton/walletkit';
+import type {
+    ConnectionRequest,
+    ConnectionRequestEvent,
+    SendTransactionRequest,
+    SendTransactionRequestEvent,
+} from '@ton/walletkit';
 
 import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
 
@@ -38,27 +43,27 @@ export async function main() {
 
 export function createMinimalUiStateWiring(kit: {
     onConnectRequest: (handler: (req: ConnectionRequestEvent) => void) => void;
-    onTransactionRequest: (handler: (tx: TransactionRequestEvent) => void) => void;
+    onTransactionRequest: (handler: (tx: SendTransactionRequestEvent) => void) => void;
     getWallet: (idOrAddress: string) => { getAddress: () => string } | undefined;
-    approveConnectRequest: (req: ConnectionRequestEvent) => Promise<unknown>;
-    rejectConnectRequest: (req: ConnectionRequestEvent, reason: string) => Promise<unknown>;
-    approveTransactionRequest: (req: TransactionRequestEvent) => Promise<unknown>;
-    rejectTransactionRequest: (req: TransactionRequestEvent, reason: string) => Promise<unknown>;
+    approveConnectRequest: (req: ConnectionRequest) => Promise<unknown>;
+    rejectConnectRequest: (req: ConnectionRequest, reason: string) => Promise<unknown>;
+    approveTransactionRequest: (req: SendTransactionRequest) => Promise<unknown>;
+    rejectTransactionRequest: (req: SendTransactionRequest, reason: string) => Promise<unknown>;
 }) {
     // SAMPLE_START: MINIMAL_UI_STATE_WIRING
     type AppState = {
-        connectModal?: { request: ConnectionRequestEvent };
-        txModal?: { request: TransactionRequestEvent };
+        connectModal?: { event: ConnectionRequestEvent };
+        txModal?: { event: SendTransactionRequestEvent };
     };
 
     const state: AppState = {};
 
     kit.onConnectRequest((req) => {
-        state.connectModal = { request: req };
+        state.connectModal = { event: req };
     });
 
     kit.onTransactionRequest((tx) => {
-        state.txModal = { request: tx };
+        state.txModal = { event: tx };
     });
 
     async function approveConnect() {
@@ -67,26 +72,26 @@ export function createMinimalUiStateWiring(kit: {
         const wallet = kit.getWallet(address);
         if (!wallet) return;
         // Set wallet address on the request
-        state.connectModal.request.walletAddress = wallet.getAddress();
-        await kit.approveConnectRequest(state.connectModal.request);
+        state.connectModal.event.walletAddress = wallet.getAddress();
+        await kit.approveConnectRequest({ event: state.connectModal.event });
         state.connectModal = undefined;
     }
 
     async function rejectConnect() {
         if (!state.connectModal) return;
-        await kit.rejectConnectRequest(state.connectModal.request, 'User rejected');
+        await kit.rejectConnectRequest({ event: state.connectModal.event }, 'User rejected');
         state.connectModal = undefined;
     }
 
     async function approveTx() {
         if (!state.txModal) return;
-        await kit.approveTransactionRequest(state.txModal.request);
+        await kit.approveTransactionRequest({ event: state.txModal.event });
         state.txModal = undefined;
     }
 
     async function rejectTx() {
         if (!state.txModal) return;
-        await kit.rejectTransactionRequest(state.txModal.request, 'User rejected');
+        await kit.rejectTransactionRequest({ event: state.txModal.event }, 'User rejected');
         state.txModal = undefined;
     }
     // SAMPLE_END: MINIMAL_UI_STATE_WIRING

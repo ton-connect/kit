@@ -11,7 +11,7 @@ import { Network } from '@ton/walletkit';
 import type {
     JettonInfo,
     TransactionEmulatedPreview,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     TransactionTraceMoneyFlowItem,
 } from '@ton/walletkit';
 import { Address } from '@ton/core';
@@ -31,7 +31,7 @@ import { formatUnits } from '../utils/units';
 const log = createComponentLogger('TransactionRequestModal');
 
 interface TransactionRequestModalProps {
-    request: TransactionRequestEvent;
+    request: SendTransactionRequestEvent;
     savedWallets: SavedWallet[];
     isOpen: boolean;
 }

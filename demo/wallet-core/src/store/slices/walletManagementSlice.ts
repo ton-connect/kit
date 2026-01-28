@@ -497,11 +497,11 @@ export const createWalletManagementSlice =
                 state.walletManagement.publicKey = undefined;
                 state.walletManagement.events = [];
                 state.walletManagement.currentWallet = undefined;
-                state.tonConnect.pendingConnectRequest = undefined;
+                state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
-                state.tonConnect.pendingTransactionRequest = undefined;
+                state.tonConnect.pendingTransactionRequestEvent = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
-                state.tonConnect.pendingSignDataRequest = undefined;
+                state.tonConnect.pendingSignDataRequestEvent = undefined;
                 state.tonConnect.isSignDataModalOpen = false;
             });
         },
