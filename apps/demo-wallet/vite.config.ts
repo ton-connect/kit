@@ -11,14 +11,14 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-// import bundleAnalyzer from 'vite-bundle-analyzer';
+import bundleAnalyzer from 'vite-bundle-analyzer';
 
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [
         react(),
         tailwindcss(),
-        // bundleAnalyzer()
+        process.env.ANALYZE === 'true' ? bundleAnalyzer() : null, // enable analyzer under env
     ],
     server: {
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
