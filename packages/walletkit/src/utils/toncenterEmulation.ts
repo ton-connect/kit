@@ -6,8 +6,8 @@
  *
  */
 
+import type { Slice } from '@ton/core';
 import { Address, Cell } from '@ton/core';
-import { parseInternal } from '@truecarry/tlb-abi';
 
 import type { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
 import { toTransactionEmulatedTrace } from '../types/toncenter/emulation';
@@ -91,6 +91,47 @@ export class FetchToncenterEmulationError extends Error {
     }
 }
 
+const JETTON_TRANSFER_OPCODE = 0x0f8a7ea5;
+
+interface JettonTransfer {
+    kind: 'JettonTransfer';
+    query_id: bigint;
+    amount: bigint;
+    destination: Address | null;
+    response_destination: Address | null;
+    custom_payload: Cell | null;
+    forward_ton_amount: bigint;
+}
+
+function parseJettonTransfer(slice: Slice): JettonTransfer {
+    if (slice.remainingBits < 32 || slice.preloadUint(32) !== JETTON_TRANSFER_OPCODE) {
+        throw new Error('Expected JettonTransfer opcode 0x0f8a7ea5');
+    }
+
+    slice.loadUint(32); // skip opcode
+
+    const queryId = slice.loadUintBig(64);
+    const amount = slice.loadCoins();
+    const destination = slice.loadMaybeAddress();
+    const responseDestination = slice.loadMaybeAddress();
+
+    // Load Maybe<Cell> for custom_payload
+    const customPayloadFlag = slice.loadUint(1);
+    const customPayload = customPayloadFlag === 0 ? null : slice.loadRef();
+
+    const forwardTonAmount = slice.loadCoins();
+
+    return {
+        kind: 'JettonTransfer',
+        query_id: queryId,
+        amount,
+        destination,
+        response_destination: responseDestination,
+        custom_payload: customPayload,
+        forward_ton_amount: forwardTonAmount,
+    };
+}
+
 /**
  * Processes toncenter emulation result to extract money flow
  */
@@ -141,18 +182,21 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
             continue;
         }
 
-        const parsed = parseInternal(Cell.fromBase64(t.in_msg.message_content.body).beginParse());
-
-        if (parsed?.internal !== 'jetton_transfer') {
+        let parsed: JettonTransfer | null = null;
+        try {
+            parsed = parseJettonTransfer(Cell.fromBase64(t.in_msg.message_content.body).beginParse());
+        } catch (_) {
             continue;
         }
-
+        if (!parsed) {
+            continue;
+        }
         const from = asMaybeAddressFriendly(t.in_msg.source);
-        const to = parsed.data.destination instanceof Address ? parsed.data.destination : null;
+        const to = parsed.destination instanceof Address ? parsed.destination : null;
         if (!to) {
             continue;
         }
-        const jettonAmount = parsed.data.amount;
+        const jettonAmount = parsed.amount;
 
         const metadata = emulation.metadata[t.account];
         if (!metadata || !metadata?.token_info) {
