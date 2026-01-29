@@ -19,6 +19,7 @@ export interface ConnectionApprovalProof {
     signature: Base64String;
     timestamp: number;
     domain: ConnectionApprovalProofDomain;
+    payload: string;
 }
 
 export interface ConnectionApprovalProofDomain {

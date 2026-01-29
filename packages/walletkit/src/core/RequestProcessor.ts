@@ -675,7 +675,7 @@ export class RequestProcessor {
                             lengthBytes: proof.domain.lengthBytes,
                             value: proof.domain.value,
                         },
-                        payload: proofItem.value.payload,
+                        payload: proof.payload,
                         signature: proof.signature,
                     },
                 });
