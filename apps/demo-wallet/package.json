@@ -19,7 +19,7 @@
     "build:website": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "clean": "git clean -xdf .cache .turbo dist dist-extension-chrome dist-extension-firefox node_modules",
+    "clean": "git clean -xdf .cache .turbo dist dist-extension-chrome dist-extension-firefox node_modules allure-results playwright-report test-results",
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {

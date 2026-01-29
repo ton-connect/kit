@@ -13,11 +13,11 @@ import type { BridgeEvent } from './BridgeEvent';
 /**
  * Event containing a transaction request from a dApp via TON Connect.
  */
-export interface TransactionRequestEvent extends BridgeEvent {
+export interface SendTransactionRequestEvent extends BridgeEvent {
     /**
      * Preview information for UI display
      */
-    preview: TransactionRequestEventPreview;
+    preview: SendTransactionRequestEventPreview;
     /**
      * Raw transaction request data
      */
@@ -27,7 +27,7 @@ export interface TransactionRequestEvent extends BridgeEvent {
 /**
  * Preview data for displaying transaction request in the wallet UI.
  */
-export interface TransactionRequestEventPreview {
+export interface SendTransactionRequestEventPreview {
     /**
      * Emulated transaction preview with actions and traces
      */

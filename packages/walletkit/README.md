@@ -3,7 +3,7 @@
 A production-ready wallet-side integration layer for TON Connect, designed for building TON wallets at scale
 
 [![npm @ton/walletkit version](https://img.shields.io/npm/v/@ton/walletkit)](https://www.npmjs.com/package/@ton/walletkit)
-[![Release](https://github.com/ton-connect/kit/actions/workflows/release.yml/badge.svg)](https://github.com/ton-connect/kit/actions/workflows/release.yml)
+[![Release](https://github.com/ton-connect/kit/actions/workflows/release.yml/badge.svg?branch=release)](https://github.com/ton-connect/kit/actions/workflows/release.yml)
 [![Tests](https://github.com/ton-connect/kit/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/ton-connect/kit/actions/workflows/test.yml)
 
 ## Overview

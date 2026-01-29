@@ -22,6 +22,7 @@ export type { TokenAmount } from './core/TokenAmount';
 export type { TokenAnimation } from './core/TokenAnimation';
 export type { TokenImage } from './core/TokenImage';
 export type { TokenInfo } from './core/TokenInfo';
+export type { RawStackItem } from './core/RawStackItem';
 
 // Bridge models
 export type { BridgeEvent } from './bridge/BridgeEvent';
@@ -31,12 +32,21 @@ export type {
     ConnectionRequestEventRequestedItem,
     ConnectionRequestEventPreviewPermission,
 } from './bridge/ConnectionRequestEvent';
+export type {
+    ConnectionApprovalResponse,
+    ConnectionApprovalProof,
+    ConnectionApprovalProofDomain,
+} from './bridge/ConnectionApprovalResponse';
 export type { DisconnectionEvent } from './bridge/DisconnectionEvent';
 export type { SignDataApprovalResponse } from './bridge/SignDataApprovalResponse';
 export type { SignDataRequestEvent, SignDataRequestEventPreview, SignDataPreview } from './bridge/SignDataRequestEvent';
-export type { TransactionApprovalResponse } from './bridge/TransactionApprovalResponse';
-export type { TransactionRequestEvent, TransactionRequestEventPreview } from './bridge/TransactionRequestEvent';
+export type { SendTransactionApprovalResponse } from './bridge/SendTransactionApprovalResponse';
+export type {
+    SendTransactionRequestEvent,
+    SendTransactionRequestEventPreview,
+} from './bridge/SendTransactionRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
+export type { TONConnectSession } from './bridge/TONConnectSession';
 
 // Jetton models
 export type { Jetton } from './jettons/Jetton';
@@ -71,3 +81,6 @@ export type {
     TransactionTraceMoneyFlow,
     TransactionTraceMoneyFlowItem,
 } from './transactions/TransactionTraceMoneyFlow';
+
+// RPC models
+export type { GetMethodResult } from './rpc/GetMethodResult';

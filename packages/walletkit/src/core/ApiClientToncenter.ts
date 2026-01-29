@@ -11,9 +11,8 @@ import { Address } from '@ton/core';
 import { CHAIN } from '@tonconnect/protocol';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../utils/base64';
-import type { FullAccountState, GetResult, TransactionId } from '../types/toncenter/api';
+import type { FullAccountState, TransactionId } from '../types/toncenter/api';
 import type { JettonInfo, ToncenterEmulationResponse } from '../types';
-import type { RawStackItem } from '../utils/tvmStack';
 import type {
     ApiClient,
     GetJettonsByOwnerRequest,
@@ -49,11 +48,13 @@ import {
 import { toAddressBook, toEvent } from '../types/toncenter/AccountEvent';
 import type {
     Base64String,
+    GetMethodResult,
     Jetton,
     JettonsResponse,
     Network,
     NFTsRequest,
     NFTsResponse,
+    RawStackItem,
     TokenAmount,
     TransactionsResponse,
     UserFriendlyAddress,
@@ -159,7 +160,7 @@ export class ApiClientToncenter implements ApiClient {
         method: string,
         stack: RawStackItem[] = [],
         seqno?: number,
-    ): Promise<GetResult> {
+    ): Promise<GetMethodResult> {
         const props: Record<string, unknown> = {
             address,
             method,

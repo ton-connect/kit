@@ -94,7 +94,7 @@ export const useWallet = () => {
 export const useTonConnect = () => {
     return useWalletStore(
         useShallow((state) => ({
-            pendingConnectRequest: state.tonConnect.pendingConnectRequest,
+            pendingConnectRequest: state.tonConnect.pendingConnectRequestEvent,
             isConnectModalOpen: state.tonConnect.isConnectModalOpen,
             handleTonConnectUrl: state.handleTonConnectUrl,
             showConnectRequest: state.showConnectRequest,
@@ -111,7 +111,7 @@ export const useTonConnect = () => {
 export const useTransactionRequests = () => {
     return useWalletStore(
         useShallow((state) => ({
-            pendingTransactionRequest: state.tonConnect.pendingTransactionRequest,
+            pendingTransactionRequest: state.tonConnect.pendingTransactionRequestEvent,
             isTransactionModalOpen: state.tonConnect.isTransactionModalOpen,
             showTransactionRequest: state.showTransactionRequest,
             approveTransactionRequest: state.approveTransactionRequest,
@@ -127,7 +127,7 @@ export const useTransactionRequests = () => {
 export const useSignDataRequests = () => {
     return useWalletStore(
         useShallow((state) => ({
-            pendingSignDataRequest: state.tonConnect.pendingSignDataRequest,
+            pendingSignDataRequest: state.tonConnect.pendingSignDataRequestEvent,
             isSignDataModalOpen: state.tonConnect.isSignDataModalOpen,
             showSignDataRequest: state.showSignDataRequest,
             approveSignDataRequest: state.approveSignDataRequest,

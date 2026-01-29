@@ -14,6 +14,7 @@ import type { DeviceInfo, WalletInfo } from './jsBridge';
 import type { BridgeConfig } from './internal';
 import type { ApiClient } from './toncenter/ApiClient';
 import type { AnalyticsManagerOptions } from '../analytics';
+import type { TONConnectSessionManager } from '../api/interfaces';
 
 /**
  * API client configuration options
@@ -45,6 +46,12 @@ export type NetworkAdapters = {
 export interface TonWalletKitOptions {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
+
+    /**
+     * Custom session manager implementation.
+     * If not provided, TONConnectStoredSessionManager will be used.
+     */
+    sessionManager?: TONConnectSessionManager;
 
     /**
      * Network configuration

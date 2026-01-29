@@ -12,7 +12,8 @@ export * from './types';
 export type * from './types/internal';
 export * from './errors';
 export { WalletManager } from './core/WalletManager';
-export { SessionManager } from './core/SessionManager';
+export { TONConnectStoredSessionManager } from './core/TONConnectStoredSessionManager';
+export type { TONConnectSessionManager } from './api/interfaces/TONConnectSessionManager';
 export { BridgeManager } from './core/BridgeManager';
 export { EventRouter } from './core/EventRouter';
 export { RequestProcessor } from './core/RequestProcessor';
@@ -95,12 +96,29 @@ export { wrapWalletInterface } from './core/Initializer';
 export { createDeviceInfo, createWalletManifest, getMaxOutgoingMessages } from './utils/getDefaultWalletConfig';
 export { Signer } from './utils/Signer';
 export { ParseStack, SerializeStack } from './utils/tvmStack';
+export type { RawStackItem } from './utils/tvmStack';
 export { Transport } from './bridge/transport/Transport';
 export { TONCONNECT_BRIDGE_EVENT } from './bridge/utils/messageTypes';
 export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/utils/timeouts';
 export { CreateTonProofMessageBytes } from './utils/tonProof';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 export { isValidAddress } from './utils/address';
+export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
+
+// API Client types (ApiClient is exported above)
+export type {
+    TransactionsByAddressRequest,
+    GetTransactionByHashRequest,
+    GetPendingTransactionsRequest,
+    GetTraceRequest,
+    GetPendingTraceRequest,
+    GetJettonsByOwnerRequest,
+    GetJettonsByAddressRequest,
+    GetEventsRequest,
+    GetEventsResponse,
+} from './types/toncenter/ApiClient';
+export type { FullAccountState } from './types/toncenter/api';
+export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
 
 // API Interfaces
 export type * from './api/interfaces';

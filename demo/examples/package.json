@@ -5,7 +5,9 @@
   "scripts": {
     "quality": "pnpm test --coverage",
     "test": "vitest run",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "clean": "git clean -xdf .turbo coverage node_modules",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@ton/walletkit": "workspace:*",

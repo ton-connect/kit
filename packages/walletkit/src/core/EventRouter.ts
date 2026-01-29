@@ -16,12 +16,12 @@ import { DisconnectHandler } from '../handlers/DisconnectHandler';
 import { validateBridgeEvent } from '../validation/events';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { WalletManager } from './WalletManager';
 import type { BridgeManager } from './BridgeManager';
 import type { AnalyticsManager } from '../analytics';
 import type {
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     BridgeEvent,
     RequestErrorEvent,
     DisconnectionEvent,
@@ -38,7 +38,7 @@ export class EventRouter {
 
     // Event callbacks
     private connectRequestCallback: EventCallback<ConnectionRequestEvent> | undefined = undefined;
-    private transactionRequestCallback: EventCallback<TransactionRequestEvent> | undefined = undefined;
+    private transactionRequestCallback: EventCallback<SendTransactionRequestEvent> | undefined = undefined;
     private signDataRequestCallback: EventCallback<SignDataRequestEvent> | undefined = undefined;
     private disconnectCallback: EventCallback<DisconnectionEvent> | undefined = undefined;
     private errorCallback: EventCallback<RequestErrorEvent> | undefined = undefined;
@@ -46,7 +46,7 @@ export class EventRouter {
     constructor(
         private config: TonWalletKitOptions,
         private eventEmitter: EventEmitter,
-        private sessionManager: SessionManager,
+        private sessionManager: TONConnectSessionManager,
         private walletManager: WalletManager,
         private analyticsManager?: AnalyticsManager,
     ) {
@@ -99,7 +99,7 @@ export class EventRouter {
         this.connectRequestCallback = callback;
     }
 
-    onTransactionRequest(callback: EventCallback<TransactionRequestEvent>): void {
+    onTransactionRequest(callback: EventCallback<SendTransactionRequestEvent>): void {
         this.transactionRequestCallback = callback;
     }
 
@@ -183,7 +183,7 @@ export class EventRouter {
     /**
      * Notify transaction request callbacks
      */
-    private async notifyTransactionRequestCallbacks(event: TransactionRequestEvent): Promise<void> {
+    private async notifyTransactionRequestCallbacks(event: SendTransactionRequestEvent): Promise<void> {
         return await this.transactionRequestCallback?.(event);
     }
 

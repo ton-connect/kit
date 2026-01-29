@@ -7,7 +7,7 @@
  */
 
 import 'dotenv/config';
-import type { ConnectionRequestEvent, TransactionRequestEvent } from '@ton/walletkit';
+import type { ConnectionRequestEvent, SendTransactionRequestEvent } from '@ton/walletkit';
 
 import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
 
@@ -38,17 +38,17 @@ export async function main() {
 
 export function createMinimalUiStateWiring(kit: {
     onConnectRequest: (handler: (req: ConnectionRequestEvent) => void) => void;
-    onTransactionRequest: (handler: (tx: TransactionRequestEvent) => void) => void;
+    onTransactionRequest: (handler: (tx: SendTransactionRequestEvent) => void) => void;
     getWallet: (idOrAddress: string) => { getAddress: () => string } | undefined;
     approveConnectRequest: (req: ConnectionRequestEvent) => Promise<unknown>;
     rejectConnectRequest: (req: ConnectionRequestEvent, reason: string) => Promise<unknown>;
-    approveTransactionRequest: (req: TransactionRequestEvent) => Promise<unknown>;
-    rejectTransactionRequest: (req: TransactionRequestEvent, reason: string) => Promise<unknown>;
+    approveTransactionRequest: (req: SendTransactionRequestEvent) => Promise<unknown>;
+    rejectTransactionRequest: (req: SendTransactionRequestEvent, reason: string) => Promise<unknown>;
 }) {
     // SAMPLE_START: MINIMAL_UI_STATE_WIRING
     type AppState = {
         connectModal?: { request: ConnectionRequestEvent };
-        txModal?: { request: TransactionRequestEvent };
+        txModal?: { request: SendTransactionRequestEvent };
     };
 
     const state: AppState = {};

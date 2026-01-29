@@ -10,6 +10,7 @@ jobs:
   unit:
     name: unit
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     # container:
     #   image: node:22-slim

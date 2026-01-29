@@ -6,7 +6,7 @@
  *
  */
 
-import type { TransactionRequestEvent } from '@ton/walletkit';
+import type { SendTransactionRequestEvent } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
@@ -31,7 +31,7 @@ import { getLedgerErrorMessage } from '@/features/ledger';
 import { useAppToasts } from '@/features/toasts';
 
 interface TransactionRequestModalProps {
-    request: TransactionRequestEvent;
+    request: SendTransactionRequestEvent;
     isOpen: boolean;
     onApprove: () => void;
     onReject: (reason?: string) => void;
@@ -148,7 +148,7 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
 
                 {!isExpired && (
                     <>
-                        {request.preview.data.result === 'success' && currentWallet && walletKit && (
+                        {request.preview.data?.result === 'success' && currentWallet && walletKit && (
                             <View style={styles.moneyFlowSection}>
                                 <SectionTitle>Money Flow</SectionTitle>
 
@@ -180,7 +180,7 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
                             </View>
                         )}
 
-                        {(request.preview.data.result === 'failure' || request.preview.data.error) && (
+                        {(request.preview.data?.result === 'failure' || request.preview.data?.error) && (
                             <WarningBox variant="error">Error: {getErrorMessage(request.preview.data)}</WarningBox>
                         )}
 

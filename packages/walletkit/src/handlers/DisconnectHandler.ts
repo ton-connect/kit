@@ -8,7 +8,7 @@
 
 // Disconnect event handler
 
-import type { SessionManager } from '../core/SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { WalletKitError, ERROR_CODES } from '../errors';
@@ -20,7 +20,7 @@ export class DisconnectHandler
 {
     constructor(
         notify: (event: DisconnectionEvent) => void,
-        private readonly sessionManager: SessionManager,
+        private readonly sessionManager: TONConnectSessionManager,
     ) {
         super(notify);
     }

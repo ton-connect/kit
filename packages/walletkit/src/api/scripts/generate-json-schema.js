@@ -381,7 +381,53 @@ class DiscriminatedUnionNodeParser {
             return false;
         }
 
-        return typeNode.types.every((member) => this.isDiscriminatedMember(member));
+        const isDiscriminated = typeNode.types.every((member) => this.isDiscriminatedMember(member));
+        if (!isDiscriminated) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if any union member has a value property that references the parent type
+     */
+    hasRecursiveReference(unionNode, parentTypeName) {
+        for (const member of unionNode.types) {
+            if (member.kind !== ts.SyntaxKind.TypeLiteral) continue;
+
+            for (const prop of member.members) {
+                if (prop.kind !== ts.SyntaxKind.PropertySignature) continue;
+                if (!prop.type) continue;
+
+                if (this.typeReferencesName(prop.type, parentTypeName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if a type node references a given type name (directly or in arrays)
+     */
+    typeReferencesName(typeNode, name) {
+        // Direct type reference
+        if (typeNode.kind === ts.SyntaxKind.TypeReference) {
+            const typeName = typeNode.typeName?.getText();
+            if (typeName === name) {
+                return true;
+            }
+        }
+        // Array type (e.g., RawStackItem[])
+        if (typeNode.kind === ts.SyntaxKind.ArrayType) {
+            return this.typeReferencesName(typeNode.elementType, name);
+        }
+        // Union type
+        if (typeNode.kind === ts.SyntaxKind.UnionType) {
+            return typeNode.types.some((t) => this.typeReferencesName(t, name));
+        }
+        return false;
     }
 
     isDiscriminatedMember(typeNode) {
@@ -412,7 +458,18 @@ class DiscriminatedUnionNodeParser {
             const valuePropNode = this.findPropertyNode(memberNode, 'value');
             if (!valuePropNode?.type || !this.isPrimitiveType(valuePropNode.type)) continue;
 
-            const valueType = this.childNodeParser.createType(valuePropNode.type, context);
+            // Check if this is a recursive reference (e.g., RawStackItem[] in RawStackItem)
+            const isRecursive = this.typeReferencesName(valuePropNode.type, typeName);
+
+            let valueType;
+            if (isRecursive) {
+                // For recursive types, create an array type with a reference
+                // This avoids infinite recursion during parsing
+                valueType = new tsj.ArrayType(new tsj.DefinitionType(typeName, new tsj.AnyType()));
+            } else {
+                valueType = this.childNodeParser.createType(valuePropNode.type, context);
+            }
+
             const capitalizedValue = String(rawValue).charAt(0).toUpperCase() + String(rawValue).slice(1);
             const syntheticName = `${typeName}${capitalizedValue}Value`;
             const caseName = this.toCamelCase(String(rawValue));
@@ -462,8 +519,13 @@ class DiscriminatedUnionNodeParser {
         if (primitiveKinds.includes(typeNode.kind)) {
             return true;
         }
-        // Handle arrays of primitives (e.g., unknown[])
+        // Handle all array types including recursive ones like RawStackItem[]
+        // Swift can handle indirect enums with recursive associated values
         if (typeNode.kind === ts.SyntaxKind.ArrayType) {
+            return true;
+        }
+        // Handle type references (e.g., SomeOtherType)
+        if (typeNode.kind === ts.SyntaxKind.TypeReference) {
             return true;
         }
         if (typeNode.kind === ts.SyntaxKind.TypeLiteral) {
@@ -517,6 +579,7 @@ class SyntheticValueTypeFormatter {
 class DiscriminatedUnionTypeFormatter {
     constructor(childTypeFormatter) {
         this.childTypeFormatter = childTypeFormatter;
+        this.currentTypeName = null;
     }
 
     supportsType(type) {
@@ -526,7 +589,25 @@ class DiscriminatedUnionTypeFormatter {
         if (!(type instanceof tsj.UnionType) || type.getTypes().length < 2) {
             return false;
         }
-        return type.getTypes().every((variant) => this.getDiscriminatorValue(variant) !== null);
+        const isDiscriminated = type.getTypes().every((variant) => this.getDiscriminatorValue(variant) !== null);
+        if (!isDiscriminated) {
+            return false;
+        }
+        // Skip types with recursive references (e.g., RawStackItem with value: RawStackItem[])
+        // These cause issues with Swift code generators
+        if (this.hasRecursiveReference(type)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if any union variant has a value property that is an array type
+     * Arrays in value properties of discriminated unions cause issues with Swift generators
+     */
+    hasRecursiveReference() {
+        // Don't skip any discriminated unions - Swift can handle recursive enums with `indirect`
+        return false;
     }
 
     getDiscriminatorValue(type) {

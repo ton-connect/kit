@@ -9,7 +9,7 @@
 import { SEND_TRANSACTION_ERROR_CODES } from '@ton/walletkit';
 import type {
     Wallet,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     ConnectionRequestEvent,
     SignDataRequestEvent,
     DisconnectionEvent,
@@ -33,11 +33,11 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             currentRequestId: undefined,
             isProcessing: false,
         },
-        pendingConnectRequest: undefined,
+        pendingConnectRequestEvent: undefined,
         isConnectModalOpen: false,
-        pendingTransactionRequest: undefined,
+        pendingTransactionRequestEvent: undefined,
         isTransactionModalOpen: false,
-        pendingSignDataRequest: undefined,
+        pendingSignDataRequestEvent: undefined,
         isSignDataModalOpen: false,
         disconnectedSessions: [],
     },
@@ -62,14 +62,14 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
     // Connect request actions
     showConnectRequest: (request: ConnectionRequestEvent) => {
         set((state) => {
-            state.tonConnect.pendingConnectRequest = request;
+            state.tonConnect.pendingConnectRequestEvent = request;
             state.tonConnect.isConnectModalOpen = true;
         });
     },
 
     approveConnectRequest: async (selectedWallet: Wallet) => {
         const state = get();
-        if (!state.tonConnect.pendingConnectRequest) {
+        if (!state.tonConnect.pendingConnectRequestEvent) {
             log.error('No pending connect request to approve');
             return;
         }
@@ -79,16 +79,16 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         try {
-            const updatedRequest: ConnectionRequestEvent = {
-                ...state.tonConnect.pendingConnectRequest,
+            const event: ConnectionRequestEvent = {
+                ...state.tonConnect.pendingConnectRequestEvent,
                 walletAddress: selectedWallet.getAddress(),
                 walletId: selectedWallet.getWalletId(),
             };
 
-            await state.walletCore.walletKit.approveConnectRequest(updatedRequest);
+            await state.walletCore.walletKit.approveConnectRequest(event);
 
             set((state) => {
-                state.tonConnect.pendingConnectRequest = undefined;
+                state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
 
@@ -101,14 +101,14 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
     rejectConnectRequest: async (reason?: string) => {
         const state = get();
-        if (!state.tonConnect.pendingConnectRequest) {
+        if (!state.tonConnect.pendingConnectRequestEvent) {
             log.error('No pending connect request to reject');
             return;
         }
 
         const closeModal = () => {
             set((state) => {
-                state.tonConnect.pendingConnectRequest = undefined;
+                state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
 
@@ -122,7 +122,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         try {
-            await state.walletCore.walletKit.rejectConnectRequest(state.tonConnect.pendingConnectRequest, reason);
+            await state.walletCore.walletKit.rejectConnectRequest(state.tonConnect.pendingConnectRequestEvent, reason);
         } catch (error) {
             log.error('Failed to reject connect request:', error);
         }
@@ -133,21 +133,21 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
     closeConnectModal: () => {
         set((state) => {
             state.tonConnect.isConnectModalOpen = false;
-            state.tonConnect.pendingConnectRequest = undefined;
+            state.tonConnect.pendingConnectRequestEvent = undefined;
         });
     },
 
     // Transaction request actions
-    showTransactionRequest: (request: TransactionRequestEvent) => {
+    showTransactionRequest: (request: SendTransactionRequestEvent) => {
         set((state) => {
-            state.tonConnect.pendingTransactionRequest = request;
+            state.tonConnect.pendingTransactionRequestEvent = request;
             state.tonConnect.isTransactionModalOpen = true;
         });
     },
 
     approveTransactionRequest: async () => {
         const state = get();
-        if (!state.tonConnect.pendingTransactionRequest) {
+        if (!state.tonConnect.pendingTransactionRequestEvent) {
             log.error('No pending transaction request to approve');
             return;
         }
@@ -156,10 +156,10 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             throw new Error('WalletKit not initialized');
         }
 
-        await state.walletCore.walletKit.approveTransactionRequest(state.tonConnect.pendingTransactionRequest);
+        await state.walletCore.walletKit.approveTransactionRequest(state.tonConnect.pendingTransactionRequestEvent);
         setTimeout(() => {
             set((state) => {
-                state.tonConnect.pendingTransactionRequest = undefined;
+                state.tonConnect.pendingTransactionRequestEvent = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
             });
 
@@ -169,7 +169,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
     rejectTransactionRequest: async (reason?: string) => {
         const state = get();
-        if (!state.tonConnect.pendingTransactionRequest) {
+        if (!state.tonConnect.pendingTransactionRequestEvent) {
             log.error('No pending transaction request to reject');
             return;
         }
@@ -177,7 +177,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         if (!state.walletCore.walletKit) {
             // Close modal even if walletKit is not initialized
             set((state) => {
-                state.tonConnect.pendingTransactionRequest = undefined;
+                state.tonConnect.pendingTransactionRequestEvent = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
             });
             return;
@@ -185,14 +185,14 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
         try {
             await state.walletCore.walletKit.rejectTransactionRequest(
-                state.tonConnect.pendingTransactionRequest,
+                state.tonConnect.pendingTransactionRequestEvent,
                 reason,
             );
         } catch (error) {
             log.error('Failed to reject transaction request:', error);
         } finally {
             set((state) => {
-                state.tonConnect.pendingTransactionRequest = undefined;
+                state.tonConnect.pendingTransactionRequestEvent = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
             });
 
@@ -203,21 +203,21 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
     closeTransactionModal: () => {
         set((state) => {
             state.tonConnect.isTransactionModalOpen = false;
-            state.tonConnect.pendingTransactionRequest = undefined;
+            state.tonConnect.pendingTransactionRequestEvent = undefined;
         });
     },
 
     // Sign data request actions
     showSignDataRequest: (request: SignDataRequestEvent) => {
         set((state) => {
-            state.tonConnect.pendingSignDataRequest = request;
+            state.tonConnect.pendingSignDataRequestEvent = request;
             state.tonConnect.isSignDataModalOpen = true;
         });
     },
 
     approveSignDataRequest: async () => {
         const state = get();
-        if (!state.tonConnect.pendingSignDataRequest) {
+        if (!state.tonConnect.pendingSignDataRequestEvent) {
             log.error('No pending sign data request to approve');
             return;
         }
@@ -227,11 +227,11 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         }
 
         try {
-            await state.walletCore.walletKit.approveSignDataRequest(state.tonConnect.pendingSignDataRequest);
+            await state.walletCore.walletKit.approveSignDataRequest(state.tonConnect.pendingSignDataRequestEvent);
 
             setTimeout(() => {
                 set((state) => {
-                    state.tonConnect.pendingSignDataRequest = undefined;
+                    state.tonConnect.pendingSignDataRequestEvent = undefined;
                     state.tonConnect.isSignDataModalOpen = false;
                 });
 
@@ -245,7 +245,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
     rejectSignDataRequest: async (reason?: string) => {
         const state = get();
-        if (!state.tonConnect.pendingSignDataRequest) {
+        if (!state.tonConnect.pendingSignDataRequestEvent) {
             log.error('No pending sign data request to reject');
             return;
         }
@@ -253,19 +253,22 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
         if (!state.walletCore.walletKit) {
             // Close modal even if walletKit is not initialized
             set((state) => {
-                state.tonConnect.pendingSignDataRequest = undefined;
+                state.tonConnect.pendingSignDataRequestEvent = undefined;
                 state.tonConnect.isSignDataModalOpen = false;
             });
             return;
         }
 
         try {
-            await state.walletCore.walletKit.rejectSignDataRequest(state.tonConnect.pendingSignDataRequest, reason);
+            await state.walletCore.walletKit.rejectSignDataRequest(
+                state.tonConnect.pendingSignDataRequestEvent,
+                reason,
+            );
         } catch (error) {
             log.error('Failed to reject sign data request:', error);
         } finally {
             set((state) => {
-                state.tonConnect.pendingSignDataRequest = undefined;
+                state.tonConnect.pendingSignDataRequestEvent = undefined;
                 state.tonConnect.isSignDataModalOpen = false;
             });
 
@@ -276,7 +279,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
     closeSignDataModal: () => {
         set((state) => {
             state.tonConnect.isSignDataModalOpen = false;
-            state.tonConnect.pendingSignDataRequest = undefined;
+            state.tonConnect.pendingSignDataRequestEvent = undefined;
         });
     },
 
@@ -445,7 +448,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             });
         });
 
-        walletKit.onTransactionRequest(async (event: TransactionRequestEvent) => {
+        walletKit.onTransactionRequest(async (event: SendTransactionRequestEvent) => {
             const wallet = await walletKit.getWallet(event.walletId ?? '');
             if (!wallet) {
                 log.error('Wallet not found for transaction request', { walletId: event.walletId });

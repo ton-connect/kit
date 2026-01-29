@@ -49,13 +49,15 @@ export async function getRecentTransactions(args: GetRecentTransactionsArgs): Pr
 export async function createTransferTonTransaction(args: CreateTransferTonTransactionArgs) {
     return callBridge('createTransferTonTransaction', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
 
-        const transaction = await wallet!.createTransferTonTransaction(args);
+        const transaction = await wallet.createTransferTonTransaction(args);
 
-        if (wallet!.getTransactionPreview) {
+        if (wallet.getTransactionPreview) {
             try {
-                const previewResult = await wallet!.getTransactionPreview(transaction);
-                const preview = previewResult?.preview ?? previewResult;
+                const preview = await wallet.getTransactionPreview(transaction);
                 return { transaction, preview };
             } catch (err) {
                 warn('[walletkitBridge] getTransactionPreview failed', err);
@@ -73,13 +75,15 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
 export async function createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs) {
     return callBridge('createTransferMultiTonTransaction', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
 
-        const transaction = await wallet!.createTransferMultiTonTransaction(args);
+        const transaction = await wallet.createTransferMultiTonTransaction(args);
 
-        if (wallet!.getTransactionPreview) {
+        if (wallet.getTransactionPreview) {
             try {
-                const previewResult = await wallet!.getTransactionPreview(transaction);
-                const preview = previewResult?.preview ?? previewResult;
+                const preview = await wallet.getTransactionPreview(transaction);
                 return { transaction, preview };
             } catch (err) {
                 warn('[walletkitBridge] getTransactionPreview failed', err);
@@ -96,13 +100,18 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
 export async function getTransactionPreview(args: TransactionContentArgs) {
     return callBridge('getTransactionPreview', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
 
         // Accept object directly (preferred) or parse string (legacy)
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        const result = await wallet!.getTransactionPreview(transaction);
 
-        return result?.preview ?? result;
+        if (!wallet.getTransactionPreview) {
+            throw new Error('getTransactionPreview not available on wallet');
+        }
+        return await wallet.getTransactionPreview(transaction);
     });
 }
 
@@ -112,6 +121,9 @@ export async function getTransactionPreview(args: TransactionContentArgs) {
 export async function handleNewTransaction(args: TransactionContentArgs) {
     return callBridge('handleNewTransaction', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
 
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
@@ -129,9 +141,12 @@ export async function handleNewTransaction(args: TransactionContentArgs) {
 export async function sendTransaction(args: TransactionContentArgs) {
     return callBridge('sendTransaction', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
 
         const transaction =
             typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        return await wallet!.sendTransaction(transaction);
+        return await wallet.sendTransaction(transaction);
     });
 }

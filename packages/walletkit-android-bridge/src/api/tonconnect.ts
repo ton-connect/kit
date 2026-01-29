@@ -32,7 +32,7 @@ export async function handleTonConnectUrl(args: HandleTonConnectUrlArgs) {
  */
 export async function listSessions() {
     return callBridge('listSessions', async (kit) => {
-        const fetchedSessions = await kit.listSessions();
+        const fetchedSessions = kit.listSessions ? await kit.listSessions() : [];
         const sessions = Array.isArray(fetchedSessions) ? fetchedSessions : [];
         return { items: sessions };
     });
@@ -43,7 +43,9 @@ export async function listSessions() {
  */
 export async function disconnectSession(args?: DisconnectSessionArgs) {
     return callBridge('disconnectSession', async (kit) => {
-        await kit.disconnect(args?.sessionId);
+        if (kit.disconnect) {
+            await kit.disconnect(args?.sessionId);
+        }
         return { ok: true };
     });
 }
@@ -69,7 +71,11 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
             params: args.params,
         };
 
-        await kit.processInjectedBridgeRequest(messageInfo, request);
+        if (kit.processInjectedBridgeRequest) {
+            await kit.processInjectedBridgeRequest(messageInfo, request);
+        } else {
+            throw new Error('processInjectedBridgeRequest not available');
+        }
 
         // Wait for response from jsBridgeTransport (via initialization.ts)
         return new Promise<unknown>((resolve, reject) => {

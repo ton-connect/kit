@@ -12,12 +12,12 @@ import { SessionCrypto } from '@tonconnect/protocol';
 import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 import { BridgeProvider } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, RawBridgeEvent, SessionData } from '../types/internal';
+import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
 import type { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type {
     BridgeEventMessageInfo,
@@ -30,14 +30,14 @@ import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TonWalletKitOptions } from '../types/config';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
-import type { BridgeEvent } from '../api/models';
+import type { BridgeEvent, TONConnectSession } from '../api/models';
 
 const log = globalLogger.createChild('BridgeManager');
 
 export class BridgeManager {
     private config: BridgeConfig;
     private bridgeProvider?: BridgeProvider<WalletConsumer>;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
     private storage: Storage;
     private isConnected = false;
     private reconnectAttempts = 0;
@@ -62,7 +62,7 @@ export class BridgeManager {
     constructor(
         walletManifest: WalletInfo | undefined,
         config: BridgeConfig | undefined,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         storage: Storage,
         eventStore: EventStore,
         eventRouter: EventRouter,
@@ -188,7 +188,7 @@ export class BridgeManager {
         event: BridgeEvent,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         response: any,
-        _session?: SessionData,
+        providedSessionCrypto?: SessionCrypto,
     ): Promise<void> {
         if (event.isLocal) {
             return;
@@ -220,19 +220,25 @@ export class BridgeManager {
             );
         }
 
-        const session = _session ?? (await this.sessionManager.getSession(sessionId));
-        if (!session) {
-            throw new WalletKitError(ERROR_CODES.SESSION_NOT_FOUND, `Session not found for response`, undefined, {
-                sessionId,
-                eventId: event.id,
-            });
+        let sessionCrypto = providedSessionCrypto;
+
+        if (!sessionCrypto) {
+            const session = await this.sessionManager.getSession(sessionId);
+
+            if (session) {
+                sessionCrypto = new SessionCrypto({
+                    publicKey: session.publicKey,
+                    secretKey: session.privateKey,
+                });
+            } else {
+                throw new WalletKitError(ERROR_CODES.SESSION_NOT_FOUND, `Session not found for response`, undefined, {
+                    sessionId,
+                    eventId: event.id,
+                });
+            }
         }
 
         try {
-            const sessionCrypto = new SessionCrypto({
-                publicKey: session.publicKey,
-                secretKey: session.privateKey,
-            });
             await this.bridgeProvider.send(response, sessionCrypto, sessionId, {
                 traceId: event?.traceId,
             });
@@ -261,7 +267,7 @@ export class BridgeManager {
         response: any,
         options?: {
             traceId?: string;
-            session?: SessionData;
+            session?: TONConnectSession;
         },
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
@@ -346,7 +352,7 @@ export class BridgeManager {
     // }
 
     private async getClients(): Promise<ClientConnection[]> {
-        return this.sessionManager.getSessions().map((session) => ({
+        return (await this.sessionManager.getSessions()).map((session) => ({
             session: new SessionCrypto({
                 publicKey: session.publicKey,
                 secretKey: session.privateKey.length > 64 ? session.privateKey.slice(0, 64) : session.privateKey,
@@ -606,7 +612,7 @@ export class BridgeManager {
                     rawEvent.dAppInfo = {
                         name: session.dAppName,
                         description: session.dAppDescription,
-                        url: session.dAppIconUrl,
+                        url: session.dAppUrl,
                         iconUrl: session.dAppIconUrl,
                     };
                 }
@@ -627,7 +633,7 @@ export class BridgeManager {
                     rawEvent.dAppInfo = {
                         name: session.dAppName,
                         description: session.dAppDescription,
-                        url: session.dAppIconUrl,
+                        url: session.dAppUrl,
                         iconUrl: session.dAppIconUrl,
                     };
 

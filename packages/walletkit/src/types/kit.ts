@@ -17,13 +17,15 @@ import type { Network } from '../api/models/core/Network';
 import type { WalletId } from '../utils/walletId';
 import type {
     TransactionRequest,
-    TransactionRequestEvent,
+    SendTransactionRequestEvent,
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
     ConnectionRequestEvent,
-    TransactionApprovalResponse,
     SignDataApprovalResponse,
+    TONConnectSession,
+    SendTransactionApprovalResponse,
+    ConnectionApprovalResponse,
 } from '../api/models';
 import type { SwapAPI } from '../defi/swap';
 
@@ -71,7 +73,7 @@ export interface ITonWalletKit {
     disconnect(sessionId?: string): Promise<void>;
 
     /** List all active sessions */
-    listSessions(): Promise<SessionInfo[]>;
+    listSessions(): Promise<TONConnectSession[]>;
 
     // === URL Processing ===
 
@@ -84,7 +86,7 @@ export interface ITonWalletKit {
     // === Request Processing ===
 
     /** Approve a connect request */
-    approveConnectRequest(event: ConnectionRequestEvent): Promise<void>;
+    approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void>;
     /** Reject a connect request */
     rejectConnectRequest(
         event: ConnectionRequestEvent,
@@ -93,16 +95,22 @@ export interface ITonWalletKit {
     ): Promise<void>;
 
     /** Approve a transaction request */
-    approveTransactionRequest(event: TransactionRequestEvent): Promise<TransactionApprovalResponse>;
+    approveTransactionRequest(
+        event: SendTransactionRequestEvent,
+        response?: SendTransactionApprovalResponse,
+    ): Promise<SendTransactionApprovalResponse>;
 
     /** Reject a transaction request */
     rejectTransactionRequest(
-        event: TransactionRequestEvent,
+        event: SendTransactionRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
 
     /** Approve a sign data request */
-    approveSignDataRequest(event: SignDataRequestEvent): Promise<SignDataApprovalResponse>;
+    approveSignDataRequest(
+        event: SignDataRequestEvent,
+        response?: SignDataApprovalResponse,
+    ): Promise<SignDataApprovalResponse>;
 
     /** Reject a sign data request */
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
@@ -113,7 +121,7 @@ export interface ITonWalletKit {
     onConnectRequest(cb: (event: ConnectionRequestEvent) => void): void;
 
     /** Register transaction request handler */
-    onTransactionRequest(cb: (event: TransactionRequestEvent) => void): void;
+    onTransactionRequest(cb: (event: SendTransactionRequestEvent) => void): void;
 
     /** Register sign data request handler */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
@@ -126,7 +134,7 @@ export interface ITonWalletKit {
 
     /** Remove request handlers */
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
-    removeTransactionRequestCallback(cb: (event: TransactionRequestEvent) => void): void;
+    removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
@@ -140,30 +148,4 @@ export interface ITonWalletKit {
 
     /** Jettons API access */
     swap: SwapAPI;
-}
-
-/**
- * Session information for API responses
- */
-export interface SessionInfo {
-    /** Unique session identifier */
-    sessionId: string;
-
-    /** Connected dApp name */
-    dAppName: string;
-
-    /** Connected dApp URL */
-    dAppUrl: string;
-
-    /** Connected dApp icon URL */
-    dAppIconUrl: string;
-
-    /** Wallet ID */
-    walletId: string;
-
-    /** Session creation time */
-    createdAt?: Date;
-
-    /** Last activity time */
-    lastActivity?: Date;
 }

@@ -5,6 +5,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "lib/**", "docs/**", "!.next/cache/**"]
     },
+    "build:bridge": {
+      "cache": false
+    },
     "dev": {
       "persistent": true,
       "cache": false
@@ -20,14 +23,25 @@
       "dependsOn": ["//#lint", "build"]
     },
     "quality": {
-      "dependsOn": ["verify", "^quality"],
+      "dependsOn": ["verify", "typecheck", "^quality"],
       "env": ["WALLET_MNEMONIC", "CI"]
+    },
+    "quality:bridge": {
+      "dependsOn": ["typecheck:bridge"]
+    },
+    "typecheck:bridge": {
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "e2e": {
       "dependsOn": ["build", "^e2e"]
     },
     "clean": {
       "cache": false
+    },
+    "typecheck": {
+      "cache": false,
+      "dependsOn": ["build"]
     },
     "generate-openapi-spec": {
       "dependsOn": ["^generate-openapi-spec"]

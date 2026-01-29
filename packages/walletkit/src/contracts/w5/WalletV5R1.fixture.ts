@@ -8,7 +8,7 @@
 
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
-import type { FullAccountState, GetResult } from '../../types/toncenter/api';
+import type { FullAccountState, GetMethodResult } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
@@ -68,7 +68,7 @@ export function createMockApiClient(): ApiClient {
         nftItemsByOwner: mockFn().mockResolvedValue({} as NftItemsResponse),
         fetchEmulation: mockFn().mockResolvedValue({} as ToncenterEmulationResponse),
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
-        runGetMethod: mockFn().mockResolvedValue({} as GetResult),
+        runGetMethod: mockFn().mockResolvedValue({} as GetMethodResult),
         getAccountState: mockFn().mockResolvedValue({
             status: 'active',
             balance: '1000000000',

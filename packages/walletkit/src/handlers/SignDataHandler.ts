@@ -9,7 +9,6 @@
 // Sign data request handler
 
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/protocol';
-import { parseTLB } from '@ton-community/tlb-runtime';
 
 import type { RawBridgeEvent, EventHandler, RawBridgeEventSignData } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
@@ -20,7 +19,7 @@ import type { WalletManager } from '../core/WalletManager';
 import type { SignDataPayload, SignData, SignDataRequestEvent, SignDataPreview, Base64String } from '../api/models';
 import { Network } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
-import type { SessionManager } from '../core/SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
 const log = globalLogger.createChild('SignDataHandler');
 
@@ -30,12 +29,12 @@ export class SignDataHandler
 {
     private analytics?: Analytics;
     private walletManager: WalletManager;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
 
     constructor(
         notify: (event: SignDataRequestEvent) => void,
         walletManager: WalletManager,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
     ) {
         super(notify);
@@ -191,16 +190,16 @@ export class SignDataHandler
 
         if (data.type === 'cell') {
             try {
-                const parsed = parseTLB(data.value.schema).deserialize(data.value.content) as unknown as Record<
-                    string,
-                    unknown
-                >;
+                // const parsed = parseTLB(data.value.schema).deserialize(data.value.content) as unknown as Record<
+                //     string,
+                //     unknown
+                // >;
                 return {
                     type: 'cell',
                     value: {
                         schema: data.value.schema,
                         content: data.value.content,
-                        parsed,
+                        // parsed,
                     },
                 };
             } catch (error) {

@@ -9,8 +9,7 @@
 import type { Address } from '@ton/core';
 
 import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from './emulation';
-import type { FullAccountState, GetResult } from './api';
-import type { RawStackItem } from '../../utils/tvmStack';
+import type { FullAccountState } from './api';
 import type { Event } from './AccountEvent';
 import type {
     Base64String,
@@ -21,6 +20,8 @@ import type {
     TransactionsResponse,
     UserFriendlyAddress,
     JettonsResponse,
+    RawStackItem,
+    GetMethodResult,
 } from '../../api/models';
 import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 
@@ -102,7 +103,7 @@ export interface ApiClient {
         method: string,
         stack?: RawStackItem[],
         seqno?: number,
-    ): Promise<GetResult>; // TODO - Make serializable
+    ): Promise<GetMethodResult>; // TODO - Make serializable
     getAccountState(address: UserFriendlyAddress, seqno?: number): Promise<FullAccountState>;
     getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount>;
 

@@ -9,6 +9,7 @@ jobs:
   base:
     name: e2e extension
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     # container:
     #   image: node:22

@@ -17,13 +17,11 @@ import type {
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
-import type { WalletId } from '../utils/walletId';
 import type {
     ExtraCurrencies,
     TransactionRequest,
     TransactionRequestMessage,
     BridgeEvent,
-    UserFriendlyAddress,
     Base64String,
 } from '../api/models';
 import { SendModeFromValue } from '../utils/sendMode';
@@ -31,25 +29,6 @@ import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
 
 // import type { WalletInterface } from './wallet';
-
-export interface SessionData {
-    sessionId: string;
-
-    walletId: WalletId;
-    walletAddress: UserFriendlyAddress;
-    createdAt: string; // date
-    lastActivityAt: string; // date
-    privateKey: string;
-    publicKey: string;
-
-    dAppName: string;
-    dAppDescription: string;
-    domain: string;
-    dAppIconUrl: string;
-
-    // Bridge type indicator (needed to determine how to send disconnect events)
-    isJsBridge?: boolean; // true if session was created via JS Bridge, false/undefined for HTTP Bridge
-}
 
 export interface BridgeConfig {
     bridgeUrl?: string; // defaults to WalletInfo.bridgeUrl if exists
@@ -77,18 +56,6 @@ export interface StorageAdapter {
 export interface EventCallback<T = any> {
     (event: T): void | Promise<void>;
 }
-
-export type EventApprovalBase = {
-    id: string;
-    from: string;
-    sessionId: string;
-    walletId: WalletId;
-    walletAddress?: UserFriendlyAddress;
-
-    messageId?: string;
-
-    traceId?: string;
-};
 
 // Bridge event types (raw from bridge)
 export interface RawBridgeEventGeneric extends BridgeEvent {

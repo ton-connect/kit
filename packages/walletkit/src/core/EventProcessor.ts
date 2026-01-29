@@ -16,7 +16,7 @@ import type {
 } from '../types/durableEvents';
 import type { EventType } from '../types/internal';
 import type { WalletManager } from './WalletManager';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
@@ -35,7 +35,7 @@ export interface EventProcessorConfig {
 export class StorageEventProcessor implements IEventProcessor {
     private eventStore: EventStore;
     private config: DurableEventsConfig;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
     private eventRouter: EventRouter;
     private eventEmitter: EventEmitter;
     private walletManager: WalletManager;
@@ -58,7 +58,7 @@ export class StorageEventProcessor implements IEventProcessor {
         eventStore: EventStore,
         config: DurableEventsConfig,
         walletManager: WalletManager,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         eventRouter: EventRouter,
         eventEmitter: EventEmitter,
     ) {
@@ -145,7 +145,7 @@ export class StorageEventProcessor implements IEventProcessor {
     private async processNextAvailableEvent(): Promise<boolean> {
         try {
             // Get all active sessions for registered wallets
-            const allLocalSessions = this.sessionManager.getSessionsForAPI();
+            const allLocalSessions = await this.sessionManager.getSessions();
 
             const allSessions = allLocalSessions.filter(
                 (session) => session.walletId && this.registeredWallets.has(session.walletId),
