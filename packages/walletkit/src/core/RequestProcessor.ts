@@ -17,6 +17,7 @@ import type {
     SignDataRpcResponseError,
     SignDataRpcResponseSuccess,
     SignDataPayload as TonConnectSignDataPayload,
+    TonProofItemReply,
 } from '@tonconnect/protocol';
 import {
     CHAIN,
@@ -586,22 +587,12 @@ export class RequestProcessor {
             );
         }
 
-        // Get wallet state init as base64 BOC
         const walletStateInit = await wallet.getStateInit();
-
-        // Get public key as hex string
         const publicKey = wallet.getPublicKey().replace('0x', '');
-
-        // Get wallet address
         const address = wallet.getAddress();
-
-        // Get the wallet's network
         const walletNetwork = wallet.getNetwork();
-
-        // Get device info with wallet-specific features if available
         const deviceInfo = getDeviceInfoForWallet(wallet, this.walletKitOptions.deviceInfo);
 
-        // Create base response data
         const connectResponse: ConnectEventSuccess = {
             event: 'connect',
             id: Date.now(),
@@ -611,8 +602,7 @@ export class RequestProcessor {
                     {
                         name: 'ton_addr',
                         address: Address.parse(address).toRawString(),
-                        // TODO: Support multiple networks
-                        network: walletNetwork.chainId === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
+                        network: walletNetwork.chainId as CHAIN,
                         walletStateInit,
                         publicKey,
                     },
@@ -620,71 +610,21 @@ export class RequestProcessor {
             },
         };
 
-        // TODO: Handle ton_proof if requested
-        // This would require access to the original connect request items
-        // and the ability to sign the proof with the wallet's private key
-        const proofItem = event.requestedItems.find((item) => item.type === 'ton_proof');
+        const proofRequest = event.requestedItems.find((item) => item.type === 'ton_proof');
+        if (proofRequest) {
+            const tonProofItem = await createTonProofItem({
+                wallet,
+                address,
+                walletStateInit,
+                dAppUrl: event.preview.dAppInfo?.url,
+                proofPayload: proofRequest.value.payload,
+                providedProof: proof,
+            });
 
-        if (proofItem) {
-            if (!proof) {
-                let domain = {
-                    lengthBytes: 0,
-                    value: '',
-                };
-                try {
-                    const dAppUrl = new URL(event.preview.dAppInfo?.url || '');
-                    domain = {
-                        lengthBytes: Buffer.from(dAppUrl.host).length,
-                        value: dAppUrl.host,
-                    };
-                } catch (error) {
-                    log.error('Failed to parse domain', { error });
-                }
-
-                const timestamp = Math.floor(Date.now() / 1000);
-                const signMessage = CreateTonProofMessage({
-                    address: Address.parse(address),
-                    domain,
-                    payload: proofItem.value.payload,
-                    stateInit: walletStateInit,
-                    timestamp,
-                });
-
-                const signature = await wallet.getSignedTonProof(signMessage);
-                // remove 0x
-                const signatureBase64 = Buffer.from(signature.slice(2), 'hex').toString('base64');
-
-                connectResponse.payload.items.push({
-                    name: 'ton_proof',
-                    proof: {
-                        timestamp,
-                        domain: {
-                            lengthBytes: domain.lengthBytes,
-                            value: domain.value,
-                        },
-                        payload: proofItem.value.payload,
-                        signature: signatureBase64,
-                    },
-                });
-            } else {
-                connectResponse.payload.items.push({
-                    name: 'ton_proof',
-                    proof: {
-                        timestamp: proof.timestamp,
-                        domain: {
-                            lengthBytes: proof.domain.lengthBytes,
-                            value: proof.domain.value,
-                        },
-                        payload: proof.payload,
-                        signature: proof.signature,
-                    },
-                });
-            }
+            connectResponse.payload.items.push(tonProofItem);
         }
 
-        return {
-            result: connectResponse,
-        };
+        return { result: connectResponse };
     }
 
     /**
@@ -761,6 +701,75 @@ export async function signTransactionInternal(wallet: Wallet, request: Transacti
     });
 
     return signedBoc;
+}
+
+interface CreateTonProofItemParams {
+    wallet: Wallet;
+    address: string;
+    walletStateInit: string;
+    dAppUrl?: string;
+    proofPayload: string;
+    providedProof?: ConnectionApprovalProof;
+}
+
+async function createTonProofItem(params: CreateTonProofItemParams): Promise<TonProofItemReply> {
+    const { wallet, address, walletStateInit, dAppUrl, proofPayload, providedProof } = params;
+
+    if (providedProof) {
+        return {
+            name: 'ton_proof',
+            proof: {
+                timestamp: providedProof.timestamp,
+                domain: {
+                    lengthBytes: providedProof.domain.lengthBytes,
+                    value: providedProof.domain.value,
+                },
+                payload: providedProof.payload,
+                signature: providedProof.signature,
+            },
+        };
+    }
+
+    const domain = parseDomain(dAppUrl);
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const signMessage = CreateTonProofMessage({
+        address: Address.parse(address),
+        domain,
+        payload: proofPayload,
+        stateInit: walletStateInit as Base64String,
+        timestamp,
+    });
+
+    const signature = await wallet.getSignedTonProof(signMessage);
+    const signatureBase64 = HexToBase64(signature);
+
+    return {
+        name: 'ton_proof',
+        proof: {
+            timestamp,
+            domain: { lengthBytes: domain.lengthBytes, value: domain.value },
+            payload: proofPayload,
+            signature: signatureBase64,
+        },
+    };
+}
+
+function parseDomain(url?: string): { lengthBytes: number; value: string } {
+    if (!url) {
+        return { lengthBytes: 0, value: '' };
+    }
+
+    try {
+        const parsedUrl = new URL(url);
+        return {
+            lengthBytes: Buffer.from(parsedUrl.host).length,
+            value: parsedUrl.host,
+        };
+    } catch (error) {
+        log.error('Failed to parse domain', { error });
+        return { lengthBytes: 0, value: '' };
+    }
 }
 
 function toTonConnectSignDataPayload(payload: SignDataPayload): TonConnectSignDataPayload {
