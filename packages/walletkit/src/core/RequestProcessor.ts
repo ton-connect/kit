@@ -563,7 +563,7 @@ export class RequestProcessor {
      */
     private async createConnectApprovalResponse(
         event: ConnectionRequestEvent,
-        proof: ConnectionApprovalProof | undefined,
+        proof?: ConnectionApprovalProof,
     ): Promise<{ result: ConnectEventSuccess }> {
         const walletId = event.walletId;
         const walletAddress = this.getWalletAddressFromEvent(event);
