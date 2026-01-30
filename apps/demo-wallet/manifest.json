@@ -39,16 +39,16 @@
     "default_popup": "index.extension.html",
     "default_title": "TON Wallet Demo",
     "default_icon": {
-      "16": "vite.svg",
-      "32": "vite.svg",
-      "48": "vite.svg",
-      "128": "vite.svg"
+      "16": "ton.png",
+      "32": "ton.png",
+      "48": "ton.png",
+      "128": "ton.png"
     }
   },
   "icons": {
-    "16": "vite.svg",
-    "32": "vite.svg",
-    "48": "vite.svg",
-    "128": "vite.svg"
+    "16": "ton.png",
+    "32": "ton.png",
+    "48": "ton.png",
+    "128": "ton.png"
   }
 }

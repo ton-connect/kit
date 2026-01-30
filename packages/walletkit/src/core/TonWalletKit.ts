@@ -28,6 +28,7 @@ import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
+import { SwapManager } from '../defi/swap';
 import type {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
@@ -84,6 +85,7 @@ export class TonWalletKit implements ITonWalletKit {
     // private responseHandler!: ResponseHandler;
     private networkManager: NetworkManager;
     private jettonsManager!: JettonsManager;
+    private swapManager: SwapManager;
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
@@ -122,6 +124,9 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Initialize JettonsManager with NetworkManager for multi-network support
         this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.networkManager);
+
+        // Initialize SwapManager
+        this.swapManager = new SwapManager();
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
@@ -746,6 +751,13 @@ export class TonWalletKit implements ITonWalletKit {
      */
     getJettonsManager(): JettonsManager {
         return this.jettonsManager;
+    }
+
+    /**
+     * Swap API access
+     */
+    get swap(): SwapManager {
+        return this.swapManager;
     }
 
     /**
