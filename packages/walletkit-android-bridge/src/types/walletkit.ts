@@ -6,7 +6,7 @@
  *
  */
 
-import type { WalletAdapter, WalletSigner, Network } from '@ton/walletkit';
+import type { Wallet, WalletAdapter, WalletSigner, Network } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -40,42 +40,18 @@ export interface WalletKitNativeBridgeType {
     signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
-/**
- * Loose wallet type for bridge pass-through.
- * Uses unknown/any for methods since Kotlin handles the actual data.
- */
-export interface WalletKitWallet {
-    getWalletId?(): string;
-    getAddress?(): string;
-    getBalance?(): Promise<unknown>;
-    getClient(): { getAccountTransactions(params: unknown): Promise<{ transactions?: unknown[] }> };
-    createTransferTonTransaction(params: unknown): Promise<unknown>;
-    createTransferMultiTonTransaction(params: unknown): Promise<unknown>;
-    getTransactionPreview?(transaction: unknown): Promise<unknown>;
-    sendTransaction(transaction: unknown): Promise<unknown>;
-    // NFT methods
-    getNfts?(params: unknown): Promise<unknown>;
-    getNft?(address: string): Promise<unknown>;
-    createTransferNftTransaction?(params: unknown): Promise<unknown>;
-    createTransferNftRawTransaction?(params: unknown): Promise<unknown>;
-    // Jetton methods
-    getJettons?(params: unknown): Promise<unknown>;
-    createTransferJettonTransaction?(params: unknown): Promise<unknown>;
-    getJettonBalance?(address: string): Promise<unknown>;
-    getJettonWalletAddress?(address: string): Promise<unknown>;
-}
 export type WalletKitAdapter = WalletAdapter;
 export type WalletKitSigner = WalletSigner;
 
 export interface WalletKitInstance {
     ensureInitialized?: () => Promise<void>;
-    getWallets: () => WalletKitWallet[];
-    getWallet(walletId: string): WalletKitWallet | undefined;
+    getWallets: () => Wallet[];
+    getWallet(walletId: string): Wallet | undefined;
     getNetwork?: () => string;
     removeWallet(walletId: string): Promise<void>;
     getApiClient(network?: Network): unknown;
-    addWallet(adapter: unknown): Promise<WalletKitWallet | null>;
-    handleNewTransaction(wallet: WalletKitWallet, transaction: unknown): Promise<unknown>;
+    addWallet(adapter: unknown): Promise<Wallet | null>;
+    handleNewTransaction(wallet: Wallet, transaction: unknown): Promise<unknown>;
     handleTonConnectUrl(url: string): Promise<unknown>;
     listSessions?(): Promise<unknown>;
     disconnect?(sessionId?: string): Promise<void>;
