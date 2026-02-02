@@ -47,11 +47,18 @@ export type {
 export {
     InMemoryStorageAdapter,
     LocalSignerAdapter,
+    SqliteStorageAdapter,
+    SqliteSignerAdapter,
     TelegramUserContextProvider,
     StaticUserContextProvider,
 } from './adapters/index.js';
 
-export type { TelegramUserContextConfig } from './adapters/index.js';
+export type {
+    TelegramUserContextConfig,
+    SqliteDatabase,
+    SqliteStorageConfig,
+    SqliteSignerConfig,
+} from './adapters/index.js';
 
 // ===========================================
 // Core Utilities (for advanced use)
@@ -78,6 +85,7 @@ export { McpWalletService } from './services/McpWalletService.js';
 export type {
     McpWalletInfo,
     McpWalletServiceConfig,
+    NetworkConfig,
     CreateWalletResult,
     ImportWalletResult,
     JettonInfoResult,

@@ -10,13 +10,22 @@ catalog:
   react-dom: 19.2.3
   react-native: 0.81.5
 
-onlyBuiltDependencies:
-  - node-hid
-
 catalogs:
   react-native:
+    '@types/react': 19.1.17
+    '@types/react-dom': 19.1.0
     react: 19.1.0
     react-dom: 19.1.0
     react-native: 0.81.5
-    '@types/react': 19.1.17
-    '@types/react-dom': 19.1.0
+
+ignoredBuiltDependencies:
+  - better-sqlite3
+  - esbuild
+  - react-native-mmkv
+  - react-native-nitro-modules
+  - spawn-sync
+  - unrs-resolver
+  - usb
+
+onlyBuiltDependencies:
+  - node-hid

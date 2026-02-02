@@ -27,7 +27,7 @@ import {
     Network,
     createWalletId,
 } from '@ton/walletkit';
-import type { Wallet, SwapQuote, SwapQuoteParams, SwapParams } from '@ton/walletkit';
+import type { Wallet, SwapQuote, SwapQuoteParams, SwapParams, ApiClientConfig } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 import type { LimitsConfig } from '../types/config.js';
@@ -151,6 +151,14 @@ export interface SwapResult {
 }
 
 /**
+ * Network configuration with optional API key
+ */
+export interface NetworkConfig {
+    /** TonCenter API key for this network */
+    apiKey?: string;
+}
+
+/**
  * Configuration for McpWalletService
  */
 export interface McpWalletServiceConfig {
@@ -160,6 +168,11 @@ export interface McpWalletServiceConfig {
     defaultNetwork?: 'mainnet' | 'testnet';
     limits?: LimitsConfig;
     requireConfirmation?: boolean;
+    /** Network-specific configuration */
+    networks?: {
+        mainnet?: NetworkConfig;
+        testnet?: NetworkConfig;
+    };
 }
 
 /**
@@ -190,10 +203,23 @@ export class McpWalletService {
      */
     private async getKit(): Promise<TonWalletKit> {
         if (!this.kit) {
+            // Build network config with optional API keys
+            const mainnetConfig: ApiClientConfig = {};
+            const testnetConfig: ApiClientConfig = {};
+
+            if (this.config.networks?.mainnet?.apiKey) {
+                mainnetConfig.url = 'https://toncenter.com';
+                mainnetConfig.key = this.config.networks.mainnet.apiKey;
+            }
+            if (this.config.networks?.testnet?.apiKey) {
+                testnetConfig.url = 'https://testnet.toncenter.com';
+                testnetConfig.key = this.config.networks.testnet.apiKey;
+            }
+
             this.kit = new TonWalletKit({
                 networks: {
-                    [Network.mainnet().chainId]: {},
-                    [Network.testnet().chainId]: {},
+                    [Network.mainnet().chainId]: { apiClient: mainnetConfig },
+                    [Network.testnet().chainId]: { apiClient: testnetConfig },
                 },
                 storage: new MemoryStorageAdapter(),
             });

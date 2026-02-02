@@ -1,0 +1,12 @@
+# SQLite database files
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Build output
+dist/
+
+# Environment
+.env
+.env.local
