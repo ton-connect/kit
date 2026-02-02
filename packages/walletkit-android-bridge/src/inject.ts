@@ -44,7 +44,7 @@ const tonWindow = window as TonConnectWindow;
 const frameId =
     tonWindow.__tonconnect_frameId ||
     (tonWindow.__tonconnect_frameId =
-        window === window.top ? 'main' : `frame-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+        window === window.top ? 'main' : `frame-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`);
 
 const isAndroidWebView = typeof tonWindow.AndroidTonConnect !== 'undefined';
 

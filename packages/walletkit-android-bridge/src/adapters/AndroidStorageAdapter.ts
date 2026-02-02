@@ -39,7 +39,6 @@ export class AndroidStorageAdapter implements StorageAdapter {
     async get<T>(key: string): Promise<T | null> {
         try {
             const value = this.androidBridge.storageGet(key);
-            log('[AndroidStorageAdapter] get:', key, '=', value ? `${value.substring(0, 100)}...` : 'null');
             if (!value) {
                 return null;
             }
@@ -53,7 +52,6 @@ export class AndroidStorageAdapter implements StorageAdapter {
     async set<T>(key: string, value: T): Promise<void> {
         try {
             const serialized = JSON.stringify(value);
-            log('[AndroidStorageAdapter] set:', key, '=', serialized.substring(0, 100) + '...');
             this.androidBridge.storageSet(key, serialized);
         } catch (err) {
             error('[AndroidStorageAdapter] Failed to set key:', key, err);

@@ -52,6 +52,7 @@ export let WalletV5R1Adapter: AdapterFactory | null = null;
 
 /**
  * Ensures WalletKit and TON core modules are loaded once and cached.
+ * @throws Error if required modules fail to load
  */
 export async function ensureWalletKitLoaded(): Promise<void> {
     if (TonWalletKit && Signer && MnemonicToKeyPair && DefaultSignature && WalletV4R2Adapter && WalletV5R1Adapter) {
@@ -67,6 +68,9 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         !WalletV5R1Adapter
     ) {
         const module = (await walletKitModulePromise) as unknown as WalletKitModule;
+        if (!module.TonWalletKit) {
+            throw new Error('Failed to load TonWalletKit module');
+        }
         TonWalletKit = module.TonWalletKit;
         CreateTonMnemonic = module.CreateTonMnemonic ?? CreateTonMnemonic;
         MnemonicToKeyPair = module.MnemonicToKeyPair ?? MnemonicToKeyPair;

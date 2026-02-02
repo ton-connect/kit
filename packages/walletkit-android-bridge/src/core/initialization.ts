@@ -124,12 +124,13 @@ export async function initTonWalletKit(
                 let bridgeMessage: JsBridgeTransportMessage = typedMessage;
 
                 // Handle disconnect responses that need to be transformed to events
+                const DISCONNECT_EVENT = 'disconnect';
                 if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE) {
                     const responseMsg = bridgeMessage as BridgeResponse;
                     // BridgeResponse has 'result' field, not 'payload'
                     const result = responseMsg.result as { event?: string; id?: number } | undefined;
 
-                    if (result?.event === 'disconnect' && !responseMsg.messageId) {
+                    if (result?.event === DISCONNECT_EVENT && !responseMsg.messageId) {
                         log('[walletkitBridge] 🔄 Transforming disconnect response to event');
                         bridgeMessage = {
                             type: TONCONNECT_BRIDGE_EVENT,

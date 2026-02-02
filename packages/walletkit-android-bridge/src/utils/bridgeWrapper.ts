@@ -46,7 +46,13 @@ export async function callBridge<T>(_method: string, operation: (kit: WalletKitI
 export async function callOnWalletBridge<T>(walletId: string, method: string, args?: unknown): Promise<T> {
     return callBridge(`wallet.${method}`, async (kit) => {
         const wallet = kit.getWallet?.(walletId);
-        const methodRef = (wallet as unknown as Record<string, unknown>)?.[method];
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${walletId}`);
+        }
+        const methodRef = (wallet as unknown as Record<string, unknown>)[method];
+        if (typeof methodRef !== 'function') {
+            throw new Error(`Method '${method}' not found on wallet`);
+        }
         return (await (methodRef as (args?: unknown) => Promise<T>).call(wallet, args)) as T;
     });
 }

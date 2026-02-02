@@ -58,6 +58,21 @@ export async function disconnectSession(args?: DisconnectSessionArgs) {
     });
 }
 
+/** Default timeout for internal browser requests in milliseconds */
+const INTERNAL_BROWSER_REQUEST_TIMEOUT_MS = 60000;
+
+/**
+ * Safely extracts origin from URL, falling back to default if parsing fails.
+ */
+function safeGetOrigin(url: string | undefined, fallback: string): string {
+    if (!url) return fallback;
+    try {
+        return new URL(url).origin;
+    } catch {
+        return fallback;
+    }
+}
+
 /**
  * Processes requests from the in-app browser TonConnect bridge.
  * Domain resolution and request preparation handled by Kotlin InternalBrowserRequestProcessor.
@@ -65,7 +80,7 @@ export async function disconnectSession(args?: DisconnectSessionArgs) {
 export async function processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs) {
     return callBridge('processInternalBrowserRequest', async (kit) => {
         // Extract origin (with scheme) from URL - SessionManager.getSessionByDomain expects a parseable URL
-        const domain = args.url ? new URL(args.url).origin : 'internal-browser';
+        const domain = safeGetOrigin(args.url, 'internal-browser');
 
         const messageInfo: BridgeEventMessageInfo = {
             messageId: args.messageId,
@@ -89,7 +104,7 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
         return new Promise<TonConnectEventPayload>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 reject(new Error(`Request timeout: ${args.messageId}`));
-            }, 60000); // 60 second timeout
+            }, INTERNAL_BROWSER_REQUEST_TIMEOUT_MS);
 
             const resolverMap = ensureInternalBrowserResolverMap();
             resolverMap.set(args.messageId, {

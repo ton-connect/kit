@@ -129,7 +129,7 @@ export async function createSigner(args: CreateSignerArgs) {
                 : ((await Signer!.fromPrivateKey(args.secretKey!)) as SignerInstance);
 
         // Store signer with temp ID for Kotlin to retrieve
-        const tempId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const tempId = `signer_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         signerStore.set(tempId, signer);
 
         return { _tempId: tempId, signer };
@@ -153,7 +153,7 @@ export async function createAdapter(args: CreateAdapterArgs) {
         })) as AdapterInstance;
 
         // Store adapter with temp ID for Kotlin to retrieve
-        const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         adapterStore.set(tempId, adapter);
 
         // Return only the temp ID and the raw adapter object
