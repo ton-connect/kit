@@ -15,13 +15,15 @@ import {
     Signer,
     WalletV5R1Adapter,
     WalletV4R2Adapter,
-    CHAIN,
     CreateTonMnemonic,
     MemoryStorageAdapter,
-    type IWallet,
+    Network,
+    createWalletId,
 } from '@ton/walletkit';
+import type { Wallet } from '@ton/walletkit';
 
-import { SecureStorage, type WalletData } from '../storage/SecureStorage.js';
+import { SecureStorage } from '../storage/SecureStorage.js';
+import type { WalletData } from '../storage/SecureStorage.js';
 
 export interface CreateWalletResult {
     name: string;
@@ -63,12 +65,14 @@ export interface TransferResult {
 export class WalletService {
     private storage: SecureStorage;
     private kit: TonWalletKit | null = null;
-    private network: CHAIN;
-    private loadedWallets: Map<string, IWallet> = new Map();
+    private network: Network;
+    private networkName: 'mainnet' | 'testnet';
+    private loadedWallets: Map<string, Wallet> = new Map();
 
     constructor(network: 'mainnet' | 'testnet' = 'mainnet') {
         this.storage = new SecureStorage();
-        this.network = network === 'mainnet' ? CHAIN.MAINNET : CHAIN.TESTNET;
+        this.networkName = network;
+        this.network = network === 'mainnet' ? Network.mainnet() : Network.testnet();
     }
 
     /**
@@ -77,7 +81,9 @@ export class WalletService {
     private async getKit(): Promise<TonWalletKit> {
         if (!this.kit) {
             this.kit = new TonWalletKit({
-                network: this.network,
+                networks: {
+                    [this.network.chainId]: {},
+                },
                 storage: new MemoryStorageAdapter(),
             });
             await this.kit.waitForReady();
@@ -101,11 +107,11 @@ export class WalletService {
         const walletAdapter =
             version === 'v5r1'
                 ? await WalletV5R1Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   })
                 : await WalletV4R2Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   });
 
@@ -116,7 +122,7 @@ export class WalletService {
             name,
             address,
             mnemonic,
-            network: this.network === CHAIN.MAINNET ? 'mainnet' : 'testnet',
+            network: this.networkName,
             version,
             createdAt: new Date().toISOString(),
         };
@@ -154,11 +160,11 @@ export class WalletService {
         const walletAdapter =
             version === 'v5r1'
                 ? await WalletV5R1Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   })
                 : await WalletV4R2Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   });
 
@@ -169,7 +175,7 @@ export class WalletService {
             name,
             address,
             mnemonic,
-            network: this.network === CHAIN.MAINNET ? 'mainnet' : 'testnet',
+            network: this.networkName,
             version,
             createdAt: new Date().toISOString(),
         };
@@ -217,9 +223,10 @@ export class WalletService {
 
         // Remove from kit if loaded
         if (this.kit) {
-            const kitWallet = this.kit.getWallet(walletData.address);
+            const walletId = createWalletId(this.network, walletData.address);
+            const kitWallet = this.kit.getWallet(walletId);
             if (kitWallet) {
-                await this.kit.removeWallet(walletData.address);
+                await this.kit.removeWallet(walletId);
             }
         }
 
@@ -229,7 +236,7 @@ export class WalletService {
     /**
      * Get or load a wallet by name
      */
-    private async getWalletByName(name: string): Promise<IWallet> {
+    private async getWalletByName(name: string): Promise<Wallet> {
         const walletData = await this.storage.getWallet(name);
         if (!walletData) {
             throw new Error(`Wallet "${name}" not found`);
@@ -247,18 +254,19 @@ export class WalletService {
         const walletAdapter =
             walletData.version === 'v5r1'
                 ? await WalletV5R1Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   })
                 : await WalletV4R2Adapter.create(signer, {
-                      client: kit.getApiClient(),
+                      client: kit.getApiClient(this.network),
                       network: this.network,
                   });
 
         const wallet = await kit.addWallet(walletAdapter);
         if (!wallet) {
             // Wallet already exists in kit
-            const existingWallet = kit.getWallet(walletData.address);
+            const walletId = createWalletId(this.network, walletData.address);
+            const existingWallet = kit.getWallet(walletId);
             if (existingWallet) {
                 this.loadedWallets.set(walletData.address, existingWallet);
                 return existingWallet;
@@ -293,18 +301,17 @@ export class WalletService {
      */
     async getJettons(walletName: string): Promise<JettonInfoResult[]> {
         const wallet = await this.getWalletByName(walletName);
-        const jettonsResponse = await wallet.getJettons({ limit: 100, offset: 0 });
+        const jettonsResponse = await wallet.getJettons({ pagination: { limit: 100, offset: 0 } });
 
         const results: JettonInfoResult[] = [];
 
         for (const j of jettonsResponse.jettons) {
-            // AddressJetton already contains jetton info
             results.push({
                 address: j.address,
                 balance: j.balance,
-                name: j.name,
-                symbol: j.symbol,
-                decimals: j.decimals,
+                name: j.info.name,
+                symbol: j.info.symbol,
+                decimals: j.decimalsNumber,
             });
         }
 
@@ -319,8 +326,8 @@ export class WalletService {
             const wallet = await this.getWalletByName(walletName);
 
             const tx = await wallet.createTransferTonTransaction({
-                toAddress,
-                amount,
+                recipientAddress: toAddress,
+                transferAmount: amount,
                 comment,
             });
 
@@ -352,9 +359,9 @@ export class WalletService {
             const wallet = await this.getWalletByName(walletName);
 
             const tx = await wallet.createTransferJettonTransaction({
-                toAddress,
+                recipientAddress: toAddress,
                 jettonAddress,
-                amount,
+                transferAmount: amount,
                 comment,
             });
 
