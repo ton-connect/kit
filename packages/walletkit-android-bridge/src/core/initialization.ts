@@ -9,10 +9,11 @@
 /**
  * WalletKit initialization helpers used by the bridge entry point.
  */
+import type { BridgeResponse, BridgeEvent } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
-import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent, WalletKitInstance } from '../types';
+import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent, WalletKitInstance, JsBridgeTransportMessage } from '../types';
 import { log, warn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
 import { ensureWalletKitLoaded, TonWalletKit } from './moduleLoader';
@@ -28,18 +29,6 @@ export interface InitTonWalletKitDeps {
     postToNative: (payload: BridgePayload) => void;
     AndroidStorageAdapter: new () => unknown;
 }
-
-type JsBridgeMessage = {
-    type: string;
-    messageId?: string;
-    payload?: {
-        event?: string;
-        [key: string]: unknown;
-    };
-    source?: unknown;
-    traceId?: string;
-    [key: string]: unknown;
-};
 
 type NativeStorageBridge = {
     storageGet: (key: string) => string | null;
@@ -115,34 +104,42 @@ export async function initTonWalletKit(
     if (config?.bridgeUrl) {
         kitOptions.bridge = {
             bridgeUrl: config.bridgeUrl,
-            jsBridgeTransport: async (sessionId: string, message: JsBridgeMessage) => {
+            jsBridgeTransport: async (sessionId: string, message: unknown) => {
+                // Cast to our transport message type (walletkit types this as unknown)
+                const typedMessage = message as JsBridgeTransportMessage;
+                
                 log('[walletkitBridge] 📤 jsBridgeTransport called:', {
                     sessionId,
-                    messageType: message.type,
-                    messageId: message.messageId,
-                    hasPayload: !!message.payload,
-                    payloadEvent: message.payload?.event,
+                    messageType: typedMessage.type,
+                    hasPayload: 'payload' in typedMessage,
                 });
-                log('[walletkitBridge] 📤 Full message:', JSON.stringify(message, null, 2));
+                log('[walletkitBridge] 📤 Full message:', JSON.stringify(typedMessage, null, 2));
 
-                let bridgeMessage: JsBridgeMessage = message;
+                let bridgeMessage: JsBridgeTransportMessage = typedMessage;
 
-                if (
-                    bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE &&
-                    bridgeMessage.payload?.event === 'disconnect' &&
-                    !bridgeMessage.messageId
-                ) {
-                    log('[walletkitBridge] 🔄 Transforming disconnect response to event');
-                    bridgeMessage = {
-                        type: TONCONNECT_BRIDGE_EVENT,
-                        source: bridgeMessage.source,
-                        event: bridgeMessage.payload,
-                        traceId: bridgeMessage.traceId,
-                    };
-                    log('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(bridgeMessage, null, 2));
+                // Handle disconnect responses that need to be transformed to events
+                if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE) {
+                    const responseMsg = bridgeMessage as BridgeResponse;
+                    const payload = responseMsg.payload as { event?: string; id?: number } | undefined;
+                    
+                    if (payload?.event === 'disconnect' && !responseMsg.messageId) {
+                        log('[walletkitBridge] 🔄 Transforming disconnect response to event');
+                        bridgeMessage = {
+                            type: TONCONNECT_BRIDGE_EVENT,
+                            source: responseMsg.source,
+                            event: {
+                                event: 'disconnect',
+                                id: payload.id ?? 0,
+                                payload: {},
+                            },
+                            traceId: responseMsg.traceId,
+                        } as BridgeEvent;
+                        log('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(bridgeMessage, null, 2));
+                    }
                 }
 
-                if (bridgeMessage.messageId) {
+                // Handle responses with messageId (internal browser requests)
+                if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE && bridgeMessage.messageId) {
                     log('[walletkitBridge] 🔵 Message has messageId, checking for pending promise');
                     const resolvers = getInternalBrowserResolverMap();
                     const resolver = resolvers?.get(bridgeMessage.messageId);

@@ -12,6 +12,13 @@
  * Simplified bridge for WalletKit initialization and event listener management.
  */
 
+import type {
+    ConnectionRequestEvent,
+    DisconnectionEvent,
+    RequestErrorEvent,
+    SendTransactionRequestEvent,
+    SignDataRequestEvent,
+} from '@ton/walletkit';
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
 import { ensureWalletKitLoaded } from '../core/moduleLoader';
 import { initTonWalletKit, requireWalletKit } from '../core/initialization';
@@ -49,7 +56,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeConnectRequestCallback();
     }
 
-    eventListeners.onConnectListener = (event: unknown) => {
+    eventListeners.onConnectListener = (event: ConnectionRequestEvent) => {
         callback('connectRequest', event);
     };
 
@@ -59,7 +66,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeTransactionRequestCallback();
     }
 
-    eventListeners.onTransactionListener = (event: unknown) => {
+    eventListeners.onTransactionListener = (event: SendTransactionRequestEvent) => {
         callback('transactionRequest', event);
     };
 
@@ -69,7 +76,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeSignDataRequestCallback();
     }
 
-    eventListeners.onSignDataListener = (event: unknown) => {
+    eventListeners.onSignDataListener = (event: SignDataRequestEvent) => {
         callback('signDataRequest', event);
     };
 
@@ -79,7 +86,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeDisconnectCallback();
     }
 
-    eventListeners.onDisconnectListener = (event: unknown) => {
+    eventListeners.onDisconnectListener = (event: DisconnectionEvent) => {
         callback('disconnect', event);
     };
 
@@ -90,7 +97,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeErrorCallback();
     }
 
-    eventListeners.onErrorListener = (event: unknown) => {
+    eventListeners.onErrorListener = (event: RequestErrorEvent) => {
         callback('requestError', event);
     };
 

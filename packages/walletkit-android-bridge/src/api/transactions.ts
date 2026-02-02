@@ -13,6 +13,7 @@
  * All validation, transformation, and formatting happens in Kotlin.
  */
 
+import type { Transaction } from '@ton/walletkit';
 import type {
     GetRecentTransactionsArgs,
     CreateTransferTonTransactionArgs,
@@ -26,7 +27,7 @@ import { warn } from '../utils/logger';
  * Retrieves recent transactions for a wallet.
  * Returns raw WalletKit response - transformation happens in Kotlin TransactionResponseParser.
  */
-export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<unknown[]> {
+export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<Transaction[]> {
     return callBridge('getRecentTransactions', async (kit) => {
         const wallet = kit.getWallet?.(args.walletId);
 

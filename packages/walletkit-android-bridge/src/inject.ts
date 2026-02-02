@@ -8,7 +8,7 @@
 
 // Bridge injection for Android internal browser
 import { injectBridgeCode, TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_REQUEST } from '@ton/walletkit/bridge';
-import type { InjectedToExtensionBridgeRequestPayload, JSBridgeInjectOptions } from '@ton/walletkit';
+import type { BridgeEvent, InjectedToExtensionBridgeRequestPayload, JSBridgeInjectOptions } from '@ton/walletkit';
 import type { Transport } from '@ton/walletkit';
 
 import { error } from './utils/logger';
@@ -55,9 +55,9 @@ const isAndroidWebView = typeof tonWindow.AndroidTonConnect !== 'undefined';
 class AndroidWebViewTransport implements Transport {
     private pendingRequests = new Map<
         string,
-        { resolve: (value: unknown) => void; reject: (error: Error) => void; timeout: ReturnType<typeof setTimeout> }
+        { resolve: (value: BridgeEvent) => void; reject: (error: Error) => void; timeout: ReturnType<typeof setTimeout> }
     >();
-    private eventCallbacks: Array<(event: unknown) => void> = [];
+    private eventCallbacks: Array<(event: BridgeEvent) => void> = [];
 
     constructor() {
         // Set up notification handlers and postMessage relay
@@ -163,11 +163,12 @@ class AndroidWebViewTransport implements Transport {
             while (bridge.hasEvent(frameId)) {
                 const eventStr = bridge.pullEvent(frameId);
                 if (eventStr) {
-                    const data = JSON.parse(eventStr) as { type?: string; event?: unknown };
+                    const data = JSON.parse(eventStr) as { type?: string; event?: BridgeEvent };
                     if (data.type === TONCONNECT_BRIDGE_EVENT && data.event) {
+                        const event = data.event;
                         this.eventCallbacks.forEach((callback) => {
                             try {
-                                callback(data.event);
+                                callback(event);
                             } catch (err) {
                                 error('[AndroidTransport] Event callback error:', err);
                             }
@@ -180,7 +181,7 @@ class AndroidWebViewTransport implements Transport {
         }
     }
 
-    async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<unknown> {
+    async send(request: Omit<InjectedToExtensionBridgeRequestPayload, 'id'>): Promise<BridgeEvent> {
         const messageId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         const bridge = tonWindow.AndroidTonConnect;
         if (!bridge?.postMessage) {
@@ -207,7 +208,7 @@ class AndroidWebViewTransport implements Transport {
         });
     }
 
-    onEvent(callback: (event: unknown) => void): void {
+    onEvent(callback: (event: BridgeEvent) => void): void {
         this.eventCallbacks.push(callback);
     }
 

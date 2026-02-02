@@ -6,6 +6,24 @@
  *
  */
 
+import type {
+    BridgeEvent,
+    ConnectionRequestEventPreview,
+    DAppInfo,
+    ISigner,
+    Jetton,
+    JettonsResponse,
+    NFT,
+    NFTsResponse,
+    SendTransactionResponse,
+    TokenAmount,
+    TONConnectSession,
+    Transaction,
+    TransactionEmulatedPreview,
+    TransactionRequest,
+    Wallet,
+    WalletAdapter,
+} from '@ton/walletkit';
 import type { WalletKitBridgeEventCallback } from './events';
 import type { WalletKitBridgeInitConfig } from './walletkit';
 
@@ -86,16 +104,14 @@ export interface CreateTransferMultiTonTransactionArgs {
 
 export interface TransactionContentArgs {
     walletId: string;
-    transactionContent: unknown; // Can be object (from Kotlin) or string (legacy)
+    transactionContent: TransactionRequest | string; // Can be object (from Kotlin) or string (legacy)
 }
 
-export interface TonConnectRequestEvent extends Record<string, unknown> {
-    id?: string;
-    wallet?: unknown;
-    walletAddress?: string;
-    request?: Record<string, unknown> & { from?: string };
-    preview?: Record<string, unknown> & { manifest?: { url?: string } };
-    dAppInfo?: Record<string, unknown> & { url?: string };
+export interface TonConnectRequestEvent extends BridgeEvent {
+    wallet?: Wallet;
+    request?: BridgeEvent & { from?: string };
+    preview?: ConnectionRequestEventPreview;
+    dAppInfo?: DAppInfo;
     domain?: string;
     isJsBridge?: boolean;
     tabId?: string;
@@ -182,7 +198,7 @@ export interface CreateTransferNftRawTransactionArgs {
     walletId: string;
     nftAddress: string;
     transferAmount: string;
-    transferMessage: unknown;
+    transferMessage: TransactionRequest;
 }
 
 export interface GetJettonsArgs {
@@ -211,7 +227,7 @@ export interface GetJettonWalletAddressArgs {
 export interface ProcessInternalBrowserRequestArgs {
     messageId: string;
     method: string;
-    params?: unknown;
+    params?: Record<string, unknown>;
     from?: string;
     url?: string;
     manifestUrl?: string;
@@ -244,7 +260,7 @@ export interface WalletDescriptor {
 }
 
 export interface WalletKitBridgeApi {
-    init(config?: WalletKitBridgeInitConfig): PromiseOrValue<unknown>;
+    init(config?: WalletKitBridgeInitConfig): PromiseOrValue<{ ok: true }>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
     removeEventListeners(): PromiseOrValue<{ ok: true }>;
     // Returns raw keyPair with Uint8Array - Kotlin handles conversion
@@ -253,55 +269,61 @@ export interface WalletKitBridgeApi {
     sign(args: SignArgs): PromiseOrValue<string>;
     // Returns mnemonic words array directly
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<string[]>;
-    // Returns temp ID and raw signer - Kotlin extracts signerId and publicKey
-    createSigner(args: CreateSignerArgs): PromiseOrValue<{ _tempId: string; signer: unknown }>;
-    // Returns temp ID and raw adapter - Kotlin extracts adapterId and address
-    createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ _tempId: string; adapter: unknown }>;
+    // Returns temp ID and signer - Kotlin extracts signerId and publicKey
+    createSigner(args: CreateSignerArgs): PromiseOrValue<{ _tempId: string; signer: ISigner }>;
+    // Returns temp ID and adapter - Kotlin extracts adapterId and address
+    createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ _tempId: string; adapter: WalletAdapter }>;
     // Returns address string directly
     getAdapterAddress(args: { adapterId: string }): PromiseOrValue<string>;
     // Returns walletId with wallet object, or null
-    addWallet(args: AddWalletArgs): PromiseOrValue<{ walletId: string | undefined; wallet: unknown } | null>;
+    addWallet(args: AddWalletArgs): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet } | null>;
     // Returns array of walletId with wallet objects
-    getWallets(): PromiseOrValue<{ walletId: string | undefined; wallet: unknown }[]>;
+    getWallets(): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet }[]>;
     // Takes walletId, returns walletId with wallet object or null
-    getWallet(args: { walletId: string }): PromiseOrValue<{ walletId: string | undefined; wallet: unknown } | null>;
+    getWallet(args: { walletId: string }): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet } | null>;
     // Returns address string or null directly
     getWalletAddress(args: { walletId: string }): PromiseOrValue<string | null>;
     // Returns void
     removeWallet(args: RemoveWalletArgs): PromiseOrValue<void>;
-    // Returns balance - type is unknown since wallet.getBalance() returns Promise<unknown>
-    getBalance(args: GetBalanceArgs): PromiseOrValue<unknown>;
+    // Returns balance as TokenAmount
+    getBalance(args: GetBalanceArgs): PromiseOrValue<TokenAmount>;
     // Returns transactions array directly
-    getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<unknown[]>;
-    handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<unknown>;
+    getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
+    handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
     // Returns transaction and optional preview
     createTransferTonTransaction(
         args: CreateTransferTonTransactionArgs,
-    ): PromiseOrValue<{ transaction: unknown; preview?: unknown }>;
+    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
     createTransferMultiTonTransaction(
         args: CreateTransferMultiTonTransactionArgs,
-    ): PromiseOrValue<{ transaction: unknown; preview?: unknown }>;
-    getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<unknown>;
+    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;
     handleNewTransaction(args: TransactionContentArgs): PromiseOrValue<{ success: boolean }>;
-    // Returns raw result from wallet.sendTransaction
-    sendTransaction(args: TransactionContentArgs): PromiseOrValue<unknown>;
-    approveConnectRequest(args: ApproveConnectRequestArgs): PromiseOrValue<unknown>;
-    rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<object>;
-    approveTransactionRequest(args: ApproveTransactionRequestArgs): PromiseOrValue<unknown>;
-    rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<object>;
-    approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<unknown>;
-    rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<object>;
-    listSessions(): PromiseOrValue<unknown>;
-    disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<unknown>;
-    getNfts(args: GetNftsArgs): PromiseOrValue<unknown>;
-    getNft(args: GetNftArgs): PromiseOrValue<unknown>;
-    createTransferNftTransaction(args: CreateTransferNftTransactionArgs): PromiseOrValue<unknown>;
-    createTransferNftRawTransaction(args: CreateTransferNftRawTransactionArgs): PromiseOrValue<unknown>;
-    getJettons(args: GetJettonsArgs): PromiseOrValue<unknown>;
-    createTransferJettonTransaction(args: CreateTransferJettonTransactionArgs): PromiseOrValue<unknown>;
-    getJettonBalance(args: GetJettonBalanceArgs): PromiseOrValue<unknown>;
-    getJettonWalletAddress(args: GetJettonWalletAddressArgs): PromiseOrValue<unknown>;
-    processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs): PromiseOrValue<unknown>;
+    // Returns result from wallet.sendTransaction
+    sendTransaction(args: TransactionContentArgs): PromiseOrValue<SendTransactionResponse>;
+    approveConnectRequest(args: ApproveConnectRequestArgs): PromiseOrValue<void>;
+    rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<void>;
+    approveTransactionRequest(args: ApproveTransactionRequestArgs): PromiseOrValue<{ signedBoc: string }>;
+    rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<void>;
+    approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<{ signature: string; timestamp: number }>;
+    rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<void>;
+    listSessions(): PromiseOrValue<TONConnectSession[]>;
+    disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<void>;
+    getNfts(args: GetNftsArgs): PromiseOrValue<NFTsResponse>;
+    getNft(args: GetNftArgs): PromiseOrValue<NFT | null>;
+    createTransferNftTransaction(
+        args: CreateTransferNftTransactionArgs,
+    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    createTransferNftRawTransaction(
+        args: CreateTransferNftRawTransactionArgs,
+    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    getJettons(args: GetJettonsArgs): PromiseOrValue<JettonsResponse>;
+    createTransferJettonTransaction(
+        args: CreateTransferJettonTransactionArgs,
+    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    getJettonBalance(args: GetJettonBalanceArgs): PromiseOrValue<TokenAmount>;
+    getJettonWalletAddress(args: GetJettonWalletAddressArgs): PromiseOrValue<string>;
+    processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs): PromiseOrValue<BridgeEvent>;
     emitBrowserPageStarted(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;

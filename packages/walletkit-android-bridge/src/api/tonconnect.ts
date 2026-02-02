@@ -13,9 +13,23 @@
  * Session transformation handled by Kotlin SessionResponseParser.
  */
 
+import type {
+    BridgeEventMessageInfo,
+    ConnectEvent,
+    ConnectEventError,
+    InjectedToExtensionBridgeRequestPayload,
+    WalletResponse,
+    DisconnectEvent,
+} from '@ton/walletkit';
+import type { JsBridgeTransportMessage } from '../types/bridge';
 import type { HandleTonConnectUrlArgs, DisconnectSessionArgs, ProcessInternalBrowserRequestArgs } from '../types';
 import { callBridge } from '../utils/bridgeWrapper';
 import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
+
+/**
+ * TonConnect event payload types that can be returned from processInternalBrowserRequest.
+ */
+export type TonConnectEventPayload = ConnectEvent | ConnectEventError | WalletResponse | DisconnectEvent;
 
 /**
  * Handles TonConnect URLs from deep links or QR codes.
@@ -59,16 +73,16 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
         // Extract origin (with scheme) from URL - SessionManager.getSessionByDomain expects a parseable URL
         const domain = args.url ? new URL(args.url).origin : 'internal-browser';
 
-        const messageInfo = {
+        const messageInfo: BridgeEventMessageInfo = {
             messageId: args.messageId,
             tabId: args.messageId,
             domain,
         };
 
-        const request: Record<string, unknown> = {
+        const request: InjectedToExtensionBridgeRequestPayload = {
             id: args.messageId,
             method: args.method,
-            params: args.params,
+            params: args.params ?? [],
         };
 
         if (kit.processInjectedBridgeRequest) {
@@ -78,22 +92,29 @@ export async function processInternalBrowserRequest(args: ProcessInternalBrowser
         }
 
         // Wait for response from jsBridgeTransport (via initialization.ts)
-        return new Promise<unknown>((resolve, reject) => {
+        return new Promise<TonConnectEventPayload>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 reject(new Error(`Request timeout: ${args.messageId}`));
             }, 60000); // 60 second timeout
 
             const resolverMap = ensureInternalBrowserResolverMap();
             resolverMap.set(args.messageId, {
-                resolve: (response: unknown) => {
+                resolve: (response: JsBridgeTransportMessage) => {
                     clearTimeout(timeoutId);
-                    if (response && typeof response === 'object' && 'payload' in response) {
-                        resolve((response as { payload?: unknown }).payload ?? response);
+                    // Extract payload from BridgeResponse - that's the actual TonConnect event
+                    if ('payload' in response && response.payload !== undefined) {
+                        resolve(response.payload as TonConnectEventPayload);
+                    } else if ('result' in response && response.result !== undefined) {
+                        resolve(response.result as TonConnectEventPayload);
+                    } else if ('event' in response) {
+                        // BridgeEvent contains the event directly
+                        resolve(response.event as TonConnectEventPayload);
                     } else {
-                        resolve(response);
+                        // Fallback - shouldn't happen in normal flow
+                        reject(new Error('Unexpected response format'));
                     }
                 },
-                reject: (error: unknown) => {
+                reject: (error: Error) => {
                     clearTimeout(timeoutId);
                     reject(error);
                 },
