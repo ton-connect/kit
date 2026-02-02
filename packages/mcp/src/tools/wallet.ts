@@ -18,12 +18,12 @@ export const createWalletSchema = z.object({
     name: z.string().min(1).describe('Unique name for the wallet'),
     version: z
         .enum(['v5r1', 'v4r2'])
-        .default('v5r1')
-        .describe('Wallet version (v5r1 recommended, v4r2 for legacy compatibility)'),
+        .optional()
+        .describe('Wallet version (v5r1 recommended, v4r2 for legacy compatibility). Defaults to v5r1.'),
     network: z
         .enum(['mainnet', 'testnet'])
-        .default('mainnet')
-        .describe('Network to create the wallet on (mainnet or testnet)'),
+        .optional()
+        .describe('Network to create the wallet on. Defaults to the server configured network.'),
 });
 
 export const importWalletSchema = z.object({
@@ -31,12 +31,12 @@ export const importWalletSchema = z.object({
     mnemonic: z.string().describe('24-word mnemonic phrase separated by spaces'),
     version: z
         .enum(['v5r1', 'v4r2'])
-        .default('v5r1')
-        .describe('Wallet version (v5r1 recommended, v4r2 for legacy compatibility)'),
+        .optional()
+        .describe('Wallet version (v5r1 recommended, v4r2 for legacy compatibility). Defaults to v5r1.'),
     network: z
         .enum(['mainnet', 'testnet'])
-        .default('mainnet')
-        .describe('Network to import the wallet on (mainnet or testnet)'),
+        .optional()
+        .describe('Network to import the wallet on. Defaults to the server configured network.'),
 });
 
 export const removeWalletSchema = z.object({

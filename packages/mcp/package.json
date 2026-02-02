@@ -1,0 +1,67 @@
+{
+  "name": "@ton/mcp",
+  "version": "0.1.0",
+  "description": "TON MCP Server - Model Context Protocol server for TON blockchain wallet operations",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "pnpm build:clean && rolldown -c && pnpm build:types",
+    "build:clean": "rimraf dist",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "dev": "rolldown -c --watch",
+    "lint": "eslint src --max-warnings 0",
+    "lint:fix": "eslint src --max-warnings 0 --fix",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ton",
+    "mcp",
+    "wallet",
+    "model-context-protocol",
+    "blockchain"
+  ],
+  "author": "TON Tech",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ton-connect/kit"
+  },
+  "dependencies": {
+    "@ton/walletkit": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@types/node": "^22.15.29",
+    "@vitest/coverage-v8": "^4.0.17",
+    "rimraf": "^6.1.0",
+    "rolldown": "1.0.0-rc.2",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

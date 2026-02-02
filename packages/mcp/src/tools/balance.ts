@@ -56,6 +56,16 @@ export const getJettonsSchema = z.object({
     wallet: z.string().min(1).describe('Name of the wallet to list jettons for'),
 });
 
+export const getTransactionsSchema = z.object({
+    wallet: z.string().min(1).describe('Name of the wallet to get transactions for'),
+    limit: z
+        .number()
+        .min(1)
+        .max(100)
+        .optional()
+        .describe('Maximum number of transactions to return (default: 20, max: 100)'),
+});
+
 export function createBalanceTools(walletService: WalletService) {
     return {
         get_balance: {
@@ -228,6 +238,84 @@ export function createBalanceTools(walletService: WalletService) {
                                             };
                                         }),
                                         count: jettons.length,
+                                    },
+                                    null,
+                                    2,
+                                ),
+                            },
+                        ],
+                    };
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: 'text' as const,
+                                text: JSON.stringify({
+                                    success: false,
+                                    error: error instanceof Error ? error.message : 'Unknown error',
+                                }),
+                            },
+                        ],
+                        isError: true,
+                    };
+                }
+            },
+        },
+
+        get_transactions: {
+            description:
+                'Get recent transaction history for a wallet. Returns events with actions like TON transfers, Jetton transfers, swaps, and more.',
+            inputSchema: getTransactionsSchema,
+            handler: async (args: z.infer<typeof getTransactionsSchema>) => {
+                try {
+                    const transactions = await walletService.getTransactions(args.wallet, args.limit ?? 20);
+
+                    return {
+                        content: [
+                            {
+                                type: 'text' as const,
+                                text: JSON.stringify(
+                                    {
+                                        success: true,
+                                        wallet: args.wallet,
+                                        transactions: transactions.map((tx) => ({
+                                            eventId: tx.eventId,
+                                            timestamp: tx.timestamp,
+                                            date: new Date(tx.timestamp * 1000).toISOString(),
+                                            type: tx.type,
+                                            status: tx.status,
+                                            description: tx.description,
+                                            isScam: tx.isScam,
+                                            // TON transfer details
+                                            ...(tx.type === 'TonTransfer' && {
+                                                from: tx.from,
+                                                to: tx.to,
+                                                amount: tx.amount
+                                                    ? {
+                                                          ton: fromRawAmount(tx.amount, TON_DECIMALS),
+                                                          nanoTon: tx.amount,
+                                                      }
+                                                    : null,
+                                                comment: tx.comment,
+                                            }),
+                                            // Jetton transfer details
+                                            ...(tx.type === 'JettonTransfer' && {
+                                                from: tx.from,
+                                                to: tx.to,
+                                                jettonAddress: tx.jettonAddress,
+                                                jettonSymbol: tx.jettonSymbol,
+                                                jettonAmount: tx.jettonAmount,
+                                                comment: tx.comment,
+                                            }),
+                                            // Swap details
+                                            ...(tx.type === 'JettonSwap' && {
+                                                dex: tx.dex,
+                                                amountIn: tx.amountIn,
+                                                amountOut: tx.amountOut,
+                                                jettonSymbol: tx.jettonSymbol,
+                                            }),
+                                        })),
+                                        count: transactions.length,
                                     },
                                     null,
                                     2,

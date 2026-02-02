@@ -55,6 +55,36 @@ export interface JettonInfoResult {
     decimals?: number;
 }
 
+export interface TransactionInfo {
+    eventId: string;
+    timestamp: number;
+    type:
+        | 'TonTransfer'
+        | 'JettonTransfer'
+        | 'JettonSwap'
+        | 'NftItemTransfer'
+        | 'ContractDeploy'
+        | 'SmartContractExec'
+        | 'Unknown';
+    status: 'success' | 'failure';
+    // For TON transfers
+    from?: string;
+    to?: string;
+    amount?: string;
+    comment?: string;
+    // For Jetton transfers
+    jettonAddress?: string;
+    jettonSymbol?: string;
+    jettonAmount?: string;
+    // For swaps
+    dex?: string;
+    amountIn?: string;
+    amountOut?: string;
+    // General
+    description?: string;
+    isScam: boolean;
+}
+
 export interface TransferResult {
     success: boolean;
     message: string;
@@ -353,6 +383,100 @@ export class WalletService {
                 symbol: j.info.symbol,
                 decimals: j.decimalsNumber,
             });
+        }
+
+        return results;
+    }
+
+    /**
+     * Get transaction history for a wallet using events API (like demo wallet)
+     */
+    async getTransactions(walletName: string, limit: number = 20): Promise<TransactionInfo[]> {
+        const wallet = await this.getWalletByName(walletName);
+        const address = wallet.getAddress();
+        const client = wallet.getClient();
+
+        const response = await client.getEvents({
+            account: address,
+            limit,
+        });
+
+        const results: TransactionInfo[] = [];
+
+        for (const event of response.events) {
+            // Process each action in the event
+            for (const action of event.actions) {
+                const info: TransactionInfo = {
+                    eventId: event.eventId,
+                    timestamp: event.timestamp,
+                    type: 'Unknown',
+                    status: action.status === 'success' ? 'success' : 'failure',
+                    description: action.simplePreview?.description,
+                    isScam: event.isScam,
+                };
+
+                // Handle different action types
+                if (action.type === 'TonTransfer' && 'TonTransfer' in action) {
+                    const transfer = (
+                        action as {
+                            TonTransfer: {
+                                sender: { address: string };
+                                recipient: { address: string };
+                                amount: bigint;
+                                comment?: string;
+                            };
+                        }
+                    ).TonTransfer;
+                    info.type = 'TonTransfer';
+                    info.from = transfer.sender?.address;
+                    info.to = transfer.recipient?.address;
+                    info.amount = transfer.amount?.toString();
+                    info.comment = transfer.comment;
+                } else if (action.type === 'JettonTransfer' && 'JettonTransfer' in action) {
+                    const transfer = (
+                        action as {
+                            JettonTransfer: {
+                                sender: { address: string };
+                                recipient: { address: string };
+                                amount: bigint;
+                                comment?: string;
+                                jetton: { address: string; symbol: string };
+                            };
+                        }
+                    ).JettonTransfer;
+                    info.type = 'JettonTransfer';
+                    info.from = transfer.sender?.address;
+                    info.to = transfer.recipient?.address;
+                    info.jettonAmount = transfer.amount?.toString();
+                    info.jettonAddress = transfer.jetton?.address;
+                    info.jettonSymbol = transfer.jetton?.symbol;
+                    info.comment = transfer.comment;
+                } else if (action.type === 'JettonSwap' && 'JettonSwap' in action) {
+                    const swap = (
+                        action as {
+                            JettonSwap: {
+                                dex: string;
+                                amountIn: string;
+                                amountOut: string;
+                                jettonMasterOut: { symbol: string };
+                            };
+                        }
+                    ).JettonSwap;
+                    info.type = 'JettonSwap';
+                    info.dex = swap.dex;
+                    info.amountIn = swap.amountIn;
+                    info.amountOut = swap.amountOut;
+                    info.jettonSymbol = swap.jettonMasterOut?.symbol;
+                } else if (action.type === 'NftItemTransfer') {
+                    info.type = 'NftItemTransfer';
+                } else if (action.type === 'ContractDeploy') {
+                    info.type = 'ContractDeploy';
+                } else if (action.type === 'SmartContractExec') {
+                    info.type = 'SmartContractExec';
+                }
+
+                results.push(info);
+            }
         }
 
         return results;
