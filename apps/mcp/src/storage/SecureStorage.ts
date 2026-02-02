@@ -172,5 +172,3 @@ export class SecureStorage {
         await this.provider.save(data);
     }
 }
-
-

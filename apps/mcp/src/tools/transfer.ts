@@ -131,5 +131,3 @@ export function createTransferTools(walletService: WalletService) {
         },
     };
 }
-
-

@@ -165,5 +165,3 @@ export function createBalanceTools(walletService: WalletService) {
         },
     };
 }
-
-
