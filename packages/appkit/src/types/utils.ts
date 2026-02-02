@@ -113,10 +113,8 @@ export type LooseOmit<type, keys extends string> = Pick<type, Exclude<keyof type
 
 export type UnionCompute<type> = type extends object ? Compute<type> : type;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UnionLooseOmit<type, keys extends string> = type extends any ? LooseOmit<type, keys> : never;
+export type UnionLooseOmit<type, keys extends string> = type extends unknown ? LooseOmit<type, keys> : never;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UnionStrictOmit<type, keys extends keyof type> = type extends any ? StrictOmit<type, keys> : never;
+export type UnionStrictOmit<type, keys extends keyof type> = type extends unknown ? StrictOmit<type, keys> : never;
 
 export type UnionExactPartial<type> = type extends object ? ExactPartial<type> : type;

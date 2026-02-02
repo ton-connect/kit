@@ -15,11 +15,11 @@ import { useWalletAssets } from '@/hooks';
 export const MinterPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
     const isConnected = !!wallet;
-    const { nfts, isLoadingNfts, nftsError, loadNfts, transferJetton, transferNft, isTransferring } = useWalletAssets();
+    const { nfts, isLoadingNfts, nftsError, loadNfts, transferNft, isTransferring } = useWalletAssets();
 
     const {
         data: jettonsResponse,
-        isFetching: isLoadingJettons,
+        isLoading: isLoadingJettons,
         isError: isErrorJettons,
         refetch: loadJettons,
     } = useSelectedWalletJettons({ refetchInterval: 10000 });
@@ -43,8 +43,6 @@ export const MinterPage: React.FC = () => {
                             isLoading={isLoadingJettons}
                             isError={isErrorJettons}
                             onRefresh={loadJettons}
-                            onTransfer={transferJetton}
-                            isTransferring={isTransferring}
                         />
 
                         <NftsCard

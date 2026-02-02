@@ -44,8 +44,7 @@ export function useQuery<queryFnData, error, data, queryKey extends QueryKey>(
     },
 ): UseQueryReturnType<data, error> {
     const result = tanstack_useQuery({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(parameters as any),
+        ...parameters,
         // queryKeyHashFn: hashFn, // for bigint support
     }) as UseQueryReturnType<data, error>;
     result.queryKey = parameters.queryKey;
@@ -59,7 +58,6 @@ export type UseQueryParameters<
     queryKey extends QueryKey = QueryKey,
 > = Compute<
     ExactPartial<Omit<UseQueryOptions<queryFnData, error, data, queryKey>, 'initialData'>> & {
-        // Fix `initialData` type
         initialData?: UseQueryOptions<queryFnData, error, data, queryKey>['initialData'] | undefined;
     }
 >;

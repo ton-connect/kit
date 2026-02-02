@@ -31,7 +31,7 @@ export const ConnectorsList: FC<ConnectorsListProps> = ({ className, onConnector
     };
 
     if (connectors.length === 0) {
-        return <div className={styles.emptyState}>{t('No wallets found')}</div>;
+        return <div className={styles.emptyState}>{t('wallet.noWalletsFound')}</div>;
     }
 
     return (

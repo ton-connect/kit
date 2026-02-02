@@ -89,12 +89,12 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Transfer NFT</h3>
-                        <button onClick={handleClose} className="text-gray-400 hover:text-gray-500">
+                        <h3 className="text-lg font-medium text-card-foreground">Transfer NFT</h3>
+                        <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
@@ -108,7 +108,7 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({
 
                     {/* NFT Preview */}
                     <div className="mb-4">
-                        <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden mb-3">
+                        <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden mb-3">
                             {getNftImage(nft) ? (
                                 <img
                                     src={getNftImage(nft)!}
@@ -117,7 +117,7 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({
                                 />
                             ) : (
                                 <svg
-                                    className="w-16 h-16 text-gray-400"
+                                    className="w-16 h-16 text-muted-foreground"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -131,39 +131,43 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({
                                 </svg>
                             )}
                         </div>
-                        <h4 className="font-medium text-gray-900">{getNftName(nft)}</h4>
-                        <p className="text-sm text-gray-500">{getCollectionName(nft)}</p>
+                        <h4 className="font-medium text-card-foreground">{getNftName(nft)}</h4>
+                        <p className="text-sm text-muted-foreground">{getCollectionName(nft)}</p>
                         {getNftDescription(nft) && (
-                            <p className="text-xs text-gray-400 mt-1">{getNftDescription(nft)}</p>
+                            <p className="text-xs text-muted-foreground/70 mt-1">{getNftDescription(nft)}</p>
                         )}
                     </div>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Address</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                Recipient Address
+                            </label>
                             <input
                                 type="text"
                                 value={recipientAddress}
                                 onChange={(e) => setRecipientAddress(e.target.value)}
                                 placeholder="Enter TON address"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                Comment (optional)
+                            </label>
                             <input
                                 type="text"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="Add a comment"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         {transferError && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-600">{transferError}</p>
+                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                                <p className="text-sm text-destructive">{transferError}</p>
                             </div>
                         )}
                     </div>

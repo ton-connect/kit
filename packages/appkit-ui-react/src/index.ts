@@ -20,3 +20,4 @@ export * from './components/modal';
 
 export * from './features/balances';
 export * from './features/wallets';
+export * from './features/transaction';

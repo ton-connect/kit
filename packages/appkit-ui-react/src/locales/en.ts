@@ -7,9 +7,18 @@
  */
 
 export default {
-    'Loading...': 'Loading...',
-    Connect: 'Connect',
-    'Connect Wallet': 'Connect Wallet',
-    'No wallets found': 'No wallets found',
-    'Error loading balance': 'Error loading balance',
+    // Wallet connection
+    wallet: {
+        connect: 'Connect',
+        connectWallet: 'Connect Wallet',
+        noWalletsFound: 'No wallets found',
+    },
+
+    // Transaction
+    transaction: {
+        confirm: 'Confirm',
+        processing: 'Processing...',
+        success: 'Success',
+        tryAgain: 'Try Again',
+    },
 } as const;

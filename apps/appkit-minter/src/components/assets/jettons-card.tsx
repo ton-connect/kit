@@ -20,25 +20,16 @@ interface JettonsCardProps {
     isLoading: boolean;
     isError: boolean;
     onRefresh: () => void;
-    onTransfer?: (jetton: Jetton, recipientAddress: string, amount: string, comment?: string) => Promise<void>;
-    isTransferring?: boolean;
 }
 
-export const JettonsCard: React.FC<JettonsCardProps> = ({
-    jettons,
-    isLoading,
-    isError,
-    onRefresh,
-    onTransfer,
-    isTransferring = false,
-}) => {
+export const JettonsCard: React.FC<JettonsCardProps> = ({ jettons, isLoading, isError, onRefresh }) => {
     const [selectedJetton, setSelectedJetton] = useState<Jetton | null>(null);
 
     if (isError) {
         return (
             <Card title="Jettons">
                 <div className="text-center py-4">
-                    <div className="text-red-400 mb-2">
+                    <div className="text-destructive mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 fillRule="evenodd"
@@ -47,7 +38,7 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
                             />
                         </svg>
                     </div>
-                    <p className="text-sm text-red-600 mb-3">Failed to load jettons</p>
+                    <p className="text-sm text-destructive mb-3">Failed to load jettons</p>
                     <Button size="sm" variant="secondary" onClick={onRefresh}>
                         Try Again
                     </Button>
@@ -61,12 +52,12 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
             <Card title="Jettons">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                        <span className="ml-3 text-sm text-gray-600">Loading jettons...</span>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="ml-3 text-sm text-muted-foreground">Loading jettons...</span>
                     </div>
                 ) : jettons.length === 0 ? (
                     <div className="text-center py-6">
-                        <div className="text-gray-400 mb-2">
+                        <div className="text-muted-foreground mb-2">
                             <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
@@ -76,14 +67,14 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
                                 />
                             </svg>
                         </div>
-                        <p className="text-sm text-gray-500">No jettons yet</p>
-                        <p className="text-xs text-gray-400 mt-1">Your token balances will appear here</p>
+                        <p className="text-sm text-muted-foreground">No jettons yet</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Your token balances will appear here</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {/* Summary */}
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
-                            <p className="text-sm font-semibold text-gray-900">
+                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                            <p className="text-sm font-semibold text-foreground">
                                 {jettons.length} {jettons.length === 1 ? 'Token' : 'Tokens'}
                             </p>
                             <Button size="sm" variant="secondary" onClick={onRefresh}>
@@ -109,7 +100,7 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
                                         decimals={jetton.decimalsNumber}
                                         icon={info.image}
                                         isVerified={jetton.isVerified}
-                                        onClick={() => onTransfer && setSelectedJetton(jetton)}
+                                        onClick={() => setSelectedJetton(jetton)}
                                     />
                                 );
                             })}
@@ -119,13 +110,11 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({
             </Card>
 
             {/* Jetton Transfer Modal */}
-            {selectedJetton && onTransfer && (
+            {selectedJetton && (
                 <JettonTransferModal
                     jetton={selectedJetton}
                     isOpen={!!selectedJetton}
                     onClose={() => setSelectedJetton(null)}
-                    onTransfer={onTransfer}
-                    isTransferring={isTransferring}
                 />
             )}
         </>

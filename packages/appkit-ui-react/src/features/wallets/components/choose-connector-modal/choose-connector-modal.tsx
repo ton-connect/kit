@@ -21,7 +21,7 @@ export const ChooseConnectorModal: FC<ChooseConnectorModalProps> = ({ isOpen, on
     const { t } = useI18n();
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('Connect Wallet')}>
+        <Modal isOpen={isOpen} onClose={onClose} title={t('wallet.connectWallet')}>
             <ConnectorsList onConnectorSelect={onClose} />
         </Modal>
     );

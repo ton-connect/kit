@@ -50,7 +50,7 @@ export const ConnectButton: FC<ConnectButtonProps> = ({ className, ...props }) =
         <>
             <Button className={clsx(styles.connectButton, className)} onClick={onClick} {...props}>
                 {!selectedWallet && <TonIcon size={14} />}
-                {selectedWallet ? middleEllipsis(selectedWallet.getAddress()) : t('Connect')}
+                {selectedWallet ? middleEllipsis(selectedWallet.getAddress()) : t('wallet.connect')}
             </Button>
 
             <ChooseConnectorModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

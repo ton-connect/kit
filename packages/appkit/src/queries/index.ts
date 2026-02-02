@@ -24,5 +24,22 @@ export {
 export { connectMutationOptions, type ConnectMutationOptions } from './wallets/connect';
 export type { ConnectParameters, ConnectReturnType } from '../actions/wallets/connect';
 
+// Transaction
+export {
+    transferTonMutationOptions,
+    type TransferTonData,
+    type TransferTonErrorType,
+    type TransferTonMutate,
+    type TransferTonMutateAsync,
+    type TransferTonMutationOptions,
+    type TransferTonOptions,
+    type TransferTonVariables,
+} from './transaction/transfer-ton';
+export type {
+    TransferTonParameters,
+    TransferTonReturnType,
+    TransferTonErrorType as TransferTonError,
+} from '../actions/transaction/transfer-ton';
+
 export { disconnectMutationOptions, type DisconnectMutationOptions } from './wallets/disconnect';
 export type { DisconnectParameters, DisconnectReturnType } from '../actions/wallets/disconnect';

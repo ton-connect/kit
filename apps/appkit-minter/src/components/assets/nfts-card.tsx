@@ -71,7 +71,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({
         return (
             <Card title="NFTs">
                 <div className="text-center py-4">
-                    <div className="text-red-400 mb-2">
+                    <div className="text-destructive mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 fillRule="evenodd"
@@ -80,7 +80,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                             />
                         </svg>
                     </div>
-                    <p className="text-sm text-red-600 mb-3">Failed to load NFTs</p>
+                    <p className="text-sm text-destructive mb-3">Failed to load NFTs</p>
                     <Button size="sm" variant="secondary" onClick={onRefresh}>
                         Try Again
                     </Button>
@@ -94,12 +94,12 @@ export const NftsCard: React.FC<NftsCardProps> = ({
             <Card title="NFTs">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                        <span className="ml-3 text-sm text-gray-600">Loading NFTs...</span>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="ml-3 text-sm text-muted-foreground">Loading NFTs...</span>
                     </div>
                 ) : nfts.length === 0 ? (
                     <div className="text-center py-6">
-                        <div className="text-gray-400 mb-2">
+                        <div className="text-muted-foreground mb-2">
                             <svg className="w-10 h-10 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
@@ -109,14 +109,14 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                                 />
                             </svg>
                         </div>
-                        <p className="text-sm text-gray-500">No NFTs yet</p>
-                        <p className="text-xs text-gray-400 mt-1">Your NFT collection will appear here</p>
+                        <p className="text-sm text-muted-foreground">No NFTs yet</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Your NFT collection will appear here</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {/* Summary */}
-                        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-                            <p className="text-sm font-semibold text-gray-900">
+                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                            <p className="text-sm font-semibold text-foreground">
                                 {nfts.length} {nfts.length === 1 ? 'NFT' : 'NFTs'}
                             </p>
                             <Button size="sm" variant="secondary" onClick={onRefresh}>
@@ -129,10 +129,10 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                             {nfts.slice(0, 8).map((nft) => (
                                 <div
                                     key={nft.address}
-                                    className="bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-colors cursor-pointer"
+                                    className="bg-muted rounded-lg overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
                                     onClick={() => onTransfer && setSelectedNft(nft)}
                                 >
-                                    <div className="aspect-square bg-gray-200 flex items-center justify-center overflow-hidden">
+                                    <div className="aspect-square bg-card flex items-center justify-center overflow-hidden">
                                         {getNftImage(nft) ? (
                                             <img
                                                 src={getNftImage(nft)!}
@@ -144,7 +144,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                                                     const parent = target.parentElement;
                                                     if (parent) {
                                                         parent.innerHTML = `
-                                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg class="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                             </svg>
                                                         `;
@@ -153,7 +153,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                                             />
                                         ) : (
                                             <svg
-                                                className="w-8 h-8 text-gray-400"
+                                                className="w-8 h-8 text-muted-foreground"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -168,12 +168,14 @@ export const NftsCard: React.FC<NftsCardProps> = ({
                                         )}
                                     </div>
                                     <div className="p-2">
-                                        <h4 className="text-xs font-medium text-gray-900 truncate">
+                                        <h4 className="text-xs font-medium text-foreground truncate">
                                             {getNftName(nft)}
                                         </h4>
-                                        <p className="text-xs text-gray-500 truncate">{getCollectionName(nft)}</p>
+                                        <p className="text-xs text-muted-foreground truncate">
+                                            {getCollectionName(nft)}
+                                        </p>
                                         {nft.isOnSale && (
-                                            <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                            <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
                                                 On Sale
                                             </span>
                                         )}
@@ -184,7 +186,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({
 
                         {nfts.length > 8 && (
                             <div className="text-center pt-2">
-                                <p className="text-xs text-gray-500">Showing 8 of {nfts.length} NFTs</p>
+                                <p className="text-xs text-muted-foreground">Showing 8 of {nfts.length} NFTs</p>
                             </div>
                         )}
                     </div>

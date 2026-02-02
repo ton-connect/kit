@@ -18,6 +18,14 @@ export {
     type GetJettonsOfSelectedWalletOptions,
 } from './balances/get-jettons-of-selected-wallet';
 
+// Transactions
+export {
+    sendTransaction,
+    type SendTransactionParameters,
+    type SendTransactionReturnType,
+} from './transaction/send-transaction';
+export { transferTon, type TransferTonParameters, type TransferTonReturnType } from './transaction/transfer-ton';
+
 // Wallets
 export { connect, type ConnectParameters, type ConnectReturnType } from './wallets/connect';
 export { disconnect, type DisconnectReturnType, type DisconnectParameters } from './wallets/disconnect';

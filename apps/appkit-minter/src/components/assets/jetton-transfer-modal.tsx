@@ -6,8 +6,11 @@
  *
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
+import { getFormattedJettonInfo, getErrorMessage, parseUnits, formatUnits } from '@ton/appkit';
+import { useSelectedWallet, Transaction } from '@ton/appkit-ui-react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/common';
 
@@ -15,83 +18,43 @@ interface JettonTransferModalProps {
     jetton: Jetton;
     isOpen: boolean;
     onClose: () => void;
-    onTransfer: (jetton: Jetton, recipientAddress: string, amount: string, comment?: string) => Promise<void>;
-    isTransferring: boolean;
 }
 
-const formatBalance = (balance: string, decimals: number = 9): string => {
-    try {
-        const balanceBigInt = BigInt(balance);
-        const divisor = BigInt(10 ** decimals);
-        const wholePart = balanceBigInt / divisor;
-        const fractionalPart = balanceBigInt % divisor;
-
-        if (fractionalPart === 0n) {
-            return wholePart.toString();
-        }
-
-        const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
-        const trimmedFractional = fractionalStr.replace(/0+$/, '').slice(0, 4);
-
-        return trimmedFractional ? `${wholePart}.${trimmedFractional}` : wholePart.toString();
-    } catch {
-        return '0';
-    }
-};
-
-const formatAddress = (address: string): string => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
-};
-
-const getJettonImage = (jetton: Jetton): string | null => {
-    if (!jetton.info?.image) return null;
-
-    const { url, data, mediumUrl, largeUrl, smallUrl } = jetton.info.image;
-
-    if (url) return url;
-    if (mediumUrl) return mediumUrl;
-    if (largeUrl) return largeUrl;
-    if (smallUrl) return smallUrl;
-    if (data) {
-        try {
-            return atob(data);
-        } catch {
-            return null;
-        }
-    }
-
-    return null;
-};
-
-const getJettonName = (jetton: Jetton): string => {
-    return jetton.info?.name || formatAddress(jetton.address);
-};
-
-const getJettonSymbol = (jetton: Jetton): string => {
-    return jetton.info?.symbol || '';
-};
-
-export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({
-    jetton,
-    isOpen,
-    onClose,
-    onTransfer,
-    isTransferring,
-}) => {
+export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({ jetton, isOpen, onClose }) => {
     const [recipientAddress, setRecipientAddress] = useState('');
     const [amount, setAmount] = useState('');
     const [comment, setComment] = useState('');
     const [transferError, setTransferError] = useState<string | null>(null);
 
-    const handleTransfer = async () => {
-        setTransferError(null);
-        try {
-            await onTransfer(jetton, recipientAddress, amount, comment || undefined);
-            handleClose();
-        } catch (err) {
-            setTransferError(err instanceof Error ? err.message : 'Transfer failed');
+    const [wallet] = useSelectedWallet();
+
+    const jettonInfo = useMemo(() => getFormattedJettonInfo(jetton), [jetton]);
+
+    const createTransferTransaction = useCallback(async () => {
+        if (!wallet) return null;
+
+        const decimals = jettonInfo.decimals;
+        const amountNum = parseFloat(amount);
+
+        if (!decimals) {
+            throw new Error('Jetton decimals not found');
         }
-    };
+
+        if (isNaN(amountNum) || amountNum <= 0) {
+            throw new Error('Invalid amount');
+        }
+
+        const transferAmount = parseUnits(amount, decimals).toString();
+
+        const transaction = await wallet.createTransferJettonTransaction({
+            jettonAddress: jettonInfo.address,
+            recipientAddress,
+            transferAmount,
+            comment,
+        });
+
+        return transaction;
+    }, [wallet, jettonInfo, recipientAddress, amount, comment]);
 
     const handleClose = () => {
         setRecipientAddress('');
@@ -104,33 +67,36 @@ export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-card rounded-lg max-w-md w-full">
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                                {getJettonImage(jetton) ? (
+                            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
+                                {jettonInfo.image ? (
                                     <img
-                                        src={getJettonImage(jetton)!}
-                                        alt={getJettonName(jetton)}
+                                        src={jettonInfo.image}
+                                        alt={jettonInfo.name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <span className="text-sm font-bold text-gray-600">
-                                        {getJettonSymbol(jetton).slice(0, 2)}
+                                    <span className="text-sm font-bold text-muted-foreground">
+                                        {jettonInfo.symbol?.slice(0, 2)}
                                     </span>
                                 )}
                             </div>
                             <div>
-                                <h3 className="text-lg font-medium text-gray-900">Transfer {getJettonName(jetton)}</h3>
-                                <p className="text-sm text-gray-500">
-                                    Balance: {formatBalance(jetton.balance, jetton.decimalsNumber)}{' '}
-                                    {getJettonSymbol(jetton)}
+                                <h3 className="text-lg font-medium text-card-foreground">Transfer {jettonInfo.name}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Balance:{' '}
+                                    {jettonInfo.decimals
+                                        ? formatUnits(jettonInfo.balance, jettonInfo.decimals)
+                                        : jettonInfo.balance}{' '}
+                                    {jettonInfo.symbol}
                                 </p>
                             </div>
                         </div>
-                        <button onClick={handleClose} className="text-gray-400 hover:text-gray-500">
+                        <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     strokeLinecap="round"
@@ -144,18 +110,20 @@ export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Address</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                Recipient Address
+                            </label>
                             <input
                                 type="text"
                                 value={recipientAddress}
                                 onChange={(e) => setRecipientAddress(e.target.value)}
                                 placeholder="Enter TON address"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">Amount</label>
                             <input
                                 type="number"
                                 value={amount}
@@ -163,37 +131,44 @@ export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({
                                 placeholder="0.00"
                                 step="any"
                                 min="0"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                Comment (optional)
+                            </label>
                             <input
                                 type="text"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 placeholder="Add a comment"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
                             />
                         </div>
 
                         {transferError && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <p className="text-sm text-red-600">{transferError}</p>
+                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                                <p className="text-sm text-destructive">{transferError}</p>
                             </div>
                         )}
                     </div>
 
                     <div className="flex space-x-3 mt-6">
-                        <Button
+                        <Transaction
                             className="flex-1"
-                            onClick={handleTransfer}
-                            disabled={!recipientAddress || !amount || isTransferring}
-                            isLoading={isTransferring}
-                        >
-                            Send
-                        </Button>
+                            getTransactionRequest={createTransferTransaction}
+                            onSuccess={() => {
+                                handleClose();
+                                toast.success('Transfer successful');
+                            }}
+                            onError={(error) => {
+                                setTransferError(getErrorMessage(error));
+                            }}
+                            disabled={!recipientAddress || !amount}
+                        />
+
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel
                         </Button>
