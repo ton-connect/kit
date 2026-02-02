@@ -228,14 +228,34 @@ export class ApiClientToncenter implements ApiClient {
         headers.set('accept', 'application/json');
         if (this.apiKey) headers.set('x-api-key', this.apiKey);
         props = { ...props, headers };
+
+        const maxRetries = 3;
+        let attempt = 0;
+
+        while (attempt < maxRetries) {
+            const response = await this.doRequest(url, props);
+            if (response.status === 429) {
+                attempt++;
+                const delay = attempt * 1000; // 1s, 2s, 3s
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                continue;
+            }
+            if (!response.ok) {
+                throw await this.buildError(response);
+            }
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const text = await (response as globalThis.Response).text();
+                throw new TonClientError('Unexpected non-JSON response', response.status, text.slice(0, 200));
+            }
+            const json = await response.json();
+            return json as Promise<T>;
+        }
+
+        // If we exhausted retries for 429, make one last attempt or just throw
         const response = await this.doRequest(url, props);
         if (!response.ok) {
             throw await this.buildError(response);
-        }
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            const text = await (response as globalThis.Response).text();
-            throw new TonClientError('Unexpected non-JSON response', response.status, text.slice(0, 200));
         }
         const json = await response.json();
         return json as Promise<T>;

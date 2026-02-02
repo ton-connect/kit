@@ -50,7 +50,7 @@ let networkError: HTMLElement;
 let deleteDataBtn: HTMLButtonElement;
 
 const stakingError = document.getElementById('staking-error')!;
-const stakingSuccess = document.getElementById('staking-success')!;
+
 const balanceTon = document.getElementById('balance-ton')!;
 const balanceAvailable = document.getElementById('balance-available')!;
 const balanceStaked = document.getElementById('balance-staked')!;
@@ -200,14 +200,6 @@ function showError(element: HTMLElement, message: string) {
     setTimeout(() => {
         element.style.display = 'none';
     }, 5000);
-}
-
-function showSuccess(message: string) {
-    stakingSuccess.textContent = message;
-    stakingSuccess.style.display = 'block';
-    setTimeout(() => {
-        stakingSuccess.style.display = 'none';
-    }, 3000);
 }
 
 function formatBalance(nanoValue: string | bigint): string {
@@ -657,39 +649,54 @@ async function handleUnstake(amount: bigint, mode: 'instant' | 'delayed', waitTi
         return;
     }
 
-    if (!wallet || !jettonWalletAddress) {
-        showError(stakingError, 'Wallet not initialized');
+    if (!wallet || !stakingManager) {
+        showError(stakingError, 'Wallet or staking manager not initialized');
         return;
     }
 
     try {
-        const fillOrKill = mode === 'instant';
-        const payload = beginCell()
-            .storeUint(CONTRACT.PAYLOAD_UNSTAKE, 32)
-            .storeUint(0, 64)
-            .storeCoins(amount)
-            .storeAddress(Address.parse(wallet.getAddress()))
-            .storeMaybeRef(
-                beginCell()
-                    .storeUint(waitTillRoundEnd ? 1 : 0, 1)
-                    .storeUint(fillOrKill ? 1 : 0, 1)
-                    .endCell(),
-            )
-            .endCell()
-            .toBoc()
-            .toString('base64') as Base64String;
+        const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
-        const transaction = await wallet.createTransferTonTransaction({
-            recipientAddress: jettonWalletAddress.toString(),
-            transferAmount: CONTRACT.UNSTAKE_FEE_RES.toString(),
-            payload,
+        let unstakeMode: 'instant' | 'delayed' | 'bestRate';
+        if (mode === 'instant') {
+            unstakeMode = 'instant';
+        } else if (waitTillRoundEnd) {
+            unstakeMode = 'bestRate';
+        } else {
+            unstakeMode = 'delayed';
+        }
+
+        showTxStatus('pending', 'Building unstake transaction...', `Mode: ${unstakeMode}`);
+
+        const txRequest = await stakingManager.unstake({
+            amount: amount.toString(),
+            userAddress: wallet.getAddress(),
+            network,
+            unstakeMode,
         });
 
-        await wallet.sendTransaction(transaction);
-        showSuccess('Unstaking transaction sent');
-        setTimeout(() => handleRefreshBalances(), 2000);
+        showTxStatus('pending', 'Sending transaction...', 'Please wait...');
+
+        if (txRequest.messages && txRequest.messages.length > 0) {
+            const msg = txRequest.messages[0];
+            const transaction = await wallet.createTransferTonTransaction({
+                recipientAddress: msg.address,
+                transferAmount: msg.amount,
+                payload: msg.payload,
+            });
+            await wallet.sendTransaction(transaction);
+        }
+
+        showTxStatus('success', 'Unstaking transaction sent!', `Unstaked ${fromNano(amount)} tsTON`);
+        setTimeout(async () => {
+            await handleRefreshBalances();
+            setTimeout(() => hideTxStatus(), 3000);
+        }, 5000);
     } catch (error) {
-        showError(stakingError, `Unstaking error: ${error instanceof Error ? error.message : String(error)}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('Unstaking error:', error);
+        showTxStatus('error', 'Unstake failed', errorMessage);
+        showError(stakingError, `Unstaking error: ${errorMessage}`);
     }
 }
 
@@ -702,6 +709,8 @@ async function handleRefreshBalances() {
     console.log('Refreshing balances...');
 
     try {
+        const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
+
         // Get TON balance
         const tonBalance = await wallet.getBalance();
         console.log('TON balance:', fromNano(tonBalance));
@@ -714,71 +723,26 @@ async function handleRefreshBalances() {
                 : 0n;
         balanceAvailable.textContent = formatBalance(available);
 
-        // Get staked balance (tsTON) using TonAPI directly
-        try {
-            const isTestnet = currentNetwork === 'testnet';
-            const tonApiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
-            const walletAddr = currentNetwork === 'mainnet' ? mainnetAddress : testnetAddress;
-
-            console.log('Getting tsTON balance from TonAPI for:', walletAddr);
-
-            // Get jettons for the wallet
-            const jettonsResponse = await fetch(`${tonApiUrl}/v2/accounts/${encodeURIComponent(walletAddr)}/jettons`);
-            if (jettonsResponse.ok) {
-                const jettonsData = await jettonsResponse.json();
-                console.log('Jettons data:', jettonsData);
-
-                // Find tsTON jetton (look for the staking pool jetton)
-                let stakedAmount = '0';
-                if (jettonsData.balances && Array.isArray(jettonsData.balances)) {
-                    for (const jetton of jettonsData.balances) {
-                        // Check if this is the tsTON jetton by looking at the name or symbol
-                        const name = jetton.jetton?.name?.toLowerCase() || '';
-                        const symbol = jetton.jetton?.symbol?.toLowerCase() || '';
-                        if (
-                            name.includes('tstok') ||
-                            name.includes('tston') ||
-                            symbol === 'tston' ||
-                            symbol.includes('ts')
-                        ) {
-                            stakedAmount = jetton.balance || '0';
-                            console.log('Found tsTON jetton:', jetton);
-                            break;
-                        }
-                    }
-                }
-                stakedBalanceNano = BigInt(stakedAmount);
-                balanceStaked.textContent = formatBalance(stakedAmount);
-            } else {
-                console.warn('TonAPI jettons request failed:', jettonsResponse.status);
+        // Get staked balance via StakingManager (uses Toncenter, not TonAPI)
+        if (stakingManager) {
+            try {
+                const stakingBalance = await stakingManager.getBalance(wallet.getAddress(), network);
+                console.log('Staked balance from manager:', stakingBalance);
+                stakedBalanceNano = BigInt(stakingBalance.stakedBalance);
+                balanceStaked.textContent = formatBalance(stakingBalance.stakedBalance);
+            } catch (err) {
+                console.warn('Failed to get staked balance from manager:', err);
                 stakedBalanceNano = 0n;
                 balanceStaked.textContent = '0';
             }
-        } catch (error) {
-            console.warn('Failed to get staked balance from TonAPI:', error);
-
-            // Fallback to stakingManager
-            if (stakingManager && wallet) {
-                try {
-                    const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
-                    const stakingBalance = await stakingManager.getBalance(wallet.getAddress(), network);
-                    console.log('Staked balance from manager:', stakingBalance);
-                    stakedBalanceNano = BigInt(stakingBalance.stakedBalance);
-                    balanceStaked.textContent = formatBalance(stakingBalance.stakedBalance);
-                } catch (err) {
-                    console.warn('Failed to get staked balance from manager:', err);
-                    stakedBalanceNano = 0n;
-                    balanceStaked.textContent = '0';
-                }
-            } else {
-                stakedBalanceNano = 0n;
-                balanceStaked.textContent = '0';
-            }
+        } else {
+            stakedBalanceNano = 0n;
+            balanceStaked.textContent = '0';
         }
 
         updateUnstakeButtonsState();
 
-        // Get pool info using TonAPI for TVL and Stakers
+        // Get pool info using StakingManager
         await refreshPoolInfo();
     } catch (error) {
         console.error('Error in handleRefreshBalances:', error);
@@ -787,48 +751,29 @@ async function handleRefreshBalances() {
 
 async function refreshPoolInfo() {
     const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
-    const isTestnet = currentNetwork === 'testnet';
-    const tonApiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
-    const contractAddress = getStakingContractAddress();
 
-    console.log('Refreshing pool info from TonAPI:', tonApiUrl, contractAddress);
+    console.log('Refreshing pool info via StakingManager');
 
     try {
-        // Get APY from staking manager
         if (stakingManager) {
             try {
                 const stakingInfo = await stakingManager.getStakingInfo(network);
                 console.log('Staking info:', stakingInfo);
                 poolApy.textContent = `${(stakingInfo.apy * 100).toFixed(2)}%`;
-            } catch (error) {
-                console.warn('Failed to get APY:', error);
-                poolApy.textContent = '-';
-            }
-        }
 
-        // Get TVL and Stakers from TonAPI
-        try {
-            const poolInfoResponse = await fetch(`${tonApiUrl}/v2/staking/pool/${contractAddress}`);
-            if (poolInfoResponse.ok) {
-                const poolInfo = await poolInfoResponse.json();
-                console.log('Pool info from TonAPI:', poolInfo);
-
-                if (poolInfo.pool) {
-                    // TVL
-                    if (poolInfo.pool.total_amount) {
-                        poolTvl.textContent = formatBalance(poolInfo.pool.total_amount);
-                    }
-                    // Stakers count
-                    if (poolInfo.pool.current_nominators !== undefined) {
-                        poolStakers.textContent = poolInfo.pool.current_nominators.toString();
-                    }
+                // TVL is instant liquidity in this case
+                if (stakingInfo.instantUnstakeAvailable) {
+                    poolTvl.textContent = formatBalance(stakingInfo.instantUnstakeAvailable);
                 }
-            } else {
-                console.warn('TonAPI pool info request failed:', poolInfoResponse.status);
+            } catch (error) {
+                console.warn('Failed to get staking info:', error);
+                poolApy.textContent = '-';
+                poolTvl.textContent = '-';
             }
-        } catch (error) {
-            console.warn('Failed to get TVL/Stakers from TonAPI:', error);
         }
+
+        // Note: Stakers count is not available via Toncenter API
+        poolStakers.textContent = '-';
     } catch (error) {
         console.error('Error in refreshPoolInfo:', error);
     }
@@ -837,49 +782,32 @@ async function refreshPoolInfo() {
 async function handleGetRounds() {
     console.log('Getting rounds info...');
 
+    if (!stakingManager) {
+        showError(stakingError, 'Staking manager not initialized');
+        return;
+    }
+
     try {
-        const isTestnet = currentNetwork === 'testnet';
-        const tonApiUrl = isTestnet ? 'https://testnet.tonapi.io' : 'https://tonapi.io';
-        const contractAddress = getStakingContractAddress();
+        const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
+        const provider = stakingManager.getProvider('tonstakers') as TonStakersStakingProvider;
+        const roundInfo = await provider.getRoundInfo(network);
 
-        console.log('Fetching pool data from TonAPI:', tonApiUrl, contractAddress);
+        console.log('Round info:', roundInfo);
 
-        // Get pool info from TonAPI staking endpoint
-        const response = await fetch(`${tonApiUrl}/v2/staking/pool/${contractAddress}`);
+        const startDate = new Date(roundInfo.cycle_start * 1000);
+        const endDate = new Date(roundInfo.cycle_end * 1000);
+        const now = new Date();
+        const remaining = endDate.getTime() - now.getTime();
+        const hoursRemaining = Math.max(0, Math.floor(remaining / (1000 * 60 * 60)));
+        const minutesRemaining = Math.max(0, Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60)));
 
-        if (!response.ok) {
-            throw new Error(`TonAPI request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Pool staking data:', data);
-
-        // Get cycle info from pool data
-        if (data.pool) {
-            const cycleStart = data.pool.cycle_start;
-            const cycleEnd = data.pool.cycle_end;
-            const cycleLength = data.pool.cycle_length;
-
-            if (cycleStart && cycleEnd) {
-                const startDate = new Date(cycleStart * 1000);
-                const endDate = new Date(cycleEnd * 1000);
-                const now = new Date();
-                const remaining = endDate.getTime() - now.getTime();
-                const hoursRemaining = Math.max(0, Math.floor(remaining / (1000 * 60 * 60)));
-                const minutesRemaining = Math.max(0, Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60)));
-
-                roundsInfo.innerHTML = `
-                    <div><strong>Current Round</strong></div>
-                    <div>Start: ${startDate.toLocaleString()}</div>
-                    <div>End: ${endDate.toLocaleString()}</div>
-                    <div>Remaining: ${hoursRemaining}h ${minutesRemaining}m</div>
-                    ${cycleLength ? `<div>Cycle Length: ${Math.floor(cycleLength / 3600)}h</div>` : ''}
-                `;
-                return;
-            }
-        }
-
-        roundsInfo.textContent = 'Unable to get rounds info from pool';
+        roundsInfo.innerHTML = `
+            <div><strong>Current Round (Estimated)</strong></div>
+            <div>Start: ${startDate.toLocaleString()}</div>
+            <div>End: ${endDate.toLocaleString()}</div>
+            <div>Remaining: ${hoursRemaining}h ${minutesRemaining}m</div>
+            ${roundInfo.cycle_length ? `<div>Cycle Length: ${Math.floor(roundInfo.cycle_length / 3600)}h</div>` : ''}
+        `;
     } catch (error) {
         console.error('Error getting rounds info:', error);
         showError(stakingError, `Error getting rounds info: ${error instanceof Error ? error.message : String(error)}`);

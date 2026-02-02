@@ -15,11 +15,16 @@ export const TIMING = {
     CACHE_TIMEOUT: 30000,
     ESTIMATED_TIME_BW_TX_S: 3,
     ESTIMATED_TIME_AFTER_ROUND_S: 10 * 60,
+    CYCLE_LENGTH_HOURS: 18,
+    CYCLES_PER_YEAR: (365.25 * 24) / 18,
+    PROTOCOL_FEE: 0.1,
 };
 
 // Contract-related constants
 export const CONTRACT = {
+    // https://github.com/ton-blockchain/liquid-staking-contract/tree/35d676f6ac6e35e755ea3c4d7d7cf577627b1cf0
     STAKING_CONTRACT_ADDRESS: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR',
+    // https://github.com/ton-blockchain/liquid-staking-contract/tree/77f13c850890517a6b490ef5f109c31b4fa783e7
     STAKING_CONTRACT_ADDRESS_TESTNET: 'kQANFsYyYn-GSZ4oajUJmboDURZU-udMHf9JxzO4vYM_hFP3',
     PARTNER_CODE: 0x000000106796caef,
     PAYLOAD_UNSTAKE: 0x595f07bc,

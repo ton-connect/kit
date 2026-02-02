@@ -16,6 +16,13 @@ export enum StakingQuoteDirection {
 export enum UnstakeMode {
     Instant = 'instant',
     Delayed = 'delayed',
+    BestRate = 'bestRate',
+}
+
+export interface RoundInfo {
+    cycle_start: number;
+    cycle_end: number;
+    cycle_length?: number;
 }
 
 /**

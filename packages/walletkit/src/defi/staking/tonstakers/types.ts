@@ -11,3 +11,10 @@ export type TonStakersProviderConfig = {
         contractAddress: string;
     };
 };
+
+export interface TonStakersPoolInfo {
+    apy: number;
+    tvl: bigint;
+    instantLiquidity: bigint;
+}
+export type { PoolFullData } from './PoolContract';

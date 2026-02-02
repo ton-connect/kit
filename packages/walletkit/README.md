@@ -14,6 +14,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 - 🎨 **Previews for actions** - Transaction emulation with money flow analysis
 - 🪙 **Asset Support** - TON, Jettons, NFTs with metadata
 - 🔄 **Token Swaps** - Multi-DEX swap aggregation
+- 📈 **Liquid Staking** - Tonstakers liquid staking integration
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
@@ -24,6 +25,7 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 - **[Browser Extension Build](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
 - **[Token Swaps](/packages/walletkit/src/defi/swap/README.md)** - Multi-DEX swap integration with custom provider support
+- **[Liquid Staking](#liquid-staking)** - Tonstakers liquid staking with 3 unstake modes
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
 
@@ -459,6 +461,107 @@ The store slices [walletCoreSlice.ts](https://github.com/ton-connect/kit/blob/ma
 - Initialize the kit and add a wallet from mnemonic
 - Wire `onConnectRequest` and `onTransactionRequest` to open modals
 - Approve or reject requests using the kit methods
+
+## Liquid Staking
+
+TonWalletKit includes built-in support for Tonstakers liquid staking protocol. Stake TON to receive tsTON tokens and earn staking rewards.
+
+### Setup Staking
+
+```ts
+import {
+    StakingManager,
+    TonStakersStakingProvider,
+    UnstakeMode,
+    Network,
+} from '@ton/walletkit';
+import { toNano, fromNano } from '@ton/core';
+
+// Create staking manager
+const stakingManager = new StakingManager();
+
+// Register Tonstakers provider
+const stakingProvider = new TonStakersStakingProvider(
+    kit.getNetworkManager(),
+    kit.getEventEmitter()
+);
+stakingManager.registerProvider('tonstakers', stakingProvider);
+```
+
+### Get Staking Info
+
+```ts
+// Get current APY and pool info
+const info = await stakingManager.getStakingInfo(Network.mainnet());
+console.log(`APY: ${(info.apy * 100).toFixed(2)}%`);
+console.log(`Instant liquidity: ${fromNano(info.instantUnstakeAvailable)} TON`);
+
+// Get user balance
+const balance = await stakingManager.getBalance(wallet.getAddress(), Network.mainnet());
+console.log(`Staked: ${fromNano(balance.stakedBalance)} tsTON`);
+console.log(`Available to stake: ${fromNano(balance.availableBalance)} TON`);
+```
+
+### Stake TON
+
+```ts
+const stakeTx = await stakingManager.stake({
+    amount: toNano('10').toString(),
+    userAddress: wallet.getAddress(),
+    network: Network.mainnet()
+});
+
+// Build and send transaction
+const tx = await wallet.createTransferTonTransaction({
+    recipientAddress: stakeTx.messages[0].address,
+    transferAmount: stakeTx.messages[0].amount,
+    payload: stakeTx.messages[0].payload
+});
+await wallet.sendTransaction(tx);
+```
+
+### Unstake tsTON
+
+Three unstake modes are supported:
+
+```ts
+// Delayed (default) - Funds released at end of round (~18 hours)
+const delayedTx = await stakingManager.unstake({
+    amount: toNano('5').toString(),
+    userAddress: wallet.getAddress(),
+    network: Network.mainnet(),
+    unstakeMode: UnstakeMode.Delayed
+});
+
+// Instant - Immediate withdrawal if pool has liquidity
+const instantTx = await stakingManager.unstake({
+    amount: toNano('5').toString(),
+    userAddress: wallet.getAddress(),
+    network: Network.mainnet(),
+    unstakeMode: UnstakeMode.Instant
+});
+
+// Best Rate - Wait for best exchange rate at round end
+const bestRateTx = await stakingManager.unstake({
+    amount: toNano('5').toString(),
+    userAddress: wallet.getAddress(),
+    network: Network.mainnet(),
+    unstakeMode: UnstakeMode.BestRate
+});
+```
+
+### Get Quote
+
+```ts
+import { StakingQuoteDirection } from '@ton/walletkit';
+
+const quote = await stakingManager.getQuote({
+    direction: StakingQuoteDirection.Stake,
+    amount: toNano('10').toString(),
+    network: Network.mainnet()
+});
+console.log(`APY: ${(quote.apy * 100).toFixed(2)}%`);
+```
 
 ## Resources
 

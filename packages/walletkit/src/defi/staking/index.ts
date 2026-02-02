@@ -12,5 +12,7 @@ export { StakingError } from './errors';
 export type { StakingErrorCode } from './errors';
 export type * from './types';
 export { TonStakersStakingProvider } from './tonstakers/TonStakersStakingProvider';
-export type { TonStakersProviderConfig } from './tonstakers/types';
+export { PoolContract } from './tonstakers/PoolContract';
+export { StakingCache } from './tonstakers/StakingCache';
+export type { TonStakersProviderConfig, PoolFullData, TonStakersPoolInfo } from './tonstakers/types';
 export { CONTRACT, BLOCKCHAIN, TIMING } from './tonstakers/constants';
