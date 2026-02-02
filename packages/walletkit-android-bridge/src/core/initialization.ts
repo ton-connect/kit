@@ -13,7 +13,13 @@ import type { BridgeResponse, BridgeEvent } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
-import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent, WalletKitInstance, JsBridgeTransportMessage } from '../types';
+import type {
+    WalletKitBridgeInitConfig,
+    BridgePayload,
+    WalletKitBridgeEvent,
+    WalletKitInstance,
+    JsBridgeTransportMessage,
+} from '../types';
 import { log, warn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
 import { ensureWalletKitLoaded, TonWalletKit } from './moduleLoader';
@@ -107,7 +113,7 @@ export async function initTonWalletKit(
             jsBridgeTransport: async (sessionId: string, message: unknown) => {
                 // Cast to our transport message type (walletkit types this as unknown)
                 const typedMessage = message as JsBridgeTransportMessage;
-                
+
                 log('[walletkitBridge] 📤 jsBridgeTransport called:', {
                     sessionId,
                     messageType: typedMessage.type,
@@ -120,19 +126,19 @@ export async function initTonWalletKit(
                 // Handle disconnect responses that need to be transformed to events
                 if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE) {
                     const responseMsg = bridgeMessage as BridgeResponse;
-                    const payload = responseMsg.payload as { event?: string; id?: number } | undefined;
-                    
-                    if (payload?.event === 'disconnect' && !responseMsg.messageId) {
+                    // BridgeResponse has 'result' field, not 'payload'
+                    const result = responseMsg.result as { event?: string; id?: number } | undefined;
+
+                    if (result?.event === 'disconnect' && !responseMsg.messageId) {
                         log('[walletkitBridge] 🔄 Transforming disconnect response to event');
                         bridgeMessage = {
                             type: TONCONNECT_BRIDGE_EVENT,
                             source: responseMsg.source,
                             event: {
                                 event: 'disconnect',
-                                id: payload.id ?? 0,
+                                id: result.id ?? 0,
                                 payload: {},
                             },
-                            traceId: responseMsg.traceId,
                         } as BridgeEvent;
                         log('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(bridgeMessage, null, 2));
                     }
@@ -142,13 +148,15 @@ export async function initTonWalletKit(
                 if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE && bridgeMessage.messageId) {
                     log('[walletkitBridge] 🔵 Message has messageId, checking for pending promise');
                     const resolvers = getInternalBrowserResolverMap();
-                    const resolver = resolvers?.get(bridgeMessage.messageId);
+                    // messageId is a number in BridgeResponse, convert to string for resolver map
+                    const messageIdStr = String(bridgeMessage.messageId);
+                    const resolver = resolvers?.get(messageIdStr);
                     if (resolver) {
-                        log('[walletkitBridge] ✅ Resolving response promise for messageId:', bridgeMessage.messageId);
-                        resolvers?.delete(bridgeMessage.messageId);
+                        log('[walletkitBridge] ✅ Resolving response promise for messageId:', messageIdStr);
+                        resolvers?.delete(messageIdStr);
                         resolver.resolve(bridgeMessage);
                     } else {
-                        warn('[walletkitBridge] ⚠️ No pending promise for messageId:', bridgeMessage.messageId);
+                        warn('[walletkitBridge] ⚠️ No pending promise for messageId:', messageIdStr);
                     }
                 }
 

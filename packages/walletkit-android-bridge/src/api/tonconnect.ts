@@ -13,23 +13,17 @@
  * Session transformation handled by Kotlin SessionResponseParser.
  */
 
-import type {
-    BridgeEventMessageInfo,
-    ConnectEvent,
-    ConnectEventError,
-    InjectedToExtensionBridgeRequestPayload,
-    WalletResponse,
-    DisconnectEvent,
-} from '@ton/walletkit';
+import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
+
 import type { JsBridgeTransportMessage } from '../types/bridge';
-import type { HandleTonConnectUrlArgs, DisconnectSessionArgs, ProcessInternalBrowserRequestArgs } from '../types';
+import type {
+    HandleTonConnectUrlArgs,
+    DisconnectSessionArgs,
+    ProcessInternalBrowserRequestArgs,
+    TonConnectEventPayload,
+} from '../types';
 import { callBridge } from '../utils/bridgeWrapper';
 import { ensureInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
-
-/**
- * TonConnect event payload types that can be returned from processInternalBrowserRequest.
- */
-export type TonConnectEventPayload = ConnectEvent | ConnectEventError | WalletResponse | DisconnectEvent;
 
 /**
  * Handles TonConnect URLs from deep links or QR codes.

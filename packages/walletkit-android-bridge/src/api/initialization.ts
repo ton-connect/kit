@@ -19,6 +19,7 @@ import type {
     SendTransactionRequestEvent,
     SignDataRequestEvent,
 } from '@ton/walletkit';
+
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
 import { ensureWalletKitLoaded } from '../core/moduleLoader';
 import { initTonWalletKit, requireWalletKit } from '../core/initialization';
