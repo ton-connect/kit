@@ -37,3 +37,7 @@ test('[ERROR] Connect with invalid manifest url@allureId(2254)', async ({ wallet
 test('[ERROR] Connect with invalid app url in the manifest @allureId(2255)', async ({ wallet, app, widget }) => {
     await runConnectTest({ wallet, app, widget }, test.info(), allureClient);
 });
+
+test('User declined the connection @allureId(1889)', async ({ wallet, app, widget }) => {
+    await runConnectTest({ wallet, app, widget }, test.info(), allureClient);
+});

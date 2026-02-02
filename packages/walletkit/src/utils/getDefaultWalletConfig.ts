@@ -6,9 +6,10 @@
  *
  */
 
-import { SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
+import type { SendTransactionFeature, SignDataFeature } from '@tonconnect/protocol';
 
-import { DeviceInfo, WalletInfo } from '../types/jsBridge';
+import type { DeviceInfo, WalletInfo } from '../types/jsBridge';
+import type { WalletAdapter } from '../api/interfaces';
 
 /**
  * Default device info for JS Bridge
@@ -44,7 +45,7 @@ export function getDeviceInfoWithDefaults(options?: Partial<DeviceInfo>): Device
         ...options,
     };
 
-    return deviceInfo;
+    return addLegacySendTransactionFeature(deviceInfo);
 }
 
 export function createDeviceInfo(options?: Partial<DeviceInfo>): DeviceInfo {
@@ -99,4 +100,45 @@ export function getWalletInfoWithDefaults(options?: Partial<WalletInfo>): Wallet
     };
 
     return walletInfo;
+}
+
+/**
+ * Get device info with wallet-specific features if available
+ * If wallet adapter has getSupportedFeatures(), use those features
+ * Otherwise, use features from deviceInfo
+ */
+export function getDeviceInfoForWallet(
+    walletAdapter: WalletAdapter | undefined,
+    deviceInfoOptions?: Partial<DeviceInfo>,
+): DeviceInfo {
+    const baseDeviceInfo = getDeviceInfoWithDefaults(deviceInfoOptions);
+
+    // If wallet adapter has getSupportedFeatures(), use those features
+    if (walletAdapter?.getSupportedFeatures) {
+        const adapterFeatures = walletAdapter.getSupportedFeatures();
+        const deviceInfo = {
+            ...baseDeviceInfo,
+            features: adapterFeatures,
+        };
+
+        return addLegacySendTransactionFeature(deviceInfo);
+    }
+
+    // Otherwise, use features from deviceInfo
+    return baseDeviceInfo;
+}
+
+function addLegacySendTransactionFeature(options: DeviceInfo): DeviceInfo {
+    const features = options.features;
+    const hasSendTransactionString = features.some((feature) => feature === 'SendTransaction');
+    const hasSendTransactionObject = features.some(
+        (feature) => typeof feature === 'object' && feature.name === 'SendTransaction',
+    );
+
+    const shouldAddString = !hasSendTransactionString && hasSendTransactionObject;
+
+    return {
+        ...options,
+        features: shouldAddString ? ['SendTransaction', ...features] : features,
+    };
 }

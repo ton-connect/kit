@@ -7,22 +7,22 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import type { EventSignDataRequest } from '@ton/walletkit';
+import type { SignDataRequestEvent } from '@ton/walletkit';
+import type { SavedWallet } from '@demo/wallet-core';
+import { useAuth } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
 import { HoldToSignButton } from './HoldToSignButton';
-import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
-import { useAuth } from '../stores';
 
 // Create logger for sign data request modal
 const log = createComponentLogger('SignDataRequestModal');
 
 interface SignDataRequestModalProps {
-    request: EventSignDataRequest;
+    request: SignDataRequestEvent;
     savedWallets: SavedWallet[];
     isOpen: boolean;
     onApprove: () => void;
@@ -43,7 +43,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
     // Find the wallet being used for this sign data request
     const currentWallet = useMemo(() => {
         if (!request.walletAddress) return null;
-        return savedWallets.find((wallet) => wallet.address === request.walletAddress) || null;
+        return savedWallets.find((wallet) => wallet.kitWalletId === request.walletId) || null;
     }, [savedWallets, request.walletAddress]);
 
     // Reset success state when modal closes/opens
@@ -79,12 +79,12 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
     const renderDataPreview = () => {
         const { preview } = request;
 
-        switch (preview.kind) {
+        switch (preview.data.type) {
             case 'text':
                 return (
                     <div className="border rounded-lg p-3 bg-blue-50">
                         <h4 className="font-medium text-blue-900 mb-2">Text Message</h4>
-                        <p className="text-sm text-blue-800 break-words">{preview.content}</p>
+                        <p className="text-sm text-blue-800 break-words">{preview.data.value.content}</p>
                     </div>
                 );
             case 'binary':
@@ -92,7 +92,7 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
                     <div className="border rounded-lg p-3 bg-green-50">
                         <h4 className="font-medium text-green-900 mb-2">Binary Data</h4>
                         <div className="space-y-2">
-                            <p className="text-sm text-green-800">Content: {preview.content}</p>
+                            <p className="text-sm text-green-800">Content: {preview.data.value.content}</p>
                         </div>
                     </div>
                 );
@@ -104,24 +104,24 @@ export const SignDataRequestModal: React.FC<SignDataRequestModalProps> = ({
                             <div>
                                 <p className="font-medium">Content</p>
                                 <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
-                                    {preview.content}
+                                    {preview.data.value.content}
                                 </p>
                             </div>
-                            {preview.schema && (
+                            {preview.data.value.schema && (
                                 <div>
                                     <p className="font-medium">Schema</p>
                                     <p className="text-gray-600 text-sm overflow-x-auto whitespace-pre-wrap">
-                                        {preview.schema}
+                                        {preview.data.value.schema}
                                     </p>
                                 </div>
                             )}
                             {/* <p className="text-sm overflow-x-auto whitespace-pre-wrap">Content: {preview.content}</p> */}
                             {/* {preview.schema && <p className="text-sm">Schema: {preview.schema}</p>} */}
-                            {preview.parsed && (
+                            {preview.data.value.parsed && (
                                 <div>
                                     <p className="font-medium mb-1">Parsed Data:</p>
                                     <pre className="text-xs overflow-x-auto whitespace-pre-wrap bg-gray-100 p-2 rounded-lg">
-                                        {JSON.stringify(preview.parsed, null, 2)}
+                                        {JSON.stringify(preview.data.value.parsed, null, 2)}
                                     </pre>
                                 </div>
                             )}

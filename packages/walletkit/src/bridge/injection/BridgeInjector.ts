@@ -12,7 +12,7 @@ import { getDeviceInfoWithDefaults, getWalletInfoWithDefaults } from '../../util
 import type { BridgeConfig } from '../core/BridgeConfig';
 import { validateBridgeConfig } from '../core/BridgeConfig';
 import { TonConnectBridge } from '../core/TonConnectBridge';
-import { Transport } from '../transport/Transport';
+import type { Transport } from '../transport/Transport';
 import { SUPPORTED_PROTOCOL_VERSION } from '../utils/timeouts';
 import { IframeWatcher } from './IframeWatcher';
 import { WindowAccessor } from './WindowAccessor';

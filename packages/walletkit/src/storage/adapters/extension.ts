@@ -7,7 +7,7 @@
  */
 
 import { CallForSuccess } from '../../utils/retry';
-import { StorageAdapter, StorageConfig } from '../types';
+import type { StorageAdapter, StorageConfig } from '../types';
 
 interface ExtensionStorage {
     get(keys?: null | string | string[] | Record<string, unknown>): Promise<Record<string, unknown>>;

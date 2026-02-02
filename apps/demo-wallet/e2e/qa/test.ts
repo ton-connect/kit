@@ -6,7 +6,8 @@
  *
  */
 
-import { chromium, type Fixtures, type TestType } from '@playwright/test';
+import { chromium } from '@playwright/test';
+import type { Fixtures, TestType } from '@playwright/test';
 import { mergeTests, test as base } from '@playwright/test';
 
 export async function launchPersistentContext(extensionPath: string, slowMo = 0) {
@@ -25,10 +26,16 @@ export async function launchPersistentContext(extensionPath: string, slowMo = 0)
         args.push(`--disable-extensions-except=${extensionPath}`);
         args.push(`--load-extension=${extensionPath}`);
     }
-    if (process.env.CI) {
+
+    const isHeadlessEnv = process.env.ENABLE_HEADLESS === 'true';
+    const isCi = process.env.CI === 'true' || process.env.CI === '1';
+    const headless = isHeadlessEnv || isCi;
+
+    if (headless) {
         args.push('--headless=new');
     }
-    slowMo = process.env.CI ? 0 : (parseInt(process.env.E2E_SLOW_MO || '0') ?? slowMo);
+
+    slowMo = isCi ? 0 : (parseInt(process.env.E2E_SLOW_MO || '0') ?? slowMo);
     const browserContext = await chromium.launchPersistentContext('', {
         args,
         headless: false,

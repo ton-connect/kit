@@ -7,8 +7,8 @@
  */
 
 import React, { useState } from 'react';
+import type { SavedWallet } from '@demo/wallet-core';
 
-import type { SavedWallet } from '../types/wallet';
 import { createComponentLogger } from '../utils/logger';
 
 const log = createComponentLogger('WalletSwitcher');
@@ -104,9 +104,22 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
                         </svg>
                     </div>
                     <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900">
-                            {activeWallet?.name || 'No Wallet Selected'}
-                        </p>
+                        <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium text-gray-900">
+                                {activeWallet?.name || 'No Wallet Selected'}
+                            </p>
+                            {activeWallet && (
+                                <span
+                                    className={`px-1.5 py-0.5 text-xs font-medium rounded ${
+                                        activeWallet.network === 'mainnet'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-blue-100 text-blue-800'
+                                    }`}
+                                >
+                                    {activeWallet.network === 'mainnet' ? 'Mainnet' : 'Testnet'}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-xs text-gray-500">
                             {activeWallet ? formatAddress(activeWallet.address) : 'Select a wallet'}
                         </p>
@@ -201,6 +214,15 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
                                             ) : (
                                                 <div className="flex items-center space-x-2 mb-1">
                                                     <p className="text-sm font-medium text-gray-900">{wallet.name}</p>
+                                                    <span
+                                                        className={`px-1.5 py-0.5 text-xs font-medium rounded ${
+                                                            wallet.network === 'mainnet'
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-blue-100 text-blue-800'
+                                                        }`}
+                                                    >
+                                                        {wallet.network === 'mainnet' ? 'Mainnet' : 'Testnet'}
+                                                    </span>
                                                     {isActive && (
                                                         <span className="text-xs text-blue-600 font-medium">
                                                             Active

@@ -8,6 +8,7 @@
 
 // Durable event system types
 
+import type { WalletId } from '../utils/walletId';
 import type { RawBridgeEvent, EventType } from './internal';
 
 /**
@@ -103,7 +104,7 @@ export interface EventStore {
     /**
      * Get events for a wallet that are ready for processing
      */
-    getEventsForWallet(walletAddress: string, sessionIds: string[], eventTypes: EventType[]): Promise<StoredEvent[]>;
+    getEventsForWallet(sessionIds: string[], eventTypes: EventType[]): Promise<StoredEvent[]>;
 
     /**
      * Get events that don't require a wallet or session (e.g., connect events)
@@ -114,7 +115,7 @@ export interface EventStore {
      * Attempt to acquire exclusive lock on an event for processing
      * Returns true if lock acquired, false if already locked
      */
-    acquireLock(eventId: string, walletAddress: string): Promise<StoredEvent | undefined>;
+    acquireLock(eventId: string, walletId: WalletId): Promise<StoredEvent | undefined>;
 
     /**
      * Release lock on an event and increment retry count if error is provided

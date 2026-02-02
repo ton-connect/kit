@@ -8,13 +8,15 @@
 
 // Jettons API types based on JETTONS.md specification
 
+import type { Jetton, Network } from '../api/models';
+
 // === Core Jetton Information ===
 export interface JettonInfo {
     address: string;
     name: string;
     symbol: string;
     description: string;
-    decimals: number;
+    decimals?: number;
     totalSupply?: string;
     image?: string;
     image_data?: string;
@@ -142,11 +144,21 @@ export enum JettonErrorCode {
 // === API Interface Definition ===
 export interface JettonsAPI {
     // === Information & Discovery ===
-    /** Get jetton master info by address */
-    getJettonInfo(jettonAddress: string): Promise<JettonInfo | null>;
+    /**
+     * Get jetton master info by address
+     * @param jettonAddress - The jetton master address
+     * @param network - The network to query (required)
+     */
+    getJettonInfo(jettonAddress: string, network: Network): Promise<JettonInfo | null>;
 
-    /** Get all jettons for a user address */
-    getAddressJettons(userAddress: string, offset?: number, limit?: number): Promise<AddressJetton[]>;
+    /**
+     * Get all jettons for a user address
+     * @param userAddress - The user's wallet address
+     * @param network - The network to query (required)
+     * @param offset - Pagination offset
+     * @param limit - Pagination limit
+     */
+    getAddressJettons(userAddress: string, network: Network, offset?: number, limit?: number): Promise<Jetton[]>;
 
     // === Validation ===
     /** Validate jetton address format */

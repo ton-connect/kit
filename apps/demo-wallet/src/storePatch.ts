@@ -6,7 +6,7 @@
  *
  */
 
-import { useStore, type AppState } from './stores';
+import type { AppState } from '@demo/wallet-core';
 
 declare global {
     interface Window {
@@ -14,18 +14,11 @@ declare global {
     }
 }
 
-if (import.meta.hot) {
-    useStore.subscribe((state) => {
-        if (typeof window !== 'undefined') {
-            window.__store = state;
-        }
-    });
-    import.meta.hot!.accept((newModule) => {
-        if (!newModule) return;
-        const newStore = newModule.useStore;
-        if (!newStore) return;
-        if (window.__store) {
-            newStore.setState(window.__store, true);
-        }
-    });
+// Note: HMR for store is disabled when using WalletProvider
+// The store is now managed by the provider and persisted automatically
+// If you need to debug the store, use Redux DevTools (enabled by default)
+
+if (import.meta.hot && typeof window !== 'undefined') {
+    // Store current state for debugging
+    import.meta.hot.accept();
 }

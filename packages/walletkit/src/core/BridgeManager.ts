@@ -9,16 +9,17 @@
 // Bridge connection and communication management
 
 import { SessionCrypto } from '@tonconnect/protocol';
-import { BridgeProvider, ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
+import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
+import { BridgeProvider } from '@tonconnect/bridge-sdk';
 
-import type { BridgeConfig, BridgeEventBase, RawBridgeEvent, SessionData } from '../types/internal';
-import { Storage } from '../storage';
+import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
+import type { Storage } from '../storage';
 import type { EventStore } from '../types/durableEvents';
 import type { EventEmitter } from './EventEmitter';
 import { globalLogger } from './Logger';
-import { SessionManager } from './SessionManager';
-import { EventRouter } from './EventRouter';
-import {
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
+import type { EventRouter } from './EventRouter';
+import type {
     BridgeEventMessageInfo,
     InjectedToExtensionBridgeRequestPayload,
     JSBridgeTransportFunction,
@@ -26,18 +27,17 @@ import {
 } from '../types/jsBridge';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { AnalyticsApi } from '../analytics/sender';
-import { getUnixtime } from '../utils/time';
-import { TonWalletKitOptions } from '../types/config';
-import { getEventsSubsystem, getVersion } from '../utils/version';
+import type { Analytics, AnalyticsManager } from '../analytics';
+import type { TonWalletKitOptions } from '../types/config';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
+import type { BridgeEvent, TONConnectSession } from '../api/models';
 
 const log = globalLogger.createChild('BridgeManager');
 
 export class BridgeManager {
     private config: BridgeConfig;
     private bridgeProvider?: BridgeProvider<WalletConsumer>;
-    private sessionManager: SessionManager;
+    private sessionManager: TONConnectSessionManager;
     private storage: Storage;
     private isConnected = false;
     private reconnectAttempts = 0;
@@ -55,20 +55,20 @@ export class BridgeManager {
     private eventStore: EventStore;
     private eventRouter: EventRouter;
     private eventEmitter?: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
+    private analytics?: Analytics;
 
     private requestProcessingTimeoutId?: number;
 
     constructor(
         walletManifest: WalletInfo | undefined,
         config: BridgeConfig | undefined,
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         storage: Storage,
         eventStore: EventStore,
         eventRouter: EventRouter,
         walletKitConfig: TonWalletKitOptions,
         eventEmitter?: EventEmitter,
-        analyticsApi?: AnalyticsApi,
+        analyticsManager?: AnalyticsManager,
     ) {
         const isManifestJsBridge = walletManifest && 'jsBridgeKey' in walletManifest ? true : false;
         const manifestJsBridgeKey =
@@ -92,7 +92,9 @@ export class BridgeManager {
         this.eventStore = eventStore;
         this.eventEmitter = eventEmitter;
         this.eventRouter = eventRouter;
-        this.analyticsApi = analyticsApi;
+        this.analytics = analyticsManager?.scoped({
+            bridge_url: this.config.bridgeUrl,
+        });
         this.walletKitConfig = walletKitConfig;
         this.jsBridgeTransport = config?.jsBridgeTransport;
 
@@ -138,7 +140,7 @@ export class BridgeManager {
         // this.sessions.set(appSessionId, walletSession);
         log.info('[BRIDGE] Creating session', { appSessionId });
 
-        const session = this.sessionManager.getSession(appSessionId);
+        const session = await this.sessionManager.getSession(appSessionId);
         if (!session) {
             throw new WalletKitError(ERROR_CODES.SESSION_NOT_FOUND, `Session not found`, undefined, {
                 appSessionId,
@@ -183,10 +185,10 @@ export class BridgeManager {
      */
 
     async sendResponse(
-        event: BridgeEventBase,
+        event: BridgeEvent,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         response: any,
-        _session?: SessionData,
+        providedSessionCrypto?: SessionCrypto,
     ): Promise<void> {
         if (event.isLocal) {
             return;
@@ -218,19 +220,25 @@ export class BridgeManager {
             );
         }
 
-        const session = _session ?? (await this.sessionManager.getSession(sessionId));
-        if (!session) {
-            throw new WalletKitError(ERROR_CODES.SESSION_NOT_FOUND, `Session not found for response`, undefined, {
-                sessionId,
-                eventId: event.id,
-            });
+        let sessionCrypto = providedSessionCrypto;
+
+        if (!sessionCrypto) {
+            const session = await this.sessionManager.getSession(sessionId);
+
+            if (session) {
+                sessionCrypto = new SessionCrypto({
+                    publicKey: session.publicKey,
+                    secretKey: session.privateKey,
+                });
+            } else {
+                throw new WalletKitError(ERROR_CODES.SESSION_NOT_FOUND, `Session not found for response`, undefined, {
+                    sessionId,
+                    eventId: event.id,
+                });
+            }
         }
 
         try {
-            const sessionCrypto = new SessionCrypto({
-                publicKey: session.publicKey,
-                secretKey: session.privateKey,
-            });
             await this.bridgeProvider.send(response, sessionCrypto, sessionId, {
                 traceId: event?.traceId,
             });
@@ -259,7 +267,7 @@ export class BridgeManager {
         response: any,
         options?: {
             traceId?: string;
-            session?: SessionData;
+            session?: TONConnectSession;
         },
     ): Promise<void> {
         const source = this.config.jsBridgeKey + '-tonconnect';
@@ -344,7 +352,7 @@ export class BridgeManager {
     // }
 
     private async getClients(): Promise<ClientConnection[]> {
-        return this.sessionManager.getSessions().map((session) => ({
+        return (await this.sessionManager.getSessions()).map((session) => ({
             session: new SessionCrypto({
                 publicKey: session.publicKey,
                 secretKey: session.privateKey.length > 64 ? session.privateKey.slice(0, 64) : session.privateKey,
@@ -373,19 +381,14 @@ export class BridgeManager {
             }
 
             // Send bridge-client-connect-started event
-            this.analyticsApi?.sendEvents([
-                {
-                    event_name: 'bridge-connect-started',
-                    client_environment: 'wallet',
-                    subsystem: getEventsSubsystem(),
-                    bridge_url: this.config.bridgeUrl,
-                    client_timestamp: getUnixtime(),
-                    event_id: uuidv7(),
-                    network_id: this.walletKitConfig.network,
+            if (this.analytics) {
+                const client = clients[0];
+
+                this.analytics.emitBridgeClientConnectStarted({
                     trace_id: connectTraceId,
-                    version: getVersion(),
-                },
-            ]);
+                    client_id: client?.clientId,
+                });
+            }
 
             this.bridgeProvider = await BridgeProvider.open<WalletConsumer>({
                 bridgeUrl: this.config.bridgeUrl,
@@ -395,22 +398,11 @@ export class BridgeManager {
                 errorListener: (error: any) => {
                     log.error('Bridge listener error', { error: error.toString() });
                     // Send bridge-client-connect-error event for listener errors
-                    this.analyticsApi?.sendEvents([
-                        {
-                            event_name: 'bridge-connect-error',
-                            client_environment: 'wallet',
-                            subsystem: getEventsSubsystem(),
-                            bridge_url: this.config.bridgeUrl,
-                            error_message: error?.toString() || 'Unknown error',
-                            event_id: uuidv7(),
-                            trace_id: error?.traceId ?? connectTraceId,
-                            version: getVersion(),
-                            client_id: error?.clientId,
-                            client_timestamp: getUnixtime(),
-                            error_code: error?.errorCode,
-                            network_id: this.walletKitConfig.network,
-                        },
-                    ]);
+                    this.analytics?.emitBridgeClientConnectError({
+                        error_message: `${error?.toString() || 'Unknown error'}${error?.errorCode ? ` (Code: ${error?.errorCode})` : ''}`,
+                        trace_id: error?.traceId ?? connectTraceId,
+                        client_id: error?.clientId,
+                    });
                 },
                 options: {
                     lastEventId: this.lastEventId,
@@ -422,40 +414,25 @@ export class BridgeManager {
             log.info('Bridge connected successfully');
 
             // Send bridge-client-connect-established event
-            this.analyticsApi?.sendEvents([
-                {
-                    event_name: 'bridge-connect-established',
-                    client_environment: 'wallet',
-                    subsystem: getEventsSubsystem(),
-                    bridge_url: this.config.bridgeUrl,
-                    client_timestamp: getUnixtime(),
-                    event_id: uuidv7(),
-                    network_id: this.walletKitConfig.network,
+            if (this.analytics) {
+                const client = clients[0];
+
+                this.analytics.emitBridgeClientConnectEstablished({
                     trace_id: connectTraceId,
-                    version: getVersion(),
-                },
-            ]);
+                    client_id: client?.clientId,
+                });
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             log.error('Bridge connection failed', { error: error?.toString() });
 
             // Send bridge-client-connect-error event
-            this.analyticsApi?.sendEvents([
-                {
-                    event_name: 'bridge-connect-error',
-                    client_environment: 'wallet',
-                    subsystem: getEventsSubsystem(),
-                    bridge_url: this.config.bridgeUrl,
-                    error_message: error?.toString() || 'Unknown error',
-                    event_id: uuidv7(),
-                    trace_id: error?.traceId ?? connectTraceId,
-                    version: getVersion(),
-                    client_id: error?.clientId,
-                    client_timestamp: getUnixtime(),
-                    error_code: error?.errorCode,
-                    network_id: this.walletKitConfig.network,
-                },
-            ]);
+            this.analytics?.emitBridgeClientConnectError({
+                error_message: `${error?.toString() || 'Unknown error'}${error?.errorCode ? ` (Code: ${error?.errorCode})` : ''}`,
+                trace_id: error?.traceId ?? connectTraceId,
+                client_id: error?.clientId,
+            });
 
             if (!this.config.disableHttpConnection) {
                 // Attempt reconnection if not at max attempts
@@ -625,6 +602,9 @@ export class BridgeManager {
                 const session = await this.sessionManager.getSession(rawEvent.from);
                 rawEvent.domain = session?.domain || '';
                 if (session) {
+                    if (session?.walletId) {
+                        rawEvent.walletId = session.walletId;
+                    }
                     if (session?.walletAddress) {
                         rawEvent.walletAddress = session.walletAddress;
                     }
@@ -632,12 +612,15 @@ export class BridgeManager {
                     rawEvent.dAppInfo = {
                         name: session.dAppName,
                         description: session.dAppDescription,
-                        url: session.dAppIconUrl,
+                        url: session.dAppUrl,
                         iconUrl: session.dAppIconUrl,
                     };
                 }
             } else if (rawEvent.domain) {
                 const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
+                if (session?.walletId) {
+                    rawEvent.walletId = session.walletId;
+                }
                 if (session?.walletAddress) {
                     rawEvent.walletAddress = session.walletAddress;
                 }
@@ -650,7 +633,7 @@ export class BridgeManager {
                     rawEvent.dAppInfo = {
                         name: session.dAppName,
                         description: session.dAppDescription,
-                        url: session.dAppIconUrl,
+                        url: session.dAppUrl,
                         iconUrl: session.dAppIconUrl,
                     };
 

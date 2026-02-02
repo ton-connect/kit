@@ -8,7 +8,7 @@
 
 import type { JSBridgeInjectOptions } from '../types/jsBridge';
 import { injectBridge } from './injection/BridgeInjector';
-import { Transport } from './transport/Transport';
+import type { Transport } from './transport/Transport';
 import {
     INJECT_CONTENT_SCRIPT,
     TONCONNECT_BRIDGE_EVENT,
@@ -16,11 +16,12 @@ import {
     TONCONNECT_BRIDGE_RESPONSE,
 } from './utils/messageTypes';
 import { DEFAULT_REQUEST_TIMEOUT, RESTORE_CONNECTION_TIMEOUT } from './utils/timeouts';
-import { ExtensionTransport, type MessageSender, type MessageListener } from './transport/ExtensionTransport';
+import { ExtensionTransport } from './transport/ExtensionTransport';
+import type { MessageSender, MessageListener } from './transport/ExtensionTransport';
 
 export {
     type JSBridgeInjectOptions,
-    Transport,
+    type Transport,
     TONCONNECT_BRIDGE_EVENT,
     RESTORE_CONNECTION_TIMEOUT,
     DEFAULT_REQUEST_TIMEOUT,

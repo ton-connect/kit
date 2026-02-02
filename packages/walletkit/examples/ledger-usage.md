@@ -1,13 +1,15 @@
 # Ledger Wallet Integration Example
 
-This document shows how to use the WalletV4R2LedgerAdapter with the @ton-community/ton-ledger package.
+This document shows how to use the WalletV4R2LedgerAdapter with the `@demo/v4ledger-adapter` package.
+
+> **Note:** `@demo/v4ledger-adapter` isn’t published as a prebuilt package. It is provided for demonstration only — you’ll need to build it yourself before use.
 
 ## Installation
 
 First, install the required packages:
 
 ```bash
-npm install @ton-community/ton-ledger @ledgerhq/hw-transport-webusb
+npm install @ledgerhq/hw-transport-webusb
 # or for other environments:
 # npm install @ledgerhq/hw-transport-webhid
 # npm install @ledgerhq/hw-transport-node-hid
@@ -16,57 +18,69 @@ npm install @ton-community/ton-ledger @ledgerhq/hw-transport-webusb
 ## Basic Usage
 
 ```typescript
-import { TonWalletKit, createWalletInitConfigLedger, createLedgerPath } from '@ton/walletkit';
+import { ApiClientToncenter, Network, wrapWalletInterface } from '@ton/walletkit';
+import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@demo/v4ledger-adapter';
 import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 
 async function setupLedgerWallet() {
-    // 1. Connect to Ledger device
-    const transport = await TransportWebUSB.create();
+    // 1. Create API client
+    const client = new ApiClientToncenter({
+        endpoint: 'https://toncenter.com',
+        apiKey: 'your-api-key', // Optional, get from https://t.me/toncenter
+    });
     
     // 2. Create derivation path
-    // pathForAccount(testnet, workchain, accountIndex)
+    // createLedgerPath(testnet, workchain, accountIndex)
     const path = createLedgerPath(false, 0, 0); // mainnet, workchain 0, account 0
     
     // 3. Create Ledger wallet configuration
     const ledgerConfig = createWalletInitConfigLedger({
-        transport,
+        createTransport: async () => await TransportWebUSB.create(),
         path,
         version: 'v4r2', // Only v4r2 is supported for Ledger
-        network: 'mainnet',
+        network: Network.mainnet(),
         workchain: 0,
-        accountIndex: 0
+        accountIndex: 0,
     });
     
-    // 4. Initialize TonWalletKit with Ledger wallet
-    const walletKit = await TonWalletKit.create({
-        wallets: [ledgerConfig]
-    });
+    // 4. Create Ledger wallet adapter
+    const ledgerAdapter = await createWalletV4R2Ledger(ledgerConfig, { tonClient: client });
     
-    // 5. Get the wallet instance
-    const wallets = walletKit.getWallets();
-    const ledgerWallet = wallets[0];
+    // 5. Wrap adapter to get full Wallet interface
+    const ledgerWallet = await wrapWalletInterface(ledgerAdapter);
     
     console.log('Ledger wallet address:', ledgerWallet.getAddress());
     console.log('Balance:', await ledgerWallet.getBalance());
 }
 ```
 
-## Adding Ledger Wallet to Existing TonWalletKit
+## Adding Ledger Wallet to TonWalletKit
 
 ```typescript
-import { createWalletInitConfigLedger, createLedgerPath } from '@ton/walletkit';
+import { TonWalletKit, Network } from '@ton/walletkit';
+import { createWalletV4R2Ledger, createWalletInitConfigLedger, createLedgerPath } from '@demo/v4ledger-adapter';
+import TransportWebUSB from '@ledgerhq/hw-transport-webusb';
 
 async function addLedgerWallet(walletKit: TonWalletKit) {
-    const transport = await TransportWebUSB.create();
     const path = createLedgerPath(false, 0, 0);
     
     const ledgerConfig = createWalletInitConfigLedger({
-        transport,
+        createTransport: async () => await TransportWebUSB.create(),
         path,
-        version: 'v4r2'
+        version: 'v4r2',
+        network: Network.mainnet(),
+        workchain: 0,
+        accountIndex: 0,
     });
     
-    const wallet = await walletKit.addWallet(ledgerConfig);
+    // Get client from kit for the target network
+    const client = walletKit.getApiClient(Network.mainnet());
+    
+    // Create Ledger adapter
+    const ledgerAdapter = await createWalletV4R2Ledger(ledgerConfig, { tonClient: client });
+    
+    // Add wallet to kit
+    const wallet = await walletKit.addWallet(ledgerAdapter);
     return wallet;
 }
 ```
@@ -76,16 +90,21 @@ async function addLedgerWallet(walletKit: TonWalletKit) {
 The Ledger wallet automatically handles signing with the hardware device:
 
 ```typescript
-// Create a transaction
-const transaction = await ledgerWallet.createTransferTonTransaction({
-    toAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '100000000' // 0.1 TON in nanotons
-});
+// Create a transaction message
+const message: TransactionRequestMessage = {
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    amount: '100000000', // 0.1 TON in nanotons
+};
 
 // Sign and send (this will prompt on Ledger device)
-const signedBoc = await ledgerWallet.getSignedSendTransaction(transaction, {
-    fakeSignature: false
-});
+const signedBoc = await ledgerWallet.getSignedSendTransaction(
+    {
+        network: Network.mainnet(),
+        validUntil: Math.floor(Date.now() / 1000) + 60,
+        messages: [message],
+    },
+    { fakeSignature: false }
+);
 ```
 
 ## Derivation Path Helper
@@ -112,7 +131,9 @@ Always handle Ledger-specific errors:
 
 ```typescript
 try {
-    const wallet = await walletKit.addWallet(ledgerConfig);
+    const adapter = await createWalletV4R2Ledger(ledgerConfig, { tonClient: client });
+    const wallet = await wrapWalletInterface(adapter);
+    
     const signedTx = await wallet.getSignedSendTransaction(transaction, {
         fakeSignature: false
     });

@@ -44,6 +44,11 @@ export default defineConfig({
             htmlViteConfig: {
                 build: {
                     outDir,
+                    rollupOptions: {
+                        output: {
+                            inlineDynamicImports: true,
+                        },
+                    },
                 },
             },
             scriptViteConfig: {
@@ -63,6 +68,7 @@ export default defineConfig({
         }),
     ],
     resolve: {
+        dedupe: ['react', 'react-dom'],
         alias: {
             '@': path.resolve(__dirname, './src'),
         },

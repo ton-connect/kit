@@ -11,10 +11,10 @@
  * Allows registration of custom handlers for different message types
  */
 
-import { MessageType } from './opcodes';
-import { DecodedMessage } from './messageDecoder';
-import { Action, AddressBook } from '../AccountEvent';
-import { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
+import type { MessageType } from './opcodes';
+import type { DecodedMessage } from './messageDecoder';
+import type { Action, AddressBook } from '../AccountEvent';
+import type { ToncenterTraceItem, ToncenterTransaction } from '../emulation';
 
 /**
  * Context for message handling

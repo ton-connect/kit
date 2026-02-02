@@ -6,7 +6,8 @@
  *
  */
 
-import { ERROR_CODES, type ErrorCode, getErrorCodeName } from './codes';
+import { ERROR_CODES, getErrorCodeName } from './codes';
+import type { ErrorCode } from './codes';
 
 export interface ErrorInfo {
     code?: number;

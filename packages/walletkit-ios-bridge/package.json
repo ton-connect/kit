@@ -7,15 +7,19 @@
     "dist"
   ],
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "clean": "git clean -xdf dist node_modules .turbo",
+    "typecheck:bridge": "tsc --noEmit"
   },
   "dependencies": {
-    "@ton/crypto": "^3.3.0",
-    "@ton/crypto-primitives": "^2.1.0",
     "@ton/walletkit": "workspace:*",
     "buffer": "^6.0.3",
     "url-polyfill": "^1.1.13",
     "whatwg-url": "^14.2.0"
+  },
+  "peerDependencies": {
+    "@ton/crypto": "^3.3.0",
+    "@ton/crypto-primitives": "^2.1.0"
   },
   "description": "Bridge for integration JS Wallet Kit into iOS Wallet Kit",
   "keywords": [
@@ -27,8 +31,10 @@
     "tonconnect"
   ],
   "devDependencies": {
+    "@ton/crypto": "^3.3.0",
+    "@ton/crypto-primitives": "^2.1.0",
     "@types/whatwg-url": "^13.0.0",
     "typescript": "~5.9.3",
-    "vite": "^7.2.2"
+    "vite": "^7.3.1"
   }
 }

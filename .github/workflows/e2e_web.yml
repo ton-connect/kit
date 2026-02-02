@@ -1,22 +1,19 @@
 name: e2e web
 
 on:
-  workflow_run:
-    workflows: ["Basic build and tests"]
-    types:
-      - completed
-    branches:
-      - main
+  workflow_call: {}
+  # Allows manual workflow runs with branch selection in UI
+  workflow_dispatch: {}
 
 jobs:
   base:
     name: e2e web
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     # container:
     #   image: node:22
     #   options: --user root
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
     - uses: actions/checkout@v5
@@ -62,7 +59,7 @@ jobs:
     #     echo "Checking if TON Connect Bridge service is accessible..."
     #     max_attempts=30
     #     attempt=1
-        
+
     #     while [ $attempt -le $max_attempts ]; do
     #       echo "Attempt $attempt/$max_attempts: Checking http://localhost:8081/bridge"
     #       if curl -I -f -s -o /dev/null -w "%{http_code}\n" http://localhost:9103/metrics; then
@@ -74,7 +71,7 @@ jobs:
     #         attempt=$((attempt + 1))
     #       fi
     #     done
-        
+
     #     if [ $attempt -gt $max_attempts ]; then
     #       echo "❌ TON Connect Bridge service failed to start within expected time"
     #       echo "Docker containers status:"
@@ -83,7 +80,7 @@ jobs:
     #       docker compose -f docker-compose.bridge.yml logs bridge
     #       exit 1
     #     fi
-        
+
     #     echo "🚀 TON Connect Bridge service is now running and accessible at http://localhost:8081/bridge"
 
     - name: Run web e2e specs

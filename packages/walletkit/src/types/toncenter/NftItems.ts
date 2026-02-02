@@ -7,7 +7,7 @@
  */
 
 import type { NftItem } from './NftItem';
-import { Pagination } from './Pagination';
+import type { Pagination } from './Pagination';
 
 export interface NftItems {
     items: NftItem[];

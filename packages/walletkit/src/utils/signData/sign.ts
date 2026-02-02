@@ -7,29 +7,10 @@
  */
 
 import { Address } from '@ton/core';
-import { SignDataPayload } from '@tonconnect/protocol';
 
 import { createTextBinaryHash, createCellHash } from './hash';
-import { Hex } from '../../types/primitive';
 import { Uint8ArrayToHex } from '../base64';
-import { EventSignDataResponse } from '../../types/events';
-
-export interface SignDataParams {
-    payload: SignDataPayload;
-    domain: string;
-    // privateKey: Buffer;
-    address: string;
-}
-
-export interface PrepareSignDataResult {
-    address: string;
-    timestamp: number;
-    domain: string;
-    payload: SignDataPayload;
-    hash: Hex;
-}
-
-export type SignDataResult = PrepareSignDataResult & EventSignDataResponse;
+import type { PreparedSignData, UnpreparedSignData } from '../../api/models';
 
 /**
  * Signs data according to TON Connect sign-data protocol.
@@ -42,16 +23,16 @@ export type SignDataResult = PrepareSignDataResult & EventSignDataResponse;
  * @param params Signing parameters
  * @returns Signed data with base64 signature
  */
-export function PrepareTonConnectData(params: SignDataParams): PrepareSignDataResult {
-    const { payload, domain, address } = params;
+export function PrepareSignData(data: UnpreparedSignData): PreparedSignData {
+    const { payload, domain, address } = data;
     const timestamp = Math.floor(Date.now() / 1000);
     const parsedAddr = Address.parse(address);
 
     // Create hash based on payload type
     const finalHash =
-        payload.type === 'cell'
-            ? createCellHash(payload, parsedAddr, domain, timestamp)
-            : createTextBinaryHash(payload, parsedAddr, domain, timestamp);
+        payload.data?.type === 'cell'
+            ? createCellHash(payload.data.value, parsedAddr, domain, timestamp)
+            : createTextBinaryHash(payload.data, parsedAddr, domain, timestamp);
 
     return {
         address,

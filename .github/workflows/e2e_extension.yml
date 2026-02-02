@@ -1,22 +1,19 @@
 name: e2e extension
 
 on:
-  workflow_run:
-    workflows: ["Basic build and tests"]
-    types:
-      - completed
-    branches:
-      - main
+  workflow_call: {}
+  # Allows manual workflow runs with branch selection in UI
+  workflow_dispatch: {}
 
 jobs:
   base:
     name: e2e extension
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     # container:
     #   image: node:22
     #   options: --user root
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
     - uses: actions/checkout@v5

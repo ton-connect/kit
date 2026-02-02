@@ -7,13 +7,13 @@
  */
 
 export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
-export { CHAIN } from '@tonconnect/protocol';
 export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export type * from './types/internal';
 export * from './errors';
 export { WalletManager } from './core/WalletManager';
-export { SessionManager } from './core/SessionManager';
+export { TONConnectStoredSessionManager } from './core/TONConnectStoredSessionManager';
+export type { TONConnectSessionManager } from './api/interfaces/TONConnectSessionManager';
 export { BridgeManager } from './core/BridgeManager';
 export { EventRouter } from './core/EventRouter';
 export { RequestProcessor } from './core/RequestProcessor';
@@ -22,13 +22,14 @@ export { JettonsManager } from './core/JettonsManager';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './core/ApiClientToncenter';
+export { NetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
 export { ConnectHandler } from './handlers/ConnectHandler';
 export { TransactionHandler } from './handlers/TransactionHandler';
 export { SignDataHandler } from './handlers/SignDataHandler';
 export { DisconnectHandler } from './handlers/DisconnectHandler';
-export { WalletV5, WalletId, Opcodes } from './contracts/w5/WalletV5R1';
+export { WalletV5, WalletV5R1Id, Opcodes } from './contracts/w5/WalletV5R1';
 export type { WalletV5Config } from './contracts/w5/WalletV5R1';
 export { WalletV5R1CodeCell, WalletV5R1CodeBoc } from './contracts/w5/WalletV5R1.source';
 export { WalletV5R1Adapter } from './contracts/w5/WalletV5R1Adapter';
@@ -43,9 +44,10 @@ export { MemoryStorageAdapter } from './storage/adapters/memory';
 export { ExtensionStorageAdapter } from './storage/adapters/extension';
 export { Storage } from './storage/Storage';
 export type { ApiClient } from './types/toncenter/ApiClient';
-export type { MoneyFlow, MoneyFlowSelf, MoneyFlowRow } from './utils/toncenterEmulation';
 export { formatWalletAddress } from './utils/address';
 export { CallForSuccess } from './utils/retry';
+export { createWalletId } from './utils/walletId';
+export type { WalletId } from './utils/walletId';
 export {
     Base64Normalize,
     Base64NormalizeUrl,
@@ -62,8 +64,6 @@ export {
     HexToUint8Array,
 } from './utils/base64';
 export type { ToncenterTransaction } from './types/toncenter/emulation';
-export { PrepareSignDataResult } from './utils/signData/sign';
-export { Hex } from './types/primitive';
 export { TonProofParsedMessage } from './utils/tonProof';
 export type { ITonWalletKit } from './types/kit';
 export type {
@@ -94,6 +94,30 @@ export { wrapWalletInterface } from './core/Initializer';
 export { createDeviceInfo, createWalletManifest } from './utils/getDefaultWalletConfig';
 export { Signer } from './utils/Signer';
 export { ParseStack, SerializeStack } from './utils/tvmStack';
+export type { RawStackItem } from './utils/tvmStack';
 export { Transport } from './bridge/transport/Transport';
 export { TONCONNECT_BRIDGE_EVENT } from './bridge/utils/messageTypes';
 export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/utils/timeouts';
+export { CreateTonProofMessageBytes } from './utils/tonProof';
+export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
+export { isValidAddress } from './utils/address';
+export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
+
+// API Client types (ApiClient is exported above)
+export type {
+    TransactionsByAddressRequest,
+    GetTransactionByHashRequest,
+    GetPendingTransactionsRequest,
+    GetTraceRequest,
+    GetPendingTraceRequest,
+    GetJettonsByOwnerRequest,
+    GetJettonsByAddressRequest,
+    GetEventsRequest,
+    GetEventsResponse,
+} from './types/toncenter/ApiClient';
+export type { FullAccountState } from './types/toncenter/api';
+export type { ToncenterResponseJettonMasters } from './types/toncenter/emulation';
+
+// API Interfaces
+export type * from './api/interfaces';
+export * from './api/models';

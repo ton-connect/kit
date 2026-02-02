@@ -8,22 +8,27 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 6000",
     "build": "node build.cjs",
     "build:quickjs": "vite build --config vite.config.quickjs.ts",
     "build:all": "pnpm run build && pnpm run build:quickjs",
     "preview": "vite preview",
-    "copy:demo": "rm -rf AndroidDemo/app/src/main/assets/walletkit && mkdir -p AndroidDemo/app/src/main/assets/walletkit && cp -R dist-android/* AndroidDemo/app/src/main/assets/walletkit/ && mkdir -p AndroidDemo/app/src/main/assets/walletkit/quickjs && cp dist-android-quickjs/walletkit.quickjs.js AndroidDemo/app/src/main/assets/walletkit/quickjs/index.js"
+    "copy:demo": "rm -rf AndroidDemo/app/src/main/assets/walletkit && mkdir -p AndroidDemo/app/src/main/assets/walletkit && cp -R dist-android/* AndroidDemo/app/src/main/assets/walletkit/ && mkdir -p AndroidDemo/app/src/main/assets/walletkit/quickjs && cp dist-android-quickjs/walletkit.quickjs.js AndroidDemo/app/src/main/assets/walletkit/quickjs/index.js",
+    "clean": "git clean -xdf dist node_modules .turbo",
+    "typecheck:bridge": "tsc --noEmit"
   },
   "dependencies": {
-    "@ton/core": "^0.62.0",
     "@ton/walletkit": "workspace:*",
     "@tonconnect/bridge-sdk": "^0.2.4",
     "@tonconnect/protocol": "^2.3.0",
     "buffer": "^6.0.3"
   },
+  "peerDependencies": {
+    "@ton/core": "^0.62.0"
+  },
   "devDependencies": {
+    "@ton/core": "^0.62.1",
     "typescript": "^5.9.3",
-    "vite": "^7.2.2"
+    "vite": "^7.3.1"
   }
 }

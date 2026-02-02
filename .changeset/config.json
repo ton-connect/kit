@@ -1,0 +1,20 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "demo-wallet",
+    "demo-wallet-native",
+    "@demo/wallet-core",
+    "@demo/v4ledger-adapter",
+    "walletkit-android-bridge",
+    "walletkit-ios-bridge",
+    "@ton/walletkit-examples"
+  ]
+}
+

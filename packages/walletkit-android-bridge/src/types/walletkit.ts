@@ -6,22 +6,29 @@
  *
  */
 
-import type { IWallet, IWalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { WalletAdapter, WalletSigner, Network } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
  */
 export interface WalletKitBridgeInitConfig {
-    network?: string;
-    apiUrl?: string;
-    apiBaseUrl?: string;
-    tonApiUrl?: string;
-    tonClientEndpoint?: string;
     bridgeUrl?: string;
     bridgeName?: string;
     allowMemoryStorage?: boolean;
     walletManifest?: unknown;
     deviceInfo?: unknown;
+    disableNetworkSend?: boolean;
+    /**
+     * Network configurations matching native SDK format.
+     * Each entry has a network with chainId and optional apiClientConfiguration.
+     */
+    networkConfigurations?: Array<{
+        network: { chainId: string };
+        apiClientConfiguration?: {
+            url?: string;
+            key?: string;
+        };
+    }>;
 }
 
 export interface AndroidBridgeType {
@@ -33,17 +40,40 @@ export interface WalletKitNativeBridgeType {
     signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
 }
 
-export type WalletKitWallet = IWallet;
-export type WalletKitAdapter = IWalletAdapter;
+/**
+ * Loose wallet type for bridge pass-through.
+ * Uses unknown/any for methods since Kotlin handles the actual data.
+ */
+export interface WalletKitWallet {
+    getWalletId?(): string;
+    getAddress?(): string;
+    getBalance?(): Promise<unknown>;
+    getClient(): { getAccountTransactions(params: unknown): Promise<{ transactions?: unknown[] }> };
+    createTransferTonTransaction(params: unknown): Promise<unknown>;
+    createTransferMultiTonTransaction(params: unknown): Promise<unknown>;
+    getTransactionPreview?(transaction: unknown): Promise<unknown>;
+    sendTransaction(transaction: unknown): Promise<unknown>;
+    // NFT methods
+    getNfts?(params: unknown): Promise<unknown>;
+    getNft?(address: string): Promise<unknown>;
+    createTransferNftTransaction?(params: unknown): Promise<unknown>;
+    createTransferNftRawTransaction?(params: unknown): Promise<unknown>;
+    // Jetton methods
+    getJettons?(params: unknown): Promise<unknown>;
+    createTransferJettonTransaction?(params: unknown): Promise<unknown>;
+    getJettonBalance?(address: string): Promise<unknown>;
+    getJettonWalletAddress?(address: string): Promise<unknown>;
+}
+export type WalletKitAdapter = WalletAdapter;
 export type WalletKitSigner = WalletSigner;
 
 export interface WalletKitInstance {
     ensureInitialized?: () => Promise<void>;
     getWallets: () => WalletKitWallet[];
-    getWallet(address: string): WalletKitWallet | undefined;
+    getWallet(walletId: string): WalletKitWallet | undefined;
     getNetwork?: () => string;
-    removeWallet(address: string): Promise<void>;
-    getApiClient(): unknown;
+    removeWallet(walletId: string): Promise<void>;
+    getApiClient(network?: Network): unknown;
     addWallet(adapter: unknown): Promise<WalletKitWallet | null>;
     handleNewTransaction(wallet: WalletKitWallet, transaction: unknown): Promise<unknown>;
     handleTonConnectUrl(url: string): Promise<unknown>;
@@ -61,5 +91,13 @@ export interface WalletKitInstance {
     removeSignDataRequestCallback(): void;
     onDisconnect(callback: (event: unknown) => void): void;
     removeDisconnectCallback(): void;
-    signDataRequest(event: unknown): Promise<unknown>;
+    onRequestError(callback: (event: unknown) => void): void;
+    removeErrorCallback(): void;
+    // Request approval methods - event and response are separate parameters
+    approveConnectRequest(event: unknown, response?: unknown): Promise<unknown>;
+    rejectConnectRequest(event: unknown, reason?: string, errorCode?: number): Promise<unknown>;
+    approveTransactionRequest(event: unknown, response?: unknown): Promise<unknown>;
+    rejectTransactionRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
+    approveSignDataRequest(event: unknown, response?: unknown): Promise<unknown>;
+    rejectSignDataRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
 }

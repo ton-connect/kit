@@ -25,9 +25,8 @@ import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
  */
 export async function getNfts(args: GetNftsArgs) {
     return callBridge('getNfts', async () => {
-        return await callOnWalletBridge(args.address, 'getNfts', {
-            limit: args.limit,
-            offset: args.offset,
+        return await callOnWalletBridge(args.walletId, 'getNfts', {
+            pagination: args.pagination,
             collectionAddress: args.collectionAddress,
             indirectOwnership: args.indirectOwnership,
         });
@@ -39,7 +38,7 @@ export async function getNfts(args: GetNftsArgs) {
  */
 export async function getNft(args: GetNftArgs) {
     return callBridge('getNft', async () => {
-        return await callOnWalletBridge(args.address, 'getNft', args.nftAddress);
+        return await callOnWalletBridge(args.walletId, 'getNft', args.nftAddress);
     });
 }
 
@@ -48,7 +47,7 @@ export async function getNft(args: GetNftArgs) {
  */
 export async function createTransferNftTransaction(args: CreateTransferNftTransactionArgs) {
     return callBridge('createTransferNftTransaction', async () => {
-        return await callOnWalletBridge(args.address, 'createTransferNftTransaction', {
+        return await callOnWalletBridge(args.walletId, 'createTransferNftTransaction', {
             nftAddress: args.nftAddress,
             toAddress: args.toAddress,
             transferAmount: args.transferAmount,
@@ -62,7 +61,7 @@ export async function createTransferNftTransaction(args: CreateTransferNftTransa
  */
 export async function createTransferNftRawTransaction(args: CreateTransferNftRawTransactionArgs) {
     return callBridge('createTransferNftRawTransaction', async () => {
-        return await callOnWalletBridge(args.address, 'createTransferNftRawTransaction', {
+        return await callOnWalletBridge(args.walletId, 'createTransferNftRawTransaction', {
             nftAddress: args.nftAddress,
             transferAmount: args.transferAmount,
             transferMessage: args.transferMessage,

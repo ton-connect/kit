@@ -7,8 +7,7 @@
  */
 
 import { Cell, loadMessage } from '@ton/core';
-import { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
-import { CHAIN } from '@tonconnect/protocol';
+import type { CommonMessageInfoExternalIn } from '@ton/core/src/types/CommonMessageInfo';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 import { clearAllMocks, mocked } from '../../../mock.config';
@@ -26,6 +25,7 @@ import {
     stateInit,
     walletId,
 } from './WalletV5R1.fixture';
+import { Network } from '../../api/models';
 
 describe('WalletV5R1Adapter', () => {
     let tonClient: ApiClient;
@@ -37,7 +37,7 @@ describe('WalletV5R1Adapter', () => {
         const signer = await Signer.fromMnemonic(mnemonic);
         wallet = await WalletV5R1Adapter.create(signer, {
             client: tonClient,
-            network: CHAIN.MAINNET,
+            network: Network.mainnet(),
         });
     });
 
@@ -47,7 +47,7 @@ describe('WalletV5R1Adapter', () => {
         expect(wallet.getAddress()).toEqual(addressV5r1.bounceableNot);
         expect(wallet.getAddress({ testnet: true })).toEqual(addressV5r1Test.bounceableNot);
         expect(await wallet.getStateInit()).toEqual(stateInit);
-        expect(await wallet.getWalletId()).toEqual(walletId);
+        expect(await wallet.getWalletV5R1Id()).toEqual(walletId);
         expect(wallet.client).toEqual(tonClient);
         const contract = wallet.walletContract;
         expect(contract.address.toString()).toEqual(addressV5r1.bounceable);
@@ -66,7 +66,7 @@ describe('WalletV5R1Adapter', () => {
         const signer = await Signer.fromMnemonic(mnemonic);
         const walletWithoutInit = await WalletV5R1Adapter.create(signer, {
             client: tonClient,
-            network: CHAIN.MAINNET,
+            network: Network.mainnet(),
         });
         Object.defineProperty(walletWithoutInit, 'walletContract', {
             value: { ...walletWithoutInit.walletContract, init: undefined },
@@ -101,7 +101,7 @@ describe('WalletV5R1Adapter', () => {
                 throw new Error('WalletId fetch failed');
             },
         });
-        const walletId = await wallet.getWalletId();
+        const walletId = await wallet.getWalletV5R1Id();
         expect(walletId).toBeDefined();
         expect(walletId.subwalletNumber).toEqual(0);
     });
@@ -109,7 +109,7 @@ describe('WalletV5R1Adapter', () => {
     it('should handle active/inactive/error states', async () => {
         let isDeployed = await wallet.isDeployed();
         expect(isDeployed).toEqual(true);
-        expect(tonClient.getAccountState).toHaveBeenCalledWith(wallet.walletContract.address);
+        expect(tonClient.getAccountState).toHaveBeenCalledWith(wallet.walletContract.address.toString());
         mocked(tonClient.getAccountState).mockResolvedValueOnce({
             status: 'uninitialized',
             balance: '0',

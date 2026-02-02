@@ -7,14 +7,14 @@
  */
 
 import { mnemonicToWalletKey, mnemonicNew, keyPairFromSeed, deriveEd25519Path } from '@ton/crypto';
-import { mnemonicToSeed as bip39MnemonicToSeed } from 'bip39';
+import { mnemonicToSeed as bip39MnemonicToSeed } from '@scure/bip39';
 
 import { WalletKitError, ERROR_CODES } from '../errors';
 
 async function bip39ToPrivateKey(mnemonic: string[]) {
     const seed = await bip39MnemonicToSeed(mnemonic.join(' '));
     const TON_DERIVATION_PATH = [44, 607, 0];
-    const seedContainer = await deriveEd25519Path(seed, TON_DERIVATION_PATH);
+    const seedContainer = await deriveEd25519Path(Buffer.from(seed), TON_DERIVATION_PATH);
     return keyPairFromSeed(seedContainer.subarray(0, 32));
 }
 

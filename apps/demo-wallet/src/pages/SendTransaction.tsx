@@ -8,18 +8,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { AddressJetton, TonTransferParams } from '@ton/walletkit';
+import { isValidAddress } from '@ton/walletkit';
+import type { Jetton, TONTransferRequest } from '@ton/walletkit';
+import { useWallet, useJettons, useWalletKit } from '@demo/wallet-core';
 
 import { Layout, Button, Input, Card } from '../components';
-import { useWallet, useJettons, useWalletKit } from '../stores';
 import { createComponentLogger } from '../utils/logger';
+
+import { useFormattedJetton } from '@/hooks/useFormattedJetton';
 
 // Create logger for send transaction
 const log = createComponentLogger('SendTransaction');
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
-    data?: AddressJetton;
+    data?: Jetton;
 }
 
 export const SendTransaction: React.FC = () => {
@@ -36,49 +39,42 @@ export const SendTransaction: React.FC = () => {
     // Get current wallet
     const { userJettons, isLoadingJettons, loadUserJettons, formatJettonAmount } = useJettons();
 
+    const selectedJettonInfo = useFormattedJetton(selectedToken?.data);
+
     // Load jettons on mount
     useEffect(() => {
-        if (userJettons.length === 0 && !isLoadingJettons) {
-            loadUserJettons();
-        }
-    }, [userJettons.length, isLoadingJettons, loadUserJettons]);
+        loadUserJettons();
+    }, []);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
         return tonAmount.toFixed(4);
     };
 
-    const validateAddress = (address: string): boolean => {
-        // Basic TON address validation
-        // In a real app, use proper TON address validation
-        return address.length > 10 && (address.startsWith('EQ') || address.startsWith('UQ'));
-    };
-
     const getCurrentTokenBalance = (): string => {
         if (selectedToken.type === 'TON') {
             return formatTonAmount(balance || '0');
-        } else if (selectedToken.data) {
-            return formatJettonAmount(selectedToken.data.balance, selectedToken.data.decimals);
+        } else if (selectedJettonInfo?.balance) {
+            return selectedJettonInfo?.balance;
         }
+
         return '0';
     };
 
     const getCurrentTokenSymbol = (): string => {
         if (selectedToken.type === 'TON') {
             return 'TON';
-        } else if (selectedToken.data) {
-            return selectedToken.data.symbol;
         }
-        return '';
+
+        return selectedJettonInfo?.symbol || '';
     };
 
     const getCurrentTokenName = (): string => {
         if (selectedToken.type === 'TON') {
             return 'TON';
-        } else if (selectedToken.data) {
-            return selectedToken.data.name || selectedToken.data.symbol;
         }
-        return '';
+
+        return selectedJettonInfo?.name || '';
     };
 
     const handleSend = async (e: React.FormEvent) => {
@@ -88,7 +84,7 @@ export const SendTransaction: React.FC = () => {
 
         try {
             // Validate inputs
-            if (!validateAddress(recipient)) {
+            if (!isValidAddress(recipient)) {
                 throw new Error('Invalid recipient address');
             }
 
@@ -115,9 +111,9 @@ export const SendTransaction: React.FC = () => {
 
                 const nanoTonAmount = Math.floor(inputAmount * 1000000000).toString();
 
-                const tonTransferParams: TonTransferParams = {
-                    toAddress: recipient,
-                    amount: nanoTonAmount,
+                const tonTransferParams: TONTransferRequest = {
+                    recipientAddress: recipient,
+                    transferAmount: nanoTonAmount,
                 };
                 const result = await currentWallet.createTransferTonTransaction(tonTransferParams);
                 // display Preview result.preview in a modal
@@ -129,6 +125,12 @@ export const SendTransaction: React.FC = () => {
                     transaction: result,
                 });
             } else if (selectedToken.data) {
+                const decimals = selectedToken.data.decimalsNumber;
+
+                if (!decimals) {
+                    throw new Error('Jetton decimals not found');
+                }
+
                 // Send Jetton using new API
                 log.info('Sending jetton', {
                     jettonAddress: selectedToken.data.address,
@@ -137,13 +139,13 @@ export const SendTransaction: React.FC = () => {
                 });
 
                 // Convert the display amount to the smallest unit based on decimals
-                const jettonAmount = Math.floor(inputAmount * Math.pow(10, selectedToken.data.decimals)).toString();
+                const jettonAmount = Math.floor(inputAmount * Math.pow(10, decimals)).toString();
 
                 // Create jetton transfer transaction
                 const jettonTransaction = await currentWallet.createTransferJettonTransaction({
-                    toAddress: recipient,
+                    recipientAddress: recipient,
                     jettonAddress: selectedToken.data.address,
-                    amount: jettonAmount,
+                    transferAmount: jettonAmount,
                 });
 
                 if (walletKit) {
@@ -210,15 +212,15 @@ export const SendTransaction: React.FC = () => {
                                 <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                                     {selectedToken.type === 'TON' ? (
                                         <span className="text-sm font-bold text-blue-600">T</span>
-                                    ) : selectedToken.data?.image ? (
+                                    ) : selectedJettonInfo?.image ? (
                                         <img
-                                            src={selectedToken.data.image}
-                                            alt={selectedToken.data.name}
+                                            src={selectedJettonInfo.image}
+                                            alt={selectedJettonInfo.name || selectedJettonInfo.symbol}
                                             className="w-6 h-6 rounded-full object-cover"
                                         />
                                     ) : (
                                         <span className="text-xs font-bold text-gray-600">
-                                            {selectedToken.data?.symbol.slice(0, 2)}
+                                            {selectedToken.data?.info?.symbol?.slice(0, 2)}
                                         </span>
                                     )}
                                 </div>
@@ -287,35 +289,42 @@ export const SendTransaction: React.FC = () => {
                                     >
                                         <div className="flex items-center space-x-3">
                                             <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                                                {jetton.image ? (
+                                                {jetton?.info?.image ? (
                                                     <img
-                                                        src={jetton.image}
-                                                        alt={jetton.name}
+                                                        src={
+                                                            jetton.info.image.url ||
+                                                            jetton.info.image.data ||
+                                                            jetton.info.image.mediumUrl ||
+                                                            jetton.info.image.largeUrl ||
+                                                            jetton.info.image.smallUrl ||
+                                                            ''
+                                                        }
+                                                        alt={jetton.info?.name}
                                                         className="w-6 h-6 rounded-full object-cover"
                                                     />
                                                 ) : (
                                                     <span className="text-xs font-bold text-gray-600">
-                                                        {jetton.symbol.slice(0, 2)}
+                                                        {jetton.info?.symbol?.slice(0, 2)}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="text-left">
                                                 <p className="text-sm font-medium text-gray-900">
-                                                    {jetton.name || jetton.symbol}
+                                                    {jetton.info?.name || jetton.info?.symbol}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {jetton.symbol}
-                                                    {jetton.verification?.verified && (
-                                                        <span className="ml-1 text-green-600">✓</span>
-                                                    )}
+                                                    {jetton.info?.symbol}
+                                                    {/*{jetton.verification?.verified && (*/}
+                                                    {/*    <span className="ml-1 text-green-600">✓</span>*/}
+                                                    {/*)}*/}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-medium text-gray-900">
-                                                {formatJettonAmount(jetton.balance, jetton.decimals)}
+                                                {formatJettonAmount(jetton.balance || '0', jetton.decimalsNumber || 9)}
                                             </p>
-                                            <p className="text-xs text-gray-500">{jetton.symbol}</p>
+                                            <p className="text-xs text-gray-500">{jetton?.info?.symbol}</p>
                                         </div>
                                     </button>
                                 ))}
@@ -356,6 +365,7 @@ export const SendTransaction: React.FC = () => {
                                         type="button"
                                         onClick={handleSendToSelf}
                                         className="text-xs text-blue-600 hover:text-blue-800 underline cursor-pointer"
+                                        data-testid="use-my-address"
                                     >
                                         Use my address
                                     </button>
@@ -367,6 +377,7 @@ export const SendTransaction: React.FC = () => {
                                 placeholder="EQxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
                                 required
                                 helperText="Enter the recipient's TON address"
+                                data-testid="recipient-input"
                             />
                         </div>
 
@@ -380,6 +391,7 @@ export const SendTransaction: React.FC = () => {
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.0000"
                                 required
+                                data-testid="amount-input"
                                 helperText={
                                     selectedToken.type === 'TON'
                                         ? 'Minimum transaction: 0.0001 TON'
@@ -466,6 +478,7 @@ export const SendTransaction: React.FC = () => {
                             isLoading={isLoading}
                             disabled={!recipient || !amount || parseFloat(amount) <= 0}
                             className="w-full"
+                            data-testid="send-submit"
                         >
                             {isLoading ? `Sending ${getCurrentTokenSymbol()}...` : `Send ${getCurrentTokenSymbol()}`}
                         </Button>

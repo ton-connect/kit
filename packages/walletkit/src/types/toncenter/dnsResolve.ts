@@ -6,13 +6,14 @@
  *
  */
 
-import { TupleItem } from '@ton/core';
+import type { TupleItem } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 import { toHexString } from '@tonconnect/protocol';
 
-import { ApiClient } from './ApiClient';
-import { toStringTail } from '../primitive';
+import type { ApiClient } from './ApiClient';
+import { toStringTail } from '../../utils/cell';
 import { ParseStack, SerializeStack } from '../../utils/tvmStack';
+import { asAddressFriendly } from '../../utils';
 
 export const ROOT_DNS_RESOLVER_MAINNET = 'Ef_lZ1T4NCb2mwkme9h2rJfESCE0W34ma9lWp7-_uY3zXDvq'; // TODO getting from config#4
 export const ROOT_DNS_RESOLVER_TESTNET = 'kf_v5x0Thgr6pq6ur2NvkWhIf4DxAxsL-Nk5rknT6n99oEkd'; // TODO getting from config#4
@@ -116,7 +117,11 @@ export async function dnsLookup(
         { type: 'slice', cell: toStringTail(internal) },
         { type: 'int', value: toTonDnsCategory(category) },
     ];
-    const { stack, exitCode } = await client.runGetMethod(resolver, 'dnsresolve', SerializeStack(param));
+    const { stack, exitCode } = await client.runGetMethod(
+        asAddressFriendly(resolver),
+        'dnsresolve',
+        SerializeStack(param),
+    );
     if (stack?.length !== 2) {
         return null;
     }

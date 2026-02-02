@@ -7,7 +7,7 @@
  */
 
 import type { BrowserContext } from '@playwright/test';
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export function isExtensionWalletSource(source: string): boolean {
     return !source.includes('http');

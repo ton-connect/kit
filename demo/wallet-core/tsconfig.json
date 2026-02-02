@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "outDir": "dist/cjs",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationDir": "dist/cjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "removeComments": false,
+    "declarationMap": true,
+    "jsx": "react-jsx"
+  },
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.fixture.ts",
+    "**/*.config.ts",
+    "node_modules",
+    "coverage",
+    ".stryker-tmp",
+    "coverage",
+    "dist"
+  ],
+  "include": [
+    "src/**/*"
+  ]
+}

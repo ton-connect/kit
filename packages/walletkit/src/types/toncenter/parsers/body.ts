@@ -11,7 +11,7 @@
  * Refactored to use centralized opcode registry and message decoder
  */
 
-import { EmulationMessage } from '../emulation';
+import type { EmulationMessage } from '../emulation';
 import { getDecodedBody, getDecodedType } from './messageDecoder';
 import { resolveOpCode, MessageType, matchesDecodedType } from './opcodes';
 

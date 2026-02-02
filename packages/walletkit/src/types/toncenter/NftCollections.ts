@@ -6,9 +6,9 @@
  *
  */
 
-import { NftCollection } from './NftCollection';
-import { AddressMetadata } from './AddressMetadata';
-import { AddressBookRow } from './AddressBookRow';
+import type { NftCollection } from './NftCollection';
+import type { AddressMetadata } from './AddressMetadata';
+import type { AddressBookRow } from './AddressBookRow';
 
 export interface NftCollections {
     addressBook?: { [key: string]: AddressBookRow };

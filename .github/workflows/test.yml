@@ -2,12 +2,15 @@ name: Basic build and tests
 
 on:
   push:
+  # Allows manual workflow runs with branch selection in UI
+  workflow_dispatch: {}
 
 
 jobs:
   unit:
     name: unit
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     # container:
     #   image: node:22-slim
@@ -34,3 +37,15 @@ jobs:
 
     - name: test
       run: pnpm quality
+      env:
+        WALLET_MNEMONIC: ${{ secrets.WALLET_MNEMONIC }}
+
+  e2e-web:
+    needs: unit
+    uses: ./.github/workflows/e2e_web.yml
+    secrets: inherit
+
+  e2e-extension:
+    needs: unit
+    uses: ./.github/workflows/e2e_extension.yml
+    secrets: inherit

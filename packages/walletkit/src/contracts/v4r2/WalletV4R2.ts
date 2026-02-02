@@ -8,22 +8,13 @@
 
 // WalletV4R2 contract implementation
 
-import {
-    Address,
-    beginCell,
-    Cell,
-    Contract,
-    contractAddress,
-    ContractProvider,
-    SendMode,
-    Sender,
-    MessageRelaxed,
-    storeMessageRelaxed,
-} from '@ton/core';
-import { Maybe } from '@ton/core/dist/utils/maybe';
+import type { Address, Cell, Contract, ContractProvider, Sender, MessageRelaxed } from '@ton/core';
+import { beginCell, contractAddress, SendMode, storeMessageRelaxed } from '@ton/core';
+import type { Maybe } from '@ton/core/dist/utils/maybe';
 
-import { ApiClient } from '../../types/toncenter/ApiClient';
+import type { ApiClient } from '../../types/toncenter/ApiClient';
 import { ParseStack } from '../../utils/tvmStack';
+import { asAddressFriendly } from '../../utils';
 
 const log = {
     error: (_message: string, _data: unknown) => {
@@ -104,7 +95,7 @@ export class WalletV4R2 implements Contract {
      */
     async getSeqno(): Promise<number> {
         try {
-            const state = await this.client.runGetMethod(this.address, 'seqno');
+            const state = await this.client.runGetMethod(asAddressFriendly(this.address), 'seqno');
             if (state.exitCode !== 0) {
                 return 0;
             }
@@ -132,7 +123,7 @@ export class WalletV4R2 implements Contract {
      */
     async getSubwalletId(): Promise<number> {
         try {
-            const state = await this.client.runGetMethod(this.address, 'get_subwallet_id');
+            const state = await this.client.runGetMethod(asAddressFriendly(this.address), 'get_subwallet_id');
             if (state.exitCode !== 0) {
                 return this.subwalletId;
             }

@@ -6,8 +6,8 @@
  *
  */
 
-import { TokenInfoNFTCollection } from './NFTCollectionV3';
-import { NftTokenInfoV3 } from './NftTokenInfoV3';
+import type { TokenInfoNFTCollection } from './NFTCollectionV3';
+import type { NftTokenInfoV3 } from './NftTokenInfoV3';
 
 export interface AddressMetadataV3 {
     is_indexed: boolean;

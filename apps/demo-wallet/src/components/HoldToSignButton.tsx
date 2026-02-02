@@ -66,6 +66,13 @@ export const HoldToSignButton: React.FC<HoldToSignButtonProps> = ({
             setTimeout(() => {
                 onComplete();
             }, 300);
+
+            // Reset to default state after 1 second
+            setTimeout(() => {
+                setIsComplete(false);
+                setIsHolding(false);
+                setProgress(0);
+            }, 1000);
         }, holdDuration);
     }, [disabled, isLoading, isComplete, holdDuration, onComplete, clearTimers]);
 

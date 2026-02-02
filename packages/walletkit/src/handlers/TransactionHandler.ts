@@ -7,20 +7,11 @@
  */
 
 import { Address } from '@ton/core';
-import {
-    CHAIN,
-    SEND_TRANSACTION_ERROR_CODES,
-    SendTransactionRpcResponseError,
-    WalletResponseTemplateError,
-} from '@tonconnect/protocol';
+import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
+import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
-import type {
-    IWallet,
-    EventTransactionRequest,
-    TransactionPreview,
-    ValidationResult,
-    TonWalletKitOptions,
-} from '../types';
+import type { TonWalletKitOptions, ValidationResult } from '../types';
+import { toTransactionRequest } from '../types/internal';
 import type {
     RawBridgeEvent,
     EventHandler,
@@ -34,61 +25,65 @@ import { createTransactionPreview as createTransactionPreviewHelper } from '../u
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
 import type { EventEmitter } from '../core/EventEmitter';
-import { WalletManager } from '../core/WalletManager';
-import { TransactionPreviewEmulationError } from '../types/events';
-import { ReturnWithValidationResult } from '../validation/types';
+import type { WalletManager } from '../core/WalletManager';
+import type { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { AnalyticsApi } from '../analytics/sender';
-import { getEventsSubsystem, getVersion } from '../utils/version';
-import { uuidv7 } from '../utils/uuid';
-import { getUnixtime } from '../utils/time';
-import { Base64Normalize } from '../utils/base64';
+import type { Wallet } from '../api/interfaces';
+import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
+import { Result } from '../api/models';
+import type { Analytics, AnalyticsManager } from '../analytics';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
 const log = globalLogger.createChild('TransactionHandler');
 
 export class TransactionHandler
-    extends BasicHandler<EventTransactionRequest>
-    implements EventHandler<EventTransactionRequest, RawBridgeEventTransaction>
+    extends BasicHandler<SendTransactionRequestEvent>
+    implements EventHandler<SendTransactionRequestEvent, RawBridgeEventTransaction>
 {
     private eventEmitter: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
-    private walletKitConfig: TonWalletKitOptions;
+    private analytics?: Analytics;
 
     constructor(
-        notify: (event: EventTransactionRequest) => void,
+        notify: (event: SendTransactionRequestEvent) => void,
+        private readonly config: TonWalletKitOptions,
         eventEmitter: EventEmitter,
-        walletKitConfig: TonWalletKitOptions,
         private readonly walletManager: WalletManager,
-        analyticsApi?: AnalyticsApi,
+        private readonly sessionManager: TONConnectSessionManager,
+        analyticsManager?: AnalyticsManager,
     ) {
         super(notify);
         this.eventEmitter = eventEmitter;
-        this.analyticsApi = analyticsApi;
-        this.walletKitConfig = walletKitConfig;
+        this.sessionManager = sessionManager;
+        this.analytics = analyticsManager?.scoped();
     }
     canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
         return event.method === 'sendTransaction';
     }
 
-    async handle(event: RawBridgeEventTransaction): Promise<EventTransactionRequest | WalletResponseTemplateError> {
-        if (!event.walletAddress) {
-            log.error('Wallet address not found', { event });
+    async handle(event: RawBridgeEventTransaction): Promise<SendTransactionRequestEvent | WalletResponseTemplateError> {
+        // Support both walletId (new) and walletAddress (legacy)
+        const walletId = event.walletId;
+        const walletAddress = event.walletAddress;
+
+        if (!walletId && !walletAddress) {
+            log.error('Wallet ID not found', { event });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet address not found',
+                    message: 'Wallet ID not found',
                 },
                 id: event.id,
             } as SendTransactionRpcResponseError;
         }
 
-        const wallet = this.walletManager.getWallet(event.walletAddress);
+        // Try to get wallet by walletId first, fall back to address search
+        const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
         if (!wallet) {
-            log.error('Wallet not found', { event });
+            log.error('Wallet not found', { event, walletId, walletAddress });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet address not found',
+                    message: 'Wallet not found',
                 },
                 id: event.id,
             } as SendTransactionRpcResponseError;
@@ -109,58 +104,55 @@ export class TransactionHandler
         }
         const request = requestValidation.result;
 
-        let preview: TransactionPreview;
-        try {
-            preview = await CallForSuccess(() => createTransactionPreviewHelper(request, wallet));
-            // Emit emulation result event for jetton caching and other components
-            if (preview.result === 'success' && preview.emulationResult) {
-                try {
-                    this.eventEmitter.emit('emulation:result', preview.emulationResult);
-                } catch (error) {
-                    log.warn('Error emitting emulation result event', { error });
+        let preview: TransactionEmulatedPreview | undefined;
+        if (!this.config.eventProcessor?.disableTransactionEmulation) {
+            try {
+                preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
+                // Emit emulation result event for jetton caching and other components
+                if (preview.result === Result.success && preview.trace) {
+                    try {
+                        this.eventEmitter.emit('emulation:result', preview.trace);
+                    } catch (error) {
+                        log.warn('Error emitting emulation result event', { error });
+                    }
                 }
+            } catch (error) {
+                log.error('Failed to create transaction preview', { error });
+                preview = {
+                    error: {
+                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                        message: 'Unknown emulation error',
+                    },
+                    result: Result.failure,
+                };
             }
-        } catch (error) {
-            log.error('Failed to create transaction preview', { error });
-            preview = {
-                emulationError: {
-                    code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                    message: 'Unknown emulation error',
-                },
-                result: 'error',
-            } as TransactionPreviewEmulationError;
         }
 
-        const txEvent: EventTransactionRequest = {
+        const txEvent: SendTransactionRequestEvent = {
             ...event,
             request,
-            preview,
+            preview: {
+                data: preview,
+            },
             dAppInfo: event.dAppInfo ?? {},
-            walletAddress: event.walletAddress,
+            walletId: walletId ?? this.walletManager.getWalletId(wallet),
+            walletAddress: walletAddress ?? wallet.getAddress(),
         };
 
-        // Send wallet-transaction-request-received event
-        this.analyticsApi?.sendEvents([
-            {
-                event_name: 'wallet-transaction-request-received',
-                trace_id: event.traceId ?? uuidv7(),
-                client_environment: 'wallet',
-                subsystem: getEventsSubsystem(),
-                client_id: event.from,
+        if (this.analytics) {
+            const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
 
-                client_timestamp: getUnixtime(),
+            this.analytics?.emitWalletTransactionRequestReceived({
+                trace_id: event.traceId,
+                client_id: event.from,
+                wallet_id: sessionData?.publicKey,
+
                 dapp_name: event.dAppInfo?.name,
-                version: getVersion(),
-                network_id: this.walletKitConfig.network,
-                wallet_app_name: this.walletKitConfig.deviceInfo?.appName,
-                wallet_app_version: this.walletKitConfig.deviceInfo?.appVersion,
-                event_id: uuidv7(),
+                network_id: wallet.getNetwork().chainId,
                 // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
-
-                wallet_id: Base64Normalize(event.walletAddress),
-            },
-        ]);
+            });
+        }
 
         return txEvent;
     }
@@ -171,9 +163,9 @@ export class TransactionHandler
 
     private parseTonConnectTransactionRequest(
         event: RawBridgeEventTransaction,
-        wallet: IWallet,
+        wallet: Wallet,
     ): {
-        result: ConnectTransactionParamContent | undefined;
+        result: TransactionRequest | undefined;
         validation: ValidationResult;
     } {
         let errors: string[] = [];
@@ -216,7 +208,7 @@ export class TransactionHandler
             }
 
             return {
-                result: params,
+                result: toTransactionRequest(params),
                 validation: { isValid: errors.length === 0, errors: errors },
             };
         } catch (error) {
@@ -233,13 +225,13 @@ export class TransactionHandler
      * Parse network from various possible formats
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: IWallet): ReturnWithValidationResult<CHAIN | undefined> {
+    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<CHAIN | undefined> {
         let errors: string[] = [];
         if (typeof network === 'string') {
             if (network === '-3' || network === '-239') {
                 const chain = network === '-3' ? CHAIN.TESTNET : CHAIN.MAINNET;
                 const walletNetwork = wallet.getNetwork();
-                if (chain !== walletNetwork) {
+                if (chain !== walletNetwork.chainId) {
                     errors.push('Invalid network not equal to wallet network');
                 } else {
                     return { result: chain, isValid: errors.length === 0, errors: errors };
@@ -254,7 +246,7 @@ export class TransactionHandler
         return { result: undefined, isValid: errors.length === 0, errors: errors };
     }
 
-    private validateFrom(from: unknown, wallet: IWallet): ReturnWithValidationResult<string> {
+    private validateFrom(from: unknown, wallet: Wallet): ReturnWithValidationResult<string> {
         let errors: string[] = [];
 
         if (typeof from !== 'string') {

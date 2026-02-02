@@ -8,13 +8,13 @@
 
 // Initialization and setup logic
 
-import { CHAIN } from '@tonconnect/protocol';
-
-import { TonWalletKitOptions, IWallet, DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
+import type { TonWalletKitOptions } from '../types';
+import { DEFAULT_DURABLE_EVENTS_CONFIG } from '../types';
 import type { StorageAdapter, StorageConfig } from '../storage';
 import { createStorageAdapter, Storage } from '../storage';
 import { WalletManager } from './WalletManager';
-import { SessionManager } from './SessionManager';
+import { TONConnectStoredSessionManager } from './TONConnectStoredSessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import { BridgeManager } from './BridgeManager';
 import { EventRouter } from './EventRouter';
 import { RequestProcessor } from './RequestProcessor';
@@ -22,12 +22,12 @@ import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
-import { IWalletAdapter } from '../types/wallet';
 import { WalletTonClass } from './wallet/extensions/ton';
 import { WalletJettonClass } from './wallet/extensions/jetton';
 import { WalletNftClass } from './wallet/extensions/nft';
-import { ApiClient } from '../types/toncenter/ApiClient';
-import { AnalyticsApi } from '../analytics/sender';
+import type { AnalyticsManager } from '../analytics';
+import type { NetworkManager } from './NetworkManager';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
 
 const log = globalLogger.createChild('Initializer');
 
@@ -36,7 +36,7 @@ const log = globalLogger.createChild('Initializer');
  */
 export interface InitializationResult {
     walletManager: WalletManager;
-    sessionManager: SessionManager;
+    sessionManager: TONConnectSessionManager;
     bridgeManager: BridgeManager;
     eventRouter: EventRouter;
     requestProcessor: RequestProcessor;
@@ -49,24 +49,24 @@ export interface InitializationResult {
  */
 export class Initializer {
     private config: TonWalletKitOptions;
-    private tonClient!: ApiClient;
+    private networkManager!: NetworkManager;
     private eventEmitter: EventEmitter;
-    private analyticsApi?: AnalyticsApi;
+    private analyticsManager?: AnalyticsManager;
 
-    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsApi?: AnalyticsApi) {
+    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsManager?: AnalyticsManager) {
         this.config = config;
         this.eventEmitter = eventEmitter;
-        this.analyticsApi = analyticsApi;
+        this.analyticsManager = analyticsManager;
     }
 
     /**
      * Initialize all components
      */
-    async initialize(options: TonWalletKitOptions, tonClient: ApiClient): Promise<InitializationResult> {
+    async initialize(options: TonWalletKitOptions, networkManager: NetworkManager): Promise<InitializationResult> {
         try {
             log.info('Initializing TonWalletKit...');
 
-            this.tonClient = tonClient;
+            this.networkManager = networkManager;
 
             // 2. Initialize storage adapter
             const storage = this.initializeStorage(options);
@@ -134,7 +134,7 @@ export class Initializer {
         storage: Storage,
     ): Promise<{
         walletManager: WalletManager;
-        sessionManager: SessionManager;
+        sessionManager: TONConnectSessionManager;
         bridgeManager: BridgeManager;
         eventRouter: EventRouter;
         eventProcessor: StorageEventProcessor;
@@ -143,16 +143,23 @@ export class Initializer {
         const walletManager = new WalletManager(storage);
         await walletManager.initialize();
 
-        const sessionManager = new SessionManager(storage, walletManager);
-        await sessionManager.initialize();
+        // Use provided session manager or create default one
+        let sessionManager: TONConnectSessionManager;
+        if (options.sessionManager) {
+            sessionManager = options.sessionManager;
+        } else {
+            const storedSessionManager = new TONConnectStoredSessionManager(storage, walletManager);
+            await storedSessionManager.initialize();
+            sessionManager = storedSessionManager;
+        }
 
         const eventStore = new StorageEventStore(storage);
         const eventRouter = new EventRouter(
+            options,
             this.eventEmitter,
             sessionManager,
             walletManager,
-            this.config,
-            this.analyticsApi,
+            this.analyticsManager,
         );
 
         const bridgeManager = new BridgeManager(
@@ -164,10 +171,17 @@ export class Initializer {
             eventRouter,
             options,
             this.eventEmitter,
-            this.analyticsApi,
+            this.analyticsManager,
         );
         eventRouter.setBridgeManager(bridgeManager);
-        await bridgeManager.start();
+        bridgeManager
+            .start()
+            .then(() => {
+                log.info('Bridge manager started successfully');
+            })
+            .catch((e) => {
+                log.error('Could not start bridge manager', { error: e?.toString?.() });
+            });
 
         // Create event processor for durable events
         // TODO - change default values
@@ -194,7 +208,7 @@ export class Initializer {
      * Initialize processors
      */
     private initializeProcessors(
-        sessionManager: SessionManager,
+        sessionManager: TONConnectSessionManager,
         bridgeManager: BridgeManager,
         walletManager: WalletManager,
     ): {
@@ -205,9 +219,7 @@ export class Initializer {
             sessionManager,
             bridgeManager,
             walletManager,
-            this.tonClient,
-            this.config.network === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
-            this.analyticsApi,
+            this.analyticsManager,
         );
 
         return {
@@ -243,8 +255,12 @@ export class Initializer {
     }
 }
 
-// using proxy api to make wallet extension modular
-export async function wrapWalletInterface(wallet: IWalletAdapter, _tonClient: ApiClient): Promise<IWallet> {
+/**
+ * Wrap wallet adapter with extension interfaces (Ton, Jetton, NFT)
+ * Uses proxy API to make wallet extension modular
+ * The wallet adapter already contains its own ApiClient for its network
+ */
+export async function wrapWalletInterface(wallet: WalletAdapter): Promise<Wallet> {
     const ourClassesToExtend = [WalletTonClass, WalletJettonClass, WalletNftClass];
     const newProxy = new Proxy(wallet, {
         get: (target, prop) => {
@@ -267,7 +283,7 @@ export async function wrapWalletInterface(wallet: IWalletAdapter, _tonClient: Ap
 
             return value;
         },
-    }) as IWallet;
+    }) as Wallet;
 
     return newProxy;
 }

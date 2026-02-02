@@ -6,50 +6,49 @@
  *
  */
 
-import { beginCell, Address } from '@ton/core';
+import { beginCell } from '@ton/core';
 
-import { TransactionPreview, IWallet } from '../../../types';
-import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '../../../types/internal';
-import { WalletTonInterface, TonTransferParams, TonTransferManyParams } from '../../../types/wallet';
 import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
-import { ApiClient } from '../../../types/toncenter/ApiClient';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
-import { EventTransactionResponse } from '../../../types/events';
 import { ERROR_CODES, WalletKitError } from '../../../errors';
 import { globalLogger } from '../../Logger';
+import type {
+    TONTransferRequest,
+    TransactionEmulatedPreview,
+    TransactionRequest,
+    TransactionRequestMessage,
+    SendTransactionResponse,
+    Base64String,
+} from '../../../api/models';
+import type { Wallet, WalletTonInterface } from '../../../api/interfaces';
 
 const log = globalLogger.createChild('WalletTonClass');
 
 export class WalletTonClass implements WalletTonInterface {
-    client: ApiClient;
-
-    private constructor(client: ApiClient) {
-        this.client = client;
-    }
-
-    async createTransferTonTransaction(
-        this: IWallet,
-        param: TonTransferParams,
-    ): Promise<ConnectTransactionParamContent> {
-        let messages: ConnectTransactionParamMessage[] = [];
-        if (!isValidAddress(param.toAddress)) {
-            throw new Error(`Invalid to address: ${param.toAddress}`);
+    async createTransferTonTransaction(this: Wallet, param: TONTransferRequest): Promise<TransactionRequest> {
+        if (!isValidAddress(param.recipientAddress)) {
+            throw new Error(`Invalid to address: ${param.recipientAddress}`);
         }
-        if (!isValidNanotonAmount(param.amount)) {
-            throw new Error(`Invalid amount: ${param.amount}`);
+        if (!isValidNanotonAmount(param.transferAmount)) {
+            throw new Error(`Invalid amount: ${param.transferAmount}`);
         }
 
-        let body;
-        if (param.body) {
-            body = param.body;
+        let body: Base64String | undefined;
+        if (param.payload) {
+            body = param.payload;
         } else if (param.comment) {
-            body = beginCell().storeUint(0, 32).storeStringTail(param.comment).endCell().toBoc().toString('base64');
+            body = beginCell()
+                .storeUint(0, 32)
+                .storeStringTail(param.comment)
+                .endCell()
+                .toBoc()
+                .toString('base64') as Base64String;
         }
-        const message: ConnectTransactionParamMessage = {
-            address: param.toAddress,
-            amount: param.amount,
+        const message: TransactionRequestMessage = {
+            address: param.recipientAddress,
+            amount: param.transferAmount,
             payload: body,
             stateInit: param.stateInit,
             extraCurrency: param.extraCurrency,
@@ -60,34 +59,35 @@ export class WalletTonClass implements WalletTonInterface {
             throw new Error(`Invalid transaction message: ${JSON.stringify(message)}`);
         }
 
-        messages.push(message);
         return {
-            messages,
-            from: this.getAddress(),
+            messages: [message],
+            fromAddress: this.getAddress(),
         };
     }
-    async createTransferMultiTonTransaction(
-        this: IWallet,
-        { messages: params }: TonTransferManyParams,
-    ): Promise<ConnectTransactionParamContent> {
-        let messages: ConnectTransactionParamMessage[] = [];
+    async createTransferMultiTonTransaction(this: Wallet, params: TONTransferRequest[]): Promise<TransactionRequest> {
+        let messages: TransactionRequestMessage[] = [];
         for (const param of params) {
-            if (!isValidAddress(param.toAddress)) {
-                throw new Error(`Invalid to address: ${param.toAddress}`);
+            if (!isValidAddress(param.recipientAddress)) {
+                throw new Error(`Invalid to address: ${param.recipientAddress}`);
             }
-            if (!isValidNanotonAmount(param.amount)) {
-                throw new Error(`Invalid amount: ${param.amount}`);
+            if (!isValidNanotonAmount(param.transferAmount)) {
+                throw new Error(`Invalid amount: ${param.transferAmount}`);
             }
 
-            let body;
-            if (param.body) {
-                body = param.body;
+            let body: Base64String | undefined;
+            if (param.payload) {
+                body = param.payload;
             } else if (param.comment) {
-                body = beginCell().storeUint(0, 32).storeStringTail(param.comment).endCell().toBoc().toString('base64');
+                body = beginCell()
+                    .storeUint(0, 32)
+                    .storeStringTail(param.comment)
+                    .endCell()
+                    .toBoc()
+                    .toString('base64') as Base64String;
             }
-            const message: ConnectTransactionParamMessage = {
-                address: param.toAddress,
-                amount: param.amount,
+            const message: TransactionRequestMessage = {
+                address: param.recipientAddress,
+                amount: param.transferAmount,
                 payload: body,
                 stateInit: param.stateInit,
                 extraCurrency: param.extraCurrency,
@@ -102,32 +102,26 @@ export class WalletTonClass implements WalletTonInterface {
         }
         return {
             messages,
-            from: this.getAddress(),
+            fromAddress: this.getAddress(),
         };
     }
 
     async getTransactionPreview(
-        this: IWallet,
-        param: ConnectTransactionParamContent | Promise<ConnectTransactionParamContent>,
-    ): Promise<{
-        preview: TransactionPreview;
-    }> {
+        this: Wallet,
+        param: TransactionRequest | Promise<TransactionRequest>,
+    ): Promise<TransactionEmulatedPreview> {
         const transaction = await param;
-        const preview = await CallForSuccess(() => createTransactionPreviewHelper(transaction, this));
-        return {
-            preview,
-        };
+        const preview = await CallForSuccess(() => createTransactionPreviewHelper(this.client, transaction, this));
+        return preview;
     }
 
-    async sendTransaction(this: IWallet, request: ConnectTransactionParamContent): Promise<EventTransactionResponse> {
+    async sendTransaction(this: Wallet, request: TransactionRequest): Promise<SendTransactionResponse> {
         try {
-            const signedBoc = await this.getSignedSendTransaction(request);
+            const boc = await this.getSignedSendTransaction(request);
 
-            // if (!this.walletKitOptions.dev?.disableNetworkSend) {
-            await CallForSuccess(() => this.getClient().sendBoc(Buffer.from(signedBoc, 'base64')));
-            // }
+            await CallForSuccess(() => this.getClient().sendBoc(boc));
 
-            return { signedBoc };
+            return { boc };
         } catch (error) {
             log.error('Failed to send transaction', { error });
 
@@ -141,7 +135,7 @@ export class WalletTonClass implements WalletTonInterface {
         }
     }
 
-    async getBalance(this: IWallet): Promise<string> {
-        return await CallForSuccess(async () => this.getClient().getBalance(Address.parse(this.getAddress())));
+    async getBalance(this: Wallet): Promise<string> {
+        return await CallForSuccess(async () => this.getClient().getBalance(this.getAddress()));
     }
 }

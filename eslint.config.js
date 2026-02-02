@@ -9,6 +9,7 @@
 const toolchainConfig = require('@ton/toolchain');
 const globals = require('globals');
 const licenseHeader = require('eslint-plugin-license-header');
+const importPlugin = require('eslint-plugin-import');
 
 module.exports = [
     ...toolchainConfig,
@@ -42,6 +43,31 @@ module.exports = [
         },
         rules: {
             'license-header/header': ['error', './resources/license-header.js'],
+        },
+    },
+    {
+        files: ['apps/demo-wallet-native/**/*.ts', 'apps/demo-wallet-native/**/*.tsx'],
+        rules: {
+            '@typescript-eslint/no-require-imports': 'off',
+        },
+    },
+    {
+        files: ['demo/examples/**/*.ts', 'scripts/**/*.ts'],
+        rules: {
+            'no-console': 'off',
+        },
+    },
+    {
+        files: ['**/**/*.ts', '**/**/*.tsx'],
+        plugins: {
+            import: importPlugin,
+        },
+        rules: {
+            'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+            '@typescript-eslint/consistent-type-imports': [
+                'error',
+                { prefer: 'type-imports', fixStyle: 'separate-type-imports' },
+            ],
         },
     },
 ];

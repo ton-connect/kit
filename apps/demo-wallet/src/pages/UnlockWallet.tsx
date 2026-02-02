@@ -8,8 +8,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, useWallet } from '@demo/wallet-core';
 
-import { useAuth, useWallet } from '../stores';
 import { Layout, Button, Input, Card } from '../components';
 
 export const UnlockWallet: React.FC = () => {

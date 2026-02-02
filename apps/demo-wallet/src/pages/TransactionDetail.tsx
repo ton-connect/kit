@@ -8,9 +8,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Base64Normalize, type ToncenterTransaction } from '@ton/walletkit';
-
-import { useWalletKit } from '../stores';
+import { Base64Normalize, Network } from '@ton/walletkit';
+import type { TransactionMessage } from '@ton/walletkit';
+import { useWalletKit, useWalletStore } from '@demo/wallet-core';
 
 interface TransactionDetailData {
     hash: string;
@@ -19,31 +19,28 @@ interface TransactionDetailData {
     amount: string;
     address: string;
     status: 'pending' | 'confirmed' | 'failed';
-    fees: string;
-    lt: string;
+    totalFees: string;
+    logicalTime: string;
     account: string;
     description: unknown;
-    in_msg?: {
-        source: string | null;
-        destination: string;
-        value: string | null;
-        body?: string;
-    } | null;
-    out_msgs?: Array<{
-        source: string | null;
-        destination: string;
-        value: string | null;
-        body?: string;
-    }>;
+    inMessage?: TransactionMessage;
+    outMessages?: TransactionMessage[];
 }
 
 export const TransactionDetail: React.FC = () => {
     const walletKit = useWalletKit();
+    const savedWallets = useWalletStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
     const { hash } = useParams<{ hash: string }>();
     const navigate = useNavigate();
     const [transaction, setTransaction] = useState<TransactionDetailData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;
@@ -85,12 +82,8 @@ export const TransactionDetail: React.FC = () => {
                     return;
                 }
 
-                while (!walletKit?.isReady()) {
-                    await new Promise((resolve) => setTimeout(resolve, 100));
-                }
-
                 // Use the walletKit's API client to get transaction by hash
-                const apiClient = walletKit.getApiClient();
+                const apiClient = walletKit.getApiClient(chainNetwork);
                 const base64Hash = Base64Normalize(hash);
                 const response = await apiClient.getTransactionsByHash({ msgHash: base64Hash });
 
@@ -100,7 +93,7 @@ export const TransactionDetail: React.FC = () => {
                     return;
                 }
 
-                const tx = response.transactions[0] as ToncenterTransaction;
+                const tx = response.transactions[0];
 
                 // Transform the transaction data
                 let type: 'send' | 'receive' = 'receive';
@@ -108,27 +101,27 @@ export const TransactionDetail: React.FC = () => {
                 let address = '';
 
                 // Check incoming message
-                if (tx.in_msg && tx.in_msg.value) {
-                    amount = tx.in_msg.value;
-                    address = tx.in_msg.source || '';
+                if (tx.inMessage && tx.inMessage.value) {
+                    amount = tx.inMessage.value;
+                    address = tx.inMessage.source || '';
                     type = 'receive';
                 }
 
                 // Check outgoing messages - if there are any, it's likely a send transaction
-                if (tx.out_msgs && tx.out_msgs.length > 0) {
-                    const mainOutMsg = tx.out_msgs[0];
+                if (tx.outMessages && tx.outMessages.length > 0) {
+                    const mainOutMsg = tx.outMessages[0];
                     if (mainOutMsg.value) {
                         amount = mainOutMsg.value;
-                        address = mainOutMsg.destination;
+                        address = mainOutMsg.destination || '';
                         type = 'send';
                     }
                 }
 
                 // Determine status
                 let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
-                if (tx.description.aborted) {
+                if (tx.description?.isAborted) {
                     status = 'failed';
-                } else if (!tx.description.compute_ph.success) {
+                } else if (!tx.description?.computePhase?.isSuccess) {
                     status = 'failed';
                 }
 
@@ -139,25 +132,12 @@ export const TransactionDetail: React.FC = () => {
                     amount,
                     address,
                     status,
-                    fees: tx.total_fees || '0',
-                    lt: tx.lt,
+                    totalFees: tx.totalFees || '0',
+                    logicalTime: tx.logicalTime,
                     account: tx.account,
                     description: tx.description,
-                    in_msg: tx.in_msg
-                        ? {
-                              source: tx.in_msg.source,
-                              destination: tx.in_msg.destination,
-                              value: tx.in_msg.value,
-                              body: tx.in_msg.message_content?.body,
-                          }
-                        : null,
-                    out_msgs:
-                        tx.out_msgs?.map((msg) => ({
-                            source: msg.source,
-                            destination: msg.destination,
-                            value: msg.value,
-                            body: msg.message_content?.body,
-                        })) || [],
+                    inMessage: tx.inMessage,
+                    outMessages: tx.outMessages,
                 };
 
                 setTransaction(detailData);
@@ -168,8 +148,8 @@ export const TransactionDetail: React.FC = () => {
             }
         };
 
-        fetchTransactionDetail();
-    }, [hash]);
+        void fetchTransactionDetail();
+    }, [hash, chainNetwork]);
 
     if (isLoading) {
         return (
@@ -356,13 +336,13 @@ export const TransactionDetail: React.FC = () => {
                         {/* Fees */}
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-500">Transaction Fees</span>
-                            <span className="text-sm text-gray-900">{formatTonAmount(transaction.fees)} TON</span>
+                            <span className="text-sm text-gray-900">{formatTonAmount(transaction.totalFees)} TON</span>
                         </div>
 
                         {/* Logical Time */}
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-500">Logical Time</span>
-                            <span className="text-sm text-gray-900 font-mono">{transaction.lt}</span>
+                            <span className="text-sm text-gray-900 font-mono">{transaction.logicalTime}</span>
                         </div>
 
                         {/* Account */}
@@ -392,33 +372,33 @@ export const TransactionDetail: React.FC = () => {
                 </div>
 
                 {/* Messages */}
-                {(transaction.in_msg || (transaction.out_msgs && transaction.out_msgs.length > 0)) && (
+                {(transaction.inMessage || (transaction.outMessages && transaction.outMessages.length > 0)) && (
                     <div className="bg-white rounded-lg shadow-md border border-gray-200">
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">Messages</h3>
                         </div>
                         <div className="p-6">
                             {/* Incoming Message */}
-                            {transaction.in_msg && (
+                            {transaction.inMessage && (
                                 <div className="mb-4">
                                     <h4 className="text-sm font-medium text-gray-700 mb-2">Incoming Message</h4>
                                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-500">From:</span>
                                             <span className="text-sm font-mono">
-                                                {formatAddress(transaction.in_msg.source || '')}
+                                                {formatAddress(transaction.inMessage.source || '')}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-500">To:</span>
                                             <span className="text-sm font-mono">
-                                                {formatAddress(transaction.in_msg.destination)}
+                                                {formatAddress(transaction.inMessage.destination || '')}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-500">Value:</span>
                                             <span className="text-sm">
-                                                {formatTonAmount(transaction.in_msg.value || '0')} TON
+                                                {formatTonAmount(transaction.inMessage.value || '0')} TON
                                             </span>
                                         </div>
                                     </div>
@@ -426,11 +406,11 @@ export const TransactionDetail: React.FC = () => {
                             )}
 
                             {/* Outgoing Messages */}
-                            {transaction.out_msgs && transaction.out_msgs.length > 0 && (
+                            {transaction.outMessages && transaction.outMessages.length > 0 && (
                                 <div>
                                     <h4 className="text-sm font-medium text-gray-700 mb-2">Outgoing Messages</h4>
                                     <div className="space-y-3">
-                                        {transaction.out_msgs.map((msg, index) => (
+                                        {transaction.outMessages.map((msg, index) => (
                                             <div key={index} className="bg-gray-50 rounded-lg p-4 space-y-2">
                                                 <div className="flex justify-between">
                                                     <span className="text-sm text-gray-500">From:</span>
@@ -441,7 +421,7 @@ export const TransactionDetail: React.FC = () => {
                                                 <div className="flex justify-between">
                                                     <span className="text-sm text-gray-500">To:</span>
                                                     <span className="text-sm font-mono">
-                                                        {formatAddress(msg.destination)}
+                                                        {formatAddress(msg.destination || '')}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">

@@ -66,7 +66,7 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         !WalletV4R2Adapter ||
         !WalletV5R1Adapter
     ) {
-        const module = (await walletKitModulePromise) as WalletKitModule;
+        const module = (await walletKitModulePromise) as unknown as WalletKitModule;
         TonWalletKit = module.TonWalletKit;
         CreateTonMnemonic = module.CreateTonMnemonic ?? CreateTonMnemonic;
         MnemonicToKeyPair = module.MnemonicToKeyPair ?? MnemonicToKeyPair;

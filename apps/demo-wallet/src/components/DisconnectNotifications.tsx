@@ -7,8 +7,8 @@
  */
 
 import React from 'react';
+import { useDisconnectEvents } from '@demo/wallet-core';
 
-import { useDisconnectEvents } from '../stores/appStore';
 import { Button } from './Button';
 
 interface DisconnectNotificationsProps {

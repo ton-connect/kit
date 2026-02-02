@@ -8,21 +8,25 @@
 
 // Main TonWalletKit interface definition
 
-import { CHAIN, CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
+import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
 
-import type { IWallet, IWalletAdapter } from './wallet';
-import type {
-    EventConnectRequest,
-    EventTransactionRequest,
-    EventSignDataRequest,
-    EventDisconnect,
-    EventRequestError,
-    EventSignDataResponse,
-    EventTransactionResponse,
-} from './events';
 import type { JettonsAPI } from './jettons';
-import { ConnectTransactionParamContent } from './internal';
-import { ApiClient } from './toncenter/ApiClient';
+import type { ApiClient } from './toncenter/ApiClient';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
+import type { Network } from '../api/models/core/Network';
+import type { WalletId } from '../utils/walletId';
+import type {
+    TransactionRequest,
+    SendTransactionRequestEvent,
+    RequestErrorEvent,
+    DisconnectionEvent,
+    SignDataRequestEvent,
+    ConnectionRequestEvent,
+    SignDataApprovalResponse,
+    TONConnectSession,
+    SendTransactionApprovalResponse,
+    ConnectionApprovalResponse,
+} from '../api/models';
 
 /**
  * Main TonWalletKit interface
@@ -31,26 +35,33 @@ import { ApiClient } from './toncenter/ApiClient';
  * All implementations must conform to this interface.
  */
 export interface ITonWalletKit {
-    /** Get the API client */
-    getApiClient(): ApiClient;
+    /**
+     * Get API client for a specific network
+     * @param network - The network object
+     */
+    getApiClient(network: Network): ApiClient;
 
-    getNetwork(): CHAIN;
+    /** Get all configured networks */
+    getConfiguredNetworks(): Network[];
 
     isReady(): boolean;
+
+    /** Ensure initialization is complete */
+    ensureInitialized(): Promise<void>;
 
     // === Wallet Management ===
 
     /** Get all registered wallets */
-    getWallets(): IWallet[];
+    getWallets(): Wallet[];
 
-    /** Get wallet by address */
-    getWallet(address: string): IWallet | undefined;
+    /** Get wallet by wallet ID (network:address format) */
+    getWallet(walletId: WalletId): Wallet | undefined;
 
-    /** Add a new wallet */
-    addWallet(adapter: IWalletAdapter): Promise<IWallet | undefined>;
+    /** Add a new wallet, returns wallet ID */
+    addWallet(adapter: WalletAdapter): Promise<Wallet | undefined>;
 
-    /** Remove a wallet */
-    removeWallet(wallet: IWalletAdapter): Promise<void>;
+    /** Remove a wallet by wallet ID or adapter */
+    removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<void>;
 
     /** Clear all wallets */
     clearWallets(): Promise<void>;
@@ -61,7 +72,7 @@ export interface ITonWalletKit {
     disconnect(sessionId?: string): Promise<void>;
 
     /** List all active sessions */
-    listSessions(): Promise<SessionInfo[]>;
+    listSessions(): Promise<TONConnectSession[]>;
 
     // === URL Processing ===
 
@@ -69,86 +80,66 @@ export interface ITonWalletKit {
     handleTonConnectUrl(url: string): Promise<void>;
 
     /** Handle new transaction */
-    handleNewTransaction(wallet: IWallet, data: ConnectTransactionParamContent): Promise<void>;
+    handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
 
     // === Request Processing ===
 
     /** Approve a connect request */
-    approveConnectRequest(event: EventConnectRequest): Promise<void>;
+    approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void>;
     /** Reject a connect request */
     rejectConnectRequest(
-        event: EventConnectRequest,
+        event: ConnectionRequestEvent,
         reason?: string,
         errorCode?: CONNECT_EVENT_ERROR_CODES,
     ): Promise<void>;
 
     /** Approve a transaction request */
-    approveTransactionRequest(event: EventTransactionRequest): Promise<EventTransactionResponse>;
+    approveTransactionRequest(
+        event: SendTransactionRequestEvent,
+        response?: SendTransactionApprovalResponse,
+    ): Promise<SendTransactionApprovalResponse>;
 
     /** Reject a transaction request */
     rejectTransactionRequest(
-        event: EventTransactionRequest,
+        event: SendTransactionRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
 
     /** Approve a sign data request */
-    signDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse>;
+    approveSignDataRequest(
+        event: SignDataRequestEvent,
+        response?: SignDataApprovalResponse,
+    ): Promise<SignDataApprovalResponse>;
 
     /** Reject a sign data request */
-    rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void>;
+    rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
 
     // === Event Handlers ===
 
     /** Register connect request handler */
-    onConnectRequest(cb: (event: EventConnectRequest) => void): void;
+    onConnectRequest(cb: (event: ConnectionRequestEvent) => void): void;
 
     /** Register transaction request handler */
-    onTransactionRequest(cb: (event: EventTransactionRequest) => void): void;
+    onTransactionRequest(cb: (event: SendTransactionRequestEvent) => void): void;
 
     /** Register sign data request handler */
-    onSignDataRequest(cb: (event: EventSignDataRequest) => void): void;
+    onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
 
     /** Register disconnect handler */
-    onDisconnect(cb: (event: EventDisconnect) => void): void;
+    onDisconnect(cb: (event: DisconnectionEvent) => void): void;
 
     /** Register error handler */
-    onRequestError(cb: (event: EventRequestError) => void): void;
+    onRequestError(cb: (event: RequestErrorEvent) => void): void;
 
     /** Remove request handlers */
-    removeConnectRequestCallback(cb: (event: EventConnectRequest) => void): void;
-    removeTransactionRequestCallback(cb: (event: EventTransactionRequest) => void): void;
-    removeSignDataRequestCallback(cb: (event: EventSignDataRequest) => void): void;
-    removeDisconnectCallback(cb: (event: EventDisconnect) => void): void;
-    removeErrorCallback(cb: (event: EventRequestError) => void): void;
+    removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
+    removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
+    removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
+    removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
+    removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
 
     // === Jettons API ===
 
     /** Jettons API access */
     jettons: JettonsAPI;
-}
-
-/**
- * Session information for API responses
- */
-export interface SessionInfo {
-    /** Unique session identifier */
-    sessionId: string;
-
-    /** Connected dApp name */
-    dAppName: string;
-
-    /** Connected dApp URL */
-    dAppUrl: string;
-
-    /** Connected dApp icon URL */
-    dAppIconUrl: string;
-
-    /** Associated wallet */
-    walletAddress: string;
-
-    /** Session creation time */
-    createdAt?: Date;
-
-    /** Last activity time */
-    lastActivity?: Date;
 }

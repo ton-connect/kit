@@ -8,16 +8,7 @@
 
 // Event routing and handler coordination
 
-import { WalletResponseTemplateError } from '@tonconnect/protocol';
-
-import type {
-    EventConnectRequest,
-    EventTransactionRequest,
-    EventSignDataRequest,
-    EventDisconnect,
-    TonWalletKitOptions,
-} from '../types';
-import type { RawBridgeEvent, EventHandler, EventCallback, EventType, BridgeEventBase } from '../types/internal';
+import type { RawBridgeEvent, EventHandler, EventCallback, EventType } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
 import { SignDataHandler } from '../handlers/SignDataHandler';
@@ -25,11 +16,19 @@ import { DisconnectHandler } from '../handlers/DisconnectHandler';
 import { validateBridgeEvent } from '../validation/events';
 import { globalLogger } from './Logger';
 import type { EventEmitter } from './EventEmitter';
-import { SessionManager } from './SessionManager';
-import { WalletManager } from './WalletManager';
-import { EventRequestError } from '../types/events';
-import { BridgeManager } from './BridgeManager';
-import { AnalyticsApi } from '../analytics/sender';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
+import type { WalletManager } from './WalletManager';
+import type { BridgeManager } from './BridgeManager';
+import type { AnalyticsManager } from '../analytics';
+import type {
+    SendTransactionRequestEvent,
+    BridgeEvent,
+    RequestErrorEvent,
+    DisconnectionEvent,
+    SignDataRequestEvent,
+    ConnectionRequestEvent,
+} from '../api/models';
+import type { TonWalletKitOptions } from '../types/config';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -38,20 +37,19 @@ export class EventRouter {
     private bridgeManager!: BridgeManager;
 
     // Event callbacks
-    private connectRequestCallback: EventCallback<EventConnectRequest> | undefined = undefined;
-    private transactionRequestCallback: EventCallback<EventTransactionRequest> | undefined = undefined;
-    private signDataRequestCallback: EventCallback<EventSignDataRequest> | undefined = undefined;
-    private disconnectCallback: EventCallback<EventDisconnect> | undefined = undefined;
-    private errorCallback: EventCallback<EventRequestError> | undefined = undefined;
+    private connectRequestCallback: EventCallback<ConnectionRequestEvent> | undefined = undefined;
+    private transactionRequestCallback: EventCallback<SendTransactionRequestEvent> | undefined = undefined;
+    private signDataRequestCallback: EventCallback<SignDataRequestEvent> | undefined = undefined;
+    private disconnectCallback: EventCallback<DisconnectionEvent> | undefined = undefined;
+    private errorCallback: EventCallback<RequestErrorEvent> | undefined = undefined;
 
     constructor(
-        private eventEmitter: EventEmitter,
-        private sessionManager: SessionManager,
-        private walletManager: WalletManager,
         private config: TonWalletKitOptions,
-        private analyticsApi?: AnalyticsApi,
+        private eventEmitter: EventEmitter,
+        private sessionManager: TONConnectSessionManager,
+        private walletManager: WalletManager,
+        private analyticsManager?: AnalyticsManager,
     ) {
-        this.config = config;
         this.setupHandlers();
     }
 
@@ -76,7 +74,7 @@ export class EventRouter {
                 if (handler.canHandle(event)) {
                     const result = await handler.handle(event);
                     if ('error' in result) {
-                        this.notifyErrorCallback({ incomingEvent: event, result: result });
+                        this.notifyErrorCallback({ id: result.id, data: { ...event }, error: result.error });
                         try {
                             await this.bridgeManager.sendResponse(event, result);
                         } catch (error) {
@@ -84,7 +82,7 @@ export class EventRouter {
                         }
                         return;
                     }
-                    await handler.notify(result as BridgeEventBase);
+                    await handler.notify(result as BridgeEvent);
                     break;
                 }
             }
@@ -97,23 +95,23 @@ export class EventRouter {
     /**
      * Register event callbacks
      */
-    onConnectRequest(callback: EventCallback<EventConnectRequest>): void {
+    onConnectRequest(callback: EventCallback<ConnectionRequestEvent>): void {
         this.connectRequestCallback = callback;
     }
 
-    onTransactionRequest(callback: EventCallback<EventTransactionRequest>): void {
+    onTransactionRequest(callback: EventCallback<SendTransactionRequestEvent>): void {
         this.transactionRequestCallback = callback;
     }
 
-    onSignDataRequest(callback: EventCallback<EventSignDataRequest>): void {
+    onSignDataRequest(callback: EventCallback<SignDataRequestEvent>): void {
         this.signDataRequestCallback = callback;
     }
 
-    onDisconnect(callback: EventCallback<EventDisconnect>): void {
+    onDisconnect(callback: EventCallback<DisconnectionEvent>): void {
         this.disconnectCallback = callback;
     }
 
-    onRequestError(callback: EventCallback<EventRequestError>): void {
+    onRequestError(callback: EventCallback<RequestErrorEvent>): void {
         this.errorCallback = callback;
     }
 
@@ -156,15 +154,21 @@ export class EventRouter {
      */
     private setupHandlers(): void {
         this.handlers = [
-            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.config, this.analyticsApi),
+            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.analyticsManager),
             new TransactionHandler(
                 this.notifyTransactionRequestCallbacks.bind(this),
-                this.eventEmitter,
                 this.config,
+                this.eventEmitter,
                 this.walletManager,
-                this.analyticsApi,
+                this.sessionManager,
+                this.analyticsManager,
             ),
-            new SignDataHandler(this.notifySignDataRequestCallbacks.bind(this), this.config, this.analyticsApi),
+            new SignDataHandler(
+                this.notifySignDataRequestCallbacks.bind(this),
+                this.walletManager,
+                this.sessionManager,
+                this.analyticsManager,
+            ),
             new DisconnectHandler(this.notifyDisconnectCallbacks.bind(this), this.sessionManager),
         ];
     }
@@ -172,40 +176,35 @@ export class EventRouter {
     /**
      * Notify connect request callbacks
      */
-    private async notifyConnectRequestCallbacks(
-        event: EventConnectRequest | WalletResponseTemplateError,
-    ): Promise<void> {
-        if ('error' in event) {
-            return;
-        }
+    private async notifyConnectRequestCallbacks(event: ConnectionRequestEvent): Promise<void> {
         return await this.connectRequestCallback?.(event);
     }
 
     /**
      * Notify transaction request callbacks
      */
-    private async notifyTransactionRequestCallbacks(event: EventTransactionRequest): Promise<void> {
+    private async notifyTransactionRequestCallbacks(event: SendTransactionRequestEvent): Promise<void> {
         return await this.transactionRequestCallback?.(event);
     }
 
     /**
      * Notify sign data request callbacks
      */
-    private async notifySignDataRequestCallbacks(event: EventSignDataRequest): Promise<void> {
+    private async notifySignDataRequestCallbacks(event: SignDataRequestEvent): Promise<void> {
         return await this.signDataRequestCallback?.(event);
     }
 
     /**
      * Notify disconnect callbacks
      */
-    private async notifyDisconnectCallbacks(event: EventDisconnect): Promise<void> {
+    private async notifyDisconnectCallbacks(event: DisconnectionEvent): Promise<void> {
         return await this.disconnectCallback?.(event);
     }
 
     /**
      * Notify error callbacks
      */
-    private async notifyErrorCallback(event: EventRequestError): Promise<void> {
+    private async notifyErrorCallback(event: RequestErrorEvent): Promise<void> {
         return await this.errorCallback?.(event);
     }
 

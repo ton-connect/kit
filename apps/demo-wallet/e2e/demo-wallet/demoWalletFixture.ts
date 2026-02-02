@@ -11,23 +11,19 @@ import { fileURLToPath } from 'url';
 
 import { test } from '@playwright/test';
 
-import {
-    type TestFixture,
-    launchPersistentContext,
-    getExtensionId,
-    TonConnectWidget,
-    ConfigFixture,
-    testWith,
-} from '../qa';
+import type { ConfigFixture } from '../qa';
+import { launchPersistentContext, getExtensionId, TonConnectWidget, testWith } from '../qa';
+import type { TestFixture } from '../qa';
 import { DemoWallet } from './DemoWallet';
 import { isExtensionWalletSource } from '../qa/WalletApp';
 
 export function detectWalletSource() {
     const source = process.env.E2E_WALLET_SOURCE ?? 'http://localhost:5173/';
-    if (process.env.E2E_WALLET_SOURCE_EXTENSION) {
+    const extensionPath = process.env.E2E_WALLET_SOURCE_EXTENSION;
+    if (extensionPath && extensionPath !== 'false' && extensionPath !== '0') {
         const __filename = fileURLToPath(import.meta.url);
         const __dirname = path.dirname(__filename);
-        const result = path.resolve(__dirname, process.env.E2E_WALLET_SOURCE_EXTENSION);
+        const result = path.resolve(__dirname, extensionPath);
         return result;
     }
     return source;

@@ -6,45 +6,69 @@
  *
  */
 
-import { NftTransferMessage, storeNftTransferMessage } from '@ton-community/assets-sdk';
-import { Address, beginCell, Cell, SendMode } from '@ton/core';
+import type { Builder } from '@ton/core';
+import { Address, beginCell, Cell } from '@ton/core';
 
-import { IWallet } from '../../../types';
-import { WalletNftInterface } from '../../../types/wallet';
 import { validateTransactionMessage } from '../../../validation';
-import { NftTransferParamsHuman, NftTransferParamsRaw } from '../../../types/nfts';
-import { ConnectTransactionParamContent, ConnectTransactionParamMessage } from '../../../types/internal';
-import type { NftItem } from '../../../types/toncenter/NftItem';
-import { NftItems } from '../../../types/toncenter/NftItems';
-import { LimitRequest } from '../../../types/toncenter/ApiClient';
+import type { Wallet, WalletNftInterface } from '../../../api/interfaces';
+import type {
+    Base64String,
+    NFT,
+    NFTRawTransferRequest,
+    NFTsRequest,
+    NFTsResponse,
+    NFTTransferRequest,
+    TransactionRequest,
+    TransactionRequestMessage,
+    UserFriendlyAddress,
+} from '../../../api/models';
+import { SendModeFlag } from '../../../api/models';
+import { OpCode } from '../../../types/toncenter/parsers';
+
+export type NftTransferMessage = {
+    queryId: bigint;
+    newOwner: Address;
+    responseDestination: Address | null;
+    customPayload: Cell | null;
+    forwardAmount: bigint;
+    forwardPayload: Cell | null;
+};
+
+export function storeNftTransferMessage(message: NftTransferMessage): (builder: Builder) => void {
+    return (builder) => {
+        builder.storeUint(Number(OpCode.NftTransfer), 32);
+        builder.storeUint(message.queryId, 64);
+        builder.storeAddress(message.newOwner);
+        builder.storeAddress(message.responseDestination);
+        builder.storeMaybeRef(message.customPayload);
+        builder.storeCoins(message.forwardAmount);
+        builder.storeMaybeRef(message.forwardPayload);
+    };
+}
 
 export class WalletNftClass implements WalletNftInterface {
-    async getNfts(this: IWallet, params: LimitRequest): Promise<NftItems> {
+    async getNfts(this: Wallet, params: NFTsRequest): Promise<NFTsResponse> {
         const out = await this.getClient().nftItemsByOwner({
-            ownerAddress: [this.getAddress()],
-            offset: params.offset ?? 0,
-            limit: params.limit ?? 100,
+            ownerAddress: this.getAddress(),
+            pagination: params.pagination,
         });
-        return {
-            items: out.items,
-            pagination: out.pagination,
-        };
+        return out;
     }
 
-    async getNft(this: IWallet, address: Address | string): Promise<NftItem | null> {
+    async getNft(this: Wallet, address: UserFriendlyAddress): Promise<NFT | null> {
         const result = await this.getClient().nftItemsByAddress({
-            address: [address],
+            address: address,
         });
-        if (result.items.length > 0) {
-            return result.items[0];
+        if (result.nfts.length > 0) {
+            return result.nfts[0];
         }
         return null;
     }
 
     async createTransferNftTransaction(
-        this: IWallet,
-        nftTransferMessage: NftTransferParamsHuman,
-    ): Promise<ConnectTransactionParamContent> {
+        this: Wallet,
+        nftTransferMessage: NFTTransferRequest,
+    ): Promise<TransactionRequest> {
         const forwardPayload = nftTransferMessage.comment
             ? beginCell().storeUint(0, 32).storeStringTail(nftTransferMessage.comment).endCell()
             : null;
@@ -54,19 +78,21 @@ export class WalletNftClass implements WalletNftInterface {
                     customPayload: null,
                     forwardAmount: 1n,
                     forwardPayload: forwardPayload,
-                    newOwner: Address.parse(nftTransferMessage.toAddress),
+                    newOwner: Address.parse(nftTransferMessage.recipientAddress),
                     queryId: 0n,
                     responseDestination: Address.parse(this.getAddress()),
                 }),
             )
             .endCell();
-        const message: ConnectTransactionParamMessage = {
+        const message: TransactionRequestMessage = {
             address: nftTransferMessage.nftAddress,
-            amount: nftTransferMessage.transferAmount.toString(),
-            payload: nftPayload.toBoc().toString('base64'),
+            amount: nftTransferMessage.transferAmount?.toString() ?? '100000000', // Default 0.1 TON
+            payload: nftPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,
-            mode: SendMode.PAY_GAS_SEPARATELY | SendMode.IGNORE_ERRORS,
+            mode: {
+                flags: [SendModeFlag.IGNORE_ERRORS, SendModeFlag.PAY_GAS_SEPARATELY],
+            },
         };
 
         if (!validateTransactionMessage(message, false).isValid) {
@@ -75,45 +101,44 @@ export class WalletNftClass implements WalletNftInterface {
 
         return {
             messages: [message],
-            from: this.getAddress(),
+            fromAddress: this.getAddress(),
         };
     }
 
-    async createTransferNftRawTransaction(
-        this: IWallet,
-        params: NftTransferParamsRaw,
-    ): Promise<ConnectTransactionParamContent> {
+    async createTransferNftRawTransaction(this: Wallet, params: NFTRawTransferRequest): Promise<TransactionRequest> {
         const transferMessage: NftTransferMessage = {
-            queryId: BigInt(params.transferMessage.queryId),
+            queryId: BigInt(params.message.queryId),
             newOwner:
-                typeof params.transferMessage.newOwner === 'string'
-                    ? Address.parse(params.transferMessage.newOwner)
-                    : params.transferMessage.newOwner,
-            responseDestination: params.transferMessage.responseDestination
-                ? typeof params.transferMessage.responseDestination === 'string'
-                    ? Address.parse(params.transferMessage.responseDestination)
-                    : params.transferMessage.responseDestination
+                typeof params.message.newOwner === 'string'
+                    ? Address.parse(params.message.newOwner)
+                    : params.message.newOwner,
+            responseDestination: params.message.responseDestination
+                ? typeof params.message.responseDestination === 'string'
+                    ? Address.parse(params.message.responseDestination)
+                    : params.message.responseDestination
                 : null,
-            customPayload: params.transferMessage.customPayload
-                ? typeof params.transferMessage.customPayload === 'string'
-                    ? Cell.fromBase64(params.transferMessage.customPayload)
-                    : params.transferMessage.customPayload
+            customPayload: params.message.customPayload
+                ? typeof params.message.customPayload === 'string'
+                    ? Cell.fromBase64(params.message.customPayload)
+                    : params.message.customPayload
                 : null,
-            forwardAmount: BigInt(params.transferMessage.forwardAmount),
-            forwardPayload: params.transferMessage.forwardPayload
-                ? typeof params.transferMessage.forwardPayload === 'string'
-                    ? Cell.fromBase64(params.transferMessage.forwardPayload)
-                    : params.transferMessage.forwardPayload
+            forwardAmount: BigInt(params.message.forwardAmount),
+            forwardPayload: params.message.forwardPayload
+                ? typeof params.message.forwardPayload === 'string'
+                    ? Cell.fromBase64(params.message.forwardPayload)
+                    : params.message.forwardPayload
                 : null,
         };
         const nftPayload = beginCell().store(storeNftTransferMessage(transferMessage)).endCell();
-        const message: ConnectTransactionParamMessage = {
+        const message: TransactionRequestMessage = {
             address: params.nftAddress,
             amount: params.transferAmount.toString(),
-            payload: nftPayload.toBoc().toString('base64'),
+            payload: nftPayload.toBoc().toString('base64') as Base64String,
             stateInit: undefined,
             extraCurrency: undefined,
-            mode: SendMode.PAY_GAS_SEPARATELY | SendMode.IGNORE_ERRORS,
+            mode: {
+                flags: [SendModeFlag.IGNORE_ERRORS, SendModeFlag.PAY_GAS_SEPARATELY],
+            },
         };
 
         if (!validateTransactionMessage(message, false).isValid) {
@@ -122,7 +147,7 @@ export class WalletNftClass implements WalletNftInterface {
 
         return {
             messages: [message],
-            from: this.getAddress(),
+            fromAddress: this.getAddress(),
         };
     }
 }

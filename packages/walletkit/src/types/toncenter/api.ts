@@ -6,10 +6,9 @@
  *
  */
 
-import { AccountStatus, ExtraCurrency } from '@ton/core';
+import type { AccountStatus, ExtraCurrency } from '@ton/core';
 
-import { Hex } from '../primitive';
-import { RawStackItem } from '../../utils/tvmStack';
+import type { Hex } from '../../api/models';
 
 export interface TransactionId {
     lt: string;
@@ -24,10 +23,4 @@ export interface FullAccountState {
     data: string | null; // base64 encoded
     lastTransaction: TransactionId | null;
     frozenHash?: Hex;
-}
-
-export interface GetResult {
-    gasUsed: number;
-    stack: RawStackItem[];
-    exitCode: number;
 }

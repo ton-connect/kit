@@ -6,10 +6,10 @@
  *
  */
 
-import React, { useEffect, useState } from 'react';
-import type { NftItem } from '@ton/walletkit';
+import React, { useState } from 'react';
+import type { NFT } from '@ton/walletkit';
+import { useNfts } from '@demo/wallet-core';
 
-import { useNfts, useWallet } from '../stores';
 import { Button } from './Button';
 import { Card } from './Card';
 
@@ -18,25 +18,8 @@ interface NftsCardProps {
 }
 
 export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
-    const { address } = useWallet();
-    const { lastNftsUpdate, userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
-    const [selectedNft, setSelectedNft] = useState<NftItem | null>(null);
-
-    // Load NFTs on mount if none are loaded
-    useEffect(() => {
-        if (lastNftsUpdate > 0 && Date.now() - lastNftsUpdate < 10000) {
-            return;
-        }
-        loadUserNfts();
-    }, [address, loadUserNfts]);
-
-    // Auto refresh NFTs every 30 seconds (less frequent than jettons)
-    useEffect(() => {
-        const interval = setInterval(() => {
-            loadUserNfts();
-        }, 30000);
-        return () => clearInterval(interval);
-    }, [loadUserNfts]);
+    const { userNfts, isLoadingNfts, error, loadUserNfts, formatNftIndex } = useNfts();
+    const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
 
     const handleViewAll = () => {
         // TODO: Navigate to NFTs page when created
@@ -47,35 +30,46 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
         return `${address.slice(0, 4)}...${address.slice(-4)}`;
     };
 
-    const getNftImage = (nft: NftItem): string | null => {
-        // Try to extract image from content metadata
-        if (nft.metadata && typeof nft.metadata === 'object') {
-            if (nft.metadata?.extra?._image_medium && typeof nft.metadata.extra._image_medium === 'string') {
-                return nft.metadata.extra._image_medium;
-            }
-            if (nft.metadata.image && typeof nft.metadata.image === 'string') {
-                return nft.metadata.image;
-            }
+    const getNftImage = (nft: NFT): string => {
+        if (!nft?.info?.image) {
+            return '';
+        }
+
+        return (
+            nft.info.image.url ||
+            nft.info.image.data ||
+            nft.info.image.mediumUrl ||
+            nft.info.image.largeUrl ||
+            nft.info.image.smallUrl ||
+            ''
+        );
+    };
+
+    const getNftName = (nft: NFT): string => {
+        if (nft.info?.name) {
+            return nft.info.name;
+        }
+
+        if (nft.index) {
+            return `NFT ${formatNftIndex(nft.index)}`;
+        }
+
+        return '';
+    };
+
+    const getNftDescription = (nft: NFT): string | null => {
+        if (nft.info?.description) {
+            return nft.info.description;
         }
         return null;
     };
 
-    const getNftName = (nft: NftItem): string => {
-        if (nft.metadata && typeof nft.metadata === 'object') {
-            if (nft.metadata.name && typeof nft.metadata.name === 'string') {
-                return nft.metadata.name;
-            }
+    const getCollectionName = (item: NFT): string => {
+        if (item.collection && item.collection.name) {
+            return item.collection.name;
         }
-        return `NFT ${formatNftIndex(nft.index)}`;
-    };
 
-    const getNftDescription = (nft: NftItem): string | null => {
-        if (nft.metadata && typeof nft.metadata === 'object') {
-            if (nft.metadata.description && typeof nft.metadata.description === 'string') {
-                return nft.metadata.description;
-            }
-        }
-        return null;
+        return 'Unknown Collection';
     };
 
     // Show top 3 NFTs
@@ -188,14 +182,9 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
                                 <div className="flex-1 min-w-0">
                                     <h4 className="text-sm font-medium text-gray-900 truncate">{getNftName(nft)}</h4>
                                     <p className="text-xs text-gray-500 truncate">
-                                        {nft.collection?.collectionContent &&
-                                        typeof (nft.collection.collectionContent as Record<string, unknown>).name ===
-                                            'string'
-                                            ? ((nft.collection.collectionContent as Record<string, unknown>)
-                                                  .name as string)
-                                            : formatAddress(nft.address)}
+                                        {getCollectionName(nft) || formatAddress(nft.address)}
                                     </p>
-                                    {nft.onSale && (
+                                    {nft.isOnSale && (
                                         <div className="flex items-center mt-1">
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                                 On Sale
@@ -292,28 +281,12 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
                                 {selectedNft.collection && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Collection</label>
-                                        <p className="text-sm text-gray-900">
-                                            {selectedNft.collection.collectionContent &&
-                                            typeof (selectedNft.collection.collectionContent as Record<string, unknown>)
-                                                .name === 'string'
-                                                ? ((selectedNft.collection.collectionContent as Record<string, unknown>)
-                                                      .name as string)
-                                                : 'Unknown Collection'}
-                                        </p>
-                                        {selectedNft.collection.collectionContent &&
-                                            typeof (selectedNft.collection.collectionContent as Record<string, unknown>)
-                                                .description === 'string' && (
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    {
-                                                        (
-                                                            selectedNft.collection.collectionContent as Record<
-                                                                string,
-                                                                unknown
-                                                            >
-                                                        ).description as string
-                                                    }
-                                                </p>
-                                            )}
+                                        <p className="text-sm text-gray-900">{getCollectionName(selectedNft)}</p>
+                                        {getNftDescription(selectedNft) && (
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {getNftDescription(selectedNft)}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -321,12 +294,14 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Index</label>
-                                        <p className="text-sm text-gray-900">{formatNftIndex(selectedNft.index)}</p>
+                                        <p className="text-sm text-gray-900">
+                                            {selectedNft?.index ? formatNftIndex(selectedNft?.index) : '-'}
+                                        </p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Status</label>
                                         <p className="text-sm text-gray-900">
-                                            {selectedNft.onSale ? 'On Sale' : 'Not for Sale'}
+                                            {selectedNft.isOnSale ? 'On Sale' : 'Not for Sale'}
                                         </p>
                                     </div>
                                 </div>

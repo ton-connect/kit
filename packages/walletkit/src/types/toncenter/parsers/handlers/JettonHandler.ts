@@ -11,21 +11,23 @@
  * Processes jetton transfer and internal transfer messages
  */
 
-import { BaseMessageHandler, MessageHandlerContext } from '../messageHandler';
+import type { MessageHandlerContext } from '../messageHandler';
+import { BaseMessageHandler } from '../messageHandler';
 import { MessageType } from '../opcodes';
-import { DecodedMessage } from '../messageDecoder';
-import {
+import type { DecodedMessage } from '../messageDecoder';
+import type {
     Action,
     JettonTransferAction,
-    toAccount,
     StatusAction,
     SimplePreview,
     Account,
     AddressBook,
 } from '../../AccountEvent';
-import { ToncenterTraceItem, ToncenterTransaction } from '../../emulation';
-import { asAddressFriendly, Hex } from '../../../primitive';
+import { toAccount } from '../../AccountEvent';
+import type { ToncenterTraceItem, ToncenterTransaction } from '../../emulation';
 import { Base64ToHex } from '../../../../utils/base64';
+import type { Hex, UserFriendlyAddress } from '../../../../api/models';
+import { asMaybeAddressFriendly, asAddressFriendly } from '../../../../utils';
 
 /**
  * Jetton Transfer Handler
@@ -212,7 +214,7 @@ export class JettonTransferHandler extends BaseMessageHandler {
 
     private buildJettonInfo(
         context: MessageHandlerContext,
-        walletFriendly: string,
+        walletFriendly: UserFriendlyAddress,
     ): {
         address: string;
         name: string;
@@ -224,8 +226,8 @@ export class JettonTransferHandler extends BaseMessageHandler {
     } {
         const walletInfo = context.addressBook[walletFriendly];
         if (walletInfo?.jettonWallet?.jettonMaster) {
-            const masterAddress = walletInfo.jettonWallet.jettonMaster;
-            const masterInfo = context.addressBook[masterAddress];
+            const masterAddress = asMaybeAddressFriendly(walletInfo.jettonWallet.jettonMaster);
+            const masterInfo = masterAddress ? context.addressBook[masterAddress] : undefined;
             if (masterInfo?.jetton) {
                 return masterInfo.jetton;
             }
@@ -508,7 +510,7 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
 
     private buildJettonInfo(
         context: MessageHandlerContext,
-        walletFriendly: string,
+        walletFriendly: UserFriendlyAddress,
     ): {
         address: string;
         name: string;
@@ -520,8 +522,8 @@ export class JettonInternalTransferHandler extends BaseMessageHandler {
     } {
         const walletInfo = context.addressBook[walletFriendly];
         if (walletInfo?.jettonWallet?.jettonMaster) {
-            const masterAddress = walletInfo.jettonWallet.jettonMaster;
-            const masterInfo = context.addressBook[masterAddress];
+            const masterAddress = asMaybeAddressFriendly(walletInfo.jettonWallet.jettonMaster);
+            const masterInfo = masterAddress ? context.addressBook[masterAddress] : undefined;
             if (masterInfo?.jetton) {
                 return masterInfo.jetton;
             }

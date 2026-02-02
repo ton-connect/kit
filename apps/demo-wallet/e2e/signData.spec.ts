@@ -42,3 +42,15 @@ test('Sign cell @allureId(2260)', async ({ wallet, app, widget }) => {
 test('Sign binary @allureId(2259)', async ({ wallet, app, widget }) => {
     await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
 });
+
+test('User declined to sign data binary @allureId(8612)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
+});
+
+test('User declined to sign data cell @allureId(8645)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
+});
+
+test('User declined to sign data text @allureId(8646)', async ({ wallet, app, widget }) => {
+    await runSignDataTest({ wallet, app, widget }, test.info(), allureClient);
+});

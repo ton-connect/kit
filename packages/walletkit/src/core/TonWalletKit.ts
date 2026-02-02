@@ -9,52 +9,58 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import { Address } from '@ton/core';
-import {
-    CHAIN,
+import type {
     CONNECT_EVENT_ERROR_CODES,
     ConnectEventSuccess,
     ConnectRequest,
     DisconnectEvent,
     SendTransactionRpcResponseError,
 } from '@tonconnect/protocol';
+import { CHAIN, SessionCrypto } from '@tonconnect/protocol';
 
-import type {
-    ITonWalletKit,
-    TonWalletKitOptions,
-    IWallet,
-    EventConnectRequest,
-    EventTransactionRequest,
-    EventSignDataRequest,
-    EventDisconnect,
-    SessionInfo,
-} from '../types';
-import { Initializer, type InitializationResult, wrapWalletInterface } from './Initializer';
+import type { ITonWalletKit, TonWalletKitOptions } from '../types';
+import { Initializer, wrapWalletInterface } from './Initializer';
+import type { InitializationResult } from './Initializer';
 import { globalLogger } from './Logger';
 import type { WalletManager } from './WalletManager';
-import type { SessionManager } from './SessionManager';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
-import {
-    BridgeEventBase,
-    ConnectTransactionParamContent,
+import type {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
     RawBridgeEventTransaction,
 } from '../types/internal';
+import { toConnectTransactionParamContent } from '../types/internal';
 import { EventEmitter } from './EventEmitter';
-import { StorageEventProcessor } from './EventProcessor';
-import { BridgeManager } from './BridgeManager';
+import type { StorageEventProcessor } from './EventProcessor';
+import type { BridgeManager } from './BridgeManager';
 import type { BridgeEventMessageInfo, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
-import { IWalletAdapter } from '../types/wallet';
-import { ApiClient } from '../types/toncenter/ApiClient';
-import { getDeviceInfoWithDefaults } from '../utils/getDefaultWalletConfig';
-import { EventRequestError, EventSignDataResponse, EventTransactionResponse } from '../types/events';
-import { AnalyticsApi } from '../analytics/sender';
+import type { ApiClient } from '../types/toncenter/ApiClient';
+import { AnalyticsManager } from '../analytics';
+import { getDeviceInfoForWallet } from '../utils/getDefaultWalletConfig';
 import { WalletKitError, ERROR_CODES } from '../errors';
-import { ApiClientToncenter } from './ApiClientToncenter';
 import { CallForSuccess } from '../utils/retry';
+import { NetworkManager } from './NetworkManager';
+import type { WalletId } from '../utils/walletId';
+import type { Wallet, WalletAdapter } from '../api/interfaces';
+import type {
+    Network,
+    TransactionRequest,
+    SendTransactionRequestEvent,
+    BridgeEvent,
+    RequestErrorEvent,
+    DisconnectionEvent,
+    SignDataRequestEvent,
+    ConnectionRequestEvent,
+    SendTransactionApprovalResponse,
+    SignDataApprovalResponse,
+    TONConnectSession,
+    ConnectionApprovalResponse,
+} from '../api/models';
+import { asAddressFriendly } from '../utils';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -72,11 +78,11 @@ const log = globalLogger.createChild('TonWalletKit');
 export class TonWalletKit implements ITonWalletKit {
     // Component references
     private walletManager!: WalletManager;
-    private sessionManager!: SessionManager;
+    private sessionManager!: TONConnectSessionManager;
     private eventRouter!: EventRouter;
     private requestProcessor!: RequestProcessor;
     // private responseHandler!: ResponseHandler;
-    private tonClient!: ApiClient;
+    private networkManager: NetworkManager;
     private jettonsManager!: JettonsManager;
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
@@ -90,23 +96,32 @@ export class TonWalletKit implements ITonWalletKit {
     // State
     private isInitialized = false;
     private initializationPromise?: Promise<void>;
-    private analyticsApi?: AnalyticsApi;
+    private analyticsManager?: AnalyticsManager;
 
     constructor(options: TonWalletKitOptions) {
         this.config = options;
 
         if (options?.analytics?.enabled) {
-            this.analyticsApi = new AnalyticsApi(options?.analytics);
+            this.analyticsManager = new AnalyticsManager({
+                ...options?.analytics,
+                appInfo: {
+                    appName: options?.deviceInfo?.appName,
+                    appVersion: options?.deviceInfo?.appVersion,
+                    ...options?.analytics?.appInfo,
+                },
+            });
         }
 
-        this.tonClient = this.initializeTonClient(options);
+        // Initialize NetworkManager for multi-network support
+        this.networkManager = new NetworkManager(options);
 
         this.eventEmitter = new EventEmitter();
-        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsApi);
+        this.initializer = new Initializer(options, this.eventEmitter, this.analyticsManager);
         // Auto-initialize (lazy)
         this.initializationPromise = this.initialize();
 
-        this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.tonClient);
+        // Initialize JettonsManager with NetworkManager for multi-network support
+        this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.networkManager);
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
@@ -118,7 +133,23 @@ export class TonWalletKit implements ITonWalletKit {
                 log.error('Session not found for domain', { domain: event.domain });
                 return;
             }
-            const deviceInfo = getDeviceInfoWithDefaults(this.config.deviceInfo);
+
+            // Get the wallet to determine its network - use walletId if available, fall back to walletAddress
+            const wallet = session.walletId ? this.walletManager?.getWallet(session.walletId) : undefined;
+            if (!wallet) {
+                log.error('Wallet not found for session', { walletId: session.walletId });
+                return;
+            }
+
+            const walletAddress = wallet.getAddress();
+
+            // Get wallet state init and public key for the response
+            const walletStateInit = await wallet.getStateInit();
+            const publicKey = wallet.getPublicKey().replace('0x', '');
+
+            // Get device info with wallet-specific features if available
+            const deviceInfo = getDeviceInfoForWallet(wallet, this.config.deviceInfo);
+
             // Create base response data
             const connectResponse: ConnectEventSuccess = {
                 event: 'connect',
@@ -128,10 +159,11 @@ export class TonWalletKit implements ITonWalletKit {
                     items: [
                         {
                             name: 'ton_addr',
-                            address: Address.parse(session.walletAddress).toRawString(),
-                            network: this.getNetwork(),
-                            walletStateInit: '',
-                            publicKey: '',
+                            address: Address.parse(walletAddress).toRawString(),
+                            // TODO: Support multiple networks
+                            network: wallet.getNetwork().chainId === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
+                            walletStateInit,
+                            publicKey,
                         },
                     ],
                 },
@@ -155,9 +187,9 @@ export class TonWalletKit implements ITonWalletKit {
         if (this.isInitialized) return;
 
         try {
-            const components = await this.initializer.initialize(this.config, this.tonClient);
+            const components = await this.initializer.initialize(this.config, this.networkManager);
             this.assignComponents(components);
-            this.setupEventRouting();
+            await this.setupEventRouting();
 
             // Start the event processor recovery loop
             this.eventProcessor.startRecoveryLoop();
@@ -188,12 +220,12 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Setup event routing from bridge to handlers
      */
-    private setupEventRouting(): void {
+    private async setupEventRouting(): Promise<void> {
         // The event routing logic will use the existing EventRouter
         // but integrate with our new ResponseHandler for error cases
 
         // Start event processing for existing wallets
-        this.startProcessingForExistingWallets();
+        await this.startProcessingForExistingWallets();
     }
 
     /**
@@ -204,7 +236,8 @@ export class TonWalletKit implements ITonWalletKit {
 
         for (const wallet of wallets) {
             try {
-                await this.eventProcessor.startProcessing(wallet.getAddress());
+                const walletId = wallet.getWalletId();
+                await this.eventProcessor.startProcessing(walletId);
             } catch (error) {
                 log.error('Failed to start event processing for wallet', {
                     walletAddress: wallet.getAddress(),
@@ -217,19 +250,22 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Ensure initialization is complete
      */
-    private async ensureInitialized(): Promise<void> {
+    async ensureInitialized(): Promise<void> {
         if (this.initializationPromise) {
             await this.initializationPromise;
         }
     }
 
-    getNetwork(): CHAIN {
-        return this.config.network ?? CHAIN.TESTNET;
+    /**
+     * Get all configured networks
+     */
+    getConfiguredNetworks(): Network[] {
+        return this.networkManager.getConfiguredNetworks();
     }
 
     // === Wallet Management API (Delegated) ===
 
-    getWallets(): IWallet[] {
+    getWallets(): Wallet[] {
         if (!this.isInitialized) {
             log.warn('TonWalletKit not yet initialized, returning empty array');
             return [];
@@ -238,49 +274,63 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
-     * Get wallet by address
+     * Get wallet by wallet ID (network:address format)
      */
-    getWallet(address: string): IWallet | undefined {
+    getWallet(walletId: WalletId): Wallet | undefined {
         if (!this.isInitialized) {
             log.warn('TonWalletKit not yet initialized, returning undefined');
             return undefined;
         }
-        return this.walletManager.getWallet(address);
+        return this.walletManager.getWallet(walletId);
     }
 
-    async addWallet(adapter: IWalletAdapter): Promise<IWallet | undefined> {
+    async addWallet(adapter: WalletAdapter): Promise<Wallet | undefined> {
         await this.ensureInitialized();
-        const wallet = await wrapWalletInterface(adapter, this.tonClient);
-        const walletAdded = await this.walletManager.addWallet(wallet);
-        // wallet already exists
-        if (!walletAdded) {
-            return undefined;
+
+        // Get the wallet's network and verify we have a client for it
+        const walletNetwork = adapter.getNetwork();
+        if (!this.networkManager.hasNetwork(walletNetwork)) {
+            throw new WalletKitError(
+                ERROR_CODES.NETWORK_NOT_CONFIGURED,
+                `No API client configured for wallet network ${walletNetwork}`,
+                undefined,
+                { walletNetwork, configuredNetworks: this.networkManager.getConfiguredNetworks() },
+            );
         }
 
-        // Start event processing for the new wallet
-        await this.eventProcessor.startProcessing(wallet.getAddress());
+        const wallet = await wrapWalletInterface(adapter);
+        const walletId = await this.walletManager.addWallet(wallet);
+
+        // Start event processing for the wallet (whether new or existing)
+        await this.eventProcessor.startProcessing(walletId);
         return wallet;
     }
 
-    async removeWallet(argWallet: IWalletAdapter | string): Promise<void> {
+    async removeWallet(walletIdOrAdapter: WalletId | WalletAdapter): Promise<void> {
         await this.ensureInitialized();
 
-        const wallet = typeof argWallet === 'string' ? this.walletManager.getWallet(argWallet) : argWallet;
+        let wallet: Wallet | undefined;
+        let walletId: WalletId;
+        if (typeof walletIdOrAdapter === 'string') {
+            walletId = walletIdOrAdapter;
+            wallet = this.walletManager.getWallet(walletIdOrAdapter);
+        } else {
+            walletId = this.walletManager.getWalletId(walletIdOrAdapter);
+            wallet = this.walletManager.getWallet(walletId);
+        }
+
         if (!wallet) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_NOT_FOUND,
-                'Wallet not found for sending transaction',
-                undefined,
-                { walletAddress: typeof argWallet === 'string' ? argWallet : 'Unknown' },
-            );
+            throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, 'Wallet not found for removal', undefined, {
+                walletId,
+            });
         }
 
         // Stop event processing for the wallet
         await this.eventProcessor.stopProcessing(wallet.getAddress());
 
-        await this.walletManager.removeWallet(wallet);
+        await this.walletManager.removeWallet(walletId);
         // Also remove associated sessions
-        await this.sessionManager.removeSessionsForWallet(wallet);
+        await this.sessionManager.removeSessionsForWallet(walletId);
     }
 
     async clearWallets(): Promise<void> {
@@ -307,6 +357,11 @@ export class TonWalletKit implements ITonWalletKit {
 
             if (session) {
                 try {
+                    const sessionCrypto = new SessionCrypto({
+                        publicKey: session.publicKey,
+                        secretKey: session.privateKey,
+                    });
+
                     // For HTTP bridge sessions, send as a response
                     await CallForSuccess(
                         () =>
@@ -316,13 +371,13 @@ export class TonWalletKit implements ITonWalletKit {
                                     isJsBridge: session?.isJsBridge,
                                     id: Date.now(),
                                     from: sessionId,
-                                } as unknown as BridgeEventBase,
+                                } as unknown as BridgeEvent,
                                 {
                                     event: 'disconnect',
                                     id: Date.now(),
                                     payload: {},
                                 } as DisconnectEvent,
-                                session,
+                                sessionCrypto,
                             ),
                         10,
                         100,
@@ -341,7 +396,7 @@ export class TonWalletKit implements ITonWalletKit {
                 log.error('Failed to remove session', { sessionId, error });
             }
         } else {
-            const sessions = this.sessionManager.getSessions();
+            const sessions = await this.sessionManager.getSessions();
             if (sessions.length > 0) {
                 for (const session of sessions) {
                     try {
@@ -354,14 +409,14 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async listSessions(): Promise<SessionInfo[]> {
+    async listSessions(): Promise<TONConnectSession[]> {
         await this.ensureInitialized();
-        return this.sessionManager.getSessionsForAPI();
+        return await this.sessionManager.getSessions();
     }
 
     // === Event Handler Registration (Delegated) ===
 
-    onConnectRequest(cb: (event: EventConnectRequest) => void): void {
+    onConnectRequest(cb: (event: ConnectionRequestEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onConnectRequest(cb);
         } else {
@@ -372,7 +427,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    onTransactionRequest(cb: (event: EventTransactionRequest) => void): void {
+    onTransactionRequest(cb: (event: SendTransactionRequestEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onTransactionRequest(cb);
         } else {
@@ -382,7 +437,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    onSignDataRequest(cb: (event: EventSignDataRequest) => void): void {
+    onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onSignDataRequest(cb);
         } else {
@@ -392,7 +447,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    onDisconnect(cb: (event: EventDisconnect) => void): void {
+    onDisconnect(cb: (event: DisconnectionEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onDisconnect(cb);
         } else {
@@ -418,7 +473,7 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventRouter.removeDisconnectCallback();
     }
 
-    onRequestError(cb: (event: EventRequestError) => void): void {
+    onRequestError(cb: (event: RequestErrorEvent) => void): void {
         if (this.eventRouter) {
             this.eventRouter.onRequestError(cb);
         } else {
@@ -468,20 +523,22 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async handleNewTransaction(wallet: IWallet, data: ConnectTransactionParamContent): Promise<void> {
+    async handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void> {
         await this.ensureInitialized();
 
-        data.valid_until ??= Math.floor(Date.now() / 1000) + 300;
-        data.network ??= this.config.network ?? CHAIN.TESTNET;
+        data.validUntil ??= Math.floor(Date.now() / 1000) + 300;
+        data.network ??= wallet.getNetwork();
 
+        const walletId = wallet.getWalletId();
         const bridgeEvent: RawBridgeEventTransaction = {
             id: Date.now().toString(),
             method: 'sendTransaction',
-            params: [JSON.stringify(data)],
+            params: [JSON.stringify(toConnectTransactionParamContent(data))],
             from: '',
             domain: '',
             isLocal: true,
-            walletAddress: wallet.getAddress().toString(),
+            walletId,
+            walletAddress: asAddressFriendly(wallet.getAddress()),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }
@@ -562,13 +619,13 @@ export class TonWalletKit implements ITonWalletKit {
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: EventConnectRequest): Promise<void> {
+    async approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveConnectRequest(event);
+        return this.requestProcessor.approveConnectRequest(event, response);
     }
 
     async rejectConnectRequest(
-        event: EventConnectRequest,
+        event: ConnectionRequestEvent,
         reason?: string,
         errorCode?: CONNECT_EVENT_ERROR_CODES,
     ): Promise<void> {
@@ -576,25 +633,31 @@ export class TonWalletKit implements ITonWalletKit {
         return this.requestProcessor.rejectConnectRequest(event, reason, errorCode);
     }
 
-    async approveTransactionRequest(event: EventTransactionRequest): Promise<EventTransactionResponse> {
+    async approveTransactionRequest(
+        event: SendTransactionRequestEvent,
+        response?: SendTransactionApprovalResponse,
+    ): Promise<SendTransactionApprovalResponse> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveTransactionRequest(event);
+        return this.requestProcessor.approveTransactionRequest(event, response);
     }
 
     async rejectTransactionRequest(
-        event: EventTransactionRequest,
+        event: SendTransactionRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectTransactionRequest(event, reason);
     }
 
-    async signDataRequest(event: EventSignDataRequest): Promise<EventSignDataResponse> {
+    async approveSignDataRequest(
+        event: SignDataRequestEvent,
+        response?: SignDataApprovalResponse,
+    ): Promise<SignDataApprovalResponse> {
         await this.ensureInitialized();
-        return this.requestProcessor.approveSignDataRequest(event);
+        return this.requestProcessor.approveSignDataRequest(event, response);
     }
 
-    async rejectSignDataRequest(event: EventSignDataRequest, reason?: string): Promise<void> {
+    async rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectSignDataRequest(event, reason);
     }
@@ -602,16 +665,27 @@ export class TonWalletKit implements ITonWalletKit {
     // === TON Client Access ===
 
     /**
-     * Get the shared TON client instance
+     * Get API client for a specific network
+     * @param network - The network object
+     * @returns The API client for the specified network
+     * @throws WalletKitError if no client is configured for the network
      */
-    getApiClient(): ApiClient {
+    getApiClient(network: Network): ApiClient {
         if (!this.isInitialized) {
             throw new WalletKitError(
                 ERROR_CODES.INITIALIZATION_ERROR,
                 'TonWalletKit not yet initialized - call initialize() first',
             );
         }
-        return this.tonClient;
+        return this.networkManager.getClient(network);
+    }
+
+    /**
+     * Get the NetworkManager instance
+     * Provides access to all configured network clients
+     */
+    getNetworkManager(): NetworkManager {
+        return this.networkManager;
     }
 
     // === Lifecycle Management ===
@@ -694,36 +768,5 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<unknown> {
         await this.ensureInitialized();
         return this.bridgeManager.queueJsBridgeEvent(messageInfo, request);
-    }
-
-    /**
-     * Initialize TON client (single provider for all downstream classes)
-     */
-    private initializeTonClient(options: TonWalletKitOptions): ApiClient {
-        if (
-            options.apiClient &&
-            'nftItemsByAddress' in options.apiClient &&
-            'nftItemsByOwner' in options.apiClient &&
-            'fetchEmulation' in options.apiClient &&
-            'sendBoc' in options.apiClient &&
-            'runGetMethod' in options.apiClient &&
-            'getAccountState' in options.apiClient &&
-            'getBalance' in options.apiClient
-        ) {
-            return options.apiClient;
-        }
-
-        const defaultEndpoint =
-            options?.network === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
-        // Use provided API URL or default to mainnet
-        const endpoint = options?.apiClient?.url || defaultEndpoint;
-
-        const clientConfig = {
-            endpoint,
-            apiKey: options?.apiClient?.key,
-            network: options?.network,
-        };
-
-        return new ApiClientToncenter(clientConfig);
     }
 }

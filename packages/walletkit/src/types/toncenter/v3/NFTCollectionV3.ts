@@ -6,9 +6,8 @@
  *
  */
 
-import { NftCollection } from '../NftCollection';
-import { asAddressFriendly, asMaybeAddressFriendly } from '../../primitive';
-import { Base64ToHex } from '../../../utils/base64';
+import { asAddressFriendly, asMaybeAddressFriendly, Base64ToHex } from '../../../utils';
+import type { NFTCollection } from '../../../api/models';
 
 export interface NFTCollectionV3 {
     address: string;
@@ -39,29 +38,41 @@ export interface TokenInfoNFTCollection {
     };
 }
 
-export function toNftCollection(data: NFTCollectionV3 | null): NftCollection | null {
-    if (!data) return null;
-    const out: NftCollection = {
+export function toNftCollection(address: string | null, data: NFTCollectionV3 | null): NFTCollection | null {
+    if (!data) {
+        if (address) {
+            return { address: asAddressFriendly(address) };
+        } else {
+            return null;
+        }
+    }
+    const out: NFTCollection = {
         address: asAddressFriendly(data.address),
-        codeHash: data.code_hash ? Base64ToHex(data.code_hash) : null,
-        dataHash: data.data_hash ? Base64ToHex(data.data_hash) : null,
+        codeHash: data.code_hash ? Base64ToHex(data.code_hash) : undefined,
+        dataHash: data.data_hash ? Base64ToHex(data.data_hash) : undefined,
         nextItemIndex: data.next_item_index.toString(),
-        ownerAddress: asMaybeAddressFriendly(data.owner_address),
+        ownerAddress: asMaybeAddressFriendly(data.owner_address) ?? undefined,
     };
-    if (data.last_transaction_lt) out.lastTransactionLt = data.last_transaction_lt.toString();
-    if (data.collection_content) out.collectionContent = data.collection_content;
+    if (data.collection_content) out.extra = data.collection_content;
     return out;
 }
 
-export function tokenMetaToNftCollection(address: string, data: TokenInfoNFTCollection): NftCollection | null {
-    if (!data) return null;
+export function tokenMetaToNftCollection(address: string, data: TokenInfoNFTCollection): NFTCollection | null {
+    if (!data) {
+        return { address: asAddressFriendly(address) };
+    }
 
-    const image = data?.extra?._image_medium ?? data?.image;
-    const out: NftCollection = {
+    const image = data?.extra?.cover_image ?? data?.image;
+    const out: NFTCollection = {
         address: asAddressFriendly(address),
         name: data.name,
         description: data.description,
-        image: image,
+        image: {
+            url: image,
+            smallUrl: data?.extra?._image_small,
+            mediumUrl: data?.extra?._image_medium,
+            largeUrl: data?.extra?._image_big,
+        },
         extra: data.extra,
     };
     return out;

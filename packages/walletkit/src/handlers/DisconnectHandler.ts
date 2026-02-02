@@ -8,19 +8,19 @@
 
 // Disconnect event handler
 
-import { SessionManager } from '../core/SessionManager';
-import type { EventDisconnect } from '../types';
+import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { RawBridgeEvent, EventHandler, RawBridgeEventDisconnect } from '../types/internal';
 import { BasicHandler } from './BasicHandler';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import type { DisconnectionEvent } from '../api/models';
 
 export class DisconnectHandler
-    extends BasicHandler<EventDisconnect>
-    implements EventHandler<EventDisconnect, RawBridgeEventDisconnect>
+    extends BasicHandler<DisconnectionEvent>
+    implements EventHandler<DisconnectionEvent, RawBridgeEventDisconnect>
 {
     constructor(
-        notify: (event: EventDisconnect) => void,
-        private readonly sessionManager: SessionManager,
+        notify: (event: DisconnectionEvent) => void,
+        private readonly sessionManager: TONConnectSessionManager,
     ) {
         super(notify);
     }
@@ -29,21 +29,27 @@ export class DisconnectHandler
         return event.method === 'disconnect';
     }
 
-    async handle(event: RawBridgeEventDisconnect): Promise<EventDisconnect> {
-        if (!event.walletAddress) {
-            throw new WalletKitError(
-                ERROR_CODES.WALLET_REQUIRED,
-                'No wallet address found in disconnect event',
-                undefined,
-                { eventId: event.id },
-            );
+    async handle(event: RawBridgeEventDisconnect): Promise<DisconnectionEvent> {
+        // Support both walletId (new) and walletAddress (legacy)
+        const walletId = event.walletId;
+        const walletAddress = event.walletAddress;
+
+        if (!walletId && !walletAddress) {
+            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'No wallet ID found in disconnect event', undefined, {
+                eventId: event.id,
+            });
         }
 
         const reason = this.extractDisconnectReason(event);
 
-        const disconnectEvent: EventDisconnect = {
-            reason,
-            walletAddress: event.walletAddress,
+        const disconnectEvent: DisconnectionEvent = {
+            id: event.id,
+            preview: {
+                reason,
+                dAppInfo: event.dAppInfo ?? {},
+            },
+            walletId: walletId ?? '',
+            walletAddress: walletAddress,
             dAppInfo: event.dAppInfo ?? {},
         };
 

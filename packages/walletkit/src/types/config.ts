@@ -8,13 +8,37 @@
 
 // Configuration type definitions
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import type { StorageAdapter, StorageConfig } from '../storage';
-import { EventProcessorConfig } from '../core/EventProcessor';
-import { DeviceInfo, WalletInfo } from './jsBridge';
-import { BridgeConfig } from './internal';
-import { ApiClient } from './toncenter/ApiClient';
+import type { EventProcessorConfig } from '../core/EventProcessor';
+import type { DeviceInfo, WalletInfo } from './jsBridge';
+import type { BridgeConfig } from './internal';
+import type { ApiClient } from './toncenter/ApiClient';
+import type { AnalyticsManagerOptions } from '../analytics';
+import type { TONConnectSessionManager } from '../api/interfaces';
+
+/**
+ * API client configuration options
+ */
+export interface ApiClientConfig {
+    url?: string; // default 'https://toncenter.com' for mainnet, 'https://testnet.toncenter.com' for testnet
+    key?: string; // key for better RPS limits
+}
+
+/**
+ * Network configuration for a specific chain
+ */
+export interface NetworkConfig {
+    /** API client configuration or instance */
+    apiClient?: ApiClientConfig | ApiClient;
+}
+
+/**
+ * Multi-network configuration keyed by chain ID
+ * Example: { [CHAIN.MAINNET]: { apiClient: {...} }, [CHAIN.TESTNET]: { apiClient: {...} } }
+ */
+export type NetworkAdapters = {
+    [key: string]: NetworkConfig | undefined;
+};
 
 /**
  * Main configuration options for TonWalletKit
@@ -23,8 +47,16 @@ export interface TonWalletKitOptions {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
 
-    /** Network */
-    network?: CHAIN;
+    /**
+     * Custom session manager implementation.
+     * If not provided, TONConnectStoredSessionManager will be used.
+     */
+    sessionManager?: TONConnectSessionManager;
+
+    /**
+     * Network configuration
+     */
+    networks?: NetworkAdapters;
 
     /** Bridge settings */
     bridge?: BridgeConfig;
@@ -38,21 +70,11 @@ export interface TonWalletKitOptions {
     /** Event processor settings */
     eventProcessor?: EventProcessorConfig;
 
-    apiClient?:
-        | {
-              url?: string; // default 'https://toncenter.com'
-              key?: string; // key for better RPS limits
-          }
-        | ApiClient;
-
-    analytics?: AnalyticsConfig;
+    analytics?: AnalyticsManagerOptions & {
+        enabled?: boolean;
+    };
 
     dev?: {
         disableNetworkSend?: boolean;
     };
-}
-
-export interface AnalyticsConfig {
-    enabled?: boolean;
-    endpoint?: string;
 }

@@ -6,7 +6,7 @@
  *
  */
 
-import { type Page, type Locator } from '@playwright/test';
+import type { Page, Locator } from '@playwright/test';
 
 interface TonConnectSelector {
     title: string;

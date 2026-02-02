@@ -23,29 +23,41 @@ export class DemoWallet extends WalletApp {
             throw new Error('[importWallet] mnemonic is required setup WALLET_MNEMONIC');
         }
         const app = await this.open();
+        // Setup password
         await app.getByTestId('title').filter({ hasText: 'Setup Password', visible: true });
         await app.getByTestId('subtitle').filter({ hasText: 'Create Password', visible: true });
         await app.getByTestId('password').fill(this.password);
         await app.getByTestId('password-confirm').fill(this.password);
         await app.getByTestId('password-submit').click();
-        await app.getByTestId('subtitle').filter({ hasText: 'Setup Your Wallet', visible: true });
-        await app.getByTestId('import-wallet').click();
+
+        // Navigate to Import tab
+        await app.getByTestId('title').filter({ hasText: 'Setup Wallet' }).waitFor({ state: 'visible' });
+        await app.getByTestId('tab-import').click();
         await app.getByTestId('subtitle').filter({ hasText: 'Import Wallet', visible: true });
-        await app.getByTestId('paste-all').click();
-        await app.getByTestId('mnemonic').fill(mnemonic);
-        await app.getByTestId('mnemonic-process').click();
+
+        // Select mainnet
+        await app.getByTestId('network-select-mainnet').click();
+
+        // Paste mnemonic using clipboard
+        await app.evaluate(async (m) => {
+            await navigator.clipboard.writeText(m);
+        }, mnemonic);
+        await app.getByTestId('paste-mnemonic').click();
+
+        // Import wallet
         await app.getByTestId('import-wallet-process').click();
         await app.getByTestId('title').filter({ hasText: 'TON Wallet' }).waitFor({ state: 'attached' });
+
+        // Disable auto-lock and hold-to-sign for e2e tests
         await app.getByTestId('wallet-menu').click();
         await app.getByTestId('auto-lock').waitFor({ state: 'attached' });
         await app.getByTestId('auto-lock').click();
         await app.getByTestId('hold-to-sign').waitFor({ state: 'attached' });
         await app.getByTestId('hold-to-sign').click();
-        await app.getByTestId('network-select').selectOption('mainnet');
         await this.close();
     }
 
-    async connectBy(url: string, shouldSkipConnect: boolean = false): Promise<void> {
+    async connectBy(url: string, shouldSkipConnect: boolean = false, confirm: boolean = true): Promise<void> {
         const app = await this.open();
         await app.getByTestId('tonconnect-url').fill(url);
         await app.getByTestId('tonconnect-process').click();
@@ -53,7 +65,7 @@ export class DemoWallet extends WalletApp {
         if (shouldSkipConnect) {
             return;
         }
-        await this.connect();
+        await this.connect(confirm);
     }
 
     async connect(confirm: boolean = true, skipConnect: boolean = false): Promise<void> {
@@ -100,5 +112,35 @@ export class DemoWallet extends WalletApp {
         await chose.click();
         await modal.waitFor({ state: 'detached' });
         await this.close();
+    }
+
+    /**
+     * Send TON to own address (not via TonConnect)
+     * This tests the handleNewTransaction flow with walletId
+     */
+    async sendTonToSelf(amount: string, confirm: boolean = true): Promise<void> {
+        const app = await this.open();
+
+        // Navigate to send page
+        await app.getByTestId('send-button').click();
+
+        // Click "Use my address" button
+        await app.getByTestId('use-my-address').click();
+
+        // Fill in amount
+        await app.getByTestId('amount-input').fill(amount);
+
+        // Click send button
+        await app.getByTestId('send-submit').click();
+
+        // Wait for transaction request modal
+        const modal = app.getByTestId('request').filter({ hasText: 'Transaction Request' });
+        await modal.waitFor({ state: 'visible' });
+
+        // Approve or reject
+        const chose = app.getByTestId(confirm ? 'send-transaction-approve' : 'send-transaction-reject');
+        await chose.waitFor({ state: 'attached' });
+        await chose.click();
+        await modal.waitFor({ state: 'detached' });
     }
 }

@@ -6,8 +6,9 @@
  *
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/wallet-core';
 
 import {
     Layout,
@@ -22,12 +23,9 @@ import {
     JettonsCard,
     WalletSwitcher,
 } from '../components';
-import { useWallet, useTonConnect, useTransactionRequests, useSignDataRequests, useAuth } from '../stores';
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
-
-import { useWalletKit } from '@/stores';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
@@ -40,7 +38,6 @@ export const WalletDashboard: React.FC = () => {
     const [isConnecting, setIsConnecting] = useState(false);
     const navigate = useNavigate();
 
-    const { network } = useAuth();
     const {
         balance,
         address,
@@ -51,7 +48,10 @@ export const WalletDashboard: React.FC = () => {
         switchWallet,
         removeWallet,
         renameWallet,
+        getActiveWallet,
     } = useWallet();
+    const activeWallet = getActiveWallet();
+    const network = activeWallet?.network || 'testnet';
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -59,8 +59,7 @@ export const WalletDashboard: React.FC = () => {
         approveConnectRequest,
         rejectConnectRequest,
     } = useTonConnect();
-    const { pendingTransactionRequest, isTransactionModalOpen, approveTransactionRequest, rejectTransactionRequest } =
-        useTransactionRequests();
+    const { pendingTransactionRequest, isTransactionModalOpen } = useTransactionRequests();
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
     const { error } = useTonWallet();
@@ -121,21 +120,6 @@ export const WalletDashboard: React.FC = () => {
         return tonAmount.toFixed(4);
     };
 
-    useEffect(() => {
-        // Auto-refresh balance on mount
-        if (!balance) {
-            updateBalance();
-        }
-    }, [balance, updateBalance]);
-
-    // auto refresh balance every 10 seconds
-    useEffect(() => {
-        const interval = setInterval(() => {
-            updateBalance();
-        }, 10000);
-        return () => clearInterval(interval);
-    }, [updateBalance]);
-
     const handleSwitchWallet = async (walletId: string) => {
         try {
             await switchWallet(walletId);
@@ -195,7 +179,7 @@ export const WalletDashboard: React.FC = () => {
                                     <img src="https://tonscan.org/favicon.ico" alt="TONScan" className="w-6 h-6" />
                                 </a>
                                 <a
-                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonviewer.com/address/${address}`}
+                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonviewer.com/${address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all hover:scale-110"
@@ -270,7 +254,8 @@ export const WalletDashboard: React.FC = () => {
                             >
                                 Refresh
                             </Button>
-                            <Button onClick={() => navigate('/send')} className="flex-1">
+
+                            <Button onClick={() => navigate('/send')} className="flex-1" data-testid="send-button">
                                 Send
                             </Button>
                         </div>
@@ -354,6 +339,7 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingConnectRequest}
                     availableWallets={getAvailableWallets()}
                     savedWallets={savedWallets}
+                    currentWallet={getAvailableWallets().find((w) => w.getWalletId() === activeWallet?.kitWalletId)}
                     isOpen={isConnectModalOpen}
                     onApprove={approveConnectRequest}
                     onReject={rejectConnectRequest}
@@ -366,8 +352,6 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingTransactionRequest}
                     savedWallets={savedWallets}
                     isOpen={isTransactionModalOpen}
-                    onApprove={approveTransactionRequest}
-                    onReject={rejectTransactionRequest}
                 />
             )}
 

@@ -5,15 +5,20 @@ on:
     branches:
       - release
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # runs-on: [self-hosted, k8s, linux]
     environment: Release
     # container:
     #   image: node:22-slim
     #   options: --user root
-    
+
     steps:
       # - name: Install git
       #   run: |
@@ -21,7 +26,7 @@ jobs:
       #     apt-get install -y git
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           fetch-tags: true
@@ -41,15 +46,12 @@ jobs:
           echo "Found tag on current commit: $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Read .nvmrc
-        run: echo "NVMRC=$(cat .nvmrc)" >> $GITHUB_ENV
-
       - uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '${{ env.NVMRC }}'
+          node-version: 24
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
@@ -63,7 +65,7 @@ jobs:
       - name: Pack packages
         run: |
           pnpm pack -r --pack-destination release-artifacts
-      
+
       - name: Prepare checksums for release
         run: |
           # Copy and rename Android bridge checksums
@@ -72,14 +74,14 @@ jobs:
           else
             echo "Warning: Android bridge checksums not found at packages/walletkit-android-bridge/dist/checksums.json"
           fi
-          
+
           # Copy and rename iOS bridge checksums
           if [ -f "packages/walletkit-ios-bridge/dist/checksums.json" ]; then
             cp packages/walletkit-ios-bridge/dist/checksums.json release-artifacts/walletkit-ios-bridge.checksums.json
           else
             echo "Warning: iOS bridge checksums not found"
           fi
-      
+
       - name: Create Release Draft
         uses: softprops/action-gh-release@v1
         with:
@@ -95,8 +97,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish NPM package
+      - name: Publish NPM package (OIDC)
         run: |
-          pnpm publish --filter="@ton/walletkit" --access=public --tag=alpha --publish-branch=release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          pnpm publish \
+            --filter="@ton/walletkit" \
+            --access=public \
+            --publish-branch=release \
+            --verbose

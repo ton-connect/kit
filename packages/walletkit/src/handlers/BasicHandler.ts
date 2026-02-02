@@ -6,7 +6,7 @@
  *
  */
 
-import { EventCallback } from '../types/internal';
+import type { EventCallback } from '../types/internal';
 
 export class BasicHandler<T> {
     private _notifyHandler: EventCallback<T>;

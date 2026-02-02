@@ -7,6 +7,7 @@
  */
 
 import React, { memo } from 'react';
+import { Link } from 'react-router-dom';
 import type { TonTransferAction } from '@ton/walletkit';
 
 import { formatAddress, formatTimestamp } from '../../utils';
@@ -30,9 +31,9 @@ export const TonTransferCard: React.FC<TonTransferCardProps> = memo(
         const otherAddress = isOutgoing ? action.TonTransfer.recipient.address : action.TonTransfer.sender.address;
 
         return (
-            <a
+            <Link
                 key={eventId}
-                href={traceLink}
+                to={traceLink}
                 className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
             >
                 <div className="flex items-center space-x-3">
@@ -79,7 +80,7 @@ export const TonTransferCard: React.FC<TonTransferCardProps> = memo(
                     </p>
                     <p className="text-xs text-gray-400">{formatTimestamp(timestamp)}</p>
                 </div>
-            </a>
+            </Link>
         );
     },
 );

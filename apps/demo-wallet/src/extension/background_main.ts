@@ -11,7 +11,7 @@
 // eslint-disable-next-line no-console
 console.log('TON Wallet Demo extension background script loaded');
 
-import { ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
+import { Network, ExtensionStorageAdapter, TonWalletKit } from '@ton/walletkit';
 import type { InjectedToExtensionBridgeRequestPayload } from '@ton/walletkit';
 import browser from 'webextension-polyfill';
 import { onMessage } from '@truecarry/webext-bridge/background';
@@ -21,7 +21,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/w
 
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND } from '@/lib/constants';
 import { SendMessageToExtensionContentFromBackground } from '@/lib/extensionBackground';
-import { DISABLE_AUTO_POPUP } from '@/lib/env';
+import { DISABLE_AUTO_POPUP, ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/lib/env';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -39,6 +39,20 @@ async function initializeWalletKit() {
             storage: new ExtensionStorageAdapter({}, browser.storage.local),
             bridge: {
                 jsBridgeTransport: SendMessageToExtensionContentFromBackground,
+            },
+            networks: {
+                [Network.mainnet().chainId]: {
+                    apiClient: {
+                        url: 'https:/toncenter.com',
+                        key: ENV_TON_API_KEY_MAINNET,
+                    },
+                },
+                [Network.testnet().chainId]: {
+                    apiClient: {
+                        url: 'https://testnet.toncenter.com',
+                        key: ENV_TON_API_KEY_TESTNET,
+                    },
+                },
             },
         });
 

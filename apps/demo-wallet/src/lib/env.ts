@@ -15,3 +15,4 @@ export const ENV_TON_API_KEY_TESTNET =
 export const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
 export const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
 export const DISABLE_AUTO_POPUP = import.meta.env?.VITE_DISABLE_AUTO_POPUP === 'true' || false;
+export const DISABLE_AUTO_EMULATION = import.meta.env?.VITE_DISABLE_AUTO_EMULATION === 'true' || false;

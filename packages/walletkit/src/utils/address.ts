@@ -8,11 +8,33 @@
 
 import { Address } from '@ton/core';
 
-export function formatWalletAddress(address: string | Address, isTestnet: boolean = false) {
-    if (typeof address === 'string') {
-        return Address.parse(address).toString({ bounceable: false, testOnly: isTestnet });
+import type { UserFriendlyAddress } from '../api/models';
+
+export function asMaybeAddressFriendly(data?: string | null): UserFriendlyAddress | null {
+    try {
+        return asAddressFriendly(data);
+    } catch {
+        return null;
     }
-    return address.toString({ bounceable: false, testOnly: isTestnet });
+}
+
+export function asAddressFriendly(data?: Address | string | null): UserFriendlyAddress {
+    if (data instanceof Address) {
+        return data.toString() as UserFriendlyAddress;
+    }
+    try {
+        if (data) return Address.parse(data).toString() as UserFriendlyAddress;
+    } catch {
+        /* empty */
+    }
+    throw new Error(`Can not convert to AddressFriendly from "${data}"`);
+}
+
+export function formatWalletAddress(address: string | Address, isTestnet: boolean = false): UserFriendlyAddress {
+    if (typeof address === 'string') {
+        return Address.parse(address).toString({ bounceable: false, testOnly: isTestnet }) as UserFriendlyAddress;
+    }
+    return address.toString({ bounceable: false, testOnly: isTestnet }) as UserFriendlyAddress;
 }
 
 export function isValidAddress(address: unknown): boolean {

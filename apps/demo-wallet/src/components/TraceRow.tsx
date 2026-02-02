@@ -8,10 +8,10 @@
 
 import React, { memo, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Base64NormalizeUrl } from '@ton/walletkit';
+import { useShallow } from 'zustand/react/shallow';
+import { Base64NormalizeUrl, Network } from '@ton/walletkit';
 import type { ToncenterTraceItem } from '@ton/walletkit';
-
-import { useWalletKit } from '../stores';
+import { useWalletKit, useWalletStore } from '@demo/wallet-core';
 
 import { log } from '@/utils/logger';
 
@@ -47,10 +47,21 @@ interface TraceRowProps {
 
 export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, isPending = false }) => {
     const walletKit = useWalletKit();
+    const { savedWallets, activeWalletId } = useWalletStore(
+        useShallow((state) => ({
+            savedWallets: state.walletManagement.savedWallets,
+            activeWalletId: state.walletManagement.activeWalletId,
+        })),
+    );
     const [trace, setTrace] = useState<ToncenterTraceItem | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Get the active wallet's network
+    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
+    const walletNetwork = activeWallet?.network || 'testnet';
+    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000; // Convert nanoTON to TON
@@ -225,7 +236,6 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                 setError(null);
 
                 if (!walletKit) {
-                    setError('WalletKit not initialized');
                     setIsLoading(false);
                     return;
                 }
@@ -234,7 +244,7 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                     await new Promise((resolve) => setTimeout(resolve, 100));
                 }
 
-                const apiClient = walletKit.getApiClient();
+                const apiClient = walletKit.getApiClient(chainNetwork);
                 let response;
 
                 try {
@@ -244,21 +254,14 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
                             traceId: [traceId],
                         });
                     }
-                } catch (error) {
-                    log.error('Error fetching trace', { error });
-                }
-                try {
+
                     if (externalHash && !response) {
                         // Fetch by external message hash for pending traces
                         response = await apiClient.getPendingTrace({
                             externalMessageHash: [externalHash],
                         });
                     }
-                } catch (error) {
-                    log.error('Error fetching trace', { error });
-                }
 
-                try {
                     if (externalHash && !response) {
                         // Fetch by trace ID for completed traces
                         response = await apiClient.getTrace({
@@ -288,8 +291,12 @@ export const TraceRow: React.FC<TraceRowProps> = memo(({ traceId, externalHash, 
             }
         };
 
-        fetchTrace();
-    }, [traceId, externalHash, isPending]);
+        if (!walletKit) {
+            return;
+        }
+
+        void fetchTrace();
+    }, [traceId, externalHash, isPending, walletKit]);
 
     if (isPending) {
         return (

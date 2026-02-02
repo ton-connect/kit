@@ -12,6 +12,8 @@
 
 import type { WalletKitInstance } from '../types';
 
+export type { WalletKitInstance };
+
 export let walletKit: WalletKitInstance | null = null;
 
 /**

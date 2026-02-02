@@ -6,12 +6,14 @@
  *
  */
 
-import React, { useEffect, useState } from 'react';
-import type { AddressJetton } from '@ton/walletkit';
+import React, { useState } from 'react';
+import type { Jetton } from '@ton/walletkit';
+import { useJettons } from '@demo/wallet-core';
 
-import { useJettons } from '../stores';
 import { createComponentLogger } from '../utils/logger';
 import { Button } from './Button';
+
+import { useFormatJetton, useFormattedJetton } from '@/hooks/useFormattedJetton';
 
 // Create logger for jettons list
 const log = createComponentLogger('JettonsList');
@@ -27,20 +29,12 @@ export const JettonsList: React.FC<JettonsListProps> = ({
     maxItems = 10,
     showRefreshButton = true,
 }) => {
-    const { userJettons, isLoadingJettons, isRefreshing, error, loadUserJettons, refreshJettons, formatJettonAmount } =
-        useJettons();
+    const { userJettons, isLoadingJettons, isRefreshing, error, refreshJettons } = useJettons();
 
-    const [selectedJetton, setSelectedJetton] = useState<AddressJetton | null>(null);
+    const [selectedJetton, setSelectedJetton] = useState<Jetton | null>(null);
 
-    // Load jettons on mount if none are loaded
-    useEffect(() => {
-        log.info('userJettons', userJettons);
-        log.info('isLoadingJettons', isLoadingJettons);
-        if (userJettons.length === 0 && !isLoadingJettons) {
-            log.info('Loading user jettons on mount');
-            loadUserJettons();
-        }
-    }, [userJettons.length, isLoadingJettons, loadUserJettons]);
+    const formatJetton = useFormatJetton();
+    const selectedJettonInfo = useFormattedJetton(selectedJetton);
 
     const handleRefresh = async () => {
         try {
@@ -123,70 +117,72 @@ export const JettonsList: React.FC<JettonsListProps> = ({
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {displayedJettons.map((jetton) => (
-                        <div
-                            key={jetton.address}
-                            className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => setSelectedJetton(jetton)}
-                        >
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                    {jetton.image ? (
-                                        <img
-                                            src={jetton.image}
-                                            alt={jetton.name}
-                                            className="w-8 h-8 rounded-full object-cover"
-                                            onError={(e) => {
-                                                // Fallback to initials if image fails to load
-                                                const target = e.target as HTMLImageElement;
-                                                target.style.display = 'none';
-                                                const parent = target.parentElement;
-                                                if (parent) {
-                                                    parent.innerHTML = jetton.symbol.slice(0, 2);
-                                                    parent.className += ' text-xs font-bold text-gray-600';
-                                                }
-                                            }}
-                                        />
-                                    ) : (
-                                        <span className="text-xs font-bold text-gray-600">
-                                            {jetton.symbol.slice(0, 2)}
-                                        </span>
-                                    )}
+                    {displayedJettons.map((jetton) => {
+                        const jettonInfo = formatJetton(jetton);
+
+                        return (
+                            <div
+                                key={jetton.address}
+                                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                                onClick={() => setSelectedJetton(jetton)}
+                            >
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                        {jettonInfo.image ? (
+                                            <img
+                                                src={jettonInfo.image}
+                                                alt={jettonInfo.name}
+                                                className="w-8 h-8 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    // Fallback to initials if image fails to load
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                    const parent = target.parentElement;
+                                                    if (parent) {
+                                                        parent.innerHTML = jettonInfo.symbol?.slice(0, 2) || '';
+                                                        parent.className += ' text-xs font-bold text-gray-600';
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <span className="text-xs font-bold text-gray-600">
+                                                {jettonInfo.symbol?.slice(0, 2)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-900">
+                                            {jettonInfo.name || jettonInfo.symbol}
+                                        </h4>
+                                        <p className="text-xs text-gray-500">
+                                            {jettonInfo.symbol} • {formatAddress(jetton.address)}
+                                        </p>
+                                        {/*{jetton.verification?.verified && (*/}
+                                        {/*    <div className="flex items-center mt-1">*/}
+                                        {/*        <svg*/}
+                                        {/*            className="w-3 h-3 text-green-500 mr-1"*/}
+                                        {/*            fill="currentColor"*/}
+                                        {/*            viewBox="0 0 20 20"*/}
+                                        {/*        >*/}
+                                        {/*            <path*/}
+                                        {/*                fillRule="evenodd"*/}
+                                        {/*                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"*/}
+                                        {/*                clipRule="evenodd"*/}
+                                        {/*            />*/}
+                                        {/*        </svg>*/}
+                                        {/*        <span className="text-xs text-green-600">Verified</span>*/}
+                                        {/*    </div>*/}
+                                        {/*)}*/}
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-gray-900">
-                                        {jetton.name || jetton.symbol}
-                                    </h4>
-                                    <p className="text-xs text-gray-500">
-                                        {jetton.symbol} • {formatAddress(jetton.address)}
-                                    </p>
-                                    {jetton.verification?.verified && (
-                                        <div className="flex items-center mt-1">
-                                            <svg
-                                                className="w-3 h-3 text-green-500 mr-1"
-                                                fill="currentColor"
-                                                viewBox="0 0 20 20"
-                                            >
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                            <span className="text-xs text-green-600">Verified</span>
-                                        </div>
-                                    )}
+                                <div className="text-right">
+                                    <p className="text-sm font-medium text-gray-900">{jettonInfo.balance}</p>
+                                    <p className="text-xs text-gray-500">{jettonInfo.symbol}</p>
+                                    {/*{jetton.usdValue && <p className="text-xs text-gray-400">≈ ${jetton.usdValue}</p>}*/}
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-gray-900">
-                                    {formatJettonAmount(jetton.balance, jetton.decimals)}
-                                </p>
-                                <p className="text-xs text-gray-500">{jetton.symbol}</p>
-                                {jetton.usdValue && <p className="text-xs text-gray-400">≈ ${jetton.usdValue}</p>}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
 
                     {userJettons.length > maxItems && (
                         <div className="text-center py-2">
@@ -198,30 +194,30 @@ export const JettonsList: React.FC<JettonsListProps> = ({
                 </div>
             )}
             {/* Jetton Details Modal */}
-            {selectedJetton && (
+            {selectedJettonInfo && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-lg max-w-md w-full max-h-96 overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                        {selectedJetton.image ? (
+                                        {selectedJettonInfo.image ? (
                                             <img
-                                                src={selectedJetton.image}
-                                                alt={selectedJetton.name}
+                                                src={selectedJettonInfo.image}
+                                                alt={selectedJettonInfo.name}
                                                 className="w-10 h-10 rounded-full object-cover"
                                             />
                                         ) : (
                                             <span className="text-sm font-bold text-gray-600">
-                                                {selectedJetton.symbol.slice(0, 2)}
+                                                {selectedJettonInfo.symbol?.slice(0, 2)}
                                             </span>
                                         )}
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-medium text-gray-900">
-                                            {selectedJetton.name || selectedJetton.symbol}
+                                            {selectedJettonInfo.name || selectedJettonInfo.symbol}
                                         </h3>
-                                        <p className="text-sm text-gray-500">{selectedJetton.symbol}</p>
+                                        <p className="text-sm text-gray-500">{selectedJettonInfo.symbol}</p>
                                     </div>
                                 </div>
                                 <button
@@ -242,105 +238,103 @@ export const JettonsList: React.FC<JettonsListProps> = ({
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Balance</label>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {formatJettonAmount(selectedJetton.balance, selectedJetton.decimals)}
-                                    </p>
-                                    {selectedJetton.usdValue && (
-                                        <p className="text-sm text-gray-500">≈ ${selectedJetton.usdValue} USD</p>
-                                    )}
+                                    <p className="text-2xl font-bold text-gray-900">{selectedJettonInfo.balance}</p>
+                                    {/*{selectedJetton.usdValue && (*/}
+                                    {/*    <p className="text-sm text-gray-500">≈ ${selectedJetton.usdValue} USD</p>*/}
+                                    {/*)}*/}
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Contract Address</label>
                                     <p className="text-sm font-mono text-gray-900 break-all">
-                                        {selectedJetton.address}
+                                        {selectedJettonInfo.address}
                                     </p>
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Wallet Address</label>
                                     <p className="text-sm font-mono text-gray-900 break-all">
-                                        {selectedJetton.jettonWalletAddress}
+                                        {selectedJettonInfo.walletAddress}
                                     </p>
                                 </div>
 
-                                {selectedJetton.description && (
+                                {selectedJettonInfo.description && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Description</label>
-                                        <p className="text-sm text-gray-600">{selectedJetton.description}</p>
+                                        <p className="text-sm text-gray-600">{selectedJettonInfo.description}</p>
                                     </div>
                                 )}
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">Decimals</label>
-                                        <p className="text-sm text-gray-900">{selectedJetton.decimals}</p>
+                                        <p className="text-sm text-gray-900">{selectedJettonInfo.decimals}</p>
                                     </div>
-                                    {selectedJetton.totalSupply && (
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Total Supply
-                                            </label>
-                                            <p className="text-sm text-gray-900">
-                                                {formatJettonAmount(
-                                                    selectedJetton.totalSupply,
-                                                    selectedJetton.decimals,
-                                                )}
-                                            </p>
-                                        </div>
-                                    )}
+                                    {/*{selectedJetton.totalSupply && (*/}
+                                    {/*    <div>*/}
+                                    {/*        <label className="block text-sm font-medium text-gray-700">*/}
+                                    {/*            Total Supply*/}
+                                    {/*        </label>*/}
+                                    {/*        <p className="text-sm text-gray-900">*/}
+                                    {/*            {formatJettonAmount(*/}
+                                    {/*                selectedJetton.totalSupply,*/}
+                                    {/*                selectedJetton.decimals,*/}
+                                    {/*            )}*/}
+                                    {/*        </p>*/}
+                                    {/*    </div>*/}
+                                    {/*)}*/}
                                 </div>
 
-                                {selectedJetton.verification && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700">Verification</label>
-                                        <div className="flex items-center mt-1">
-                                            {selectedJetton.verification.verified ? (
-                                                <>
-                                                    <svg
-                                                        className="w-4 h-4 text-green-500 mr-2"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 20 20"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                    <span className="text-sm text-green-600">
-                                                        Verified ({selectedJetton.verification.source})
-                                                    </span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <svg
-                                                        className="w-4 h-4 text-yellow-500 mr-2"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 20 20"
-                                                    >
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                                            clipRule="evenodd"
-                                                        />
-                                                    </svg>
-                                                    <span className="text-sm text-yellow-600">Not verified</span>
-                                                </>
-                                            )}
-                                        </div>
-                                        {selectedJetton.verification.warnings &&
-                                            selectedJetton.verification.warnings.length > 0 && (
-                                                <div className="mt-2">
-                                                    <ul className="text-xs text-red-600 space-y-1">
-                                                        {selectedJetton.verification.warnings.map((warning, index) => (
-                                                            <li key={index}>• {warning}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                    </div>
-                                )}
+                                {/*<>{selectedJetton.verification && (*/}
+                                {/*    <div>*/}
+                                {/*        <label className="block text-sm font-medium text-gray-700">Verification</label>*/}
+                                {/*        <div className="flex items-center mt-1">*/}
+                                {/*            {selectedJetton.verification.verified ? (*/}
+                                {/*                <>*/}
+                                {/*                    <svg*/}
+                                {/*                        className="w-4 h-4 text-green-500 mr-2"*/}
+                                {/*                        fill="currentColor"*/}
+                                {/*                        viewBox="0 0 20 20"*/}
+                                {/*                    >*/}
+                                {/*                        <path*/}
+                                {/*                            fillRule="evenodd"*/}
+                                {/*                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"*/}
+                                {/*                            clipRule="evenodd"*/}
+                                {/*                        />*/}
+                                {/*                    </svg>*/}
+                                {/*                    <span className="text-sm text-green-600">*/}
+                                {/*                        Verified ({selectedJetton.verification.source})*/}
+                                {/*                    </span>*/}
+                                {/*                </>*/}
+                                {/*            ) : (*/}
+                                {/*                <>*/}
+                                {/*                    <svg*/}
+                                {/*                        className="w-4 h-4 text-yellow-500 mr-2"*/}
+                                {/*                        fill="currentColor"*/}
+                                {/*                        viewBox="0 0 20 20"*/}
+                                {/*                    >*/}
+                                {/*                        <path*/}
+                                {/*                            fillRule="evenodd"*/}
+                                {/*                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"*/}
+                                {/*                            clipRule="evenodd"*/}
+                                {/*                        />*/}
+                                {/*                    </svg>*/}
+                                {/*                    <span className="text-sm text-yellow-600">Not verified</span>*/}
+                                {/*                </>*/}
+                                {/*            )}*/}
+                                {/*        </div>*/}
+                                {/*        {selectedJetton.verification.warnings &&*/}
+                                {/*            selectedJetton.verification.warnings.length > 0 && (*/}
+                                {/*                <div className="mt-2">*/}
+                                {/*                    <ul className="text-xs text-red-600 space-y-1">*/}
+                                {/*                        {selectedJetton.verification.warnings.map((warning, index) => (*/}
+                                {/*                            <li key={index}>• {warning}</li>*/}
+                                {/*                        ))}*/}
+                                {/*                    </ul>*/}
+                                {/*                </div>*/}
+                                {/*            )}*/}
+                                {/*    </div>*/}
+                                {/*)}</>*/}
                             </div>
 
                             <div className="flex space-x-3 mt-6">
