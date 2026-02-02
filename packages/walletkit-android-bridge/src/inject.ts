@@ -55,7 +55,11 @@ const isAndroidWebView = typeof tonWindow.AndroidTonConnect !== 'undefined';
 class AndroidWebViewTransport implements Transport {
     private pendingRequests = new Map<
         string,
-        { resolve: (value: BridgeEvent) => void; reject: (error: Error) => void; timeout: ReturnType<typeof setTimeout> }
+        {
+            resolve: (value: BridgeEvent) => void;
+            reject: (error: Error) => void;
+            timeout: ReturnType<typeof setTimeout>;
+        }
     >();
     private eventCallbacks: Array<(event: BridgeEvent) => void> = [];
 

@@ -7,6 +7,7 @@
  */
 
 import type { BridgeResponse, BridgeEvent } from '@ton/walletkit';
+
 import type { WalletKitBridgeEvent } from './events';
 import type { WalletKitBridgeApi } from './api';
 

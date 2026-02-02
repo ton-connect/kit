@@ -23,6 +23,16 @@ export type SignDataEventListener = ((event: SignDataRequestEvent) => void) | nu
 export type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
 export type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
 
+/**
+ * Union type for all bridge event listeners.
+ */
+export type BridgeEventListener =
+    | ConnectEventListener
+    | TransactionEventListener
+    | SignDataEventListener
+    | DisconnectEventListener
+    | ErrorEventListener;
+
 export const eventListeners = {
     onConnectListener: null as ConnectEventListener,
     onTransactionListener: null as TransactionEventListener,

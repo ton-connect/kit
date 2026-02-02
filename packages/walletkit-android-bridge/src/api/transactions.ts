@@ -14,6 +14,7 @@
  */
 
 import type { Transaction } from '@ton/walletkit';
+
 import type {
     GetRecentTransactionsArgs,
     CreateTransferTonTransactionArgs,
@@ -54,7 +55,14 @@ export async function createTransferTonTransaction(args: CreateTransferTonTransa
             throw new Error(`Wallet not found: ${args.walletId}`);
         }
 
-        const transaction = await wallet.createTransferTonTransaction(args);
+        // Map from bridge args to walletkit's TONTransferRequest
+        const transaction = await wallet.createTransferTonTransaction({
+            transferAmount: args.amount,
+            recipientAddress: args.toAddress,
+            comment: args.comment,
+            body: args.body,
+            stateInit: args.stateInit,
+        } as Parameters<typeof wallet.createTransferTonTransaction>[0]);
 
         if (wallet.getTransactionPreview) {
             try {
@@ -80,7 +88,19 @@ export async function createTransferMultiTonTransaction(args: CreateTransferMult
             throw new Error(`Wallet not found: ${args.walletId}`);
         }
 
-        const transaction = await wallet.createTransferMultiTonTransaction(args);
+        // Map from bridge args to walletkit's TONTransferRequest[]
+        const requests = args.messages.map((msg) => ({
+            transferAmount: msg.amount,
+            recipientAddress: msg.toAddress,
+            comment: msg.comment,
+            body: msg.body,
+            stateInit: msg.stateInit,
+        }));
+
+        // Cast to expected type - implementation accepts TONTransferRequest[]
+        const transaction = await wallet.createTransferMultiTonTransaction(
+            requests as unknown as Parameters<typeof wallet.createTransferMultiTonTransaction>[0],
+        );
 
         if (wallet.getTransactionPreview) {
             try {

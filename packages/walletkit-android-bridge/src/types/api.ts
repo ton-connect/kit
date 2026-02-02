@@ -9,21 +9,28 @@
 import type {
     BridgeEvent,
     ConnectionRequestEventPreview,
+    ConnectEvent,
+    ConnectEventError,
     DAppInfo,
-    ISigner,
-    Jetton,
+    DisconnectEvent,
     JettonsResponse,
     NFT,
     NFTsResponse,
     SendTransactionResponse,
-    TokenAmount,
     TONConnectSession,
     Transaction,
     TransactionEmulatedPreview,
     TransactionRequest,
     Wallet,
     WalletAdapter,
+    WalletResponse,
+    WalletSigner,
 } from '@ton/walletkit';
+
+/**
+ * TonConnect event payload types that can be returned from processInternalBrowserRequest.
+ */
+export type TonConnectEventPayload = ConnectEvent | ConnectEventError | WalletResponse | DisconnectEvent;
 import type { WalletKitBridgeEventCallback } from './events';
 import type { WalletKitBridgeInitConfig } from './walletkit';
 
@@ -270,7 +277,7 @@ export interface WalletKitBridgeApi {
     // Returns mnemonic words array directly
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<string[]>;
     // Returns temp ID and signer - Kotlin extracts signerId and publicKey
-    createSigner(args: CreateSignerArgs): PromiseOrValue<{ _tempId: string; signer: ISigner }>;
+    createSigner(args: CreateSignerArgs): PromiseOrValue<{ _tempId: string; signer: WalletSigner }>;
     // Returns temp ID and adapter - Kotlin extracts adapterId and address
     createAdapter(args: CreateAdapterArgs): PromiseOrValue<{ _tempId: string; adapter: WalletAdapter }>;
     // Returns address string directly
@@ -285,8 +292,8 @@ export interface WalletKitBridgeApi {
     getWalletAddress(args: { walletId: string }): PromiseOrValue<string | null>;
     // Returns void
     removeWallet(args: RemoveWalletArgs): PromiseOrValue<void>;
-    // Returns balance as TokenAmount
-    getBalance(args: GetBalanceArgs): PromiseOrValue<TokenAmount>;
+    // Returns balance as string or undefined
+    getBalance(args: GetBalanceArgs): PromiseOrValue<string | undefined>;
     // Returns transactions array directly
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
@@ -302,13 +309,13 @@ export interface WalletKitBridgeApi {
     // Returns result from wallet.sendTransaction
     sendTransaction(args: TransactionContentArgs): PromiseOrValue<SendTransactionResponse>;
     approveConnectRequest(args: ApproveConnectRequestArgs): PromiseOrValue<void>;
-    rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<void>;
+    rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<{ success: boolean }>;
     approveTransactionRequest(args: ApproveTransactionRequestArgs): PromiseOrValue<{ signedBoc: string }>;
-    rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<void>;
+    rejectTransactionRequest(args: RejectTransactionRequestArgs): PromiseOrValue<{ success: boolean }>;
     approveSignDataRequest(args: ApproveSignDataRequestArgs): PromiseOrValue<{ signature: string; timestamp: number }>;
-    rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<void>;
-    listSessions(): PromiseOrValue<TONConnectSession[]>;
-    disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<void>;
+    rejectSignDataRequest(args: RejectSignDataRequestArgs): PromiseOrValue<{ success: boolean }>;
+    listSessions(): PromiseOrValue<{ items: TONConnectSession[] }>;
+    disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<{ ok: boolean }>;
     getNfts(args: GetNftsArgs): PromiseOrValue<NFTsResponse>;
     getNft(args: GetNftArgs): PromiseOrValue<NFT | null>;
     createTransferNftTransaction(
@@ -321,9 +328,9 @@ export interface WalletKitBridgeApi {
     createTransferJettonTransaction(
         args: CreateTransferJettonTransactionArgs,
     ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
-    getJettonBalance(args: GetJettonBalanceArgs): PromiseOrValue<TokenAmount>;
+    getJettonBalance(args: GetJettonBalanceArgs): PromiseOrValue<string>;
     getJettonWalletAddress(args: GetJettonWalletAddressArgs): PromiseOrValue<string>;
-    processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs): PromiseOrValue<BridgeEvent>;
+    processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs): PromiseOrValue<TonConnectEventPayload>;
     emitBrowserPageStarted(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
