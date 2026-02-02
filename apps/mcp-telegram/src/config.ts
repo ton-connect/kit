@@ -59,7 +59,7 @@ export function loadConfig(): Config {
         ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
         ollamaModel: process.env.OLLAMA_MODEL ?? 'glm-4.7-flash:q4_K_M',
         tonNetwork,
-        databasePath: process.env.DATABASE_PATH ?? './data/bot.db',
+        databasePath: process.env.DATABASE_PATH ?? `./data/bot-${tonNetwork}.db`,
         toncenterApiKeyMainnet: process.env.TONCENTER_API_KEY_MAINNET,
         toncenterApiKeyTestnet: process.env.TONCENTER_API_KEY_TESTNET,
     };

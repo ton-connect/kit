@@ -30,6 +30,11 @@ import { createToolDefinitions } from './tools/definitions.js';
 const DEFAULT_WALLET_NAME = 'main';
 
 /**
+ * Bot username for mention detection in group chats
+ */
+let botUsername: string | undefined;
+
+/**
  * System prompt for the LLM
  */
 const SYSTEM_PROMPT = `You are a friendly TON wallet assistant in Telegram.
@@ -67,6 +72,9 @@ WORKFLOW:
 3. Format response using EXACT data from tool result
 4. Never invent or modify data!
 
+JETTON MASTER ADDRESSES:
+USDT: EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs, decimals: 6
+
 NEVER DO:
 - Make up or guess addresses
 - Modify addresses from tool results
@@ -94,16 +102,53 @@ export function createBot(config: BotConfig): Bot {
     const bot = new Bot(config.token);
 
     // Handle /start command
-    bot.command('start', async (ctx) => {
+    bot.command('start', async (ctx: Context) => {
         await handleStart(ctx, config);
     });
 
     // Handle all text messages
-    bot.on('message:text', async (ctx) => {
+    bot.on('message:text', async (ctx: Context) => {
         await handleMessage(ctx, config);
     });
 
     return bot;
+}
+
+/**
+ * Initialize bot info to get username for mention detection
+ * Must be called before bot.start()
+ */
+export async function initializeBotInfo(bot: Bot): Promise<void> {
+    await bot.init();
+    botUsername = bot.botInfo.username;
+}
+
+/**
+ * Check if the message is forwarded (should be ignored)
+ */
+function isForwardedMessage(ctx: Context): boolean {
+    return !!(ctx.message?.forward_origin || (ctx.message as unknown as { forward_date: boolean })?.['forward_date']);
+}
+
+/**
+ * Check if the chat is a group or supergroup
+ */
+function isGroupChat(ctx: Context): boolean {
+    return ctx.chat?.type === 'group' || ctx.chat?.type === 'supergroup';
+}
+
+/**
+ * Extract command text from a message that mentions the bot
+ * Returns null if bot is not mentioned
+ */
+function extractMentionedCommand(messageText: string, username: string): string | null {
+    // Match @botusername at start or anywhere in message (case insensitive)
+    const mentionRegex = new RegExp(`@${username}\\b`, 'i');
+    if (!mentionRegex.test(messageText)) {
+        return null;
+    }
+    // Remove the mention and trim
+    return messageText.replace(mentionRegex, '').trim();
 }
 
 /**
@@ -171,13 +216,32 @@ async function handleStart(ctx: Context, config: BotConfig): Promise<void> {
  * Handle text messages - forward to LLM for processing
  */
 async function handleMessage(ctx: Context, config: BotConfig): Promise<void> {
+    // Ignore forwarded messages - only process original messages from the sender
+    if (isForwardedMessage(ctx)) {
+        return;
+    }
+
     const userId = ctx.from?.id;
     const username = ctx.from?.username;
     const firstName = ctx.from?.first_name;
-    const messageText = ctx.message?.text;
+    let messageText = ctx.message?.text;
 
     if (!userId || !messageText) {
         return;
+    }
+
+    // In group chats, only respond if the bot is mentioned
+    if (isGroupChat(ctx)) {
+        if (!botUsername) {
+            return;
+        }
+        const command = extractMentionedCommand(messageText, botUsername);
+        if (!command) {
+            // Bot not mentioned, ignore the message
+            return;
+        }
+        // Use the extracted command (without the mention) for LLM processing
+        messageText = command;
     }
 
     try {

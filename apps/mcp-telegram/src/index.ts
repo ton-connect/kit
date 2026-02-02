@@ -19,7 +19,7 @@ import { loadConfig } from './config.js';
 import { initializeDatabase } from './db/schema.js';
 import { ProfileService } from './services/ProfileService.js';
 import { LLMService } from './services/LLMService.js';
-import { createBot } from './bot.js';
+import { createBot, initializeBotInfo } from './bot.js';
 
 // Log helper
 function log(message: string): void {
@@ -92,6 +92,10 @@ async function main(): Promise<void> {
         defaultNetwork: config.tonNetwork,
     });
     log('Telegram bot created');
+
+    // Initialize bot info for group chat mention detection
+    await initializeBotInfo(bot);
+    log(`Bot username: @${bot.botInfo.username}`);
 
     // Handle graceful shutdown
     const shutdown = async (): Promise<void> => {

@@ -46,7 +46,12 @@ export const getSwapQuoteSchema = z.object({
         .string()
         .min(1)
         .describe('Token to swap to. Use "TON" for native TON, or jetton master contract address'),
-    amount: z.string().min(1).describe('Amount to swap in raw units (smallest denomination)'),
+    amount: z
+        .string()
+        .min(1)
+        .describe(
+            'Amount to swap in raw units (smallest denomination), for example, for TON with 9 decimals, "1500000000" = 1.5 TON, for USDT with 6 decimals, "1500000" = 1.5 USDT',
+        ),
     slippageBps: z
         .number()
         .optional()

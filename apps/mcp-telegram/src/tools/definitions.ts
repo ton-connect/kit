@@ -262,7 +262,8 @@ export function createToolDefinitions(context: ToolContext): ToolDefinition[] {
         // Swap tools
         {
             name: 'get_swap_quote',
-            description: 'Get a quote for swapping tokens. Use "TON" for native TON, or token address for Jettons.',
+            description:
+                'Preview a swap quote. ALWAYS call this first to check the price before executing. Use "TON" for native TON, or token address for Jettons. After checking the quote, call the swap tool to execute.',
             parameters: {
                 type: 'object',
                 properties: {
@@ -319,6 +320,56 @@ export function createToolDefinitions(context: ToolContext): ToolDefinition[] {
                 const result = await walletService.executeSwap(userSigner, userStorage, walletName, quote);
 
                 return result;
+            },
+        },
+        {
+            name: 'swap',
+            description:
+                'Execute a swap. Only call after previewing with get_swap_quote and confirming the price is acceptable. Use "TON" for native TON, or token address for Jettons.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    from_token: {
+                        type: 'string',
+                        description: 'Token to swap from (e.g., "TON" or jetton address)',
+                    },
+                    to_token: {
+                        type: 'string',
+                        description: 'Token to swap to (e.g., "TON" or jetton address)',
+                    },
+                    amount: {
+                        type: 'string',
+                        description: 'Amount to swap (in raw units)',
+                    },
+                },
+                required: ['from_token', 'to_token', 'amount'],
+            },
+            handler: async (args: Record<string, unknown>) => {
+                const fromToken = args.from_token as string;
+                const toToken = args.to_token as string;
+                const amount = args.amount as string;
+
+                // Get fresh quote
+                const quote = await walletService.getSwapQuote(userSigner, walletName, fromToken, toToken, amount);
+
+                if (!quote.quote) {
+                    return {
+                        success: false,
+                        message: 'Failed to get swap quote',
+                    };
+                }
+
+                // Execute swap
+                const result = await walletService.executeSwap(userSigner, userStorage, walletName, quote.quote);
+
+                return {
+                    success: result.success,
+                    message: result.message,
+                    fromToken: quote.fromToken,
+                    toToken: quote.toToken,
+                    fromAmount: quote.fromAmount,
+                    toAmount: quote.toAmount,
+                };
             },
         },
 
