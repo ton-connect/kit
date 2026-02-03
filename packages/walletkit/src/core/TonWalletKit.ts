@@ -39,7 +39,7 @@ import type {
     IntentResponseError,
     IntentResponse,
 } from '../types/intents';
-import { IntentErrorCode } from './IntentHandler';
+import type { IntentErrorCode } from './IntentHandler';
 import type {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,

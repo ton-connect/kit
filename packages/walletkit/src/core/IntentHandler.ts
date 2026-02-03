@@ -15,7 +15,6 @@
 
 import { Address } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
-import type { ConnectRequest } from '@tonconnect/protocol';
 
 import { globalLogger } from './Logger';
 import type { WalletManager } from './WalletManager';
@@ -42,7 +41,6 @@ import type {
     IntentTransactionResponseSuccess,
     IntentSignDataResponseSuccess,
     IntentResponseError,
-    IntentResponse,
     SignDataIntentPayload,
     ActionUrlResponse,
     SendTransactionAction,

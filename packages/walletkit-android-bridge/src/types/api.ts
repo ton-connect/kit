@@ -464,9 +464,7 @@ export interface WalletKitBridgeApi {
         id: string;
     }>;
     rejectIntent(args: RejectIntentArgs): PromiseOrValue<{ error: { code: number; message: string }; id: string }>;
-    approveActionIntent(
-        args: ApproveActionIntentArgs,
-    ): PromiseOrValue<
+    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<
         | { result: string; id: string }
         | {
               result: {
