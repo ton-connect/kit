@@ -162,7 +162,11 @@ export async function approveSignDataIntent(args: ApproveSignDataIntentArgs): Pr
  */
 export async function rejectIntent(args: RejectIntentArgs): Promise<IntentResponseError> {
     return callBridge('rejectIntent', async (kit) => {
-        const event: IntentEvent = args.event;
+        // Only need id and clientId for rejection
+        const event = {
+            id: args.event.id,
+            clientId: args.event.clientId,
+        };
 
         if (!kit.rejectIntent) {
             // Fallback for older kit versions - just build the response locally
