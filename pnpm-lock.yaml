@@ -4,6 +4,31 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/react':
+      specifier: 19.2.8
+      version: 19.2.8
+    '@types/react-dom':
+      specifier: 19.2.3
+      version: 19.2.3
+    react:
+      specifier: 19.2.3
+      version: 19.2.3
+    react-dom:
+      specifier: 19.2.3
+      version: 19.2.3
+  react-native:
+    '@types/react':
+      specifier: 19.1.17
+      version: 19.1.17
+    react:
+      specifier: 19.1.0
+      version: 19.1.0
+    react-native:
+      specifier: 0.81.5
+      version: 0.81.5
+
 importers:
 
   .:
@@ -483,8 +508,8 @@ importers:
         specifier: 1.0.0-alpha.3
         version: 1.0.0-alpha.3
       '@ton/core':
-        specifier: ^0.62.1
-        version: 0.62.1(@ton/crypto@3.3.0)
+        specifier: ^0.63.0
+        version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: ^3.3.0
         version: 3.3.0
@@ -2692,6 +2717,11 @@ packages:
 
   '@ton/core@0.62.1':
     resolution: {integrity: sha512-RaEGBo9gCf6ZHyS8SKq1K53pswvYW9E5A6vwUuzFBTRX14g4qMDlB9F+fq4aBE5kN7XyVr8ScQtOJfQj41usCw==}
+    peerDependencies:
+      '@ton/crypto': '>=3.2.0'
+
+  '@ton/core@0.63.0':
+    resolution: {integrity: sha512-uBc0WQNYVzjAwPvIazf0Ryhpv4nJd4dKIuHoj766gUdwe8sVzGM+TxKKKJETL70hh/mxACyUlR4tAwN0LWDNow==}
     peerDependencies:
       '@ton/crypto': '>=3.2.0'
 
@@ -10700,6 +10730,10 @@ snapshots:
       symbol.inspect: 1.0.1
 
   '@ton/core@0.62.1(@ton/crypto@3.3.0)':
+    dependencies:
+      '@ton/crypto': 3.3.0
+
+  '@ton/core@0.63.0(@ton/crypto@3.3.0)':
     dependencies:
       '@ton/crypto': 3.3.0
 

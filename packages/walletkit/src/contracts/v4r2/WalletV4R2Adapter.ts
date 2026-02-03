@@ -8,11 +8,12 @@
 
 // WalletV4R2 Ledger adapter that implements WalletInterface
 
-import type { StateInit, MessageRelaxed } from '@ton/core';
+import type { StateInit, MessageRelaxed, SignatureDomain } from '@ton/core';
 import {
     Address,
     beginCell,
     Cell,
+    domainSign,
     loadStateInit,
     SendMode,
     storeMessage,
@@ -27,7 +28,7 @@ import { WalletV4R2 } from './WalletV4R2';
 import { WalletV4R2CodeCell } from './WalletV4R2.source';
 import { defaultWalletIdV4R2 } from './constants';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
-import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
+import { HexToBigInt, HexToUint8Array, Uint8ArrayToHex } from '../../utils/base64';
 import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
@@ -72,6 +73,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
             network: Network;
             walletId?: number | bigint;
             workchain?: number;
+            domain?: SignatureDomain;
         },
     ): Promise<WalletV4R2Adapter> {
         return new WalletV4R2Adapter({
@@ -81,6 +83,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
             network: options.network,
             walletId: typeof options.walletId === 'bigint' ? Number(options.walletId) : options.walletId,
             workchain: options.workchain,
+            domain: options.domain,
         });
     }
 
@@ -102,6 +105,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
             code: WalletV4R2CodeCell,
             workchain: config.workchain ?? 0,
             client: this.client,
+            domain: config.domain,
         });
     }
 
@@ -181,9 +185,29 @@ export class WalletV4R2Adapter implements WalletAdapter {
                 sendMode: SendMode.PAY_GAS_SEPARATELY + SendMode.IGNORE_ERRORS,
                 messages,
                 timeout: timeout,
+                domain: this.walletContract.domain,
             });
 
-            const signature = await this.sign(Uint8Array.from(data.hash()));
+            const dataHash = data.hash();
+            let signature: Hex;
+            if (this.walletContract.domain) {
+                // Use domainSign if domain is specified
+                if (this.signer.secretKey) {
+                    // If secretKey is available, use domainSign directly
+                    signature = Uint8ArrayToHex(
+                        domainSign({
+                            data: Buffer.from(dataHash),
+                            secretKey: this.signer.secretKey,
+                            domain: this.walletContract.domain,
+                        }),
+                    );
+                } else {
+                    // Otherwise, use signer which should handle domain internally if supported
+                    signature = await this.sign(Uint8Array.from(dataHash));
+                }
+            } else {
+                signature = await this.sign(Uint8Array.from(dataHash));
+            }
             const signedCell = beginCell()
                 .storeBuffer(Buffer.from(HexToUint8Array(signature)))
                 .storeSlice(data.asSlice())

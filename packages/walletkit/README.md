@@ -146,7 +146,7 @@ kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
 });
 
 // Transaction requests - triggered when a dApp wants to execute a transaction
-kit.onTransactionRequest(async (event: TransactionRequestEvent) => {
+kit.onTransactionRequest(async (event: SendTransactionRequestEvent) => {
     try {
         // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
         // Each transfer shows positive amounts for incoming, negative for outgoing
@@ -402,7 +402,7 @@ Note: The `getNfts` method returns `NFTsResponse` with a `nfts` field (not `item
 ```ts
 type AppState = {
     connectModal?: { request: ConnectionRequestEvent };
-    txModal?: { request: TransactionRequestEvent };
+    txModal?: { request: SendTransactionRequestEvent };
 };
 
 const state: AppState = {};

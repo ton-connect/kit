@@ -6,6 +6,8 @@
  *
  */
 
+import type { SignatureDomain } from '@ton/core';
+
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { Hex, Network } from '../../api/models';
 import type { WalletSigner } from '../../api/interfaces';
@@ -26,4 +28,6 @@ export interface WalletV4R2AdapterConfig {
     network: Network;
     /** Workchain */
     workchain?: number;
+    /** Signature domain */
+    domain?: SignatureDomain;
 }

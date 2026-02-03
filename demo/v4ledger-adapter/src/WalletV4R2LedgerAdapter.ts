@@ -112,7 +112,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
      * Get wallet's TON address
      */
     getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+        return formatWalletAddress(this.walletContract.address.toString(), options?.testnet);
     }
 
     getWalletId(): WalletId {
