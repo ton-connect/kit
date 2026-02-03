@@ -253,6 +253,162 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
+export interface HandleIntentUrlArgs {
+    url: string;
+}
+
+export interface IsIntentUrlArgs {
+    url: string;
+}
+
+export interface IntentItemsToTransactionRequestArgs {
+    /** The intent event with items */
+    event: {
+        id: string;
+        type: 'txIntent' | 'signMsg';
+        network?: string;
+        validUntil?: number;
+        items: Array<{
+            t: 'ton' | 'jetton' | 'nft';
+            // TON fields
+            a?: string;
+            am?: string;
+            p?: string;
+            si?: string;
+            ec?: Record<string, string>;
+            // Jetton fields
+            ma?: string;
+            qi?: number;
+            ja?: string;
+            d?: string;
+            rd?: string;
+            cp?: string;
+            fta?: string;
+            fp?: string;
+            // NFT fields
+            na?: string;
+            no?: string;
+        }>;
+    };
+    /** The wallet ID to use for jetton/NFT address resolution */
+    walletId: string;
+}
+
+/** Arguments for approving a transaction intent (txIntent or signMsg) */
+export interface ApproveTransactionIntentArgs {
+    /** The full transaction intent event */
+    event: {
+        id: string;
+        clientId: string;
+        hasConnectRequest: boolean;
+        type: 'txIntent' | 'signMsg';
+        network?: string;
+        validUntil?: number;
+        items: Array<{
+            t: 'ton' | 'jetton' | 'nft';
+            a?: string;
+            am?: string;
+            p?: string;
+            si?: string;
+            ec?: Record<string, string>;
+            ma?: string;
+            qi?: number;
+            ja?: string;
+            d?: string;
+            rd?: string;
+            cp?: string;
+            fta?: string;
+            fp?: string;
+            na?: string;
+            no?: string;
+        }>;
+    };
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for approving a sign data intent (signIntent) */
+export interface ApproveSignDataIntentArgs {
+    /** The full sign data intent event */
+    event: {
+        id: string;
+        clientId: string;
+        hasConnectRequest: boolean;
+        type: 'signIntent';
+        network?: string;
+        manifestUrl: string;
+        payload: {
+            type: 'text' | 'binary' | 'cell';
+            text?: string;
+            bytes?: string;
+            schema?: string;
+            cell?: string;
+        };
+    };
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for rejecting any intent */
+export interface RejectIntentArgs {
+    /** The intent event to reject */
+    event: {
+        id: string;
+        clientId: string;
+        type: 'txIntent' | 'signMsg' | 'signIntent' | 'actionIntent';
+    };
+    /** Optional rejection reason */
+    reason?: string;
+    /** Optional error code */
+    errorCode?: number;
+}
+
+/** Arguments for approving an action intent (actionIntent) */
+export interface ApproveActionIntentArgs {
+    /** The action intent event */
+    event: {
+        id: string;
+        clientId: string;
+        hasConnectRequest: boolean;
+        type: 'actionIntent';
+        network?: string;
+        actionUrl: string;
+        manifestUrl?: string;
+    };
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for processing connect request after intent approval */
+export interface ProcessConnectAfterIntentArgs {
+    /** The intent event with connect request */
+    event: {
+        id: string;
+        clientId: string;
+        hasConnectRequest: boolean;
+        type: 'txIntent' | 'signMsg' | 'signIntent' | 'actionIntent';
+        connectRequest?: {
+            manifestUrl: string;
+            items?: Array<{
+                name: string;
+                payload?: string;
+            }>;
+        };
+    };
+    /** The wallet ID to use for the connection */
+    walletId: string;
+    /** Optional proof (signature, timestamp, domain, payload) */
+    proof?: {
+        signature: string;
+        timestamp: number;
+        domain: {
+            lengthBytes: number;
+            value: string;
+        };
+        payload: string;
+    };
+}
+
 export interface WalletDescriptor {
     address: string;
     publicKey: string;
@@ -292,6 +448,18 @@ export interface WalletKitBridgeApi {
     // Returns transactions array directly
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
+    // Intent URL handling
+    handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
+    isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
+    intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
+    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<{ result: string; id: string }>;
+    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<{
+        result: { signature: string; address: string; timestamp: number; domain: string; payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string } };
+        id: string;
+    }>;
+    rejectIntent(args: RejectIntentArgs): PromiseOrValue<{ error: { code: number; message: string }; id: string }>;
+    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<{ result: unknown; id: string }>;
+    processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;
