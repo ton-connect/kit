@@ -8,8 +8,18 @@
 
 // WalletV5R1 adapter that implements WalletInterface
 
-import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeStateInit } from '@ton/core';
+import type { StateInit, SignatureDomain } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Dictionary,
+    domainSign,
+    loadStateInit,
+    SendMode,
+    storeMessage,
+    storeStateInit,
+} from '@ton/core';
 import { external, internal } from '@ton/core';
 
 import { WalletV5, WalletV5R1Id } from './WalletV5R1';
@@ -21,7 +31,7 @@ import { asAddressFriendly, formatWalletAddress } from '../../utils/address';
 import { CallForSuccess } from '../../utils/retry';
 import { ActionSendMsg, packActionsList } from './actions';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
-import { HexToBigInt, HexToUint8Array } from '../../utils/base64';
+import { HexToBigInt, HexToUint8Array, Uint8ArrayToHex } from '../../utils/base64';
 import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import type { WalletId } from '../../utils/walletId';
 import { createWalletId } from '../../utils/walletId';
@@ -57,6 +67,8 @@ export interface WalletV5R1AdapterConfig {
     network: Network;
     /** Workchain */
     workchain?: number;
+    /** Signature domain */
+    domain?: SignatureDomain;
 }
 
 /**
@@ -84,6 +96,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             network: Network;
             walletId?: number | bigint;
             workchain?: number;
+            domain?: SignatureDomain;
         },
     ): Promise<WalletV5R1Adapter> {
         return new WalletV5R1Adapter({
@@ -93,6 +106,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             network: options.network,
             walletId: options.walletId,
             workchain: options.workchain,
+            domain: options.domain,
         });
     }
 
@@ -117,6 +131,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
                 code: WalletV5R1CodeCell,
                 workchain: config.workchain ?? 0,
                 client: this.client,
+                domain: config.domain,
             },
         );
     }
@@ -325,7 +340,27 @@ export class WalletV5R1Adapter implements WalletAdapter {
             .endCell();
 
         const signingData = payload.hash();
-        const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
+        let signature: Hex;
+        if (options.fakeSignature) {
+            signature = FakeSignature(signingData);
+        } else if (this.walletContract.domain) {
+            // Use domainSign if domain is specified
+            if (this.signer.secretKey) {
+                // If secretKey is available, use domainSign directly
+                signature = Uint8ArrayToHex(
+                    domainSign({
+                        data: Buffer.from(signingData),
+                        secretKey: this.signer.secretKey,
+                        domain: this.walletContract.domain,
+                    }),
+                );
+            } else {
+                // Otherwise, use signer which should handle domain internally if supported
+                signature = await this.sign(signingData);
+            }
+        } else {
+            signature = await this.sign(signingData);
+        }
         return beginCell()
             .storeSlice(payload.beginParse())
             .storeBuffer(Buffer.from(HexToUint8Array(signature)))

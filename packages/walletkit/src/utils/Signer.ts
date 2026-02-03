@@ -32,10 +32,11 @@ export class Signer {
         const keyPair = await MnemonicToKeyPair(mnemonic, options?.type ?? 'ton');
         const signer = createWalletSigner(keyPair.secretKey);
 
-        // Attach publicKey to the signer function
+        // Attach publicKey and secretKey to the signer function for domain signing support
         return {
             sign: signer,
             publicKey: Uint8ArrayToHex(keyPair.publicKey),
+            secretKey: Buffer.from(keyPair.secretKey),
         };
     }
 
@@ -53,10 +54,11 @@ export class Signer {
         const keyPair = keyPairFromSeed(Buffer.from(privateKeyBytes));
         const signer = createWalletSigner(keyPair.secretKey);
 
-        // Attach publicKey to the signer function
+        // Attach publicKey and secretKey to the signer function for domain signing support
         return {
             sign: signer,
             publicKey: Uint8ArrayToHex(keyPair.publicKey),
+            secretKey: Buffer.from(keyPair.secretKey),
         };
     }
 }

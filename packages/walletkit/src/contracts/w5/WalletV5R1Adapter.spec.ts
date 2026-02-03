@@ -13,9 +13,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { clearAllMocks, mocked } from '../../../mock.config';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ApiClient } from '../../types/toncenter/ApiClient';
-import type { FullAccountState } from '../../types/toncenter/api';
-import { HexToBase64, Uint8ArrayToHex } from '../../utils/base64';
-import { Signer } from '../../utils/Signer';
+import type { FullAccountState } from '../../types';
+import { HexToBase64, Uint8ArrayToHex, Signer } from '../../utils';
 import {
     addressV5r1,
     addressV5r1Test,
@@ -141,6 +140,66 @@ describe('WalletV5R1Adapter', () => {
             { fakeSignature: false },
         );
         const message = loadMessage(Cell.fromBase64(boc).asSlice());
-        expect((message.info as CommonMessageInfoExternalIn).dest.toString()).toEqual(addressV5r1.bounceable);
+        const dest = (message.info as unknown as CommonMessageInfoExternalIn).dest.toString();
+        expect(dest).toEqual(addressV5r1.bounceable);
+    });
+
+    it('should produce different transfer body when created with domain (signature differs)', async () => {
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const walletDefault = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: Network.mainnet(),
+        });
+        const walletWithDomain = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: Network.mainnet(),
+            domain: { type: 'l2', globalId: 42 },
+        });
+
+        const args = {
+            messages: [
+                {
+                    address: addressV5r1.bounceableNot,
+                    amount: '1000000',
+                },
+            ],
+        };
+
+        const transferDefault = await walletDefault.getSignedSendTransaction(args, { fakeSignature: false });
+        const transferWithDomain = await walletWithDomain.getSignedSendTransaction(args, { fakeSignature: false });
+
+        expect(transferDefault).not.toEqual(transferWithDomain);
+    });
+
+    it('should use domain when domain is specified', async () => {
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const walletWithDomain = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: Network.mainnet(),
+            domain: { type: 'l2', globalId: 2000 },
+        });
+
+        expect(walletWithDomain.walletContract.domain).toEqual({ type: 'l2', globalId: 2000 });
+    });
+
+    it('should work without domain (backward compatibility)', async () => {
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const walletWithoutDomain = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: Network.mainnet(),
+        });
+
+        expect(walletWithoutDomain.walletContract.domain).toBeUndefined();
+    });
+
+    it('should support empty domain', async () => {
+        const signer = await Signer.fromMnemonic(mnemonic);
+        const walletWithEmptyDomain = await WalletV5R1Adapter.create(signer, {
+            client: tonClient,
+            network: Network.mainnet(),
+            domain: { type: 'empty' },
+        });
+
+        expect(walletWithEmptyDomain.walletContract.domain).toEqual({ type: 'empty' });
     });
 });

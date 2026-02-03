@@ -6,13 +6,16 @@
  *
  */
 
-import type { Address, Cell, Contract, Sender, ContractProvider, AccountStatus } from '@ton/core';
+import type { Address, Cell, Contract, Sender, ContractProvider, AccountStatus, SignatureDomain } from '@ton/core';
 import { beginCell, contractAddress, Dictionary, SendMode } from '@ton/core';
 
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { WalletOptions } from '../Wallet';
+export interface WalletV5Options extends WalletOptions {
+    domain?: SignatureDomain;
+}
 import { defaultWalletIdV5R1 } from './WalletV5R1Adapter';
-import { ParseStack } from '../../utils/tvmStack';
+import { ParseStack } from '../../utils';
 import { asAddressFriendly } from '../../utils';
 
 export type WalletV5Config = {
@@ -64,21 +67,25 @@ export class WalletV5R1Id {
 
 export class WalletV5 implements Contract {
     private subwalletId: number | undefined;
+    public domain?: SignatureDomain;
 
     constructor(
         readonly client: ApiClient,
         readonly address: Address,
         readonly init?: { code: Cell; data: Cell },
-    ) {}
-
-    static createFromAddress(client: ApiClient, address: Address) {
-        return new WalletV5(client, address);
+        domain?: SignatureDomain,
+    ) {
+        this.domain = domain;
     }
 
-    static createFromConfig(config: WalletV5Config, options: WalletOptions) {
+    static createFromAddress(client: ApiClient, address: Address, domain?: SignatureDomain) {
+        return new WalletV5(client, address, undefined, domain);
+    }
+
+    static createFromConfig(config: WalletV5Config, options: WalletV5Options) {
         const data = walletV5ConfigToCell(config);
         const init = { code: options.code, data };
-        const wallet = new WalletV5(options.client, contractAddress(options.workchain, init), init);
+        const wallet = new WalletV5(options.client, contractAddress(options.workchain, init), init, options.domain);
         wallet.subwalletId = config.walletId;
         return wallet;
     }

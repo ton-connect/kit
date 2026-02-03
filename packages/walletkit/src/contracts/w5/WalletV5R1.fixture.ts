@@ -8,15 +8,14 @@
 
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
-import type { FullAccountState, GetMethodResult } from '../../types/toncenter/api';
+import type { FullAccountState } from '../../types';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
 import type { WalletV5R1Id } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ToncenterResponseJettonMasters, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
-import { Signer } from '../../utils/Signer';
-import { Uint8ArrayToHex } from '../../utils/base64';
+import { Signer, Uint8ArrayToHex } from '../../utils';
 import { Network } from '../../api/models';
 
 export const mnemonic = [
@@ -68,7 +67,7 @@ export function createMockApiClient(): ApiClient {
         nftItemsByOwner: mockFn().mockResolvedValue({} as NftItemsResponse),
         fetchEmulation: mockFn().mockResolvedValue({} as ToncenterEmulationResponse),
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
-        runGetMethod: mockFn().mockResolvedValue({} as GetMethodResult),
+        runGetMethod: mockFn().mockResolvedValue({}),
         getAccountState: mockFn().mockResolvedValue({
             status: 'active',
             balance: '1000000000',

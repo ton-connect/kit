@@ -72,14 +72,14 @@
   },
   "peerDependencies": {
     "@ton-community/tlb-runtime": "1.0.0-alpha.3",
-    "@ton/core": "^0.62.0",
+    "@ton/core": "^0.63.0",
     "@ton/crypto": "^3.3.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.4.0",
     "@ton-community/tlb-runtime": "1.0.0-alpha.3",
-    "@ton/core": "^0.62.1",
+    "@ton/core": "^0.63.0",
     "@ton/crypto": "^3.3.0",
     "@types/chrome": "^0.1.33",
     "@types/jest": "^30.0.0",
