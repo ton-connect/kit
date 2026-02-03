@@ -19,5 +19,6 @@ export * from './components/ton-icon';
 export * from './components/modal';
 
 export * from './features/balances';
-export * from './features/wallets';
+export * from './features/nft';
 export * from './features/transaction';
+export * from './features/wallets';

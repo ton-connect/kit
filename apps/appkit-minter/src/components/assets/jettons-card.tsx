@@ -94,6 +94,7 @@ export const JettonsCard: React.FC<JettonsCardProps> = ({ jettons, isLoading, is
                                 return (
                                     <CurrencyItem
                                         key={jetton.address}
+                                        className="!bg-muted"
                                         ticker={info.symbol}
                                         name={info.name}
                                         balance={jetton.balance}

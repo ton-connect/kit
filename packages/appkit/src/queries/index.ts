@@ -12,13 +12,16 @@ export {
     type GetBalanceOptions,
     type GetBalanceData,
     type GetBalanceErrorType,
-} from './balances/get-balance-query';
+} from './balances/get-balance';
 export {
     getJettonsQueryOptions,
     type GetJettonsOptions,
     type GetJettonsData,
     type GetJettonsErrorType,
-} from './balances/get-jettons-query';
+} from './balances/get-jettons';
+
+// NFT
+export { getNFTsQueryOptions, type GetNFTsOptions, type GetNFTsData, type GetNFTsErrorType } from './nft/get-nfts';
 
 // Wallets
 export { connectMutationOptions, type ConnectMutationOptions } from './wallets/connect';

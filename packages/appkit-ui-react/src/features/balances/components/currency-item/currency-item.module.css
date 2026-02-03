@@ -1,6 +1,6 @@
 .currencyItem {
-    composes: block from "../../../../components/block/block.module.css";
-
+    box-sizing: border-box;
+    border-radius: var(--ta-border-radius-l);
     width: 100%;
     display: flex;
     flex-direction: row;

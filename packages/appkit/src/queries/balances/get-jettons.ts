@@ -13,11 +13,7 @@ import { getJettons } from '../../actions/balances/get-jettons';
 import type { GetJettonsOptions as GetJettonsParameters } from '../../actions/balances/get-jettons';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-
-export function filterQueryOptions<type extends object>(options: type): Compute<Omit<type, 'query'>> {
-    const { query, ...rest } = options as unknown as { query: unknown };
-    return rest as Compute<Omit<type, 'query'>>;
-}
+import { filterQueryOptions } from '../../utils';
 
 export type GetJettonsErrorType = Error;
 

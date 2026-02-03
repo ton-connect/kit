@@ -21,4 +21,9 @@ export default {
         success: 'Success',
         tryAgain: 'Try Again',
     },
+
+    // NFT
+    nft: {
+        onSale: 'On Sale',
+    },
 } as const;
