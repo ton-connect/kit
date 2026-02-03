@@ -122,7 +122,10 @@ export class IntentHandler {
 
             // Send the response through the bridge to the dApp's clientId
             await this.bridgeManager.sendIntentResponse(clientId, response, sessionCrypto, traceId);
-            log.info('Intent response sent to dApp', { clientId: clientId.slice(0, 16) + '...', responseId: response.id });
+            log.info('Intent response sent to dApp', {
+                clientId: clientId.slice(0, 16) + '...',
+                responseId: response.id,
+            });
         } catch (error) {
             log.error('Failed to send intent response', { clientId: clientId.slice(0, 16) + '...', error });
             // Don't throw - the signing was successful, sending is best-effort
