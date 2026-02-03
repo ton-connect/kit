@@ -231,11 +231,7 @@ export class TonWalletKit implements ITonWalletKit {
         this.bridgeManager = components.bridgeManager;
 
         // Initialize IntentHandler after we have all components
-        this.intentHandler = new IntentHandler(
-            this.walletManager,
-            this.eventEmitter,
-            this.requestProcessor,
-        );
+        this.intentHandler = new IntentHandler(this.walletManager, this.eventEmitter, this.requestProcessor);
     }
 
     /**
@@ -594,17 +590,9 @@ export class TonWalletKit implements ITonWalletKit {
      * Convert intent items to a transaction request
      * Used when approving an intent to build the actual transaction
      */
-    async intentItemsToTransactionRequest(
-        event: TransactionIntentEvent,
-        wallet: Wallet,
-    ): Promise<TransactionRequest> {
+    async intentItemsToTransactionRequest(event: TransactionIntentEvent, wallet: Wallet): Promise<TransactionRequest> {
         await this.ensureInitialized();
-        return this.intentHandler.intentItemsToTransactionRequest(
-            event.items,
-            wallet,
-            event.network,
-            event.validUntil,
-        );
+        return this.intentHandler.intentItemsToTransactionRequest(event.items, wallet, event.network, event.validUntil);
     }
 
     /**
@@ -634,10 +622,7 @@ export class TonWalletKit implements ITonWalletKit {
      * @param walletId - The wallet ID to use for signing
      * @returns The approval response with signature
      */
-    async approveSignDataIntent(
-        event: SignDataIntentEvent,
-        walletId: string,
-    ): Promise<IntentSignDataResponseSuccess> {
+    async approveSignDataIntent(event: SignDataIntentEvent, walletId: string): Promise<IntentSignDataResponseSuccess> {
         await this.ensureInitialized();
         return this.intentHandler.approveSignDataIntent(event, walletId);
     }
@@ -651,10 +636,7 @@ export class TonWalletKit implements ITonWalletKit {
      * @param walletId - The wallet ID to use for signing
      * @returns The approval response (transaction or sign data)
      */
-    async approveActionIntent(
-        event: ActionIntentEvent,
-        walletId: string,
-    ): Promise<IntentResponse> {
+    async approveActionIntent(event: ActionIntentEvent, walletId: string): Promise<IntentResponse> {
         await this.ensureInitialized();
         return this.intentHandler.approveActionIntent(event, walletId);
     }
@@ -685,11 +667,7 @@ export class TonWalletKit implements ITonWalletKit {
      * @param errorCode - Optional error code (defaults to USER_DECLINED)
      * @returns The rejection response
      */
-    rejectIntent(
-        event: IntentEvent,
-        reason?: string,
-        errorCode?: IntentErrorCode,
-    ): IntentResponseError {
+    rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): IntentResponseError {
         return this.intentHandler.rejectIntent(event, reason, errorCode);
     }
 

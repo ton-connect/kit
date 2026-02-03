@@ -454,11 +454,32 @@ export interface WalletKitBridgeApi {
     intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
     approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<{ result: string; id: string }>;
     approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<{
-        result: { signature: string; address: string; timestamp: number; domain: string; payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string } };
+        result: {
+            signature: string;
+            address: string;
+            timestamp: number;
+            domain: string;
+            payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string };
+        };
         id: string;
     }>;
     rejectIntent(args: RejectIntentArgs): PromiseOrValue<{ error: { code: number; message: string }; id: string }>;
-    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<{ result: unknown; id: string }>;
+    approveActionIntent(
+        args: ApproveActionIntentArgs,
+    ): PromiseOrValue<
+        | { result: string; id: string }
+        | {
+              result: {
+                  signature: string;
+                  address: string;
+                  timestamp: number;
+                  domain: string;
+                  payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string };
+              };
+              id: string;
+          }
+        | { error: { code: number; message: string }; id: string }
+    >;
     processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;

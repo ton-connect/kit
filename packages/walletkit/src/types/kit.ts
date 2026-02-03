@@ -90,10 +90,7 @@ export interface ITonWalletKit {
     handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
 
     /** Convert intent items to transaction request */
-    intentItemsToTransactionRequest(
-        event: TransactionIntentEvent,
-        wallet: Wallet,
-    ): Promise<TransactionRequest>;
+    intentItemsToTransactionRequest(event: TransactionIntentEvent, wallet: Wallet): Promise<TransactionRequest>;
 
     // === Request Processing ===
 

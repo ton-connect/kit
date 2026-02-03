@@ -163,11 +163,7 @@ export class IntentHandler {
         try {
             request = JSON.parse(jsonPayload) as IntentRequest;
         } catch (error) {
-            throw new WalletKitError(
-                ERROR_CODES.VALIDATION_ERROR,
-                'Invalid JSON in intent payload',
-                error as Error,
-            );
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid JSON in intent payload', error as Error);
         }
 
         // Validate the request
@@ -312,10 +308,7 @@ export class IntentHandler {
             case 'nft': {
                 const nftItem = item as SendNftIntentItem;
                 if (!nftItem.na) {
-                    throw new WalletKitError(
-                        ERROR_CODES.VALIDATION_ERROR,
-                        'NFT intent item missing NFT address (na)',
-                    );
+                    throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'NFT intent item missing NFT address (na)');
                 }
                 if (!nftItem.no) {
                     throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'NFT intent item missing new owner (no)');
@@ -329,7 +322,10 @@ export class IntentHandler {
         // Manifest URL can be in `mu` or `c.manifestUrl`
         const manifestUrl = request.mu || request.c?.manifestUrl;
         if (!manifestUrl) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Sign data intent missing manifest URL (mu or c.manifestUrl)');
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                'Sign data intent missing manifest URL (mu or c.manifestUrl)',
+            );
         }
         if (!request.p) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Sign data intent missing payload (p)');
@@ -478,10 +474,7 @@ export class IntentHandler {
      * @param walletId - The wallet to use for signing
      * @returns The approval response with signature
      */
-    async approveSignDataIntent(
-        event: SignDataIntentEvent,
-        walletId: string,
-    ): Promise<IntentSignDataResponseSuccess> {
+    async approveSignDataIntent(event: SignDataIntentEvent, walletId: string): Promise<IntentSignDataResponseSuccess> {
         log.info('Approving sign data intent', { id: event.id, walletId });
 
         const wallet = this.walletManager.getWallet(walletId);
@@ -506,7 +499,10 @@ export class IntentHandler {
                 signData = { type: 'binary', value: { content: event.payload.bytes as Base64String } };
                 break;
             case 'cell':
-                signData = { type: 'cell', value: { schema: event.payload.schema, content: event.payload.cell as Base64String } };
+                signData = {
+                    type: 'cell',
+                    value: { schema: event.payload.schema, content: event.payload.cell as Base64String },
+                };
                 break;
         }
 
@@ -576,7 +572,7 @@ export class IntentHandler {
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            actionResponse = await response.json() as ActionUrlResponse;
+            actionResponse = (await response.json()) as ActionUrlResponse;
         } catch (error) {
             throw new WalletKitError(
                 ERROR_CODES.NETWORK_ERROR,
@@ -620,7 +616,7 @@ export class IntentHandler {
             case 'signData': {
                 // Build sign data event from action
                 const signAction = actionResponse.action as SignDataAction;
-                
+
                 // Determine the manifest URL for domain binding:
                 // 1. Use from connectRequest if available
                 // 2. Otherwise use action URL origin as fallback
@@ -668,11 +664,7 @@ export class IntentHandler {
      * @param errorCode - Optional error code (defaults to USER_DECLINED)
      * @returns The rejection response
      */
-    rejectIntent(
-        event: IntentEvent,
-        reason?: string,
-        errorCode?: IntentErrorCode,
-    ): IntentResponseError {
+    rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): IntentResponseError {
         log.info('Rejecting intent', { id: event.id, reason });
 
         const response: IntentResponseError = {
@@ -719,7 +711,7 @@ export class IntentHandler {
 
         // Create ConnectionRequestEvent from the ConnectRequest
         const connectRequest = event.connectRequest;
-        
+
         // Build requested items
         const requestedItems: ConnectionRequestEventRequestedItem[] = [];
         if (connectRequest.items) {
@@ -738,7 +730,7 @@ export class IntentHandler {
         // Fetch manifest for dApp info
         let manifest: { name?: string; url?: string; iconUrl?: string; description?: string } | null = null;
         const manifestUrl = connectRequest.manifestUrl;
-        
+
         if (manifestUrl) {
             try {
                 const response = await fetch(manifestUrl);
@@ -762,14 +754,14 @@ export class IntentHandler {
 
         // Build permissions
         const permissions: ConnectionRequestEventPreviewPermission[] = [];
-        if (requestedItems.some(item => item.type === 'ton_addr')) {
+        if (requestedItems.some((item) => item.type === 'ton_addr')) {
             permissions.push({
                 name: 'ton_addr',
                 title: 'TON Address',
                 description: 'Gives dApp information about your TON address',
             });
         }
-        if (requestedItems.some(item => item.type === 'ton_proof')) {
+        if (requestedItems.some((item) => item.type === 'ton_proof')) {
             permissions.push({
                 name: 'ton_proof',
                 title: 'TON Proof',
@@ -860,7 +852,10 @@ export class IntentHandler {
             case 'nft':
                 return this.nftIntentToMessage(item, walletAddress);
             default:
-                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, `Unknown intent item type: ${(item as IntentItem).t}`);
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    `Unknown intent item type: ${(item as IntentItem).t}`,
+                );
         }
     }
 
@@ -888,10 +883,10 @@ export class IntentHandler {
     ): Promise<TransactionRequestMessage> {
         const { beginCell, Cell } = await import('@ton/core');
 
-        log.info('jettonIntentToMessage v2 - using Cell.fromBase64', { 
-            hasFp: !!item.fp, 
+        log.info('jettonIntentToMessage v2 - using Cell.fromBase64', {
+            hasFp: !!item.fp,
             hasCp: !!item.cp,
-            fpLength: item.fp?.length ?? 0 
+            fpLength: item.fp?.length ?? 0,
         });
 
         // Build jetton transfer body according to TEP-74
@@ -934,7 +929,10 @@ export class IntentHandler {
      * Convert NFT intent item to message
      * Builds the NFT transfer message body
      */
-    private async nftIntentToMessage(item: SendNftIntentItem, walletAddress: string): Promise<TransactionRequestMessage> {
+    private async nftIntentToMessage(
+        item: SendNftIntentItem,
+        walletAddress: string,
+    ): Promise<TransactionRequestMessage> {
         const { beginCell, Cell } = await import('@ton/core');
 
         // Build NFT transfer body according to TEP-62

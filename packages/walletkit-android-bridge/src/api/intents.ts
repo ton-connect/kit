@@ -26,7 +26,9 @@ import type {
     IntentResponse,
     SignDataIntentPayload,
     Wallet,
+    ConnectionApprovalProof,
 } from '@ton/walletkit';
+import type { ConnectItem } from '@tonconnect/protocol';
 
 import type {
     HandleIntentUrlArgs,
@@ -118,9 +120,7 @@ export async function approveTransactionIntent(
 /**
  * Approve a sign data intent (signIntent)
  */
-export async function approveSignDataIntent(
-    args: ApproveSignDataIntentArgs,
-): Promise<IntentSignDataResponseSuccess> {
+export async function approveSignDataIntent(args: ApproveSignDataIntentArgs): Promise<IntentSignDataResponseSuccess> {
     return callBridge('approveSignDataIntent', async (kit) => {
         // Convert payload format
         const payload: SignDataIntentPayload = (() => {
@@ -130,7 +130,11 @@ export async function approveSignDataIntent(
                 case 'binary':
                     return { type: 'binary' as const, bytes: args.event.payload.bytes! };
                 case 'cell':
-                    return { type: 'cell' as const, schema: args.event.payload.schema!, cell: args.event.payload.cell! };
+                    return {
+                        type: 'cell' as const,
+                        schema: args.event.payload.schema!,
+                        cell: args.event.payload.cell!,
+                    };
                 default:
                     throw new Error(`Unknown payload type: ${args.event.payload.type}`);
             }
@@ -173,18 +177,14 @@ export function rejectIntent(args: RejectIntentArgs): IntentResponseError {
  *
  * Fetches action details from the action URL and executes the action.
  */
-export async function approveActionIntent(
-    args: ApproveActionIntentArgs,
-): Promise<IntentResponse> {
+export async function approveActionIntent(args: ApproveActionIntentArgs): Promise<IntentResponse> {
     return callBridge('approveActionIntent', async (kit) => {
         const event: ActionIntentEvent = {
             id: args.event.id,
             clientId: args.event.clientId,
             hasConnectRequest: args.event.hasConnectRequest,
             type: 'actionIntent',
-            network: args.event.network,
             actionUrl: args.event.actionUrl,
-            manifestUrl: args.event.manifestUrl,
         };
 
         if (!kit.approveActionIntent) {
@@ -199,28 +199,41 @@ export async function approveActionIntent(
  *
  * Creates a proper session for the dApp after intent approval.
  */
-export async function processConnectAfterIntent(
-    args: ProcessConnectAfterIntentArgs,
-): Promise<void> {
+export async function processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): Promise<void> {
     return callBridge('processConnectAfterIntent', async (kit) => {
         // Build the IntentEvent from args
+        // We need to construct a minimal valid IntentEvent - use TransactionIntentEvent as base
         const event: IntentEvent = {
             id: args.event.id,
             clientId: args.event.clientId,
             hasConnectRequest: args.event.hasConnectRequest,
-            type: args.event.type,
-            connectRequest: args.event.connectRequest ? {
-                manifestUrl: args.event.connectRequest.manifestUrl,
-                items: args.event.connectRequest.items?.map(item => ({
-                    name: item.name as 'ton_addr' | 'ton_proof',
-                    payload: item.payload,
-                })),
-            } : undefined,
+            type: args.event.type as 'txIntent',
+            items: [], // Empty items for processConnectAfterIntent
+            connectRequest: args.event.connectRequest
+                ? {
+                      manifestUrl: args.event.connectRequest.manifestUrl,
+                      items: (args.event.connectRequest.items ?? []).map((item) => ({
+                          name: item.name,
+                          payload: item.payload,
+                      })) as ConnectItem[],
+                  }
+                : undefined,
         };
 
         if (!kit.processConnectAfterIntent) {
             throw new Error('processConnectAfterIntent not available');
         }
-        return await kit.processConnectAfterIntent(event, args.walletId, args.proof);
+
+        // Convert proof to ConnectionApprovalProof type (signature needs to be cast as Base64String)
+        const proof = args.proof
+            ? {
+                  signature: args.proof.signature as unknown as ConnectionApprovalProof['signature'],
+                  timestamp: args.proof.timestamp,
+                  domain: args.proof.domain,
+                  payload: args.proof.payload,
+              }
+            : undefined;
+
+        return await kit.processConnectAfterIntent(event, args.walletId, proof);
     });
 }

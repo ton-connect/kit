@@ -255,10 +255,7 @@ export interface IntentSignDataResponseSuccess {
 /**
  * Union type for intent responses
  */
-export type IntentResponse =
-    | IntentTransactionResponseSuccess
-    | IntentSignDataResponseSuccess
-    | IntentResponseError;
+export type IntentResponse = IntentTransactionResponseSuccess | IntentSignDataResponseSuccess | IntentResponseError;
 
 // ============================================================================
 // Parsed Intent URL
