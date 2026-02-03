@@ -160,16 +160,22 @@ export async function approveSignDataIntent(args: ApproveSignDataIntentArgs): Pr
 /**
  * Reject an intent request
  */
-export function rejectIntent(args: RejectIntentArgs): IntentResponseError {
-    // Note: rejectIntent is synchronous - it just builds the response object
-    // The actual response sending is done by the wallet via another mechanism
-    return {
-        error: {
-            code: args.errorCode ?? 300, // USER_DECLINED
-            message: args.reason ?? 'User declined the request',
-        },
-        id: args.event.id,
-    };
+export async function rejectIntent(args: RejectIntentArgs): Promise<IntentResponseError> {
+    return callBridge('rejectIntent', async (kit) => {
+        const event: IntentEvent = args.event;
+
+        if (!kit.rejectIntent) {
+            // Fallback for older kit versions - just build the response locally
+            return {
+                error: {
+                    code: args.errorCode ?? 300, // USER_DECLINED
+                    message: args.reason ?? 'User declined the request',
+                },
+                id: args.event.id,
+            };
+        }
+        return await kit.rejectIntent(event, args.reason, args.errorCode);
+    });
 }
 
 /**

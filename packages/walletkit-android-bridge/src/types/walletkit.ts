@@ -94,7 +94,7 @@ export interface WalletKitInstance {
     approveSignDataIntent?(event: SignDataIntentEvent, walletId: string): Promise<IntentSignDataResponseSuccess>;
     approveActionIntent?(event: ActionIntentEvent, walletId: string): Promise<IntentResponse>;
     processConnectAfterIntent?(event: IntentEvent, walletId: string, proof?: ConnectionApprovalProof): Promise<void>;
-    rejectIntent?(event: IntentEvent, reason?: string, errorCode?: number): IntentResponseError;
+    rejectIntent?(event: IntentEvent, reason?: string, errorCode?: number): Promise<IntentResponseError>;
     onIntentRequest?(callback: (event: IntentEvent) => void): void;
     removeIntentRequestCallback?(): void;
     listSessions?(): Promise<TONConnectSession[]>;

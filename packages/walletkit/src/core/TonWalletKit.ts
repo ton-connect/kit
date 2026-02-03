@@ -232,6 +232,8 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Initialize IntentHandler after we have all components
         this.intentHandler = new IntentHandler(this.walletManager, this.eventEmitter, this.requestProcessor);
+        // Set bridge manager reference for sending intent responses
+        this.intentHandler.setBridgeManager(this.bridgeManager);
     }
 
     /**
@@ -667,7 +669,7 @@ export class TonWalletKit implements ITonWalletKit {
      * @param errorCode - Optional error code (defaults to USER_DECLINED)
      * @returns The rejection response
      */
-    rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): IntentResponseError {
+    async rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): Promise<IntentResponseError> {
         return this.intentHandler.rejectIntent(event, reason, errorCode);
     }
 

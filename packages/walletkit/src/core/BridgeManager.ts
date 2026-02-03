@@ -259,6 +259,49 @@ export class BridgeManager {
         }
     }
 
+    /**
+     * Send an intent response to a dApp's clientId
+     * Used for TonConnect intents where there's no pre-existing session
+     *
+     * @param clientId - The dApp's public key (hex string from intent URL)
+     * @param response - The response payload to send
+     * @param sessionCrypto - The wallet's session crypto for encryption
+     * @param traceId - Optional trace ID for tracking
+     */
+    async sendIntentResponse(
+        clientId: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        response: any,
+        sessionCrypto: SessionCrypto,
+        traceId?: string,
+    ): Promise<void> {
+        if (!this.bridgeProvider) {
+            throw new WalletKitError(
+                ERROR_CODES.BRIDGE_NOT_INITIALIZED,
+                'Bridge not initialized for sending intent response',
+            );
+        }
+
+        try {
+            await this.bridgeProvider.send(response, sessionCrypto, clientId, {
+                traceId,
+            });
+
+            log.debug('Intent response sent successfully', { clientId: clientId.slice(0, 16) + '...' });
+        } catch (error) {
+            log.error('Failed to send intent response through bridge', {
+                clientId: clientId.slice(0, 16) + '...',
+                error,
+            });
+            throw WalletKitError.fromError(
+                ERROR_CODES.BRIDGE_RESPONSE_SEND_FAILED,
+                'Failed to send intent response through bridge',
+                error,
+                { clientId },
+            );
+        }
+    }
+
     async sendJsBridgeResponse(
         sessionId: string,
         _isJsBridge: boolean,

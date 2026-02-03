@@ -15,8 +15,10 @@
 
 import { Address } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
+import { SessionCrypto } from '@tonconnect/protocol';
 
 import { globalLogger } from './Logger';
+import type { BridgeManager } from './BridgeManager';
 import type { WalletManager } from './WalletManager';
 import type { EventEmitter } from './EventEmitter';
 import type { RequestProcessor } from './RequestProcessor';
@@ -82,11 +84,50 @@ export type IntentErrorCode = (typeof INTENT_ERROR_CODES)[keyof typeof INTENT_ER
  * Handles TonConnect intent deep links
  */
 export class IntentHandler {
+    private bridgeManager: BridgeManager | null = null;
+
     constructor(
         private walletManager: WalletManager,
         private eventEmitter: EventEmitter,
         private requestProcessor: RequestProcessor,
     ) {}
+
+    /**
+     * Set the bridge manager reference
+     * Called after initialization since BridgeManager is created later
+     */
+    setBridgeManager(bridgeManager: BridgeManager): void {
+        this.bridgeManager = bridgeManager;
+    }
+
+    /**
+     * Send an intent response to the dApp through the bridge
+     * @param clientId - The dApp's public key (from intent URL)
+     * @param response - The response to send
+     * @param traceId - Optional trace ID for tracking
+     */
+    private async sendIntentResponse(
+        clientId: string,
+        response: IntentTransactionResponseSuccess | IntentSignDataResponseSuccess | IntentResponseError,
+        traceId?: string,
+    ): Promise<void> {
+        if (!this.bridgeManager) {
+            log.warn('Bridge manager not available, cannot send intent response');
+            return;
+        }
+
+        try {
+            // Create a new session crypto for this intent response
+            const sessionCrypto = new SessionCrypto();
+
+            // Send the response through the bridge to the dApp's clientId
+            await this.bridgeManager.sendIntentResponse(clientId, response, sessionCrypto, traceId);
+            log.info('Intent response sent to dApp', { clientId: clientId.slice(0, 16) + '...', responseId: response.id });
+        } catch (error) {
+            log.error('Failed to send intent response', { clientId: clientId.slice(0, 16) + '...', error });
+            // Don't throw - the signing was successful, sending is best-effort
+        }
+    }
 
     // ========================================================================
     // URL Parsing
@@ -459,6 +500,9 @@ export class IntentHandler {
             id: event.id,
         };
 
+        // Send response to dApp through bridge
+        await this.sendIntentResponse(event.clientId, response);
+
         log.info('Intent approved successfully', { id: event.id, type: event.type });
         return response;
     }
@@ -532,6 +576,9 @@ export class IntentHandler {
             },
             id: event.id,
         };
+
+        // Send response to dApp through bridge
+        await this.sendIntentResponse(event.clientId, response);
 
         log.info('Sign data intent approved', { id: event.id });
         return response;
@@ -662,7 +709,7 @@ export class IntentHandler {
      * @param errorCode - Optional error code (defaults to USER_DECLINED)
      * @returns The rejection response
      */
-    rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): IntentResponseError {
+    async rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): Promise<IntentResponseError> {
         log.info('Rejecting intent', { id: event.id, reason });
 
         const response: IntentResponseError = {
@@ -672,6 +719,9 @@ export class IntentHandler {
             },
             id: event.id,
         };
+
+        // Send rejection response to dApp through bridge
+        await this.sendIntentResponse(event.clientId, response);
 
         return response;
     }
