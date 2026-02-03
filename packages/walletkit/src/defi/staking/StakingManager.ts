@@ -36,19 +36,10 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param provider - Optional provider name to use
      */
     async getQuote(params: StakingQuoteParams, provider?: string): Promise<StakingQuote> {
-        log.debug('Getting staking quote', {
-            direction: params.direction,
-            amount: params.amount,
-            provider: provider || this.defaultProvider,
-        });
-
+        log.debug('Getting staking quote', params);
         try {
             const quote = await this.getProvider(provider).getQuote(params);
-            log.debug('Received staking quote', {
-                direction: quote.direction,
-                amountIn: quote.amountIn,
-                amountOut: quote.amountOut,
-            });
+            log.debug('Received staking quote', quote);
             return quote;
         } catch (error) {
             throw this.createError('Failed to get staking quote', StakingErrorCode.InvalidParams, { error, params });
@@ -61,12 +52,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param provider - Optional provider name to use
      */
     async stake(params: StakeParams, provider?: string): Promise<TransactionRequest> {
-        log.debug('Building staking transaction', {
-            userAddress: params.userAddress,
-            amount: params.amount,
-            provider: provider || this.defaultProvider,
-        });
-
+        log.debug('Building staking transaction', params);
         try {
             return await this.getProvider(provider).stake(params);
         } catch (error) {
@@ -83,12 +69,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param provider - Optional provider name to use
      */
     async unstake(params: UnstakeParams, provider?: string): Promise<TransactionRequest> {
-        log.debug('Building unstaking transaction', {
-            userAddress: params.userAddress,
-            amount: params.amount,
-            provider: provider || this.defaultProvider,
-        });
-
+        log.debug('Building unstaking transaction', params);
         try {
             return await this.getProvider(provider).unstake(params);
         } catch (error) {

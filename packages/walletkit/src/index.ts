@@ -28,8 +28,9 @@ export {
     PoolContract,
     StakingCache,
     CONTRACT,
-    BLOCKCHAIN,
     TIMING,
+    UnstakeMode,
+    StakingQuoteDirection,
 } from './defi/staking';
 export type * from './defi/staking/types';
 export type { TonStakersProviderConfig, PoolFullData, TonStakersPoolInfo } from './defi/staking/tonstakers/types';

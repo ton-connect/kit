@@ -287,12 +287,25 @@ export class PoolContract {
         return stack.readBigNumber().toString();
     }
 
+    async getControllerAddress(id: number, validator: UserFriendlyAddress) {
+        const data = await this.client.runGetMethod(
+            this.address,
+            'get_controller_address',
+            SerializeStack([
+                { type: 'int', value: BigInt(id) },
+                { type: 'slice', cell: beginCell().storeAddress(Address.parse(validator)).endCell() },
+            ]),
+        );
+        const stack = ReaderStack(data.stack);
+        return stack.readAddress();
+    }
+
     /**
      * Build stake message payload.
      *
      * TL‑B: deposit#47d54391 query_id:uint64 = InternalMsgBody;
      */
-    buildStakePayload(queryId: bigint = 1n): Base64String {
+    buildStakePayload(queryId: bigint = 0n): Base64String {
         const cell = beginCell()
             .storeUint(CONTRACT.PAYLOAD_STAKE, 32)
             .storeUint(queryId, 64)

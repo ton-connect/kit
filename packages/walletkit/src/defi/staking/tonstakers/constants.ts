@@ -33,10 +33,3 @@ export const CONTRACT = {
     UNSTAKE_FEE_RES: toNano('1.05'),
     RECOMMENDED_FEE_RESERVE: toNano('1.1'),
 };
-
-// Blockchain identifiers exposed as part of the public staking API.
-// Currently not used internally but kept for library consumers.
-export const BLOCKCHAIN = {
-    MAINNET: 'mainnet',
-    TESTNET: 'testnet',
-} as const;

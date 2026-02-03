@@ -45,7 +45,7 @@ describe('TonStakersContract', () => {
             const slice = cell.beginParse();
 
             slice.loadUint(32);
-            expect(slice.loadUintBig(64)).toBe(1n);
+            expect(slice.loadUintBig(64)).toBe(0n);
         });
     });
 

@@ -14,6 +14,7 @@ import { PoolContract } from './PoolContract';
 import { StakingQuoteDirection, UnstakeMode } from '../types';
 import { CONTRACT } from './constants';
 import { Network } from '../../../api/models';
+import type { Base64String } from '../../../api/models';
 
 const mockApiClient = {
     runGetMethod: vi.fn(),
@@ -44,12 +45,12 @@ describe('TonStakersStakingProvider', () => {
 
         buildStakePayloadSpy = vi
             .spyOn(PoolContract.prototype, 'buildStakePayload')
-            .mockReturnValue('mock-stake-payload');
+            .mockReturnValue('mock-stake-payload' as Base64String);
 
         buildUnstakeMessageSpy = vi.spyOn(PoolContract.prototype, 'buildUnstakeMessage').mockResolvedValue({
             address: 'EQMockJettonWallet',
             amount: CONTRACT.UNSTAKE_FEE_RES.toString(),
-            payload: 'mock-unstake-payload',
+            payload: 'mock-unstake-payload' as Base64String,
         });
 
         getPoolDataSpy = vi.spyOn(PoolContract.prototype, 'getPoolData').mockResolvedValue({

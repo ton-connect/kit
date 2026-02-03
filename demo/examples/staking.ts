@@ -17,6 +17,7 @@ import {
     createDeviceInfo,
     createWalletManifest,
     ParseStack,
+    UnstakeMode,
 } from '@ton/walletkit';
 import type { Wallet, ApiClient } from '@ton/walletkit';
 import { Address, beginCell, toNano, fromNano } from '@ton/core';
@@ -57,7 +58,6 @@ const balanceStaked = document.getElementById('balance-staked')!;
 const poolApy = document.getElementById('pool-apy')!;
 const poolTvl = document.getElementById('pool-tvl')!;
 const poolStakers = document.getElementById('pool-stakers')!;
-const withdrawalsList = document.getElementById('withdrawals-list')!;
 const roundsInfo = document.getElementById('rounds-info')!;
 
 // State
@@ -657,18 +657,18 @@ async function handleUnstake(amount: bigint, mode: 'instant' | 'delayed', waitTi
     try {
         const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
 
-        let unstakeMode: 'instant' | 'delayed' | 'bestRate';
+        let unstakeMode: UnstakeMode;
         if (mode === 'instant') {
-            unstakeMode = 'instant';
+            unstakeMode = UnstakeMode.Instant;
         } else if (waitTillRoundEnd) {
-            unstakeMode = 'bestRate';
+            unstakeMode = UnstakeMode.BestRate;
         } else {
-            unstakeMode = 'delayed';
+            unstakeMode = UnstakeMode.Delayed;
         }
 
         showTxStatus('pending', 'Building unstake transaction...', `Mode: ${unstakeMode}`);
 
-        const txRequest = await stakingManager.unstake({
+        const request = await stakingManager.unstake({
             amount: amount.toString(),
             userAddress: wallet.getAddress(),
             network,
@@ -677,15 +677,7 @@ async function handleUnstake(amount: bigint, mode: 'instant' | 'delayed', waitTi
 
         showTxStatus('pending', 'Sending transaction...', 'Please wait...');
 
-        if (txRequest.messages && txRequest.messages.length > 0) {
-            const msg = txRequest.messages[0];
-            const transaction = await wallet.createTransferTonTransaction({
-                recipientAddress: msg.address,
-                transferAmount: msg.amount,
-                payload: msg.payload,
-            });
-            await wallet.sendTransaction(transaction);
-        }
+        await wallet.sendTransaction(request);
 
         showTxStatus('success', 'Unstaking transaction sent!', `Unstaked ${fromNano(amount)} tsTON`);
         setTimeout(async () => {
@@ -811,79 +803,6 @@ async function handleGetRounds() {
     } catch (error) {
         console.error('Error getting rounds info:', error);
         showError(stakingError, `Error getting rounds info: ${error instanceof Error ? error.message : String(error)}`);
-    }
-}
-
-async function _handleGetWithdrawals() {
-    if (!wallet) {
-        showError(stakingError, 'Wallet not initialized');
-        return;
-    }
-
-    try {
-        // Fetch withdrawal payouts
-        const response = await fetch('https://api.tonstakers.com/api/v1/pool/withdrawal_payout');
-        const data = await response.json();
-        const activeCollections = data.data?.active_collections || [];
-
-        if (activeCollections.length === 0) {
-            withdrawalsList.innerHTML = '<p>No active withdrawals</p>';
-            return;
-        }
-
-        const userAddress = wallet.getAddress();
-        let hasWithdrawals = false;
-
-        withdrawalsList.innerHTML = '';
-
-        for (const collection of activeCollections) {
-            try {
-                if (!kit) continue;
-
-                const network = currentNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
-                const apiClient = kit.getApiClient(network);
-
-                // Use apiClient to get NFT items by owner
-                const nftData = await apiClient.nftItemsByOwner({
-                    ownerAddress: userAddress,
-                    collectionAddress: collection.withdrawal_payout,
-                    limit: 100,
-                    offset: 0,
-                });
-
-                interface NftItem {
-                    owner?: { address?: string };
-                    metadata?: { name?: string };
-                }
-
-                const userNfts = (nftData.nft_items as NftItem[] | undefined) || [];
-
-                for (const nft of userNfts) {
-                    hasWithdrawals = true;
-                    const withdrawalDiv = document.createElement('div');
-                    withdrawalDiv.className = 'withdrawal-item';
-                    const tsTONAmount = nft.metadata?.name?.match(/[\d.]+/)?.[0] || '0';
-                    withdrawalDiv.innerHTML = `
-                        <strong>Withdrawal ${tsTONAmount} tsTON</strong><br>
-                        <span>Collection: ${collection.withdrawal_payout}</span><br>
-                        <span>Round ends: ${new Date(collection.cycle_end * 1000).toLocaleString()}</span>
-                    `;
-                    withdrawalsList.appendChild(withdrawalDiv);
-                }
-            } catch (error) {
-                console.warn('Error fetching withdrawal NFTs:', error);
-                // Error handled silently - withdrawal will be skipped
-            }
-        }
-
-        if (!hasWithdrawals) {
-            withdrawalsList.innerHTML = '<p>No active withdrawals</p>';
-        }
-    } catch (error) {
-        showError(
-            stakingError,
-            `Error getting withdrawals list: ${error instanceof Error ? error.message : String(error)}`,
-        );
     }
 }
 
