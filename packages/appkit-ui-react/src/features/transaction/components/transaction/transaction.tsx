@@ -6,27 +6,83 @@
  *
  */
 
-import type { FC } from 'react';
-import clsx from 'clsx';
-import type { PropsWithChildren } from 'react';
+import { useCallback, useMemo } from 'react';
+import type { FC, ReactNode, ComponentProps } from 'react';
 import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/appkit';
 
-import { TransactionButton } from '../transaction-button';
-import { TransactionProvider } from '../transaction-provider';
-import styles from './transaction.module.css';
+import { TransactionProvider, useTransactionContext } from '../transaction-provider';
+import { useI18n } from '../../../../hooks/use-i18n';
+import { Button } from '../../../../components/button';
 
-export interface TransactionProps extends PropsWithChildren {
+export interface TransactionRenderProps {
+    isLoading: boolean;
+    onSubmit: () => void;
+    disabled: boolean;
+    text: ReactNode;
+}
+
+export interface TransactionProps extends Omit<ComponentProps<'button'>, 'children' | 'onError'> {
     /** The transaction request parameters */
     getTransactionRequest: () => Promise<SendTransactionParameters | null>;
-    /** CSS class name */
-    className?: string;
     /** Callback when an error occurs */
     onError?: (error: Error) => void;
     /** Callback when the transaction is successful */
     onSuccess?: (response: SendTransactionReturnType) => void;
-    /** Disable the button/interaction */
-    disabled?: boolean;
+    /** Custom button text */
+    text?: ReactNode;
+    /** Custom render function */
+    children?: (props: TransactionRenderProps) => ReactNode;
 }
+
+interface TransactionContentProps extends Omit<ComponentProps<'button'>, 'children'> {
+    text?: ReactNode;
+    children?: (props: TransactionRenderProps) => ReactNode;
+}
+
+const TransactionContent: FC<TransactionContentProps> = ({ text, children, ...props }) => {
+    const { isLoading, onSubmit, receipt, error, disabled } = useTransactionContext();
+    const { t } = useI18n();
+
+    const isDisabled = disabled || isLoading;
+
+    const handleSubmit = useCallback(() => {
+        if (!isDisabled) {
+            onSubmit();
+        }
+    }, [isDisabled, onSubmit]);
+
+    const buttonText = useMemo(() => {
+        if (isLoading) {
+            return t('transaction.processing');
+        }
+        if (error) {
+            return t('transaction.tryAgain');
+        }
+        if (receipt) {
+            return t('transaction.success');
+        }
+        return text ?? t('transaction.confirm');
+    }, [isLoading, receipt, error, text, t]);
+
+    if (children) {
+        return (
+            <>
+                {children({
+                    isLoading,
+                    onSubmit: handleSubmit,
+                    disabled: isDisabled,
+                    text: buttonText,
+                })}
+            </>
+        );
+    }
+
+    return (
+        <Button onClick={handleSubmit} disabled={isDisabled} {...props}>
+            {buttonText}
+        </Button>
+    );
+};
 
 export const Transaction: FC<TransactionProps> = ({
     getTransactionRequest,
@@ -35,6 +91,8 @@ export const Transaction: FC<TransactionProps> = ({
     onError,
     onSuccess,
     disabled = false,
+    text,
+    ...props
 }) => {
     return (
         <TransactionProvider
@@ -42,9 +100,10 @@ export const Transaction: FC<TransactionProps> = ({
             onError={onError}
             onSuccess={onSuccess}
             disabled={disabled}
-            className={className}
         >
-            <div className={clsx(styles.transaction, className)}>{children ?? <TransactionButton />}</div>
+            <TransactionContent className={className} text={text} disabled={disabled} {...props}>
+                {children}
+            </TransactionContent>
         </TransactionProvider>
     );
 };

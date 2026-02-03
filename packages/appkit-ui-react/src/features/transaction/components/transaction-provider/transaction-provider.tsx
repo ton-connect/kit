@@ -7,11 +7,10 @@
  */
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { FC } from 'react';
-import type { SendTransactionReturnType } from '@ton/appkit';
+import type { FC, PropsWithChildren } from 'react';
+import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/appkit';
 
 import { useSendTransaction } from '../../hooks/use-send-transaction';
-import type { TransactionProps } from '../transaction';
 
 export interface TransactionContextType {
     /** Function to submit the transaction */
@@ -39,7 +38,18 @@ export function useTransactionContext() {
     return context;
 }
 
-export const TransactionProvider: FC<TransactionProps> = ({
+export interface TransactionProviderProps extends PropsWithChildren {
+    /** The transaction request parameters */
+    getTransactionRequest: () => Promise<SendTransactionParameters | null>;
+    /** Callback when an error occurs */
+    onError?: (error: Error) => void;
+    /** Callback when the transaction is successful */
+    onSuccess?: (response: SendTransactionReturnType) => void;
+    /** Disable the button/interaction */
+    disabled?: boolean;
+}
+
+export const TransactionProvider: FC<TransactionProviderProps> = ({
     children,
     getTransactionRequest,
     onError,

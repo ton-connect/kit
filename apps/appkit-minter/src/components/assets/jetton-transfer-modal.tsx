@@ -155,9 +155,8 @@ export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({ jetton
                         )}
                     </div>
 
-                    <div className="flex space-x-3 mt-6">
+                    <div className="flex mt-6 gap-3">
                         <Transaction
-                            className="flex-1"
                             getTransactionRequest={createTransferTransaction}
                             onSuccess={() => {
                                 handleClose();
@@ -167,7 +166,13 @@ export const JettonTransferModal: React.FC<JettonTransferModalProps> = ({ jetton
                                 setTransferError(getErrorMessage(error));
                             }}
                             disabled={!recipientAddress || !amount}
-                        />
+                        >
+                            {({ isLoading, onSubmit, disabled, text }) => (
+                                <Button isLoading={isLoading} onClick={onSubmit} disabled={disabled} className="flex-1">
+                                    {text}
+                                </Button>
+                            )}
+                        </Transaction>
 
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel
