@@ -25,7 +25,7 @@ type SignerInstance = { sign: (bytes: Iterable<number>) => Promise<Hex>; publicK
  * Lists all wallets.
  */
 export async function getWallets() {
-    const wallets = await kit('getWallets') as { getWalletId?: () => string }[];
+    const wallets = (await kit('getWallets')) as { getWalletId?: () => string }[];
     return wallets.map((w) => ({ walletId: w.getWalletId?.(), wallet: w }));
 }
 

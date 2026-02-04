@@ -51,10 +51,7 @@ function getWalletOrThrow(kit: WalletKitInstance, walletId: string): Wallet {
  * await kit('handleTonConnectUrl', url);
  * await kit('listSessions');
  */
-export async function kit<M extends keyof WalletKitInstance>(
-    method: M,
-    ...args: unknown[]
-): Promise<unknown> {
+export async function kit<M extends keyof WalletKitInstance>(method: M, ...args: unknown[]): Promise<unknown> {
     const instance = await ensureReady();
     const fn = instance[method];
     if (typeof fn !== 'function') {
@@ -105,7 +102,10 @@ export async function getWallet(walletId: string): Promise<Wallet> {
 /**
  * Calls a method on a Wallet instance. Extracts walletId from args.walletId.
  */
-export async function walletCall<T = unknown>(method: string, args: { walletId: string; [k: string]: unknown }): Promise<T> {
+export async function walletCall<T = unknown>(
+    method: string,
+    args: { walletId: string; [k: string]: unknown },
+): Promise<T> {
     const instance = await ensureReady();
     const w = getWalletOrThrow(instance, args.walletId);
     const fn = (w as unknown as Record<string, unknown>)[method];
@@ -118,7 +118,10 @@ export async function walletCall<T = unknown>(method: string, args: { walletId: 
 /**
  * Calls a method on a Wallet's ApiClient. Extracts walletId from args.walletId.
  */
-export async function clientCall<T = unknown>(method: string, args: { walletId: string; [k: string]: unknown }): Promise<T> {
+export async function clientCall<T = unknown>(
+    method: string,
+    args: { walletId: string; [k: string]: unknown },
+): Promise<T> {
     const instance = await ensureReady();
     const w = getWalletOrThrow(instance, args.walletId);
     const apiClient = w.getClient();
