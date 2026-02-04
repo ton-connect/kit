@@ -616,8 +616,20 @@ export class BridgeManager {
                         iconUrl: session.dAppIconUrl,
                     };
                 }
-            } else if (rawEvent.domain) {
-                const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
+            } else if (rawEvent.domain && rawEvent.walletId) {
+                const sessions = await this.sessionManager.getSessionsForWallet(rawEvent.walletId);
+
+                let host;
+                try {
+                    host = new URL(rawEvent.domain).host;
+                } catch {
+                    host = undefined;
+                }
+
+                const session = sessions.find(
+                    (session) => session.domain == host && session.isJsBridge === rawEvent.isJsBridge,
+                );
+
                 if (session?.walletId) {
                     rawEvent.walletId = session.walletId;
                 }

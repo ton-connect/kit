@@ -9,8 +9,9 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import { Address } from '@ton/core';
+import { CONNECT_EVENT_ERROR_CODES } from '@tonconnect/protocol';
 import type {
-    CONNECT_EVENT_ERROR_CODES,
+    ConnectEventError,
     ConnectEventSuccess,
     ConnectRequest,
     DisconnectEvent,
@@ -126,19 +127,29 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
                 log.error('Domain is required for restore connection');
-                return;
+                return this.sendErrorConnectResponse(event);
             }
-            const session = await this.sessionManager.getSessionByDomain(event.domain);
+
+            const sessions = await this.sessionManager.getSessions();
+
+            let host;
+            try {
+                host = new URL(event.domain).host;
+            } catch {
+                return this.sendErrorConnectResponse(event);
+            }
+
+            const session = sessions.find((session) => session.domain === host && session.isJsBridge === true);
             if (!session) {
                 log.error('Session not found for domain', { domain: event.domain });
-                return;
+                return this.sendErrorConnectResponse(event);
             }
 
             // Get the wallet to determine its network - use walletId if available, fall back to walletAddress
             const wallet = session.walletId ? this.walletManager?.getWallet(session.walletId) : undefined;
             if (!wallet) {
                 log.error('Wallet not found for session', { walletId: session.walletId });
-                return;
+                return this.sendErrorConnectResponse(event);
             }
 
             const walletAddress = wallet.getAddress();
@@ -151,7 +162,7 @@ export class TonWalletKit implements ITonWalletKit {
             const deviceInfo = getDeviceInfoForWallet(wallet, this.config.deviceInfo);
 
             // Create base response data
-            const connectResponse: ConnectEventSuccess = {
+            const tonConnectEvent: ConnectEventSuccess = {
                 event: 'connect',
                 id: Date.now(),
                 payload: {
@@ -173,9 +184,27 @@ export class TonWalletKit implements ITonWalletKit {
                 event?.tabId?.toString() || '',
                 true,
                 event?.id ?? event?.messageId,
-                connectResponse,
+                tonConnectEvent,
             );
         });
+    }
+
+    private async sendErrorConnectResponse(event: RawBridgeEventRestoreConnection): Promise<void> {
+        const tonConnectEvent: ConnectEventError = {
+            event: 'connect_error',
+            id: Date.now(),
+            payload: {
+                code: CONNECT_EVENT_ERROR_CODES.UNKNOWN_APP_ERROR,
+                message: '',
+            },
+        };
+
+        await this.bridgeManager.sendJsBridgeResponse(
+            event?.tabId?.toString() || '',
+            true,
+            event?.id ?? event?.messageId,
+            tonConnectEvent,
+        );
     }
 
     // === Initialization ===
