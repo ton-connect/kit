@@ -8,8 +8,8 @@
 
 import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { getFormattedJettonInfo, formatUnits, parseUnits } from '@ton/appkit';
-import { TransferButton } from '@ton/appkit-ui-react';
+import { getFormattedJettonInfo, formatUnits, parseUnits, getErrorMessage } from '@ton/appkit';
+import { SendButton } from '@ton/appkit-ui-react';
 
 import { Button } from '@/core/components';
 
@@ -161,13 +161,13 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                     </div>
 
                     <div className="flex mt-6 gap-3">
-                        <TransferButton
+                        <SendButton
                             tokenType={tokenType}
                             jettonAddress={jetton?.address}
                             recipientAddress={recipientAddress}
                             amount={parseUnits(amount, tokenInfo.decimals).toString()}
                             comment={comment}
-                            onError={setTransferError}
+                            onError={(error) => setTransferError(getErrorMessage(error))}
                             onSuccess={handleClose}
                         >
                             {({ isLoading, onSubmit, disabled, text }) => (
@@ -175,7 +175,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                                     {text}
                                 </Button>
                             )}
-                        </TransferButton>
+                        </SendButton>
 
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel

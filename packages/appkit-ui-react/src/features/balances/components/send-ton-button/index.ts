@@ -6,4 +6,4 @@
  *
  */
 
-export * from './token-transfer-button';
+export * from './send-ton-button';

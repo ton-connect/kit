@@ -6,34 +6,28 @@
  *
  */
 
-import React, { useCallback } from 'react';
-import type { ReactNode } from 'react';
-import { getErrorMessage } from '@ton/appkit';
+import { useCallback } from 'react';
+import type { FC } from 'react';
 
 import { useSelectedWallet } from '../../../wallets';
 import { Transaction } from '../../../transaction';
-import type { TransactionRenderProps } from '../../../transaction';
+import type { TransactionProps } from '../../../transaction';
 
-export interface TransferButtonProps {
+export interface SendButtonProps extends Omit<TransactionProps, 'getTransactionRequest'> {
     tokenType: 'TON' | 'JETTON';
-    jettonAddress?: string;
     recipientAddress: string;
     amount: string;
+    jettonAddress?: string;
     comment?: string;
-    onError: (error: string) => void;
-    onSuccess: () => void;
-    children?: (props: TransactionRenderProps) => ReactNode;
 }
 
-export const TransferButton: React.FC<TransferButtonProps> = ({
+export const SendButton: FC<SendButtonProps> = ({
     tokenType,
     jettonAddress,
     recipientAddress,
     amount,
     comment,
-    onError,
-    onSuccess,
-    children,
+    ...props
 }) => {
     const [wallet] = useSelectedWallet();
 
@@ -73,11 +67,8 @@ export const TransferButton: React.FC<TransferButtonProps> = ({
     return (
         <Transaction
             getTransactionRequest={createTransferTransaction}
-            onSuccess={onSuccess}
-            onError={(error) => onError(getErrorMessage(error))}
             disabled={!recipientAddress || !amount}
-        >
-            {children}
-        </Transaction>
+            {...props}
+        />
     );
 };

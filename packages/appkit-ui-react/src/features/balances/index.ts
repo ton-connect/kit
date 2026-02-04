@@ -8,7 +8,9 @@
 
 export * from './components/currency-item';
 export * from './components/balance-badge';
-export * from './components/token-transfer-button';
+export * from './components/send-button';
+export * from './components/send-ton-button';
+export * from './components/send-jetton-button';
 
 export * from './hooks/use-balance';
 export * from './hooks/use-selected-wallet-balance';
