@@ -8,19 +8,28 @@
 
 import type {
     BridgeEvent,
+    ConnectionApprovalProof,
     ConnectionRequestEventPreview,
     ConnectEvent,
     ConnectEventError,
     DAppInfo,
     DisconnectEvent,
+    IntentEvent,
+    IntentResponse,
+    IntentResponseError,
+    IntentSignDataResponseSuccess,
+    IntentTransactionResponseSuccess,
     JettonsResponse,
     NFT,
     NFTsResponse,
     SendTransactionResponse,
+    SignDataIntentEvent,
     TONConnectSession,
     Transaction,
     TransactionEmulatedPreview,
+    TransactionIntentEvent,
     TransactionRequest,
+    ActionIntentEvent,
     Wallet,
     WalletAdapter,
     WalletResponse,
@@ -262,89 +271,24 @@ export interface IsIntentUrlArgs {
 }
 
 export interface IntentItemsToTransactionRequestArgs {
-    /** The intent event with items */
-    event: {
-        id: string;
-        type: 'txIntent' | 'signMsg';
-        network?: string;
-        validUntil?: number;
-        items: Array<{
-            t: 'ton' | 'jetton' | 'nft';
-            // TON fields
-            a?: string;
-            am?: string;
-            p?: string;
-            si?: string;
-            ec?: Record<string, string>;
-            // Jetton fields
-            ma?: string;
-            qi?: number;
-            ja?: string;
-            d?: string;
-            rd?: string;
-            cp?: string;
-            fta?: string;
-            fp?: string;
-            // NFT fields
-            na?: string;
-            no?: string;
-        }>;
-    };
+    /** The transaction intent event - Android sends this in walletkit format */
+    event: TransactionIntentEvent;
     /** The wallet ID to use for jetton/NFT address resolution */
     walletId: string;
 }
 
 /** Arguments for approving a transaction intent (txIntent or signMsg) */
 export interface ApproveTransactionIntentArgs {
-    /** The full transaction intent event */
-    event: {
-        id: string;
-        clientId: string;
-        hasConnectRequest: boolean;
-        type: 'txIntent' | 'signMsg';
-        network?: string;
-        validUntil?: number;
-        items: Array<{
-            t: 'ton' | 'jetton' | 'nft';
-            a?: string;
-            am?: string;
-            p?: string;
-            si?: string;
-            ec?: Record<string, string>;
-            ma?: string;
-            qi?: number;
-            ja?: string;
-            d?: string;
-            rd?: string;
-            cp?: string;
-            fta?: string;
-            fp?: string;
-            na?: string;
-            no?: string;
-        }>;
-    };
+    /** The full transaction intent event - Android sends this in walletkit format */
+    event: TransactionIntentEvent;
     /** The wallet ID to use for signing */
     walletId: string;
 }
 
 /** Arguments for approving a sign data intent (signIntent) */
 export interface ApproveSignDataIntentArgs {
-    /** The full sign data intent event */
-    event: {
-        id: string;
-        clientId: string;
-        hasConnectRequest: boolean;
-        type: 'signIntent';
-        network?: string;
-        manifestUrl: string;
-        payload: {
-            type: 'text' | 'binary' | 'cell';
-            text?: string;
-            bytes?: string;
-            schema?: string;
-            cell?: string;
-        };
-    };
+    /** The full sign data intent event - Android sends this in walletkit format */
+    event: SignDataIntentEvent;
     /** The wallet ID to use for signing */
     walletId: string;
 }
@@ -355,7 +299,6 @@ export interface RejectIntentArgs {
     event: {
         id: string;
         clientId: string;
-        type: 'txIntent' | 'signMsg' | 'signIntent' | 'actionIntent';
     };
     /** Optional rejection reason */
     reason?: string;
@@ -365,48 +308,20 @@ export interface RejectIntentArgs {
 
 /** Arguments for approving an action intent (actionIntent) */
 export interface ApproveActionIntentArgs {
-    /** The action intent event */
-    event: {
-        id: string;
-        clientId: string;
-        hasConnectRequest: boolean;
-        type: 'actionIntent';
-        network?: string;
-        actionUrl: string;
-        manifestUrl?: string;
-    };
+    /** The action intent event - Android sends this in walletkit format */
+    event: ActionIntentEvent;
     /** The wallet ID to use for signing */
     walletId: string;
 }
 
 /** Arguments for processing connect request after intent approval */
 export interface ProcessConnectAfterIntentArgs {
-    /** The intent event with connect request */
-    event: {
-        id: string;
-        clientId: string;
-        hasConnectRequest: boolean;
-        type: 'txIntent' | 'signMsg' | 'signIntent' | 'actionIntent';
-        connectRequest?: {
-            manifestUrl: string;
-            items?: Array<{
-                name: string;
-                payload?: string;
-            }>;
-        };
-    };
+    /** The intent event with connect request - Android sends this in walletkit format */
+    event: IntentEvent;
     /** The wallet ID to use for the connection */
     walletId: string;
-    /** Optional proof (signature, timestamp, domain, payload) */
-    proof?: {
-        signature: string;
-        timestamp: number;
-        domain: {
-            lengthBytes: number;
-            value: string;
-        };
-        payload: string;
-    };
+    /** Optional proof */
+    proof?: ConnectionApprovalProof;
 }
 
 export interface WalletDescriptor {
@@ -452,32 +367,10 @@ export interface WalletKitBridgeApi {
     handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
     isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
     intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
-    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<{ result: string; id: string }>;
-    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<{
-        result: {
-            signature: string;
-            address: string;
-            timestamp: number;
-            domain: string;
-            payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string };
-        };
-        id: string;
-    }>;
-    rejectIntent(args: RejectIntentArgs): PromiseOrValue<{ error: { code: number; message: string }; id: string }>;
-    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<
-        | { result: string; id: string }
-        | {
-              result: {
-                  signature: string;
-                  address: string;
-                  timestamp: number;
-                  domain: string;
-                  payload: { type: string; text?: string; bytes?: string; schema?: string; cell?: string };
-              };
-              id: string;
-          }
-        | { error: { code: number; message: string }; id: string }
-    >;
+    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<IntentTransactionResponseSuccess>;
+    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<IntentSignDataResponseSuccess>;
+    rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentResponseError>;
+    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<IntentResponse>;
     processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
