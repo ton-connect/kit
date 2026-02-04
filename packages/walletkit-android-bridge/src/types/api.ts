@@ -292,13 +292,8 @@ export interface WalletKitBridgeApi {
     // Returns transactions array directly
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
-    // Returns transaction and optional preview
-    createTransferTonTransaction(
-        args: CreateTransferTonTransactionArgs,
-    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
-    createTransferMultiTonTransaction(
-        args: CreateTransferMultiTonTransactionArgs,
-    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
+    createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;
     handleNewTransaction(args: TransactionContentArgs): PromiseOrValue<{ success: boolean }>;
     // Returns result from wallet.sendTransaction
@@ -313,16 +308,10 @@ export interface WalletKitBridgeApi {
     disconnectSession(args?: DisconnectSessionArgs): PromiseOrValue<{ ok: boolean }>;
     getNfts(args: GetNftsArgs): PromiseOrValue<NFTsResponse>;
     getNft(args: GetNftArgs): PromiseOrValue<NFT | null>;
-    createTransferNftTransaction(
-        args: CreateTransferNftTransactionArgs,
-    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
-    createTransferNftRawTransaction(
-        args: CreateTransferNftRawTransactionArgs,
-    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    createTransferNftTransaction(args: CreateTransferNftTransactionArgs): PromiseOrValue<TransactionRequest>;
+    createTransferNftRawTransaction(args: CreateTransferNftRawTransactionArgs): PromiseOrValue<TransactionRequest>;
     getJettons(args: GetJettonsArgs): PromiseOrValue<JettonsResponse>;
-    createTransferJettonTransaction(
-        args: CreateTransferJettonTransactionArgs,
-    ): PromiseOrValue<{ transaction: TransactionRequest; preview?: TransactionEmulatedPreview }>;
+    createTransferJettonTransaction(args: CreateTransferJettonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getJettonBalance(args: GetJettonBalanceArgs): PromiseOrValue<string>;
     getJettonWalletAddress(args: GetJettonWalletAddressArgs): PromiseOrValue<string>;
     processInternalBrowserRequest(args: ProcessInternalBrowserRequestArgs): PromiseOrValue<TonConnectEventPayload>;
