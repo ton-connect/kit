@@ -23,6 +23,13 @@ export default {
         tryAgain: 'Try Again',
     },
 
+    // Balances
+    balances: {
+        sendTon: 'Send {{ amount }} TON',
+        sendJetton: 'Send {{ amount }} TON',
+        sendJettonWithAmount: 'Send {{ amount }} {{ symbol }}',
+    },
+
     // NFT
     nft: {
         onSale: 'On Sale',

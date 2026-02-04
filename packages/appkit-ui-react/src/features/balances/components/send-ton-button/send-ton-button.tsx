@@ -10,11 +10,21 @@ import type { FC } from 'react';
 
 import { SendButton } from '../send-button';
 import type { SendButtonProps } from '../send-button';
+import { useI18n } from '../../../../hooks/use-i18n';
 
 export type SendTonButtonProps = Omit<SendButtonProps, 'tokenType' | 'jettonAddress'>;
 
 export const SendTonButton: FC<SendTonButtonProps> = ({ recipientAddress, amount, comment, ...props }) => {
+    const { t } = useI18n();
+
     return (
-        <SendButton tokenType="TON" recipientAddress={recipientAddress} amount={amount} comment={comment} {...props} />
+        <SendButton
+            tokenType="TON"
+            recipientAddress={recipientAddress}
+            amount={amount}
+            comment={comment}
+            text={t('balances.sendTon', { amount })}
+            {...props}
+        />
     );
 };
