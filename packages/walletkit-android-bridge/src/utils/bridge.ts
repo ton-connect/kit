@@ -131,16 +131,3 @@ export async function clientCall<T = unknown>(
     }
     return (fn as (args?: unknown) => Promise<T>).call(apiClient, args);
 }
-
-/**
- * Calls a method on the WalletKit instance.
- * Passes args directly to the walletkit method.
- */
-export async function kitCall<T = unknown>(method: string, args: Record<string, unknown>): Promise<T> {
-    const instance = await ensureReady();
-    const fn = (instance as unknown as Record<string, unknown>)[method];
-    if (typeof fn !== 'function') {
-        throw new Error(`Method '${method}' not found on WalletKit`);
-    }
-    return (fn as (args: unknown) => Promise<T>).call(instance, args);
-}

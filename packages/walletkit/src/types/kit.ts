@@ -78,19 +78,22 @@ export interface ITonWalletKit {
     // === URL Processing ===
 
     /** Handle pasted TON Connect URL/link */
-    handleTonConnectUrl(url: string): Promise<void>;
+    handleTonConnectUrl(args: { url: string }): Promise<void>;
 
     /** Handle intent URL (tc://intent_inline?...) */
-    handleIntentUrl(url: string): Promise<void>;
+    handleIntentUrl(args: { url: string }): Promise<void>;
 
     /** Check if URL is an intent URL */
-    isIntentUrl(url: string): boolean;
+    isIntentUrl(args: { url: string }): boolean;
 
     /** Handle new transaction */
     handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
 
     /** Convert intent items to transaction request */
-    intentItemsToTransactionRequest(event: TransactionIntentEvent, wallet: Wallet): Promise<TransactionRequest>;
+    intentItemsToTransactionRequest(args: {
+        event: TransactionIntentEvent;
+        walletId: string;
+    }): Promise<TransactionRequest>;
 
     // === Request Processing ===
 

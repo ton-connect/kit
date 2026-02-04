@@ -520,15 +520,15 @@ export class TonWalletKit implements ITonWalletKit {
      * Handle pasted TON Connect URL/link
      * Parses the URL and creates a connect request event
      */
-    async handleTonConnectUrl(url: string): Promise<void> {
+    async handleTonConnectUrl(args: { url: string }): Promise<void> {
         await this.ensureInitialized();
 
         try {
             // Parse and validate the TON Connect URL
-            const parsedUrl = this.parseTonConnectUrl(url);
+            const parsedUrl = this.parseTonConnectUrl(args.url);
             if (!parsedUrl) {
                 throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid TON Connect URL format', undefined, {
-                    url,
+                    url: args.url,
                 });
             }
 
@@ -545,7 +545,7 @@ export class TonWalletKit implements ITonWalletKit {
 
             await this.eventRouter.routeEvent(bridgeEvent);
         } catch (error) {
-            log.error('Failed to handle TON Connect URL', { error, url });
+            log.error('Failed to handle TON Connect URL', { error, url: args.url });
             throw error;
         }
     }
@@ -575,26 +575,38 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Check if a URL is an intent URL (tc://intent_inline?... or tc://intent?...)
      */
-    isIntentUrl(url: string): boolean {
-        return this.intentHandler?.isIntentUrl(url) ?? false;
+    isIntentUrl(args: { url: string }): boolean {
+        return this.intentHandler?.isIntentUrl(args.url) ?? false;
     }
 
     /**
      * Handle an intent URL
      * Parses the URL and emits an intent event for the wallet UI
      */
-    async handleIntentUrl(url: string): Promise<void> {
+    async handleIntentUrl(args: { url: string }): Promise<void> {
         await this.ensureInitialized();
-        return this.intentHandler.handleIntentUrl(url);
+        return this.intentHandler.handleIntentUrl(args.url);
     }
 
     /**
      * Convert intent items to a transaction request
      * Used when approving an intent to build the actual transaction
      */
-    async intentItemsToTransactionRequest(event: TransactionIntentEvent, wallet: Wallet): Promise<TransactionRequest> {
+    async intentItemsToTransactionRequest(args: {
+        event: TransactionIntentEvent;
+        walletId: string;
+    }): Promise<TransactionRequest> {
         await this.ensureInitialized();
-        return this.intentHandler.intentItemsToTransactionRequest(event.items, wallet, event.network, event.validUntil);
+        const wallet = this.getWallet(args.walletId);
+        if (!wallet) {
+            throw new Error(`Wallet not found: ${args.walletId}`);
+        }
+        return this.intentHandler.intentItemsToTransactionRequest(
+            args.event.items,
+            wallet,
+            args.event.network,
+            args.event.validUntil,
+        );
     }
 
     /**
@@ -603,16 +615,16 @@ export class TonWalletKit implements ITonWalletKit {
      * For txIntent: Signs and sends the transaction to the blockchain
      * For signMsg: Signs but does NOT send (for gasless transactions)
      *
-     * @param event - The transaction intent event
-     * @param walletId - The wallet ID to use for signing
+     * @param args.event - The transaction intent event
+     * @param args.walletId - The wallet ID to use for signing
      * @returns The approval response with signed BoC
      */
-    async approveTransactionIntent(
-        event: TransactionIntentEvent,
-        walletId: string,
-    ): Promise<IntentTransactionResponseSuccess> {
+    async approveTransactionIntent(args: {
+        event: TransactionIntentEvent;
+        walletId: string;
+    }): Promise<IntentTransactionResponseSuccess> {
         await this.ensureInitialized();
-        return this.intentHandler.approveTransactionIntent(event, walletId);
+        return this.intentHandler.approveTransactionIntent(args.event, args.walletId);
     }
 
     /**
@@ -620,13 +632,16 @@ export class TonWalletKit implements ITonWalletKit {
      *
      * Signs the data and returns the signature.
      *
-     * @param event - The sign data intent event
-     * @param walletId - The wallet ID to use for signing
+     * @param args.event - The sign data intent event
+     * @param args.walletId - The wallet ID to use for signing
      * @returns The approval response with signature
      */
-    async approveSignDataIntent(event: SignDataIntentEvent, walletId: string): Promise<IntentSignDataResponseSuccess> {
+    async approveSignDataIntent(args: {
+        event: SignDataIntentEvent;
+        walletId: string;
+    }): Promise<IntentSignDataResponseSuccess> {
         await this.ensureInitialized();
-        return this.intentHandler.approveSignDataIntent(event, walletId);
+        return this.intentHandler.approveSignDataIntent(args.event, args.walletId);
     }
 
     /**
@@ -634,13 +649,13 @@ export class TonWalletKit implements ITonWalletKit {
      *
      * Fetches action details from URL and executes the action.
      *
-     * @param event - The action intent event
-     * @param walletId - The wallet ID to use for signing
+     * @param args.event - The action intent event
+     * @param args.walletId - The wallet ID to use for signing
      * @returns The approval response (transaction or sign data)
      */
-    async approveActionIntent(event: ActionIntentEvent, walletId: string): Promise<IntentResponse> {
+    async approveActionIntent(args: { event: ActionIntentEvent; walletId: string }): Promise<IntentResponse> {
         await this.ensureInitialized();
-        return this.intentHandler.approveActionIntent(event, walletId);
+        return this.intentHandler.approveActionIntent(args.event, args.walletId);
     }
 
     /**
@@ -648,29 +663,33 @@ export class TonWalletKit implements ITonWalletKit {
      *
      * Creates a proper session for the dApp after intent approval.
      *
-     * @param event - The intent event with connect request
-     * @param walletId - The wallet to use for the connection
-     * @param proof - Optional proof response
+     * @param args.event - The intent event with connect request
+     * @param args.walletId - The wallet to use for the connection
+     * @param args.proof - Optional proof response
      */
-    async processConnectAfterIntent(
-        event: IntentEvent,
-        walletId: string,
-        proof?: ConnectionApprovalProof,
-    ): Promise<void> {
+    async processConnectAfterIntent(args: {
+        event: IntentEvent;
+        walletId: string;
+        proof?: ConnectionApprovalProof;
+    }): Promise<void> {
         await this.ensureInitialized();
-        return this.intentHandler.processConnectAfterIntent(event, walletId, proof);
+        return this.intentHandler.processConnectAfterIntent(args.event, args.walletId, args.proof);
     }
 
     /**
      * Reject an intent request
      *
-     * @param event - The intent event to reject
-     * @param reason - Optional rejection reason
-     * @param errorCode - Optional error code (defaults to USER_DECLINED)
+     * @param args.event - The intent event to reject
+     * @param args.reason - Optional rejection reason
+     * @param args.errorCode - Optional error code (defaults to USER_DECLINED)
      * @returns The rejection response
      */
-    async rejectIntent(event: IntentEvent, reason?: string, errorCode?: IntentErrorCode): Promise<IntentResponseError> {
-        return this.intentHandler.rejectIntent(event, reason, errorCode);
+    async rejectIntent(args: {
+        event: IntentEvent;
+        reason?: string;
+        errorCode?: IntentErrorCode;
+    }): Promise<IntentResponseError> {
+        return this.intentHandler.rejectIntent(args.event, args.reason, args.errorCode);
     }
 
     /**
