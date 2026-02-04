@@ -88,7 +88,7 @@ export class TonConnectConnector implements Connector {
             const walletAdapter = new TonConnectWalletAdapter({
                 connectorId: this.id,
                 tonConnectWallet: wallet,
-                tonConnect: this.tonConnect.connector,
+                tonConnect: this.tonConnect,
                 client,
             });
 

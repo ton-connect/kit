@@ -10,4 +10,4 @@ export { useSendTransaction } from './hooks/use-send-transaction';
 export { useTransferTon } from './hooks/use-transfer-ton';
 export { Transaction } from './components/transaction';
 
-export type { TransactionProps } from './components/transaction';
+export type { TransactionProps, TransactionRenderProps } from './components/transaction';

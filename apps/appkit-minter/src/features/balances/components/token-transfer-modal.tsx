@@ -8,9 +8,8 @@
 
 import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/walletkit';
-import { getFormattedJettonInfo, formatUnits } from '@ton/appkit';
-
-import { TokenTransferButton } from './token-transfer-button';
+import { getFormattedJettonInfo, formatUnits, parseUnits } from '@ton/appkit';
+import { TransferButton } from '@ton/appkit-ui-react';
 
 import { Button } from '@/core/components';
 
@@ -70,7 +69,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
         onClose();
     };
 
-    if (!isOpen) return null;
+    if (!isOpen || !tokenInfo.decimals) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -162,15 +161,21 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                     </div>
 
                     <div className="flex mt-6 gap-3">
-                        <TokenTransferButton
+                        <TransferButton
                             tokenType={tokenType}
-                            jetton={jetton}
+                            jettonAddress={jetton?.address}
                             recipientAddress={recipientAddress}
-                            amount={amount}
+                            amount={parseUnits(amount, tokenInfo.decimals).toString()}
                             comment={comment}
                             onError={setTransferError}
                             onSuccess={handleClose}
-                        />
+                        >
+                            {({ isLoading, onSubmit, disabled, text }) => (
+                                <Button isLoading={isLoading} onClick={onSubmit} disabled={disabled} className="flex-1">
+                                    {text}
+                                </Button>
+                            )}
+                        </TransferButton>
 
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel

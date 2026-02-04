@@ -7,7 +7,7 @@
  */
 
 import { Address } from '@ton/core';
-import type { ITonConnect, SignDataPayload, SignDataPayloadCell, Wallet as TonConnectWallet } from '@tonconnect/sdk';
+import type { SignDataPayload, SignDataPayloadCell, Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import type { CHAIN } from '@tonconnect/protocol';
 import type {
     ApiClient,
@@ -54,6 +54,7 @@ import {
     getNftsFromClient,
     getNftFromClient,
 } from '@ton/walletkit';
+import type { TonConnectUI } from '@tonconnect/ui';
 
 import { getValidUntil } from '../utils/transaction';
 import type { WalletInterface } from '../../../types/wallet';
@@ -64,7 +65,7 @@ import type { WalletInterface } from '../../../types/wallet';
 export interface TonConnectWalletAdapterConfig {
     connectorId: string;
     tonConnectWallet: TonConnectWallet;
-    tonConnect: ITonConnect;
+    tonConnect: TonConnectUI;
     client: ApiClient;
 }
 
@@ -73,7 +74,7 @@ export interface TonConnectWalletAdapterConfig {
  */
 export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectWallet: TonConnectWallet;
-    public readonly tonConnect: ITonConnect;
+    public readonly tonConnect: TonConnectUI;
     public readonly client: ApiClient;
     public readonly connectorId: string;
 
