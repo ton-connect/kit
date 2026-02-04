@@ -78,7 +78,7 @@ export interface ITonWalletKit {
     // === URL Processing ===
 
     /** Handle pasted TON Connect URL/link */
-    handleTonConnectUrl(args: { url: string }): Promise<void>;
+    handleTonConnectUrl(url: string): Promise<void>;
 
     /** Handle intent URL (tc://intent_inline?...) */
     handleIntentUrl(args: { url: string }): Promise<void>;

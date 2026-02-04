@@ -520,15 +520,15 @@ export class TonWalletKit implements ITonWalletKit {
      * Handle pasted TON Connect URL/link
      * Parses the URL and creates a connect request event
      */
-    async handleTonConnectUrl(args: { url: string }): Promise<void> {
+    async handleTonConnectUrl(url: string): Promise<void> {
         await this.ensureInitialized();
 
         try {
             // Parse and validate the TON Connect URL
-            const parsedUrl = this.parseTonConnectUrl(args.url);
+            const parsedUrl = this.parseTonConnectUrl(url);
             if (!parsedUrl) {
                 throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid TON Connect URL format', undefined, {
-                    url: args.url,
+                    url,
                 });
             }
 
@@ -545,7 +545,7 @@ export class TonWalletKit implements ITonWalletKit {
 
             await this.eventRouter.routeEvent(bridgeEvent);
         } catch (error) {
-            log.error('Failed to handle TON Connect URL', { error, url: args.url });
+            log.error('Failed to handle TON Connect URL', { error, url });
             throw error;
         }
     }
