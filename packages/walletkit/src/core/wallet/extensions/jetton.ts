@@ -148,6 +148,7 @@ export class WalletJettonClass implements WalletJettonInterface {
             );
 
             const parsedStack = ParseStack(result.stack);
+
             // Extract the jetton wallet address from the result
             if (!parsedStack || parsedStack.length === 0 || !parsedStack[0]) {
                 throw new Error('Empty response from jetton master contract - jetton may not exist');
