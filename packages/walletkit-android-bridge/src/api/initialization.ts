@@ -22,7 +22,8 @@ import type {
 
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
 import { ensureWalletKitLoaded } from '../core/moduleLoader';
-import { initTonWalletKit, requireWalletKit } from '../core/initialization';
+import { initTonWalletKit } from '../core/initialization';
+import { getKit } from '../utils/bridge';
 import { emit } from '../transport/messaging';
 import { postToNative } from '../transport/nativeBridge';
 import { eventListeners } from './eventListeners';
@@ -44,8 +45,8 @@ export async function init(config?: WalletKitBridgeInitConfig) {
 /**
  * Registers bridge event listeners, proxying WalletKit events to the native layer.
  */
-export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } {
-    const kit = requireWalletKit();
+export async function setEventsListeners(args?: SetEventsListenersArgs): Promise<{ ok: true }> {
+    const kit = await getKit();
 
     const callback: WalletKitBridgeEventCallback =
         args?.callback ??
@@ -110,8 +111,8 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
 /**
  * Removes all previously registered bridge event listeners.
  */
-export function removeEventListeners(): { ok: true } {
-    const kit = requireWalletKit();
+export async function removeEventListeners(): Promise<{ ok: true }> {
+    const kit = await getKit();
 
     if (eventListeners.onConnectListener) {
         kit.removeConnectRequestCallback();

@@ -89,16 +89,16 @@ export interface GetRecentTransactionsArgs {
 
 export interface CreateTransferTonTransactionArgs {
     walletId: string;
-    toAddress: string;
-    amount: string;
+    recipientAddress: string;
+    transferAmount: string;
     comment?: string;
     body?: string;
     stateInit?: string;
 }
 
 export interface MultiTransferMessage {
-    toAddress: string;
-    amount: string;
+    recipientAddress: string;
+    transferAmount: string;
     comment?: string;
     body?: string;
     stateInit?: string;
@@ -127,7 +127,6 @@ export interface TonConnectRequestEvent extends BridgeEvent {
 
 export interface ApproveConnectRequestArgs {
     event: TonConnectRequestEvent;
-    walletId: string;
     response?: {
         proof: {
             signature: string;
@@ -149,7 +148,6 @@ export interface RejectConnectRequestArgs {
 
 export interface ApproveTransactionRequestArgs {
     event: TonConnectRequestEvent;
-    walletId?: string;
     response?: {
         signedBoc: string;
     };
@@ -157,13 +155,11 @@ export interface ApproveTransactionRequestArgs {
 
 export interface RejectTransactionRequestArgs {
     event: TonConnectRequestEvent;
-    reason?: string;
-    errorCode?: number;
+    reason?: string | { code: number; message: string };
 }
 
 export interface ApproveSignDataRequestArgs {
     event: TonConnectRequestEvent;
-    walletId?: string;
     response?: {
         signature: string;
         timestamp: number;
@@ -174,7 +170,6 @@ export interface ApproveSignDataRequestArgs {
 export interface RejectSignDataRequestArgs {
     event: TonConnectRequestEvent;
     reason?: string;
-    errorCode?: number;
 }
 
 export interface DisconnectSessionArgs {
@@ -196,8 +191,8 @@ export interface GetNftArgs {
 export interface CreateTransferNftTransactionArgs {
     walletId: string;
     nftAddress: string;
-    transferAmount: string;
-    toAddress: string;
+    transferAmount?: string;
+    recipientAddress: string;
     comment?: string;
 }
 
@@ -205,7 +200,7 @@ export interface CreateTransferNftRawTransactionArgs {
     walletId: string;
     nftAddress: string;
     transferAmount: string;
-    transferMessage: TransactionRequest;
+    message: TransactionRequest;
 }
 
 export interface GetJettonsArgs {
@@ -216,8 +211,8 @@ export interface GetJettonsArgs {
 export interface CreateTransferJettonTransactionArgs {
     walletId: string;
     jettonAddress: string;
-    amount: string;
-    toAddress: string;
+    transferAmount: string;
+    recipientAddress: string;
     comment?: string;
 }
 

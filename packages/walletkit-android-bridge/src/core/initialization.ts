@@ -208,16 +208,3 @@ export async function initTonWalletKit(
     log('[walletkitBridge] WalletKit ready');
     return { ok: true };
 }
-
-/**
- * Ensures WalletKit has been initialized before performing an operation.
- * Returns the initialized WalletKit instance for type-safe usage.
- *
- * @throws If WalletKit is not yet ready.
- */
-export function requireWalletKit(): NonNullable<typeof walletKit> {
-    if (!walletKit) {
-        throw new Error('WalletKit not initialized');
-    }
-    return walletKit;
-}

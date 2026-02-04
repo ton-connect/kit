@@ -9,62 +9,12 @@
 /**
  * jettons.ts – Jetton operations
  *
- * Simplified bridge for jetton balance queries and transfer transactions.
+ * Minimal bridge for jetton operations.
  */
 
-import type { JettonsResponse, TransactionRequest, TransactionEmulatedPreview } from '@ton/walletkit';
+import { walletCall } from '../utils/bridge';
 
-import type {
-    GetJettonsArgs,
-    CreateTransferJettonTransactionArgs,
-    GetJettonBalanceArgs,
-    GetJettonWalletAddressArgs,
-} from '../types';
-import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
-
-/**
- * Fetches jetton balances for a wallet with optional pagination.
- */
-export async function getJettons(args: GetJettonsArgs): Promise<JettonsResponse> {
-    return callBridge('getJettons', async () => {
-        return await callOnWalletBridge<JettonsResponse>(args.walletId, 'getJettons', {
-            pagination: args.pagination,
-        });
-    });
-}
-
-type JettonTransactionResult = { transaction: TransactionRequest; preview?: TransactionEmulatedPreview };
-
-/**
- * Builds a jetton transfer transaction.
- */
-export async function createTransferJettonTransaction(
-    args: CreateTransferJettonTransactionArgs,
-): Promise<JettonTransactionResult> {
-    return callBridge('createTransferJettonTransaction', async () => {
-        return await callOnWalletBridge<JettonTransactionResult>(args.walletId, 'createTransferJettonTransaction', {
-            jettonAddress: args.jettonAddress,
-            amount: args.amount,
-            toAddress: args.toAddress,
-            comment: args.comment,
-        });
-    });
-}
-
-/**
- * Retrieves a jetton balance for the specified wallet.
- */
-export async function getJettonBalance(args: GetJettonBalanceArgs): Promise<string> {
-    return callBridge('getJettonBalance', async () => {
-        return await callOnWalletBridge<string>(args.walletId, 'getJettonBalance', args.jettonAddress);
-    });
-}
-
-/**
- * Resolves the jetton wallet address for a specific jetton contract.
- */
-export async function getJettonWalletAddress(args: GetJettonWalletAddressArgs): Promise<string> {
-    return callBridge('getJettonWalletAddress', async () => {
-        return await callOnWalletBridge<string>(args.walletId, 'getJettonWalletAddress', args.jettonAddress);
-    });
-}
+export const getJettons = (args: { walletId: string }) => walletCall('getJettons', args);
+export const createTransferJettonTransaction = (args: { walletId: string }) => walletCall('createTransferJettonTransaction', args);
+export const getJettonBalance = (args: { walletId: string }) => walletCall('getJettonBalance', args);
+export const getJettonWalletAddress = (args: { walletId: string }) => walletCall('getJettonWalletAddress', args);

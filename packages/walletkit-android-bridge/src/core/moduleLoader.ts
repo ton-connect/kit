@@ -26,7 +26,7 @@ type AdapterFactory = {
 
 type WalletKitModule = {
     TonWalletKit: TonWalletKitConstructor;
-    CreateTonMnemonic?: () => Promise<string[] | string>;
+    CreateTonMnemonic?: () => Promise<string[]>;
     MnemonicToKeyPair?: (
         mnemonic: string[],
         type: string,
@@ -41,7 +41,7 @@ type WalletKitModule = {
 };
 
 export let TonWalletKit: TonWalletKitConstructor | null = null;
-export let CreateTonMnemonic: (() => Promise<string[] | string>) | null = null;
+export let CreateTonMnemonic: (() => Promise<string[]>) | null = null;
 export let MnemonicToKeyPair:
     | ((mnemonic: string[], type: string) => Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }>)
     | null = null;
