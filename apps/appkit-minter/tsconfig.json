@@ -7,9 +7,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components": ["./src/core/components"],
+      "@/components/*": ["./src/core/components/*"],
+      "@/hooks": ["./src/core/hooks"],
+      "@/hooks/*": ["./src/core/hooks/*"],
+      "@/lib/*": ["./src/core/lib/*"]
     }
   }
 }

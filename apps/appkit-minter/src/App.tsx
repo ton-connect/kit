@@ -6,40 +6,17 @@
  *
  */
 
-import React, { useEffect } from 'react';
-import { AppKitProvider } from '@ton/appkit-ui-react';
-import { TonConnectUIProvider, useTonConnectUI } from '@tonconnect/ui-react';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { Toaster } from 'sonner';
 
-import { appKit } from './services/app-kit';
+import { AppKitBridge } from '@/features/wallet';
+import { AppRouter, ThemeProvider } from '@/core/components';
 
-import { AppRouter, ThemeProvider } from '@/components';
-
-import './app.css';
+import './core/styles/app.css';
 import '@ton/appkit-ui-react/styles.css';
 
 // TonConnect manifest URL - in production, host your own manifest
 const MANIFEST_URL = 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json';
-
-function AppKitBridge({ children }: { children: React.ReactNode }) {
-    const [tonConnectUI] = useTonConnectUI();
-
-    // Register TonConnect provider
-    useEffect(() => {
-        if (!tonConnectUI) return;
-
-        const unregister = appKit.addConnector(
-            new TonConnectConnector({
-                tonConnect: tonConnectUI,
-            }),
-        );
-
-        return unregister;
-    }, [tonConnectUI]);
-
-    return <AppKitProvider appKit={appKit}>{children}</AppKitProvider>;
-}
 
 function App() {
     return (

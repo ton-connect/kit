@@ -7,7 +7,7 @@
  */
 
 import { formatUnits } from '@ton/appkit';
-import type { FC, ComponentProps, ReactNode } from 'react';
+import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
 import { CircleIcon } from '../../../../components/circle-icon';
