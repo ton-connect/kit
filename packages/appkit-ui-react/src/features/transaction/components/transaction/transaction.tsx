@@ -61,7 +61,7 @@ const TransactionContent: FC<TransactionContentProps> = ({ text, children, ...pr
         if (receipt) {
             return t('transaction.success');
         }
-        return text ?? t('transaction.confirm');
+        return text ?? t('transaction.sendTransaction');
     }, [isLoading, receipt, error, text, t]);
 
     if (children) {

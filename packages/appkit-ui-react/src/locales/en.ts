@@ -17,7 +17,7 @@ export default {
 
     // Transaction
     transaction: {
-        confirm: 'Confirm',
+        sendTransaction: 'Send Transaction',
         processing: 'Processing...',
         success: 'Success',
         tryAgain: 'Try Again',
