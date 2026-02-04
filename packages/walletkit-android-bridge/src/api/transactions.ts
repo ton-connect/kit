@@ -14,7 +14,7 @@
 
 import type { TransactionRequest } from '@ton/walletkit';
 
-import { wallet, clientCall, walletCall, getKit, getWallet } from '../utils/bridge';
+import { walletCall, clientCall, getKit, getWallet } from '../utils/bridge';
 
 export const createTransferTonTransaction = (args: { walletId: string }) =>
     walletCall('createTransferTonTransaction', args);
