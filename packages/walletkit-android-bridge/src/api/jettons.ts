@@ -15,6 +15,7 @@
 import { walletCall } from '../utils/bridge';
 
 export const getJettons = (args: { walletId: string }) => walletCall('getJettons', args);
-export const createTransferJettonTransaction = (args: { walletId: string }) => walletCall('createTransferJettonTransaction', args);
+export const createTransferJettonTransaction = (args: { walletId: string }) =>
+    walletCall('createTransferJettonTransaction', args);
 export const getJettonBalance = (args: { walletId: string }) => walletCall('getJettonBalance', args);
 export const getJettonWalletAddress = (args: { walletId: string }) => walletCall('getJettonWalletAddress', args);

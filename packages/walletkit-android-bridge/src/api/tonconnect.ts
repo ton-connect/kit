@@ -24,7 +24,7 @@ export async function disconnectSession(args?: string) {
 /**
  * Processes internal browser TonConnect requests.
  * args: [messageInfo, request] where messageInfo has { messageId, tabId, domain }
- * 
+ *
  * This function calls processInjectedBridgeRequest and then waits for the response
  * to come back via jsBridgeTransport (which resolves the promise via the resolver map).
  */
@@ -32,14 +32,14 @@ export async function processInternalBrowserRequest(args: unknown[]) {
     // Extract messageId from messageInfo (first element of args array)
     const messageInfo = args[0] as { messageId?: string } | undefined;
     const messageId = messageInfo?.messageId;
-    
+
     if (!messageId) {
         throw new Error('processInternalBrowserRequest: messageId is required in messageInfo');
     }
-    
+
     // Call processInjectedBridgeRequest - this queues the event but doesn't return the response
     await kit('processInjectedBridgeRequest', ...args);
-    
+
     // Wait for response from jsBridgeTransport (via initialization.ts)
     return new Promise<unknown>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
