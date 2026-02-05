@@ -153,7 +153,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        options: { fakeSignature: boolean },
+        options?: { fakeSignature?: boolean; internal?: boolean },
     ): Promise<Base64String> {
         const actions = packActionsList(
             input.messages.map((m) => {
@@ -201,7 +201,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             }),
         );
 
-        const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
+        const createBodyOptions: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean } = {
             ...options,
             validUntil: undefined,
         };
@@ -309,15 +309,24 @@ export class WalletV5R1Adapter implements WalletAdapter {
         seqno: number,
         walletId: bigint,
         actionsList: Cell,
-        options: { validUntil: number | undefined; fakeSignature: boolean },
+        options: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean },
     ) {
         const Opcodes = {
             auth_signed: 0x7369676e,
+            auth_signed_internal: 0x73696e74,
         };
+
+        // Use internal opcode for gasless relaying (signMsg intent)
+        const opcode = options.internal ? Opcodes.auth_signed_internal : Opcodes.auth_signed;
+        log.debug('createBodyV5 signing with opcode', {
+            internal: options.internal,
+            opcode: `0x${opcode.toString(16)}`,
+            opcodeAscii: Buffer.from(opcode.toString(16), 'hex').toString('ascii'),
+        });
 
         const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
         const payload = beginCell()
-            .storeUint(Opcodes.auth_signed, 32)
+            .storeUint(opcode, 32)
             .storeUint(walletId, 32)
             .storeUint(expireAt, 32)
             .storeUint(seqno, 32) // seqno

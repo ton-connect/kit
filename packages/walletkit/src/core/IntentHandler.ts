@@ -486,7 +486,10 @@ export class IntentHandler {
         );
 
         // Sign the transaction
-        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
+        // signMsg uses internal opcode (0x73696e74) for gasless relaying
+        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
+            internal: event.type === 'signMsg',
+        });
 
         // For txIntent, send to blockchain
         if (event.type === 'txIntent') {
