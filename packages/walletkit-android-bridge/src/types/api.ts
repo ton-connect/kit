@@ -105,6 +105,17 @@ export interface TonConnectRequestEvent extends Record<string, unknown> {
 export interface ApproveConnectRequestArgs {
     event: TonConnectRequestEvent;
     walletId: string;
+    response?: {
+        proof: {
+            signature: string;
+            timestamp: number;
+            domain: {
+                lengthBytes: number;
+                value: string;
+            };
+            payload: string;
+        };
+    };
 }
 
 export interface RejectConnectRequestArgs {
@@ -116,6 +127,9 @@ export interface RejectConnectRequestArgs {
 export interface ApproveTransactionRequestArgs {
     event: TonConnectRequestEvent;
     walletId?: string;
+    response?: {
+        signedBoc: string;
+    };
 }
 
 export interface RejectTransactionRequestArgs {
@@ -127,6 +141,11 @@ export interface RejectTransactionRequestArgs {
 export interface ApproveSignDataRequestArgs {
     event: TonConnectRequestEvent;
     walletId?: string;
+    response?: {
+        signature: string;
+        timestamp: number;
+        domain: string;
+    };
 }
 
 export interface RejectSignDataRequestArgs {

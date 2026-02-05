@@ -1,5 +1,29 @@
 # @ton/walletkit
 
+## 0.0.6
+
+### Patch Changes
+
+### Added
+
+-   Custom `SessionManager` injection support via WalletKit options
+-   Custom `ApiClient` implementation support for iOS/Android bridges
+-   Session storage versioning with migration support for future releases
+
+### Changed
+
+-   Replace `bip39` with lightweight `@scure/bip39`
+
+### Removed
+
+-   `@truecarry/tlb-abi` dependency
+-   `tlb-runtime` dependency (SignData Cell preview temporarily unavailable)
+
+### Breaking
+
+-   Existing sessions will be invalidated due to storage format changes
+-   Approval API for connect/transaction/sign requests now accepts prepared results via second argument
+
 ## 0.0.5
 
 ### Patch Changes

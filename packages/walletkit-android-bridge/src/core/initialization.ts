@@ -9,7 +9,7 @@
 /**
  * WalletKit initialization helpers used by the bridge entry point.
  */
-import { Network, TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
+import { TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
 import type { WalletKitBridgeInitConfig, BridgePayload, WalletKitBridgeEvent, WalletKitInstance } from '../types';
@@ -21,6 +21,7 @@ import {
     hasAndroidSessionManager,
     AndroidTONConnectSessionsManager,
 } from '../adapters/AndroidTONConnectSessionsManager';
+import { AndroidAPIClientAdapter } from '../adapters/AndroidAPIClientAdapter';
 
 export interface InitTonWalletKitDeps {
     emit: (type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeEvent['data']) => void;
@@ -65,22 +66,35 @@ export async function initTonWalletKit(
 
     await ensureWalletKitLoaded();
 
-    const networkRaw = (config?.network as string | undefined) ?? 'testnet';
-    const network = networkRaw === 'mainnet' ? Network.mainnet().chainId : Network.testnet().chainId;
-
-    const tonApiUrl = config?.tonApiUrl || config?.apiBaseUrl;
-    const clientEndpoint = config?.tonClientEndpoint || config?.apiUrl;
-
     log('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
 
-    // Build networks config - the new SDK requires networks as an object keyed by chain ID
-    const apiClientConfig = clientEndpoint ? { url: clientEndpoint } : undefined;
-    const networksConfig: Record<string, { apiClient?: { url: string } }> = {
-        [network]: { apiClient: apiClientConfig },
-    };
+    // Build networks config from networkConfigurations (like iOS bridge does)
+    const networksConfig: Record<string, { apiClient?: { url?: string; key?: string } | AndroidAPIClientAdapter }> = {};
+
+    if (config?.networkConfigurations && Array.isArray(config.networkConfigurations)) {
+        for (const netConfig of config.networkConfigurations) {
+            networksConfig[netConfig.network.chainId] = {
+                apiClient: netConfig.apiClientConfiguration,
+            };
+            log('[walletkitBridge] Added network from networkConfigurations:', netConfig.network.chainId);
+        }
+    }
+
+    // Check if native API clients are available and use them if so
+    if (AndroidAPIClientAdapter.isAvailable()) {
+        log('[walletkitBridge] Native API clients available, checking for configured networks');
+        const availableNetworks = AndroidAPIClientAdapter.getAvailableNetworks();
+        log('[walletkitBridge] Available native API networks:', JSON.stringify(availableNetworks));
+
+        for (const nativeNetwork of availableNetworks) {
+            log('[walletkitBridge] Using native API client for network:', nativeNetwork.chainId);
+            networksConfig[nativeNetwork.chainId] = {
+                apiClient: new AndroidAPIClientAdapter(nativeNetwork),
+            };
+        }
+    }
 
     const kitOptions: Record<string, unknown> = {
-        network,
         networks: networksConfig,
     };
 
@@ -183,8 +197,8 @@ export async function initTonWalletKit(
         await (walletKit as unknown as WalletKitInstance)?.ensureInitialized?.();
     }
 
-    deps.emit('ready', { network: networkRaw, tonApiUrl, tonClientEndpoint: clientEndpoint });
-    deps.postToNative({ kind: 'ready', network: networkRaw, tonApiUrl, tonClientEndpoint: clientEndpoint });
+    deps.emit('ready', {});
+    deps.postToNative({ kind: 'ready' });
     log('[walletkitBridge] WalletKit ready');
     return { ok: true };
 }

@@ -12,17 +12,23 @@ import type { WalletAdapter, WalletSigner, Network } from '@ton/walletkit';
  * Configuration and bridge-facing types for Ton WalletKit.
  */
 export interface WalletKitBridgeInitConfig {
-    network?: string;
-    apiUrl?: string;
-    apiBaseUrl?: string;
-    tonApiUrl?: string;
-    tonClientEndpoint?: string;
     bridgeUrl?: string;
     bridgeName?: string;
     allowMemoryStorage?: boolean;
     walletManifest?: unknown;
     deviceInfo?: unknown;
     disableNetworkSend?: boolean;
+    /**
+     * Network configurations matching native SDK format.
+     * Each entry has a network with chainId and optional apiClientConfiguration.
+     */
+    networkConfigurations?: Array<{
+        network: { chainId: string };
+        apiClientConfiguration?: {
+            url?: string;
+            key?: string;
+        };
+    }>;
 }
 
 export interface AndroidBridgeType {
@@ -87,11 +93,11 @@ export interface WalletKitInstance {
     removeDisconnectCallback(): void;
     onRequestError(callback: (event: unknown) => void): void;
     removeErrorCallback(): void;
-    // Request approval methods
-    approveConnectRequest(event: unknown): Promise<unknown>;
+    // Request approval methods - event and response are separate parameters
+    approveConnectRequest(event: unknown, response?: unknown): Promise<unknown>;
     rejectConnectRequest(event: unknown, reason?: string, errorCode?: number): Promise<unknown>;
-    approveTransactionRequest(event: unknown): Promise<unknown>;
+    approveTransactionRequest(event: unknown, response?: unknown): Promise<unknown>;
     rejectTransactionRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
-    approveSignDataRequest(event: unknown): Promise<unknown>;
+    approveSignDataRequest(event: unknown, response?: unknown): Promise<unknown>;
     rejectSignDataRequest(event: unknown, reason?: string | { code: number; message: string }): Promise<unknown>;
 }
