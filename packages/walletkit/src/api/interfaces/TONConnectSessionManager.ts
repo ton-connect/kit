@@ -45,33 +45,26 @@ export interface TONConnectSessionManager {
     getSession(sessionId: string): Promise<TONConnectSession | undefined>;
 
     /**
-     * Get session by domain
-     * @param domain - The domain to search for
+     * Get sessions as array filtered by optional parameters
+     * @param parameters - parameters to find sessions
      */
-    getSessionByDomain(domain: string): Promise<TONConnectSession | undefined>;
-
-    /**
-     * Get all sessions as array
-     */
-    getSessions(): Promise<TONConnectSession[]>;
-
-    /**
-     * Get sessions for specific wallet by wallet ID
-     * @param walletId - The wallet ID to filter by
-     */
-    getSessionsForWallet(walletId: WalletId): Promise<TONConnectSession[]>;
+    getSessions(filter?: { walletId?: WalletId; domain?: string; isJsBridge?: boolean }): Promise<TONConnectSession[]>;
 
     /**
      * Remove session by ID
      * @param sessionId - The session ID to remove
      */
-    removeSession(sessionId: string): Promise<void>;
+    removeSession(sessionId: string): Promise<TONConnectSession | undefined>;
 
     /**
-     * Remove all sessions for a wallet by wallet ID
-     * @param walletId - Wallet ID string
+     * Remove all sessions for a optional parameters
+     * @param parameters - parameters to remove sessions
      */
-    removeSessionsForWallet(walletId: WalletId): Promise<void>;
+    removeSessions(filter?: {
+        walletId?: WalletId;
+        domain?: string;
+        isJsBridge?: boolean;
+    }): Promise<TONConnectSession[]>;
 
     /**
      * Clear all sessions

@@ -12,6 +12,7 @@ import type { WalletInfo } from '@tonconnect/sdk';
 
 import type { TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_RESPONSE } from '../bridge/utils/messageTypes';
 import type { TONCONNECT_BRIDGE_REQUEST } from '../bridge/utils/messageTypes';
+import type { WalletId } from '../utils';
 
 export { type Feature, type DeviceInfo, type WalletInfo };
 
@@ -97,6 +98,7 @@ export interface JSBridgeInjectOptions {
     jsBridgeKey?: string;
     injectTonKey?: boolean;
     isWalletBrowser?: boolean;
+    walletId?: WalletId;
 }
 
 /**
@@ -115,6 +117,7 @@ export interface InjectedToExtensionBridgeRequestPayload {
     params: Array<unknown> | Record<string, unknown>;
     from?: string;
     traceId?: string;
+    walletId?: WalletId;
 }
 
 export interface BridgeResponse {
