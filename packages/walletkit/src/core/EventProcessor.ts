@@ -186,7 +186,10 @@ export class StorageEventProcessor implements IEventProcessor {
 
             // Try to acquire lock on the first (oldest) event
             const eventToUse = allEvents[0];
-            const walletId = allSessions.find((s) => s.sessionId === eventToUse.sessionId)?.walletId || 'no-wallet';
+            const walletId =
+                allSessions.find((s) => s.sessionId === eventToUse.sessionId)?.walletId ||
+                eventToUse.rawEvent.walletId ||
+                'no-wallet';
 
             // Process the event
             const processed = await this.processEvent(eventToUse, walletId);

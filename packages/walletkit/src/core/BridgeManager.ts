@@ -591,6 +591,7 @@ export class BridgeManager {
                 tabId: event?.tabId,
                 messageId: event?.messageId,
                 traceId: event?.traceId,
+                walletId: event?.walletId,
             };
 
             if (!rawEvent.traceId) {
@@ -617,7 +618,14 @@ export class BridgeManager {
                     };
                 }
             } else if (rawEvent.domain) {
-                const session = await this.sessionManager.getSessionByDomain(rawEvent.domain);
+                const sessions = await this.sessionManager.getSessions({
+                    walletId: event.walletId,
+                    domain: rawEvent.domain,
+                    isJsBridge: rawEvent.isJsBridge,
+                });
+
+                const session = sessions.length > 0 ? sessions[0] : undefined;
+
                 if (session?.walletId) {
                     rawEvent.walletId = session.walletId;
                 }
