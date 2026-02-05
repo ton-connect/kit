@@ -591,6 +591,7 @@ export class BridgeManager {
                 tabId: event?.tabId,
                 messageId: event?.messageId,
                 traceId: event?.traceId,
+                walletId: event?.walletId,
             };
 
             if (!rawEvent.traceId) {
@@ -616,8 +617,8 @@ export class BridgeManager {
                         iconUrl: session.dAppIconUrl,
                     };
                 }
-            } else if (rawEvent.domain && rawEvent.walletId) {
-                const sessions = await this.sessionManager.getSessionsForWallet(rawEvent.walletId);
+            } else if (rawEvent.domain) {
+                const sessions = await this.sessionManager.getSessions();
 
                 let host;
                 try {
