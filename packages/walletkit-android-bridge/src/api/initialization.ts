@@ -15,6 +15,7 @@
 import type {
     ConnectionRequestEvent,
     DisconnectionEvent,
+    IntentEvent,
     RequestErrorEvent,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
@@ -105,6 +106,17 @@ export async function setEventsListeners(args?: SetEventsListenersArgs): Promise
 
     kit.onRequestError(eventListeners.onErrorListener);
 
+    // Register intent listener - forwards IntentEvent for wallet UI
+    if (eventListeners.onIntentListener) {
+        kit.removeIntentRequestCallback?.();
+    }
+
+    eventListeners.onIntentListener = (event: IntentEvent) => {
+        callback('intentRequest', event);
+    };
+
+    kit.onIntentRequest?.(eventListeners.onIntentListener);
+
     return { ok: true };
 }
 
@@ -137,6 +149,11 @@ export async function removeEventListeners(): Promise<{ ok: true }> {
     if (eventListeners.onErrorListener) {
         kit.removeErrorCallback();
         eventListeners.onErrorListener = null;
+    }
+
+    if (eventListeners.onIntentListener) {
+        kit.removeIntentRequestCallback?.();
+        eventListeners.onIntentListener = null;
     }
 
     return { ok: true };

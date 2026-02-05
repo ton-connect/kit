@@ -13,6 +13,7 @@ import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from 
 import type { JettonsAPI } from './jettons';
 import type { ApiClient } from './toncenter/ApiClient';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
+import type { IntentEvent, TransactionIntentEvent } from './intents';
 import type { Network } from '../api/models/core/Network';
 import type { WalletId } from '../utils/walletId';
 import type {
@@ -79,8 +80,20 @@ export interface ITonWalletKit {
     /** Handle pasted TON Connect URL/link */
     handleTonConnectUrl(url: string): Promise<void>;
 
+    /** Handle intent URL (tc://intent_inline?...) */
+    handleIntentUrl(args: { url: string }): Promise<void>;
+
+    /** Check if URL is an intent URL */
+    isIntentUrl(args: { url: string }): boolean;
+
     /** Handle new transaction */
     handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
+
+    /** Convert intent items to transaction request */
+    intentItemsToTransactionRequest(args: {
+        event: TransactionIntentEvent;
+        walletId: string;
+    }): Promise<TransactionRequest>;
 
     // === Request Processing ===
 
@@ -130,6 +143,9 @@ export interface ITonWalletKit {
 
     /** Register error handler */
     onRequestError(cb: (event: RequestErrorEvent) => void): void;
+
+    /** Register intent request handler */
+    onIntentRequest(cb: (event: IntentEvent) => void): void;
 
     /** Remove request handlers */
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;

@@ -103,6 +103,35 @@ export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 export { isValidAddress } from './utils/address';
 export type { ToncenterEmulationResult } from './utils/toncenterEmulation';
 
+// Intent types
+export { IntentHandler, INTENT_ERROR_CODES } from './core/IntentHandler';
+export type { IntentErrorCode } from './core/IntentHandler';
+export type {
+    IntentRequest,
+    IntentMethod,
+    IntentResponse,
+    IntentEvent,
+    TransactionIntentEvent,
+    SignDataIntentEvent,
+    ActionIntentEvent,
+    ParsedIntentUrl,
+    IntentItem,
+    SendTonIntentItem,
+    SendJettonIntentItem,
+    SendNftIntentItem,
+    SendTransactionIntentRequest,
+    SignMessageIntentRequest,
+    SignDataIntentRequest,
+    SendActionIntentRequest,
+    SignDataIntentPayload,
+    TextSignDataPayload,
+    BinarySignDataPayload,
+    CellSignDataPayload,
+    IntentTransactionResponseSuccess,
+    IntentSignDataResponseSuccess,
+    IntentResponseError,
+} from './types/intents';
+
 // API Client types (ApiClient is exported above)
 export type {
     TransactionsByAddressRequest,

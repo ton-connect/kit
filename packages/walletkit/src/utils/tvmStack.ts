@@ -24,6 +24,12 @@ function ParseStackItem(item: RawStackItem): TupleItem {
             return { type: 'null' };
         case 'cell':
             return { type: 'cell', cell: Cell.fromBoc(Buffer.from(item.value, 'base64'))[0] };
+        case 'slice':
+            // Slice is returned as base64 BOC - parse it as a slice
+            return { type: 'slice', cell: Cell.fromBoc(Buffer.from(item.value, 'base64'))[0] };
+        case 'builder':
+            // Builder is returned as base64 BOC - parse it as a builder
+            return { type: 'builder', cell: Cell.fromBoc(Buffer.from(item.value, 'base64'))[0] };
         case 'tuple':
         case 'list':
             if (item.value.length === 0) {

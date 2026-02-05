@@ -7,20 +7,29 @@
  */
 
 import type {
+    ActionIntentEvent,
     ApiClient,
     BridgeEventMessageInfo,
+    ConnectionApprovalProof,
     ConnectionApprovalResponse,
     ConnectionRequestEvent,
     DeviceInfo,
     DisconnectionEvent,
     InjectedToExtensionBridgeRequestPayload,
+    IntentEvent,
+    IntentResponse,
+    IntentTransactionResponseSuccess,
+    IntentSignDataResponseSuccess,
+    IntentResponseError,
     Network,
     RequestErrorEvent,
     SendTransactionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataApprovalResponse,
+    SignDataIntentEvent,
     SignDataRequestEvent,
     TONConnectSession,
+    TransactionIntentEvent,
     TransactionRequest,
     Wallet,
     WalletAdapter,
@@ -74,6 +83,24 @@ export interface WalletKitInstance {
     addWallet(adapter: WalletAdapter): Promise<Wallet | null>;
     handleNewTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
     handleTonConnectUrl(url: string): Promise<void>;
+    // Intent URL handling
+    isIntentUrl(url: string): boolean;
+    handleIntentUrl(url: string): Promise<void>;
+    intentItemsToTransactionRequest(event: TransactionIntentEvent, wallet: Wallet): Promise<TransactionRequest>;
+    approveTransactionIntent?(
+        event: TransactionIntentEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponseSuccess>;
+    approveSignDataIntent?(event: SignDataIntentEvent, walletId: string): Promise<IntentSignDataResponseSuccess>;
+    approveActionIntent?(event: ActionIntentEvent, walletId: string): Promise<IntentResponse>;
+    processConnectAfterIntent?(event: IntentEvent, walletId: string, proof?: ConnectionApprovalProof): Promise<void>;
+    rejectIntent?(
+        event: IntentEvent | { id: string; clientId: string },
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentResponseError>;
+    onIntentRequest?(callback: (event: IntentEvent) => void): void;
+    removeIntentRequestCallback?(): void;
     listSessions?(): Promise<TONConnectSession[]>;
     disconnect?(sessionId?: string): Promise<void>;
     processInjectedBridgeRequest?(

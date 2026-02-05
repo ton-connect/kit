@@ -16,6 +16,7 @@ import * as wallets from './wallets';
 import * as transactions from './transactions';
 import * as requests from './requests';
 import * as tonconnect from './tonconnect';
+import * as intents from './intents';
 import * as nft from './nft';
 import * as jettons from './jettons';
 import * as browser from './browser';
@@ -66,6 +67,16 @@ export const api: WalletKitBridgeApi = {
     listSessions: tonconnect.listSessions,
     disconnectSession: tonconnect.disconnectSession,
     processInternalBrowserRequest: tonconnect.processInternalBrowserRequest,
+
+    // Intents
+    handleIntentUrl: intents.handleIntentUrl,
+    isIntentUrl: intents.isIntentUrl,
+    intentItemsToTransactionRequest: intents.intentItemsToTransactionRequest,
+    approveTransactionIntent: intents.approveTransactionIntent,
+    approveSignDataIntent: intents.approveSignDataIntent,
+    approveActionIntent: intents.approveActionIntent,
+    rejectIntent: intents.rejectIntent,
+    processConnectAfterIntent: intents.processConnectAfterIntent,
 
     // NFTs
     getNfts: nft.getNfts,
