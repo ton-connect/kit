@@ -21,6 +21,11 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      * Preview information for UI display
      */
     preview: ConnectionRequestEventPreview;
+    /**
+     * Return strategy for redirecting back to dApp after connection.
+     * Can be 'back', 'none', or a URI to navigate to.
+     */
+    returnStrategy?: string;
 }
 
 /**
