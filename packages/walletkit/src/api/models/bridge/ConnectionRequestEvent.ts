@@ -22,10 +22,10 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      */
     preview: ConnectionRequestEventPreview;
     /**
-     * Return strategy for redirecting back to dApp after connection.
-     * Can be 'back', 'none', or a URI to navigate to.
+     * URI to redirect to after connection approval.
+     * Undefined means no redirect ('back' or 'none' in TonConnect protocol).
      */
-    returnStrategy?: string;
+    returnUri?: string;
 }
 
 /**
