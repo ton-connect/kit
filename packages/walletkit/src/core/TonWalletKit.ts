@@ -130,16 +130,16 @@ export class TonWalletKit implements ITonWalletKit {
                 return this.sendErrorConnectResponse(event);
             }
 
-            const sessions = await this.sessionManager.getSessions();
+            // We are passing isJsBridge true because restoreConnection is only performed
+            // in an code that injected into web view or browser extension (e.g. injected bridge)
+            const sessions = await this.sessionManager.getSessions({
+                walletId: event.walletId,
+                domain: event.domain,
+                isJsBridge: true,
+            });
 
-            let host;
-            try {
-                host = new URL(event.domain).host;
-            } catch {
-                return this.sendErrorConnectResponse(event);
-            }
+            const session = sessions.length > 0 ? sessions[0] : undefined;
 
-            const session = sessions.find((session) => session.domain === host && session.isJsBridge === true);
             if (!session) {
                 log.error('Session not found for domain', { domain: event.domain });
                 return this.sendErrorConnectResponse(event);
@@ -359,7 +359,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         await this.walletManager.removeWallet(walletId);
         // Also remove associated sessions
-        await this.sessionManager.removeSessionsForWallet(walletId);
+        await this.sessionManager.removeSessions({ walletId });
     }
 
     async clearWallets(): Promise<void> {

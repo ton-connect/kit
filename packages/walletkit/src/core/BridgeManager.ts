@@ -618,18 +618,13 @@ export class BridgeManager {
                     };
                 }
             } else if (rawEvent.domain) {
-                const sessions = await this.sessionManager.getSessions();
+                const sessions = await this.sessionManager.getSessions({
+                    walletId: event.walletId,
+                    domain: rawEvent.domain,
+                    isJsBridge: rawEvent.isJsBridge,
+                });
 
-                let host;
-                try {
-                    host = new URL(rawEvent.domain).host;
-                } catch {
-                    host = undefined;
-                }
-
-                const session = sessions.find(
-                    (session) => session.domain == host && session.isJsBridge === rawEvent.isJsBridge,
-                );
+                const session = sessions.length > 0 ? sessions[0] : undefined;
 
                 if (session?.walletId) {
                     rawEvent.walletId = session.walletId;
