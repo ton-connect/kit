@@ -10,6 +10,7 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 
 import type { BridgeConfig } from './BridgeConfig';
 import type { Transport } from '../transport/Transport';
+import type { WalletId } from '../../utils';
 
 /**
  * Core TonConnect JS Bridge implementation
@@ -22,6 +23,7 @@ export class TonConnectBridge {
     public readonly walletInfo: BridgeConfig['walletInfo'];
     public readonly protocolVersion: number;
     public readonly isWalletBrowser: boolean;
+    public readonly walletId?: WalletId;
 
     // Private state
     private readonly transport: Transport;
@@ -32,6 +34,8 @@ export class TonConnectBridge {
         this.walletInfo = config.walletInfo;
         this.protocolVersion = config.protocolVersion;
         this.isWalletBrowser = config.isWalletBrowser;
+        this.walletId = config.walletId;
+
         this.transport = transport;
 
         // Setup event forwarding from transport
@@ -51,6 +55,7 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'connect',
             params: { protocolVersion, ...message },
+            walletId: this.walletId,
         });
     }
 
@@ -61,6 +66,7 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'restoreConnection',
             params: [],
+            walletId: this.walletId,
         });
     }
 
@@ -71,6 +77,7 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'send',
             params: [message],
+            walletId: this.walletId,
         });
     }
 
