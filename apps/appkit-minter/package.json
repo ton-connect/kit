@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@ston-fi/omniston-sdk": "^0.7.8",
     "@tailwindcss/vite": "^4.1.18",
     "@ton/appkit": "workspace:*",
     "@ton/appkit-ui-react": "workspace:*",

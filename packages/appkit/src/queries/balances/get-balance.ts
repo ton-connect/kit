@@ -17,12 +17,12 @@ import { filterQueryOptions } from '../../utils';
 
 export type GetBalanceErrorType = Error;
 
-export type GetBalanceOptions<selectData = GetBalanceData> = Compute<ExactPartial<GetBalanceParameters>> &
+export type GetBalanceQueryConfig<selectData = GetBalanceData> = Compute<ExactPartial<GetBalanceParameters>> &
     QueryParameter<GetBalanceQueryFnData, GetBalanceErrorType, selectData, GetBalanceQueryKey>;
 
 export const getBalanceQueryOptions = <selectData = GetBalanceData>(
     appKit: AppKit,
-    options: GetBalanceOptions<selectData> = {},
+    options: GetBalanceQueryConfig<selectData> = {},
 ): GetBalanceQueryOptions<selectData> => {
     return {
         ...options.query,

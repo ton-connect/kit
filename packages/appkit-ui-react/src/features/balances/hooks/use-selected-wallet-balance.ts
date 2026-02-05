@@ -6,13 +6,15 @@
  *
  */
 
+import type { GetBalanceData } from '@ton/appkit/queries';
+
 import { useSelectedWallet } from '../../wallets/hooks/use-selected-wallet';
 import type { UseBalanceParameters, UseBalanceReturnType } from './use-balance';
 import { useBalance } from './use-balance';
 
 export type UseSelectedWalletBalanceParameters = UseBalanceParameters['query'];
 
-export type UseSelectedWalletBalanceReturnType = UseBalanceReturnType;
+export type UseSelectedWalletBalanceReturnType = UseBalanceReturnType<GetBalanceData | undefined>;
 
 /**
  * Hook to get balance of the selected wallet

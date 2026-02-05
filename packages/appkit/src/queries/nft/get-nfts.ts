@@ -17,12 +17,12 @@ import { filterQueryOptions } from '../../utils';
 
 export type GetNFTsErrorType = Error;
 
-export type GetNFTsOptions<selectData = GetNFTsData> = Compute<ExactPartial<GetNFTsParameters>> &
+export type GetNFTsQueryConfig<selectData = GetNFTsData> = Compute<ExactPartial<GetNFTsParameters>> &
     QueryParameter<GetNFTsQueryFnData, GetNFTsErrorType, selectData, GetNFTsQueryKey>;
 
 export const getNFTsQueryOptions = <selectData = GetNFTsData>(
     appKit: AppKit,
-    options: GetNFTsOptions<selectData> = {},
+    options: GetNFTsQueryConfig<selectData> = {},
 ): GetNFTsQueryOptions<selectData> => {
     return {
         ...options.query,

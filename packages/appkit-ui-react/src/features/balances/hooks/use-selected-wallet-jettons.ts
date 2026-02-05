@@ -6,13 +6,15 @@
  *
  */
 
+import type { GetJettonsData } from '@ton/appkit/queries';
+
 import { useSelectedWallet } from '../../wallets/hooks/use-selected-wallet';
 import type { UseJettonsParameters, UseJettonsReturnType } from './use-jettons';
 import { useJettons } from './use-jettons';
 
 export type UseSelectedWalletJettonsParameters = UseJettonsParameters['query'];
 
-export type UseSelectedWalletJettonsReturnType = UseJettonsReturnType;
+export type UseSelectedWalletJettonsReturnType = UseJettonsReturnType<GetJettonsData | undefined>;
 
 /**
  * Hook to get jettons

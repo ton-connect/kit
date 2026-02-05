@@ -10,7 +10,7 @@
 
 import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
 import { disconnectMutationOptions } from '@ton/appkit/queries';
-import type { DisconnectParameters, DisconnectReturnType } from '@ton/appkit/queries';
+import type { DisconnectParameters, DisconnectReturnType } from '@ton/appkit';
 
 import { useMutation } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';

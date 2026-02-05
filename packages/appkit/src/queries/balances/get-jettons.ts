@@ -17,12 +17,12 @@ import { filterQueryOptions } from '../../utils';
 
 export type GetJettonsErrorType = Error;
 
-export type GetJettonsOptions<selectData = GetJettonsData> = Compute<ExactPartial<GetJettonsParameters>> &
+export type GetJettonsQueryConfig<selectData = GetJettonsData> = Compute<ExactPartial<GetJettonsParameters>> &
     QueryParameter<GetJettonsQueryFnData, GetJettonsErrorType, selectData, GetJettonsQueryKey>;
 
 export const getJettonsQueryOptions = <selectData = GetJettonsData>(
     appKit: AppKit,
-    options: GetJettonsOptions<selectData> = {},
+    options: GetJettonsQueryConfig<selectData> = {},
 ): GetJettonsQueryOptions<selectData> => {
     return {
         ...options.query,

@@ -8,7 +8,7 @@
 
 import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
 import { connectMutationOptions } from '@ton/appkit/queries';
-import type { ConnectParameters, ConnectReturnType } from '@ton/appkit/queries';
+import type { ConnectParameters, ConnectReturnType } from '@ton/appkit';
 
 import { useMutation } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';

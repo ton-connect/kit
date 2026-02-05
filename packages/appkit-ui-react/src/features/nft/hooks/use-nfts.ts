@@ -7,13 +7,13 @@
  */
 
 import { getNFTsQueryOptions } from '@ton/appkit/queries';
-import type { GetNFTsData, GetNFTsErrorType, GetNFTsOptions } from '@ton/appkit/queries';
+import type { GetNFTsData, GetNFTsErrorType, GetNFTsQueryConfig } from '@ton/appkit/queries';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 
-export type UseNFTsParameters<selectData = GetNFTsData> = GetNFTsOptions<selectData>;
+export type UseNFTsParameters<selectData = GetNFTsData> = GetNFTsQueryConfig<selectData>;
 
 export type UseNFTsReturnType<selectData = GetNFTsData> = UseQueryReturnType<selectData, GetNFTsErrorType>;
 

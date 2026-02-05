@@ -7,13 +7,13 @@
  */
 
 import { getBalanceQueryOptions } from '@ton/appkit/queries';
-import type { GetBalanceData, GetBalanceErrorType, GetBalanceOptions } from '@ton/appkit/queries';
+import type { GetBalanceData, GetBalanceErrorType, GetBalanceQueryConfig } from '@ton/appkit/queries';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 
-export type UseBalanceParameters<selectData = GetBalanceData> = GetBalanceOptions<selectData>;
+export type UseBalanceParameters<selectData = GetBalanceData> = GetBalanceQueryConfig<selectData>;
 
 export type UseBalanceReturnType<selectData = GetBalanceData> = UseQueryReturnType<selectData, GetBalanceErrorType>;
 
