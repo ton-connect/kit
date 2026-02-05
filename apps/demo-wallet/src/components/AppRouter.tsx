@@ -20,6 +20,7 @@ import {
     SendTransaction,
     TracePage,
     TransactionDetail,
+    Swap,
 } from '../pages';
 
 import { useWalletDataUpdater } from '@/hooks/useWalletDataUpdater';
@@ -107,6 +108,14 @@ export const AppRouter: React.FC = () => {
                     element={
                         <ProtectedRoute requiresWallet>
                             <SendTransaction />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/swap"
+                    element={
+                        <ProtectedRoute requiresWallet>
+                            <Swap />
                         </ProtectedRoute>
                     }
                 />

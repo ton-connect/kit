@@ -8,6 +8,7 @@
 
 import { TonWalletKit, Network, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
+import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 import { createComponentLogger } from '../../utils/logger';
 import { isExtension } from '../../utils/isExtension';
@@ -62,6 +63,8 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             disableNetworkSend: walletKitConfig?.disableNetworkSend,
         },
     }) as ITonWalletKit;
+
+    walletKit.swap.registerProvider(new OmnistonSwapProvider());
 
     log.info(`WalletKit initialized with network: ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;

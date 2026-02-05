@@ -19,6 +19,7 @@ export { LedgerSetup } from './LedgerSetup';
 export { JettonsCard } from './JettonsCard';
 export { JettonRow } from './JettonRow';
 export { JettonsList } from './JettonsList';
+export { Modal } from './Modal';
 export { NftsCard } from './NftsCard';
 export { Layout } from './Layout';
 export { MnemonicDisplay } from './MnemonicDisplay';

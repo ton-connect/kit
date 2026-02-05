@@ -67,6 +67,13 @@ export type { UserNFTsRequest } from './nfts/UserNFTsRequest';
 // TON models
 export type { TONTransferRequest } from './tons/TONTransferRequest';
 
+// Swap models
+export type { SwapToken } from './swaps/SwapToken';
+export type { SwapFee } from './swaps/SwapFee';
+export type { SwapQuote } from './swaps/SwapQuote';
+export type { SwapQuoteParams } from './swaps/SwapQuoteParams';
+export type { SwapParams } from './swaps/SwapParams';
+
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
