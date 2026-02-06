@@ -18,6 +18,9 @@ export {
     type GetJettonsOfSelectedWalletOptions,
 } from './balances/get-jettons-of-selected-wallet';
 
+// Jettons
+export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
+
 // Transactions
 export {
     sendTransaction,

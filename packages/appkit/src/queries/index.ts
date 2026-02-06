@@ -25,6 +25,14 @@ export {
 // NFT
 export { getNFTsQueryOptions, type GetNFTsQueryConfig, type GetNFTsData, type GetNFTsErrorType } from './nft/get-nfts';
 
+// Jettons
+export {
+    getJettonInfoQueryOptions,
+    type GetJettonInfoQueryConfig,
+    type GetJettonInfoData,
+    type GetJettonInfoErrorType,
+} from './jettons/get-jetton-info';
+
 // Wallets
 export {
     connectMutationOptions,
