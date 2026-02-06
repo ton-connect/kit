@@ -7,7 +7,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import type { Jetton } from '@ton/walletkit';
+import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo, formatUnits, parseUnits, getErrorMessage } from '@ton/appkit';
 import { SendButton } from '@ton/appkit-ui-react';
 

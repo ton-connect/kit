@@ -42,9 +42,11 @@ export * from './types/balance';
 export * from './types/wallet';
 export * from './types/query';
 export * from './types/utils';
+export * from './types/network';
+export * from './types/jetton';
+export * from './types/nft';
+export * from './types/transaction';
+export * from './types/primitives';
 
 // Utils
 export * from './utils';
-
-// Re-export from @ton/walletkit for convenience
-export type { TonWalletKit, TONTransferRequest, JettonsTransferRequest, TransactionRequest } from '@ton/walletkit';

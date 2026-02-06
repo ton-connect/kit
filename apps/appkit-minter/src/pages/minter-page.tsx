@@ -8,7 +8,6 @@
 
 import type React from 'react';
 import { useSelectedWallet } from '@ton/appkit-ui-react';
-import { parseUnits } from '@ton/appkit';
 
 import { TokensCard } from '@/features/balances';
 import { CardGenerator } from '@/features/mint';

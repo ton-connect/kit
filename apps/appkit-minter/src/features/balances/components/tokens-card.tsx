@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
-import type { Jetton } from '@ton/walletkit';
+import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
 import { CurrencyItem, useSelectedWalletJettons, useSelectedWalletBalance } from '@ton/appkit-ui-react';
 

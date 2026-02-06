@@ -9,7 +9,7 @@
 import { useCallback } from 'react';
 import { toNano, Address, beginCell, storeStateInit } from '@ton/core';
 import { useSelectedWallet } from '@ton/appkit-ui-react';
-import type { Base64String, TransactionRequest } from '@ton/walletkit';
+import type { Base64String, TransactionRequest } from '@ton/appkit';
 
 import { useMinterStore } from '../store/minter-store';
 import { buildSingleNftStateInit, encodeOnChainContent } from '../contracts';

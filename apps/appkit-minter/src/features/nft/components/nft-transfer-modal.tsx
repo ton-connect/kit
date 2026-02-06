@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
-import type { NFT } from '@ton/walletkit';
+import type { NFT } from '@ton/appkit';
 import { getFormattedNftInfo, getErrorMessage } from '@ton/appkit';
 import { useSelectedWallet, Transaction } from '@ton/appkit-ui-react';
 import { toast } from 'sonner';

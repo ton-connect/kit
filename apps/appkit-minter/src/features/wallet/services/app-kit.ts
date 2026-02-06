@@ -6,8 +6,7 @@
  *
  */
 
-import { AppKit } from '@ton/appkit';
-import { Network } from '@ton/walletkit';
+import { AppKit, Network } from '@ton/appkit';
 
 import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
 
