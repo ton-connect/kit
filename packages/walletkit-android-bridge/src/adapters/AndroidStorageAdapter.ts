@@ -8,7 +8,7 @@
 
 import type { StorageAdapter } from '@ton/walletkit';
 
-import { log, error } from '../utils/logger';
+import { error } from '../utils/logger';
 
 type AndroidStorageBridge = {
     storageGet: (key: string) => string | null;
@@ -60,7 +60,6 @@ export class AndroidStorageAdapter implements StorageAdapter {
 
     async remove(key: string): Promise<void> {
         try {
-            log('[AndroidStorageAdapter] remove:', key);
             this.androidBridge.storageRemove(key);
         } catch (err) {
             error('[AndroidStorageAdapter] Failed to remove key:', key, err);
@@ -69,7 +68,6 @@ export class AndroidStorageAdapter implements StorageAdapter {
 
     async clear(): Promise<void> {
         try {
-            log('[AndroidStorageAdapter] clear: clearing all storage');
             this.androidBridge.storageClear();
         } catch (err) {
             error('[AndroidStorageAdapter] Failed to clear storage:', err);

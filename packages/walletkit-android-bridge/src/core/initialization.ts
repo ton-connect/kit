@@ -20,7 +20,7 @@ import type {
     WalletKitInstance,
     JsBridgeTransportMessage,
 } from '../types';
-import { log, warn } from '../utils/logger';
+import { info, warn } from '../utils/logger';
 import { walletKit, setWalletKit } from './state';
 import { ensureWalletKitLoaded, TonWalletKit } from './moduleLoader';
 import { getInternalBrowserResolverMap } from '../utils/internalBrowserResolvers';
@@ -61,8 +61,6 @@ export async function initTonWalletKit(
 
     await ensureWalletKitLoaded();
 
-    log('[walletkitBridge] initTonWalletKit config:', JSON.stringify(config, null, 2));
-
     // Build networks config from networkConfigurations (like iOS bridge does)
     const networksConfig: Record<string, { apiClient?: { url?: string; key?: string } | AndroidAPIClientAdapter }> = {};
 
@@ -71,18 +69,14 @@ export async function initTonWalletKit(
             networksConfig[netConfig.network.chainId] = {
                 apiClient: netConfig.apiClientConfiguration,
             };
-            log('[walletkitBridge] Added network from networkConfigurations:', netConfig.network.chainId);
         }
     }
 
     // Check if native API clients are available and use them if so
     if (AndroidAPIClientAdapter.isAvailable()) {
-        log('[walletkitBridge] Native API clients available, checking for configured networks');
         const availableNetworks = AndroidAPIClientAdapter.getAvailableNetworks();
-        log('[walletkitBridge] Available native API networks:', JSON.stringify(availableNetworks));
 
         for (const nativeNetwork of availableNetworks) {
-            log('[walletkitBridge] Using native API client for network:', nativeNetwork.chainId);
             networksConfig[nativeNetwork.chainId] = {
                 apiClient: new AndroidAPIClientAdapter(nativeNetwork),
             };
@@ -96,7 +90,6 @@ export async function initTonWalletKit(
     // Pass disableNetworkSend to dev options for testing
     if (config?.disableNetworkSend) {
         kitOptions.dev = { disableNetworkSend: true };
-        log('[walletkitBridge] ⚠️ disableNetworkSend is enabled - transactions will be simulated only');
     }
 
     if (config?.deviceInfo) {
@@ -114,13 +107,6 @@ export async function initTonWalletKit(
                 // Cast to our transport message type (walletkit types this as unknown)
                 const typedMessage = message as JsBridgeTransportMessage;
 
-                log('[walletkitBridge] 📤 jsBridgeTransport called:', {
-                    sessionId,
-                    messageType: typedMessage.type,
-                    hasPayload: 'payload' in typedMessage,
-                });
-                log('[walletkitBridge] 📤 Full message:', JSON.stringify(typedMessage, null, 2));
-
                 let bridgeMessage: JsBridgeTransportMessage = typedMessage;
 
                 // Handle disconnect responses that need to be transformed to events
@@ -131,7 +117,6 @@ export async function initTonWalletKit(
                     const result = responseMsg.result as { event?: string; id?: number } | undefined;
 
                     if (result?.event === DISCONNECT_EVENT && !responseMsg.messageId) {
-                        log('[walletkitBridge] 🔄 Transforming disconnect response to event');
                         bridgeMessage = {
                             type: TONCONNECT_BRIDGE_EVENT,
                             source: responseMsg.source,
@@ -141,34 +126,28 @@ export async function initTonWalletKit(
                                 payload: {},
                             },
                         } as BridgeEvent;
-                        log('[walletkitBridge] 🔄 Transformed message:', JSON.stringify(bridgeMessage, null, 2));
                     }
                 }
 
                 // Handle responses with messageId (internal browser requests)
                 if (bridgeMessage.type === TONCONNECT_BRIDGE_RESPONSE && bridgeMessage.messageId) {
-                    log('[walletkitBridge] 🔵 Message has messageId, checking for pending promise');
                     const resolvers = getInternalBrowserResolverMap();
-                    // messageId is a number in BridgeResponse, convert to string for resolver map
                     const messageIdStr = String(bridgeMessage.messageId);
                     const resolver = resolvers?.get(messageIdStr);
                     if (resolver) {
-                        log('[walletkitBridge] ✅ Resolving response promise for messageId:', messageIdStr);
                         resolvers?.delete(messageIdStr);
                         resolver.resolve(bridgeMessage);
                     } else {
-                        warn('[walletkitBridge] ⚠️ No pending promise for messageId:', messageIdStr);
+                        warn('[walletkitBridge] No pending promise for messageId:', messageIdStr);
                     }
                 }
 
                 if (bridgeMessage.type === TONCONNECT_BRIDGE_EVENT) {
-                    log('[walletkitBridge] 📤 Sending event to WebView for session:', sessionId);
                     deps.postToNative({
                         kind: 'jsBridgeEvent',
                         sessionId,
                         event: bridgeMessage,
                     });
-                    log('[walletkitBridge] ✅ Event sent successfully');
                 }
 
                 return Promise.resolve();
@@ -177,10 +156,9 @@ export async function initTonWalletKit(
     }
 
     if (window.WalletKitNative) {
-        log('[walletkitBridge] Using Android native storage adapter');
         kitOptions.storage = new deps.AndroidStorageAdapter();
     } else if (config?.allowMemoryStorage) {
-        log('[walletkitBridge] Using memory storage (sessions will not persist)');
+        info('[walletkitBridge] Using memory storage (sessions will not persist)');
         kitOptions.storage = {
             allowMemory: true,
         };
@@ -188,10 +166,7 @@ export async function initTonWalletKit(
 
     // Set up custom session manager if native bridge provides session management
     if (hasAndroidSessionManager()) {
-        log('[walletkitBridge] Using Android native session manager');
         kitOptions.sessionManager = new AndroidTONConnectSessionsManager();
-    } else {
-        log('[walletkitBridge] Using default WalletKit session manager');
     }
 
     if (!TonWalletKit) {
@@ -205,6 +180,6 @@ export async function initTonWalletKit(
 
     deps.emit('ready', {});
     deps.postToNative({ kind: 'ready' });
-    log('[walletkitBridge] WalletKit ready');
+    info('[walletkitBridge] WalletKit ready');
     return { ok: true };
 }
