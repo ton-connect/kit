@@ -88,7 +88,6 @@ class NativeEventSource {
         // Open connection on native side
         this._id = bridge.nativeEventSourceOpen(this.url, this.withCredentials);
         scope.__walletkitEventSources.set(this._id, this);
-        log(`[NativeEventSource] Created: id=${this._id}, url=${this.url}`);
     }
 
     close(): void {
@@ -106,7 +105,6 @@ class NativeEventSource {
         }
 
         scope.__walletkitEventSources?.delete(this._id);
-        log(`[NativeEventSource] Closed: id=${this._id}`);
     }
 
     addEventListener(type: string, listener: (event: Event | MessageEvent) => void): void {
@@ -189,25 +187,10 @@ class NativeEventSource {
 function setupNativeEventSource(scope: GlobalWithBridge) {
     const bridge = scope.WalletKitNative;
 
-    // Debug: Log what methods are available on the bridge (using console.log to bypass log level)
-    if (bridge) {
-        const methods = Object.getOwnPropertyNames(bridge).filter(
-            (name) => typeof (bridge as Record<string, unknown>)[name] === 'function'
-        );
-        console.log(`[WalletKit] [walletkitBridge] WalletKitNative available methods: ${methods.join(', ')}`);
-        console.log(`[WalletKit] [walletkitBridge] nativeEventSourceOpen exists: ${typeof bridge.nativeEventSourceOpen}`);
-        console.log(`[WalletKit] [walletkitBridge] nativeEventSourceClose exists: ${typeof bridge.nativeEventSourceClose}`);
-    } else {
-        console.log('[WalletKit] [walletkitBridge] WalletKitNative bridge is not available');
-    }
-
     // Only use native EventSource if the bridge supports it
     if (!bridge?.nativeEventSourceOpen || !bridge?.nativeEventSourceClose) {
-        console.log('[WalletKit] [walletkitBridge] Native EventSource not available, using browser default');
         return;
     }
-
-    console.log('[WalletKit] [walletkitBridge] Native EventSource AVAILABLE - installing polyfill');
 
     // Initialize instance tracking
     if (!scope.__walletkitEventSources) {
@@ -258,7 +241,6 @@ function setupNativeEventSource(scope: GlobalWithBridge) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).EventSource = NativeEventSource;
 
-    log('[walletkitBridge] ✅ Native EventSource polyfill installed');
 }
 
 /**
