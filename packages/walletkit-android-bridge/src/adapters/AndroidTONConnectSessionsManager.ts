@@ -24,11 +24,9 @@ interface AndroidSessionBridge {
         isJsBridge: boolean,
     ): string;
     sessionGet(sessionId: string): string | null;
-    sessionGetByDomain(domain: string): string | null;
-    sessionGetAll(): string;
-    sessionGetForWallet(walletId: string): string;
-    sessionRemove(sessionId: string): void;
-    sessionRemoveForWallet(walletId: string): void;
+    sessionGetFiltered(filterJson: string): string;
+    sessionRemove(sessionId: string): string | null;
+    sessionRemoveFiltered(filterJson: string): string;
     sessionClear(): void;
 }
 
@@ -106,22 +104,14 @@ export class AndroidTONConnectSessionsManager implements TONConnectSessionManage
         }
     }
 
-    async getSessionByDomain(domain: string): Promise<TONConnectSession | undefined> {
+    async getSessions(parameters?: {
+        walletId?: WalletId;
+        domain?: string;
+        isJsBridge?: boolean;
+    }): Promise<TONConnectSession[]> {
         try {
-            const resultJson = this.bridge.sessionGetByDomain(domain);
-            if (!resultJson) {
-                return undefined;
-            }
-            return JSON.parse(resultJson) as TONConnectSession;
-        } catch (err) {
-            warn('[AndroidSessionManager] Failed to get session by domain:', err);
-            return undefined;
-        }
-    }
-
-    async getSessions(): Promise<TONConnectSession[]> {
-        try {
-            const resultJson = this.bridge.sessionGetAll();
+            const filterJson = JSON.stringify(parameters ?? {});
+            const resultJson = this.bridge.sessionGetFiltered(filterJson);
             return JSON.parse(resultJson) as TONConnectSession[];
         } catch (err) {
             warn('[AndroidSessionManager] Failed to get sessions:', err);
@@ -129,30 +119,30 @@ export class AndroidTONConnectSessionsManager implements TONConnectSessionManage
         }
     }
 
-    async getSessionsForWallet(walletId: WalletId): Promise<TONConnectSession[]> {
+    async removeSession(sessionId: string): Promise<TONConnectSession | undefined> {
         try {
-            const resultJson = this.bridge.sessionGetForWallet(walletId);
-            return JSON.parse(resultJson) as TONConnectSession[];
-        } catch (err) {
-            warn('[AndroidSessionManager] Failed to get sessions for wallet:', err);
-            return [];
-        }
-    }
-
-    async removeSession(sessionId: string): Promise<void> {
-        try {
-            this.bridge.sessionRemove(sessionId);
+            const resultJson = this.bridge.sessionRemove(sessionId);
+            if (!resultJson) {
+                return undefined;
+            }
+            return JSON.parse(resultJson) as TONConnectSession;
         } catch (err) {
             error('[AndroidSessionManager] Failed to remove session:', err);
             throw err;
         }
     }
 
-    async removeSessionsForWallet(walletId: WalletId): Promise<void> {
+    async removeSessions(parameters?: {
+        walletId?: WalletId;
+        domain?: string;
+        isJsBridge?: boolean;
+    }): Promise<TONConnectSession[]> {
         try {
-            this.bridge.sessionRemoveForWallet(walletId);
+            const filterJson = JSON.stringify(parameters ?? {});
+            const resultJson = this.bridge.sessionRemoveFiltered(filterJson);
+            return JSON.parse(resultJson) as TONConnectSession[];
         } catch (err) {
-            error('[AndroidSessionManager] Failed to remove sessions for wallet:', err);
+            error('[AndroidSessionManager] Failed to remove sessions:', err);
             throw err;
         }
     }
