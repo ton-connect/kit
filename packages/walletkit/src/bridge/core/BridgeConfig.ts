@@ -7,6 +7,7 @@
  */
 
 import type { DeviceInfo, WalletInfo } from '../../types/jsBridge';
+import type { WalletId } from '../../utils';
 
 /**
  * Configuration for the TonConnect JS Bridge
@@ -36,6 +37,11 @@ export interface BridgeConfig {
      * Protocol version to support
      */
     protocolVersion: number;
+
+    /**
+     * Id of wallet assosiated with dApp connection in bridge
+     */
+    walletId?: WalletId;
 }
 
 /**

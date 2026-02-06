@@ -717,6 +717,302 @@ class DiscriminatedUnionTypeFormatter {
 }
 
 // ============================================================================
+// Generic Interface Types
+// ============================================================================
+
+/**
+ * Type for generic interfaces that carries type parameter metadata.
+ * Used to preserve generic type parameters through the schema generation pipeline.
+ */
+class GenericInterfaceType extends tsj.BaseType {
+    constructor(name, innerType, typeParameters) {
+        super();
+        this.name = name;
+        this.innerType = innerType;
+        this.typeParameters = typeParameters; // Array of {name, constraint?, default?}
+    }
+
+    getId() {
+        return `generic-${this.name}`;
+    }
+
+    getName() {
+        return this.name;
+    }
+
+    getInnerType() {
+        return this.innerType;
+    }
+
+    getTypeParameters() {
+        return this.typeParameters;
+    }
+}
+
+// ============================================================================
+// Generic Interface Parser
+// ============================================================================
+
+/**
+ * Parser for interface declarations with type parameters.
+ * Detects generic interfaces and preserves type parameter information.
+ */
+class GenericInterfaceNodeParser {
+    constructor(typeChecker, childNodeParser) {
+        this.typeChecker = typeChecker;
+        this.childNodeParser = childNodeParser;
+    }
+
+    supportsNode(node) {
+        return (
+            node.kind === ts.SyntaxKind.InterfaceDeclaration && node.typeParameters && node.typeParameters.length > 0
+        );
+    }
+
+    createType(node, context) {
+        const interfaceName = node.name.getText();
+
+        // Extract type parameters with their constraints and defaults
+        const typeParameters = node.typeParameters.map((param) => {
+            const paramInfo = {
+                name: param.name.getText(),
+            };
+
+            // Extract constraint (e.g., <T extends SomeType>)
+            if (param.constraint) {
+                paramInfo.constraint = param.constraint.getText();
+            }
+
+            // Extract default (e.g., <T = DefaultType>)
+            if (param.default) {
+                paramInfo.default = param.default.getText();
+            }
+
+            return paramInfo;
+        });
+
+        // Create a set of type parameter names for reference detection
+        const typeParamNames = new Set(typeParameters.map((p) => p.name));
+
+        // Parse the interface members manually to handle generic type references
+        const properties = [];
+        for (const member of node.members) {
+            if (member.kind === ts.SyntaxKind.PropertySignature) {
+                const propName = member.name.getText();
+                const isOptional = !!member.questionToken;
+
+                // Check if the property type references a generic type parameter
+                let propType;
+                let genericTypeRef = null;
+
+                if (member.type) {
+                    const typeText = member.type.getText();
+                    if (typeParamNames.has(typeText)) {
+                        // Property uses a generic type parameter directly
+                        genericTypeRef = typeText;
+                        propType = new tsj.AnyType(); // Placeholder
+                    } else {
+                        // Parse the type normally
+                        propType = this.childNodeParser.createType(member.type, context);
+                    }
+                } else {
+                    propType = new tsj.AnyType();
+                }
+
+                // Extract JSDoc description
+                let description;
+                const jsDocComments = ts.getJSDocCommentsAndTags(member);
+                const mainComment = jsDocComments.find((c) => ts.isJSDoc(c));
+                if (mainComment && mainComment.comment) {
+                    description =
+                        typeof mainComment.comment === 'string'
+                            ? mainComment.comment.trim()
+                            : mainComment.comment
+                                  .map((c) => c.text)
+                                  .join('')
+                                  .trim();
+                }
+
+                properties.push({
+                    name: propName,
+                    type: propType,
+                    required: !isOptional,
+                    description,
+                    genericTypeRef,
+                });
+            }
+        }
+
+        // Create a custom object type that can carry generic type reference info
+        const innerType = new GenericPropertiesObjectType(interfaceName, properties);
+
+        // Wrap in GenericInterfaceType
+        const genericType = new GenericInterfaceType(interfaceName, innerType, typeParameters);
+
+        return new tsj.DefinitionType(interfaceName, genericType);
+    }
+}
+
+/**
+ * Custom object type that carries property metadata including generic type references.
+ */
+class GenericPropertiesObjectType extends tsj.BaseType {
+    constructor(name, properties) {
+        super();
+        this.name = name;
+        this.properties = properties;
+    }
+
+    getId() {
+        return `generic-props-${this.name}`;
+    }
+
+    getProperties() {
+        return this.properties;
+    }
+}
+
+// ============================================================================
+// Generic Interface Formatters
+// ============================================================================
+
+/**
+ * Formatter for generic interfaces that adds x-generic-params extension.
+ */
+class GenericInterfaceTypeFormatter {
+    constructor(childTypeFormatter) {
+        this.childTypeFormatter = childTypeFormatter;
+    }
+
+    supportsType(type) {
+        return type instanceof GenericInterfaceType;
+    }
+
+    getDefinition(type) {
+        const innerType = type.getInnerType();
+        const properties = {};
+        const required = [];
+
+        // Format properties, preserving generic type references
+        for (const prop of innerType.getProperties()) {
+            const propDef = {};
+
+            if (prop.genericTypeRef) {
+                // Property uses a generic type parameter
+                propDef['x-generic-type-ref'] = prop.genericTypeRef;
+            } else {
+                // Get the normal type definition
+                const typeDef = this.childTypeFormatter.getDefinition(prop.type);
+                Object.assign(propDef, typeDef);
+            }
+
+            if (prop.description) {
+                propDef.description = prop.description;
+            }
+
+            properties[prop.name] = propDef;
+
+            if (prop.required) {
+                required.push(prop.name);
+            }
+        }
+
+        // Build the schema definition
+        const definition = {
+            type: 'object',
+            properties,
+        };
+
+        if (required.length > 0) {
+            definition.required = required;
+        }
+
+        // Add generic parameters extension
+        definition['x-is-generic'] = true;
+        definition['x-generic-params'] = type.getTypeParameters().map((param) => {
+            const paramDef = { name: param.name };
+            // Note: We don't include constraint/default as Swift doesn't support them in the same way
+            return paramDef;
+        });
+
+        return definition;
+    }
+
+    getChildren(type) {
+        const children = [];
+        const innerType = type.getInnerType();
+
+        for (const prop of innerType.getProperties()) {
+            if (!prop.genericTypeRef) {
+                children.push(...this.childTypeFormatter.getChildren(prop.type));
+            }
+        }
+
+        return children;
+    }
+}
+
+/**
+ * Formatter for GenericPropertiesObjectType (used as inner type of generic interfaces).
+ */
+class GenericPropertiesObjectTypeFormatter {
+    constructor(childTypeFormatter) {
+        this.childTypeFormatter = childTypeFormatter;
+    }
+
+    supportsType(type) {
+        return type instanceof GenericPropertiesObjectType;
+    }
+
+    getDefinition(type) {
+        const properties = {};
+        const required = [];
+
+        for (const prop of type.getProperties()) {
+            const propDef = {};
+
+            if (prop.genericTypeRef) {
+                propDef['x-generic-type-ref'] = prop.genericTypeRef;
+            } else {
+                const typeDef = this.childTypeFormatter.getDefinition(prop.type);
+                Object.assign(propDef, typeDef);
+            }
+
+            if (prop.description) {
+                propDef.description = prop.description;
+            }
+
+            properties[prop.name] = propDef;
+
+            if (prop.required) {
+                required.push(prop.name);
+            }
+        }
+
+        const definition = {
+            type: 'object',
+            properties,
+        };
+
+        if (required.length > 0) {
+            definition.required = required;
+        }
+
+        return definition;
+    }
+
+    getChildren(type) {
+        const children = [];
+        for (const prop of type.getProperties()) {
+            if (!prop.genericTypeRef) {
+                children.push(...this.childTypeFormatter.getChildren(prop.type));
+            }
+        }
+        return children;
+    }
+}
+
+// ============================================================================
 // Custom Formatters for OpenAPI $ref paths
 // ============================================================================
 
@@ -781,6 +1077,20 @@ class OpenAPIReferenceTypeFormatter {
  * DefinitionType so they are all included.
  */
 class AllTypesSchemaGenerator extends tsj.SchemaGenerator {
+    /**
+     * Override to allow generic interfaces through to the parser.
+     * The base class skips generic types, but we want to process them
+     * with our custom GenericInterfaceNodeParser.
+     */
+    isGenericType(node) {
+        // Allow generic interfaces - they will be handled by GenericInterfaceNodeParser
+        if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+            return false;
+        }
+        // Keep default behavior for type aliases
+        return !!(node.typeParameters && node.typeParameters.length > 0);
+    }
+
     createSchemaFromNodes(rootNodes) {
         const roots = rootNodes.map((rootNode) => {
             const rootType = this.nodeParser.createType(rootNode, new tsj.Context());
@@ -870,6 +1180,7 @@ try {
     const parser = tsj.createParser(program, config, (prs) => {
         prs.addNodeParser(new EnumNodeParserWithNames(typeChecker));
         prs.addNodeParser(new DiscriminatedUnionNodeParser(typeChecker, prs));
+        prs.addNodeParser(new GenericInterfaceNodeParser(typeChecker, prs));
     });
 
     const formatter = tsj.createFormatter(config, (fmt, circularReferenceTypeFormatter) => {
@@ -879,10 +1190,15 @@ try {
         fmt.addTypeFormatter(new EnumTypeFormatterWithVarnames());
         fmt.addTypeFormatter(new SyntheticValueTypeFormatter(circularReferenceTypeFormatter));
         fmt.addTypeFormatter(new DiscriminatedUnionTypeFormatter(circularReferenceTypeFormatter));
+        fmt.addTypeFormatter(new GenericInterfaceTypeFormatter(circularReferenceTypeFormatter));
+        fmt.addTypeFormatter(new GenericPropertiesObjectTypeFormatter(circularReferenceTypeFormatter));
     });
 
     const generator = new AllTypesSchemaGenerator(program, parser, formatter, config);
     const schema = generator.createSchema(config.type);
+
+    // Note: Generic interfaces are now handled by GenericInterfaceNodeParser
+    // The post-processing approach has been replaced with proper library integration
 
     fs.writeFileSync(outputPath, JSON.stringify(schema, null, 2));
 } catch (error) {

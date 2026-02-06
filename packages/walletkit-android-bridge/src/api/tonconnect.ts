@@ -37,12 +37,10 @@ export async function processInternalBrowserRequest(args: unknown[]) {
         throw new Error('processInternalBrowserRequest: messageId is required in messageInfo');
     }
 
-    // Call processInjectedBridgeRequest - this queues the event but doesn't return the response
-    await kit('processInjectedBridgeRequest', ...args);
-
-    // Wait for response from jsBridgeTransport (via initialization.ts)
     return new Promise<unknown>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
+            const resolverMap = ensureInternalBrowserResolverMap();
+            resolverMap.delete(messageId);
             reject(new Error(`Request timeout: ${messageId}`));
         }, 60000); // 60 second timeout
 
@@ -61,6 +59,13 @@ export async function processInternalBrowserRequest(args: unknown[]) {
                 clearTimeout(timeoutId);
                 reject(error instanceof Error ? error : new Error(String(error)));
             },
+        });
+
+        // Call processInjectedBridgeRequest AFTER resolver is registered
+        kit('processInjectedBridgeRequest', ...args).catch((err) => {
+            clearTimeout(timeoutId);
+            resolverMap.delete(messageId);
+            reject(err);
         });
     });
 }

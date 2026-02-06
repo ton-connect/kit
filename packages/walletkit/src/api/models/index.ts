@@ -46,7 +46,7 @@ export type {
     SendTransactionRequestEventPreview,
 } from './bridge/SendTransactionRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
-export type { TONConnectSession } from './bridge/TONConnectSession';
+export type { TONConnectSession } from './sessions/TONConnectSession';
 
 // Jetton models
 export type { Jetton } from './jettons/Jetton';
