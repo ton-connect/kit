@@ -10,6 +10,10 @@ import { Buffer as NodeBuffer } from 'buffer';
 
 import { warn, error } from '../utils/logger';
 
+type EventSourceInitConfig = {
+    withCredentials?: boolean;
+};
+
 type NativeStorageBridge = {
     storageGet: (key: string) => string | null | undefined;
     storageSet: (key: string, value: string) => void;
@@ -68,7 +72,7 @@ class NativeEventSource {
     private _id: number = 0;
     private _eventListeners: Map<string, Array<(event: Event | MessageEvent) => void>> = new Map();
 
-    constructor(url: string | URL, options?: EventSourceInit) {
+    constructor(url: string | URL, options?: EventSourceInitConfig) {
         this.url = typeof url === 'string' ? url : url.toString();
         this.withCredentials = options?.withCredentials ?? false;
 
@@ -209,7 +213,7 @@ function setupNativeEventSource(scope: GlobalWithBridge) {
         id: number,
         eventType: string,
         data: string,
-        lastEventId: string | null
+        lastEventId: string | null,
     ) => {
         const instance = scope.__walletkitEventSources?.get(id);
         if (instance) {
@@ -240,7 +244,6 @@ function setupNativeEventSource(scope: GlobalWithBridge) {
     (globalThis as any).EventSource = NativeEventSource;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).EventSource = NativeEventSource;
-
 }
 
 /**
