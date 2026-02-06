@@ -34,7 +34,7 @@ import type {
     Network,
 } from '@ton/walletkit';
 
-import { log, error } from '../utils/logger';
+import { error } from '../utils/logger';
 
 type AndroidAPIClientBridge = {
     apiGetNetworks: () => string;
@@ -97,11 +97,9 @@ export class AndroidAPIClientAdapter implements ApiClient {
     }
 
     async sendBoc(boc: Base64String): Promise<string> {
-        log('[AndroidAPIClientAdapter] sendBoc:', boc.substring(0, 50) + '...');
         try {
             const networkJson = JSON.stringify(this.network);
             const result = this.androidBridge.apiSendBoc(networkJson, boc);
-            log('[AndroidAPIClientAdapter] sendBoc result:', result);
             return result;
         } catch (err) {
             error('[AndroidAPIClientAdapter] sendBoc failed:', err);
@@ -115,14 +113,12 @@ export class AndroidAPIClientAdapter implements ApiClient {
         stack?: RawStackItem[],
         seqno?: number,
     ): Promise<GetMethodResult> {
-        log('[AndroidAPIClientAdapter] runGetMethod:', address, method);
         try {
             const networkJson = JSON.stringify(this.network);
             const stackJson = stack ? JSON.stringify(stack) : null;
             const seqnoArg = seqno ?? -1; // Use -1 to represent null
             const resultJson = this.androidBridge.apiRunGetMethod(networkJson, address, method, stackJson, seqnoArg);
             const result = JSON.parse(resultJson) as GetMethodResult;
-            log('[AndroidAPIClientAdapter] runGetMethod result:', result);
             return result;
         } catch (err) {
             error('[AndroidAPIClientAdapter] runGetMethod failed:', err);
@@ -150,12 +146,10 @@ export class AndroidAPIClientAdapter implements ApiClient {
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
-        log('[AndroidAPIClientAdapter] getBalance:', address);
         try {
             const networkJson = JSON.stringify(this.network);
             const seqnoArg = seqno ?? -1; // Use -1 to represent null
             const result = this.androidBridge.apiGetBalance(networkJson, address, seqnoArg);
-            log('[AndroidAPIClientAdapter] getBalance result:', result);
             return result;
         } catch (err) {
             error('[AndroidAPIClientAdapter] getBalance failed:', err);

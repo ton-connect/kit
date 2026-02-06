@@ -23,7 +23,7 @@ import { eventListeners } from './eventListeners';
 
 export { eventListeners };
 
-const apiImpl: WalletKitBridgeApi = {
+export const api: WalletKitBridgeApi = {
     // Initialization
     init: initialization.init,
     setEventsListeners: initialization.setEventsListeners,
@@ -40,7 +40,7 @@ const apiImpl: WalletKitBridgeApi = {
     getAdapterAddress: wallets.getAdapterAddress,
     addWallet: wallets.addWallet,
     getWallets: wallets.getWallets,
-    getWallet: wallets.getWallet,
+    getWallet: wallets.getWalletById,
     getWalletAddress: wallets.getWalletAddress,
     removeWallet: wallets.removeWallet,
     getBalance: wallets.getBalance,
@@ -84,8 +84,6 @@ const apiImpl: WalletKitBridgeApi = {
     emitBrowserPageFinished: browser.emitBrowserPageFinished,
     emitBrowserError: browser.emitBrowserError,
     emitBrowserBridgeRequest: browser.emitBrowserBridgeRequest,
-};
-
-export const api = apiImpl;
+} as unknown as WalletKitBridgeApi;
 
 export type { BridgeEventListener } from './eventListeners';

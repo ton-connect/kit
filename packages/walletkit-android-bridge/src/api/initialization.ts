@@ -12,9 +12,18 @@
  * Simplified bridge for WalletKit initialization and event listener management.
  */
 
+import type {
+    ConnectionRequestEvent,
+    DisconnectionEvent,
+    RequestErrorEvent,
+    SendTransactionRequestEvent,
+    SignDataRequestEvent,
+} from '@ton/walletkit';
+
 import type { WalletKitBridgeInitConfig, SetEventsListenersArgs, WalletKitBridgeEventCallback } from '../types';
 import { ensureWalletKitLoaded } from '../core/moduleLoader';
-import { initTonWalletKit, requireWalletKit } from '../core/initialization';
+import { initTonWalletKit } from '../core/initialization';
+import { getKit } from '../utils/bridge';
 import { emit } from '../transport/messaging';
 import { postToNative } from '../transport/nativeBridge';
 import { eventListeners } from './eventListeners';
@@ -36,8 +45,8 @@ export async function init(config?: WalletKitBridgeInitConfig) {
 /**
  * Registers bridge event listeners, proxying WalletKit events to the native layer.
  */
-export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } {
-    const kit = requireWalletKit();
+export async function setEventsListeners(args?: SetEventsListenersArgs): Promise<{ ok: true }> {
+    const kit = await getKit();
 
     const callback: WalletKitBridgeEventCallback =
         args?.callback ??
@@ -49,7 +58,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeConnectRequestCallback();
     }
 
-    eventListeners.onConnectListener = (event: unknown) => {
+    eventListeners.onConnectListener = (event: ConnectionRequestEvent) => {
         callback('connectRequest', event);
     };
 
@@ -59,7 +68,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeTransactionRequestCallback();
     }
 
-    eventListeners.onTransactionListener = (event: unknown) => {
+    eventListeners.onTransactionListener = (event: SendTransactionRequestEvent) => {
         callback('transactionRequest', event);
     };
 
@@ -69,7 +78,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeSignDataRequestCallback();
     }
 
-    eventListeners.onSignDataListener = (event: unknown) => {
+    eventListeners.onSignDataListener = (event: SignDataRequestEvent) => {
         callback('signDataRequest', event);
     };
 
@@ -79,7 +88,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeDisconnectCallback();
     }
 
-    eventListeners.onDisconnectListener = (event: unknown) => {
+    eventListeners.onDisconnectListener = (event: DisconnectionEvent) => {
         callback('disconnect', event);
     };
 
@@ -90,7 +99,7 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
         kit.removeErrorCallback();
     }
 
-    eventListeners.onErrorListener = (event: unknown) => {
+    eventListeners.onErrorListener = (event: RequestErrorEvent) => {
         callback('requestError', event);
     };
 
@@ -102,8 +111,8 @@ export function setEventsListeners(args?: SetEventsListenersArgs): { ok: true } 
 /**
  * Removes all previously registered bridge event listeners.
  */
-export function removeEventListeners(): { ok: true } {
-    const kit = requireWalletKit();
+export async function removeEventListeners(): Promise<{ ok: true }> {
+    const kit = await getKit();
 
     if (eventListeners.onConnectListener) {
         kit.removeConnectRequestCallback();

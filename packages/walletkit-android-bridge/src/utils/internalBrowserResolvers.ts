@@ -6,9 +6,11 @@
  *
  */
 
+import type { JsBridgeTransportMessage } from '../types/bridge';
+
 export type InternalBrowserResponseResolver = {
-    resolve: (response: unknown) => void;
-    reject: (error: unknown) => void;
+    resolve: (response: JsBridgeTransportMessage) => void;
+    reject: (error: Error) => void;
 };
 
 export type InternalBrowserResolverRegistry = Map<string, InternalBrowserResponseResolver>;

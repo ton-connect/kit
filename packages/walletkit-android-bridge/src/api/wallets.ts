@@ -13,93 +13,67 @@
  * Kotlin is responsible for adapting to whatever JS returns.
  */
 
-import type { Hex } from '@ton/walletkit';
+import type { Hex, Network, WalletAdapter } from '@ton/walletkit';
 
-import type {
-    RemoveWalletArgs,
-    GetBalanceArgs,
-    CreateSignerArgs,
-    CreateAdapterArgs,
-    AddWalletArgs,
-    WalletKitSigner,
-    WalletKitAdapter,
-} from '../types';
 import { Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '../core/moduleLoader';
-import { callBridge } from '../utils/bridgeWrapper';
+import { kit, wallet, getKit } from '../utils/bridge';
 import { signWithCustomSigner } from './cryptography';
 
-type SignerInstance = WalletKitSigner;
-type AdapterInstance = WalletKitAdapter;
+type SignerInstance = { sign: (bytes: Iterable<number>) => Promise<Hex>; publicKey: Hex };
 
 /**
  * Lists all wallets.
- * Returns walletId with each wallet since network can't be inferred from wallet properties.
  */
 export async function getWallets() {
-    return callBridge('getWallets', async (kit) => {
-        const wallets = kit.getWallets?.() ?? [];
-        // Include walletId since getNetwork()/getAddress() are methods that don't serialize
-        return wallets.map((w) => ({
-            walletId: w.getWalletId?.(),
-            wallet: w,
-        }));
-    });
+    const wallets = (await kit('getWallets')) as { getWalletId?: () => string }[];
+    return wallets.map((w) => ({ walletId: w.getWalletId?.(), wallet: w }));
 }
 
 /**
  * Get a single wallet by walletId.
- * Returns walletId with wallet since network can't be inferred from wallet properties.
  */
-export async function getWallet(args: { walletId: string }) {
-    return callBridge('getWallet', async (kit) => {
-        const w = kit.getWallet?.(args.walletId);
-        if (!w) return null;
-        return { walletId: w.getWalletId?.(), wallet: w };
-    });
+export async function getWalletById(args: { walletId: string }) {
+    const w = await kit('getWallet', args.walletId);
+    if (!w) return null;
+    return { walletId: (w as { getWalletId?: () => string }).getWalletId?.(), wallet: w };
 }
 
-/**
- * Gets the address of a wallet.
- * Returns raw result - Kotlin adapts to the response.
- */
 export async function getWalletAddress(args: { walletId: string }) {
-    return callBridge('getWalletAddress', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        return wallet?.getAddress?.() ?? null;
-    });
+    return wallet(args.walletId, 'getAddress');
 }
 
-/**
- * Removes a wallet from storage.
- * Returns raw result - Kotlin adapts to the response.
- */
-export async function removeWallet(args: RemoveWalletArgs) {
-    return callBridge('removeWallet', async (kit) => {
-        return await kit.removeWallet?.(args.walletId);
-    });
+export async function removeWallet(args: { walletId: string }) {
+    return kit('removeWallet', args.walletId);
 }
 
-/**
- * Fetches wallet balance.
- * Returns raw balance - Kotlin adapts to the response.
- */
-export async function getBalance(args: GetBalanceArgs) {
-    return callBridge('getBalance', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        return await wallet?.getBalance?.();
-    });
+export async function getBalance(args: { walletId: string }) {
+    return wallet(args.walletId, 'getBalance');
 }
 
-// Store for signers and adapters
 const signerStore = new Map<string, SignerInstance>();
-const adapterStore = new Map<string, AdapterInstance>();
+const adapterStore = new Map<string, unknown>();
 
-/**
- * Retrieves or creates a signer instance based on the arguments.
- * Handles both custom signers (hardware wallets) and regular signers.
- */
+type CreateAdapterArgs = {
+    signerId: string;
+    isCustom?: boolean;
+    publicKey?: string;
+    walletVersion?: string;
+    network: string;
+    workchain: number;
+    walletId?: string;
+};
+
+type CreateSignerArgs = {
+    mnemonic?: string[];
+    secretKey?: string;
+    mnemonicType?: string;
+};
+
+type AddWalletArgs = {
+    adapterId: string;
+};
+
 async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
-    // Handle custom signers (hardware wallets) that live in Kotlin
     if (args.isCustom && args.publicKey) {
         return {
             sign: async (bytes: Iterable<number>): Promise<Hex> => {
@@ -109,7 +83,6 @@ async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
         };
     }
 
-    // Handle regular signers stored in JavaScript
     const storedSigner = signerStore.get(args.signerId);
     if (!storedSigner) {
         throw new Error(`Signer not found: ${args.signerId}`);
@@ -117,81 +90,63 @@ async function getSigner(args: CreateAdapterArgs): Promise<SignerInstance> {
     return storedSigner;
 }
 
-/**
- * Creates a signer from mnemonic or secret key.
- * Returns raw signer object - Kotlin generates signerId and extracts publicKey.
- */
 export async function createSigner(args: CreateSignerArgs) {
-    return callBridge('createSigner', async (_kit) => {
-        const signer =
-            args.mnemonic && args.mnemonic.length > 0
-                ? ((await Signer!.fromMnemonic(args.mnemonic, { type: args.mnemonicType || 'ton' })) as SignerInstance)
-                : ((await Signer!.fromPrivateKey(args.secretKey!)) as SignerInstance);
+    if (!Signer) {
+        throw new Error('Signer module not loaded');
+    }
+    if (!args.mnemonic?.length && !args.secretKey) {
+        throw new Error('Either mnemonic or secretKey is required');
+    }
+    const signer =
+        args.mnemonic && args.mnemonic.length > 0
+            ? ((await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType || 'ton' })) as SignerInstance)
+            : ((await Signer.fromPrivateKey(args.secretKey as string)) as SignerInstance);
 
-        // Store signer with temp ID for Kotlin to retrieve
-        const tempId = `signer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        signerStore.set(tempId, signer);
+    const tempId = `signer_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    signerStore.set(tempId, signer);
 
-        return { _tempId: tempId, signer };
-    });
+    return { _tempId: tempId, signer };
 }
 
-/**
- * Creates a wallet adapter from a signer.
- * Supports both regular signers (from mnemonic/secretKey) and custom signers (hardware wallets).
- * Returns adapter ID - Kotlin is responsible for all mapping and transformation.
- */
 export async function createAdapter(args: CreateAdapterArgs) {
-    return callBridge('createAdapter', async (kit) => {
-        const signer = await getSigner(args);
-        const AdapterClass = args.walletVersion === 'v5r1' ? WalletV5R1Adapter : WalletV4R2Adapter;
-        const adapter = (await AdapterClass!.create(signer, {
-            client: kit.getApiClient(args.network),
-            network: args.network,
-            workchain: args.workchain,
-            walletId: args.walletId,
-        })) as AdapterInstance;
-
-        // Store adapter with temp ID for Kotlin to retrieve
-        const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        adapterStore.set(tempId, adapter);
-
-        // Return only the temp ID and the raw adapter object
-        // Kotlin is responsible for extracting any needed properties
-        return { _tempId: tempId, adapter };
+    const instance = await getKit();
+    const signer = await getSigner(args);
+    const AdapterClass = args.walletVersion === 'v5r1' ? WalletV5R1Adapter : WalletV4R2Adapter;
+    if (!AdapterClass) {
+        throw new Error(`WalletAdapter module not loaded`);
+    }
+    const network = args.network as unknown as Network;
+    const adapter = await AdapterClass.create(signer, {
+        client: instance.getApiClient(network),
+        network,
+        workchain: args.workchain,
+        walletId: args.walletId,
     });
+
+    const tempId = `adapter_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    adapterStore.set(tempId, adapter);
+
+    return { _tempId: tempId, adapter };
 }
-/**
- * Gets the address from a stored adapter.
- * Returns raw address - Kotlin adapts to the response.
- */
+
 export async function getAdapterAddress(args: { adapterId: string }) {
-    return callBridge('getAdapterAddress', async (_kit) => {
-        const adapter = adapterStore.get(args.adapterId);
-        if (!adapter) {
-            throw new Error(`Adapter not found: ${args.adapterId}`);
-        }
-        return adapter.getAddress();
-    });
+    const adapter = adapterStore.get(args.adapterId) as WalletAdapter | undefined;
+    if (!adapter) {
+        throw new Error(`Adapter not found: ${args.adapterId}`);
+    }
+    return adapter.getAddress();
 }
 
-/**
- * Adds a wallet to WalletKit using an adapter.
- * Returns walletId with wallet since getWalletId() is a method that doesn't serialize.
- */
 export async function addWallet(args: AddWalletArgs) {
-    return callBridge('addWallet', async (kit) => {
-        const adapter = adapterStore.get(args.adapterId);
-        if (!adapter) {
-            throw new Error(`Adapter not found: ${args.adapterId}`);
-        }
+    const instance = await getKit();
+    const adapter = adapterStore.get(args.adapterId);
+    if (!adapter) {
+        throw new Error(`Adapter not found: ${args.adapterId}`);
+    }
 
-        const wallet = await kit.addWallet(adapter);
+    const w = await instance.addWallet(adapter as Parameters<typeof instance.addWallet>[0]);
+    adapterStore.delete(args.adapterId);
 
-        // Clean up the adapter from store after use
-        adapterStore.delete(args.adapterId);
-
-        if (!wallet) return null;
-        return { walletId: wallet.getWalletId?.(), wallet };
-    });
+    if (!w) return null;
+    return { walletId: w.getWalletId?.(), wallet: w };
 }
