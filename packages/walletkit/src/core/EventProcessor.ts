@@ -188,7 +188,6 @@ export class StorageEventProcessor implements IEventProcessor {
             const eventToUse = allEvents[0];
             const walletId =
                 allSessions.find((s) => s.sessionId === eventToUse.sessionId)?.walletId ||
-                eventToUse.rawEvent.walletId ||
                 'no-wallet';
 
             // Process the event
