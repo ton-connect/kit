@@ -54,17 +54,13 @@ export interface TONConnectSessionManager {
      * Remove session by ID
      * @param sessionId - The session ID to remove
      */
-    removeSession(sessionId: string): Promise<TONConnectSession | undefined>;
+    removeSession(sessionId: string): Promise<void>;
 
     /**
      * Remove all sessions for a optional parameters
      * @param parameters - parameters to remove sessions
      */
-    removeSessions(filter?: {
-        walletId?: WalletId;
-        domain?: string;
-        isJsBridge?: boolean;
-    }): Promise<TONConnectSession[]>;
+    removeSessions(filter?: { walletId?: WalletId; domain?: string; isJsBridge?: boolean }): Promise<void>;
 
     /**
      * Clear all sessions

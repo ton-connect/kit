@@ -141,25 +141,14 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
     /**
      * Remove session by ID
      */
-    async removeSession(sessionId: string): Promise<TONConnectSession | undefined> {
-        const session = await this.getSession(sessionId);
-
-        if (!session) {
-            return session;
-        }
-
+    async removeSession(sessionId: string): Promise<void> {
         const removed = this.sessions.delete(sessionId);
         if (removed) {
             await this.persistSessions();
         }
-        return session;
     }
 
-    async removeSessions(filter?: {
-        walletId?: WalletId;
-        domain?: string;
-        isJsBridge?: boolean;
-    }): Promise<TONConnectSession[]> {
+    async removeSessions(filter?: { walletId?: WalletId; domain?: string; isJsBridge?: boolean }): Promise<void> {
         const sessionsToRemove = await this.getSessions(filter);
 
         let removedCount = 0;
@@ -173,8 +162,6 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         if (removedCount > 0) {
             await this.persistSessions();
         }
-
-        return sessionsToRemove;
     }
 
     /**

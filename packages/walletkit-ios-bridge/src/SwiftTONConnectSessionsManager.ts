@@ -48,16 +48,12 @@ export class SwiftTONConnectSessionsManager implements TONConnectSessionManager 
         return await this.swiftSessionsManager.getSessions(parameters);
     }
 
-    async removeSession(sessionId: string): Promise<TONConnectSession | undefined> {
-        return await this.swiftSessionsManager.removeSession(sessionId);
+    async removeSession(sessionId: string): Promise<void> {
+        await this.swiftSessionsManager.removeSession(sessionId);
     }
 
-    async removeSessions(parameters?: {
-        walletId?: WalletId;
-        domain?: string;
-        isJsBridge?: boolean;
-    }): Promise<TONConnectSession[]> {
-        return await this.swiftSessionsManager.removeSessions(parameters);
+    async removeSessions(parameters?: { walletId?: WalletId; domain?: string; isJsBridge?: boolean }): Promise<void> {
+        await this.swiftSessionsManager.removeSessions(parameters);
     }
 
     async clearSessions(): Promise<void> {
