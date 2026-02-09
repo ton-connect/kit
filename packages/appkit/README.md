@@ -279,6 +279,12 @@ The wallet provides:
 - [TON Connect Protocol](https://github.com/ton-blockchain/ton-connect) - Official TON Connect protocol specification
 - [TonConnect SDK](https://github.com/ton-connect/sdk) - TonConnect JavaScript SDK
 
+## Documentation
+
+- [Actions](./docs/actions.md): Standalone actions for wallet, transfer, balance, and swap operations.
+- [Connectors](./docs/connectors.md): Learn how to configure TonConnect and other connectors.
+- [Queries](./docs/query.md): Framework-agnostic query options for TanStack Query.
+
 ## License
 
 MIT License - see LICENSE file for details

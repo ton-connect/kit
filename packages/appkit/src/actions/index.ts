@@ -21,6 +21,10 @@ export {
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
 
+// NFTs
+export { getNfts, type GetNftsOptions, type GetNftsReturnType } from './nft/get-nfts';
+export { transferNft, type TransferNftParameters, type TransferNftReturnType } from './nft/transfer-nft';
+
 // Transactions
 export {
     sendTransaction,
@@ -28,13 +32,11 @@ export {
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
 export { transferTon, type TransferTonParameters, type TransferTonReturnType } from './transaction/transfer-ton';
-export { transferNft, type TransferNftParameters, type TransferNftReturnType } from './nft/transfer-nft';
 export {
     createTransferNftTransaction,
     type CreateTransferNftTransactionParameters,
     type CreateTransferNftTransactionReturnType,
 } from './nft/create-transfer-nft-transaction';
-
 export {
     createTransferTonTransaction,
     type CreateTransferTonTransactionParameters,
