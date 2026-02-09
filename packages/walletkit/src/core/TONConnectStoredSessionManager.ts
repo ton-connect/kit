@@ -119,7 +119,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
                 domain = filter.domain;
             }
         }
-        sessions.filter((session) => {
+        return sessions.filter((session) => {
             let isIncluded = true;
 
             if (filter.walletId) {
@@ -136,8 +136,6 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
 
             return isIncluded;
         });
-
-        return sessions;
     }
 
     /**
