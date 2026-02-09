@@ -98,7 +98,6 @@ export interface JSBridgeInjectOptions {
     jsBridgeKey?: string;
     injectTonKey?: boolean;
     isWalletBrowser?: boolean;
-    walletId?: WalletId;
 }
 
 /**
