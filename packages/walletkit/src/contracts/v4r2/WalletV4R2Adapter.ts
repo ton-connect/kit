@@ -137,8 +137,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        _options: { fakeSignature: boolean },
+        options?: { fakeSignature?: boolean; internal?: boolean },
     ): Promise<Base64String> {
+        if (options?.internal) {
+            throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
+        }
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }

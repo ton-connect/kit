@@ -8,19 +8,28 @@
 
 import type {
     BridgeEvent,
+    ConnectionApprovalProof,
     ConnectionRequestEventPreview,
     ConnectEvent,
     ConnectEventError,
     DAppInfo,
     DisconnectEvent,
+    IntentEvent,
+    IntentResponse,
+    IntentResponseError,
+    IntentSignDataResponseSuccess,
+    IntentTransactionResponseSuccess,
     JettonsResponse,
     NFT,
     NFTsResponse,
     SendTransactionResponse,
+    SignDataIntentEvent,
     TONConnectSession,
     Transaction,
     TransactionEmulatedPreview,
+    TransactionIntentEvent,
     TransactionRequest,
+    ActionIntentEvent,
     Wallet,
     WalletAdapter,
     WalletResponse,
@@ -253,6 +262,68 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
+export interface HandleIntentUrlArgs {
+    url: string;
+}
+
+export interface IsIntentUrlArgs {
+    url: string;
+}
+
+export interface IntentItemsToTransactionRequestArgs {
+    /** The transaction intent event - Android sends this in walletkit format */
+    event: TransactionIntentEvent;
+    /** The wallet ID to use for jetton/NFT address resolution */
+    walletId: string;
+}
+
+/** Arguments for approving a transaction intent (txIntent or signMsg) */
+export interface ApproveTransactionIntentArgs {
+    /** The full transaction intent event - Android sends this in walletkit format */
+    event: TransactionIntentEvent;
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for approving a sign data intent (signIntent) */
+export interface ApproveSignDataIntentArgs {
+    /** The full sign data intent event - Android sends this in walletkit format */
+    event: SignDataIntentEvent;
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for rejecting any intent */
+export interface RejectIntentArgs {
+    /** The intent event to reject */
+    event: {
+        id: string;
+        clientId: string;
+    };
+    /** Optional rejection reason */
+    reason?: string;
+    /** Optional error code */
+    errorCode?: number;
+}
+
+/** Arguments for approving an action intent (actionIntent) */
+export interface ApproveActionIntentArgs {
+    /** The action intent event - Android sends this in walletkit format */
+    event: ActionIntentEvent;
+    /** The wallet ID to use for signing */
+    walletId: string;
+}
+
+/** Arguments for processing connect request after intent approval */
+export interface ProcessConnectAfterIntentArgs {
+    /** The intent event with connect request - Android sends this in walletkit format */
+    event: IntentEvent;
+    /** The wallet ID to use for the connection */
+    walletId: string;
+    /** Optional proof */
+    proof?: ConnectionApprovalProof;
+}
+
 export interface WalletDescriptor {
     address: string;
     publicKey: string;
@@ -292,6 +363,15 @@ export interface WalletKitBridgeApi {
     // Returns transactions array directly
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
+    // Intent URL handling
+    handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
+    isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
+    intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
+    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<IntentTransactionResponseSuccess>;
+    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<IntentSignDataResponseSuccess>;
+    rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentResponseError>;
+    approveActionIntent(args: ApproveActionIntentArgs): PromiseOrValue<IntentResponse>;
+    processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;
