@@ -509,6 +509,7 @@ export class BridgeManager {
                 tabId: messageInfo.tabId,
                 domain: messageInfo.domain,
                 messageId: messageInfo.messageId,
+                walletId: messageInfo.walletId,
             });
         } else if (event.method == 'restoreConnection') {
             this.eventEmitter?.emit('restoreConnection', {
@@ -516,6 +517,7 @@ export class BridgeManager {
                 tabId: messageInfo.tabId,
                 domain: messageInfo.domain,
                 messageId: messageInfo.messageId,
+                walletId: messageInfo.walletId,
             });
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
@@ -526,6 +528,7 @@ export class BridgeManager {
                 tabId: messageInfo.tabId,
                 domain: messageInfo.domain,
                 messageId: messageInfo.messageId,
+                walletId: messageInfo.walletId,
             });
         }
 

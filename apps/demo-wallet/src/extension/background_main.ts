@@ -163,6 +163,7 @@ async function handleBridgeRequest(
             messageId,
             tabId: tabId?.toString(),
             domain: await getHostFromUrl(tabId),
+            // todo - get current wallet id
         },
         {
             ...bridgeRequest,

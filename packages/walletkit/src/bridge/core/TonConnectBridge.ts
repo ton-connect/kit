@@ -55,7 +55,6 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'connect',
             params: { protocolVersion, ...message },
-            walletId: this.walletId,
         });
     }
 
@@ -66,7 +65,6 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'restoreConnection',
             params: [],
-            walletId: this.walletId,
         });
     }
 
@@ -77,7 +75,6 @@ export class TonConnectBridge {
         return this.transport.send({
             method: 'send',
             params: [message],
-            walletId: this.walletId,
         });
     }
 

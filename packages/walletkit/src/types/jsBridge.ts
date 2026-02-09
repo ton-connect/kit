@@ -117,7 +117,6 @@ export interface InjectedToExtensionBridgeRequestPayload {
     params: Array<unknown> | Record<string, unknown>;
     from?: string;
     traceId?: string;
-    walletId?: WalletId;
 }
 
 export interface BridgeResponse {
@@ -139,6 +138,7 @@ export interface BridgeEventMessageInfo {
     messageId: string;
     tabId?: string;
     domain?: string;
+    walletId?: WalletId;
 }
 
 /**
