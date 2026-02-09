@@ -15,6 +15,7 @@ import { NftsCard } from '@/features/nft';
 import { WalletConnect } from '@/features/wallet';
 import { Layout } from '@/core/components';
 import { SwapButton } from '@/features/swap';
+import { SignMessageCard } from '@/features/signing';
 
 export const MinterPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
@@ -34,6 +35,7 @@ export const MinterPage: React.FC = () => {
                     <div className="space-y-4">
                         <TokensCard />
                         <NftsCard />
+                        <SignMessageCard />
                         <div className="p-4 bg-gray-100 rounded-lg dark:bg-gray-800">
                             <h3 className="mb-2 text-sm font-medium text-gray-500 uppercase">Swap Demo</h3>
                             <SwapButton />

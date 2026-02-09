@@ -7,8 +7,8 @@
  */
 
 import { Address } from '@ton/core';
-import type { SignDataPayload, SignDataPayloadCell, Wallet as TonConnectWallet } from '@tonconnect/sdk';
-import type { CHAIN } from '@tonconnect/protocol';
+import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
+import { CHAIN } from '@tonconnect/sdk';
 import type {
     ApiClient,
     TONTransferRequest,
@@ -25,7 +25,6 @@ import type {
     NFTTransferRequest,
     NFTRawTransferRequest,
     TokenAmount,
-    PreparedSignData,
     ProofMessage,
     UserFriendlyAddress,
     Hex,
@@ -58,6 +57,7 @@ import type { TonConnectUI } from '@tonconnect/ui';
 
 import { getValidUntil } from '../utils/transaction';
 import type { WalletInterface } from '../../../types/wallet';
+import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
 
 /**
  * Configuration for TonConnectWalletAdapter
@@ -143,37 +143,72 @@ export class TonConnectWalletAdapter implements WalletInterface {
                 payload: msg.payload,
                 stateInit: msg.stateInit,
             })),
-            network: (input.network?.chainId as CHAIN) ?? (this.tonConnectWallet.account?.chain as CHAIN),
+            network: (input.network?.chainId as CHAIN) ?? this.tonConnectWallet.account?.chain,
         };
 
         const result = await this.tonConnect.sendTransaction(transaction);
         return result.boc as Base64String;
     }
 
-    async getSignedSignData(input: PreparedSignData, _options?: { fakeSignature: boolean }): Promise<Hex> {
-        if (_options?.fakeSignature) {
-            throw new Error('Fake signature not supported with TonConnect wallet');
+    async signData(payload: SignDataRequest): Promise<SignDataResponse> {
+        const chainId = payload.network
+            ? this.mapNetworkToChain(payload.network)
+            : (this.getNetwork().chainId as CHAIN);
+        const { data } = payload;
+
+        if (data.type === 'text') {
+            const result = await this.tonConnect.signData({
+                type: 'text',
+                text: data.value.content,
+                network: chainId,
+                from: payload.from,
+            });
+
+            return {
+                payload,
+                address: result.address,
+                timestamp: result.timestamp,
+                domain: result.domain,
+                signature: result.signature,
+            };
         }
 
-        const payload: SignDataPayload = {
-            network: input.payload.network ? (input.payload.network.chainId as CHAIN) : undefined,
-            from: this.getAddress(),
-            ...(input.payload.data.type === 'text'
-                ? { type: 'text' as const, text: input.payload.data.value.content }
-                : {}),
-            ...(input.payload.data.type === 'cell'
-                ? {
-                      type: 'cell' as const,
-                      schema: input.payload.data.value.schema,
-                      cell: input.payload.data.value.content,
-                  }
-                : {}),
-            ...(input.payload.data.type === 'binary'
-                ? { type: 'binary' as const, bytes: input.payload.data.value.content }
-                : {}),
-        } as SignDataPayloadCell;
-        const response = await this.tonConnect.signData(payload);
-        return asHex(response.signature);
+        if (data.type === 'binary') {
+            const result = await this.tonConnect.signData({
+                type: 'binary',
+                bytes: data.value.content,
+                network: chainId,
+                from: payload.from,
+            });
+
+            return {
+                payload,
+                address: result.address,
+                timestamp: result.timestamp,
+                domain: result.domain,
+                signature: result.signature,
+            };
+        }
+
+        if (data.type === 'cell') {
+            const result = await this.tonConnect.signData({
+                type: 'cell',
+                cell: data.value.content,
+                schema: data.value.schema,
+                network: chainId,
+                from: payload.from,
+            });
+
+            return {
+                payload,
+                address: result.address,
+                timestamp: result.timestamp,
+                domain: result.domain,
+                signature: result.signature,
+            };
+        }
+
+        throw new Error('Unsupported payload type');
     }
 
     async getSignedTonProof(_input: ProofMessage, _options?: { fakeSignature: boolean }): Promise<Hex> {
@@ -357,5 +392,16 @@ export class TonConnectWalletAdapter implements WalletInterface {
 
     async getNft(address: UserFriendlyAddress): Promise<NFT | null> {
         return getNftFromClient(this.client, address);
+    }
+
+    private mapNetworkToChain(network: Network): CHAIN {
+        switch (network.chainId) {
+            case Network.mainnet().chainId:
+                return CHAIN.MAINNET;
+            case Network.testnet().chainId:
+                return CHAIN.TESTNET;
+            default:
+                return network.chainId as CHAIN;
+        }
     }
 }

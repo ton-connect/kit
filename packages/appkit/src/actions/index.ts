@@ -73,3 +73,8 @@ export {
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
 export { registerSwapProvider, type RegisterSwapProviderOptions } from './swap/register-swap-provider';
+
+// Signing
+export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
+export { signBinary, type SignBinaryParameters, type SignBinaryReturnType } from './signing/sign-binary';
+export { signCell, type SignCellParameters, type SignCellReturnType } from './signing/sign-cell';

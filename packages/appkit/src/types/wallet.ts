@@ -8,6 +8,10 @@
 
 import type { Wallet } from '@ton/walletkit';
 
-export interface WalletInterface extends Wallet {
+import type { SignDataRequest, SignDataResponse } from './signing';
+
+export interface WalletInterface extends Omit<Wallet, 'getSignedSignData'> {
     connectorId: string;
+
+    signData(payload: SignDataRequest): Promise<SignDataResponse>;
 }

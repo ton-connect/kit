@@ -25,3 +25,4 @@ export * from './features/nft';
 export * from './features/transaction';
 export * from './features/wallets';
 export * from './features/swap';
+export * from './features/signing';

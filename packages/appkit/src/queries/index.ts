@@ -83,3 +83,35 @@ export {
     type BuildSwapTransactionMutateAsync,
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
+
+// Signing
+export {
+    signTextMutationOptions,
+    type SignTextOptions,
+    type SignTextMutationOptions,
+    type SignTextData,
+    type SignTextVariables,
+    type SignTextMutate,
+    type SignTextMutateAsync,
+    type SignTextErrorType,
+} from './signing/sign-text';
+export {
+    signBinaryMutationOptions,
+    type SignBinaryOptions,
+    type SignBinaryMutationOptions,
+    type SignBinaryData,
+    type SignBinaryVariables,
+    type SignBinaryMutate,
+    type SignBinaryMutateAsync,
+    type SignBinaryErrorType,
+} from './signing/sign-binary';
+export {
+    signCellMutationOptions,
+    type SignCellOptions,
+    type SignCellMutationOptions,
+    type SignCellData,
+    type SignCellVariables,
+    type SignCellMutate,
+    type SignCellMutateAsync,
+    type SignCellErrorType,
+} from './signing/sign-cell';

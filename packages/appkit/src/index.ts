@@ -47,6 +47,7 @@ export * from './types/jetton';
 export * from './types/nft';
 export * from './types/transaction';
 export * from './types/primitives';
+export * from './types/signing';
 
 // Utils
 export * from './utils';
