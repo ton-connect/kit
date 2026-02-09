@@ -8,9 +8,9 @@
 
 import { useCallback } from 'react';
 import type { FC } from 'react';
+import { createTransferTonTransaction, createTransferJettonTransaction } from '@ton/appkit';
 
-import { useCreateSendTonTransaction } from '../../hooks/use-create-send-ton-transaction';
-import { useCreateSendJettonTransaction } from '../../hooks/use-create-send-jetton-transaction';
+import { useAppKit } from '../../../../hooks/use-app-kit';
 import { Transaction } from '../../../transaction';
 import type { TransactionProps } from '../../../transaction';
 
@@ -30,25 +30,28 @@ export const SendButton: FC<SendButtonProps> = ({
     comment,
     ...props
 }) => {
-    const createTonTransaction = useCreateSendTonTransaction();
-    const createJettonTransaction = useCreateSendJettonTransaction();
+    const appKit = useAppKit();
 
     const createTransferTransaction = useCallback(async () => {
         if (tokenType === 'TON') {
-            return createTonTransaction({
+            return createTransferTonTransaction(appKit, {
                 recipientAddress,
                 amount,
                 comment,
             });
         }
 
-        return createJettonTransaction({
+        if (!jettonAddress) {
+            throw new Error('Jetton address is required');
+        }
+
+        return createTransferJettonTransaction(appKit, {
             jettonAddress,
             recipientAddress,
             amount,
             comment,
         });
-    }, [tokenType, createTonTransaction, createJettonTransaction, recipientAddress, amount, comment, jettonAddress]);
+    }, [appKit, tokenType, recipientAddress, amount, comment, jettonAddress]);
 
     return (
         <Transaction

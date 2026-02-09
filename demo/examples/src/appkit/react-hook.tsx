@@ -10,15 +10,15 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
 import { AppKit, CONNECTOR_EVENTS, getConnectedWallets } from '@ton/appkit';
+import type { WalletInterface } from '@ton/appkit';
 import { TonConnectConnector } from '@ton/appkit/tonconnect';
 import { Network } from '@ton/walletkit';
-import type { Wallet } from '@ton/walletkit';
 
 export function useAppKit() {
     const [tonConnectUI] = useTonConnectUI();
     const wallet = useTonWallet();
     const appKitRef = useRef<AppKit | null>(null);
-    const [connectedWallet, setConnectedWallet] = useState<Wallet | null>(null);
+    const [connectedWallet, setConnectedWallet] = useState<WalletInterface | null>(null);
 
     // Initialize AppKit when TonConnect is ready
     useEffect(() => {

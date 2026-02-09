@@ -6,8 +6,6 @@
  *
  */
 
-import type { NetworkManager } from '@ton/walletkit';
-import { Network } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
 import { TonConnectWalletAdapter } from '../adapters/ton-connect-wallet-adapter';
@@ -28,7 +26,6 @@ export class TonConnectConnector implements Connector {
     readonly metadata: ConnectorMetadata;
 
     private tonConnect: TonConnectUI;
-    private networkManager: NetworkManager | null = null;
     private emitter: AppKitEmitter | null = null;
     private unsubscribeTonConnect: (() => void) | null = null;
 
@@ -42,9 +39,8 @@ export class TonConnectConnector implements Connector {
         };
     }
 
-    async initialize(emitter: AppKitEmitter, networkManager: NetworkManager): Promise<void> {
+    async initialize(emitter: AppKitEmitter): Promise<void> {
         this.emitter = emitter;
-        this.networkManager = networkManager;
 
         // Subscribe to TonConnect status changes
         this.unsubscribeTonConnect = this.tonConnect.onStatusChange((wallet) => {
@@ -65,7 +61,6 @@ export class TonConnectConnector implements Connector {
         this.unsubscribeTonConnect?.();
         this.unsubscribeTonConnect = null;
         this.emitter = null;
-        this.networkManager = null;
     }
 
     async connectWallet(): Promise<void> {
@@ -77,19 +72,13 @@ export class TonConnectConnector implements Connector {
     }
 
     getConnectedWallets(): WalletInterface[] {
-        if (!this.networkManager) {
-            return [];
-        }
-
         if (this.tonConnect.connected && this.tonConnect.wallet) {
             const wallet = this.tonConnect.wallet;
-            const client = this.networkManager.getClient(Network.custom(wallet.account.chain));
 
             const walletAdapter = new TonConnectWalletAdapter({
                 connectorId: this.id,
                 tonConnectWallet: wallet,
                 tonConnect: this.tonConnect,
-                client,
             });
 
             return [walletAdapter];

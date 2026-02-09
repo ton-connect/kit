@@ -6,13 +6,22 @@
  *
  */
 
-import type { Wallet } from '@ton/walletkit';
+import type { AppKit } from '@ton/appkit';
+import { getJettons, getSelectedWallet } from '@ton/appkit';
 
 // SAMPLE_START: APPKIT_FETCH_JETTONS
-async function fetchJettons(wallet: Wallet) {
+async function fetchJettons(appKit: AppKit) {
+    const wallet = getSelectedWallet(appKit);
+    if (!wallet) {
+        throw new Error('No wallet connected');
+    }
+
     // Fetch jetton balances
-    const response = await wallet.getJettons({
-        pagination: { offset: 0, limit: 50 },
+    const response = await getJettons(appKit, {
+        address: wallet.getAddress(),
+        network: wallet.getNetwork(),
+        limit: 50,
+        offset: 0,
     });
 
     // response.jettons is an array of Jetton objects
@@ -24,20 +33,4 @@ async function fetchJettons(wallet: Wallet) {
 }
 // SAMPLE_END: APPKIT_FETCH_JETTONS
 
-// SAMPLE_START: APPKIT_FETCH_NFTS
-async function fetchNfts(wallet: Wallet) {
-    // Fetch owned NFTs
-    const response = await wallet.getNfts({
-        pagination: { offset: 0, limit: 50 },
-    });
-
-    // response.nfts is an array of NFT objects
-    for (const nft of response.nfts) {
-        console.log(`NFT: ${nft.info?.name ?? nft.address}`);
-    }
-
-    return response.nfts;
-}
-// SAMPLE_END: APPKIT_FETCH_NFTS
-
-export { fetchJettons, fetchNfts };
+export { fetchJettons };

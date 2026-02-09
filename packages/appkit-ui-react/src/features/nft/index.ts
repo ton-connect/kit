@@ -10,3 +10,4 @@ export * from './components/nft-item';
 
 export * from './hooks/use-nfts';
 export * from './hooks/use-selected-wallet-nfts';
+export * from './hooks/use-transfer-nft';

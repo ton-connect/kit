@@ -8,8 +8,8 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import type { NFT } from '@ton/appkit';
-import { getFormattedNftInfo, getErrorMessage } from '@ton/appkit';
-import { useSelectedWallet, Transaction } from '@ton/appkit-ui-react';
+import { getFormattedNftInfo, createTransferNftTransaction, getErrorMessage } from '@ton/appkit';
+import { Transaction, useAppKit } from '@ton/appkit-ui-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/core/components';
@@ -25,21 +25,17 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
     const [comment, setComment] = useState('');
     const [transferError, setTransferError] = useState<string | null>(null);
 
-    const [wallet] = useSelectedWallet();
+    const appKit = useAppKit();
 
     const nftInfo = useMemo(() => getFormattedNftInfo(nft), [nft]);
 
     const createTransferTransaction = useCallback(async () => {
-        if (!wallet) return null;
-
-        const transaction = await wallet.createTransferNftTransaction({
+        return createTransferNftTransaction(appKit, {
             nftAddress: nft.address,
             recipientAddress,
             comment,
         });
-
-        return transaction;
-    }, [wallet, nft.address, recipientAddress, comment]);
+    }, [appKit, nft.address, recipientAddress, comment]);
 
     const handleClose = () => {
         setRecipientAddress('');

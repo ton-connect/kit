@@ -6,21 +6,18 @@
  *
  */
 
-import type { NFTTransferRequest, Wallet } from '@ton/walletkit';
+import type { AppKit } from '@ton/appkit';
+import { transferNft } from '@ton/appkit';
 
 // SAMPLE_START: APPKIT_SEND_NFT
-async function sendNft(wallet: Wallet) {
-    const nftTransfer: NFTTransferRequest = {
+async function sendNft(appKit: AppKit) {
+    // Send NFT using appkit action
+    const result = await transferNft(appKit, {
         nftAddress: 'EQD...nft-item...',
         recipientAddress: 'EQC...recipient...',
         comment: 'Sending NFT',
-    };
+    });
 
-    // Build the transaction
-    const transaction = await wallet.createTransferNftTransaction(nftTransfer);
-
-    // Sign and send via TonConnect
-    const result = await wallet.sendTransaction(transaction);
     console.log('NFT transfer sent:', result.boc);
 }
 // SAMPLE_END: APPKIT_SEND_NFT

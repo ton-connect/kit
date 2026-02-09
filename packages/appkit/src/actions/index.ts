@@ -28,6 +28,28 @@ export {
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
 export { transferTon, type TransferTonParameters, type TransferTonReturnType } from './transaction/transfer-ton';
+export { transferNft, type TransferNftParameters, type TransferNftReturnType } from './nft/transfer-nft';
+export {
+    createTransferNftTransaction,
+    type CreateTransferNftTransactionParameters,
+    type CreateTransferNftTransactionReturnType,
+} from './nft/create-transfer-nft-transaction';
+
+export {
+    createTransferTonTransaction,
+    type CreateTransferTonTransactionParameters,
+    type CreateTransferTonTransactionReturnType,
+} from './transaction/create-transfer-ton-transaction';
+export {
+    createTransferJettonTransaction,
+    type CreateTransferJettonTransactionParameters,
+    type CreateTransferJettonTransactionReturnType,
+} from './transaction/create-transfer-jetton-transaction';
+export {
+    transferJetton,
+    type TransferJettonParameters,
+    type TransferJettonReturnType,
+} from './transaction/transfer-jetton';
 
 // Wallets
 export { connect, type ConnectParameters, type ConnectReturnType } from './wallets/connect';

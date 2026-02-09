@@ -6,36 +6,27 @@
  *
  */
 
-import type { SendTransactionResponse, TONTransferRequest } from '@ton/walletkit';
+import type { SendTransactionResponse } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { createTransferTonTransaction } from './create-transfer-ton-transaction';
+import type { CreateTransferTonTransactionParameters } from './create-transfer-ton-transaction';
+import { sendTransaction } from './send-transaction';
 
-export type TransferTonParameters = TONTransferRequest & {
-    /**
-     * Optional message to attach to the transfer
-     */
-    comment?: string;
-};
+export type TransferTonParameters = CreateTransferTonTransactionParameters;
 
 export type TransferTonReturnType = SendTransactionResponse;
 
 export type TransferTonErrorType = Error;
 
 /**
- * Transfer TON
+ * Transfer TON - creates and sends a TON transfer transaction
  */
 export const transferTon = async (
     appKit: AppKit,
     parameters: TransferTonParameters,
 ): Promise<TransferTonReturnType> => {
-    const wallet = getSelectedWallet(appKit);
+    const transaction = createTransferTonTransaction(appKit, parameters);
 
-    if (!wallet) {
-        throw new Error('Wallet not connected');
-    }
-
-    const transaction = await wallet.createTransferTonTransaction(parameters);
-
-    return wallet.sendTransaction(transaction);
+    return sendTransaction(appKit, transaction);
 };

@@ -6,22 +6,19 @@
  *
  */
 
-import type { JettonsTransferRequest, Wallet } from '@ton/walletkit';
+import type { AppKit } from '@ton/appkit';
+import { transferJetton } from '@ton/appkit';
 
 // SAMPLE_START: APPKIT_SEND_JETTONS
-async function sendJettons(wallet: Wallet) {
-    const jettonTransfer: JettonsTransferRequest = {
+async function sendJettons(appKit: AppKit) {
+    // Send Jettons using appkit action
+    const result = await transferJetton(appKit, {
         recipientAddress: 'EQC...recipient...',
         jettonAddress: 'EQD...jetton-master...',
-        transferAmount: '1000000000', // raw amount per token decimals
+        amount: '1000000000', // raw amount per token decimals
         comment: 'Jetton payment',
-    };
+    });
 
-    // Build the transaction
-    const transaction = await wallet.createTransferJettonTransaction(jettonTransfer);
-
-    // Sign and send via TonConnect
-    const result = await wallet.sendTransaction(transaction);
     console.log('Jetton transfer sent:', result.boc);
 }
 // SAMPLE_END: APPKIT_SEND_JETTONS

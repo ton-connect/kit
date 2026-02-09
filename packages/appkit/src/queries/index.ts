@@ -7,8 +7,6 @@
  */
 
 // Balances
-// Balances
-// Balances
 export {
     getBalanceQueryOptions,
     type GetBalanceData,
@@ -24,6 +22,18 @@ export {
 
 // NFT
 export { getNFTsQueryOptions, type GetNFTsQueryConfig, type GetNFTsData, type GetNFTsErrorType } from './nft/get-nfts';
+export {
+    transferNftMutationOptions,
+    type TransferNftData,
+    type TransferNftErrorType,
+    type TransferNftMutate,
+    type TransferNftMutateAsync,
+    type TransferNftMutationOptions,
+    type TransferNftOptions,
+    type TransferNftVariables,
+    type TransferNftParameters,
+    type TransferNftReturnType,
+} from './nft/transfer-nft';
 
 // Jettons
 export {
@@ -40,6 +50,12 @@ export {
     type ConnectParameters,
     type ConnectReturnType,
 } from './wallets/connect';
+export {
+    disconnectMutationOptions,
+    type DisconnectMutationOptions,
+    type DisconnectParameters,
+    type DisconnectReturnType,
+} from './wallets/disconnect';
 
 // Transaction
 export {
@@ -54,13 +70,18 @@ export {
     type TransferTonParameters,
     type TransferTonReturnType,
 } from './transaction/transfer-ton';
-
 export {
-    disconnectMutationOptions,
-    type DisconnectMutationOptions,
-    type DisconnectParameters,
-    type DisconnectReturnType,
-} from './wallets/disconnect';
+    transferJettonMutationOptions,
+    type TransferJettonData,
+    type TransferJettonErrorType,
+    type TransferJettonMutate,
+    type TransferJettonMutateAsync,
+    type TransferJettonMutationOptions,
+    type TransferJettonOptions,
+    type TransferJettonVariables,
+    type TransferJettonParameters,
+    type TransferJettonReturnType,
+} from './transaction/transfer-jetton';
 
 // Swap
 export {
@@ -72,7 +93,6 @@ export {
     type GetSwapQuoteQueryFnData,
     type GetSwapQuoteQueryKey,
 } from './swap/get-swap-quote';
-
 export {
     buildSwapTransactionMutationOptions,
     type BuildSwapTransactionMutationConfig,

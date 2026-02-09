@@ -6,8 +6,8 @@
  *
  */
 
-export { useSendTransaction } from './hooks/use-send-transaction';
-export { useTransferTon } from './hooks/use-transfer-ton';
-export { Transaction } from './components/transaction';
+export * from './hooks/use-send-transaction';
+export * from './hooks/use-transfer-ton';
+export * from './hooks/use-transfer-jetton';
 
-export type { TransactionProps, TransactionRenderProps } from './components/transaction';
+export * from './components/transaction';

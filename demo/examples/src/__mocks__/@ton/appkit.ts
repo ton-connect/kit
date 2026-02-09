@@ -140,4 +140,26 @@ export const getConnectedWallets = vi.fn((_appKit: AppKit) => {
     return [createMockWrappedWallet()];
 });
 
-export default { AppKit, getConnectedWallets };
+export const getSelectedWallet = vi.fn((appKit: AppKit) => {
+    const wallets = getConnectedWallets(appKit);
+    return wallets[0] ?? null;
+});
+
+export const transferTon = vi.fn().mockResolvedValue({ boc: 'mock-boc' });
+export const transferJetton = vi.fn().mockResolvedValue({ boc: 'mock-boc' });
+export const transferNft = vi.fn().mockResolvedValue({ boc: 'mock-boc' });
+export const createTransferNftTransaction = vi.fn().mockResolvedValue({ messages: [] });
+export const getJettons = vi.fn().mockResolvedValue({ jettons: [{ info: { name: 'Test Jetton' }, balance: '100' }] });
+export const getNfts = vi.fn().mockResolvedValue({ nfts: [{ info: { name: 'Test NFT' }, address: 'EQNftAddress' }] });
+
+export default {
+    AppKit,
+    getConnectedWallets,
+    getSelectedWallet,
+    transferTon,
+    transferJetton,
+    transferNft,
+    createTransferNftTransaction,
+    getJettons,
+    getNfts,
+};
