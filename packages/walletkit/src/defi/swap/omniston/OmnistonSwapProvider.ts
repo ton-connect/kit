@@ -12,7 +12,7 @@ import { Address } from '@ton/core';
 
 import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './types';
 import { SwapProvider } from '../SwapProvider';
-import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../types';
+import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
@@ -56,11 +56,13 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
     private readonly referrerAddress?: string;
     private readonly referrerFeeBps?: number;
     private readonly flexibleReferrerFee: boolean;
-
     private omniston$?: Omniston;
+
+    readonly providerId: string;
 
     constructor(config?: OmnistonSwapProviderConfig) {
         super();
+        this.providerId = config?.providerId ?? 'omniston';
         this.apiUrl = config?.apiUrl ?? 'wss://omni-ws.ston.fi';
         this.defaultSlippageBps = config?.defaultSlippageBps ?? 100; // 1% default
         this.quoteTimeoutMs = config?.quoteTimeoutMs ?? 10000; // 10 seconds
@@ -88,8 +90,8 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         log.debug('Getting Omniston quote', {
             fromToken: params.fromToken,
             toToken: params.toToken,
-            amountFrom: params.amountFrom,
-            amountTo: params.amountTo,
+            amount: params.amount,
+            isReverseSwap: params.isReverseSwap,
         });
 
         try {
@@ -104,7 +106,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             const flexibleReferrerFee = params.providerOptions?.flexibleReferrerFee ?? this.flexibleReferrerFee;
 
             // Determine amount based on whether amountFrom or amountTo is specified
-            const amount = params.amountFrom ? { bidUnits: params.amountFrom } : { askUnits: params.amountTo };
+            const amount = params.isReverseSwap ? { askUnits: params.amount } : { bidUnits: params.amount };
 
             const quoteRequest: QuoteRequest = {
                 amount,
@@ -302,7 +304,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
         return {
             metadata,
-            provider: 'omniston',
+            providerId: this.providerId,
             fromToken: params.fromToken,
             toToken: params.toToken,
             fromAmount: quote.bidUnits,

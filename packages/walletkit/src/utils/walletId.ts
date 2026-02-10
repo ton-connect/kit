@@ -13,10 +13,7 @@ import { sha256_sync } from '@ton/crypto';
 import type { Network } from '../api/models/core/Network';
 
 /**
- * Wallet ID format: "network:address"
- * Examples:
- * - "-239:EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2" (mainnet)
- * - "-3:EQDtFpEwcFAEcRe5mLVh2N6C0x-_hJEM7W61_JLnSF74p4q2" (testnet)
+ * Wallet ID - unique identifier for a wallet, should be different for similar wallets on different networks
  */
 export type WalletId = string;
 

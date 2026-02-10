@@ -9,8 +9,9 @@
 // Minimal TonWalletKit - Pure orchestration layer
 
 import { Address } from '@ton/core';
+import { CONNECT_EVENT_ERROR_CODES } from '@tonconnect/protocol';
 import type {
-    CONNECT_EVENT_ERROR_CODES,
+    ConnectEventError,
     ConnectEventSuccess,
     ConnectRequest,
     DisconnectEvent,
@@ -132,19 +133,29 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {
                 log.error('Domain is required for restore connection');
-                return;
+                return this.sendErrorConnectResponse(event);
             }
-            const session = await this.sessionManager.getSessionByDomain(event.domain);
+
+            // We are passing isJsBridge true because restoreConnection is only performed
+            // in an code that injected into web view or browser extension (e.g. injected bridge)
+            const sessions = await this.sessionManager.getSessions({
+                walletId: event.walletId,
+                domain: event.domain,
+                isJsBridge: true,
+            });
+
+            const session = sessions.length > 0 ? sessions[0] : undefined;
+
             if (!session) {
                 log.error('Session not found for domain', { domain: event.domain });
-                return;
+                return this.sendErrorConnectResponse(event);
             }
 
             // Get the wallet to determine its network - use walletId if available, fall back to walletAddress
             const wallet = session.walletId ? this.walletManager?.getWallet(session.walletId) : undefined;
             if (!wallet) {
                 log.error('Wallet not found for session', { walletId: session.walletId });
-                return;
+                return this.sendErrorConnectResponse(event);
             }
 
             const walletAddress = wallet.getAddress();
@@ -157,7 +168,7 @@ export class TonWalletKit implements ITonWalletKit {
             const deviceInfo = getDeviceInfoForWallet(wallet, this.config.deviceInfo);
 
             // Create base response data
-            const connectResponse: ConnectEventSuccess = {
+            const tonConnectEvent: ConnectEventSuccess = {
                 event: 'connect',
                 id: Date.now(),
                 payload: {
@@ -179,9 +190,27 @@ export class TonWalletKit implements ITonWalletKit {
                 event?.tabId?.toString() || '',
                 true,
                 event?.id ?? event?.messageId,
-                connectResponse,
+                tonConnectEvent,
             );
         });
+    }
+
+    private async sendErrorConnectResponse(event: RawBridgeEventRestoreConnection): Promise<void> {
+        const tonConnectEvent: ConnectEventError = {
+            event: 'connect_error',
+            id: Date.now(),
+            payload: {
+                code: CONNECT_EVENT_ERROR_CODES.UNKNOWN_APP_ERROR,
+                message: '',
+            },
+        };
+
+        await this.bridgeManager.sendJsBridgeResponse(
+            event?.tabId?.toString() || '',
+            true,
+            event?.id ?? event?.messageId,
+            tonConnectEvent,
+        );
     }
 
     // === Initialization ===
@@ -336,7 +365,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         await this.walletManager.removeWallet(walletId);
         // Also remove associated sessions
-        await this.sessionManager.removeSessionsForWallet(walletId);
+        await this.sessionManager.removeSessions({ walletId });
     }
 
     async clearWallets(): Promise<void> {

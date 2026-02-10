@@ -81,6 +81,13 @@ interface MyProviderOptions {
 }
 
 export class MySwapProvider extends SwapProvider<MyProviderOptions> {
+    readonly providerId: string;
+
+    constructor(providerId?: string) {
+        super();
+        this.providerId = providerId ?? 'my-swap-provider';
+    }
+
     async getQuote(params: SwapQuoteParams<MyProviderOptions>): Promise<SwapQuote> {
         const { fromToken, toToken, amount, network, providerOptions } = params;
         
@@ -148,7 +155,7 @@ export class MySwapProvider extends SwapProvider<MyProviderOptions> {
 
 ```typescript
 const myProvider = new MySwapProvider();
-kit.swap.registerProvider('mydex', myProvider);
+kit.swap.registerProvider(myProvider);
 
 // Use it
 const quote = await kit.swap.getQuote(
@@ -205,8 +212,9 @@ Build transaction for executing swap.
 
 **Returns:** `Promise<TransactionRequest>`
 
-#### `registerProvider(name, provider)`
+#### `registerProvider(provider)`
 Register a new swap provider.
+- `provider: SwapProviderInterface` - Provider instance (must have `providerId`)
 
 #### `setDefaultProvider(name)`
 Set default provider for swap operations.

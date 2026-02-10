@@ -21,8 +21,8 @@ export const Swap: FC = () => {
     const { setFromToken, setToToken, clearSwap } = useSwap();
 
     useEffect(() => {
-        setFromToken('TON');
-        setToToken(USDT_ADDRESS);
+        setFromToken({ type: 'ton' });
+        setToToken({ type: 'jetton', value: USDT_ADDRESS });
 
         return () => clearSwap();
     }, []);

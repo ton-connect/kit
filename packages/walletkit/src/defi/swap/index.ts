@@ -9,4 +9,3 @@
 export { SwapProvider } from './SwapProvider';
 export { SwapManager } from './SwapManager';
 export { SwapError } from './errors';
-export type * from './types';

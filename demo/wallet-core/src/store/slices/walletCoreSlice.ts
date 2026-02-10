@@ -64,7 +64,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         },
     }) as ITonWalletKit;
 
-    walletKit.swap.registerProvider('omniston', new OmnistonSwapProvider());
+    walletKit.swap.registerProvider(new OmnistonSwapProvider());
 
     log.info(`WalletKit initialized with network: ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;

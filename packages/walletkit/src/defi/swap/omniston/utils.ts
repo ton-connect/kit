@@ -11,22 +11,24 @@ import type { Address as OmnistonAddress } from '@ston-fi/omniston-sdk';
 
 import { Network } from '../../../api/models';
 import type { OmnistonQuoteMetadata } from './types';
+import type { SwapToken } from '../../../api/models';
 
-export const tokenToAddress = (token: string): string => {
-    if (token === 'TON') {
+export const tokenToAddress = (token: SwapToken): string => {
+    if (token.type === 'ton') {
         return 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
     }
-    return Address.parse(token).toRawString();
+    return Address.parse(token.value).toRawString();
 };
 
-export const addressToToken = (address: string): string => {
+export const addressToToken = (address: string): SwapToken => {
     if (address === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
-        return 'TON';
+        return { type: 'ton' };
     }
+
     try {
-        return Address.parseRaw(address).toString();
+        return { type: 'jetton', value: Address.parseRaw(address).toString() };
     } catch {
-        return address;
+        return { type: 'jetton', value: address };
     }
 };
 

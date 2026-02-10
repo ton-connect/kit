@@ -1,0 +1,30 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import type { UserFriendlyAddress } from '../core/Primitives';
+
+/**
+ * Token type for swap
+ */
+export type SwapToken =
+    | {
+          /**
+           * Jetton token type
+           */
+          type: 'jetton';
+          /**
+           * Jetton master contract address
+           */
+          value: UserFriendlyAddress;
+      }
+    | {
+          /**
+           * Native TON coin type
+           */
+          type: 'ton';
+      };

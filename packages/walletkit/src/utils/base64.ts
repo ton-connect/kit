@@ -17,12 +17,7 @@ export function asBase64(data: string): Base64String {
 
     try {
         // Validate by attempting to decode
-        const buffer = Buffer.from(data, 'base64');
-
-        // Check that re-encoding gives the same result (catches invalid padding)
-        if (buffer.toString('base64') !== data) {
-            throw new Error('Not a valid base64');
-        }
+        ParseBase64(data);
     } catch (_e) {
         throw new Error('Not a valid base64');
     }

@@ -11,7 +11,7 @@
  */
 import type { BridgePayload } from '../types';
 import { bigIntReplacer } from '../utils/serialization';
-import { log, error } from '../utils/logger';
+import { warn, error } from '../utils/logger';
 
 /**
  * Resolves WalletKit's native bridge implementation exposed on the global scope.
@@ -74,5 +74,5 @@ export function postToNative(payload: BridgePayload): void {
     if (payload.kind === 'event') {
         throw new Error('Native bridge not available - cannot deliver event');
     }
-    log('[walletkitBridge] → native (no handler)', payload);
+    warn('[walletkitBridge] postToNative: no native handler', payload);
 }

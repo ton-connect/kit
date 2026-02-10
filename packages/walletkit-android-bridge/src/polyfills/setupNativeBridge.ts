@@ -8,7 +8,7 @@
 
 import { Buffer as NodeBuffer } from 'buffer';
 
-import { log, warn, error } from '../utils/logger';
+import { warn, error } from '../utils/logger';
 
 type NativeStorageBridge = {
     storageGet: (key: string) => string | null | undefined;
@@ -30,7 +30,6 @@ function ensureBuffer(scope: GlobalWithBridge) {
             writable: true,
             configurable: true,
         });
-        log('[walletkitBridge] ✅ Buffer polyfill injected');
     }
 }
 
@@ -109,7 +108,6 @@ export function setupNativeBridge() {
                 writable: false,
                 configurable: true,
             });
-            log('[walletkitBridge] ✅ WalletKitNativeStorage exposed for secure native storage');
         } else {
             warn('[walletkitBridge] WalletKitNativeStorage already present, not overriding');
         }

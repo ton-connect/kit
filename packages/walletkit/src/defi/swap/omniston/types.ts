@@ -18,6 +18,7 @@ export interface OmnistonSwapProviderConfig extends ReferrerOptions {
     apiUrl?: string;
     defaultSlippageBps?: number;
     quoteTimeoutMs?: number;
+    providerId?: string;
 }
 
 export interface OmnistonQuoteMetadata {

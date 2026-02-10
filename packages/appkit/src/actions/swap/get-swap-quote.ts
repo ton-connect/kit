@@ -11,7 +11,7 @@ import type { SwapQuote, SwapQuoteParams } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 
 export type GetSwapQuoteOptions<T = unknown> = SwapQuoteParams<T> & {
-    provider?: string;
+    providerId?: string;
 };
 
 export type GetSwapQuoteReturnType = Promise<SwapQuote>;
@@ -23,5 +23,5 @@ export const getSwapQuote = async <T = unknown>(
     appKit: AppKit,
     options: GetSwapQuoteOptions<T>,
 ): GetSwapQuoteReturnType => {
-    return appKit.swapManager.getQuote(options, options.provider);
+    return appKit.swapManager.getQuote(options, options.providerId);
 };

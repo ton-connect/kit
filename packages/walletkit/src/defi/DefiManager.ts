@@ -6,12 +6,13 @@
  *
  */
 
-import type { DefiManagerAPI } from './types';
+import type { DefiManagerAPI } from '../api/interfaces';
+import type { DefiProvider } from '../api/interfaces';
 import { DefiManagerError } from './errors';
 
-export abstract class DefiManager<T> implements DefiManagerAPI<T> {
+export abstract class DefiManager<T extends DefiProvider> implements DefiManagerAPI<T> {
     protected providers: Map<string, T> = new Map();
-    protected defaultProvider?: string;
+    protected defaultProviderId?: string;
 
     protected abstract createError(message: string, code: string, details?: unknown): DefiManagerError;
 
@@ -20,38 +21,48 @@ export abstract class DefiManager<T> implements DefiManagerAPI<T> {
      * @param name - Unique name for the provider
      * @param provider - Provider instance
      */
-    registerProvider(name: string, provider: T): void {
-        this.providers.set(name, provider);
+    /**
+     * Register a swap provider
+     * @param provider - Provider instance
+     */
+    registerProvider(provider: T): void {
+        const providerId = provider.providerId;
 
-        if (!this.defaultProvider) {
-            this.defaultProvider = name;
+        if (!providerId) {
+            throw this.createError('Provider must have a providerId', DefiManagerError.INVALID_PROVIDER);
+        }
+
+        this.providers.set(providerId, provider);
+
+        if (!this.defaultProviderId) {
+            this.defaultProviderId = providerId;
         }
     }
 
     /**
      * Set the default provider to use when none is specified
-     * @param name - Provider name
+     * @param providerId - Provider name
      * @throws DefiManagerError if provider not found
      */
-    setDefaultProvider(name: string): void {
-        if (!this.providers.has(name)) {
-            throw this.createError(`Provider '${name}' not registered`, DefiManagerError.PROVIDER_NOT_FOUND, {
-                provider: name,
+    setDefaultProvider(providerId: string): void {
+        if (!this.providers.has(providerId)) {
+            throw this.createError(`Provider '${providerId}' not registered`, DefiManagerError.PROVIDER_NOT_FOUND, {
+                provider: providerId,
                 registered: Array.from(this.providers.keys()),
             });
         }
 
-        this.defaultProvider = name;
+        this.defaultProviderId = providerId;
     }
 
     /**
      * Get a provider by name, or the default provider
-     * @param name - Optional provider name
+     * @param providerId - Optional provider name
      * @returns Provider instance
      * @throws DefiManagerError if provider not found or no default set
      */
-    getProvider(name?: string): T {
-        const providerName = name || this.defaultProvider;
+    getProvider(providerId?: string): T {
+        const providerName = providerId || this.defaultProviderId;
 
         if (!providerName) {
             throw this.createError(
@@ -81,10 +92,10 @@ export abstract class DefiManager<T> implements DefiManagerAPI<T> {
 
     /**
      * Check if a provider is registered
-     * @param name - Provider name
+     * @param providerId - Provider id
      * @returns True if provider exists
      */
-    hasProvider(name: string): boolean {
-        return this.providers.has(name);
+    hasProvider(providerId: string): boolean {
+        return this.providers.has(providerId);
     }
 }

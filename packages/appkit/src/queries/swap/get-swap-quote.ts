@@ -25,13 +25,11 @@ export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
 ): GetSwapQuoteQueryOptions<selectData> => {
     return {
         ...options.query,
-        enabled: Boolean(
-            options.amountFrom && options.fromToken && options.toToken && (options.query?.enabled ?? true),
-        ),
+        enabled: Boolean(options.amount && options.fromToken && options.toToken && (options.query?.enabled ?? true)),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetSwapQuoteParameters];
-            if (!parameters.amountFrom || !parameters.fromToken || !parameters.toToken) {
-                throw new Error('amountFrom, fromToken, and toToken are required');
+            if (!parameters.amount || !parameters.fromToken || !parameters.toToken) {
+                throw new Error('amount, fromToken, and toToken are required');
             }
 
             return getSwapQuote(appKit, parameters);

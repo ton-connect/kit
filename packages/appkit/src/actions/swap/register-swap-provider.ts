@@ -10,14 +10,11 @@ import type { SwapProviderInterface } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
 
-export type RegisterSwapProviderOptions = {
-    name: string;
-    provider: SwapProviderInterface;
-};
+export type RegisterSwapProviderOptions = SwapProviderInterface;
 
 /**
  * Register swap provider
  */
-export const registerSwapProvider = (appKit: AppKit, options: RegisterSwapProviderOptions): void => {
-    appKit.swapManager.registerProvider(options.name, options.provider);
+export const registerSwapProvider = (appKit: AppKit, provider: RegisterSwapProviderOptions): void => {
+    appKit.swapManager.registerProvider(provider);
 };

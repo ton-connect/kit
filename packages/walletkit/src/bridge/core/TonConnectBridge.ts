@@ -32,6 +32,7 @@ export class TonConnectBridge {
         this.walletInfo = config.walletInfo;
         this.protocolVersion = config.protocolVersion;
         this.isWalletBrowser = config.isWalletBrowser;
+
         this.transport = transport;
 
         // Setup event forwarding from transport

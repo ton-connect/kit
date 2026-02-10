@@ -11,6 +11,7 @@ export class DefiManagerError extends Error {
     static readonly NO_DEFAULT_PROVIDER = 'NO_DEFAULT_PROVIDER';
     static readonly NETWORK_ERROR = 'NETWORK_ERROR';
     static readonly INVALID_PARAMS = 'INVALID_PARAMS';
+    static readonly INVALID_PROVIDER = 'INVALID_PROVIDER';
 
     public readonly code: string;
     public readonly details?: unknown;

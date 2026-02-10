@@ -33,3 +33,5 @@ packages/walletkit-android-bridge/*.sh
 
 release-artifacts
 *.tgz
+
+.claude

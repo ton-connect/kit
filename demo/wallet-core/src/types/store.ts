@@ -20,6 +20,7 @@ import type {
     DisconnectionEvent,
     WalletAdapter,
     SwapQuote,
+    SwapToken,
 } from '@ton/walletkit';
 
 import type {
@@ -203,26 +204,26 @@ export interface NftsSlice {
 
 // Swap slice interface
 export interface SwapState {
-    fromToken: string;
-    toToken: string;
-    fromAmount: string;
-    toAmount: string;
+    fromToken: SwapToken;
+    toToken: SwapToken;
+    amount: string;
     destinationAddress: string;
     currentQuote: SwapQuote | null;
     isLoadingQuote: boolean;
     isSwapping: boolean;
     error: string | null;
     slippageBps: number;
+    isReverseSwap: boolean;
 }
 
 export interface SwapSlice {
     swap: SwapState;
 
-    setFromToken: (token: string) => void;
-    setToToken: (token: string) => void;
-    setFromAmount: (amount: string) => void;
-    setToAmount: (amount: string) => void;
+    setFromToken: (token: SwapToken) => void;
+    setToToken: (token: SwapToken) => void;
+    setAmount: (amount: string) => void;
     setDestinationAddress: (address: string) => void;
+    setIsReverseSwap: (isReverseSwap: boolean) => void;
     setSlippageBps: (slippage: number) => void;
     swapTokens: () => void;
     getQuote: () => Promise<void>;

@@ -27,7 +27,7 @@ import type {
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
 } from '../api/models';
-import type { SwapAPI } from '../defi/swap';
+import type { SwapAPI } from '../api/interfaces';
 
 /**
  * Main TonWalletKit interface

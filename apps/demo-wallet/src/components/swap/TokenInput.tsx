@@ -8,6 +8,7 @@
 
 import type { FC } from 'react';
 import { useJettons, useWallet, formatUnits, formatTon } from '@demo/wallet-core';
+import type { SwapToken } from '@ton/walletkit';
 
 import { TokenSelector } from './TokenSelector';
 import { Button } from '../Button';
@@ -16,11 +17,11 @@ import { cn } from '@/lib/utils';
 
 interface Props {
     label: string;
-    token: string;
+    token: SwapToken;
     amount: string;
-    onTokenSelect: (token: string) => void;
+    onTokenSelect: (token: SwapToken) => void;
     onAmountChange: (amount: string) => void;
-    excludeToken?: string;
+    excludeToken?: SwapToken;
     isOutput?: boolean;
     className?: string;
 }
@@ -38,12 +39,12 @@ export const TokenInput: FC<Props> = ({
     const { balance } = useWallet();
     const { userJettons } = useJettons();
 
-    const getTokenBalance = (tokenAddress: string): string => {
-        if (tokenAddress === 'TON') {
+    const getTokenBalance = (token: SwapToken): string => {
+        if (token.type === 'ton') {
             return formatTon(balance || '0');
         }
 
-        const jetton = userJettons.find((j) => j.address === tokenAddress);
+        const jetton = userJettons.find((j) => j.address === token.value);
         if (jetton && jetton.balance && jetton.decimalsNumber) {
             const decimals = jetton.decimalsNumber;
             return formatUnits(jetton.balance, decimals);
@@ -55,14 +56,14 @@ export const TokenInput: FC<Props> = ({
     const handleMaxClick = () => {
         if (isOutput) return;
 
-        if (token === 'TON') {
+        if (token.type === 'ton') {
             const currentBalance = parseFloat(formatTon(balance || '0'));
             const maxAmount = currentBalance - 0.1;
             if (maxAmount > 0) {
                 onAmountChange(maxAmount.toString());
             }
         } else {
-            const jetton = userJettons.find((j) => j.address === token);
+            const jetton = userJettons.find((j) => j.address === token.value);
             if (jetton && jetton.balance) {
                 const decimals = jetton.decimalsNumber || 9;
                 const balanceInUnits = formatUnits(jetton.balance, decimals);

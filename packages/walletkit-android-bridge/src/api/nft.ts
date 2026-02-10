@@ -9,62 +9,14 @@
 /**
  * nft.ts – NFT operations
  *
- * Simplified bridge for NFT listing and transfer transactions.
+ * Minimal bridge for NFT operations.
  */
 
-import type {
-    GetNftsArgs,
-    GetNftArgs,
-    CreateTransferNftTransactionArgs,
-    CreateTransferNftRawTransactionArgs,
-} from '../types';
-import { callBridge, callOnWalletBridge } from '../utils/bridgeWrapper';
+import { walletCall } from '../utils/bridge';
 
-/**
- * Fetches NFTs owned by a wallet with optional pagination.
- */
-export async function getNfts(args: GetNftsArgs) {
-    return callBridge('getNfts', async () => {
-        return await callOnWalletBridge(args.walletId, 'getNfts', {
-            pagination: args.pagination,
-            collectionAddress: args.collectionAddress,
-            indirectOwnership: args.indirectOwnership,
-        });
-    });
-}
-
-/**
- * Fetches details for a single NFT by address.
- */
-export async function getNft(args: GetNftArgs) {
-    return callBridge('getNft', async () => {
-        return await callOnWalletBridge(args.walletId, 'getNft', args.nftAddress);
-    });
-}
-
-/**
- * Builds an NFT transfer transaction (human-readable parameters).
- */
-export async function createTransferNftTransaction(args: CreateTransferNftTransactionArgs) {
-    return callBridge('createTransferNftTransaction', async () => {
-        return await callOnWalletBridge(args.walletId, 'createTransferNftTransaction', {
-            nftAddress: args.nftAddress,
-            toAddress: args.toAddress,
-            transferAmount: args.transferAmount,
-            comment: args.comment,
-        });
-    });
-}
-
-/**
- * Builds an NFT transfer transaction (raw message parameters).
- */
-export async function createTransferNftRawTransaction(args: CreateTransferNftRawTransactionArgs) {
-    return callBridge('createTransferNftRawTransaction', async () => {
-        return await callOnWalletBridge(args.walletId, 'createTransferNftRawTransaction', {
-            nftAddress: args.nftAddress,
-            transferAmount: args.transferAmount,
-            transferMessage: args.transferMessage,
-        });
-    });
-}
+export const getNfts = (args: { walletId: string }) => walletCall('getNfts', args);
+export const getNft = (args: { walletId: string }) => walletCall('getNft', args);
+export const createTransferNftTransaction = (args: { walletId: string }) =>
+    walletCall('createTransferNftTransaction', args);
+export const createTransferNftRawTransaction = (args: { walletId: string }) =>
+    walletCall('createTransferNftRawTransaction', args);

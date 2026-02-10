@@ -10,6 +10,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { formatUnits, useSwap } from '@demo/wallet-core';
 import { useNavigate } from 'react-router-dom';
+import type { SwapToken } from '@ton/walletkit';
 
 import { SwapSettings } from './SwapSettings';
 import { TokenInput } from './TokenInput';
@@ -18,11 +19,10 @@ import { Button } from '../Button';
 import { Card } from '../Card';
 
 import { cn } from '@/lib/utils';
-import { USDT_ADDRESS } from '@/constants/swap';
 
 function getPriceImpactColor(priceImpact: number): string {
-    if (priceImpact > 5) return 'text-destructive';
-    if (priceImpact > 2) return 'text-yellow-600';
+    if (priceImpact > 500) return 'text-destructive';
+    if (priceImpact > 200) return 'text-yellow-600';
     return 'text-green-600';
 }
 
@@ -34,8 +34,8 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     const {
         fromToken,
         toToken,
-        fromAmount,
-        toAmount,
+        amount,
+        isReverseSwap,
         destinationAddress,
         currentQuote,
         isLoadingQuote,
@@ -44,8 +44,8 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
         slippageBps,
         setFromToken,
         setToToken,
-        setFromAmount,
-        setToAmount,
+        setAmount,
+        setIsReverseSwap,
         setDestinationAddress,
         setSlippageBps,
         swapTokens,
@@ -58,9 +58,9 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     const [showSlippageSettings, setShowSlippageSettings] = useState(false);
     const [useCustomDestination, setUseCustomDestination] = useState(false);
 
-    const getTokenSymbol = (tokenAddress: string): string => {
-        if (tokenAddress === 'TON') return 'TON';
-        if (tokenAddress === USDT_ADDRESS) return 'USDT';
+    const getTokenSymbol = (token: SwapToken): string => {
+        if (token.type === 'ton') return 'TON';
+        if (token.type === 'jetton') return 'USDT';
         return 'Unknown';
     };
 
@@ -78,6 +78,28 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
             state: { message: `${fromSymbol} sent successfully!` },
         });
     };
+
+    const handleFromAmountChange = (val: string) => {
+        setAmount(val);
+        setIsReverseSwap(false);
+    };
+
+    const handleToAmountChange = (val: string) => {
+        setAmount(val);
+        setIsReverseSwap(true);
+    };
+
+    const fromAmount = !isReverseSwap
+        ? amount
+        : currentQuote
+          ? formatUnits(currentQuote.fromAmount, fromToken.type === 'ton' ? 9 : 6)
+          : '';
+
+    const toAmount = isReverseSwap
+        ? amount
+        : currentQuote
+          ? formatUnits(currentQuote.toAmount, toToken.type === 'ton' ? 9 : 6)
+          : '';
 
     const getSwapButtonText = () => {
         if (!fromToken || !toToken) return 'Select tokens';
@@ -109,7 +131,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                     amount={fromAmount}
                     excludeToken={toToken}
                     label="From"
-                    onAmountChange={setFromAmount}
+                    onAmountChange={handleFromAmountChange}
                     onTokenSelect={setFromToken}
                     token={fromToken}
                 />
@@ -134,7 +156,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                     amount={toAmount}
                     excludeToken={fromToken}
                     label="To"
-                    onAmountChange={setToAmount}
+                    onAmountChange={handleToAmountChange}
                     onTokenSelect={setToToken}
                     token={toToken}
                     className="-mt-2"
@@ -186,7 +208,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Provider</span>
-                                <span className="font-medium capitalize">{currentQuote.provider}</span>
+                                <span className="font-medium capitalize">{currentQuote.providerId}</span>
                             </div>
 
                             <div className="flex justify-between">
@@ -200,7 +222,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Price Impact</span>
                                     <span className={cn(getPriceImpactColor(currentQuote.priceImpact))}>
-                                        {currentQuote.priceImpact.toFixed(2)}%
+                                        {(currentQuote.priceImpact / 100).toFixed(2)}%
                                     </span>
                                 </div>
                             )}

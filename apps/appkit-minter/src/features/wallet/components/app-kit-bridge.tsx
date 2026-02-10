@@ -37,10 +37,7 @@ export const AppKitBridge: React.FC<AppKitBridgeProps> = ({ children }) => {
 
     useEffect(() => {
         const provider = new OmnistonSwapProvider();
-        registerSwapProvider(appKit, {
-            name: 'omniston',
-            provider,
-        });
+        registerSwapProvider(appKit, provider);
     }, []);
 
     return <AppKitProvider appKit={appKit}>{children}</AppKitProvider>;

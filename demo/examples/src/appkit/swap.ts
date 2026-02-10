@@ -15,9 +15,9 @@ export const swapExample = async (appKit: AppKit) => {
 
     // Get a quote for swapping TON to USDT
     const quote = await swapManager.getQuote({
-        fromToken: 'TON',
-        toToken: 'EQ...', // USDT address
-        amountFrom: '1000000000', // 1 TON
+        fromToken: { type: 'ton' },
+        toToken: { type: 'jetton', value: 'EQ...' }, // USDT address
+        amount: '1000000000', // 1 TON
         network: Network.mainnet(),
     });
 

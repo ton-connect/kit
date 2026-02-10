@@ -14,7 +14,7 @@ const provider = new OmnistonSwapProvider({
     quoteTimeoutMs: 10000,
 });
 
-kit.swap.registerProvider('omniston', provider);
+kit.swap.registerProvider(provider);
 ```
 
 ## Configuration Options
