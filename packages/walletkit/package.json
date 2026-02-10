@@ -30,6 +30,16 @@
         "types": "./dist/cjs/bridge/JSBridgeInjector.d.ts",
         "default": "./dist/cjs/bridge/JSBridgeInjector.js"
       }
+    },
+    "./swap/omniston": {
+      "import": {
+        "types": "./dist/esm/defi/swap/omniston/index.d.ts",
+        "default": "./dist/esm/defi/swap/omniston/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/swap/omniston/index.d.ts",
+        "default": "./dist/cjs/defi/swap/omniston/index.js"
+      }
     }
   },
   "scripts": {
@@ -71,14 +81,20 @@
     "uuid": "^13.0.0"
   },
   "peerDependencies": {
-    "@ton-community/tlb-runtime": "1.0.0-alpha.3",
     "@ton/core": "^0.62.0",
     "@ton/crypto": "^3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@ston-fi/omniston-sdk": {
+      "optional": true
+    }
+  },
+  "optionalDependencies": {
+    "@ston-fi/omniston-sdk": "^0.7.8"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.4.0",
-    "@ton-community/tlb-runtime": "1.0.0-alpha.3",
     "@ton/core": "^0.62.1",
     "@ton/crypto": "^3.3.0",
     "@types/chrome": "^0.1.33",

@@ -24,15 +24,17 @@
   "dependencies": {
     "@ledgerhq/hw-transport": "^6.31.16",
     "@ton-community/ton-ledger": "^7.3.0",
-    "@ton/core": "^0.62.1",
-    "@ton/walletkit": "workspace:*",
-    "@tonconnect/protocol": "^2.3.0"
+    "@ton/walletkit": "workspace:*"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport-node-hid": "^6.29.17",
     "dotenv": "^17.2.3",
     "rimraf": "^6.1.2",
     "typescript": "~5.9.3"
+  },
+  "peerDependencies": {
+    "@ton/core": "^0.62.1",
+    "@tonconnect/protocol": "^2.3.0"
   },
   "scripts": {
     "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
