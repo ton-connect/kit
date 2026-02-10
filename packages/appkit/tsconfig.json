@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es2020",
         "outDir": "dist",
-        "module": "es2020",
+        "module": "ESNext",
         "baseUrl": "./",
         "moduleResolution": "bundler",
         "declaration": true,
@@ -12,9 +12,7 @@
         "strict": true,
         "noImplicitAny": true,
         "skipLibCheck": true,
-        "removeComments": false,
-        "declarationMap": true,
-        "typeRoots": []
+        "declarationMap": true
     },
     "exclude": [
         "**/*.spec.ts",
@@ -23,7 +21,6 @@
         "node_modules",
         "coverage",
         ".stryker-tmp",
-        "coverage",
         "dist"
     ],
     "include": [

@@ -30,7 +30,6 @@ export default defineConfig({
         options.jsx = 'automatic';
     },
     define: {
-        'process.env': '{}',
         TON_APPKIT_UI_REACT_VERSION: JSON.stringify(packageJson.version),
     },
     onSuccess: 'tsc --emitDeclarationOnly',
