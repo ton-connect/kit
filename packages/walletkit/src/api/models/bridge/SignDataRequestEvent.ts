@@ -23,6 +23,10 @@ export interface SignDataRequestEvent extends BridgeEvent {
      * Preview information for UI display
      */
     preview: SignDataRequestEventPreview;
+    /**
+     * Raw TonConnect return strategy string.
+     */
+    returnStrategy?: string;
 }
 
 /**

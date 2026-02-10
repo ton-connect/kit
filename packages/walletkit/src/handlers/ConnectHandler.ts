@@ -101,7 +101,6 @@ export class ConnectHandler
         });
     }
 
-
     /**
      * Extract dApp name from bridge event or manifest
      */
