@@ -99,7 +99,6 @@
     "@ton/crypto": "catalog:",
     "@types/chrome": "^0.1.33",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
     "@types/webextension-polyfill": "^0.12.4",
     "@vitest/coverage-v8": "4.0.17",
     "@vitest/ui": "^4.0.17",
