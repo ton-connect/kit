@@ -7,8 +7,6 @@
  */
 
 import React, { useEffect } from 'react';
-import { registerSwapProvider } from '@ton/appkit';
-import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import { AppKitProvider } from '@ton/appkit-ui-react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { TonConnectConnector } from '@ton/appkit/tonconnect';
@@ -34,11 +32,6 @@ export const AppKitBridge: React.FC<AppKitBridgeProps> = ({ children }) => {
 
         return unregister;
     }, [tonConnectUI]);
-
-    useEffect(() => {
-        const provider = new OmnistonSwapProvider();
-        registerSwapProvider(appKit, provider);
-    }, []);
 
     return <AppKitProvider appKit={appKit}>{children}</AppKitProvider>;
 };

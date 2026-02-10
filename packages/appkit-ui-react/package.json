@@ -38,6 +38,8 @@
     "@tanstack/react-query": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "tsup": "^8.5.1",
     "typescript": "^5.9.2"
   },
