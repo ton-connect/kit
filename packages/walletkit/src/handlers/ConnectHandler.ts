@@ -66,7 +66,7 @@ export class ConnectHandler
             dAppInfo: preview.dAppInfo,
             isJsBridge: event.isJsBridge,
             tabId: event.tabId,
-            returnUri: this.parseReturnUri(event.params.returnStrategy),
+            returnStrategy: event.params.returnStrategy,
         };
 
         // Send wallet-connect-request-received event
@@ -101,21 +101,6 @@ export class ConnectHandler
         });
     }
 
-    /**
-     * Parse TonConnect return strategy string into redirect URI.
-     * - 'back', 'none', or undefined → undefined (no redirect)
-     * - any other string → the URI to redirect to
-     */
-    private parseReturnUri(value?: string): string | undefined {
-        if (!value) {
-            return undefined;
-        }
-        const lower = value.toLowerCase();
-        if (lower === 'none' || lower === 'back') {
-            return undefined;
-        }
-        return value;
-    }
 
     /**
      * Extract dApp name from bridge event or manifest

@@ -22,10 +22,9 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      */
     preview: ConnectionRequestEventPreview;
     /**
-     * URI to redirect to after connection approval.
-     * Undefined means no redirect ('back' or 'none' in TonConnect protocol).
+     * Raw TonConnect return strategy string.
      */
-    returnUri?: string;
+    returnStrategy?: string;
 }
 
 /**
