@@ -63,6 +63,13 @@ export {
     type DisconnectParameters,
     type DisconnectReturnType,
 } from './wallets/disconnect';
+export {
+    getSeqnoQueryOptions,
+    type GetSeqnoQueryConfig,
+    type GetSeqnoData,
+    type GetSeqnoErrorType,
+    type GetSeqnoQueryOptions,
+} from './wallet/get-seqno';
 
 // Transaction
 export {

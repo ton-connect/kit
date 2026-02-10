@@ -60,6 +60,7 @@ export { disconnect, type DisconnectReturnType, type DisconnectParameters } from
 export { getConnectors, type GetConnectorsReturnType } from './wallets/get-connectors';
 export { getConnectedWallets, type GetConnectedWalletsReturnType } from './wallets/get-connected-wallets';
 export { getSelectedWallet, type GetSelectedWalletReturnType } from './wallets/get-selected-wallet';
+export { getSeqno, type GetSeqnoOptions, type GetSeqnoReturnType } from './wallet/get-seqno';
 export {
     setSelectedWalletId,
     type SetSelectedWalletIdParameters,
