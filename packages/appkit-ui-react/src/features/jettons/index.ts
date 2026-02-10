@@ -7,3 +7,5 @@
  */
 
 export * from './hooks/use-jetton-info';
+export * from './hooks/use-jetton-wallet-address';
+export * from './hooks/use-jetton-balance';

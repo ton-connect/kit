@@ -49,6 +49,18 @@ export {
     type GetJettonInfoData,
     type GetJettonInfoErrorType,
 } from './jettons/get-jetton-info';
+export {
+    getJettonWalletAddressQueryOptions,
+    type GetJettonWalletAddressQueryConfig,
+    type GetJettonWalletAddressData,
+    type GetJettonWalletAddressErrorType,
+} from './jettons/get-jetton-wallet-address';
+export {
+    getJettonBalanceQueryOptions,
+    type GetJettonBalanceQueryConfig,
+    type GetJettonBalanceData,
+    type GetJettonBalanceErrorType,
+} from './jettons/get-jetton-balance';
 
 // Wallets
 export {

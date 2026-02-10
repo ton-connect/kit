@@ -20,6 +20,16 @@ export {
 
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
+export {
+    getJettonWalletAddress,
+    type GetJettonWalletAddressOptions,
+    type GetJettonWalletAddressReturnType,
+} from './jettons/get-jetton-wallet-address';
+export {
+    getJettonBalance,
+    type GetJettonBalanceOptions,
+    type GetJettonBalanceReturnType,
+} from './jettons/get-jetton-balance';
 
 // NFTs
 export { getNfts, type GetNftsOptions, type GetNftsReturnType } from './nft/get-nfts';
