@@ -8,7 +8,7 @@
 
 // WalletV4R2 contract implementation
 
-import type { Address, Cell, Contract, ContractProvider, Sender, MessageRelaxed } from '@ton/core';
+import type { Address, Cell, Contract, ContractProvider, Sender, MessageRelaxed, SignatureDomain } from '@ton/core';
 import { beginCell, contractAddress, SendMode, storeMessageRelaxed } from '@ton/core';
 import type { Maybe } from '@ton/core/dist/utils/maybe';
 
@@ -33,6 +33,7 @@ export interface WalletV4R2Options {
     code: Cell;
     workchain: number;
     client: ApiClient;
+    domain?: SignatureDomain;
 }
 
 /**
@@ -44,6 +45,7 @@ export class WalletV4R2 implements Contract {
     readonly workchain: number;
     readonly publicKey: bigint;
     readonly subwalletId: number;
+    public domain?: SignatureDomain;
     private client: ApiClient;
 
     private constructor(address: Address, init: Maybe<{ code: Cell; data: Cell }>, options: WalletV4R2Options) {
@@ -51,6 +53,7 @@ export class WalletV4R2 implements Contract {
         this.init = init ?? undefined;
         this.workchain = options.workchain;
         this.client = options.client;
+        this.domain = options.domain;
 
         if (init) {
             // Extract config from init data
@@ -142,7 +145,13 @@ export class WalletV4R2 implements Contract {
     /**
      * Create transfer message body
      */
-    createTransfer(args: { seqno: number; sendMode: SendMode; messages: MessageRelaxed[]; timeout?: number }): Cell {
+    createTransfer(args: {
+        seqno: number;
+        sendMode: SendMode;
+        messages: MessageRelaxed[];
+        timeout?: number;
+        domain?: SignatureDomain;
+    }): Cell {
         const timeout = args.timeout ?? Math.floor(Date.now() / 1000) + 60;
 
         let body = beginCell()
