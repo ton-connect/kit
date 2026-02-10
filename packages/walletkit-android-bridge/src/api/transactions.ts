@@ -9,144 +9,23 @@
 /**
  * transactions.ts – TON transaction operations
  *
- * Simplified bridge that passes requests directly to WalletKit.
- * All validation, transformation, and formatting happens in Kotlin.
+ * Minimal bridge - just forwards calls to WalletKit.
  */
 
-import type {
-    GetRecentTransactionsArgs,
-    CreateTransferTonTransactionArgs,
-    CreateTransferMultiTonTransactionArgs,
-    TransactionContentArgs,
-} from '../types';
-import { callBridge } from '../utils/bridgeWrapper';
-import { warn } from '../utils/logger';
+import type { TransactionRequest } from '@ton/walletkit';
 
-/**
- * Retrieves recent transactions for a wallet.
- * Returns raw WalletKit response - transformation happens in Kotlin TransactionResponseParser.
- */
-export async function getRecentTransactions(args: GetRecentTransactionsArgs): Promise<unknown[]> {
-    return callBridge('getRecentTransactions', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
+import { walletCall, clientCall, getKit, getWallet } from '../utils/bridge';
 
-        // Extract address from walletId (format: "{chainId}:{address}")
-        const address = wallet?.getAddress?.() ?? args.walletId.split(':')[1];
+export const createTransferTonTransaction = (args: { walletId: string }) =>
+    walletCall('createTransferTonTransaction', args);
+export const createTransferMultiTonTransaction = (args: { walletId: string }) =>
+    walletCall('createTransferMultiTonTransaction', args);
+export const getTransactionPreview = (args: { walletId: string }) => walletCall('getTransactionPreview', args);
+export const sendTransaction = (args: { walletId: string }) => walletCall('sendTransaction', args);
+export const getRecentTransactions = (args: { walletId: string }) => clientCall('getAccountTransactions', args);
 
-        const response = await wallet!.getClient().getAccountTransactions({
-            address: [address],
-            limit: args.limit || 10,
-        });
-
-        return response?.transactions || [];
-    });
-}
-
-/**
- * Creates a single-recipient TON transfer transaction.
- * Returns raw transaction and optional preview - Kotlin handles structure.
- */
-export async function createTransferTonTransaction(args: CreateTransferTonTransactionArgs) {
-    return callBridge('createTransferTonTransaction', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletId}`);
-        }
-
-        const transaction = await wallet.createTransferTonTransaction(args);
-
-        if (wallet.getTransactionPreview) {
-            try {
-                const preview = await wallet.getTransactionPreview(transaction);
-                return { transaction, preview };
-            } catch (err) {
-                warn('[walletkitBridge] getTransactionPreview failed', err);
-            }
-        }
-
-        return { transaction };
-    });
-}
-
-/**
- * Creates a multi-recipient TON transfer transaction.
- * Returns raw transaction and optional preview - Kotlin handles structure.
- */
-export async function createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs) {
-    return callBridge('createTransferMultiTonTransaction', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletId}`);
-        }
-
-        const transaction = await wallet.createTransferMultiTonTransaction(args);
-
-        if (wallet.getTransactionPreview) {
-            try {
-                const preview = await wallet.getTransactionPreview(transaction);
-                return { transaction, preview };
-            } catch (err) {
-                warn('[walletkitBridge] getTransactionPreview failed', err);
-            }
-        }
-
-        return { transaction };
-    });
-}
-
-/**
- * Gets transaction preview (fee estimation).
- */
-export async function getTransactionPreview(args: TransactionContentArgs) {
-    return callBridge('getTransactionPreview', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletId}`);
-        }
-
-        // Accept object directly (preferred) or parse string (legacy)
-        const transaction =
-            typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-
-        if (!wallet.getTransactionPreview) {
-            throw new Error('getTransactionPreview not available on wallet');
-        }
-        return await wallet.getTransactionPreview(transaction);
-    });
-}
-
-/**
- * Handles new transaction (triggers confirmation flow).
- */
-export async function handleNewTransaction(args: TransactionContentArgs) {
-    return callBridge('handleNewTransaction', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletId}`);
-        }
-
-        const transaction =
-            typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-
-        await kit.handleNewTransaction(wallet, transaction);
-
-        return { success: true };
-    });
-}
-
-/**
- * Sends a transaction to the network.
- * Returns raw result object with signedBoc.
- */
-export async function sendTransaction(args: TransactionContentArgs) {
-    return callBridge('sendTransaction', async (kit) => {
-        const wallet = kit.getWallet?.(args.walletId);
-        if (!wallet) {
-            throw new Error(`Wallet not found: ${args.walletId}`);
-        }
-
-        const transaction =
-            typeof args.transactionContent === 'string' ? JSON.parse(args.transactionContent) : args.transactionContent;
-        return await wallet.sendTransaction(transaction);
-    });
+export async function handleNewTransaction(args: [string, unknown]) {
+    const k = await getKit();
+    const w = await getWallet(args[0]);
+    return k.handleNewTransaction(w, args[1] as TransactionRequest);
 }

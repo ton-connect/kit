@@ -26,7 +26,7 @@ type AdapterFactory = {
 
 type WalletKitModule = {
     TonWalletKit: TonWalletKitConstructor;
-    CreateTonMnemonic?: () => Promise<string[] | string>;
+    CreateTonMnemonic?: () => Promise<string[]>;
     MnemonicToKeyPair?: (
         mnemonic: string[],
         type: string,
@@ -41,7 +41,7 @@ type WalletKitModule = {
 };
 
 export let TonWalletKit: TonWalletKitConstructor | null = null;
-export let CreateTonMnemonic: (() => Promise<string[] | string>) | null = null;
+export let CreateTonMnemonic: (() => Promise<string[]>) | null = null;
 export let MnemonicToKeyPair:
     | ((mnemonic: string[], type: string) => Promise<{ publicKey: Uint8Array; secretKey: Uint8Array }>)
     | null = null;
@@ -52,6 +52,7 @@ export let WalletV5R1Adapter: AdapterFactory | null = null;
 
 /**
  * Ensures WalletKit and TON core modules are loaded once and cached.
+ * @throws Error if required modules fail to load
  */
 export async function ensureWalletKitLoaded(): Promise<void> {
     if (TonWalletKit && Signer && MnemonicToKeyPair && DefaultSignature && WalletV4R2Adapter && WalletV5R1Adapter) {
@@ -67,6 +68,9 @@ export async function ensureWalletKitLoaded(): Promise<void> {
         !WalletV5R1Adapter
     ) {
         const module = (await walletKitModulePromise) as unknown as WalletKitModule;
+        if (!module.TonWalletKit) {
+            throw new Error('Failed to load TonWalletKit module');
+        }
         TonWalletKit = module.TonWalletKit;
         CreateTonMnemonic = module.CreateTonMnemonic ?? CreateTonMnemonic;
         MnemonicToKeyPair = module.MnemonicToKeyPair ?? MnemonicToKeyPair;

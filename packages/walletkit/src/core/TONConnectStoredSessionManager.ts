@@ -99,44 +99,43 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         return this.sessions.get(sessionId);
     }
 
-    async getSessionByDomain(domain: string): Promise<TONConnectSession | undefined> {
-        let host;
-        try {
-            host = new URL(domain).host;
-        } catch {
-            return undefined;
+    async getSessions(filter?: {
+        walletId?: WalletId;
+        domain?: string;
+        isJsBridge?: boolean;
+    }): Promise<TONConnectSession[]> {
+        let sessions = Array.from(this.sessions.values());
+
+        if (!filter) {
+            return sessions;
         }
-        for (const session of this.sessions.values()) {
-            if (session.domain === host) {
-                return this.getSession(session.sessionId);
+
+        let domain: string;
+
+        if (filter.domain) {
+            try {
+                domain = new URL(filter.domain).host;
+            } catch {
+                domain = filter.domain;
             }
         }
-        return undefined;
-    }
+        return sessions.filter((session) => {
+            let isIncluded = true;
 
-    /**
-     * Get all sessions as array
-     */
-    async getSessions(): Promise<TONConnectSession[]> {
-        return Array.from(this.sessions.values());
-    }
+            if (filter.walletId) {
+                isIncluded = isIncluded && session.walletId === filter.walletId;
+            }
 
-    /**
-     * Get sessions for specific wallet by wallet ID
-     */
-    async getSessionsForWallet(walletId: WalletId): Promise<TONConnectSession[]> {
-        return (await this.getSessions()).filter((session) => session.walletId === walletId);
-    }
+            if (filter.domain) {
+                isIncluded = isIncluded && session.domain === domain;
+            }
 
-    /**
-     * Update session activity timestamp
-     */
-    async updateSessionActivity(sessionId: string): Promise<void> {
-        const session = this.sessions.get(sessionId);
-        if (session) {
-            session.lastActivityAt = new Date().toISOString();
-            await this.persistSessions();
-        }
+            if (filter.isJsBridge !== undefined) {
+                isIncluded = isIncluded && session.isJsBridge === filter.isJsBridge;
+            }
+
+            return isIncluded;
+        });
     }
 
     /**
@@ -149,13 +148,11 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         }
     }
 
-    /**
-     * Remove all sessions for a wallet by wallet ID or wallet adapter
-     */
-    async removeSessionsForWallet(walletId: WalletId): Promise<void> {
-        const sessionsToRemove = await this.getSessionsForWallet(walletId);
+    async removeSessions(filter?: { walletId?: WalletId; domain?: string; isJsBridge?: boolean }): Promise<void> {
+        const sessionsToRemove = await this.getSessions(filter);
 
         let removedCount = 0;
+
         for (const session of sessionsToRemove) {
             if (this.sessions.delete(session.sessionId)) {
                 removedCount++;
