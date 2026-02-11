@@ -8,9 +8,9 @@
 
 import type { AppKit } from '../../core/app-kit';
 
-export type SetSelectedWalletIdParameters = {
+export interface SetSelectedWalletIdParameters {
     walletId: string | null;
-};
+}
 
 export type SetSelectedWalletIdReturnType = void;
 

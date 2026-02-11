@@ -35,7 +35,7 @@ export const signBinary = async (appKit: AppKit, parameters: SignBinaryParameter
     const wallet = getSelectedWallet(appKit);
 
     if (!wallet) {
-        throw new Error('No wallet connected');
+        throw new Error('Wallet not connected');
     }
 
     return await wallet.signData({

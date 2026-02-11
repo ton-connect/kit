@@ -13,6 +13,6 @@ export * from './components/send-ton-button';
 export * from './components/send-jetton-button';
 
 export * from './hooks/use-balance';
-export * from './hooks/use-selected-wallet-balance';
+export * from './hooks/use-balance-by-address';
 export * from './hooks/use-jettons';
-export * from './hooks/use-selected-wallet-jettons';
+export * from './hooks/use-jettons-by-address';

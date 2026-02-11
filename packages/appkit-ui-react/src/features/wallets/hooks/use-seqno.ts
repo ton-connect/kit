@@ -6,25 +6,22 @@
  *
  */
 
-import { getSeqnoQueryOptions } from '@ton/appkit/queries';
-import type { GetSeqnoData, GetSeqnoErrorType, GetSeqnoQueryConfig } from '@ton/appkit/queries';
+import type { GetSeqnoByAddressData } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
-import { useQuery } from '../../../libs/query';
-import type { UseQueryReturnType } from '../../../libs/query';
+import { useAddress } from './use-address';
+import type { UseSeqnoByAddressParameters, UseSeqnoByAddressReturnType } from './use-seqno-by-address';
+import { useSeqnoByAddress } from './use-seqno-by-address';
 
-export type UseSeqnoParameters<selectData = GetSeqnoData> = GetSeqnoQueryConfig<selectData>;
+export type UseSeqnoParameters<selectData = GetSeqnoByAddressData> = UseSeqnoByAddressParameters<selectData>;
 
-export type UseSeqnoReturnType<selectData = GetSeqnoData> = UseQueryReturnType<selectData, GetSeqnoErrorType>;
+export type UseSeqnoReturnType<selectData = GetSeqnoByAddressData> = UseSeqnoByAddressReturnType<selectData>;
 
 /**
- * Hook to get the sequence number (seqno) of a wallet
+ * Hook to get seqno of the selected wallet
  */
-export const useSeqno = <selectData = GetSeqnoData>(
+export const useSeqno = <selectData = GetSeqnoByAddressData>(
     parameters: UseSeqnoParameters<selectData> = {},
 ): UseSeqnoReturnType<selectData> => {
-    const appKit = useAppKit();
-    const options = getSeqnoQueryOptions(appKit, parameters);
-
-    return useQuery(options);
+    const address = useAddress();
+    return useSeqnoByAddress({ ...parameters, address });
 };

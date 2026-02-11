@@ -16,31 +16,32 @@ import { useSelectedWallet } from '../../hooks/use-selected-wallet';
 import { useDisconnect } from '../../hooks/use-disconnect';
 import { TonIcon } from '../../../../components/ton-icon';
 import { ChooseConnectorModal } from '../choose-connector-modal';
-// import { useConnect } from '../../hooks/use-connect';
-// import { useConnectors } from '../../hooks/use-connectors';
 import { useI18n } from '../../../../hooks/use-i18n';
+import { useConnect } from '../../hooks/use-connect';
+import { useConnectors } from '../../hooks/use-connectors';
 
 type ConnectButtonProps = Omit<ComponentProps<'button'>, 'onClick' | 'children'>;
 
 export const ConnectButton: FC<ConnectButtonProps> = ({ className, ...props }) => {
-    const [selectedWallet] = useSelectedWallet();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // const { connect } = useConnect();
-    // const connectors = useConnectors();
+
+    const [wallet] = useSelectedWallet();
+    const connectors = useConnectors();
+    const { connect } = useConnect();
     const { disconnect } = useDisconnect();
+
     const { t } = useI18n();
 
     const onClick = () => {
-        if (selectedWallet) {
-            disconnect({ connectorId: selectedWallet.connectorId });
+        if (wallet) {
+            disconnect({ connectorId: wallet.connectorId });
             return;
         }
 
-        // TODO enable after testing
-        // if (connectors.length === 1 && connectors[0]) {
-        //     connect({ connectorId: connectors[0].id });
-        //     return;
-        // }
+        if (connectors.length === 1 && connectors[0]) {
+            connect({ connectorId: connectors[0].id });
+            return;
+        }
 
         setIsModalOpen(true);
     };
@@ -48,10 +49,10 @@ export const ConnectButton: FC<ConnectButtonProps> = ({ className, ...props }) =
     return (
         <>
             <Button className={clsx(styles.connectButton, className)} onClick={onClick} {...props}>
-                {!selectedWallet && <TonIcon size={14} />}
-                {/* {selectedWallet ? middleEllipsis(selectedWallet.getAddress()) : t('wallet.connect')} */}
+                {!wallet && <TonIcon size={14} />}
+                {/* {wallet ? middleEllipsis(wallet.getAddress()) : t('wallet.connect')} */}
 
-                {selectedWallet ? t('wallet.disconnect') : t('wallet.connect')}
+                {wallet ? t('wallet.disconnect') : t('wallet.connect')}
             </Button>
 
             <ChooseConnectorModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

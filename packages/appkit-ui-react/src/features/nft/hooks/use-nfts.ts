@@ -6,25 +6,22 @@
  *
  */
 
-import { getNFTsQueryOptions } from '@ton/appkit/queries';
-import type { GetNFTsData, GetNFTsErrorType, GetNFTsQueryConfig } from '@ton/appkit/queries';
+import type { GetNFTsData } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
-import { useQuery } from '../../../libs/query';
-import type { UseQueryReturnType } from '../../../libs/query';
+import { useAddress } from '../../wallets/hooks/use-address';
+import { useNFTsByAddress } from './use-nfts-by-address';
+import type { UseNFTsByAddressParameters, UseNFTsByAddressReturnType } from './use-nfts-by-address';
 
-export type UseNFTsParameters<selectData = GetNFTsData> = GetNFTsQueryConfig<selectData>;
+export type UseNFTsParameters<selectData = GetNFTsData> = UseNFTsByAddressParameters<selectData>;
 
-export type UseNFTsReturnType<selectData = GetNFTsData> = UseQueryReturnType<selectData, GetNFTsErrorType>;
+export type UseNFTsReturnType<selectData = GetNFTsData> = UseNFTsByAddressReturnType<selectData>;
 
 /**
- * Hook to get NFTs
+ * Hook to get NFTs of the selected wallet
  */
-export const useNFTs = <selectData = GetNFTsData>(
+export const useNfts = <selectData = GetNFTsData>(
     parameters: UseNFTsParameters<selectData> = {},
 ): UseNFTsReturnType<selectData> => {
-    const appKit = useAppKit();
-    const options = getNFTsQueryOptions(appKit, parameters);
-
-    return useQuery(options);
+    const address = useAddress();
+    return useNFTsByAddress({ ...parameters, address });
 };

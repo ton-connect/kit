@@ -7,10 +7,10 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { getNfts } from '@ton/appkit';
+import { getNftsByAddress } from '@ton/appkit';
 
 export const nftExample = async (appKit: AppKit) => {
     // Get NFTs of a specific address
-    const nfts = await getNfts(appKit, { address: 'UQ...' });
+    const nfts = await getNftsByAddress(appKit, { address: 'UQ...' });
     console.log('My NFTs:', nfts);
 };

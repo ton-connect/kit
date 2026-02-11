@@ -6,25 +6,25 @@
  *
  */
 
-import { Address } from '@ton/core';
-import type { TokenAmount } from '@ton/walletkit';
-import { Network } from '@ton/walletkit';
+import type { TokenAmount, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { getBalanceByAddress } from './get-balance-by-address';
 
 export interface GetBalanceOptions {
-    address: string | Address;
     network?: Network;
 }
 
-export type GetBalanceReturnType = TokenAmount;
+export async function getBalance(appKit: AppKit, options: GetBalanceOptions = {}): Promise<TokenAmount | null> {
+    const selectedWallet = getSelectedWallet(appKit);
 
-export const getBalance = async (appKit: AppKit, options: GetBalanceOptions): Promise<GetBalanceReturnType> => {
-    const { address, network } = options;
-    const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
+    if (!selectedWallet) {
+        return null;
+    }
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
-    const balance = await client.getBalance(addressString);
-
-    return balance;
-};
+    return getBalanceByAddress(appKit, {
+        address: selectedWallet.getAddress(),
+        network: options.network,
+    });
+}

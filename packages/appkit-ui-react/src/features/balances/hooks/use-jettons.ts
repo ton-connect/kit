@@ -6,25 +6,23 @@
  *
  */
 
-import { getJettonsQueryOptions } from '@ton/appkit/queries';
-import type { GetJettonsData, GetJettonsErrorType, GetJettonsQueryConfig } from '@ton/appkit/queries';
+import type { GetJettonsByAddressData } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
-import { useQuery } from '../../../libs/query';
-import type { UseQueryReturnType } from '../../../libs/query';
+import { useAddress } from '../../wallets/hooks/use-address';
+import { useJettonsByAddress } from './use-jettons-by-address';
+import type { UseJettonsByAddressParameters, UseJettonsByAddressReturnType } from './use-jettons-by-address';
 
-export type UseJettonsParameters<selectData = GetJettonsData> = GetJettonsQueryConfig<selectData>;
+export type UseJettonsParameters<selectData = GetJettonsByAddressData> = UseJettonsByAddressParameters<selectData>;
 
-export type UseJettonsReturnType<selectData = GetJettonsData> = UseQueryReturnType<selectData, GetJettonsErrorType>;
+export type UseJettonsReturnType<selectData = GetJettonsByAddressData> = UseJettonsByAddressReturnType<selectData>;
 
 /**
- * Hook to get jettons
+ * Hook to get jettons of the selected wallet
  */
-export const useJettons = <selectData = GetJettonsData>(
+export const useJettons = <selectData = GetJettonsByAddressData>(
     parameters: UseJettonsParameters<selectData> = {},
 ): UseJettonsReturnType<selectData> => {
-    const appKit = useAppKit();
-    const options = getJettonsQueryOptions(appKit, parameters);
+    const address = useAddress();
 
-    return useQuery(options);
+    return useJettonsByAddress({ ...parameters, address });
 };

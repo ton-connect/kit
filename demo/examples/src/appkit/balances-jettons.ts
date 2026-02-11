@@ -7,19 +7,19 @@
  */
 
 import type { AppKit } from '@ton/appkit';
-import { getBalance, getJettons } from '@ton/appkit';
+import { getBalanceByAddress, getJettonsByAddress } from '@ton/appkit';
 
 // Usage example for getting balance
 export const getBalanceExample = async (appKit: AppKit) => {
     // get balance of the selected wallet
     // Note: getBalance requires an address, so this example assumes we have one
-    const balance = await getBalance(appKit, { address: 'UQ...' });
+    const balance = await getBalanceByAddress(appKit, { address: 'UQ...' });
     console.log('Balance:', balance);
 };
 
 // Usage example for getting jettons
 export const getJettonsExample = async (appKit: AppKit) => {
     // get jettons of a specific address
-    const jettons = await getJettons(appKit, { address: 'UQ...' });
+    const jettons = await getJettonsByAddress(appKit, { address: 'UQ...' });
     console.log('Jettons:', jettons);
 };

@@ -7,13 +7,16 @@
  */
 
 import { useSyncExternalStore, useCallback } from 'react';
-import { getSelectedWallet, setSelectedWalletId as setSelectedWalletIdAction, watchSelectedWallet } from '@ton/appkit';
+import { getSelectedWallet, watchSelectedWallet, setSelectedWalletId } from '@ton/appkit';
 import type { GetSelectedWalletReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 
 export type UseSelectedWalletReturnType = readonly [GetSelectedWalletReturnType, (walletId: string | null) => void];
 
+/**
+ * Hook to get the currently selected wallet
+ */
 export const useSelectedWallet = (): UseSelectedWalletReturnType => {
     const appKit = useAppKit();
 
@@ -28,14 +31,14 @@ export const useSelectedWallet = (): UseSelectedWalletReturnType => {
         return getSelectedWallet(appKit);
     }, [appKit]);
 
-    const selectedWallet = useSyncExternalStore(subscribe, getSnapshot, () => null);
+    const wallet = useSyncExternalStore(subscribe, getSnapshot, () => null);
 
-    const setSelectedWalletId = useCallback(
+    const setWalletId = useCallback(
         (walletId: string | null) => {
-            setSelectedWalletIdAction(appKit, { walletId });
+            setSelectedWalletId(appKit, { walletId });
         },
         [appKit],
     );
 
-    return [selectedWallet, setSelectedWalletId] as const;
+    return [wallet, setWalletId] as const;
 };

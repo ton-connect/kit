@@ -6,31 +6,29 @@
  *
  */
 
-import { Address } from '@ton/core';
-import type { NFTsResponse } from '@ton/walletkit';
-import { Network, getNftsFromClient } from '@ton/walletkit';
+import type { NFTsResponse, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getNftsByAddress } from './get-nfts-by-address';
+import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface GetNftsOptions {
-    address: string | Address;
     network?: Network;
     limit?: number;
     offset?: number;
 }
 
-export type GetNftsReturnType = NFTsResponse;
+export async function getNfts(appKit: AppKit, options: GetNftsOptions = {}): Promise<NFTsResponse | null> {
+    const selectedWallet = getSelectedWallet(appKit);
 
-export const getNfts = async (appKit: AppKit, options: GetNftsOptions): Promise<GetNftsReturnType> => {
-    const { address, network, limit, offset } = options;
-    const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
+    if (!selectedWallet) {
+        return null;
+    }
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
-
-    return getNftsFromClient(client, addressString, {
-        pagination: {
-            limit,
-            offset,
-        },
+    return getNftsByAddress(appKit, {
+        address: selectedWallet.getAddress(),
+        network: options.network,
+        limit: options.limit,
+        offset: options.offset,
     });
-};
+}

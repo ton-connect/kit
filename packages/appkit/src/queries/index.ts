@@ -8,20 +8,25 @@
 
 // Balances
 export {
-    getBalanceQueryOptions,
-    type GetBalanceData,
+    getBalanceByAddressQueryOptions,
+    type GetBalanceByAddressData,
     type GetBalanceErrorType,
-    type GetBalanceQueryConfig,
-} from './balances/get-balance';
+    type GetBalanceByAddressQueryConfig,
+} from './balances/get-balance-by-address';
 export {
-    getJettonsQueryOptions,
-    type GetJettonsData,
+    getJettonsByAddressQueryOptions,
+    type GetJettonsByAddressData,
     type GetJettonsErrorType,
-    type GetJettonsQueryConfig,
-} from './balances/get-jettons';
+    type GetJettonsByAddressQueryConfig,
+} from './balances/get-jettons-by-address';
 
 // NFT
-export { getNFTsQueryOptions, type GetNFTsQueryConfig, type GetNFTsData, type GetNFTsErrorType } from './nft/get-nfts';
+export {
+    getNFTsByAddressQueryOptions as getNFTsQueryOptions,
+    type GetNFTsByAddressQueryConfig as GetNFTsQueryConfig,
+    type GetNFTsByAddressData as GetNFTsData,
+    type GetNFTsErrorType,
+} from './nft/get-nfts-by-address';
 export {
     getNftQueryOptions,
     type GetNftQueryConfig,
@@ -56,11 +61,11 @@ export {
     type GetJettonWalletAddressErrorType,
 } from './jettons/get-jetton-wallet-address';
 export {
-    getJettonBalanceQueryOptions,
-    type GetJettonBalanceQueryConfig,
-    type GetJettonBalanceData,
+    getJettonBalanceByAddressQueryOptions,
+    type GetJettonBalanceByAddressQueryConfig,
+    type GetJettonBalanceByAddressData,
     type GetJettonBalanceErrorType,
-} from './jettons/get-jetton-balance';
+} from './jettons/get-jetton-balance-by-address';
 
 // Wallets
 export {
@@ -76,12 +81,12 @@ export {
     type DisconnectReturnType,
 } from './wallets/disconnect';
 export {
-    getSeqnoQueryOptions,
-    type GetSeqnoQueryConfig,
-    type GetSeqnoData,
+    getSeqnoByAddressQueryOptions,
+    type GetSeqnoByAddressQueryConfig,
+    type GetSeqnoByAddressData,
     type GetSeqnoErrorType,
-    type GetSeqnoQueryOptions,
-} from './wallet/get-seqno';
+    type GetSeqnoByAddressQueryOptions,
+} from './wallet/get-seqno-by-address';
 
 // Transaction
 export {

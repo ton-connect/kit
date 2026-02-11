@@ -22,7 +22,7 @@ export interface CreateTransferNftTransactionParameters {
 export type CreateTransferNftTransactionReturnType = TransactionRequest;
 
 /**
- * Create an NFT transfer transaction request
+ * Create a NFT transfer transaction request
  */
 export const createTransferNftTransaction = async (
     appKit: AppKit,

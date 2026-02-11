@@ -17,15 +17,22 @@ import { filterQueryOptions } from '../../utils';
 
 export type GetJettonBalanceErrorType = Error;
 
-export type GetJettonBalanceQueryConfig<selectData = GetJettonBalanceData> = Compute<
+export type GetJettonBalanceByAddressData = GetJettonBalanceQueryFnData;
+
+export type GetJettonBalanceByAddressQueryConfig<selectData = GetJettonBalanceByAddressData> = Compute<
     ExactPartial<GetJettonBalanceParameters>
 > &
-    QueryParameter<GetJettonBalanceQueryFnData, GetJettonBalanceErrorType, selectData, GetJettonBalanceQueryKey>;
+    QueryParameter<
+        GetJettonBalanceQueryFnData,
+        GetJettonBalanceErrorType,
+        selectData,
+        GetJettonBalanceByAddressQueryKey
+    >;
 
-export const getJettonBalanceQueryOptions = <selectData = GetJettonBalanceData>(
+export const getJettonBalanceByAddressQueryOptions = <selectData = GetJettonBalanceByAddressData>(
     appKit: AppKit,
-    options: GetJettonBalanceQueryConfig<selectData> = {},
-): GetJettonBalanceQueryOptions<selectData> => {
+    options: GetJettonBalanceByAddressQueryConfig<selectData> = {},
+): GetJettonBalanceByAddressQueryOptions<selectData> => {
     return {
         ...options.query,
         enabled: Boolean(options.jettonAddress && options.ownerAddress && (options.query?.enabled ?? true)),
@@ -37,25 +44,26 @@ export const getJettonBalanceQueryOptions = <selectData = GetJettonBalanceData>(
             const balance = await getJettonBalance(appKit, parameters);
             return balance;
         },
-        queryKey: getJettonBalanceQueryKey(options),
+        queryKey: getJettonBalanceByAddressQueryKey(options),
     };
 };
 
 export type GetJettonBalanceQueryFnData = Compute<TokenAmount>;
 
-export type GetJettonBalanceData = GetJettonBalanceQueryFnData;
-
-export const getJettonBalanceQueryKey = (
+export const getJettonBalanceByAddressQueryKey = (
     options: Compute<ExactPartial<GetJettonBalanceParameters>> = {},
-): GetJettonBalanceQueryKey => {
+): GetJettonBalanceByAddressQueryKey => {
     return ['jetton-balance', filterQueryOptions(options)] as const;
 };
 
-export type GetJettonBalanceQueryKey = readonly ['jetton-balance', Compute<ExactPartial<GetJettonBalanceParameters>>];
+export type GetJettonBalanceByAddressQueryKey = readonly [
+    'jetton-balance',
+    Compute<ExactPartial<GetJettonBalanceParameters>>,
+];
 
-export type GetJettonBalanceQueryOptions<selectData = GetJettonBalanceData> = QueryOptions<
+export type GetJettonBalanceByAddressQueryOptions<selectData = GetJettonBalanceByAddressData> = QueryOptions<
     GetJettonBalanceQueryFnData,
     GetJettonBalanceErrorType,
     selectData,
-    GetJettonBalanceQueryKey
+    GetJettonBalanceByAddressQueryKey
 >;

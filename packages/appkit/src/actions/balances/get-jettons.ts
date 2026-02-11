@@ -6,31 +6,29 @@
  *
  */
 
-import { Address } from '@ton/core';
-import type { JettonsResponse } from '@ton/walletkit';
-import { Network, getJettonsFromClient } from '@ton/walletkit';
+import type { JettonsResponse, Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getJettonsByAddress } from './get-jettons-by-address';
+import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface GetJettonsOptions {
-    address: string | Address;
     network?: Network;
     limit?: number;
     offset?: number;
 }
 
-export type GetJettonsReturnType = JettonsResponse;
+export async function getJettons(appKit: AppKit, options: GetJettonsOptions = {}): Promise<JettonsResponse | null> {
+    const selectedWallet = getSelectedWallet(appKit);
 
-export const getJettons = async (appKit: AppKit, options: GetJettonsOptions): Promise<GetJettonsReturnType> => {
-    const { address, network, limit, offset } = options;
-    const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
+    if (!selectedWallet) {
+        return null;
+    }
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
-
-    return getJettonsFromClient(client, addressString, {
-        pagination: {
-            limit,
-            offset,
-        },
+    return getJettonsByAddress(appKit, {
+        address: selectedWallet.getAddress(),
+        network: options.network,
+        limit: options.limit,
+        offset: options.offset,
     });
-};
+}

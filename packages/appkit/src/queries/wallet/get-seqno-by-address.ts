@@ -8,47 +8,49 @@
 
 import type { AppKit } from '../../core/app-kit';
 import { getSeqno } from '../../actions/wallet/get-seqno';
-import type { GetSeqnoOptions as GetSeqnoParameters } from '../../actions/wallet/get-seqno';
+import type { GetSeqnoOptions } from '../../actions/wallet/get-seqno';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
 import { filterQueryOptions } from '../../utils';
 
 export type GetSeqnoErrorType = Error;
 
-export type GetSeqnoQueryConfig<selectData = GetSeqnoData> = Compute<ExactPartial<GetSeqnoParameters>> &
-    QueryParameter<GetSeqnoQueryFnData, GetSeqnoErrorType, selectData, GetSeqnoQueryKey>;
+export type GetSeqnoByAddressData = GetSeqnoQueryFnData;
 
-export const getSeqnoQueryOptions = <selectData = GetSeqnoData>(
+export type GetSeqnoByAddressQueryConfig<selectData = GetSeqnoByAddressData> = Compute<ExactPartial<GetSeqnoOptions>> &
+    QueryParameter<GetSeqnoQueryFnData, GetSeqnoErrorType, selectData, GetSeqnoByAddressQueryKey>;
+
+export const getSeqnoByAddressQueryOptions = <selectData = GetSeqnoByAddressData>(
     appKit: AppKit,
-    options: GetSeqnoQueryConfig<selectData> = {},
-): GetSeqnoQueryOptions<selectData> => {
+    options: GetSeqnoByAddressQueryConfig<selectData> = {},
+): GetSeqnoByAddressQueryOptions<selectData> => {
     return {
         ...options.query,
         enabled: Boolean(options.address && (options.query?.enabled ?? true)),
         queryFn: async (context) => {
-            const [, parameters] = context.queryKey as [string, GetSeqnoParameters];
+            const [, parameters] = context.queryKey as [string, GetSeqnoOptions];
             if (!parameters.address) throw new Error('address is required');
 
             const seqno = await getSeqno(appKit, parameters);
             return seqno;
         },
-        queryKey: getSeqnoQueryKey(options),
+        queryKey: getSeqnoByAddressQueryKey(options),
     };
 };
 
 export type GetSeqnoQueryFnData = Compute<number | null>;
 
-export type GetSeqnoData = GetSeqnoQueryFnData;
-
-export const getSeqnoQueryKey = (options: Compute<ExactPartial<GetSeqnoParameters>> = {}): GetSeqnoQueryKey => {
+export const getSeqnoByAddressQueryKey = (
+    options: Compute<ExactPartial<GetSeqnoOptions>> = {},
+): GetSeqnoByAddressQueryKey => {
     return ['seqno', filterQueryOptions(options)] as const;
 };
 
-export type GetSeqnoQueryKey = readonly ['seqno', Compute<ExactPartial<GetSeqnoParameters>>];
+export type GetSeqnoByAddressQueryKey = readonly ['seqno', Compute<ExactPartial<GetSeqnoOptions>>];
 
-export type GetSeqnoQueryOptions<selectData = GetSeqnoData> = QueryOptions<
+export type GetSeqnoByAddressQueryOptions<selectData = GetSeqnoByAddressData> = QueryOptions<
     GetSeqnoQueryFnData,
     GetSeqnoErrorType,
     selectData,
-    GetSeqnoQueryKey
+    GetSeqnoByAddressQueryKey
 >;

@@ -11,12 +11,13 @@ import type { Network } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
-export type GetSelectedWalletNetworkReturnType = Network | null;
+export type GetNetworkReturnType = Network | null;
 
 /**
  * Get the network of the currently selected wallet
  */
-export const getSelectedWalletNetwork = (appKit: AppKit): GetSelectedWalletNetworkReturnType => {
+export const getNetwork = (appKit: AppKit): GetNetworkReturnType => {
     const wallet = getSelectedWallet(appKit);
+
     return wallet?.getNetwork() ?? null;
 };
