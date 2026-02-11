@@ -7,9 +7,16 @@
  */
 
 /**
+ * Type of provider
+ */
+export type DefiProviderType = 'swap';
+
+/**
  * Base interface for all providers
  */
 export interface DefiProvider {
+    readonly type: DefiProviderType;
+
     /**
      * Unique identifier for the provider
      */

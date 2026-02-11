@@ -127,7 +127,7 @@ export {
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
 
-// Swap
+// DeFi
 export {
     getSwapQuoteQueryOptions,
     type GetSwapQuoteQueryConfig,
@@ -136,7 +136,7 @@ export {
     type GetSwapQuoteErrorType,
     type GetSwapQuoteQueryFnData,
     type GetSwapQuoteQueryKey,
-} from './swap/get-swap-quote';
+} from './defi/get-swap-quote';
 export {
     buildSwapTransactionMutationOptions,
     type BuildSwapTransactionMutationConfig,
@@ -146,7 +146,7 @@ export {
     type BuildSwapTransactionMutate,
     type BuildSwapTransactionMutateAsync,
     type BuildSwapTransactionVariables,
-} from './swap/build-swap-transaction';
+} from './defi/build-swap-transaction';
 
 // Signing
 export {

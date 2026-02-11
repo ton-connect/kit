@@ -105,14 +105,14 @@ export { getNetwork, type GetNetworkReturnType } from './network/get-network';
 export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
 
 // Swap
-export { getSwapManager, type GetSwapManagerReturnType } from './swap/get-swap-manager';
-export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './swap/get-swap-quote';
+export { getSwapManager, type GetSwapManagerReturnType } from './defi/get-swap-manager';
+export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './defi/get-swap-quote';
 export {
     buildSwapTransaction,
     type BuildSwapTransactionOptions,
     type BuildSwapTransactionReturnType,
-} from './swap/build-swap-transaction';
-export { registerSwapProvider, type RegisterSwapProviderOptions } from './swap/register-swap-provider';
+} from './defi/build-swap-transaction';
+export { registerProvider, type RegisterProviderOptions } from './defi/register-provider';
 
 // Signing
 export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
