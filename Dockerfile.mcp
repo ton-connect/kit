@@ -1,0 +1,35 @@
+FROM node:22-alpine AS base
+
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json turbo.json ./
+COPY packages/ ./packages/
+
+RUN pnpm install --frozen-lockfile
+
+RUN pnpm build
+
+# --- Production ---
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY --from=base /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=base /app/packages/mcp/dist ./packages/mcp/dist
+COPY --from=base /app/packages/mcp/package.json ./packages/mcp/
+COPY --from=base /app/packages/walletkit/dist ./packages/walletkit/dist
+COPY --from=base /app/packages/walletkit/package.json ./packages/walletkit/
+
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate \
+    && pnpm install --frozen-lockfile --prod \
+    && rm -rf /root/.cache /tmp/*
+
+ENV NODE_ENV=production
+ENV NETWORK=mainnet
+
+EXPOSE 3000
+
+ENTRYPOINT ["node", "packages/mcp/dist/cli.js"]
+CMD ["--http"]

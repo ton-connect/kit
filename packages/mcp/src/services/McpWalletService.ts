@@ -229,8 +229,7 @@ export class McpWalletService {
             const omnistonProvider = new OmnistonSwapProvider({
                 defaultSlippageBps: 100,
             });
-            this.kit.swap.registerProvider('omniston', omnistonProvider);
-            this.kit.swap.setDefaultProvider('omniston');
+            this.kit.swap.registerProvider(omnistonProvider);
         }
         return this.kit;
     }
@@ -768,9 +767,9 @@ export class McpWalletService {
         const kit = await this.getKit();
 
         const params: SwapQuoteParams = {
-            fromToken: fromToken === 'TON' ? 'TON' : fromToken,
-            toToken: toToken === 'TON' ? 'TON' : toToken,
-            amountFrom: amount,
+            fromToken: fromToken === 'TON' ? { type: 'ton' } : { type: 'jetton', value: fromToken },
+            toToken: toToken === 'TON' ? { type: 'ton' } : { type: 'jetton', value: toToken },
+            amount: amount,
             network,
             slippageBps,
         };
@@ -779,12 +778,12 @@ export class McpWalletService {
 
         return {
             quote,
-            fromToken: typeof quote.fromToken === 'string' ? quote.fromToken : quote.fromToken,
-            toToken: typeof quote.toToken === 'string' ? quote.toToken : quote.toToken,
+            fromToken: quote.fromToken.type === 'ton' ? 'TON' : quote.fromToken.value,
+            toToken: quote.toToken.type === 'ton' ? 'TON' : quote.toToken.value,
             fromAmount: quote.fromAmount,
             toAmount: quote.toAmount,
             minReceived: quote.minReceived,
-            provider: quote.provider,
+            provider: quote.providerId,
             expiresAt: quote.expiresAt,
         };
     }
@@ -811,7 +810,7 @@ export class McpWalletService {
                     fromAmount: quote.fromAmount,
                     toAmount: quote.toAmount,
                     minReceived: quote.minReceived,
-                    provider: quote.provider,
+                    provider: quote.providerId,
                     quoteJson: JSON.stringify(quote),
                 } as PendingSwap,
             });

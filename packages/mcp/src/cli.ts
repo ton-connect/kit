@@ -13,9 +13,10 @@
  * TON wallet management tools for use with Claude Desktop or other MCP clients.
  *
  * Usage:
- *   npx @ton/mcp              # stdio mode (default)
- *   npx @ton/mcp --http       # HTTP server on port 3000
- *   npx @ton/mcp --http 8080  # HTTP server on custom port
+ *   npx @ton/mcp                          # stdio mode (default)
+ *   npx @ton/mcp --http                   # HTTP server on 0.0.0.0:3000
+ *   npx @ton/mcp --http 8080              # HTTP server on custom port
+ *   npx @ton/mcp --http --host 127.0.0.1  # HTTP server on custom host
  */
 
 import { createServer } from 'node:http';
@@ -50,7 +51,11 @@ function parseArgs() {
     const nextArg = args[httpIndex + 1];
     const port = nextArg && !nextArg.startsWith('-') ? parseInt(nextArg, 10) : 3000;
 
-    return { mode: 'http' as const, port };
+    const hostIndex = args.indexOf('--host');
+    const hostArg = hostIndex !== -1 ? args[hostIndex + 1] : undefined;
+    const host = hostArg && !hostArg.startsWith('-') ? hostArg : '0.0.0.0';
+
+    return { mode: 'http' as const, port, host };
 }
 
 function createAdaptersAndServer() {
@@ -90,8 +95,8 @@ async function startStdio() {
     log('Server connected and ready to accept requests');
 }
 
-async function startHttp(port: number) {
-    log(`Starting in HTTP mode on port ${port}...`);
+async function startHttp(port: number, host: string) {
+    log(`Starting in HTTP mode on ${host}:${port}...`);
     log(`Network: ${NETWORK}`);
 
     const { server, signer } = createAdaptersAndServer();
@@ -103,7 +108,7 @@ async function startHttp(port: number) {
     await server.connect(transport);
 
     const httpServer = createServer(async (req, res) => {
-        const url = new URL(req.url ?? '/', `http://localhost:${port}`);
+        const url = new URL(req.url ?? '/', `http://${host}:${port}`);
 
         if (url.pathname === '/mcp') {
             await transport.handleRequest(req, res);
@@ -124,15 +129,15 @@ async function startHttp(port: number) {
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
 
-    httpServer.listen(port, () => {
-        log(`HTTP server listening on http://localhost:${port}/mcp`);
+    httpServer.listen(port, host, () => {
+        log(`HTTP server listening on http://${host}:${port}/mcp`);
     });
 }
 
 const config = parseArgs();
 
 if (config.mode === 'http') {
-    startHttp(config.port).catch((error) => {
+    startHttp(config.port, config.host).catch((error) => {
         // eslint-disable-next-line no-console
         console.error(`[${SERVER_NAME}] Fatal error:`, error);
         process.exit(1);

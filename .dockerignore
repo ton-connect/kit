@@ -1,0 +1,22 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (reinstalled in container)
+**/node_modules
+
+# Build output (rebuilt in container)
+**/dist
+**/.turbo
+**/coverage
+**/*.tsbuildinfo
+
+# Environment / secrets
+.env*
+
+# Not needed for build
+apps
+demo
+template
+scripts
+resources

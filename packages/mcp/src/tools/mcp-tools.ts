@@ -963,7 +963,7 @@ export function createMcpSwapTools(_walletService: McpWalletService, wrapHandler
                                             toToken: cachedQuote.quote.toToken,
                                             fromAmount: cachedQuote.quote.fromAmount,
                                             toAmount: cachedQuote.quote.toAmount,
-                                            provider: cachedQuote.quote.provider,
+                                            provider: cachedQuote.quote.providerId,
                                             pendingTransactionId: result.pendingTransactionId || null,
                                         },
                                     },

@@ -144,7 +144,7 @@ export class WalletService {
             const omnistonProvider = new OmnistonSwapProvider({
                 defaultSlippageBps: 100, // 1%
             });
-            this.kit.swap.registerProvider('omniston', omnistonProvider);
+            this.kit.swap.registerProvider(omnistonProvider);
             this.kit.swap.setDefaultProvider('omniston');
         }
         return this.kit;
@@ -563,9 +563,9 @@ export class WalletService {
         const kit = await this.getKit();
 
         const params: SwapQuoteParams = {
-            fromToken: fromToken === 'TON' ? 'TON' : fromToken,
-            toToken: toToken === 'TON' ? 'TON' : toToken,
-            amountFrom: amount,
+            fromToken: fromToken === 'TON' ? { type: 'ton' } : { type: 'jetton', value: fromToken },
+            toToken: toToken === 'TON' ? { type: 'ton' } : { type: 'jetton', value: toToken },
+            amount: amount,
             network,
             slippageBps,
         };
@@ -574,12 +574,12 @@ export class WalletService {
 
         return {
             quote,
-            fromToken: typeof quote.fromToken === 'string' ? quote.fromToken : quote.fromToken,
-            toToken: typeof quote.toToken === 'string' ? quote.toToken : quote.toToken,
+            fromToken: quote.fromToken.type === 'ton' ? 'TON' : quote.fromToken.value,
+            toToken: quote.toToken.type === 'ton' ? 'TON' : quote.toToken.value,
             fromAmount: quote.fromAmount,
             toAmount: quote.toAmount,
             minReceived: quote.minReceived,
-            provider: quote.provider,
+            provider: quote.providerId,
             expiresAt: quote.expiresAt,
         };
     }
