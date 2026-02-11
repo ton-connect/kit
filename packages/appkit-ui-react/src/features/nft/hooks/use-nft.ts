@@ -24,7 +24,6 @@ export const useNft = <selectData = GetNftData>(
     parameters: UseNftParameters<selectData> = {},
 ): UseNftReturnType<selectData> => {
     const appKit = useAppKit();
-    const options = getNftQueryOptions(appKit, parameters);
 
-    return useQuery(options);
+    return useQuery(getNftQueryOptions(appKit, parameters));
 };

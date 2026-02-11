@@ -22,7 +22,7 @@ export interface ConnectorsListProps {
 
 export const ConnectorsList: FC<ConnectorsListProps> = ({ className, onConnectorSelect }) => {
     const connectors = useConnectors();
-    const { connect } = useConnect();
+    const { mutate: connect } = useConnect();
     const { t } = useI18n();
 
     const handleConnect = (connectorId: string) => {

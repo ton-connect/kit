@@ -7,7 +7,7 @@
  */
 
 import { getSwapQuote } from '../../actions/defi/get-swap-quote';
-import type { GetSwapQuoteOptions as GetSwapQuoteParameters } from '../../actions/defi/get-swap-quote';
+import type { GetSwapQuoteOptions } from '../../actions/defi/get-swap-quote';
 import type { GetSwapQuoteReturnType } from '../../actions/defi/get-swap-quote';
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
@@ -16,7 +16,7 @@ import { filterQueryOptions } from '../../utils';
 
 export type GetSwapQuoteErrorType = Error;
 
-export type GetSwapQuoteQueryConfig<selectData = GetSwapQuoteData> = Compute<ExactPartial<GetSwapQuoteParameters>> &
+export type GetSwapQuoteQueryConfig<selectData = GetSwapQuoteData> = Compute<ExactPartial<GetSwapQuoteOptions>> &
     QueryParameter<GetSwapQuoteQueryFnData, GetSwapQuoteErrorType, selectData, GetSwapQuoteQueryKey>;
 
 export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
@@ -27,7 +27,7 @@ export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
         ...options.query,
         enabled: Boolean(options.amount && options.fromToken && options.toToken && (options.query?.enabled ?? true)),
         queryFn: async (context) => {
-            const [, parameters] = context.queryKey as [string, GetSwapQuoteParameters];
+            const [, parameters] = context.queryKey as [string, GetSwapQuoteOptions];
             if (!parameters.amount || !parameters.fromToken || !parameters.toToken) {
                 throw new Error('amount, fromToken, and toToken are required');
             }
@@ -55,12 +55,12 @@ export type GetSwapQuoteQueryFnData = Compute<Awaited<GetSwapQuoteReturnType>>;
 export type GetSwapQuoteData = GetSwapQuoteQueryFnData;
 
 export const getSwapQuoteQueryKey = (
-    options: Compute<ExactPartial<GetSwapQuoteParameters>> = {},
+    options: Compute<ExactPartial<GetSwapQuoteOptions>> = {},
 ): GetSwapQuoteQueryKey => {
     return ['swapQuote', filterQueryOptions(options as unknown as Record<string, unknown>)] as const;
 };
 
-export type GetSwapQuoteQueryKey = readonly ['swapQuote', Compute<ExactPartial<GetSwapQuoteParameters>>];
+export type GetSwapQuoteQueryKey = readonly ['swapQuote', Compute<ExactPartial<GetSwapQuoteOptions>>];
 
 export type GetSwapQuoteQueryOptions<selectData = GetSwapQuoteData> = QueryOptions<
     GetSwapQuoteQueryFnData,

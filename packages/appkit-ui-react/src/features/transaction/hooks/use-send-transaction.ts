@@ -9,39 +9,36 @@
 'use client';
 
 import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
-import { sendTransaction } from '@ton/appkit';
-import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/appkit';
+import type {
+    SendTransactionData,
+    SendTransactionErrorType,
+    SendTransactionOptions,
+    SendTransactionVariables,
+} from '@ton/appkit';
+import { sendTransactionMutationOptions } from '@ton/appkit';
 
 import { useMutation } from '../../../libs/query';
-import type { UseMutationParameters, UseMutationReturnType } from '../../../libs/query';
+import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';
 
-export type UseSendTransactionParameters<context = unknown> = UseMutationParameters<
-    SendTransactionReturnType,
-    Error,
-    SendTransactionParameters,
-    context
->;
+export type UseSendTransactionParameters<context = unknown> = SendTransactionOptions<context>;
 
 export type UseSendTransactionReturnType<context = unknown> = UseMutationReturnType<
-    SendTransactionReturnType,
-    Error,
-    SendTransactionParameters,
+    SendTransactionData,
+    SendTransactionErrorType,
+    SendTransactionVariables,
     context,
     (
-        variables: SendTransactionParameters,
-        options?: MutateOptions<SendTransactionReturnType, Error, SendTransactionParameters, context>,
+        variables: SendTransactionVariables,
+        options?: MutateOptions<SendTransactionData, SendTransactionErrorType, SendTransactionVariables, context>,
     ) => void,
-    MutateFunction<SendTransactionReturnType, Error, SendTransactionParameters, context>
+    MutateFunction<SendTransactionData, SendTransactionErrorType, SendTransactionVariables, context>
 >;
 
 export const useSendTransaction = <context = unknown>(
-    parameters?: UseSendTransactionParameters<context>,
+    parameters: UseSendTransactionParameters<context> = {},
 ): UseSendTransactionReturnType<context> => {
     const appKit = useAppKit();
 
-    return useMutation({
-        mutationFn: (variables) => sendTransaction(appKit, variables),
-        ...parameters,
-    });
+    return useMutation(sendTransactionMutationOptions(appKit, parameters));
 };

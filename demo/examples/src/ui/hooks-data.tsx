@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { useBalance, useJettons, useNFTs } from '@ton/appkit-ui-react';
+import { useBalance, useJettons, useNfts } from '@ton/appkit-ui-react';
 
 export const DataHooksExample = () => {
     // Get balance of selected wallet
@@ -17,7 +17,7 @@ export const DataHooksExample = () => {
     const { data: jettons, isLoading: jettonsLoading } = useJettons();
 
     // Get NFTs
-    const { data: nfts, isLoading: nftsLoading } = useNFTs();
+    const { data: nfts, isLoading: nftsLoading } = useNfts();
 
     if (balanceLoading || jettonsLoading || nftsLoading) {
         return <div>Loading...</div>;

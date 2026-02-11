@@ -26,7 +26,6 @@ export const useSwapQuote = <selectData = GetSwapQuoteData>(
     parameters: UseSwapQuoteParameters<selectData> = {},
 ): UseSwapQuoteReturnType<selectData> => {
     const appKit = useAppKit();
-    const options = getSwapQuoteQueryOptions(appKit, parameters);
 
-    return useQuery(options);
+    return useQuery(getSwapQuoteQueryOptions(appKit, parameters));
 };

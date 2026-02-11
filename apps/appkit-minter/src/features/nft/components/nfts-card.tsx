@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import type { NFT } from '@ton/appkit';
-import { NftItem, useSelectedWalletNFTs } from '@ton/appkit-ui-react';
+import { NftItem, useNfts } from '@ton/appkit-ui-react';
 
 import { NftTransferModal } from './nft-transfer-modal';
 
@@ -23,7 +23,7 @@ export const NftsCard: FC<ComponentProps<'div'>> = (props) => {
         isLoading: isLoading,
         isError: isError,
         refetch: onRefresh,
-    } = useSelectedWalletNFTs({ refetchInterval: 10000 });
+    } = useNfts({ query: { refetchInterval: 10000 } });
 
     const nfts = useMemo(() => nftsResponse?.nfts ?? [], [nftsResponse?.nfts]);
 

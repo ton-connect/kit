@@ -9,19 +9,13 @@
 import { useMemo } from 'react';
 import type { FC } from 'react';
 import { formatUnits, parseUnits } from '@ton/appkit';
-import {
-    Transaction,
-    useSwapQuote,
-    useSelectedWalletNetwork,
-    useSelectedWalletAddress,
-    useBuildSwapTransaction,
-} from '@ton/appkit-ui-react';
+import { Transaction, useSwapQuote, useNetwork, useAddress, useBuildSwapTransaction } from '@ton/appkit-ui-react';
 
 export const USDT_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
 
 export const SwapButton: FC = () => {
-    const network = useSelectedWalletNetwork();
-    const address = useSelectedWalletAddress();
+    const network = useNetwork();
+    const address = useAddress();
     const {
         data: quote,
         isError,
@@ -31,6 +25,7 @@ export const SwapButton: FC = () => {
         fromToken: { type: 'ton' },
         toToken: { type: 'jetton', value: USDT_ADDRESS },
         network,
+        slippageBps: 100,
     });
 
     const { mutateAsync: buildSwapTransaction } = useBuildSwapTransaction();

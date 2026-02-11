@@ -32,7 +32,6 @@ export const useJettonWalletAddress = <selectData = GetJettonWalletAddressData>(
     parameters: UseJettonWalletAddressParameters<selectData> = {},
 ) => {
     const appKit = useAppKit();
-    const options = getJettonWalletAddressQueryOptions(appKit, parameters);
 
-    return useQuery(options);
+    return useQuery(getJettonWalletAddressQueryOptions(appKit, parameters));
 };

@@ -6,25 +6,23 @@
  *
  */
 
-import { getBalanceQueryOptions } from '@ton/appkit/queries';
-import type { GetBalanceData, GetBalanceErrorType, GetBalanceQueryConfig } from '@ton/appkit/queries';
+import type { GetBalanceByAddressData } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
-import { useQuery } from '../../../libs/query';
-import type { UseQueryReturnType } from '../../../libs/query';
+import { useAddress } from '../../wallets/hooks/use-address';
+import { useBalanceByAddress } from './use-balance-by-address';
+import type { UseBalanceByAddressParameters, UseBalanceByAddressReturnType } from './use-balance-by-address';
 
-export type UseBalanceParameters<selectData = GetBalanceData> = GetBalanceQueryConfig<selectData>;
+export type UseBalanceParameters<selectData = GetBalanceByAddressData> = UseBalanceByAddressParameters<selectData>;
 
-export type UseBalanceReturnType<selectData = GetBalanceData> = UseQueryReturnType<selectData, GetBalanceErrorType>;
+export type UseBalanceReturnType<selectData = GetBalanceByAddressData> = UseBalanceByAddressReturnType<selectData>;
 
 /**
- * Hook to get balance
+ * Hook to get balance of the selected wallet
  */
-export const useBalance = <selectData = GetBalanceData>(
+export const useBalance = <selectData = GetBalanceByAddressData>(
     parameters: UseBalanceParameters<selectData> = {},
 ): UseBalanceReturnType<selectData> => {
-    const appKit = useAppKit();
-    const options = getBalanceQueryOptions(appKit, parameters);
+    const address = useAddress();
 
-    return useQuery(options);
+    return useBalanceByAddress({ ...parameters, address });
 };

@@ -8,4 +8,4 @@
 
 // Hooks
 export { useNetworks, type UseNetworksReturnType } from './hooks/use-networks';
-export { useSelectedWalletNetwork, type UseSelectedWalletNetworkReturnType } from './hooks/use-selected-wallet-network';
+export { useNetwork, type UseNetworkReturnType } from './hooks/use-network';

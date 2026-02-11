@@ -12,7 +12,7 @@ import type { WalletInterface } from '../../types/wallet';
 export type GetSelectedWalletReturnType = WalletInterface | null;
 
 /**
- * Get selected wallet
+ * Get currently selected wallet
  */
 export const getSelectedWallet = (appKit: AppKit): GetSelectedWalletReturnType => {
     return appKit.walletsManager.selectedWallet;

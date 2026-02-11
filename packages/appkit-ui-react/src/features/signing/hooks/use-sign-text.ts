@@ -35,7 +35,7 @@ export type UseSignTextReturnType<context = unknown> = UseMutationResult<
  * ```
  */
 export const useSignText = <context = unknown>(
-    parameters?: UseSignTextParameters<context>,
+    parameters: UseSignTextParameters<context> = {},
 ): UseSignTextReturnType<context> => {
     const appKit = useAppKit();
 

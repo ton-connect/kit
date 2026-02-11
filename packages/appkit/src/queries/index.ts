@@ -8,20 +8,25 @@
 
 // Balances
 export {
-    getBalanceQueryOptions,
-    type GetBalanceData,
+    getBalanceByAddressQueryOptions,
+    type GetBalanceByAddressData,
     type GetBalanceErrorType,
-    type GetBalanceQueryConfig,
-} from './balances/get-balance';
+    type GetBalanceByAddressQueryConfig,
+} from './balances/get-balance-by-address';
 export {
-    getJettonsQueryOptions,
-    type GetJettonsData,
+    getJettonsByAddressQueryOptions,
+    type GetJettonsByAddressData,
     type GetJettonsErrorType,
-    type GetJettonsQueryConfig,
-} from './balances/get-jettons';
+    type GetJettonsByAddressQueryConfig,
+} from './balances/get-jettons-by-address';
 
 // NFT
-export { getNFTsQueryOptions, type GetNFTsQueryConfig, type GetNFTsData, type GetNFTsErrorType } from './nft/get-nfts';
+export {
+    getNFTsByAddressQueryOptions as getNFTsQueryOptions,
+    type GetNFTsByAddressQueryConfig as GetNFTsQueryConfig,
+    type GetNFTsByAddressData as GetNFTsData,
+    type GetNFTsErrorType,
+} from './nft/get-nfts-by-address';
 export {
     getNftQueryOptions,
     type GetNftQueryConfig,
@@ -56,11 +61,11 @@ export {
     type GetJettonWalletAddressErrorType,
 } from './jettons/get-jetton-wallet-address';
 export {
-    getJettonBalanceQueryOptions,
-    type GetJettonBalanceQueryConfig,
-    type GetJettonBalanceData,
+    getJettonBalanceByAddressQueryOptions,
+    type GetJettonBalanceByAddressQueryConfig,
+    type GetJettonBalanceByAddressData,
     type GetJettonBalanceErrorType,
-} from './jettons/get-jetton-balance';
+} from './jettons/get-jetton-balance-by-address';
 
 // Wallets
 export {
@@ -68,20 +73,21 @@ export {
     type ConnectMutationOptions,
     type ConnectParameters,
     type ConnectReturnType,
+    type ConnectData,
+    type ConnectErrorType,
+    type ConnectOptions,
+    type ConnectVariables,
 } from './wallets/connect';
 export {
     disconnectMutationOptions,
     type DisconnectMutationOptions,
     type DisconnectParameters,
     type DisconnectReturnType,
+    type DisconnectData,
+    type DisconnectErrorType,
+    type DisconnectOptions,
+    type DisconnectVariables,
 } from './wallets/disconnect';
-export {
-    getSeqnoQueryOptions,
-    type GetSeqnoQueryConfig,
-    type GetSeqnoData,
-    type GetSeqnoErrorType,
-    type GetSeqnoQueryOptions,
-} from './wallet/get-seqno';
 
 // Transaction
 export {
@@ -108,6 +114,18 @@ export {
     type TransferJettonParameters,
     type TransferJettonReturnType,
 } from './transaction/transfer-jetton';
+export {
+    sendTransactionMutationOptions,
+    type SendTransactionData,
+    type SendTransactionErrorType,
+    type SendTransactionMutate,
+    type SendTransactionMutateAsync,
+    type SendTransactionMutationOptions,
+    type SendTransactionOptions,
+    type SendTransactionVariables,
+    type SendTransactionParameters,
+    type SendTransactionReturnType,
+} from './transaction/send-transaction';
 
 // DeFi
 export {

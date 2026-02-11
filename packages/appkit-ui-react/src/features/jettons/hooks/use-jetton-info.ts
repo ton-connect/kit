@@ -27,7 +27,6 @@ export const useJettonInfo = <selectData = GetJettonInfoData>(
     parameters: UseJettonInfoParameters<selectData> = {},
 ): UseJettonInfoReturnType<selectData> => {
     const appKit = useAppKit();
-    const options = getJettonInfoQueryOptions(appKit, parameters);
 
-    return useQuery(options);
+    return useQuery(getJettonInfoQueryOptions(appKit, parameters));
 };

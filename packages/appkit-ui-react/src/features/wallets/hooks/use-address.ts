@@ -15,7 +15,7 @@ export type UseSelectedWalletAddressReturnType = string | undefined;
 /**
  * Hook to get current wallet address
  */
-export const useSelectedWalletAddress = (): UseSelectedWalletAddressReturnType => {
+export const useAddress = (): UseSelectedWalletAddressReturnType => {
     const [wallet] = useSelectedWallet();
 
     return useMemo(() => wallet?.getAddress(), [wallet]);

@@ -64,12 +64,14 @@ export const TransactionProvider: FC<TransactionProviderProps> = ({
         isPending,
         error: mutationError,
     } = useSendTransaction({
-        onSuccess: (data: SendTransactionReturnType) => {
-            setReceipt(data);
-            onSuccess?.(data);
-        },
-        onError: (err: Error) => {
-            onError?.(err);
+        mutation: {
+            onSuccess: (data) => {
+                setReceipt(data);
+                onSuccess?.(data);
+            },
+            onError: (err) => {
+                onError?.(err);
+            },
         },
     });
 

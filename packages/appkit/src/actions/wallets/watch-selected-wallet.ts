@@ -11,9 +11,9 @@ import { WALLETS_EVENTS } from '../../core/app-kit';
 import { getSelectedWallet } from '../../actions';
 import type { WalletInterface } from '../../types/wallet';
 
-export type WatchSelectedWalletParameters = {
+export interface WatchSelectedWalletParameters {
     onChange: (wallet: WalletInterface | null) => void;
-};
+}
 
 export type WatchSelectedWalletReturnType = () => void;
 

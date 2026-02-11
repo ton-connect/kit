@@ -8,34 +8,32 @@
 
 'use client';
 
-import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
+import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
 import { disconnectMutationOptions } from '@ton/appkit/queries';
-import type { DisconnectParameters, DisconnectReturnType } from '@ton/appkit';
+import type { DisconnectData, DisconnectErrorType, DisconnectOptions, DisconnectVariables } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
+import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';
 
-export type UseDisconnectParameters = Omit<
-    UseMutationOptions<DisconnectReturnType, Error, DisconnectParameters>,
-    'mutationFn' | 'mutationKey'
+export type UseDisconnectParameters<context = unknown> = DisconnectOptions<context>;
+
+export type UseDisconnectReturnType<context = unknown> = UseMutationReturnType<
+    DisconnectData,
+    DisconnectErrorType,
+    DisconnectVariables,
+    context,
+    (
+        variables: DisconnectVariables,
+        options?: MutateOptions<DisconnectData, DisconnectErrorType, DisconnectVariables, context>,
+    ) => void,
+    MutateFunction<DisconnectData, DisconnectErrorType, DisconnectVariables, context>
 >;
 
-export type UseDisconnectReturnType = UseMutationResult<DisconnectReturnType, Error, DisconnectParameters> & {
-    disconnect: UseMutationResult<DisconnectReturnType, Error, DisconnectParameters>['mutate'];
-    disconnectAsync: UseMutationResult<DisconnectReturnType, Error, DisconnectParameters>['mutateAsync'];
-};
-
-export const useDisconnect = (parameters: UseDisconnectParameters = {}): UseDisconnectReturnType => {
+export const useDisconnect = <context = unknown>(
+    parameters: UseDisconnectParameters<context> = {},
+): UseDisconnectReturnType<context> => {
     const appKit = useAppKit();
-    const mutationOptions = disconnectMutationOptions(appKit);
-    const mutation = useMutation({
-        ...mutationOptions,
-        ...parameters,
-    });
 
-    return {
-        ...mutation,
-        disconnect: mutation.mutate,
-        disconnectAsync: mutation.mutateAsync,
-    };
+    return useMutation(disconnectMutationOptions(appKit, parameters));
 };

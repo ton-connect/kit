@@ -10,7 +10,7 @@ import { useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
-import { CurrencyItem, useSelectedWalletJettons, useSelectedWalletBalance } from '@ton/appkit-ui-react';
+import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-ui-react';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
@@ -28,14 +28,14 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
         data: balance,
         isLoading: isBalanceLoading,
         isError: isBalanceError,
-    } = useSelectedWalletBalance({ refetchInterval: 10000 });
+    } = useBalance({ query: { refetchInterval: 10000 } });
 
     const {
         data: jettonsResponse,
         isLoading: isJettonsLoading,
         isError: isJettonsError,
         refetch: onRefresh,
-    } = useSelectedWalletJettons({ refetchInterval: 10000 });
+    } = useJettons({ query: { refetchInterval: 10000 } });
 
     const jettons = useMemo(() => jettonsResponse?.jettons ?? [], [jettonsResponse?.jettons]);
 
