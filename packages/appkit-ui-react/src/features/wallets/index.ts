@@ -15,3 +15,4 @@ export * from './hooks/use-address';
 export * from './hooks/use-connect';
 export * from './hooks/use-disconnect';
 export * from './hooks/use-connectors';
+export * from './hooks/use-connector-by-id';

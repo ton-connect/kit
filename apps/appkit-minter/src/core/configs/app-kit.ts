@@ -13,6 +13,8 @@ import { registerProvider } from '@ton/appkit';
 
 import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
 
+export const TONCONNECT_CONNECTOR_ID = 'tonconnect';
+
 export const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: {
@@ -30,6 +32,7 @@ export const appKit = new AppKit({
     },
     connectors: [
         new TonConnectConnector({
+            id: TONCONNECT_CONNECTOR_ID,
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
             },

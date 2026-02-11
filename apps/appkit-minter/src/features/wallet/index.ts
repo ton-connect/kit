@@ -6,6 +6,4 @@
  *
  */
 
-export { AppKitBridge } from './components/app-kit-bridge';
 export { WalletConnect } from './components/wallet-connect';
-export { appKit } from './services/app-kit';

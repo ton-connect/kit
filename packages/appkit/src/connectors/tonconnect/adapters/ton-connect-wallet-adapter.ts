@@ -30,7 +30,7 @@ import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
 export interface TonConnectWalletAdapterConfig {
     connectorId: string;
     tonConnectWallet: TonConnectWallet;
-    tonConnect: TonConnectUI;
+    tonConnectUI: TonConnectUI;
 }
 
 /**
@@ -39,12 +39,12 @@ export interface TonConnectWalletAdapterConfig {
  */
 export class TonConnectWalletAdapter implements WalletInterface {
     public readonly tonConnectWallet: TonConnectWallet;
-    public readonly tonConnect: TonConnectUI;
+    public readonly tonConnectUI: TonConnectUI;
     public readonly connectorId: string;
 
     constructor(config: TonConnectWalletAdapterConfig) {
         this.tonConnectWallet = config.tonConnectWallet;
-        this.tonConnect = config.tonConnect;
+        this.tonConnectUI = config.tonConnectUI;
         this.connectorId = config.connectorId;
     }
 
@@ -93,13 +93,13 @@ export class TonConnectWalletAdapter implements WalletInterface {
             network: (request.network?.chainId as CHAIN) ?? this.tonConnectWallet.account?.chain,
         };
 
-        const result = await this.tonConnect.sendTransaction(transaction);
+        const result = await this.tonConnectUI.sendTransaction(transaction);
 
         return { boc: result.boc as Base64String };
     }
 
     async signData(payload: SignDataRequest): Promise<SignDataResponse> {
-        const result = await this.tonConnect.signData(this.mapSignDataRequest(payload));
+        const result = await this.tonConnectUI.signData(this.mapSignDataRequest(payload));
 
         return {
             payload,

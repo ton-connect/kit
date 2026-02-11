@@ -19,17 +19,17 @@ catalogs:
       specifier: 3.3.0
       version: 3.3.0
     '@tonconnect/protocol':
-      specifier: 2.3.0
-      version: 2.3.0
+      specifier: 2.4.0
+      version: 2.4.0
     '@tonconnect/sdk':
-      specifier: 3.3.1
-      version: 3.3.1
+      specifier: 3.4.1
+      version: 3.4.1
     '@tonconnect/ui':
-      specifier: 2.3.1
-      version: 2.3.1
+      specifier: 2.4.1
+      version: 2.4.1
     '@tonconnect/ui-react':
-      specifier: 2.3.1
-      version: 2.3.1
+      specifier: 2.4.1
+      version: 2.4.1
     '@types/react':
       specifier: 19.2.8
       version: 19.2.8
@@ -107,10 +107,10 @@ importers:
         version: link:../../packages/walletkit
       '@tonconnect/sdk':
         specifier: 'catalog:'
-        version: 3.3.1
+        version: 3.4.1
       '@tonconnect/ui-react':
         specifier: 'catalog:'
-        version: 2.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -518,10 +518,10 @@ importers:
         version: link:../../packages/walletkit
       '@tonconnect/sdk':
         specifier: 'catalog:'
-        version: 3.3.1
+        version: 3.4.1
       '@tonconnect/ui-react':
         specifier: 'catalog:'
-        version: 2.3.1(react-dom@19.2.4(react@19.2.3))(react@19.2.3)
+        version: 2.4.1(react-dom@19.2.4(react@19.2.3))(react@19.2.3)
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.8
@@ -561,7 +561,7 @@ importers:
         version: link:../../packages/walletkit
       '@tonconnect/protocol':
         specifier: 'catalog:'
-        version: 2.3.0
+        version: 2.4.0
     devDependencies:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.29.17
@@ -624,10 +624,10 @@ importers:
         version: 0.63.0(@ton/crypto@3.3.0)
       '@tonconnect/protocol':
         specifier: 'catalog:'
-        version: 2.3.0
+        version: 2.4.0
       '@tonconnect/ui':
         specifier: 'catalog:'
-        version: 2.3.1
+        version: 2.4.1
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.2)
@@ -715,10 +715,10 @@ importers:
         version: https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz
       '@tonconnect/protocol':
         specifier: 'catalog:'
-        version: 2.3.0
+        version: 2.4.0
       '@tonconnect/sdk':
         specifier: 'catalog:'
-        version: 3.3.1
+        version: 3.4.1
       lru-cache:
         specifier: ^11.2.4
         version: 11.2.5
@@ -813,7 +813,7 @@ importers:
         version: 0.2.4
       '@tonconnect/protocol':
         specifier: 'catalog:'
-        version: 2.3.0
+        version: 2.4.0
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -3548,20 +3548,20 @@ packages:
   '@tonconnect/isomorphic-fetch@0.0.3':
     resolution: {integrity: sha512-jIg5nTrDwnite4fXao3dD83eCpTvInTjZon/rZZrIftIegh4XxyVb5G2mpMqXrVGk1e8SVXm3Kj5OtfMplQs0w==}
 
-  '@tonconnect/protocol@2.3.0':
-    resolution: {integrity: sha512-OxrmcXF/EsSdGeASP9VpTRojuMtTV87DKYFLRq4ZJvF/Hirfm2cgcxzzj2uksEGm5IIR010UWo6b38RuokNwFQ==}
+  '@tonconnect/protocol@2.4.0':
+    resolution: {integrity: sha512-3xg6sMWIrSgW7/f7iPgOb2BI3LaMScjDMqfu20fcEMbOVvNFk3TGAUKK5cJ3pfvUINsyLgPoylcIbPap37jXiA==}
 
-  '@tonconnect/sdk@3.3.1':
-    resolution: {integrity: sha512-lhXJu95VvbD36u5mMPg2sg+w4GQwkrYnHeJ8rVveu2N7UPwt0jvrEqKlvf7Ss1gh5RDtzs35SS3GbJlaIOAJNA==}
+  '@tonconnect/sdk@3.4.1':
+    resolution: {integrity: sha512-eVH8erAFout89gXYHXua/es+mmLPiW1r7ng9hgHKYQv85HLq8/zzQEkbJpbTlnIuQ6CJ/QKchjMsIgYz3BYCUQ==}
 
-  '@tonconnect/ui-react@2.3.1':
-    resolution: {integrity: sha512-dAMqNG5X8Llh1m3eIOvIQlXgMazrZrmnQGefJmlmyghwwGydR0O9NGpW7I7s2CN24usAaRGX8mVJPemsa2oHSQ==}
+  '@tonconnect/ui-react@2.4.1':
+    resolution: {integrity: sha512-99NOq5Dj7Z0s0FE+bSrS9dAYlfeUGucZKw431+qeiBFvgpqNxzxfoiSI4mef/ezns8wI4UiDrdXyEulek3RwBw==}
     peerDependencies:
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
 
-  '@tonconnect/ui@2.3.1':
-    resolution: {integrity: sha512-G1hKn5TrqFYztbR94EG8YuhGUpp7wY8PjC1Fu7/d8rFg7XnPGlUcGmuqH8+2lYrb9Ms0M7v6+5U6S4q4+yCQtQ==}
+  '@tonconnect/ui@2.4.1':
+    resolution: {integrity: sha512-W0wIDJdDdYV3rqP0vt92H/5HktkjeEAddhAOBo0LKZzrMG0r9obY00FKpuV/i2re9RAXLGq/oMwBRZaRHer4kA==}
 
   '@truecarry/vite-plugin-web-extension@4.5.1':
     resolution: {integrity: sha512-WSramCYE+wVFH/zQdBhaBP5gSd9pldyjOu+jvkaTEFXwzCDbNQJ+34ke4/XDsaohpcQTe+lbVXbUT+Jt4Ni9Jw==}
@@ -13009,7 +13009,7 @@ snapshots:
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.3.0
+      '@tonconnect/protocol': 2.4.0
     transitivePeerDependencies:
       - encoding
 
@@ -13017,7 +13017,7 @@ snapshots:
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.3.0
+      '@tonconnect/protocol': 2.4.0
       blakejs: 1.2.1
       tweetnacl: 1.0.3
     transitivePeerDependencies:
@@ -13033,38 +13033,38 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/protocol@2.3.0':
+  '@tonconnect/protocol@2.4.0':
     dependencies:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
 
-  '@tonconnect/sdk@3.3.1':
+  '@tonconnect/sdk@3.4.1':
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.3.0
+      '@tonconnect/protocol': 2.4.0
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/ui-react@2.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@tonconnect/ui-react@2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@tonconnect/ui': 2.3.1
+      '@tonconnect/ui': 2.4.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/ui-react@2.3.1(react-dom@19.2.4(react@19.2.3))(react@19.2.3)':
+  '@tonconnect/ui-react@2.4.1(react-dom@19.2.4(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@tonconnect/ui': 2.3.1
+      '@tonconnect/ui': 2.4.1
       react: 19.2.3
       react-dom: 19.2.4(react@19.2.3)
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/ui@2.3.1':
+  '@tonconnect/ui@2.4.1':
     dependencies:
-      '@tonconnect/sdk': 3.3.1
+      '@tonconnect/sdk': 3.4.1
       classnames: 2.5.1
       csstype: 3.2.3
       deepmerge: 4.3.1
