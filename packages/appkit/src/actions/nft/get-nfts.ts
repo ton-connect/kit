@@ -18,7 +18,9 @@ export interface GetNftsOptions {
     offset?: number;
 }
 
-export async function getNfts(appKit: AppKit, options: GetNftsOptions = {}): Promise<NFTsResponse | null> {
+export type GetNftsReturnType = NFTsResponse | null;
+
+export const getNfts = async (appKit: AppKit, options: GetNftsOptions = {}): Promise<GetNftsReturnType> => {
     const selectedWallet = getSelectedWallet(appKit);
 
     if (!selectedWallet) {
@@ -31,4 +33,4 @@ export async function getNfts(appKit: AppKit, options: GetNftsOptions = {}): Pro
         limit: options.limit,
         offset: options.offset,
     });
-}
+};

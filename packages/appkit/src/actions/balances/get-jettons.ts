@@ -18,7 +18,9 @@ export interface GetJettonsOptions {
     offset?: number;
 }
 
-export async function getJettons(appKit: AppKit, options: GetJettonsOptions = {}): Promise<JettonsResponse | null> {
+export type GetJettonsReturnType = JettonsResponse | null;
+
+export const getJettons = async (appKit: AppKit, options: GetJettonsOptions = {}): Promise<GetJettonsReturnType> => {
     const selectedWallet = getSelectedWallet(appKit);
 
     if (!selectedWallet) {
@@ -31,4 +33,4 @@ export async function getJettons(appKit: AppKit, options: GetJettonsOptions = {}
         limit: options.limit,
         offset: options.offset,
     });
-}
+};

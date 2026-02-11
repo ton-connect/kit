@@ -13,13 +13,13 @@ export {
     type GetBalanceByAddressOptions,
     type GetBalanceByAddressReturnType,
 } from './balances/get-balance-by-address';
-export { getBalance, type GetBalanceOptions } from './balances/get-balance';
+export { getBalance, type GetBalanceOptions, type GetBalanceReturnType } from './balances/get-balance';
 export {
     getJettonsByAddress,
     type GetJettonsByAddressOptions,
     type GetJettonsByAddressReturnType,
 } from './balances/get-jettons-by-address';
-export { getJettons, type GetJettonsOptions } from './balances/get-jettons';
+export { getJettons, type GetJettonsOptions, type GetJettonsReturnType } from './balances/get-jettons';
 
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
@@ -40,7 +40,7 @@ export {
     type GetNftsByAddressOptions,
     type GetNftsByAddressReturnType,
 } from './nft/get-nfts-by-address';
-export { getNfts, type GetNftsOptions } from './nft/get-nfts';
+export { getNfts, type GetNftsOptions, type GetNftsReturnType } from './nft/get-nfts';
 export { getNft, type GetNftOptions, type GetNftReturnType } from './nft/get-nft';
 export { transferNft, type TransferNftParameters, type TransferNftReturnType } from './nft/transfer-nft';
 

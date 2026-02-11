@@ -16,7 +16,9 @@ export interface GetBalanceOptions {
     network?: Network;
 }
 
-export async function getBalance(appKit: AppKit, options: GetBalanceOptions = {}): Promise<TokenAmount | null> {
+export type GetBalanceReturnType = TokenAmount | null;
+
+export const getBalance = async (appKit: AppKit, options: GetBalanceOptions = {}): Promise<GetBalanceReturnType> => {
     const selectedWallet = getSelectedWallet(appKit);
 
     if (!selectedWallet) {
@@ -27,4 +29,4 @@ export async function getBalance(appKit: AppKit, options: GetBalanceOptions = {}
         address: selectedWallet.getAddress(),
         network: options.network,
     });
-}
+};
