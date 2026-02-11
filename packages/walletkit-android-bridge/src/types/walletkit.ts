@@ -39,6 +39,7 @@ export interface WalletKitBridgeInitConfig {
     walletManifest?: WalletInfo;
     deviceInfo?: DeviceInfo;
     disableNetworkSend?: boolean;
+    disableTransactionEmulation?: boolean;
     /**
      * Network configurations matching native SDK format.
      * Each entry has a network with chainId and optional apiClientConfiguration.
