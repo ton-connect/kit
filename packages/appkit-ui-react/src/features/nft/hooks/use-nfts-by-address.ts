@@ -24,7 +24,6 @@ export const useNFTsByAddress = <selectData = GetNFTsData>(
     parameters: UseNFTsByAddressParameters<selectData> = {},
 ): UseNFTsByAddressReturnType<selectData> => {
     const appKit = useAppKit();
-    const options = getNFTsQueryOptions(appKit, parameters);
 
-    return useQuery(options);
+    return useQuery(getNFTsQueryOptions(appKit, parameters));
 };

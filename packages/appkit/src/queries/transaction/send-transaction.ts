@@ -18,6 +18,8 @@ import type { AppKit } from '../../core/app-kit';
 import type { MutationParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';
 
+export type { SendTransactionErrorType, SendTransactionParameters, SendTransactionReturnType };
+
 export type SendTransactionOptions<context = unknown> = MutationParameter<
     SendTransactionData,
     SendTransactionErrorType,

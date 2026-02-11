@@ -73,12 +73,20 @@ export {
     type ConnectMutationOptions,
     type ConnectParameters,
     type ConnectReturnType,
+    type ConnectData,
+    type ConnectErrorType,
+    type ConnectOptions,
+    type ConnectVariables,
 } from './wallets/connect';
 export {
     disconnectMutationOptions,
     type DisconnectMutationOptions,
     type DisconnectParameters,
     type DisconnectReturnType,
+    type DisconnectData,
+    type DisconnectErrorType,
+    type DisconnectOptions,
+    type DisconnectVariables,
 } from './wallets/disconnect';
 export {
     getSeqnoByAddressQueryOptions,
@@ -113,6 +121,18 @@ export {
     type TransferJettonParameters,
     type TransferJettonReturnType,
 } from './transaction/transfer-jetton';
+export {
+    sendTransactionMutationOptions,
+    type SendTransactionData,
+    type SendTransactionErrorType,
+    type SendTransactionMutate,
+    type SendTransactionMutateAsync,
+    type SendTransactionMutationOptions,
+    type SendTransactionOptions,
+    type SendTransactionVariables,
+    type SendTransactionParameters,
+    type SendTransactionReturnType,
+} from './transaction/send-transaction';
 
 // Swap
 export {

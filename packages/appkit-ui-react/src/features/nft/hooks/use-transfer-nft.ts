@@ -9,39 +9,31 @@
 'use client';
 
 import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
-import { transferNft } from '@ton/appkit';
-import type { TransferNftParameters, TransferNftReturnType } from '@ton/appkit';
+import type { TransferNftData, TransferNftErrorType, TransferNftOptions, TransferNftVariables } from '@ton/appkit';
+import { transferNftMutationOptions } from '@ton/appkit';
 
 import { useMutation } from '../../../libs/query';
-import type { UseMutationParameters, UseMutationReturnType } from '../../../libs/query';
+import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';
 
-export type UseTransferNftParameters<context = unknown> = UseMutationParameters<
-    TransferNftReturnType,
-    Error,
-    TransferNftParameters,
-    context
->;
+export type UseTransferNftParameters<context = unknown> = TransferNftOptions<context>;
 
 export type UseTransferNftReturnType<context = unknown> = UseMutationReturnType<
-    TransferNftReturnType,
-    Error,
-    TransferNftParameters,
+    TransferNftData,
+    TransferNftErrorType,
+    TransferNftVariables,
     context,
     (
-        variables: TransferNftParameters,
-        options?: MutateOptions<TransferNftReturnType, Error, TransferNftParameters, context>,
+        variables: TransferNftVariables,
+        options?: MutateOptions<TransferNftData, TransferNftErrorType, TransferNftVariables, context>,
     ) => void,
-    MutateFunction<TransferNftReturnType, Error, TransferNftParameters, context>
+    MutateFunction<TransferNftData, TransferNftErrorType, TransferNftVariables, context>
 >;
 
 export const useTransferNft = <context = unknown>(
-    parameters?: UseTransferNftParameters<context>,
+    parameters: UseTransferNftParameters<context> = {},
 ): UseTransferNftReturnType<context> => {
     const appKit = useAppKit();
 
-    return useMutation({
-        mutationFn: (variables) => transferNft(appKit, variables),
-        ...parameters,
-    });
+    return useMutation(transferNftMutationOptions(appKit, parameters));
 };

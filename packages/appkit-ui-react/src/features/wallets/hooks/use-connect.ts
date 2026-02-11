@@ -6,30 +6,37 @@
  *
  */
 
-import type { UseMutationResult, UseMutationOptions } from '@tanstack/react-query';
+import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
 import { connectMutationOptions } from '@ton/appkit/queries';
-import type { ConnectParameters, ConnectReturnType } from '@ton/appkit';
+import type { ConnectData, ConnectErrorType, ConnectOptions, ConnectVariables } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
+import type { UseMutationReturnType } from '../../../libs/query';
 import { useAppKit } from '../../../hooks/use-app-kit';
 
-export type UseConnectParameters = Omit<
-    UseMutationOptions<ConnectReturnType, Error, ConnectParameters>,
-    'mutationFn' | 'mutationKey'
+export type UseConnectParameters<context = unknown> = ConnectOptions<context>;
+
+export type UseConnectReturnType<context = unknown> = UseMutationReturnType<
+    ConnectData,
+    ConnectErrorType,
+    ConnectVariables,
+    context,
+    (
+        variables: ConnectVariables,
+        options?: MutateOptions<ConnectData, ConnectErrorType, ConnectVariables, context>,
+    ) => void,
+    MutateFunction<ConnectData, ConnectErrorType, ConnectVariables, context>
 >;
 
-export type UseConnectReturnType = UseMutationResult<ConnectReturnType, Error, ConnectParameters> & {
-    connect: UseMutationResult<ConnectReturnType, Error, ConnectParameters>['mutate'];
-    connectAsync: UseMutationResult<ConnectReturnType, Error, ConnectParameters>['mutateAsync'];
-};
-
-export const useConnect = (parameters: UseConnectParameters = {}): UseConnectReturnType => {
+export const useConnect = <context = unknown>(
+    parameters: UseConnectParameters<context> = {},
+): UseConnectReturnType<context> & {
+    connect: UseConnectReturnType<context>['mutate'];
+    connectAsync: UseConnectReturnType<context>['mutateAsync'];
+} => {
     const appKit = useAppKit();
-    const mutationOptions = connectMutationOptions(appKit);
-    const mutation = useMutation({
-        ...mutationOptions,
-        ...parameters,
-    });
+
+    const mutation = useMutation(connectMutationOptions(appKit, parameters));
 
     return {
         ...mutation,
