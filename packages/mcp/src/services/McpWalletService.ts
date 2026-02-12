@@ -576,6 +576,22 @@ export class McpWalletService {
     }
 
     /**
+     * Resolve a TON DNS domain (e.g., "wallet.ton") to a wallet address
+     */
+    async resolveDns(domain: string): Promise<string | null> {
+        const client = this.wallet.getClient();
+        return client.resolveDnsWallet(domain);
+    }
+
+    /**
+     * Reverse resolve a wallet address to a TON DNS domain
+     */
+    async backResolveDns(address: string): Promise<string | null> {
+        const client = this.wallet.getClient();
+        return client.backResolveDnsWallet(address);
+    }
+
+    /**
      * Close and cleanup
      */
     async close(): Promise<void> {
