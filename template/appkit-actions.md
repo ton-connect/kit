@@ -101,3 +101,23 @@ Create a transaction for transferring jettons without sending it.
 Transfer jettons to a recipient address.
 
 %%demo/examples/src/appkit/actions/jettons#TRANSFER_JETTON%%
+
+## Networks
+
+### `getNetwork`
+
+Get the network of the currently selected wallet.
+
+%%demo/examples/src/appkit/actions/network#GET_NETWORK%%
+
+### `getNetworks`
+
+Get all configured networks.
+
+%%demo/examples/src/appkit/actions/network#GET_NETWORKS%%
+
+### `watchNetworks`
+
+Watch configured networks.
+
+%%demo/examples/src/appkit/actions/network#WATCH_NETWORKS%%

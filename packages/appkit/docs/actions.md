@@ -209,3 +209,41 @@ const result = await transferJetton(appKit, {
 });
 console.log('Transfer Result:', result);
 ```
+
+## Networks
+
+### `getNetwork`
+
+Get the network of the currently selected wallet.
+
+```ts
+const network = getNetwork(appKit);
+
+if (network) {
+    console.log('Current network:', network);
+}
+```
+
+### `getNetworks`
+
+Get all configured networks.
+
+```ts
+const networks = getNetworks(appKit);
+
+console.log('Configured networks:', networks);
+```
+
+### `watchNetworks`
+
+Watch configured networks.
+
+```ts
+const unsubscribe = watchNetworks(appKit, {
+    onChange: (networks) => {
+        console.log('Networks updated:', networks);
+    },
+});
+
+// Later: unsubscribe();
+```
