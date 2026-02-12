@@ -121,3 +121,35 @@ Get all configured networks.
 Watch configured networks.
 
 %%demo/examples/src/appkit/actions/network#WATCH_NETWORKS%%
+
+## NFTs
+
+### `getNfts`
+
+Get all NFTs owned by the currently selected wallet.
+
+%%demo/examples/src/appkit/actions/nft#GET_NFTS%%
+
+### `getNftsByAddress`
+
+Get all NFTs owned by a specific address.
+
+%%demo/examples/src/appkit/actions/nft#GET_NFTS_BY_ADDRESS%%
+
+### `getNft`
+
+Get information about a specific NFT by its address.
+
+%%demo/examples/src/appkit/actions/nft#GET_NFT%%
+
+### `createTransferNftTransaction`
+
+Create a transaction for transferring a NFT without sending it.
+
+%%demo/examples/src/appkit/actions/nft#CREATE_TRANSFER_NFT_TRANSACTION%%
+
+### `transferNft`
+
+Transfer a NFT to a recipient address.
+
+%%demo/examples/src/appkit/actions/nft#TRANSFER_NFT%%

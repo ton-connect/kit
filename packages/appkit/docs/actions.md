@@ -247,3 +247,72 @@ const unsubscribe = watchNetworks(appKit, {
 
 // Later: unsubscribe();
 ```
+
+## NFTs
+
+### `getNfts`
+
+Get all NFTs owned by the currently selected wallet.
+
+```ts
+const response = await getNfts(appKit);
+
+if (response) {
+    console.log('Total NFTs:', response.nfts.length);
+    response.nfts.forEach((nft) => console.log(`- ${nft.info?.name}`));
+}
+```
+
+### `getNftsByAddress`
+
+Get all NFTs owned by a specific address.
+
+```ts
+const response = await getNftsByAddress(appKit, {
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
+});
+
+console.log('NFTs by address:', response.nfts.length);
+```
+
+### `getNft`
+
+Get information about a specific NFT by its address.
+
+```ts
+const nft = await getNft(appKit, {
+    address: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+});
+
+if (nft) {
+    console.log('NFT Name:', nft.info?.name);
+    console.log('NFT Collection:', nft.collection?.name);
+}
+```
+
+### `createTransferNftTransaction`
+
+Create a transaction for transferring a NFT without sending it.
+
+```ts
+const tx = await createTransferNftTransaction(appKit, {
+    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    comment: 'Gift NFT',
+});
+
+console.log('NFT Transfer Transaction:', tx);
+```
+
+### `transferNft`
+
+Transfer a NFT to a recipient address.
+
+```ts
+const result = await transferNft(appKit, {
+    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+});
+
+console.log('NFT Transfer Result:', result);
+```
