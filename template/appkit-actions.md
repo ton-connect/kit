@@ -167,3 +167,23 @@ Transfer a NFT to a recipient address.
 Register a custom token swap provider in AppKit (e.g., Omniston).
 
 %%demo/examples/src/appkit/actions/providers#REGISTER_PROVIDER%%
+
+## Signing
+
+### `signText`
+
+Sign a text message with the connected wallet.
+
+%%demo/examples/src/appkit/actions/signing#SIGN_TEXT%%
+
+### `signBinary`
+
+Sign binary data with the connected wallet.
+
+%%demo/examples/src/appkit/actions/signing#SIGN_BINARY%%
+
+### `signCell`
+
+Sign a TON Cell with the connected wallet. Used for on-chain signature verification.
+
+%%demo/examples/src/appkit/actions/signing#SIGN_CELL%%

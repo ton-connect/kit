@@ -347,3 +347,43 @@ const omnistonProvider = new OmnistonSwapProvider({
 
 registerProvider(appKit, omnistonProvider);
 ```
+
+## Signing
+
+### `signText`
+
+Sign a text message with the connected wallet.
+
+```ts
+const result = await signText(appKit, {
+    text: 'Hello, TON!',
+});
+
+console.log('Signature:', result.signature);
+```
+
+### `signBinary`
+
+Sign binary data with the connected wallet.
+
+```ts
+// Example: sign "Hello" in base64
+const result = await signBinary(appKit, {
+    bytes: 'SGVsbG8=' as Base64String,
+});
+
+console.log('Binary Signature:', result.signature);
+```
+
+### `signCell`
+
+Sign a TON Cell with the connected wallet. Used for on-chain signature verification.
+
+```ts
+const result = await signCell(appKit, {
+    cell: 'te6ccgEBAQEAAgAAGA==' as Base64String, // Example BOC
+    schema: 'transfer#abc123 amount:uint64 = Transfer',
+});
+
+console.log('Cell Signature:', result.signature);
+```
