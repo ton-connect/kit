@@ -6,8 +6,8 @@
  *
  */
 
-import type { TonConnectUiCreateOptions } from '@tonconnect/ui';
 import { TonConnectUI } from '@tonconnect/ui';
+import type { TonConnectUiCreateOptions } from '@tonconnect/ui';
 
 import { TonConnectWalletAdapter } from '../adapters/ton-connect-wallet-adapter';
 import { CONNECTOR_EVENTS } from '../../../core/app-kit';
@@ -17,9 +17,10 @@ import type { AppKitEmitter } from '../../../core/app-kit';
 import { TONCONNECT_DEFAULT_CONNECTOR_ID } from '../constants/id';
 
 export interface TonConnectConnectorConfig {
-    tonConnectOptions: TonConnectUiCreateOptions;
     id?: string;
     metadata?: ConnectorMetadata;
+    tonConnectOptions?: TonConnectUiCreateOptions;
+    tonConnectUI?: TonConnectUI;
 }
 
 export class TonConnectConnector implements Connector {
@@ -32,8 +33,15 @@ export class TonConnectConnector implements Connector {
     private unsubscribeTonConnect: (() => void) | null = null;
 
     constructor(config: TonConnectConnectorConfig) {
+        if (config.tonConnectOptions && config.tonConnectUI) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                'TonConnectConnector: both tonConnectOptions and tonConnectUI are provided, using tonConnectUI',
+            );
+        }
+
         this.id = config.id ?? TONCONNECT_DEFAULT_CONNECTOR_ID;
-        this.tonConnectUI = new TonConnectUI(config.tonConnectOptions);
+        this.tonConnectUI = config?.tonConnectUI ?? new TonConnectUI(config.tonConnectOptions);
         this.metadata = {
             name: 'TonConnect',
             iconUrl: 'https://avatars.githubusercontent.com/u/113980577',
