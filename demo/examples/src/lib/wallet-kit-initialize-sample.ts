@@ -15,7 +15,7 @@ import {
     MemoryStorageAdapter,
 } from '@ton/walletkit';
 
-import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './walletManifest';
+import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './wallet-manifest';
 // SAMPLE_END: INIT_KIT_1
 
 let kitCache: TonWalletKit | undefined;

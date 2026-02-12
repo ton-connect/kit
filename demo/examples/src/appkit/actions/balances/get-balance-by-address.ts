@@ -9,11 +9,11 @@
 import type { AppKit } from '@ton/appkit';
 import { getBalanceByAddress } from '@ton/appkit';
 
-export const getBalanceExample = async (appKit: AppKit) => {
+export const getBalanceByAddressExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_BALANCE_BY_ADDRESS
-    const balance = await getBalanceByAddress(appKit, {
-        address: 'UQ...', // Address to check
+    const balanceByAddress = await getBalanceByAddress(appKit, {
+        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Zero Address
     });
-    console.log('Balance:', balance.toString());
+    console.log('Balance by address:', balanceByAddress.toString());
     // SAMPLE_END: GET_BALANCE_BY_ADDRESS
 };

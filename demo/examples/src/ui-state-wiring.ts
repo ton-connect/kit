@@ -9,7 +9,7 @@
 import 'dotenv/config';
 import type { ConnectionRequestEvent, SendTransactionRequestEvent } from '@ton/walletkit';
 
-import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
+import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/wallet-kit-initialize-sample';
 
 /**
  * npx tsx src/ui-state-wiring.ts

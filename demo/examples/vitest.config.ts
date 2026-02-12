@@ -14,9 +14,6 @@ export default defineConfig({
     test: {
         environment: 'node',
         alias: {
-            '@ton/walletkit': path.resolve(__dirname, 'src/__mocks__/@ton/walletkit.ts'),
-            '@ton/appkit/tonconnect': path.resolve(__dirname, 'src/__mocks__/@ton/appkit-tonconnect.ts'),
-            '@ton/appkit': path.resolve(__dirname, 'src/__mocks__/@ton/appkit.ts'),
             '@tonconnect/sdk': path.resolve(__dirname, 'src/__mocks__/@tonconnect/sdk.ts'),
             '@tonconnect/ui-react': path.resolve(__dirname, 'src/__mocks__/@tonconnect/ui-react.ts'),
         },

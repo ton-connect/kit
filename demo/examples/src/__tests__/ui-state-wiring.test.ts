@@ -6,11 +6,15 @@
  *
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { mockHandlers } from '../__mocks__/@ton/walletkit';
-import { resetKitCache, walletKitInitializeSample } from '../lib/walletKitInitializeSample';
+import { resetKitCache, walletKitInitializeSample } from '../lib/wallet-kit-initialize-sample';
 import { createMinimalUiStateWiring, main } from '../ui-state-wiring';
+
+vi.mock('@ton/walletkit', async () => {
+    return await import('../__mocks__/@ton/walletkit');
+});
 
 describe('ui-state-wiring', () => {
     beforeEach(() => {

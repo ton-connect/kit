@@ -53,7 +53,7 @@ import {
     MemoryStorageAdapter,
 } from '@ton/walletkit';
 
-import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './walletManifest';
+import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from './wallet-manifest';
 
 const kit = new TonWalletKit({
     deviceInfo: getTonConnectDeviceInfo(),
