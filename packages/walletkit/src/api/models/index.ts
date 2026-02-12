@@ -25,7 +25,7 @@ export type { TokenInfo } from './core/TokenInfo';
 export type { RawStackItem } from './core/RawStackItem';
 
 // Bridge models
-export type { BridgeEvent } from './bridge/BridgeEvent';
+export type { BridgeEvent, BridgeEventMetadata } from './bridge/BridgeEvent';
 export type {
     ConnectionRequestEvent,
     ConnectionRequestEventPreview,

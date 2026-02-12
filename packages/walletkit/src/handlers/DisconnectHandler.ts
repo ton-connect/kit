@@ -51,6 +51,7 @@ export class DisconnectHandler
             walletId: walletId ?? '',
             walletAddress: walletAddress,
             dAppInfo: event.dAppInfo ?? {},
+            metadata: event.metadata,
         };
 
         await this.sessionManager.removeSession(event.from || '');

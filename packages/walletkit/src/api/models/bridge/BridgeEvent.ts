@@ -47,4 +47,10 @@ export interface BridgeEvent {
     messageId?: string;
     traceId?: string;
     dAppInfo?: DAppInfo;
+    /**
+     * Custom information provided by wallet during connection
+     */
+    metadata?: BridgeEventMetadata;
 }
+
+export type BridgeEventMetadata = string;

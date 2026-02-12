@@ -28,6 +28,7 @@ import type {
     ConnectionApprovalResponse,
 } from '../api/models';
 import type { SwapAPI } from '../api/interfaces';
+import type { BridgeEventMetadata } from '../api/models/bridge/BridgeEvent';
 
 /**
  * Main TonWalletKit interface
@@ -78,10 +79,10 @@ export interface ITonWalletKit {
     // === URL Processing ===
 
     /** Handle pasted TON Connect URL/link */
-    handleTonConnectUrl(url: string): Promise<void>;
+    handleTonConnectUrl(url: string, metadata?: BridgeEventMetadata): Promise<void>;
 
     /** Handle new transaction */
-    handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void>;
+    handleNewTransaction(wallet: Wallet, data: TransactionRequest, metadata?: BridgeEventMetadata): Promise<void>;
 
     // === Request Processing ===
 

@@ -13,6 +13,7 @@ import type { WalletInfo } from '@tonconnect/sdk';
 import type { TONCONNECT_BRIDGE_EVENT, TONCONNECT_BRIDGE_RESPONSE } from '../bridge/utils/messageTypes';
 import type { TONCONNECT_BRIDGE_REQUEST } from '../bridge/utils/messageTypes';
 import type { WalletId } from '../utils';
+import type { BridgeEventMetadata } from '../api/models/bridge/BridgeEvent';
 
 export { type Feature, type DeviceInfo, type WalletInfo };
 
@@ -138,6 +139,7 @@ export interface BridgeEventMessageInfo {
     tabId?: string;
     domain?: string;
     walletId?: WalletId;
+    metadata?: BridgeEventMetadata;
 }
 
 /**

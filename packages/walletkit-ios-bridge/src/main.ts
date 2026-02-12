@@ -27,6 +27,7 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    BridgeEventMetadata,
 } from '@ton/walletkit';
 import { MemoryStorageAdapter, Signer, WalletV4R2Adapter, WalletV5R1Adapter, TonWalletKit } from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
@@ -340,12 +341,12 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         },
 
         // Connection handling
-        async handleTonConnectUrl(url: string): Promise<void> {
+        async handleTonConnectUrl(url: string, metadata?: BridgeEventMetadata): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('🔗 Bridge: Handling TON Connect URL:', url);
 
             try {
-                const result = await walletKit.handleTonConnectUrl(url);
+                const result = await walletKit.handleTonConnectUrl(url, metadata);
                 console.log('🔗 Bridge: Handled TON Connect URL:', result);
                 return result;
             } catch (error) {
@@ -464,11 +465,15 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             }
         },
 
-        async sendTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void> {
+        async sendTransaction(
+            wallet: Wallet,
+            transaction: TransactionRequest,
+            metadata?: BridgeEventMetadata,
+        ): Promise<void> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('🪙 Bridge: Sending transaction:', transaction);
 
-            await walletKit.handleNewTransaction(wallet, transaction);
+            await walletKit.handleNewTransaction(wallet, transaction, metadata);
         },
     };
 };

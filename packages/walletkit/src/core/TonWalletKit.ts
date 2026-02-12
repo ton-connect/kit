@@ -63,6 +63,7 @@ import type {
     ConnectionApprovalResponse,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
+import type { BridgeEventMetadata } from '../api/models/bridge/BridgeEvent';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -527,7 +528,7 @@ export class TonWalletKit implements ITonWalletKit {
      * Handle pasted TON Connect URL/link
      * Parses the URL and creates a connect request event
      */
-    async handleTonConnectUrl(url: string): Promise<void> {
+    async handleTonConnectUrl(url: string, metadata?: BridgeEventMetadata): Promise<void> {
         await this.ensureInitialized();
 
         try {
@@ -539,8 +540,7 @@ export class TonWalletKit implements ITonWalletKit {
                 });
             }
 
-            // Create a bridge event from the parsed URL
-            const bridgeEvent = this.createConnectEventFromUrl(parsedUrl);
+            const bridgeEvent = this.createConnectEventFromUrl(parsedUrl, metadata);
             if (!bridgeEvent) {
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
@@ -557,7 +557,11 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-    async handleNewTransaction(wallet: Wallet, data: TransactionRequest): Promise<void> {
+    async handleNewTransaction(
+        wallet: Wallet,
+        data: TransactionRequest,
+        metadata?: BridgeEventMetadata,
+    ): Promise<void> {
         await this.ensureInitialized();
 
         data.validUntil ??= Math.floor(Date.now() / 1000) + 300;
@@ -573,6 +577,7 @@ export class TonWalletKit implements ITonWalletKit {
             isLocal: true,
             walletId,
             walletAddress: asAddressFriendly(wallet.getAddress()),
+            metadata: metadata,
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }
@@ -622,13 +627,16 @@ export class TonWalletKit implements ITonWalletKit {
     /**
      * Create bridge event from parsed URL parameters
      */
-    private createConnectEventFromUrl(params: {
-        version: string;
-        clientId: string;
-        requestId: string;
-        r: string;
-        returnStrategy?: string;
-    }): RawBridgeEventConnect | undefined {
+    private createConnectEventFromUrl(
+        params: {
+            version: string;
+            clientId: string;
+            requestId: string;
+            r: string;
+            returnStrategy?: string;
+        },
+        metadata?: BridgeEventMetadata,
+    ): RawBridgeEventConnect | undefined {
         const rString = params.r;
         const r = rString ? (JSON.parse(rString) as ConnectRequest) : undefined;
 
@@ -648,6 +656,7 @@ export class TonWalletKit implements ITonWalletKit {
             },
             timestamp: Date.now(),
             domain: '',
+            metadata: metadata,
         };
     }
 
