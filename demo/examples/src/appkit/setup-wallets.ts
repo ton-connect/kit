@@ -6,55 +6,37 @@
  *
  */
 
-import { AppKit } from '@ton/appkit';
+import { AppKit, Network } from '@ton/appkit';
 import { TonConnectConnector } from '@ton/appkit/tonconnect';
-import {
-    watchConnectedWallets,
-    watchSelectedWallet,
-    getConnectedWallets,
-    getSelectedWallet,
-    setSelectedWalletId,
-} from '@ton/appkit';
 
 export const setupAppKitExample = () => {
+    // SAMPLE_START: APPKIT_INIT
     // Initialize AppKit
     const appKit = new AppKit({
         networks: {
-            '-239': {}, // Mainnet
+            [Network.mainnet().chainId]: {
+                apiClient: {
+                    url: 'https://toncenter.com',
+                    key: 'your-key',
+                },
+            },
+            // Optional: add testnet
+            // [Network.testnet().chainId]: {
+            //     apiClient: {
+            //         url: 'https://testnet.toncenter.com',
+            //         key: 'your-key',
+            //     },
+            // },
         },
         connectors: [
             new TonConnectConnector({
                 tonConnectOptions: {
-                    manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
+                    manifestUrl: 'your-manifest-url',
                 },
             }),
         ],
     });
+    // SAMPLE_END: APPKIT_INIT
 
     return appKit;
-};
-
-export const walletConnectionExample = (appKit: AppKit) => {
-    // Watch for connected wallets
-    const _close = watchConnectedWallets(appKit, {
-        onChange: (wallets) => {
-            console.log('Connected wallets:', wallets);
-        },
-    });
-
-    // Watch for selected wallet
-    const _closeSelected = watchSelectedWallet(appKit, {
-        onChange: (wallet) => {
-            console.log('Selected wallet:', wallet);
-        },
-    });
-
-    // Get current state
-    const wallets = getConnectedWallets(appKit);
-    const _selected = getSelectedWallet(appKit);
-
-    // Select a specific wallet
-    if (wallets.length > 0) {
-        setSelectedWalletId(appKit, { walletId: wallets[0].getWalletId() });
-    }
 };

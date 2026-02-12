@@ -13,12 +13,66 @@ export {
     type GetBalanceErrorType,
     type GetBalanceByAddressQueryConfig,
 } from './balances/get-balance-by-address';
+
+// Connectors
+export {
+    connectMutationOptions,
+    type ConnectMutationOptions,
+    type ConnectParameters,
+    type ConnectReturnType,
+    type ConnectData,
+    type ConnectErrorType,
+    type ConnectOptions,
+    type ConnectVariables,
+} from './connectors/connect';
+export {
+    disconnectMutationOptions,
+    type DisconnectMutationOptions,
+    type DisconnectParameters,
+    type DisconnectReturnType,
+    type DisconnectData,
+    type DisconnectErrorType,
+    type DisconnectOptions,
+    type DisconnectVariables,
+} from './connectors/disconnect';
+
+// Jettons
+export {
+    getJettonInfoQueryOptions,
+    type GetJettonInfoQueryConfig,
+    type GetJettonInfoData,
+    type GetJettonInfoErrorType,
+} from './jettons/get-jetton-info';
+export {
+    getJettonWalletAddressQueryOptions,
+    type GetJettonWalletAddressQueryConfig,
+    type GetJettonWalletAddressData,
+    type GetJettonWalletAddressErrorType,
+} from './jettons/get-jetton-wallet-address';
+export {
+    getJettonBalanceByAddressQueryOptions,
+    type GetJettonBalanceByAddressQueryConfig,
+    type GetJettonBalanceByAddressData,
+    type GetJettonBalanceErrorType,
+} from './jettons/get-jetton-balance-by-address';
 export {
     getJettonsByAddressQueryOptions,
     type GetJettonsByAddressData,
     type GetJettonsErrorType,
     type GetJettonsByAddressQueryConfig,
-} from './balances/get-jettons-by-address';
+} from './jettons/get-jettons-by-address';
+export {
+    transferJettonMutationOptions,
+    type TransferJettonData,
+    type TransferJettonErrorType,
+    type TransferJettonMutate,
+    type TransferJettonMutateAsync,
+    type TransferJettonMutationOptions,
+    type TransferJettonOptions,
+    type TransferJettonVariables,
+    type TransferJettonParameters,
+    type TransferJettonReturnType,
+} from './jettons/transfer-jetton';
 
 // NFT
 export {
@@ -46,107 +100,6 @@ export {
     type TransferNftParameters,
     type TransferNftReturnType,
 } from './nft/transfer-nft';
-
-// Jettons
-export {
-    getJettonInfoQueryOptions,
-    type GetJettonInfoQueryConfig,
-    type GetJettonInfoData,
-    type GetJettonInfoErrorType,
-} from './jettons/get-jetton-info';
-export {
-    getJettonWalletAddressQueryOptions,
-    type GetJettonWalletAddressQueryConfig,
-    type GetJettonWalletAddressData,
-    type GetJettonWalletAddressErrorType,
-} from './jettons/get-jetton-wallet-address';
-export {
-    getJettonBalanceByAddressQueryOptions,
-    type GetJettonBalanceByAddressQueryConfig,
-    type GetJettonBalanceByAddressData,
-    type GetJettonBalanceErrorType,
-} from './jettons/get-jetton-balance-by-address';
-
-// Wallets
-export {
-    connectMutationOptions,
-    type ConnectMutationOptions,
-    type ConnectParameters,
-    type ConnectReturnType,
-    type ConnectData,
-    type ConnectErrorType,
-    type ConnectOptions,
-    type ConnectVariables,
-} from './wallets/connect';
-export {
-    disconnectMutationOptions,
-    type DisconnectMutationOptions,
-    type DisconnectParameters,
-    type DisconnectReturnType,
-    type DisconnectData,
-    type DisconnectErrorType,
-    type DisconnectOptions,
-    type DisconnectVariables,
-} from './wallets/disconnect';
-
-// Transaction
-export {
-    transferTonMutationOptions,
-    type TransferTonData,
-    type TransferTonErrorType,
-    type TransferTonMutate,
-    type TransferTonMutateAsync,
-    type TransferTonMutationOptions,
-    type TransferTonOptions,
-    type TransferTonVariables,
-    type TransferTonParameters,
-    type TransferTonReturnType,
-} from './transaction/transfer-ton';
-export {
-    transferJettonMutationOptions,
-    type TransferJettonData,
-    type TransferJettonErrorType,
-    type TransferJettonMutate,
-    type TransferJettonMutateAsync,
-    type TransferJettonMutationOptions,
-    type TransferJettonOptions,
-    type TransferJettonVariables,
-    type TransferJettonParameters,
-    type TransferJettonReturnType,
-} from './transaction/transfer-jetton';
-export {
-    sendTransactionMutationOptions,
-    type SendTransactionData,
-    type SendTransactionErrorType,
-    type SendTransactionMutate,
-    type SendTransactionMutateAsync,
-    type SendTransactionMutationOptions,
-    type SendTransactionOptions,
-    type SendTransactionVariables,
-    type SendTransactionParameters,
-    type SendTransactionReturnType,
-} from './transaction/send-transaction';
-
-// DeFi
-export {
-    getSwapQuoteQueryOptions,
-    type GetSwapQuoteQueryConfig,
-    type GetSwapQuoteQueryOptions,
-    type GetSwapQuoteData,
-    type GetSwapQuoteErrorType,
-    type GetSwapQuoteQueryFnData,
-    type GetSwapQuoteQueryKey,
-} from './defi/get-swap-quote';
-export {
-    buildSwapTransactionMutationOptions,
-    type BuildSwapTransactionMutationConfig,
-    type BuildSwapTransactionMutationOptions,
-    type BuildSwapTransactionData,
-    type BuildSwapTransactionErrorType,
-    type BuildSwapTransactionMutate,
-    type BuildSwapTransactionMutateAsync,
-    type BuildSwapTransactionVariables,
-} from './defi/build-swap-transaction';
 
 // Signing
 export {
@@ -179,3 +132,50 @@ export {
     type SignCellMutateAsync,
     type SignCellErrorType,
 } from './signing/sign-cell';
+
+// Swap
+export {
+    getSwapQuoteQueryOptions,
+    type GetSwapQuoteQueryConfig,
+    type GetSwapQuoteQueryOptions,
+    type GetSwapQuoteData,
+    type GetSwapQuoteErrorType,
+    type GetSwapQuoteQueryFnData,
+    type GetSwapQuoteQueryKey,
+} from './swap/get-swap-quote';
+export {
+    buildSwapTransactionMutationOptions,
+    type BuildSwapTransactionMutationConfig,
+    type BuildSwapTransactionMutationOptions,
+    type BuildSwapTransactionData,
+    type BuildSwapTransactionErrorType,
+    type BuildSwapTransactionMutate,
+    type BuildSwapTransactionMutateAsync,
+    type BuildSwapTransactionVariables,
+} from './swap/build-swap-transaction';
+
+// Transaction
+export {
+    transferTonMutationOptions,
+    type TransferTonData,
+    type TransferTonErrorType,
+    type TransferTonMutate,
+    type TransferTonMutateAsync,
+    type TransferTonMutationOptions,
+    type TransferTonOptions,
+    type TransferTonVariables,
+    type TransferTonParameters,
+    type TransferTonReturnType,
+} from './transaction/transfer-ton';
+export {
+    sendTransactionMutationOptions,
+    type SendTransactionData,
+    type SendTransactionErrorType,
+    type SendTransactionMutate,
+    type SendTransactionMutateAsync,
+    type SendTransactionMutationOptions,
+    type SendTransactionOptions,
+    type SendTransactionVariables,
+    type SendTransactionParameters,
+    type SendTransactionReturnType,
+} from './transaction/send-transaction';

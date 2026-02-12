@@ -30,11 +30,7 @@ export * from './core/app-kit';
 export * from './core/emitter';
 
 // Actions
-// Actions
 export * from './actions';
-
-// Queries
-export * from './queries';
 
 // Types
 export * from './types/connector';

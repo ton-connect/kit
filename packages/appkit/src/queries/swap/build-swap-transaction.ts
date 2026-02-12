@@ -11,11 +11,11 @@ import type { MutateOptions, MutationOptions } from '@tanstack/query-core';
 import type { AppKit } from '../../core/app-kit';
 import type { MutationParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';
-import { buildSwapTransaction } from '../../actions/defi/build-swap-transaction';
+import { buildSwapTransaction } from '../../actions/swap/build-swap-transaction';
 import type {
     BuildSwapTransactionOptions,
     BuildSwapTransactionReturnType,
-} from '../../actions/defi/build-swap-transaction';
+} from '../../actions/swap/build-swap-transaction';
 
 export type BuildSwapTransactionMutationOptions<context = unknown> = MutationParameter<
     BuildSwapTransactionData,

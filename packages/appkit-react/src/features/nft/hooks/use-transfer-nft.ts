@@ -9,8 +9,13 @@
 'use client';
 
 import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
-import type { TransferNftData, TransferNftErrorType, TransferNftOptions, TransferNftVariables } from '@ton/appkit';
-import { transferNftMutationOptions } from '@ton/appkit';
+import type {
+    TransferNftData,
+    TransferNftErrorType,
+    TransferNftOptions,
+    TransferNftVariables,
+} from '@ton/appkit/queries';
+import { transferNftMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';

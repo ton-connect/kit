@@ -8,8 +8,8 @@
 
 import type { MutateOptions, MutationOptions } from '@tanstack/query-core';
 
-import { transferJetton } from '../../actions/transaction/transfer-jetton';
-import type { TransferJettonParameters, TransferJettonReturnType } from '../../actions/transaction/transfer-jetton';
+import { transferJetton } from '../../actions/jettons/transfer-jetton';
+import type { TransferJettonParameters, TransferJettonReturnType } from '../../actions/jettons/transfer-jetton';
 import type { AppKit } from '../../core/app-kit';
 import type { MutationParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';

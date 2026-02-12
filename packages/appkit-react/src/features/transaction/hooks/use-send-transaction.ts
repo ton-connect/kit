@@ -14,8 +14,8 @@ import type {
     SendTransactionErrorType,
     SendTransactionOptions,
     SendTransactionVariables,
-} from '@ton/appkit';
-import { sendTransactionMutationOptions } from '@ton/appkit';
+} from '@ton/appkit/queries';
+import { sendTransactionMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';

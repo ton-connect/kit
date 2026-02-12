@@ -7,12 +7,12 @@
  */
 
 import type { AppKit } from '../../core/app-kit';
-import { getJettonsByAddress } from '../../actions/balances/get-jettons-by-address';
-import type { GetJettonsByAddressOptions } from '../../actions/balances/get-jettons-by-address';
+import { getJettonsByAddress } from '../../actions/jettons/get-jettons-by-address';
+import type { GetJettonsByAddressOptions } from '../../actions/jettons/get-jettons-by-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
 import { filterQueryOptions } from '../../utils';
-import type { GetJettonsByAddressReturnType } from '../../actions/balances/get-jettons-by-address';
+import type { GetJettonsByAddressReturnType } from '../../actions/jettons/get-jettons-by-address';
 
 export type GetJettonsErrorType = Error;
 

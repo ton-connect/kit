@@ -6,9 +6,9 @@
  *
  */
 
-import { getSwapQuote } from '../../actions/defi/get-swap-quote';
-import type { GetSwapQuoteOptions } from '../../actions/defi/get-swap-quote';
-import type { GetSwapQuoteReturnType } from '../../actions/defi/get-swap-quote';
+import { getSwapQuote } from '../../actions/swap/get-swap-quote';
+import type { GetSwapQuoteOptions } from '../../actions/swap/get-swap-quote';
+import type { GetSwapQuoteReturnType } from '../../actions/swap/get-swap-quote';
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';

@@ -9,8 +9,13 @@
 'use client';
 
 import type { MutateFunction, MutateOptions } from '@tanstack/react-query';
-import type { TransferTonData, TransferTonErrorType, TransferTonOptions, TransferTonVariables } from '@ton/appkit';
-import { transferTonMutationOptions } from '@ton/appkit';
+import type {
+    TransferTonData,
+    TransferTonErrorType,
+    TransferTonOptions,
+    TransferTonVariables,
+} from '@ton/appkit/queries';
+import { transferTonMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';

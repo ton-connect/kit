@@ -14,8 +14,8 @@ import type {
     TransferJettonErrorType,
     TransferJettonOptions,
     TransferJettonVariables,
-} from '@ton/appkit';
-import { transferJettonMutationOptions } from '@ton/appkit';
+} from '@ton/appkit/queries';
+import { transferJettonMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';

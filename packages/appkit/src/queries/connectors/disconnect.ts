@@ -9,8 +9,8 @@
 import type { MutateOptions, MutationOptions } from '@tanstack/query-core';
 
 import type { AppKit } from '../../core/app-kit';
-import { disconnect } from '../../actions/wallets/disconnect';
-import type { DisconnectParameters, DisconnectReturnType } from '../../actions/wallets/disconnect';
+import { disconnect } from '../../actions/connectors/disconnect';
+import type { DisconnectParameters, DisconnectReturnType } from '../../actions/connectors/disconnect';
 import type { MutationParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';
 

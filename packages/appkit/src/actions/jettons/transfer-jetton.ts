@@ -11,7 +11,7 @@ import type { SendTransactionResponse } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 import { createTransferJettonTransaction } from './create-transfer-jetton-transaction';
 import type { CreateTransferJettonTransactionParameters } from './create-transfer-jetton-transaction';
-import { sendTransaction } from './send-transaction';
+import { sendTransaction } from '../transaction/send-transaction';
 
 export type TransferJettonParameters = CreateTransferJettonTransactionParameters;
 

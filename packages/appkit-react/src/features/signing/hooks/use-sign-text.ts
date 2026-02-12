@@ -7,8 +7,8 @@
  */
 
 import type { UseMutationResult } from '@tanstack/react-query';
-import { signTextMutationOptions } from '@ton/appkit';
-import type { SignTextData, SignTextErrorType, SignTextOptions, SignTextVariables } from '@ton/appkit';
+import { signTextMutationOptions } from '@ton/appkit/queries';
+import type { SignTextData, SignTextErrorType, SignTextOptions, SignTextVariables } from '@ton/appkit/queries';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 import { useMutation } from '../../../libs/query';

@@ -15,7 +15,7 @@ import type {
     BuildSwapTransactionErrorType,
     BuildSwapTransactionMutationOptions,
     BuildSwapTransactionVariables,
-} from '@ton/appkit';
+} from '@ton/appkit/queries';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 import { useMutation } from '../../../libs/query';

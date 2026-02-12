@@ -1,3 +1,7 @@
+---
+target: packages/appkit/docs/actions.md
+---
+
 # Actions
 
 AppKit provides a set of actions to interact with the blockchain and wallets.
@@ -6,9 +10,4 @@ AppKit provides a set of actions to interact with the blockchain and wallets.
 
 Fetch the TON balance of a specific address.
 
-```ts
-const balance = await getBalanceByAddress(appKit, {
-    address: 'UQ...', // Address to check
-});
-console.log('Balance:', balance.toString());
-```
+%%demo/examples/src/appkit/actions#GET_BALANCE_BY_ADDRESS%%

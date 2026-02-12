@@ -13,7 +13,6 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 - 🌉 **Bridge & JS Bridge** - HTTP bridge and browser extension support
 - 🎨 **Previews for actions** - Transaction emulation with money flow analysis
 - 🪙 **Asset Support** - TON, Jettons, NFTs with metadata
-- 🔄 **Token Swaps** - Multi-DEX swap aggregation
 
 **Live Demo**: [https://walletkit-demo-wallet.vercel.app/](https://walletkit-demo-wallet.vercel.app/)
 
@@ -23,7 +22,6 @@ A production-ready wallet-side integration layer for TON Connect, designed for b
 
 - **[Browser Extension Build](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/EXTENSION.md)** - How to build and load the demo wallet as a Chrome extension
 - **[JS Bridge Usage](/packages/walletkit/examples/js-bridge-usage.md)** - Implementing TonConnect JS Bridge for browser extension wallets
-- **[Token Swaps](/packages/walletkit/src/defi/swap/README.md)** - Multi-DEX swap integration with custom provider support
 - **[iOS WalletKit](https://github.com/ton-connect/kit-ios)** - Swift Package providing TON wallet capabilities for iOS and macOS
 - **[Android WalletKit](https://github.com/ton-connect/kit-android)** - Kotlin/Java Package providing TON wallet capabilities for Android
 
@@ -148,7 +146,7 @@ kit.onConnectRequest(async (event: ConnectionRequestEvent) => {
 });
 
 // Transaction requests - triggered when a dApp wants to execute a transaction
-kit.onTransactionRequest(async (event: TransactionRequestEvent) => {
+kit.onTransactionRequest(async (event: SendTransactionRequestEvent) => {
     try {
         // Use tx.preview.moneyFlow.ourTransfers to show net asset changes
         // Each transfer shows positive amounts for incoming, negative for outgoing
@@ -229,7 +227,10 @@ function renderConnectPreview(req: ConnectionRequestEvent) {
         title: `Connect to ${name}?`,
         iconUrl,
         description,
-        permissions: permissions.map((p) => ({ title: p.title, description: p.description })),
+        permissions: permissions.map((p) => ({
+            title: p.title,
+            description: p.description,
+        })),
     };
 }
 ```
@@ -242,7 +243,10 @@ import { AssetType, Result } from '@ton/walletkit';
 
 function summarizeTransaction(preview: TransactionEmulatedPreview) {
     if (preview.result === Result.failure) {
-        return { kind: 'error', message: preview?.error?.message ?? 'Unknown error' };
+        return {
+            kind: 'error',
+            message: preview?.error?.message ?? 'Unknown error',
+        };
     }
 
     // MoneyFlow now provides ourTransfers - a simplified array of net asset changes
@@ -404,7 +408,7 @@ Note: The `getNfts` method returns `NFTsResponse` with a `nfts` field (not `item
 ```ts
 type AppState = {
     connectModal?: { request: ConnectionRequestEvent };
-    txModal?: { request: TransactionRequestEvent };
+    txModal?: { request: SendTransactionRequestEvent };
 };
 
 const state: AppState = {};

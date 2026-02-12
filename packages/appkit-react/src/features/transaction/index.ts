@@ -8,6 +8,5 @@
 
 export * from './hooks/use-send-transaction';
 export * from './hooks/use-transfer-ton';
-export * from './hooks/use-transfer-jetton';
 
 export * from './components/transaction';

@@ -9,8 +9,8 @@
 import type { MutateOptions, MutationOptions } from '@tanstack/query-core';
 
 import type { AppKit } from '../../core/app-kit';
-import { connect } from '../../actions/wallets/connect';
-import type { ConnectParameters, ConnectReturnType } from '../../actions/wallets/connect';
+import { connect } from '../../actions/connectors/connect';
+import type { ConnectParameters, ConnectReturnType } from '../../actions/connectors/connect';
 import type { MutationParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';
 

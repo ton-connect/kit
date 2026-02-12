@@ -7,8 +7,8 @@
  */
 
 import type { UseMutationResult } from '@tanstack/react-query';
-import { signBinaryMutationOptions } from '@ton/appkit';
-import type { SignBinaryData, SignBinaryErrorType, SignBinaryOptions, SignBinaryVariables } from '@ton/appkit';
+import { signBinaryMutationOptions } from '@ton/appkit/queries';
+import type { SignBinaryData, SignBinaryErrorType, SignBinaryOptions, SignBinaryVariables } from '@ton/appkit/queries';
 
 import { useAppKit } from '../../../hooks/use-app-kit';
 import { useMutation } from '../../../libs/query';

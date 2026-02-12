@@ -7,19 +7,32 @@
  */
 
 // Balances
-// Balances
 export {
     getBalanceByAddress,
     type GetBalanceByAddressOptions,
     type GetBalanceByAddressReturnType,
 } from './balances/get-balance-by-address';
 export { getBalance, type GetBalanceOptions, type GetBalanceReturnType } from './balances/get-balance';
+
+// Connectors
+export { connect, type ConnectParameters, type ConnectReturnType } from './connectors/connect';
+export { disconnect, type DisconnectReturnType, type DisconnectParameters } from './connectors/disconnect';
+export { getConnectors, type GetConnectorsReturnType } from './connectors/get-connectors';
 export {
-    getJettonsByAddress,
-    type GetJettonsByAddressOptions,
-    type GetJettonsByAddressReturnType,
-} from './balances/get-jettons-by-address';
-export { getJettons, type GetJettonsOptions, type GetJettonsReturnType } from './balances/get-jettons';
+    watchConnectors,
+    type WatchConnectorsParameters,
+    type WatchConnectorsReturnType,
+} from './connectors/watch-connectors';
+export {
+    getConnectorById,
+    type GetConnectorByIdOptions,
+    type GetConnectorByIdReturnType,
+} from './connectors/get-connector-by-id';
+export {
+    watchConnectorById,
+    type WatchConnectorByIdParameters,
+    type WatchConnectorByIdReturnType,
+} from './connectors/watch-connector-by-id';
 
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
@@ -33,8 +46,29 @@ export {
     type GetJettonBalanceOptions,
     type GetJettonBalanceReturnType,
 } from './jettons/get-jetton-balance';
+export {
+    getJettonsByAddress,
+    type GetJettonsByAddressOptions,
+    type GetJettonsByAddressReturnType,
+} from './jettons/get-jettons-by-address';
+export { getJettons, type GetJettonsOptions, type GetJettonsReturnType } from './jettons/get-jettons';
+export {
+    createTransferJettonTransaction,
+    type CreateTransferJettonTransactionParameters,
+    type CreateTransferJettonTransactionReturnType,
+} from './jettons/create-transfer-jetton-transaction';
+export {
+    transferJetton,
+    type TransferJettonParameters,
+    type TransferJettonReturnType,
+} from './jettons/transfer-jetton';
 
-// NFTs
+// Network
+export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
+export { getNetwork, type GetNetworkReturnType } from './network/get-network';
+export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
+
+// NFT
 export {
     getNftsByAddress,
     type GetNftsByAddressOptions,
@@ -43,6 +77,23 @@ export {
 export { getNfts, type GetNftsOptions, type GetNftsReturnType } from './nft/get-nfts';
 export { getNft, type GetNftOptions, type GetNftReturnType } from './nft/get-nft';
 export { transferNft, type TransferNftParameters, type TransferNftReturnType } from './nft/transfer-nft';
+
+// Providers
+export { registerProvider, type RegisterProviderOptions } from './providers/register-provider';
+
+// Signing
+export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
+export { signBinary, type SignBinaryParameters, type SignBinaryReturnType } from './signing/sign-binary';
+export { signCell, type SignCellParameters, type SignCellReturnType } from './signing/sign-cell';
+
+// Swap
+export { getSwapManager, type GetSwapManagerReturnType } from './swap/get-swap-manager';
+export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './swap/get-swap-quote';
+export {
+    buildSwapTransaction,
+    type BuildSwapTransactionOptions,
+    type BuildSwapTransactionReturnType,
+} from './swap/build-swap-transaction';
 
 // Transactions
 export {
@@ -61,21 +112,8 @@ export {
     type CreateTransferTonTransactionParameters,
     type CreateTransferTonTransactionReturnType,
 } from './transaction/create-transfer-ton-transaction';
-export {
-    createTransferJettonTransaction,
-    type CreateTransferJettonTransactionParameters,
-    type CreateTransferJettonTransactionReturnType,
-} from './transaction/create-transfer-jetton-transaction';
-export {
-    transferJetton,
-    type TransferJettonParameters,
-    type TransferJettonReturnType,
-} from './transaction/transfer-jetton';
 
 // Wallets
-export { connect, type ConnectParameters, type ConnectReturnType } from './wallets/connect';
-export { disconnect, type DisconnectReturnType, type DisconnectParameters } from './wallets/disconnect';
-export { getConnectors, type GetConnectorsReturnType } from './wallets/get-connectors';
 export { getConnectedWallets, type GetConnectedWalletsReturnType } from './wallets/get-connected-wallets';
 export { getSelectedWallet, type GetSelectedWalletReturnType } from './wallets/get-selected-wallet';
 export {
@@ -93,39 +131,3 @@ export {
     type WatchConnectedWalletsParameters,
     type WatchConnectedWalletsReturnType,
 } from './wallets/watch-connected-wallets';
-export {
-    watchConnectors,
-    type WatchConnectorsParameters,
-    type WatchConnectorsReturnType,
-} from './wallets/watch-connectors';
-export { addConnector, type AddConnectorParameters, type AddConnectorReturnType } from './wallets/add-connector';
-export {
-    getConnectorById,
-    type GetConnectorByIdOptions,
-    type GetConnectorByIdReturnType,
-} from './wallets/get-connector-by-id';
-export {
-    watchConnectorById,
-    type WatchConnectorByIdParameters,
-    type WatchConnectorByIdReturnType,
-} from './wallets/watch-connector-by-id';
-
-// Network
-export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
-export { getNetwork, type GetNetworkReturnType } from './network/get-network';
-export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
-
-// Swap
-export { getSwapManager, type GetSwapManagerReturnType } from './defi/get-swap-manager';
-export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './defi/get-swap-quote';
-export {
-    buildSwapTransaction,
-    type BuildSwapTransactionOptions,
-    type BuildSwapTransactionReturnType,
-} from './defi/build-swap-transaction';
-export { registerProvider, type RegisterProviderOptions } from './defi/register-provider';
-
-// Signing
-export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
-export { signBinary, type SignBinaryParameters, type SignBinaryReturnType } from './signing/sign-binary';
-export { signCell, type SignCellParameters, type SignCellReturnType } from './signing/sign-cell';
