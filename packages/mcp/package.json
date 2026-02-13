@@ -18,6 +18,16 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./serverless": {
+      "import": {
+        "types": "./dist/serverless.d.ts",
+        "default": "./dist/serverless.js"
+      },
+      "require": {
+        "types": "./dist/serverless.d.ts",
+        "default": "./dist/serverless.cjs"
+      }
     }
   },
   "publishConfig": {

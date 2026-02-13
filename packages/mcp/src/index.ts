@@ -12,6 +12,7 @@
  * This module provides:
  * - Factory function for creating single-wallet MCP servers
  * - McpWalletService for wallet operations
+ * - Serverless handler for serverless deployments
  */
 
 // ===========================================
@@ -19,6 +20,13 @@
 // ===========================================
 
 export { createTonWalletMCP, createShutdownHandler } from './factory.js';
+
+// ===========================================
+// Serverless
+// ===========================================
+
+export { createServerlessHandler, handler } from './serverless.js';
+export type { ServerlessRequest, ServerlessResponse } from './serverless.js';
 
 // ===========================================
 // Type Exports
