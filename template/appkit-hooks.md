@@ -56,4 +56,24 @@ Hook to get the jetton wallet address for a specific jetton and owner address.
 
 Hook to transfer jettons to a recipient address.
 
+```tsx
 %%demo/examples/src/appkit/hooks/jettons#USE_TRANSFER_JETTON%%
+```
+
+## Network
+
+### `useNetwork`
+
+Hook to get network of the selected wallet.
+
+```tsx
+%%demo/examples/src/appkit/hooks/network#USE_NETWORK%%
+```
+
+### `useNetworks`
+
+Hook to get all configured networks.
+
+```tsx
+%%demo/examples/src/appkit/hooks/network#USE_NETWORKS%%
+```

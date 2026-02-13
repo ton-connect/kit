@@ -198,22 +198,23 @@ return <div>Jetton Wallet Address: {walletAddress?.toString()}</div>;
 Hook to transfer jettons to a recipient address.
 
 ```tsx
-const { mutate: transfer, isPending, error } = useTransferJetton();
+%%demo/examples/src/appkit/hooks/jettons#USE_TRANSFER_JETTON%%
+```
 
-const handleTransfer = () => {
-    transfer({
-        recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-        amount: '1000000000', // 1 Jetton (assuming 9 decimals)
-        jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiXme1Xc56Iwobkzgnjj',
-    });
-};
+## Network
 
-return (
-    <div>
-        <button onClick={handleTransfer} disabled={isPending}>
-            {isPending ? 'Transferring...' : 'Transfer Jetton'}
-        </button>
-        {error && <div>Error: {error.message}</div>}
-    </div>
-);
+### `useNetwork`
+
+Hook to get network of the selected wallet.
+
+```tsx
+%%demo/examples/src/appkit/hooks/network#USE_NETWORK%%
+```
+
+### `useNetworks`
+
+Hook to get all configured networks.
+
+```tsx
+%%demo/examples/src/appkit/hooks/network#USE_NETWORKS%%
 ```
