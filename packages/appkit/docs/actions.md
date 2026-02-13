@@ -452,10 +452,7 @@ Get all connected wallets.
 ```ts
 const wallets = getConnectedWallets(appKit);
 
-console.log('Connected wallets:', wallets.length);
-wallets.forEach((wallet) => {
-    console.log(`- ${wallet.getWalletId()}: ${wallet.getAddress()}`);
-});
+console.log('Connected wallets:', wallets);
 ```
 
 ### `getSelectedWallet`
@@ -468,8 +465,6 @@ const wallet = getSelectedWallet(appKit);
 if (wallet) {
     console.log('Selected wallet:', wallet.getWalletId());
     console.log('Address:', wallet.getAddress());
-} else {
-    console.log('No wallet selected');
 }
 ```
 

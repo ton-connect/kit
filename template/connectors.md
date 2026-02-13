@@ -1,3 +1,7 @@
+---
+target: packages/appkit/docs/connectors.md
+---
+
 # Connectors
 
 AppKit supports wallet connections through connectors. The primary connector is `TonConnect`.
@@ -24,75 +28,17 @@ import { TonConnectConnector } from '@ton/appkit/tonconnect';
 
 You can set up `TonConnectConnector` by passing `tonConnectOptions`. The connector will create the `TonConnectUI` instance internally.
 
-```ts
-const appKit = new AppKit({
-    networks: {
-        [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: 'your-key',
-            },
-        },
-    },
-    connectors: [
-        new TonConnectConnector({
-            tonConnectOptions: {
-                manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
-            },
-        }),
-    ],
-});
-```
+%%demo/examples/src/appkit/connectors/tonconnect#TON_CONNECT_OPTIONS%%
 
 Alternatively, you can pass an existing `TonConnectUI` instance:
 
-```ts
-// 1. Create TonConnectUI instance
-const tonConnectUI = new TonConnectUI({
-    manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
-});
-
-// 2. Initialize AppKit
-const appKit = new AppKit({
-    networks: {
-        [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: 'your-key',
-            },
-        },
-    },
-    connectors: [new TonConnectConnector({ tonConnectUI })],
-});
-```
+%%demo/examples/src/appkit/connectors/tonconnect#TON_CONNECT_CONNECTOR%%
 
 ### Add Connector Dynamically
 
 In some cases, you may need to add a connector after initialization. You can use the `addConnector` method for this purpose.
 
-```ts
-// 1. Initialize AppKit
-const appKit = new AppKit({
-    networks: {
-        [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: 'your-key',
-            },
-        },
-    },
-});
-
-// 2. Initialize TonConnect connector
-const connector = new TonConnectConnector({
-    tonConnectOptions: {
-        manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
-    },
-});
-
-// 3. Add connector dynamically
-appKit.addConnector(connector);
-```
+%%demo/examples/src/appkit/connectors/tonconnect#ADD_CONNECTOR%%
 
 ### Configuration
 
