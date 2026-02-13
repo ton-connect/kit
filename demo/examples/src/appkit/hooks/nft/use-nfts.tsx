@@ -9,6 +9,7 @@
 import { useNfts } from '@ton/appkit-react';
 
 export const UseNftsExample = () => {
+    // SAMPLE_START: USE_NFTS
     const {
         data: nfts,
         isLoading,

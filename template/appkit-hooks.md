@@ -111,3 +111,29 @@ Hook to transfer NFT to another wallet.
 ```tsx
 %%demo/examples/src/appkit/hooks/nft#USE_TRANSFER_NFT%%
 ```
+
+## Signing
+
+### `useSignBinary`
+
+Hook to sign binary data with the connected wallet.
+
+```tsx
+%%demo/examples/src/appkit/hooks/signing#USE_SIGN_BINARY%%
+```
+
+### `useSignCell`
+
+Hook to sign TON Cell data with the connected wallet.
+
+```tsx
+%%demo/examples/src/appkit/hooks/signing#USE_SIGN_CELL%%
+```
+
+### `useSignText`
+
+Hook to sign text messages with the connected wallet.
+
+```tsx
+%%demo/examples/src/appkit/hooks/signing#USE_SIGN_TEXT%%
+```
