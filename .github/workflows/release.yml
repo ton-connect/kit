@@ -109,8 +109,6 @@ jobs:
           draft: true
           files: |
             release-artifacts/ton-walletkit-*.tgz
-            release-artifacts/ton-appkit-*.tgz
-            release-artifacts/ton-appkit-react-*.tgz
             release-artifacts/walletkit-ios-bridge-*.tgz
             release-artifacts/walletkit-android-bridge-*.tgz
             release-artifacts/walletkit-android-bridge.checksums.json
