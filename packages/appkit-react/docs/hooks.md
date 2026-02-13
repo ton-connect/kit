@@ -676,10 +676,7 @@ if (wallet) {
 
 return (
     <div>
-        <button
-            onClick={() => connect({ connectorId: 'injected' })} // Connect to injected wallet (e.g. Tonkeeper)
-            disabled={isConnecting}
-        >
+        <button onClick={() => connect({ connectorId: 'tonconnect' })} disabled={isConnecting}>
             {isConnecting ? 'Connecting...' : 'Connect Wallet'}
         </button>
         {connectError && <div>Error: {connectError.message}</div>}
