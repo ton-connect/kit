@@ -131,3 +131,18 @@ Hook to get a swap quote for a token pair.
 Hook to build a transaction for a swap operation based on a quote.
 
 %%demo/examples/src/appkit/hooks/swap#USE_BUILD_SWAP_TRANSACTION%%
+
+## Transaction
+
+### `useSendTransaction`
+
+Hook to send a transaction to the blockchain.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_SEND_TRANSACTION%%
+
+### `useTransferTon`
+
+Hook to simplify transferring TON to another address.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_TRANSFER_TON%%
+

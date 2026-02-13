@@ -563,3 +563,74 @@ return (
     </div>
 );
 ```
+
+## Transaction
+
+### `useSendTransaction`
+
+Hook to send a transaction to the blockchain.
+
+```tsx
+const { mutate: sendTransaction, isPending, error, data } = useSendTransaction();
+
+const handleSendStructure = () => {
+    // Send a transaction with a specific structure
+    sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes from now
+        messages: [
+            {
+                address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                amount: '1000000000', // 1 TON in nanotons
+                payload: 'te6cckEBAQEAAgAAAEysuc0=' as Base64String, // Optional payload (cell)
+            },
+        ],
+    });
+};
+
+return (
+    <div>
+        <button onClick={handleSendStructure} disabled={isPending}>
+            {isPending ? 'Sending...' : 'Send Transaction'}
+        </button>
+        {error && <div>Error: {error.message}</div>}
+        {data && (
+            <div>
+                <h4>Transaction Sent!</h4>
+                <p>BOC: {data.boc}</p>
+            </div>
+        )}
+    </div>
+);
+```
+
+### `useTransferTon`
+
+Hook to simplify transferring TON to another address.
+
+```tsx
+const { mutate: transferTon, isPending, error, data } = useTransferTon();
+
+const handleTransfer = () => {
+    transferTon({
+        recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+        amount: '1000000000', // 1 TON in nanotons
+        comment: 'Hello from AppKit!',
+    });
+};
+
+return (
+    <div>
+        <button onClick={handleTransfer} disabled={isPending}>
+            {isPending ? 'Transferring...' : 'Transfer TON'}
+        </button>
+        {error && <div>Error: {error.message}</div>}
+        {data && (
+            <div>
+                <h4>Transfer Successful!</h4>
+                <p>BOC: {data.boc}</p>
+            </div>
+        )}
+    </div>
+);
+```
+
