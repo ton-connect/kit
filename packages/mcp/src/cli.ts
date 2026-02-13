@@ -20,12 +20,21 @@
  *
  * Environment variables:
  *   NETWORK - Network to use (mainnet or testnet, default: mainnet)
- *   MNEMONIC - 24-word mnemonic phrase for wallet (if not provided, a new wallet is created)
+ *   MNEMONIC - 24-word mnemonic phrase for wallet (if not provided, controlled wallet mode is used)
  *   WALLET_VERSION - Wallet version (v5r1 or v4r2, default: v5r1)
+ *   WALLET_ADDRESS - User's wallet address (required for controlled wallet mode)
+ *
+ * Controlled Wallet Mode:
+ *   When MNEMONIC is not provided, the MCP will:
+ *   1. Check for existing keypair in ~/.ton/key.json
+ *   2. If not found, require WALLET_ADDRESS and generate a new keypair
+ *   3. Store the keypair in ~/.ton/key.json
+ *   4. Use this keypair to sign transactions for the user's wallet
  */
 
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
+import * as readline from 'node:readline';
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -38,8 +47,11 @@ import {
     Network,
 } from '@ton/walletkit';
 import type { Wallet, ApiClientConfig } from '@ton/walletkit';
+import { Address } from '@ton/core';
 
+import { WalletOwnableAdapter } from './contracts/w5_ownable/index.js';
 import { createTonWalletMCP } from './factory.js';
+import { KeyManager } from './services/KeyManager.js';
 
 const SERVER_NAME = 'ton-mcp';
 
@@ -47,6 +59,7 @@ const SERVER_NAME = 'ton-mcp';
 const NETWORK = (process.env.NETWORK as 'mainnet' | 'testnet') || 'mainnet';
 const MNEMONIC = process.env.MNEMONIC;
 const WALLET_VERSION = (process.env.WALLET_VERSION as 'v5r1' | 'v4r2') || 'v5r1';
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 
 function log(message: string) {
@@ -72,6 +85,113 @@ function parseArgs() {
     return { mode: 'http' as const, port, host };
 }
 
+/**
+ * Prompt user for input via stdin
+ */
+async function promptUser(question: string): Promise<string> {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stderr,
+    });
+
+    return new Promise((resolve) => {
+        rl.question(question, (answer) => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+/**
+ * Create wallet using mnemonic (traditional mode)
+ */
+async function createMnemonicWallet(
+    kit: TonWalletKit,
+    network: ReturnType<typeof Network.mainnet>,
+    mnemonic: string[],
+): Promise<Wallet> {
+    const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
+
+    const walletAdapter =
+        WALLET_VERSION === 'v5r1'
+            ? await WalletV5R1Adapter.create(signer, {
+                  client: kit.getApiClient(network),
+                  network,
+              })
+            : await WalletV4R2Adapter.create(signer, {
+                  client: kit.getApiClient(network),
+                  network,
+              });
+
+    let wallet = await kit.addWallet(walletAdapter);
+    if (!wallet) {
+        wallet = kit.getWallet(walletAdapter.getWalletId());
+    }
+    if (!wallet) {
+        throw new Error('Failed to create wallet');
+    }
+
+    return wallet;
+}
+
+/**
+ * Create controlled wallet (MCP keypair mode)
+ */
+async function createControlledWallet(kit: TonWalletKit, network: ReturnType<typeof Network.mainnet>): Promise<Wallet> {
+    let keyData = await KeyManager.loadKey();
+
+    if (!keyData) {
+        // No stored key, need wallet address from user or env
+        let walletAddress = WALLET_ADDRESS;
+
+        if (!walletAddress) {
+            log('No mnemonic provided. Running in controlled wallet mode.');
+            log('Please provide your wallet address to set up MCP control.');
+            walletAddress = await promptUser('Enter your TON wallet address: ');
+        }
+
+        if (!walletAddress) {
+            throw new Error('Wallet address is required for controlled wallet mode');
+        }
+
+        log(`Generating new keypair for wallet: ${walletAddress}`);
+        keyData = await KeyManager.generateAndStoreKey(walletAddress, NETWORK);
+        log(`Keypair stored in ${KeyManager.getKeyFilePath()}`);
+        log(`Public key: ${keyData.publicKey}`);
+        log('');
+        log('IMPORTANT: To enable MCP to control your wallet, you need to:');
+        log('1. Add this public key as an extension to your wallet contract');
+        log('2. Or use a wallet that supports delegated signing');
+    } else {
+        log(`Using stored keypair for wallet: ${keyData.walletAddress}`);
+        log(`Public key: ${keyData.publicKey}`);
+    }
+
+    // Create signer from stored key
+    const keyPair = KeyManager.getKeyPair(keyData);
+    const signer = await Signer.fromPrivateKey(keyPair.secretKey.slice(0, 32));
+
+    const walletAdapter = await WalletOwnableAdapter.create(signer, {
+        client: kit.getApiClient(network),
+        network,
+        nftInfo: {
+            itemIndex: 0n,
+            collectionAddress: Address.parse('EQC8EqPgaPlrApfYxtG0Rcz8bnU3yC1enq9DfuFbZlpEDTG5'),
+        },
+        owner: Address.parse(keyData.walletAddress ?? ''),
+    });
+
+    let wallet = await kit.addWallet(walletAdapter);
+    if (!wallet) {
+        wallet = kit.getWallet(walletAdapter.getWalletId());
+    }
+    if (!wallet) {
+        throw new Error('Failed to create controlled wallet');
+    }
+
+    return wallet;
+}
+
 async function createWalletAndServer(): Promise<{
     server: Awaited<ReturnType<typeof createTonWalletMCP>>;
     kit: TonWalletKit;
@@ -95,50 +215,26 @@ async function createWalletAndServer(): Promise<{
     });
     await kit.waitForReady();
 
-    // Get or generate mnemonic
-    let mnemonic: string[];
+    let wallet: Wallet;
+
     if (MNEMONIC) {
-        mnemonic = MNEMONIC.trim().split(/\s+/);
+        // Traditional mnemonic mode
+        const mnemonic = MNEMONIC.trim().split(/\s+/);
         if (mnemonic.length !== 24) {
             throw new Error(`Invalid mnemonic: expected 24 words, got ${mnemonic.length}`);
         }
         log('Using provided mnemonic');
+        wallet = await createMnemonicWallet(kit, network, mnemonic);
+        log(`Wallet address: ${wallet.getAddress()}`);
+        log(`Network: ${NETWORK}`);
+        log(`Version: ${WALLET_VERSION}`);
     } else {
-        throw new Error('MNEMONIC is required');
+        // Controlled wallet mode
+        wallet = await createControlledWallet(kit, network);
+        log(`Controlled wallet address: ${wallet.getAddress()}`);
+        log(`Network: ${NETWORK}`);
+        log('Mode: Controlled (MCP keypair)');
     }
-    //  else {
-    //     mnemonic = await CreateTonMnemonic();
-    //     log('Generated new wallet');
-    //     log('IMPORTANT: Save this mnemonic to restore your wallet:');
-    //     log(`MNEMONIC="${mnemonic.join(' ')}"`);
-    // }
-
-    // Create signer and wallet adapter
-    const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
-
-    const walletAdapter =
-        WALLET_VERSION === 'v5r1'
-            ? await WalletV5R1Adapter.create(signer, {
-                  client: kit.getApiClient(network),
-                  network,
-              })
-            : await WalletV4R2Adapter.create(signer, {
-                  client: kit.getApiClient(network),
-                  network,
-              });
-
-    // Add wallet to kit
-    let wallet = await kit.addWallet(walletAdapter);
-    if (!wallet) {
-        wallet = kit.getWallet(walletAdapter.getWalletId());
-    }
-    if (!wallet) {
-        throw new Error('Failed to create wallet');
-    }
-
-    log(`Wallet address: ${wallet.getAddress()}`);
-    log(`Network: ${NETWORK}`);
-    log(`Version: ${WALLET_VERSION}`);
 
     // Create MCP server with the wallet
     const server = await createTonWalletMCP({
