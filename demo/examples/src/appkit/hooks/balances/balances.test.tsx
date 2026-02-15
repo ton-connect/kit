@@ -6,18 +6,86 @@
  *
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { TokenAmount } from '@ton/walletkit';
 
 import { createWrapper } from '../../../__tests__/test-utils';
 import { UseBalanceExample } from './use-balance';
+import { UseBalanceByAddressExample } from './use-balance-by-address';
 
-describe('UseBalanceExample', () => {
+describe('use-balance-by-address', () => {
     let mockAppKit: any;
     let mockGetBalance: any;
 
     beforeEach(() => {
+        cleanup();
+        vi.clearAllMocks();
+
+        mockGetBalance = vi.fn();
+
+        mockAppKit = {
+            networkManager: {
+                getClient: vi.fn().mockReturnValue({
+                    getBalance: mockGetBalance,
+                }),
+            },
+        };
+    });
+
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('should render loading state initially', async () => {
+        // Return a promise that never resolves to simulate loading
+        mockGetBalance.mockReturnValue(new Promise(() => {}));
+
+        render(<UseBalanceByAddressExample />, {
+            wrapper: createWrapper(mockAppKit),
+        });
+
+        expect(screen.getByText('Loading...')).toBeDefined();
+    });
+
+    it('should render balance when data is available', async () => {
+        const mockBalance = {
+            toString: () => '1000000000',
+        } as TokenAmount;
+
+        mockGetBalance.mockResolvedValue(mockBalance);
+
+        render(<UseBalanceByAddressExample />, {
+            wrapper: createWrapper(mockAppKit),
+        });
+
+        // Wait for loading to finish and balance to appear
+        await waitFor(() => {
+            expect(screen.getByText('Balance: 1000000000')).toBeDefined();
+        });
+    });
+
+    it('should render error message on failure', async () => {
+        mockGetBalance.mockRejectedValue(new Error('Network error'));
+
+        render(<UseBalanceByAddressExample />, {
+            wrapper: createWrapper(mockAppKit),
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Error: Network error')).toBeDefined();
+        });
+    });
+});
+
+describe('use-balance', () => {
+    let mockAppKit: any;
+    let mockGetBalance: any;
+
+    beforeEach(() => {
+        cleanup();
         vi.clearAllMocks();
 
         mockGetBalance = vi.fn();
@@ -40,6 +108,10 @@ describe('UseBalanceExample', () => {
                 off: vi.fn(),
             },
         };
+    });
+
+    afterEach(() => {
+        cleanup();
     });
 
     it('should render loading state initially', async () => {
