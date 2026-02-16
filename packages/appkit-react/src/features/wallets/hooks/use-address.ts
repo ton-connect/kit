@@ -10,12 +10,12 @@ import { useMemo } from 'react';
 
 import { useSelectedWallet } from './use-selected-wallet';
 
-export type UseSelectedWalletAddressReturnType = string | undefined;
+export type UseAddressReturnType = string | undefined;
 
 /**
  * Hook to get current wallet address
  */
-export const useAddress = (): UseSelectedWalletAddressReturnType => {
+export const useAddress = (): UseAddressReturnType => {
     const [wallet] = useSelectedWallet();
 
     return useMemo(() => wallet?.getAddress(), [wallet]);
