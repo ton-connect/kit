@@ -1,19 +1,17 @@
 .nftItem {
     box-sizing: border-box;
+    width: 160px;
+    background-color: var(--ta-color-background-secondary);
     border-radius: var(--ta-border-radius-l);
     overflow: hidden;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: none;
     outline: none;
-    transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
     padding: 0;
 }
 
-.nftItem:hover {
-    border-color: var(--ta-color-primary);
-}
-
 .imageWrapper {
+    position: relative;
     aspect-ratio: 1 / 1;
     background-color: var(--ta-color-background-secondary);
     display: flex;
@@ -36,6 +34,7 @@
 
 .info {
     padding: 8px;
+    text-align: left;
 }
 
 .name {
@@ -62,12 +61,14 @@
 .saleBadge {
     composes: caption2 from "../../../../styles/typography.module.css";
 
+    position: absolute;
+    top: 8px;
+    left: 8px;
     display: inline-flex;
     align-items: center;
-    margin-top: 4px;
     padding: 2px 6px;
     border-radius: var(--ta-border-radius-s);
     font-weight: var(--ta-body-medium-font-weight);
-    background-color: color-mix(in srgb, var(--ta-color-primary) 10%, transparent);
-    color: var(--ta-color-primary);
+    background-color: var(--ta-color-primary);
+    color: var(--ta-color-text-on-primary, #fff);
 }

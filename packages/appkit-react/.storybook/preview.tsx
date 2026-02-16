@@ -19,8 +19,31 @@ const withI18n: Decorator = (Story) => (
     </I18nProvider>
 );
 
+const withTheme: Decorator = (Story, context) => {
+    const theme = context.globals.theme;
+    return (
+        <div data-ta-theme={theme} style={{ padding: '16px' }}>
+            <Story />
+        </div>
+    );
+};
+
 const preview: Preview = {
     tags: ['autodocs'],
+    globalTypes: {
+        theme: {
+            name: 'Theme',
+            description: 'Global theme for components',
+            defaultValue: 'dark',
+            toolbar: {
+                icon: 'circlehollow',
+                items: [
+                    { value: 'light', icon: 'sun', title: 'Light' },
+                    { value: 'dark', icon: 'moon', title: 'Dark' },
+                ],
+            },
+        },
+    },
     parameters: {
         actions: { argTypesRegex: '^on[A-Z].*' },
         controls: {
@@ -32,13 +55,12 @@ const preview: Preview = {
         backgrounds: {
             default: 'dark',
             values: [
-                { name: 'dark', value: '#1a1a2e' },
+                { name: 'dark', value: '#000000' },
                 { name: 'light', value: '#ffffff' },
-                { name: 'neutral', value: '#f5f5f5' },
             ],
         },
     },
-    decorators: [withI18n],
+    decorators: [withTheme, withI18n],
 };
 
 export default preview;

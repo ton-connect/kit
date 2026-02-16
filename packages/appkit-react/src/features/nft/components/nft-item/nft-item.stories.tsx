@@ -8,81 +8,45 @@
 
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
+import clsx from 'clsx';
 
-// Create a preview component that doesn't depend on context
+import styles from './nft-item.module.css';
+
+const PlaceholderIcon = () => (
+    <svg className={styles.placeholderIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+    </svg>
+);
+
 const NftItemPreview = ({
     name,
     collectionName,
     image,
     isOnSale = false,
     onClick,
+    className,
 }: {
     name: string;
     collectionName: string;
     image?: string;
     isOnSale?: boolean;
     onClick?: () => void;
+    className?: string;
 }) => {
     return (
-        <button
-            onClick={onClick}
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                background: '#1c1c1e',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                border: 'none',
-                cursor: 'pointer',
-                width: '160px',
-            }}
-        >
-            <div
-                style={{
-                    width: '100%',
-                    aspectRatio: '1',
-                    background: '#2c2c2e',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                {image ? (
-                    <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                    <svg
-                        style={{ width: '48px', height: '48px', color: '#8e8e93' }}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                    </svg>
-                )}
+        <button onClick={onClick} className={clsx(styles.nftItem, className)}>
+            <div className={styles.imageWrapper}>
+                {image ? <img src={image} alt={name} className={styles.image} /> : <PlaceholderIcon />}
+                {isOnSale && <span className={styles.saleBadge}>On Sale</span>}
             </div>
-            <div style={{ padding: '12px', textAlign: 'left' }}>
-                <h4 style={{ margin: 0, color: 'white', fontSize: '14px', fontWeight: 600 }}>{name}</h4>
-                <p style={{ margin: '4px 0 0', color: '#8e8e93', fontSize: '12px' }}>{collectionName}</p>
-                {isOnSale && (
-                    <span
-                        style={{
-                            display: 'inline-block',
-                            marginTop: '8px',
-                            padding: '4px 8px',
-                            background: '#0098EB',
-                            color: 'white',
-                            fontSize: '10px',
-                            borderRadius: '4px',
-                        }}
-                    >
-                        On Sale
-                    </span>
-                )}
+            <div className={styles.info}>
+                <h4 className={styles.name}>{name}</h4>
+                <p className={styles.collectionName}>{collectionName}</p>
             </div>
         </button>
     );
