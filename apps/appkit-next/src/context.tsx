@@ -8,9 +8,7 @@
 
 'use client';
 
-import { AppKit, Network } from '@ton/appkit';
-import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { AppKit, Network, AppKitProvider, TonConnectConnector } from '@ton/appkit-react';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';

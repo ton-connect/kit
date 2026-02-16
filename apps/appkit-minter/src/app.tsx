@@ -9,7 +9,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectBridge } from '@ton/appkit-react/tonconnect';
 
 import { appKit } from '@/core/configs/app-kit';
 import { AppRouter, ThemeProvider } from '@/core/components';
@@ -24,10 +23,8 @@ export const App = () => {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <QueryClientProvider client={queryClient}>
                 <AppKitProvider appKit={appKit}>
-                    <TonConnectBridge>
-                        <AppRouter />
-                        <Toaster position="top-right" richColors />
-                    </TonConnectBridge>
+                    <AppRouter />
+                    <Toaster position="top-right" richColors />
                 </AppKitProvider>
             </QueryClientProvider>
         </ThemeProvider>

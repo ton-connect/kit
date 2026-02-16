@@ -1,11 +1,14 @@
 {
   "name": "@ton/appkit-react",
   "version": "0.0.1-alpha.2",
+  "type": "module",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "pnpm run build:esm+types && pnpm run copy:css",
+    "build:esm+types": "tsc --project tsconfig.build.json",
+    "copy:css": "rsync -zarv --include='*/' --include='*.css' --exclude='*' src/ dist/esm/",
     "clean": "git clean -xdf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",
+    "check:types": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -14,21 +17,21 @@
     "url": "https://github.com/ton-connect/kit"
   },
   "files": [
-    "dist"
+    "dist/**",
+    "!dist/**/*.tsbuildinfo",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.stories.tsx"
   ],
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
-    },
-    "./tonconnect": {
-      "types": "./dist/tonconnect/tonconnect-bridge.d.ts",
-      "import": "./dist/tonconnect/tonconnect-bridge.mjs",
-      "default": "./dist/tonconnect/tonconnect-bridge.mjs"
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
     },
     "./styles.css": "./dist/styles/index.css"
   },
@@ -50,7 +53,6 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "storybook": "10.2.8",
-    "tsup": "^8.5.1",
     "typescript": "^5.9.2",
     "vite": "^7.3.1",
     "vite-plugin-node-polyfills": "^0.25.0"

@@ -9,8 +9,8 @@
 import { useMemo } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
-import type { TonConnectConnector } from '@ton/appkit/tonconnect';
-import { TONCONNECT_DEFAULT_CONNECTOR_ID } from '@ton/appkit/tonconnect';
+import type { TonConnectConnector } from '@ton/appkit';
+import { TONCONNECT_DEFAULT_CONNECTOR_ID } from '@ton/appkit';
 
 import { useConnectorById } from '../features/wallets/hooks/use-connector-by-id';
 
@@ -19,10 +19,10 @@ export interface TonConnectBridgeProps extends PropsWithChildren {
 }
 
 /**
- * @deprecated This component is intended for migration purposes only.
- * It allows you to use `TonConnectUIProvider` with `TonConnectConnector` from AppKit.
- *
- * Please migrate to using AppKit's native hooks and components.
+ * Automatically creates TonConnectUIProvider if TonConnectConnector is found
+ * @param children - The children to render
+ * @param connectorId - The connector ID to use
+ * @returns The TonConnectUIProvider or the children
  */
 export const TonConnectBridge: FC<TonConnectBridgeProps> = ({
     children,
@@ -32,7 +32,7 @@ export const TonConnectBridge: FC<TonConnectBridgeProps> = ({
     const tonConnectUI = useMemo(() => connector?.tonConnectUI, [connector]);
 
     if (!tonConnectUI) {
-        throw new Error('TonConnectUI not found');
+        return <>{children}</>;
     }
 
     return <TonConnectUIProvider instance={tonConnectUI}>{children}</TonConnectUIProvider>;

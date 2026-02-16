@@ -6,9 +6,8 @@
  *
  */
 
-import { AppKit, Network } from '@ton/appkit';
+import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
 
 import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
 

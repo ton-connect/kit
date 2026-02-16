@@ -22,16 +22,6 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./tonconnect": {
-      "import": {
-        "types": "./dist/connectors/tonconnect/index.d.ts",
-        "default": "./dist/connectors/tonconnect/index.js"
-      },
-      "require": {
-        "types": "./dist/connectors/tonconnect/index.d.ts",
-        "default": "./dist/connectors/tonconnect/index.cjs"
-      }
-    },
     "./queries": {
       "import": {
         "types": "./dist/queries/index.d.ts",

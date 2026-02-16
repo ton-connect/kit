@@ -28,6 +28,9 @@
 // Core
 export * from './core/app-kit';
 export * from './core/emitter';
+export * from './connectors/tonconnect';
+
+export * from './swap';
 
 // Actions
 export * from './actions';

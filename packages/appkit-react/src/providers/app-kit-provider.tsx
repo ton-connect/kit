@@ -13,6 +13,7 @@ import { createContext } from 'react';
 import type { AppKit } from '@ton/appkit';
 
 import { I18nProvider } from './i18n-provider';
+import { TonConnectBridge } from '../tonconnect/tonconnect-bridge';
 
 export const AppKitContext = createContext<AppKit | undefined>(undefined);
 
@@ -23,7 +24,9 @@ export interface AppKitProviderProps extends PropsWithChildren {
 export function AppKitProvider({ appKit, children }: AppKitProviderProps) {
     return (
         <AppKitContext.Provider value={appKit}>
-            <I18nProvider>{children}</I18nProvider>
+            <TonConnectBridge>
+                <I18nProvider>{children}</I18nProvider>
+            </TonConnectBridge>
         </AppKitContext.Provider>
     );
 }

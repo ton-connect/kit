@@ -64,10 +64,10 @@ export interface TransactionRequestMessage {
     /**
      * Initial state for deploying a new contract, encoded in Base64
      */
-    stateInit?: Base64String;
+    stateInit?: Base64String | string;
 
     /**
      * Message payload data encoded in Base64
      */
-    payload?: Base64String;
+    payload?: Base64String | string;
 }
