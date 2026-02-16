@@ -35,7 +35,6 @@
     "./styles.css": "./dist/styles/index.css"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "5.2.8",
     "@ton/appkit": "workspace:*",
     "clsx": "2.1.1",
     "radix-ui": "^1.4.3",
@@ -70,7 +69,7 @@
       "optional": true
     },
     "@tonconnect/ui-react": {
-        "optional": true
+      "optional": true
     }
   },
   "sideEffects": [

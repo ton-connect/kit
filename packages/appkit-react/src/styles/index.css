@@ -1,8 +1,6 @@
-@import '@fontsource-variable/inter';
-
 :root {
   /* Font */
-  --ta-font-family: 'Inter Variable', sans-serif;
+  --ta-font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, Tahoma, Verdana, sans-serif;
   
   /* Typography */
   /* Headings */
