@@ -8,7 +8,6 @@
 
 export * from './components/currency-item';
 export * from './components/balance-badge';
-export * from './components/send-button';
 export * from './components/send-ton-button';
 export * from './components/send-jetton-button';
 

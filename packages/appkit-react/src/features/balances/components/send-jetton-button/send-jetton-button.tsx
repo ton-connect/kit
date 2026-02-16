@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { formatUnits } from '@ton/appkit';
+import { formatUnits, parseUnits } from '@ton/appkit';
 
 import { SendButton } from '../send-button';
 import type { SendButtonProps } from '../send-button';
@@ -34,19 +34,19 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
     const text = useMemo(() => {
         if (amount && jetton.decimals) {
             return t('balances.sendJettonWithAmount', {
-                amount: formatUnits(amount, jetton.decimals),
+                amount: formatUnits(parseUnits(amount, jetton.decimals), jetton.decimals).toString(),
                 symbol: jetton.symbol,
             });
         }
 
-        return t('balances.sendJetton', { symbol: jetton.symbol });
+        return t('balances.sendJetton', { symbol: jetton.symbol, amount });
     }, [t, amount, jetton]);
 
     return (
         <SendButton
             tokenType="JETTON"
             recipientAddress={recipientAddress}
-            amount={amount}
+            amount={parseUnits(amount, jetton.decimals).toString()}
             comment={comment}
             jettonAddress={jetton.address}
             text={text}

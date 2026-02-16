@@ -7,7 +7,7 @@
  */
 
 import type { FC } from 'react';
-import { formatUnits } from '@ton/appkit';
+import { parseUnits } from '@ton/appkit';
 
 import { SendButton } from '../send-button';
 import type { SendButtonProps } from '../send-button';
@@ -22,9 +22,9 @@ export const SendTonButton: FC<SendTonButtonProps> = ({ recipientAddress, amount
         <SendButton
             tokenType="TON"
             recipientAddress={recipientAddress}
-            amount={amount}
+            amount={parseUnits(amount, 9).toString()}
             comment={comment}
-            text={t('balances.sendTon', { amount: amount ? formatUnits(amount, 9) : '' })}
+            text={t('balances.sendTon', { amount })}
             {...props}
         />
     );
