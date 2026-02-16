@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { TonIcon, TonIconCircle } from './ton-icon';
 
 const meta: Meta<typeof TonIcon> = {
-    title: 'Components/TonIcon',
+    title: 'Private/Components/TonIcon',
     component: TonIcon,
     tags: ['autodocs'],
     argTypes: {

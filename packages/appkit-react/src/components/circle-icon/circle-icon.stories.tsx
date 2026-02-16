@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { CircleIcon } from './circle-icon';
 
 const meta: Meta<typeof CircleIcon> = {
-    title: 'Components/CircleIcon',
+    title: 'Private/Components/CircleIcon',
     component: CircleIcon,
     tags: ['autodocs'],
     argTypes: {

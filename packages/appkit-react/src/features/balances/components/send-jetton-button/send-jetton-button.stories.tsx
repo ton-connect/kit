@@ -10,9 +10,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { Button } from '../../../../components/button';
 
-// Create a preview component that doesn't depend on context
-const TransactionButtonPreview = ({
-    text = 'Send Transaction',
+const SendJettonButtonPreview = ({
+    text = 'Send USDT',
     isLoading = false,
     disabled = false,
 }: {
@@ -23,9 +22,9 @@ const TransactionButtonPreview = ({
     return <Button disabled={disabled || isLoading}>{isLoading ? 'Processing...' : text}</Button>;
 };
 
-const meta: Meta<typeof TransactionButtonPreview> = {
-    title: 'Public/Features/Transaction/Transaction',
-    component: TransactionButtonPreview,
+const meta: Meta<typeof SendJettonButtonPreview> = {
+    title: 'Public/Features/Balances/SendJettonButton',
+    component: SendJettonButtonPreview,
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',
@@ -34,17 +33,23 @@ const meta: Meta<typeof TransactionButtonPreview> = {
 
 export default meta;
 
-type Story = StoryObj<typeof TransactionButtonPreview>;
+type Story = StoryObj<typeof SendJettonButtonPreview>;
 
-export const Default: Story = {
+export const USDT: Story = {
     args: {
-        text: 'Send Transaction',
+        text: 'Send 100 USDT',
     },
 };
 
-export const CustomText: Story = {
+export const NOT: Story = {
     args: {
-        text: 'Send 1.5 TON',
+        text: 'Send 500 NOT',
+    },
+};
+
+export const WithoutAmount: Story = {
+    args: {
+        text: 'Send USDT',
     },
 };
 
@@ -56,19 +61,7 @@ export const Loading: Story = {
 
 export const Disabled: Story = {
     args: {
-        text: 'Send Transaction',
-        disabled: true,
-    },
-};
-
-export const SendTonButton: Story = {
-    args: {
-        text: 'Send 10 TON',
-    },
-};
-
-export const SendJettonButton: Story = {
-    args: {
         text: 'Send 100 USDT',
+        disabled: true,
     },
 };

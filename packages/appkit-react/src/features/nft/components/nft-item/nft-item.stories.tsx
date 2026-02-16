@@ -89,7 +89,7 @@ const NftItemPreview = ({
 };
 
 const meta: Meta<typeof NftItemPreview> = {
-    title: 'Features/NFT/NftItem',
+    title: 'Public/Features/NFT/NftItem',
     component: NftItemPreview,
     tags: ['autodocs'],
     parameters: {

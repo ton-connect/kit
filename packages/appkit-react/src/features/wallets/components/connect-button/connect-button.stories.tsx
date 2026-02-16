@@ -28,7 +28,7 @@ const ConnectButtonPreview = ({
 };
 
 const meta: Meta<typeof ConnectButtonPreview> = {
-    title: 'Features/Wallets/ConnectButton',
+    title: 'Public/Features/Wallets/ConnectButton',
     component: ConnectButtonPreview,
     tags: ['autodocs'],
     parameters: {

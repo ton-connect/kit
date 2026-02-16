@@ -1,6 +1,0 @@
-/* Using just empty file as we might not need extra styles if Modal is generic enough, 
-   but keeping it for future extensibility or custom modal styling */
-.container {
-  /* optional override */
-  display: block;
-}

@@ -11,7 +11,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Block } from './block';
 
 const meta: Meta<typeof Block> = {
-    title: 'Components/Block',
+    title: 'Private/Components/Block',
     component: Block,
     tags: ['autodocs'],
     argTypes: {
