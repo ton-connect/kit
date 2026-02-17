@@ -12,10 +12,11 @@ import { createTransferJettonTransaction } from '@ton/appkit';
 export const createTransferJettonTransactionExample = async (appKit: AppKit) => {
     // SAMPLE_START: CREATE_TRANSFER_JETTON_TRANSACTION
     const tx = await createTransferJettonTransaction(appKit, {
-        jettonAddress: 'EQDBE420tTQIkoWcZ9pEOTKY63WVmwyIl3hH6yWl0r_h51Tl',
+        jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-        amount: '100',
+        amount: '100', // 100 USDT
         comment: 'Hello Jetton',
+        jettonDecimals: 6,
     });
     console.log('Transfer Transaction:', tx);
     // SAMPLE_END: CREATE_TRANSFER_JETTON_TRANSACTION

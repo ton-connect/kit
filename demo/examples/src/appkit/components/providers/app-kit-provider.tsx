@@ -8,7 +8,7 @@
 
 import { AppKit, Network } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { TonConnectConnector } from '@ton/appkit';
 import type { FC } from 'react';
 
 // Initialize AppKit (outside component)

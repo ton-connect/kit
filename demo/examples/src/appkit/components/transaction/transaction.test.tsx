@@ -37,11 +37,16 @@ describe('TransactionExample Component', () => {
         mockWallet.sendTransaction = mockSendTransaction;
 
         mockAppKit = {
+            connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,
             },
             networkManager: {
                 getClient: vi.fn(),
+            },
+            emitter: {
+                on: vi.fn().mockReturnValue(() => {}),
+                off: vi.fn(),
             },
         };
     });

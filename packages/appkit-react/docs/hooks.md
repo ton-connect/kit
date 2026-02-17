@@ -229,8 +229,9 @@ const { mutate: transfer, isPending, error } = useTransferJetton();
 const handleTransfer = () => {
     transfer({
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-        amount: '1000000000', // 1 Jetton (assuming 9 decimals)
-        jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiXme1Xc56Iwobkzgnjj',
+        amount: '100', // 100 USDT
+        jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        jettonDecimals: 6,
     });
 };
 
@@ -639,7 +640,7 @@ const { mutate: transferTon, isPending, error, data } = useTransferTon();
 const handleTransfer = () => {
     transferTon({
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-        amount: '1000000000', // 1 TON in nanotons
+        amount: '1', // 1 TON
         comment: 'Hello from AppKit!',
     });
 };

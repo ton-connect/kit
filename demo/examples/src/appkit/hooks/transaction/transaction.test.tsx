@@ -37,8 +37,13 @@ describe('Transaction Hooks Examples', () => {
         mockWallet.sendTransaction = mockSendTransaction;
 
         mockAppKit = {
+            connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,
+            },
+            emitter: {
+                on: vi.fn().mockReturnValue(() => {}),
+                off: vi.fn(),
             },
         };
     });

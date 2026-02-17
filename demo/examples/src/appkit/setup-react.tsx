@@ -9,9 +9,8 @@
 /* eslint-disable import/order */
 
 // SAMPLE_START: APPKIT_REACT_INIT
-import { AppKit, Network } from '@ton/appkit';
+import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
 import type { FC } from 'react';
 
 // Import styles
@@ -45,20 +44,6 @@ export const App: FC = () => {
     return <AppKitProvider appKit={appKit}>{/* <AppContent /> */}</AppKitProvider>;
 };
 // SAMPLE_END: APPKIT_REACT_INIT
-
-// SAMPLE_START: APPKIT_REACT_TONCONNECT
-import { TonConnectBridge } from '@ton/appkit-react/tonconnect';
-
-export const AppTonConnect: FC = () => {
-    return (
-        <AppKitProvider appKit={appKit}>
-            <TonConnectBridge>
-                <AppContent />
-            </TonConnectBridge>
-        </AppKitProvider>
-    );
-};
-// SAMPLE_END: APPKIT_REACT_TONCONNECT
 
 // SAMPLE_START: APPKIT_REACT_TONCONNECT_HOOKS
 import { useTonAddress } from '@tonconnect/ui-react';

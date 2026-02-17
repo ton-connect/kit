@@ -38,7 +38,7 @@ A drop-in component that handles the entire transaction flow.
 
 ## Wallets
 
-### `ConnectButton`
+### `TonConnectButton`
 
 A button that triggers the wallet connection flow.
 

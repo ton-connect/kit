@@ -8,7 +8,7 @@
 
 import type { AppKit } from '@ton/appkit';
 import { addConnector } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { TonConnectConnector } from '@ton/appkit';
 
 export const addConnectorExample = (appKit: AppKit) => {
     // SAMPLE_START: ADD_CONNECTOR

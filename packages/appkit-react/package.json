@@ -33,7 +33,7 @@
       "types": "./dist/types/index.d.ts",
       "default": "./dist/esm/index.js"
     },
-    "./styles.css": "./dist/styles/index.css"
+    "./styles.css": "./dist/esm/styles/index.css"
   },
   "dependencies": {
     "@ton/appkit": "workspace:*",

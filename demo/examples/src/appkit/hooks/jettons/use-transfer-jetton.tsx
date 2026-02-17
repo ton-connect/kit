@@ -23,8 +23,9 @@ export const UseTransferJettonExample = () => {
     const handleTransfer = () => {
         transfer({
             recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-            amount: '1000000000', // 1 Jetton (assuming 9 decimals)
-            jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiXme1Xc56Iwobkzgnjj',
+            amount: '100', // 100 USDT
+            jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+            jettonDecimals: 6,
         });
     };
 

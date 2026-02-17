@@ -6,21 +6,25 @@
  *
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { FC } from 'react';
-import { formatUnits } from '@ton/appkit';
+import { createTransferJettonTransaction, formatUnits, parseUnits } from '@ton/appkit';
 
-import { SendButton } from '../send-button';
-import type { SendButtonProps } from '../send-button';
 import { useI18n } from '../../../../hooks/use-i18n';
+import { useAppKit } from '../../../../hooks/use-app-kit';
+import type { TransactionProps } from '../../../transaction';
+import { Transaction } from '../../../transaction';
 
-export type SendJettonButtonProps = Omit<SendButtonProps, 'tokenType' | 'jettonAddress'> & {
+export interface SendJettonButtonProps extends Omit<TransactionProps, 'request'> {
+    recipientAddress: string;
+    amount: string;
     jetton: {
         address: string;
         symbol: string;
         decimals: number;
     };
-};
+    comment?: string;
+}
 
 export const SendJettonButton: FC<SendJettonButtonProps> = ({
     recipientAddress,
@@ -29,27 +33,43 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
     jetton,
     ...props
 }) => {
+    const appKit = useAppKit();
     const { t } = useI18n();
+
+    const createTransferTransaction = useCallback(async () => {
+        if (!jetton.address) {
+            throw new Error('Jetton address is required');
+        }
+
+        if (!jetton.decimals) {
+            throw new Error('Jetton decimals is required');
+        }
+
+        return createTransferJettonTransaction(appKit, {
+            jettonAddress: jetton.address,
+            recipientAddress,
+            amount,
+            comment,
+            jettonDecimals: jetton.decimals,
+        });
+    }, [appKit, recipientAddress, amount, comment, jetton]);
 
     const text = useMemo(() => {
         if (amount && jetton.decimals) {
             return t('balances.sendJettonWithAmount', {
-                amount: formatUnits(amount, jetton.decimals),
+                amount: formatUnits(parseUnits(amount, jetton.decimals), jetton.decimals).toString(),
                 symbol: jetton.symbol,
             });
         }
 
-        return t('balances.sendJetton', { symbol: jetton.symbol });
+        return t('balances.sendJetton', { symbol: jetton.symbol, amount });
     }, [t, amount, jetton]);
 
     return (
-        <SendButton
-            tokenType="JETTON"
-            recipientAddress={recipientAddress}
-            amount={amount}
-            comment={comment}
-            jettonAddress={jetton.address}
+        <Transaction
+            request={createTransferTransaction}
             text={text}
+            disabled={!recipientAddress || !amount || !jetton.address || !jetton.decimals}
             {...props}
         />
     );

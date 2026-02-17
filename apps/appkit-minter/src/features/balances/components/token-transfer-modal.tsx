@@ -8,8 +8,8 @@
 
 import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/appkit';
-import { getFormattedJettonInfo, formatUnits, parseUnits, getErrorMessage } from '@ton/appkit';
-import { SendButton } from '@ton/appkit-react';
+import { getFormattedJettonInfo, formatUnits, getErrorMessage } from '@ton/appkit';
+import { SendTonButton, SendJettonButton } from '@ton/appkit-react';
 
 import { Button } from '@/core/components';
 
@@ -161,21 +161,52 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                     </div>
 
                     <div className="flex mt-6 gap-3">
-                        <SendButton
-                            tokenType={tokenType}
-                            jettonAddress={jetton?.address}
-                            recipientAddress={recipientAddress}
-                            amount={parseUnits(amount, tokenInfo.decimals).toString()}
-                            comment={comment}
-                            onError={(error) => setTransferError(getErrorMessage(error))}
-                            onSuccess={handleClose}
-                        >
-                            {({ isLoading, onSubmit, disabled, text }) => (
-                                <Button isLoading={isLoading} onClick={onSubmit} disabled={disabled} className="flex-1">
-                                    {text}
-                                </Button>
-                            )}
-                        </SendButton>
+                        {tokenType === 'TON' && (
+                            <SendTonButton
+                                recipientAddress={recipientAddress}
+                                amount={amount}
+                                comment={comment}
+                                onError={(error) => setTransferError(getErrorMessage(error))}
+                                onSuccess={handleClose}
+                            >
+                                {({ isLoading, onSubmit, disabled, text }) => (
+                                    <Button
+                                        isLoading={isLoading}
+                                        onClick={onSubmit}
+                                        disabled={disabled}
+                                        className="flex-1"
+                                    >
+                                        {text}
+                                    </Button>
+                                )}
+                            </SendTonButton>
+                        )}
+
+                        {tokenType === 'JETTON' && jetton?.address && (
+                            <SendJettonButton
+                                jetton={{
+                                    address: jetton.address,
+                                    symbol: jetton.info?.symbol || 'Jetton',
+                                    decimals: tokenInfo.decimals,
+                                }}
+                                recipientAddress={recipientAddress}
+                                amount={amount}
+                                comment={comment}
+                                onError={(error) => setTransferError(getErrorMessage(error))}
+                                onSuccess={handleClose}
+                            >
+                                {({ isLoading, onSubmit, disabled, text }) => (
+                                    <Button
+                                        isLoading={isLoading}
+                                        onClick={onSubmit}
+                                        disabled={disabled}
+                                        className="flex-1"
+                                    >
+                                        {text}
+                                    </Button>
+                                )}
+                            </SendJettonButton>
+                        )}
 
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel

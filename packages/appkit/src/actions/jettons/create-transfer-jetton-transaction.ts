@@ -16,11 +16,13 @@ import {
 
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { parseUnits } from '../../utils';
 
 export interface CreateTransferJettonTransactionParameters {
     jettonAddress: string;
     recipientAddress: string;
     amount: string;
+    jettonDecimals: number;
     comment?: string;
 }
 
@@ -33,7 +35,7 @@ export const createTransferJettonTransaction = async (
     appKit: AppKit,
     parameters: CreateTransferJettonTransactionParameters,
 ): Promise<CreateTransferJettonTransactionReturnType> => {
-    const { jettonAddress, recipientAddress, amount, comment } = parameters;
+    const { jettonAddress, recipientAddress, amount, jettonDecimals, comment } = parameters;
 
     const wallet = getSelectedWallet(appKit);
 
@@ -49,7 +51,7 @@ export const createTransferJettonTransaction = async (
 
     // Create jetton transfer payload
     const jettonPayload = createJettonTransferPayload({
-        amount: BigInt(amount),
+        amount: parseUnits(amount, jettonDecimals),
         destination: recipientAddress,
         responseDestination: wallet.getAddress(),
         comment,

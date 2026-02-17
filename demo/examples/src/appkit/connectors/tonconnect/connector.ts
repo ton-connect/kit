@@ -7,7 +7,7 @@
  */
 
 import { AppKit, Network } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { TonConnectConnector } from '@ton/appkit';
 import { TonConnectUI } from '@tonconnect/ui';
 
 export const tonConnectConnectorExample = async () => {

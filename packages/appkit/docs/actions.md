@@ -206,10 +206,11 @@ Create a transaction for transferring jettons without sending it.
 
 ```ts
 const tx = await createTransferJettonTransaction(appKit, {
-    jettonAddress: 'EQDBE420tTQIkoWcZ9pEOTKY63WVmwyIl3hH6yWl0r_h51Tl',
+    jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '100',
+    amount: '100', // 100 USDT
     comment: 'Hello Jetton',
+    jettonDecimals: 6,
 });
 console.log('Transfer Transaction:', tx);
 ```
@@ -220,9 +221,10 @@ Transfer jettons to a recipient address.
 
 ```ts
 const result = await transferJetton(appKit, {
-    jettonAddress: 'EQDBE420tTQIkoWcZ9pEOTKY63WVmwyIl3hH6yWl0r_h51Tl',
+    jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     amount: '100',
+    jettonDecimals: 6,
 });
 console.log('Transfer Result:', result);
 ```
@@ -438,7 +440,7 @@ Create a TON transfer transaction request without sending it.
 ```ts
 const tx = await createTransferTonTransaction(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '100000000', // 0.1 TON
+    amount: '0.1', // 0.1 TON
     comment: 'Draft transaction',
 });
 

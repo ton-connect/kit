@@ -63,11 +63,16 @@ describe('Balances Component Examples', () => {
         mockWallet.sendTransaction = mockSendTransaction;
 
         mockAppKit = {
+            connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,
             },
             networkManager: {
                 getClient: vi.fn().mockReturnValue(mockClient),
+            },
+            emitter: {
+                on: vi.fn().mockReturnValue(() => {}),
+                off: vi.fn(),
             },
         };
     });

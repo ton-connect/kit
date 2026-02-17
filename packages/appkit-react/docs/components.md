@@ -27,7 +27,7 @@ A specialized button for sending TON. Pre-configured for TON transfers.
 return (
     <SendTonButton
         recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-        amount="1000000000" // 1 TON
+        amount="1" // 1 TON
         comment="Hello from AppKit"
         onSuccess={(result) => console.log('Transaction sent:', result)}
         onError={(error) => console.error('Transaction failed:', error)}
@@ -92,10 +92,10 @@ return (
 
 ## Wallets
 
-### `ConnectButton`
+### `TonConnectButton`
 
 A button that triggers the wallet connection flow.
 
 ```tsx
-return <ConnectButton />;
+return <TonConnectButton />;
 ```

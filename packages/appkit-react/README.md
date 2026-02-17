@@ -5,7 +5,7 @@ React components and hooks for AppKit.
 ## Installation
 
 ```bash
-pnpm add @ton/appkit-react @tanstack/react-query
+npm install @ton/appkit-react @tanstack/react-query @tonconnect/ui-react @ton/core @ton/crypto
 ```
 
 ## Dependencies
@@ -15,7 +15,7 @@ pnpm add @ton/appkit-react @tanstack/react-query
 -   `react` (>= 18.0.0)
 -   `react-dom` (>= 18.0.0)
 -   `@tanstack/react-query` (>= 5.0.0)
--   `@tonconnect/ui` (>= 2.4.1) or `@tonconnect/ui-react` (>= 2.4.1) (Optional: Required for wallet connection)
+-   `@tonconnect/ui-react` (>= 2.4.1)
 
 ## Initialization
 
@@ -25,9 +25,8 @@ Wrap your application in `AppKitProvider` and pass the `AppKit` instance.
 > Don't forget to import styles from `@ton/appkit-react/styles.css`.
 
 ```tsx
-import { AppKit, Network } from '@ton/appkit';
+import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
 import type { FC } from 'react';
 
 // Import styles
@@ -94,7 +93,7 @@ AppKit supports swapping assets through `OmnistonSwapProvider`.
 ### Installation
 
 ```bash
-pnpm add @ston-fi/omniston-sdk
+npm install @ston-fi/omniston-sdk
 ```
 
 ### Setup
@@ -130,28 +129,9 @@ See [Swap Hooks](./docs/hooks.md#swap) for usage examples.
 
 ## Migration from TonConnect UI
 
-If you are using `@tonconnect/ui-react` and want to migrate to AppKit gradually, you can use `TonConnectBridge`.
+`AppKitProvider` automatically bridges TonConnect if a `TonConnectConnector` is configured, so `@tonconnect/ui-react` hooks (like `useTonAddress`, `useTonWallet`, etc.) work out of the box inside `AppKitProvider`.
 
-> [!IMPORTANT]
-> This bridge is **deprecated** and should only be used for temporary migration. It allows you to use `@tonconnect/ui-react` hooks (like `useTonAddress`, `useTonWallet`, etc.) while using AppKit as the underlying provider.
-
-First, wrap your application in `TonConnectBridge` inside `AppKitProvider`:
-
-```tsx
-import { TonConnectBridge } from '@ton/appkit-react/tonconnect';
-
-export const AppTonConnect: FC = () => {
-    return (
-        <AppKitProvider appKit={appKit}>
-            <TonConnectBridge>
-                <AppContent />
-            </TonConnectBridge>
-        </AppKitProvider>
-    );
-};
-```
-
-Then you can use standard TonConnect hooks in your components:
+You can use standard TonConnect hooks in your components:
 
 ```tsx
 import { useTonAddress } from '@tonconnect/ui-react';

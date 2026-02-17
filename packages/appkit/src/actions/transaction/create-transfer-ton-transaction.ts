@@ -9,13 +9,14 @@
 import type { TransactionRequest, TransactionRequestMessage, Base64String } from '@ton/walletkit';
 import { createCommentPayloadBase64 } from '@ton/walletkit';
 
+import { parseUnits } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 
 export interface CreateTransferTonTransactionParameters {
     /** Recipient address */
     recipientAddress: string;
-    /** Amount in nanotons */
+    /** Amount in TONs */
     amount: string;
     /** Human-readable text comment (will be converted to payload) */
     comment?: string;
@@ -44,7 +45,7 @@ export const createTransferTonTransaction = (
 
     const message: TransactionRequestMessage = {
         address: recipientAddress,
-        amount,
+        amount: parseUnits(amount, 9).toString(),
         stateInit,
     };
 

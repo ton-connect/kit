@@ -35,8 +35,13 @@ describe('Signing Hooks Examples', () => {
         mockWallet.signData = mockSignData;
 
         mockAppKit = {
+            connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,
+            },
+            emitter: {
+                on: vi.fn().mockReturnValue(() => {}),
+                off: vi.fn(),
             },
         };
     });

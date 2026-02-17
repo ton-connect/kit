@@ -6,25 +6,38 @@
  *
  */
 
+import { useCallback } from 'react';
 import type { FC } from 'react';
-import { formatUnits } from '@ton/appkit';
+import { createTransferTonTransaction } from '@ton/appkit';
 
-import { SendButton } from '../send-button';
-import type { SendButtonProps } from '../send-button';
 import { useI18n } from '../../../../hooks/use-i18n';
+import { useAppKit } from '../../../../hooks/use-app-kit';
+import type { TransactionProps } from '../../../transaction';
+import { Transaction } from '../../../transaction';
 
-export type SendTonButtonProps = Omit<SendButtonProps, 'tokenType' | 'jettonAddress'>;
+export interface SendTonButtonProps extends Omit<TransactionProps, 'request'> {
+    recipientAddress: string;
+    amount: string;
+    comment?: string;
+}
 
 export const SendTonButton: FC<SendTonButtonProps> = ({ recipientAddress, amount, comment, ...props }) => {
+    const appKit = useAppKit();
     const { t } = useI18n();
 
+    const createTransferTransaction = useCallback(async () => {
+        return createTransferTonTransaction(appKit, {
+            recipientAddress,
+            amount,
+            comment,
+        });
+    }, [appKit, recipientAddress, amount, comment]);
+
     return (
-        <SendButton
-            tokenType="TON"
-            recipientAddress={recipientAddress}
-            amount={amount}
-            comment={comment}
-            text={t('balances.sendTon', { amount: amount ? formatUnits(amount, 9) : '' })}
+        <Transaction
+            request={createTransferTransaction}
+            disabled={!recipientAddress || !amount}
+            text={t('balances.sendTon', { amount })}
             {...props}
         />
     );

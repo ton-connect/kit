@@ -6,8 +6,7 @@
  *
  */
 
-import { AppKit, Network } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit/tonconnect';
+import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
 
 export const setupAppKitExample = () => {
     // SAMPLE_START: APPKIT_INIT
