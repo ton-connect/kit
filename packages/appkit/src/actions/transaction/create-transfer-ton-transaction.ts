@@ -6,9 +6,9 @@
  *
  */
 
-import type { TransactionRequest, TransactionRequestMessage, Base64String } from '@ton/walletkit';
 import { createCommentPayloadBase64 } from '@ton/walletkit';
 
+import type { TransactionRequest, TransactionRequestMessage } from '../../types/transaction';
 import { parseUnits } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
@@ -21,9 +21,9 @@ export interface CreateTransferTonTransactionParameters {
     /** Human-readable text comment (will be converted to payload) */
     comment?: string;
     /** Message payload data encoded in Base64 (overrides comment if provided) */
-    payload?: Base64String;
+    payload?: string;
     /** Initial state for deploying a new contract, encoded in Base64 */
-    stateInit?: Base64String;
+    stateInit?: string;
 }
 
 export type CreateTransferTonTransactionReturnType = TransactionRequest;

@@ -10,16 +10,12 @@ import { Address } from '@ton/core';
 import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import { CHAIN } from '@tonconnect/sdk';
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/sdk';
-import type {
-    SendTransactionResponse,
-    TransactionRequest,
-    UserFriendlyAddress,
-    Hex,
-    Base64String,
-} from '@ton/walletkit';
+import type { SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
 import { Network, asHex, createWalletId } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
+import type { TransactionRequest } from '../../../types/transaction';
+import type { Base64String } from '../../../types/primitives';
 import { getValidUntil } from '../utils/transaction';
 import type { WalletInterface } from '../../../types/wallet';
 import type { SignDataRequest, SignDataResponse } from '../../../types/signing';

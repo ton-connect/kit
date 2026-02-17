@@ -6,7 +6,6 @@
  *
  */
 
-import type { TransactionRequest } from '@ton/walletkit';
 import {
     createJettonTransferPayload,
     createTransferTransaction,
@@ -14,6 +13,7 @@ import {
     DEFAULT_JETTON_GAS_FEE,
 } from '@ton/walletkit';
 
+import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import { parseUnits } from '../../utils';

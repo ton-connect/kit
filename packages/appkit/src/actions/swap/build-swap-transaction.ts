@@ -6,8 +6,8 @@
  *
  */
 
-import type { TransactionRequest, SwapParams } from '@ton/walletkit';
-
+import type { SwapParams } from '../../swap';
+import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
 
 export type BuildSwapTransactionOptions<T = unknown> = SwapParams<T>;
