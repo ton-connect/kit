@@ -9,12 +9,22 @@
 /* eslint-disable import/order */
 
 // SAMPLE_START: APPKIT_REACT_INIT
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
 import type { FC } from 'react';
 
 // Import styles
 import '@ton/appkit-react/styles.css';
+
+// Initialize QueryClient
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: false,
+        },
+    },
+});
 
 // Initialize AppKit
 const appKit = new AppKit({
@@ -35,13 +45,19 @@ const appKit = new AppKit({
     },
     connectors: [
         new TonConnectConnector({
-            tonConnectOptions: { manifestUrl: 'your-manifest-url' },
+            tonConnectOptions: {
+                manifestUrl: 'your-manifest-url',
+            },
         }),
     ],
 });
 
 export const App: FC = () => {
-    return <AppKitProvider appKit={appKit}>{/* <AppContent /> */}</AppKitProvider>;
+    return (
+        <QueryClientProvider client={queryClient}>
+            <AppKitProvider appKit={appKit}>{/* <AppContent /> */}</AppKitProvider>
+        </QueryClientProvider>
+    );
 };
 // SAMPLE_END: APPKIT_REACT_INIT
 

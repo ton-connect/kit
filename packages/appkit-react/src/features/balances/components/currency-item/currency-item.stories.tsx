@@ -31,8 +31,7 @@ export const TON: Story = {
     args: {
         ticker: 'TON',
         name: 'Toncoin',
-        balance: '5500000000',
-        decimals: 9,
+        balance: '55',
         icon: 'https://ton.org/download/ton_symbol.png',
         isVerified: true,
     },
@@ -42,8 +41,7 @@ export const USDT: Story = {
     args: {
         ticker: 'USDT',
         name: 'Tether USD',
-        balance: '100000000',
-        decimals: 6,
+        balance: '10',
         isVerified: true,
     },
 };
@@ -52,8 +50,7 @@ export const Unverified: Story = {
     args: {
         ticker: 'MEME',
         name: 'Meme Token',
-        balance: '1000000000000',
-        decimals: 9,
+        balance: '10000',
         isVerified: false,
     },
 };
@@ -63,7 +60,6 @@ export const ZeroBalance: Story = {
         ticker: 'TON',
         name: 'Toncoin',
         balance: '0',
-        decimals: 9,
         icon: 'https://ton.org/download/ton_symbol.png',
         isVerified: true,
     },
@@ -84,28 +80,13 @@ export const CurrencyList: Story = {
             <CurrencyItem
                 ticker="TON"
                 name="Toncoin"
-                balance="5500000000"
-                decimals={9}
+                balance="55"
                 icon="https://ton.org/download/ton_symbol.png"
                 isVerified={true}
                 onClick={fn()}
             />
-            <CurrencyItem
-                ticker="USDT"
-                name="Tether USD"
-                balance="100000000"
-                decimals={6}
-                isVerified={true}
-                onClick={fn()}
-            />
-            <CurrencyItem
-                ticker="NOT"
-                name="Notcoin"
-                balance="50000000000"
-                decimals={9}
-                isVerified={true}
-                onClick={fn()}
-            />
+            <CurrencyItem ticker="USDT" name="Tether USD" balance="10" isVerified={true} onClick={fn()} />
+            <CurrencyItem ticker="NOT" name="Notcoin" balance="500" isVerified={true} onClick={fn()} />
         </div>
     ),
 };

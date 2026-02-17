@@ -6,4 +6,4 @@
  *
  */
 
-export type { SwapToken, TokenAmount } from '@ton/walletkit';
+export type { SwapToken, TokenAmount, SwapParams } from '@ton/walletkit';

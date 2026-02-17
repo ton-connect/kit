@@ -11,6 +11,7 @@ import type { TokenAmount } from '@ton/walletkit';
 import { Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { formatUnits } from '../../utils';
 
 export interface GetBalanceByAddressOptions {
     address: string | Address;
@@ -29,5 +30,5 @@ export const getBalanceByAddress = async (
     const client = appKit.networkManager.getClient(network ?? Network.mainnet());
     const balance = await client.getBalance(addressString);
 
-    return balance;
+    return formatUnits(balance, 9);
 };

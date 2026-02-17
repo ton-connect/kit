@@ -6,7 +6,6 @@
  *
  */
 
-import { formatUnits } from '@ton/appkit';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
@@ -17,7 +16,6 @@ export interface CurrencyItemProps extends ComponentProps<'button'> {
     ticker: string;
     name?: string;
     balance?: string;
-    decimals?: number;
     icon?: string;
     isVerified?: boolean;
 }
@@ -26,7 +24,6 @@ export const CurrencyItem: FC<CurrencyItemProps> = ({
     ticker,
     name,
     balance,
-    decimals,
     icon,
     isVerified,
     className,
@@ -55,7 +52,7 @@ export const CurrencyItem: FC<CurrencyItemProps> = ({
             </div>
 
             <div className={styles.balance}>
-                <p>{balance && decimals ? formatUnits(balance, decimals) : '0'}</p>
+                <p>{balance ?? '0'}</p>
             </div>
         </button>
     );

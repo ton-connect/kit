@@ -7,7 +7,8 @@
  */
 
 import type { SendTransactionRequest } from '@tonconnect/sdk';
-import type { TransactionRequest, TransactionRequestMessage } from '@ton/walletkit';
+
+import type { TransactionRequest, TransactionRequestMessage } from '../../../types/transaction';
 
 /**
  * Default transaction validity duration in seconds (5 minutes)

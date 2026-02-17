@@ -47,7 +47,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
     if (isError) {
         return (
             <Card title="Balances" {...props}>
-                <div className="text-center py-4">
+                <div className="flex flex-col items-center text-center py-4">
                     <div className="text-destructive mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
                             <path
@@ -95,7 +95,6 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                                 ticker="TON"
                                 name="Toncoin"
                                 balance={balance || '0'}
-                                decimals={9}
                                 onClick={() => setSelectedToken({ type: 'TON' })}
                                 icon="./ton.png"
                                 isVerified
@@ -116,7 +115,6 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                                         ticker={info.symbol}
                                         name={info.name}
                                         balance={jetton.balance}
-                                        decimals={jetton.decimalsNumber}
                                         icon={info.image}
                                         isVerified={jetton.isVerified}
                                         onClick={() => setSelectedToken({ type: 'JETTON', jetton })}

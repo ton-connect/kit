@@ -4,11 +4,10 @@ A dApp-side integration layer for TON Connect with a unified asset API for TON, 
 
 ## Overview
 
-- **Asset Operations** - Send TON, Jettons, and NFTs
-- **Swap** - Swap assets using DEX aggregators (Omniston)
-- **React Integration** - Hooks for easy React/Next.js integration
-- **Type Safety** - Full TypeScript support
-- **TonConnect Integration** - Seamlessly work with TonConnect wallets
+- [Actions](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/actions.md) - Standardized blockchain actions
+- [Connectors](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/connectors.md) - Wallet connection management (TonConnect)
+- [Queries](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/query.md) - TanStack Query options for easy data fetching
+- [Swap](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/swap.md) - Swap assets using DEX aggregators (Omniston)
 
 **Live Demo**: [AppKit Minter](https://github.com/ton-connect/kit/tree/main/apps/appkit-minter)
 
@@ -94,10 +93,3 @@ If you are using React, you can use `@ton/appkit-react` which provides hooks for
 If you are using another framework (Vue, Svelte, Angular, Solid, etc.), you can use `@ton/appkit/queries` with [TanStack Query](https://tanstack.com/query/latest) to create your own bindings.
  
 [Read more about Queries](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/query.md)
-
-## Documentation
-
-- [Actions](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/actions.md) - Standardized blockchain actions
-- [Connectors](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/connectors.md) - Wallet connection management (TonConnect)
-- [Queries](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/query.md) - TanStack Query options for easy data fetching
-- [Swap](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/swap.md) - Swap assets using DEX aggregators (Omniston)
