@@ -28,7 +28,6 @@ export async function getWallets() {
     return wallets.map((w) => ({ walletId: w.getWalletId?.(), wallet: w }));
 }
 
-
 export async function getWalletById(args: { walletId: string }) {
     const w = await kit('getWallet', args.walletId);
     if (!w) return null;
@@ -47,20 +46,17 @@ export async function getBalance(args: { walletId: string }) {
     return wallet(args.walletId, 'getBalance');
 }
 
-
 export async function createSignerFromMnemonic(args: { mnemonic: string[]; mnemonicType?: string }) {
     const signer = await Signer!.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' });
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
 
-
 export async function createSignerFromPrivateKey(args: { secretKey: string }) {
     const signer = await Signer!.fromPrivateKey(args.secretKey);
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
-
 
 export async function createSignerFromCustom(args: { signerId: string; publicKey: string }) {
     const { signerId, publicKey } = args;
@@ -75,7 +71,6 @@ export async function createSignerFromCustom(args: { signerId: string; publicKey
     retainWithId(signerId, proxySigner);
     return { signerId, publicKey };
 }
-
 
 export async function createV5R1WalletAdapter(args: {
     signerId: string;
@@ -99,7 +94,6 @@ export async function createV5R1WalletAdapter(args: {
     return { adapterId, address: adapter.getAddress() };
 }
 
-
 export async function createV4R2WalletAdapter(args: {
     signerId: string;
     network: { chainId: string };
@@ -121,7 +115,6 @@ export async function createV4R2WalletAdapter(args: {
     const adapterId = retain('adapter', adapter);
     return { adapterId, address: adapter.getAddress() };
 }
-
 
 export async function addWallet(args: {
     adapterId: string;
@@ -169,10 +162,7 @@ export async function addWallet(args: {
                 if (!result) throw new Error('adapterSignTransaction not available');
                 return result as Base64String;
             },
-            async getSignedSignData(
-                input: PreparedSignData,
-                options?: { fakeSignature: boolean },
-            ): Promise<Hex> {
+            async getSignedSignData(input: PreparedSignData, options?: { fakeSignature: boolean }): Promise<Hex> {
                 const result = await window.WalletKitNative?.adapterSignData?.(
                     adapterId,
                     JSON.stringify(input),
@@ -181,10 +171,7 @@ export async function addWallet(args: {
                 if (!result) throw new Error('adapterSignData not available');
                 return result as Hex;
             },
-            async getSignedTonProof(
-                input: ProofMessage,
-                options?: { fakeSignature: boolean },
-            ): Promise<Hex> {
+            async getSignedTonProof(input: ProofMessage, options?: { fakeSignature: boolean }): Promise<Hex> {
                 const result = await window.WalletKitNative?.adapterSignTonProof?.(
                     adapterId,
                     JSON.stringify(input),
@@ -208,7 +195,6 @@ export async function addWallet(args: {
     if (!w) return null;
     return { walletId: w.getWalletId?.(), wallet: w };
 }
-
 
 export function releaseRef(args: { id: string }) {
     release(args.id);

@@ -279,8 +279,12 @@ export interface WalletKitBridgeApi {
     mnemonicToKeyPair(args: MnemonicToKeyPairArgs): PromiseOrValue<{ publicKey: Uint8Array; secretKey: Uint8Array }>;
     sign(args: SignArgs): PromiseOrValue<string>;
     createTonMnemonic(args?: CreateTonMnemonicArgs): PromiseOrValue<string[]>;
-    createSignerFromMnemonic(args: CreateSignerFromMnemonicArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
-    createSignerFromPrivateKey(args: CreateSignerFromPrivateKeyArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
+    createSignerFromMnemonic(
+        args: CreateSignerFromMnemonicArgs,
+    ): PromiseOrValue<{ signerId: string; publicKey: string }>;
+    createSignerFromPrivateKey(
+        args: CreateSignerFromPrivateKeyArgs,
+    ): PromiseOrValue<{ signerId: string; publicKey: string }>;
     createSignerFromCustom(args: CreateSignerFromCustomArgs): PromiseOrValue<{ signerId: string; publicKey: string }>;
     createV5R1WalletAdapter(args: CreateWalletAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
     createV4R2WalletAdapter(args: CreateWalletAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
