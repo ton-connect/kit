@@ -6,6 +6,14 @@ target: packages/appkit-react/README.md
 
 React components and hooks for AppKit.
 
+## Overview
+
+- [Initialization](#initialization)
+- [Basic Usage](#basic-usage)
+- [Swap](#swap)
+- [Hooks](./docs/hooks.md): React hooks for wallet connection, state, and data fetching.
+- [Components](./docs/components.md): UI components for AppKit.
+
 ## Installation
 
 ```bash
@@ -23,37 +31,73 @@ npm install @ton/appkit-react @tanstack/react-query @tonconnect/ui-react @ton/co
 
 ## Initialization
 
-Wrap your application in `AppKitProvider` and pass the `AppKit` instance.
+Initialize `QueryClient` and `AppKit`, then wrap your application in `QueryClientProvider` and `AppKitProvider`.
 
 > [!NOTE]
 > Don't forget to import styles from `@ton/appkit-react/styles.css`.
 
 %%demo/examples/src/appkit#APPKIT_REACT_INIT%%
+[Read more about TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
 
-### Setup TanStack Query
+### TonConnect Configuration
 
-Wrap your application in `QueryClientProvider` from `@tanstack/react-query` inside `AppKitProvider`.
+When using `TonConnectConnector`, you can pass `tonConnectOptions` which accepts standard [TonConnectUI options](https://github.com/ton-connect/sdk/tree/main/packages/ui-react#parameters), including `manifestUrl`, `uiOptions`, etc.
+
+## Basic Usage
+
+### Connect Wallet
+
+Use `TonConnectButton` to allow users to connect their wallets. It handles the connection flow and UI.
 
 ```tsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppKitProvider } from '@ton/appkit-react';
+import { TonConnectButton } from '@ton/appkit-react';
 
-const queryClient = new QueryClient();
-
-// ... appKit initialization
-
-function App() {
+export const Header = () => {
     return (
-        <AppKitProvider appKit={appKit}>
-            <QueryClientProvider client={queryClient}>
-                {/* ... */}
-            </QueryClientProvider>
-        </AppKitProvider>
+        <header>
+            <TonConnectButton />
+        </header>
     );
-}
+};
 ```
 
-[Read more about TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
+### Get Wallet Address
+
+Use `useAddress` to get the currently connected wallet address.
+
+```tsx
+import { useAddress } from '@ton/appkit-react';
+
+export const AddressBlock = () => {
+    const address = useAddress();
+
+    if (!address) {
+        return <div>Wallet not connected</div>;
+    }
+
+    return <div>Address: {address}</div>;
+};
+```
+
+### Get Balance
+
+Use `useBalance` to fetch the TON balance of the connected wallet.
+
+```tsx
+import { useBalance } from '@ton/appkit-react';
+
+export const Balance = () => {
+    const { data: balance, isLoading } = useBalance();
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    return <div>Balance: {balance?.toString()} TON</div>;
+};
+```
+
+> See [Hooks Documentation](./docs/hooks.md) for all available hooks and [Components Documentation](./docs/components.md) for UI components.
 
 ## Swap
 
@@ -84,11 +128,6 @@ See [Swap Hooks](./docs/hooks.md#swap) for usage examples.
 You can use standard TonConnect hooks in your components:
 
 %%demo/examples/src/appkit#APPKIT_REACT_TONCONNECT_HOOKS%%
-
-## Documentation
-
-- [Hooks](./docs/hooks.md): React hooks for wallet connection, state, and data fetching.
-- [Components](./docs/components.md): UI components for AppKit.
 
 ## License
 
