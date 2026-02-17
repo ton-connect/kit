@@ -68,7 +68,7 @@ describe('use-balance-by-address', () => {
 
         // Wait for loading to finish and balance to appear
         await waitFor(() => {
-            expect(screen.getByText('Balance: 1000000000')).toBeDefined();
+            expect(screen.getByText('Balance: 1')).toBeDefined();
         });
     });
 
@@ -148,7 +148,7 @@ describe('use-balance', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText('Balance: 500000000')).toBeDefined();
+            expect(screen.getByText('Balance: 0.5')).toBeDefined();
         });
     });
 

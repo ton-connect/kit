@@ -64,7 +64,7 @@ describe('Balance Actions Examples (Integration)', () => {
             // Using a simple object that mimics TokenAmount to avoid constructor issues if any,
             // or we could use `new TokenAmount(1000000000n, 9)` if available.
             // Since we test the example which calls .toString(), this is sufficient.
-            const balanceValue = { toString: () => '1' } as TokenAmount;
+            const balanceValue = { toString: () => '1000000000' } as TokenAmount;
             mockGetBalance.mockResolvedValue(balanceValue);
 
             await getBalanceExample(appKit);
@@ -85,7 +85,7 @@ describe('Balance Actions Examples (Integration)', () => {
 
     describe('getBalanceByAddressExample', () => {
         it('should log balance for specific address', async () => {
-            const balanceValue = { toString: () => '0.5' } as TokenAmount;
+            const balanceValue = { toString: () => '500000000' } as TokenAmount;
             mockGetBalance.mockResolvedValue(balanceValue);
 
             await getBalanceByAddressExample(appKit);
