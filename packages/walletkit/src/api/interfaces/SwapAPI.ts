@@ -35,6 +35,8 @@ export interface SwapAPI extends DefiManagerAPI<SwapProviderInterface> {
  * Interface that all swap providers must implement
  */
 export interface SwapProviderInterface<TQuoteOptions = unknown, TSwapOptions = unknown> extends DefiProvider {
+    readonly type: 'swap';
+
     /**
      * Unique identifier for the provider
      */

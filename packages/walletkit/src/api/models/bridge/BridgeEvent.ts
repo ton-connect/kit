@@ -47,4 +47,8 @@ export interface BridgeEvent {
     messageId?: string;
     traceId?: string;
     dAppInfo?: DAppInfo;
+    /**
+     * Raw TonConnect return strategy string.
+     */
+    returnStrategy?: string;
 }

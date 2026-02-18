@@ -22,12 +22,12 @@ export interface SwapQuoteParams<TProviderOptions = unknown> {
     /**
      * Token to swap from
      */
-    fromToken: SwapToken;
+    from: SwapToken;
 
     /**
      * Token to swap to
      */
-    toToken: SwapToken;
+    to: SwapToken;
 
     /**
      * Network on which the swap will be executed

@@ -35,3 +35,4 @@ release-artifacts
 *.tgz
 
 .claude
+apps/appkit-minter/src/pages/example.tsx

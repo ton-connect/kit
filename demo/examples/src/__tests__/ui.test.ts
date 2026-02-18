@@ -6,13 +6,17 @@
  *
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Result, AssetType } from '@ton/walletkit';
 
-import { applyRenderConnectPreview } from '../ui/renderConnectPreview';
-import { applySummarizeTransaction } from '../ui/summarizeTransaction';
-import { applyRenderMoneyFlow } from '../ui/renderMoneyFlow';
-import { applyRenderSignDataPreview } from '../ui/renderSignDataPreview';
+import { applyRenderConnectPreview } from '../ui/render-connect-preview';
+import { applySummarizeTransaction } from '../ui/summarize-transaction';
+import { applyRenderMoneyFlow } from '../ui/render-money-flow';
+import { applyRenderSignDataPreview } from '../ui/render-sign-data-preview';
+
+vi.mock('@ton/walletkit', async () => {
+    return await import('../__mocks__/@ton/walletkit');
+});
 
 describe('UI rendering functions', () => {
     describe('renderConnectPreview', () => {

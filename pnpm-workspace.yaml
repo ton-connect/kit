@@ -4,6 +4,14 @@ packages:
   - demo/*
 
 catalog:
+  '@tanstack/query-core': 5.90.20
+  '@tanstack/react-query': 5.90.20
+  '@ton/core': ^0.63.0
+  '@ton/crypto': 3.3.0
+  '@tonconnect/protocol': 2.4.0
+  '@tonconnect/sdk': 3.4.1
+  '@tonconnect/ui': 2.4.1
+  '@tonconnect/ui-react': 2.4.1
   '@types/react': 19.2.8
   '@types/react-dom': 19.2.3
   react: 19.2.3
@@ -17,15 +25,6 @@ catalogs:
     react: 19.1.0
     react-dom: 19.1.0
     react-native: 0.81.5
-
-ignoredBuiltDependencies:
-  - better-sqlite3
-  - esbuild
-  - react-native-mmkv
-  - react-native-nitro-modules
-  - spawn-sync
-  - unrs-resolver
-  - usb
 
 onlyBuiltDependencies:
   - node-hid

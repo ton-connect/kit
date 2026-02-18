@@ -25,23 +25,23 @@ export class SwapManager extends DefiManager<SwapProviderInterface> implements S
     /**
      * Get a quote for swapping tokens
      * @param params - Quote parameters
-     * @param provider - Optional provider name to use
+     * @param providerId - Optional provider name to use
      * @returns Promise resolving to swap quote
      */
     async getQuote<TProviderOptions = unknown>(
         params: SwapQuoteParams<TProviderOptions>,
-        provider?: string,
+        providerId?: string,
     ): Promise<SwapQuote> {
         log.debug('Getting swap quote', {
-            fromToken: params.fromToken,
-            toToken: params.toToken,
+            fromToken: params.from,
+            toToken: params.to,
             amount: params.amount,
             isReverseSwap: params.isReverseSwap,
-            provider: provider || this.defaultProviderId,
+            providerId: providerId || this.defaultProviderId,
         });
 
         try {
-            const quote = await this.getProvider(provider).getQuote(params);
+            const quote = await this.getProvider(providerId || this.defaultProviderId).getQuote(params);
 
             log.debug('Received swap quote', {
                 fromAmount: quote.fromAmount,
@@ -59,20 +59,20 @@ export class SwapManager extends DefiManager<SwapProviderInterface> implements S
     /**
      * Build a transaction for executing a swap
      * @param params - Swap parameters including quote
-     * @param provider - Optional provider name to use
      * @returns Promise resolving to transaction request
      */
     async buildSwapTransaction<TProviderOptions = unknown>(
         params: SwapParams<TProviderOptions>,
-        provider?: string,
     ): Promise<TransactionRequest> {
+        const providerId = params.quote.providerId || this.defaultProviderId;
+
         log.debug('Building swap transaction', {
+            providerId,
             userAddress: params.userAddress,
-            provider: provider || this.defaultProviderId,
         });
 
         try {
-            const transaction = await this.getProvider(provider).buildSwapTransaction(params);
+            const transaction = await this.getProvider(providerId).buildSwapTransaction(params);
 
             log.debug('Built swap transaction', params.quote);
 

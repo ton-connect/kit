@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+      "incremental": true,
+      "strict": true,
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitOverride": true,
+      "noImplicitReturns": true,
+      "noUncheckedIndexedAccess": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "useDefineForClassFields": true,
+      "useUnknownInCatchVariables": true,
+      "allowJs": false,
+      "checkJs": false,
+      "forceConsistentCasingInFileNames": true,
+      "verbatimModuleSyntax": true,
+      "moduleResolution": "bundler",
+      "module": "esnext",
+      "target": "ES2021",
+      "lib": [
+        "ES2022",
+        "DOM",
+        "DOM.Iterable"
+      ],
+      "skipLibCheck": true,
+      "jsx": "react-jsx",
+      "sourceMap": true,
+      "declaration": true,
+      "declarationMap": true
+    },
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx"
+    ],
+    "exclude": [
+      "node_modules",
+      "dist"
+    ]
+  }

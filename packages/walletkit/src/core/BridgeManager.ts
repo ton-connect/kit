@@ -595,6 +595,7 @@ export class BridgeManager {
                 messageId: event?.messageId,
                 traceId: event?.traceId,
                 walletId: event?.walletId,
+                returnStrategy: event?.returnStrategy,
             };
 
             if (!rawEvent.traceId) {

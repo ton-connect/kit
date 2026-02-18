@@ -1,0 +1,13 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: var(--ta-border-radius-l);
+  background-color: var(--ta-color-block);
+}
+
+.row {
+  flex-direction: row;
+  align-items: center;
+}

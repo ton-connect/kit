@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "outDir": "dist",
+        "module": "ESNext",
+        "baseUrl": "./",
+        "moduleResolution": "bundler",
+        "declaration": true,
+        "declarationDir": "dist",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "skipLibCheck": true,
+        "declarationMap": true
+    },
+    "exclude": [
+        "**/*.spec.ts",
+        "**/*.fixture.ts",
+        "**/*.config.ts",
+        "node_modules",
+        "coverage",
+        ".stryker-tmp",
+        "dist"
+    ],
+    "include": [
+        "src/**/*"
+    ]
+}

@@ -31,7 +31,7 @@
     "tonconnect"
   ],
   "devDependencies": {
-    "@ton/crypto": "^3.3.0",
+    "@ton/crypto": "catalog:",
     "@ton/crypto-primitives": "^2.1.0",
     "@types/whatwg-url": "^13.0.0",
     "typescript": "~5.9.3",

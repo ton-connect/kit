@@ -10,7 +10,7 @@ import 'dotenv/config';
 
 import { Network } from '@ton/walletkit';
 
-import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
+import { walletKitInitializeSample } from './lib/wallet-kit-initialize-sample';
 
 /**
  * pnpm tsx src/jettons.ts

@@ -18,6 +18,7 @@ import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
 import { asBase64, getUnixtime } from '../../../utils';
+import { formatUnits, parseUnits } from '../../../utils/units';
 
 const log = globalLogger.createChild('OmnistonSwapProvider');
 
@@ -88,15 +89,15 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     async getQuote(params: SwapQuoteParams<OmnistonProviderOptions>): Promise<SwapQuote> {
         log.debug('Getting Omniston quote', {
-            fromToken: params.fromToken,
-            toToken: params.toToken,
+            fromToken: params.from,
+            toToken: params.to,
             amount: params.amount,
             isReverseSwap: params.isReverseSwap,
         });
 
         try {
-            const bidAssetAddress = tokenToAddress(params.fromToken);
-            const askAssetAddress = tokenToAddress(params.toToken);
+            const bidAssetAddress = tokenToAddress(params.from);
+            const askAssetAddress = tokenToAddress(params.to);
 
             const slippageBps = params.slippageBps ?? this.defaultSlippageBps;
 
@@ -106,7 +107,9 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             const flexibleReferrerFee = params.providerOptions?.flexibleReferrerFee ?? this.flexibleReferrerFee;
 
             // Determine amount based on whether amountFrom or amountTo is specified
-            const amount = params.isReverseSwap ? { askUnits: params.amount } : { bidUnits: params.amount };
+            const amount = params.isReverseSwap
+                ? { askUnits: parseUnits(params.amount, params.to.decimals).toString() }
+                : { bidUnits: parseUnits(params.amount, params.from.decimals).toString() };
 
             const quoteRequest: QuoteRequest = {
                 amount,
@@ -128,7 +131,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             const quoteEvent = await new Promise<QuoteResponseEvent>((resolve, reject) => {
                 let isSettled = false;
 
-                log.debug('Requesting quote');
+                log.debug('Requesting quote', { quoteRequest });
 
                 const timeoutId = setTimeout(() => {
                     log.debug('Timeout reached');
@@ -303,13 +306,19 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         }
 
         return {
+            rawFromAmount: quote.bidUnits,
+            rawToAmount: quote.askUnits,
+            rawMinReceived: quote.askUnits,
+
+            fromAmount: formatUnits(quote.bidUnits, params.from.decimals),
+            toAmount: formatUnits(quote.askUnits, params.to.decimals),
+            minReceived: formatUnits(quote.askUnits, params.to.decimals),
+
             metadata,
             providerId: this.providerId,
-            fromToken: params.fromToken,
-            toToken: params.toToken,
-            fromAmount: quote.bidUnits,
-            toAmount: quote.askUnits,
-            minReceived: quote.askUnits,
+            fromToken: params.from,
+            toToken: params.to,
+
             network: params.network,
             expiresAt: quote.tradeStartDeadline ? quote.tradeStartDeadline : undefined,
             fee: fee?.length ? fee : undefined,

@@ -61,6 +61,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
 
         dev: {
             disableNetworkSend: walletKitConfig?.disableNetworkSend,
+            disableManifestDomainCheck: walletKitConfig?.disableManifestDomainCheck,
         },
     }) as ITonWalletKit;
 

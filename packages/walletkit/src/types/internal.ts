@@ -13,6 +13,7 @@ import type {
     SendTransactionRpcRequest,
     SignDataRpcRequest,
     WalletResponseTemplateError,
+    CHAIN,
 } from '@tonconnect/protocol';
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
@@ -107,11 +108,35 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
     return extraCurrency as ExtraCurrencies;
 }
 
+/**
+ * Raw transaction params as received from TON Connect protocol
+ */
+export interface RawConnectTransactionParamContent {
+    messages: ConnectTransactionParamMessage[];
+    network?: CHAIN;
+    valid_until?: number;
+    from?: string;
+}
+
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: string;
-    valid_until?: number; // unixtime
+    network?: CHAIN;
+    validUntil?: number;
     from?: string;
+}
+
+/**
+ * Parse raw TON Connect transaction params to internal format
+ */
+export function parseConnectTransactionParamContent(
+    raw: RawConnectTransactionParamContent,
+): ConnectTransactionParamContent {
+    return {
+        messages: raw.messages,
+        network: raw.network,
+        validUntil: raw.valid_until,
+        from: raw.from,
+    };
 }
 
 export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {
@@ -139,19 +164,25 @@ export function toConnectTransactionParamMessage(message: TransactionRequestMess
     };
 }
 
+/**
+ * Convert internal params format to TransactionRequest model.
+ */
 export function toTransactionRequest(params: ConnectTransactionParamContent): TransactionRequest {
     return {
         messages: params.messages.map(toTransactionRequestMessage),
         network: params.network ? { chainId: params.network } : undefined,
-        validUntil: params.valid_until,
+        validUntil: params.validUntil,
         fromAddress: params.from,
     };
 }
 
-export function toConnectTransactionParamContent(request: TransactionRequest): ConnectTransactionParamContent {
+/**
+ * Convert internal TransactionRequest to raw TON Connect protocol
+ */
+export function toConnectTransactionParamContent(request: TransactionRequest): RawConnectTransactionParamContent {
     return {
         messages: request.messages.map(toConnectTransactionParamMessage),
-        network: request.network?.chainId,
+        network: request.network?.chainId as CHAIN,
         valid_until: request.validUntil,
         from: request.fromAddress,
     };

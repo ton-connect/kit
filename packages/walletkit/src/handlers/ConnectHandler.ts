@@ -21,6 +21,7 @@ import type {
     ConnectionRequestEventPreview,
     ConnectionRequestEventRequestedItem,
 } from '../api/models';
+import type { TonWalletKitOptions } from '../types/config';
 
 const log = globalLogger.createChild('ConnectHandler');
 
@@ -30,7 +31,11 @@ export class ConnectHandler
 {
     private analytics?: Analytics;
 
-    constructor(notify: (event: ConnectionRequestEvent) => void, analyticsManager?: AnalyticsManager) {
+    constructor(
+        notify: (event: ConnectionRequestEvent) => void,
+        private readonly config: TonWalletKitOptions,
+        analyticsManager?: AnalyticsManager,
+    ) {
         super(notify);
         this.analytics = analyticsManager?.scoped();
     }
@@ -66,6 +71,7 @@ export class ConnectHandler
             dAppInfo: preview.dAppInfo,
             isJsBridge: event.isJsBridge,
             tabId: event.tabId,
+            returnStrategy: event.params.returnStrategy,
         };
 
         // Send wallet-connect-request-received event
@@ -143,19 +149,22 @@ export class ConnectHandler
 
         // Validate dApp URL from manifest content - set error if invalid
         let finalManifestFetchErrorCode = manifestFetchErrorCode;
-        if (!finalManifestFetchErrorCode && dAppUrl) {
-            try {
-                const parsedDAppUrl = new URL(dAppUrl);
-                if (!isValidHost(parsedDAppUrl.host)) {
-                    log.warn('Invalid dApp URL in manifest - invalid host format', {
-                        dAppUrl,
-                        host: parsedDAppUrl.host,
-                    });
+        if (!this.config.dev?.disableManifestDomainCheck) {
+            // if domain check is disabled, we don't validate the domain
+            if (!finalManifestFetchErrorCode && dAppUrl) {
+                try {
+                    const parsedDAppUrl = new URL(dAppUrl);
+                    if (!isValidHost(parsedDAppUrl.host)) {
+                        log.warn('Invalid dApp URL in manifest - invalid host format', {
+                            dAppUrl,
+                            host: parsedDAppUrl.host,
+                        });
+                        finalManifestFetchErrorCode = CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
+                    }
+                } catch (_) {
+                    log.warn('Invalid dApp URL in manifest - failed to parse', { dAppUrl });
                     finalManifestFetchErrorCode = CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
                 }
-            } catch (_) {
-                log.warn('Invalid dApp URL in manifest - failed to parse', { dAppUrl });
-                finalManifestFetchErrorCode = CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR;
             }
         }
 
@@ -253,6 +262,7 @@ export class ConnectHandler
         try {
             const response = await fetch(url);
             if (!response.ok) {
+                log.error('Failed to fetch manifest not ok', { url, status: response.status });
                 return {
                     manifest: null,
                     manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,
@@ -263,7 +273,8 @@ export class ConnectHandler
                 manifest: result,
                 manifestFetchErrorCode: undefined,
             };
-        } catch (_) {
+        } catch (e) {
+            log.error('Failed to fetch manifest catched', { url, error: e });
             return {
                 manifest: null,
                 manifestFetchErrorCode: CONNECT_EVENT_ERROR_CODES.MANIFEST_CONTENT_ERROR,

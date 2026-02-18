@@ -28,12 +28,27 @@ export interface SwapQuote {
     /**
      * Amount of tokens to sell
      */
+    rawFromAmount: TokenAmount;
+
+    /**
+     * Amount of tokens to buy
+     */
+    rawToAmount: TokenAmount;
+
+    /**
+     * Amount of tokens to sell
+     */
     fromAmount: TokenAmount;
 
     /**
      * Amount of tokens to buy
      */
     toAmount: TokenAmount;
+
+    /**
+     * Minimum amount of tokens to receive (after slippage)
+     */
+    rawMinReceived: TokenAmount;
 
     /**
      * Minimum amount of tokens to receive (after slippage)

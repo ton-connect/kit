@@ -16,7 +16,8 @@ export type { PreparedSignData, SignDataPayload, UnpreparedSignData } from './co
 export type { UserFriendlyAddress, Hex, Base64String, LogicalTime, ResultError, Pagination } from './core/Primitives';
 export { Result } from './core/Primitives';
 export type { ProofMessage } from './core/ProofMessage';
-export { SendMode, SendModeFlag, SendModeBase } from './core/SendMode';
+export type { SendMode } from './core/SendMode';
+export { SendModeFlag, SendModeBase } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
 export type { TokenAnimation } from './core/TokenAnimation';

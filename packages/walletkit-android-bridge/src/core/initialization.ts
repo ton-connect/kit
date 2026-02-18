@@ -87,9 +87,18 @@ export async function initTonWalletKit(
         networks: networksConfig,
     };
 
-    // Pass disableNetworkSend to dev options for testing
+    const devOptions: Record<string, unknown> = {};
     if (config?.disableNetworkSend) {
-        kitOptions.dev = { disableNetworkSend: true };
+        devOptions.disableNetworkSend = true;
+    }
+    if (Object.keys(devOptions).length > 0) {
+        kitOptions.dev = devOptions;
+    }
+
+    if (config?.disableTransactionEmulation !== undefined) {
+        kitOptions.eventProcessor = {
+            disableTransactionEmulation: config.disableTransactionEmulation,
+        };
     }
 
     if (config?.deviceInfo) {

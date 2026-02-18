@@ -1,0 +1,38 @@
+.button {
+  composes: bodyMedium from "../../styles/typography.module.css";
+  appearance: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 8px 16px;
+  border-radius: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  background-color: var(--ta-color-primary); 
+  color: var(--ta-color-primary-foreground);
+  transition: transform 0.125s ease-in-out, background-color 0.2s ease;
+  will-change: transform;
+}
+
+.button:hover {
+  transform: scale(1.02);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button:disabled:hover,
+.button:disabled:active {
+  transform: none;
+}

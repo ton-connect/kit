@@ -76,5 +76,6 @@ export interface TonWalletKitOptions {
 
     dev?: {
         disableNetworkSend?: boolean;
+        disableManifestDomainCheck?: boolean;
     };
 }

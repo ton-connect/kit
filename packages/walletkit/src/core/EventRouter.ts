@@ -154,7 +154,7 @@ export class EventRouter {
      */
     private setupHandlers(): void {
         this.handlers = [
-            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.analyticsManager),
+            new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.config, this.analyticsManager),
             new TransactionHandler(
                 this.notifyTransactionRequestCallbacks.bind(this),
                 this.config,

@@ -19,13 +19,19 @@ import { Network } from '../api/models';
 
 const log = globalLogger.createChild('NetworkManager');
 
+export interface NetworkManager {
+    getClient(network: Network): ApiClient;
+    hasNetwork(network: Network): boolean;
+    getConfiguredNetworks(): Network[];
+    setClient(network: Network, client: ApiClient): void;
+}
 /**
  * Manages multiple API clients for different networks
  *
  * Each network (identified by CHAIN) has its own ApiClient instance.
  * At least one network must be configured.
  */
-export class NetworkManager {
+export class KitNetworkManager implements NetworkManager {
     private clients: Map<string, ApiClient> = new Map();
 
     constructor(options: TonWalletKitOptions) {

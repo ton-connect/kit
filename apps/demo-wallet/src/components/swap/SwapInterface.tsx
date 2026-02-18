@@ -8,7 +8,7 @@
 
 import type { FC } from 'react';
 import { useState } from 'react';
-import { formatUnits, useSwap } from '@demo/wallet-core';
+import { useSwap } from '@demo/wallet-core';
 import { useNavigate } from 'react-router-dom';
 import type { SwapToken } from '@ton/walletkit';
 
@@ -59,8 +59,8 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     const [useCustomDestination, setUseCustomDestination] = useState(false);
 
     const getTokenSymbol = (token: SwapToken): string => {
-        if (token.type === 'ton') return 'TON';
-        if (token.type === 'jetton') return 'USDT';
+        if (token.symbol) return token.symbol;
+        if (token.address === 'ton') return 'TON';
         return 'Unknown';
     };
 
@@ -89,17 +89,9 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
         setIsReverseSwap(true);
     };
 
-    const fromAmount = !isReverseSwap
-        ? amount
-        : currentQuote
-          ? formatUnits(currentQuote.fromAmount, fromToken.type === 'ton' ? 9 : 6)
-          : '';
+    const fromAmount = !isReverseSwap ? amount : currentQuote ? currentQuote.fromAmount : '';
 
-    const toAmount = isReverseSwap
-        ? amount
-        : currentQuote
-          ? formatUnits(currentQuote.toAmount, toToken.type === 'ton' ? 9 : 6)
-          : '';
+    const toAmount = isReverseSwap ? amount : currentQuote ? currentQuote.toAmount : '';
 
     const getSwapButtonText = () => {
         if (!fromToken || !toToken) return 'Select tokens';
@@ -214,7 +206,7 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Minimum Received</span>
                                 <span className="font-medium">
-                                    {Number(formatUnits(currentQuote.minReceived, 6)).toFixed(6)} {toSymbol}
+                                    {Number(currentQuote.minReceived).toFixed(6)} {toSymbol}
                                 </span>
                             </div>
 
