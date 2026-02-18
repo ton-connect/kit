@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run build:esm+types && pnpm run copy:css",
-    "build:esm+types": "tsc --project tsconfig.build.json",
+    "build:esm+types": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
     "copy:css": "rsync -zarv --include='*/' --include='*.css' --exclude='*' src/ dist/esm/",
     "clean": "git clean -xdf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",

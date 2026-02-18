@@ -37,6 +37,7 @@ module.exports = [
             '**/Packages/TONWalletKit/*',
             '**/TONWalletApp/TONWalletApp/*',
             '**/androidkit/**',
+            '**/next-env.d.ts',
         ],
     },
     {

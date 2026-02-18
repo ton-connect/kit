@@ -6,8 +6,6 @@
  *
  */
 
-import type { NetworkManager } from '@ton/walletkit';
-
 import type { WalletInterface } from './wallet';
 import type { AppKitEmitter } from '../core/app-kit';
 
@@ -22,9 +20,6 @@ export interface Connector {
     readonly type: string;
 
     readonly metadata: ConnectorMetadata;
-
-    /** Initialize connector (restore connections, setup event listeners) */
-    initialize(emitter: AppKitEmitter, networkManager: NetworkManager): Promise<void>;
 
     /** Cleanup connector resources */
     destroy(): void;
@@ -42,4 +37,10 @@ export interface Connector {
 export interface ConnectorMetadata {
     name: string;
     iconUrl?: string;
+}
+
+export type CreateConnectorFn = (config: { emitter: AppKitEmitter; ssr?: boolean }) => Connector;
+
+export function createConnector(createConnectorFn: CreateConnectorFn): CreateConnectorFn {
+    return createConnectorFn;
 }

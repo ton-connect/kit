@@ -6,7 +6,7 @@
  *
  */
 
-import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, tonConnect } from '@ton/appkit';
 
 export const setupAppKitExample = () => {
     // SAMPLE_START: APPKIT_INIT
@@ -28,7 +28,7 @@ export const setupAppKitExample = () => {
             // },
         },
         connectors: [
-            new TonConnectConnector({
+            tonConnect({
                 tonConnectOptions: {
                     manifestUrl: 'your-manifest-url',
                 },

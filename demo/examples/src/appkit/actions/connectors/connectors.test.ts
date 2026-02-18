@@ -50,7 +50,7 @@ describe('Connector Actions Examples (Integration)', () => {
         } as unknown as Connector;
 
         // Add connector to AppKit
-        appKit.addConnector(mockConnector);
+        appKit.addConnector(() => mockConnector);
     });
 
     afterEach(() => {

@@ -6,6 +6,8 @@
  *
  */
 
+'use client';
+
 import { useMemo } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
@@ -28,11 +30,14 @@ export const TonConnectBridge: FC<TonConnectBridgeProps> = ({
     children,
     connectorId = TONCONNECT_DEFAULT_CONNECTOR_ID,
 }) => {
-    const connector = useConnectorById(connectorId) as TonConnectConnector | undefined;
-    const tonConnectUI = useMemo(() => connector?.tonConnectUI, [connector]);
+    const connector = useConnectorById(connectorId);
+    const tonConnectUI = useMemo(
+        () => (connector && connector.type === 'tonconnect' ? (connector as TonConnectConnector).tonConnectUI : null),
+        [connector],
+    );
 
     if (!tonConnectUI) {
-        return <>{children}</>;
+        return children;
     }
 
     return <TonConnectUIProvider instance={tonConnectUI}>{children}</TonConnectUIProvider>;

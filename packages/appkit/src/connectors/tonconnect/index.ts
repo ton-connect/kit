@@ -26,6 +26,9 @@ export { TonConnectWalletAdapter } from './adapters/ton-connect-wallet-adapter';
 export type { TonConnectWalletAdapterConfig } from './adapters/ton-connect-wallet-adapter';
 
 // Connector exports
-export { TonConnectConnector } from './connectors/ton-connect-connector';
+export {
+    tonConnect,
+    type TonConnectConnectorConfig,
+    type TonConnectConnector,
+} from './connectors/ton-connect-connector';
 export { TONCONNECT_DEFAULT_CONNECTOR_ID } from './constants/id';
-export type { TonConnectConnectorConfig } from './connectors/ton-connect-connector';

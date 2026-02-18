@@ -6,7 +6,7 @@
  *
  */
 
-import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, tonConnect } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 
 import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
@@ -27,7 +27,7 @@ export const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        tonConnect({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
             },

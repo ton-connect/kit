@@ -1,1 +1,0 @@
-{"version":3,"file":"tonconnect-bridge.d.ts","sourceRoot":"","sources":["tonconnect-bridge.tsx"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAGH,OAAO,KAAK,EAAE,EAAE,EAAE,iBAAiB,EAAE,MAAM,OAAO,CAAC;AAOnD,MAAM,WAAW,qBAAsB,SAAQ,iBAAiB;IAC5D,WAAW,CAAC,EAAE,MAAM,CAAC;CACxB;AAED;;;;;GAKG;AACH,eAAO,MAAM,gBAAgB,EAAE,EAAE,CAAC,qBAAqB,CAYtD,CAAC"}

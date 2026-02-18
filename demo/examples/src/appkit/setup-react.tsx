@@ -10,7 +10,7 @@
 
 // SAMPLE_START: APPKIT_REACT_INIT
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, tonConnect } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
 import type { FC } from 'react';
 
@@ -44,7 +44,7 @@ const appKit = new AppKit({
         // },
     },
     connectors: [
-        new TonConnectConnector({
+        tonConnect({
             tonConnectOptions: {
                 manifestUrl: 'your-manifest-url',
             },

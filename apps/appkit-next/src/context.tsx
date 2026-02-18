@@ -8,9 +8,9 @@
 
 'use client';
 
-import { AppKit, Network, AppKitProvider, TonConnectConnector } from '@ton/appkit-react';
+import { AppKit, Network, AppKitProvider, tonConnect } from '@ton/appkit-react';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from './config/env';
@@ -18,44 +18,43 @@ import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from './config/env';
 // Import styles
 import '@ton/appkit-react/styles.css';
 
-function createAppKit() {
-    return new AppKit({
-        networks: {
-            [Network.mainnet().chainId]: {
-                apiClient: {
-                    url: 'https://toncenter.com',
-                    key: ENV_TON_API_KEY_MAINNET,
-                },
-            },
-            [Network.testnet().chainId]: {
-                apiClient: {
-                    url: 'https://testnet.toncenter.com',
-                    key: ENV_TON_API_KEY_TESTNET,
-                },
+const appKit = new AppKit({
+    ssr: true,
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: {
+                url: 'https://toncenter.com',
+                key: ENV_TON_API_KEY_MAINNET,
             },
         },
-        connectors: [
-            new TonConnectConnector({
-                tonConnectOptions: {
-                    manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
-                },
-            }),
-        ],
-    });
-}
+        [Network.testnet().chainId]: {
+            apiClient: {
+                url: 'https://testnet.toncenter.com',
+                key: ENV_TON_API_KEY_TESTNET,
+            },
+        },
+    },
+    connectors: [
+        tonConnect({
+            tonConnectOptions: {
+                manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
+            },
+        }),
+    ],
+});
 
 const queryClient = new QueryClient();
 
 export default function AppKitContext({ children }: { children: ReactNode }) {
-    const [appKit, setAppKit] = useState<AppKit | null>(null);
+    // const [appKit, setAppKit] = useState<AppKit | null>(null);
 
-    useEffect(() => {
-        setAppKit(createAppKit());
-    }, []);
+    // useEffect(() => {
+    //     setAppKit(createAppKit());
+    // }, []);
 
-    if (!appKit) {
-        return null;
-    }
+    // if (!appKit) {
+    //     return null;
+    // }
 
     return (
         <AppKitProvider appKit={appKit}>
