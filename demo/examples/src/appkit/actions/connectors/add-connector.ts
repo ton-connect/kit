@@ -16,7 +16,7 @@ export const addConnectorExample = (appKit: AppKit) => {
         appKit,
         new TonConnectConnector({
             tonConnectOptions: {
-                manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
+                manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },
         }),
     );

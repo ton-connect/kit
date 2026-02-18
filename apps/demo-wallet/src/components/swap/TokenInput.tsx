@@ -40,11 +40,11 @@ export const TokenInput: FC<Props> = ({
     const { userJettons } = useJettons();
 
     const getTokenBalance = (token: SwapToken): string => {
-        if (token.type === 'ton') {
+        if (token.address === 'ton') {
             return formatTon(balance || '0');
         }
 
-        const jetton = userJettons.find((j) => j.address === token.value);
+        const jetton = userJettons.find((j) => j.address === token.address);
         if (jetton && jetton.balance && jetton.decimalsNumber) {
             const decimals = jetton.decimalsNumber;
             return formatUnits(jetton.balance, decimals);
@@ -56,14 +56,14 @@ export const TokenInput: FC<Props> = ({
     const handleMaxClick = () => {
         if (isOutput) return;
 
-        if (token.type === 'ton') {
+        if (token.address === 'ton') {
             const currentBalance = parseFloat(formatTon(balance || '0'));
             const maxAmount = currentBalance - 0.1;
             if (maxAmount > 0) {
                 onAmountChange(maxAmount.toString());
             }
         } else {
-            const jetton = userJettons.find((j) => j.address === token.value);
+            const jetton = userJettons.find((j) => j.address === token.address);
             if (jetton && jetton.balance) {
                 const decimals = jetton.decimalsNumber || 9;
                 const balanceInUnits = formatUnits(jetton.balance, decimals);

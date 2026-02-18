@@ -16,8 +16,8 @@ export const UseSwapQuoteExample = () => {
         isLoading,
         error,
     } = useSwapQuote({
-        from: { type: 'ton' },
-        to: { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' }, // USDT
+        from: { address: 'ton', decimals: 9 },
+        to: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6 }, // USDT
         amount: '1000000000', // 1 TON in nanotons (raw format)
         network: Network.mainnet(),
     });

@@ -59,8 +59,8 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     const [useCustomDestination, setUseCustomDestination] = useState(false);
 
     const getTokenSymbol = (token: SwapToken): string => {
-        if (token.type === 'ton') return 'TON';
-        if (token.type === 'jetton') return 'USDT';
+        if (token.symbol) return token.symbol;
+        if (token.address === 'ton') return 'TON';
         return 'Unknown';
     };
 
@@ -92,14 +92,10 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
     const fromAmount = !isReverseSwap
         ? amount
         : currentQuote
-          ? formatUnits(currentQuote.fromAmount, fromToken.type === 'ton' ? 9 : 6)
+          ? formatUnits(currentQuote.fromAmount, fromToken.decimals)
           : '';
 
-    const toAmount = isReverseSwap
-        ? amount
-        : currentQuote
-          ? formatUnits(currentQuote.toAmount, toToken.type === 'ton' ? 9 : 6)
-          : '';
+    const toAmount = isReverseSwap ? amount : currentQuote ? formatUnits(currentQuote.toAmount, toToken.decimals) : '';
 
     const getSwapButtonText = () => {
         if (!fromToken || !toToken) return 'Select tokens';

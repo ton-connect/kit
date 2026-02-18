@@ -17,8 +17,8 @@ const log = createComponentLogger('SwapSlice');
 
 export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
     swap: {
-        fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
+        fromToken: { address: 'ton', decimals: 9, symbol: 'TON' },
+        toToken: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6, symbol: 'USDT' },
         amount: '',
         destinationAddress: '',
         currentQuote: null,
@@ -130,7 +130,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
         const tonBalance = BigInt(tonBalanceStr);
 
-        if (fromToken.type === 'ton') {
+        if (fromToken.address === 'ton') {
             const amountBigInt = parseUnits(amount, 9);
 
             if (amountBigInt > tonBalance) {
@@ -207,8 +207,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
             // Determine which amount to use and convert to units
             let quoteParams: SwapQuoteParams;
             if (isReverseSwap) {
-                const decimals = toToken.type === 'ton' ? 9 : 6;
-                const amountInUnits = parseUnits(amount, decimals).toString();
+                const amountInUnits = parseUnits(amount, toToken.decimals).toString();
                 quoteParams = {
                     from: toToken,
                     to: fromToken,
@@ -219,8 +218,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                     isReverseSwap: true,
                 };
             } else {
-                const decimals = fromToken.type === 'ton' ? 9 : 6;
-                const amountInUnits = parseUnits(amount, decimals).toString();
+                const amountInUnits = parseUnits(amount, fromToken.decimals).toString();
                 quoteParams = {
                     from: fromToken,
                     to: toToken,
@@ -348,8 +346,12 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
     clearSwap: () => {
         set((state) => {
-            state.swap.fromToken = { type: 'ton' };
-            state.swap.toToken = { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' };
+            state.swap.fromToken = { address: 'ton', decimals: 9, symbol: 'TON' };
+            state.swap.toToken = {
+                address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+                decimals: 6,
+                symbol: 'USDT',
+            };
             state.swap.amount = '';
             state.swap.currentQuote = null;
             state.swap.isLoadingQuote = false;

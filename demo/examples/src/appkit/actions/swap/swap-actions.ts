@@ -17,8 +17,8 @@ export const swapExample = async (appKit: AppKit) => {
 
     // SAMPLE_START: GET_SWAP_QUOTE
     const quote = await getSwapQuote(appKit, {
-        from: { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
-        to: { type: 'ton' },
+        from: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6 },
+        to: { address: 'ton', decimals: 9 },
         amount: '1000000000', // nanotons as string
         network: Network.mainnet(),
     });

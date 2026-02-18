@@ -6,25 +6,15 @@
  *
  */
 
-import type { UserFriendlyAddress } from '../core/Primitives';
-
 /**
  * Token type for swap
  */
-export type SwapToken =
-    | {
-          /**
-           * Jetton token type
-           */
-          type: 'jetton';
-          /**
-           * Jetton master contract address
-           */
-          address: UserFriendlyAddress;
-      }
-    | {
-          /**
-           * Native TON coin type
-           */
-          type: 'ton';
-      };
+export type SwapToken = {
+    address: string;
+    decimals: number;
+
+    name?: string;
+    symbol?: string;
+    image?: string;
+    chainId?: string;
+};

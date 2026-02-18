@@ -47,7 +47,7 @@ const stopWatching = addConnector(
     appKit,
     new TonConnectConnector({
         tonConnectOptions: {
-            manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
+            manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
         },
     }),
 );
@@ -407,12 +407,12 @@ Get a swap quote from registered providers.
 
 ```ts
 const quote = await getSwapQuote(appKit, {
-    fromToken: {
-        type: 'jetton',
-        value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+    from: {
+        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        decimals: 6,
     },
-    toToken: { type: 'ton' },
-    amount: '1000000000', // nanotons as string
+    to: { address: 'ton', decimals: 9 },
+    amount: '1', // human readable amount
     network: Network.mainnet(),
 });
 console.log('Swap Quote:', quote);

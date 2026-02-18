@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { formatUnits, parseUnits } from '@ton/appkit';
+import { formatUnits } from '@ton/appkit';
 import { Transaction, useSwapQuote, useNetwork, useAddress, useBuildSwapTransaction } from '@ton/appkit-react';
 
 export const USDT_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
@@ -21,9 +21,9 @@ export const SwapButton: FC = () => {
         isError,
         isLoading,
     } = useSwapQuote({
-        amount: parseUnits('1', 9).toString(),
-        from: { type: 'ton' },
-        to: { type: 'jetton', address: USDT_ADDRESS },
+        amount: '1',
+        from: { address: 'ton', decimals: 9 },
+        to: { address: USDT_ADDRESS, decimals: 6 },
         network,
         slippageBps: 100,
     });

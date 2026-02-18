@@ -508,10 +508,10 @@ const {
     isLoading,
     error,
 } = useSwapQuote({
-    fromToken: { type: 'ton' },
-    toToken: {
-        type: 'jetton',
-        value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+    from: { address: 'ton', decimals: 9 },
+    to: {
+        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        decimals: 6,
     }, // USDT
     amount: '1000000000', // 1 TON in nanotons (raw format)
     network: Network.mainnet(),
@@ -545,10 +545,10 @@ Hook to build a transaction for a swap operation based on a quote.
 ```tsx
 // First, get a quote
 const { data: quote } = useSwapQuote({
-    fromToken: { type: 'ton' },
-    toToken: {
-        type: 'jetton',
-        value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+    from: { address: 'ton', decimals: 9 },
+    to: {
+        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        decimals: 6,
     },
     amount: '1000000000', // 1 TON in nanotons (raw format)
     network: Network.mainnet(),
