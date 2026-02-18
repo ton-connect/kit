@@ -1,8 +1,11 @@
 {
   "name": "@ton/appkit-react",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run build:esm+types && pnpm run copy:css",
+    "build:esm+types": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
+    "copy:css": "rsync -zarv --include='*/' --include='*.css' --exclude='*' src/ dist/esm/",
     "dev": "tsup --watch",
     "clean": "git clean -xdf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",
@@ -14,19 +17,23 @@
     "url": "https://github.com/ton-connect/kit"
   },
   "files": [
-    "dist"
+    "dist/**",
+    "!dist/**/*.tsbuildinfo",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.stories.tsx"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
     },
-    "./styles.css": "./dist/styles/index.css"
+    "./styles.css": "./dist/esm/styles/index.css"
   },
   "dependencies": {
     "@ton/appkit": "workspace:*",
