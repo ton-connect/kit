@@ -46,16 +46,6 @@ const appKit = new AppKit({
 const queryClient = new QueryClient();
 
 export default function AppKitContext({ children }: { children: ReactNode }) {
-    // const [appKit, setAppKit] = useState<AppKit | null>(null);
-
-    // useEffect(() => {
-    //     setAppKit(createAppKit());
-    // }, []);
-
-    // if (!appKit) {
-    //     return null;
-    // }
-
     return (
         <AppKitProvider appKit={appKit}>
             <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

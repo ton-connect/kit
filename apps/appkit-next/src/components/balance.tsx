@@ -10,8 +10,9 @@
 
 import { formatUnits } from '@ton/appkit';
 import { useBalance } from '@ton/appkit-react';
+import type { FC } from 'react';
 
-export default function Balance() {
+export const Balance: FC = () => {
     const { data: balance } = useBalance({
         query: {
             refetchInterval: 20000,
@@ -24,4 +25,4 @@ export default function Balance() {
             <p className="inline">{balance ? `${formatUnits(balance, 9)} TON` : 'Loading...'}</p>
         </div>
     );
-}
+};

@@ -6,18 +6,13 @@
  *
  */
 
-'use client';
-
-import { TonConnectButton } from '@ton/appkit-react';
-
-import Balance from '../balance';
-
-export const dynamic = 'force-dynamic';
+import { Balance } from '../components/balance';
+import { Header } from '../components/header';
 
 export default function Home() {
     return (
         <div className="flex flex-col gap-4 min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-            <TonConnectButton />
+            <Header />
             <Balance />
         </div>
     );
