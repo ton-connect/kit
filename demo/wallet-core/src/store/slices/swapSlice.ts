@@ -18,7 +18,7 @@ const log = createComponentLogger('SwapSlice');
 export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
     swap: {
         fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
+        toToken: { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
         amount: '',
         destinationAddress: '',
         currentQuote: null,
@@ -138,7 +138,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
             }
         } else {
             // Check jetton balance
-            const jetton = state.jettons.userJettons.find((j) => j.address === fromToken.value);
+            const jetton = state.jettons.userJettons.find((j) => j.address === fromToken.address);
 
             if (!jetton || !jetton.balance) {
                 return 'Insufficient balance';
@@ -210,8 +210,8 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 const decimals = toToken.type === 'ton' ? 9 : 6;
                 const amountInUnits = parseUnits(amount, decimals).toString();
                 quoteParams = {
-                    fromToken,
-                    toToken,
+                    from: toToken,
+                    to: fromToken,
                     network,
                     slippageBps,
                     maxOutgoingMessages,
@@ -222,8 +222,8 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 const decimals = fromToken.type === 'ton' ? 9 : 6;
                 const amountInUnits = parseUnits(amount, decimals).toString();
                 quoteParams = {
-                    fromToken,
-                    toToken,
+                    from: fromToken,
+                    to: toToken,
                     network,
                     slippageBps,
                     maxOutgoingMessages,
@@ -349,7 +349,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
     clearSwap: () => {
         set((state) => {
             state.swap.fromToken = { type: 'ton' };
-            state.swap.toToken = { type: 'jetton', value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' };
+            state.swap.toToken = { type: 'jetton', address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' };
             state.swap.amount = '';
             state.swap.currentQuote = null;
             state.swap.isLoadingQuote = false;

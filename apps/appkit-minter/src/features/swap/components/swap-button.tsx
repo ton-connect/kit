@@ -22,8 +22,8 @@ export const SwapButton: FC = () => {
         isLoading,
     } = useSwapQuote({
         amount: parseUnits('1', 9).toString(),
-        fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', value: USDT_ADDRESS },
+        from: { type: 'ton' },
+        to: { type: 'jetton', address: USDT_ADDRESS },
         network,
         slippageBps: 100,
     });

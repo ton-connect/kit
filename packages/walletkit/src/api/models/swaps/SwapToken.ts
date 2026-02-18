@@ -20,7 +20,7 @@ export type SwapToken =
           /**
            * Jetton master contract address
            */
-          value: UserFriendlyAddress;
+          address: UserFriendlyAddress;
       }
     | {
           /**

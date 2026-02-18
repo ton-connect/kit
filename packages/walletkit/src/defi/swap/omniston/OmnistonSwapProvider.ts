@@ -88,15 +88,15 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     async getQuote(params: SwapQuoteParams<OmnistonProviderOptions>): Promise<SwapQuote> {
         log.debug('Getting Omniston quote', {
-            fromToken: params.fromToken,
-            toToken: params.toToken,
+            fromToken: params.from,
+            toToken: params.to,
             amount: params.amount,
             isReverseSwap: params.isReverseSwap,
         });
 
         try {
-            const bidAssetAddress = tokenToAddress(params.fromToken);
-            const askAssetAddress = tokenToAddress(params.toToken);
+            const bidAssetAddress = tokenToAddress(params.from);
+            const askAssetAddress = tokenToAddress(params.to);
 
             const slippageBps = params.slippageBps ?? this.defaultSlippageBps;
 
@@ -305,8 +305,8 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         return {
             metadata,
             providerId: this.providerId,
-            fromToken: params.fromToken,
-            toToken: params.toToken,
+            fromToken: params.from,
+            toToken: params.to,
             fromAmount: quote.bidUnits,
             toAmount: quote.askUnits,
             minReceived: quote.askUnits,

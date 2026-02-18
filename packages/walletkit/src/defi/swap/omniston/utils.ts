@@ -17,7 +17,7 @@ export const tokenToAddress = (token: SwapToken): string => {
     if (token.type === 'ton') {
         return 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
     }
-    return Address.parse(token.value).toRawString();
+    return Address.parse(token.address).toRawString();
 };
 
 export const addressToToken = (address: string): SwapToken => {
@@ -26,9 +26,9 @@ export const addressToToken = (address: string): SwapToken => {
     }
 
     try {
-        return { type: 'jetton', value: Address.parseRaw(address).toString() };
+        return { type: 'jetton', address: Address.parseRaw(address).toString() };
     } catch {
-        return { type: 'jetton', value: address };
+        return { type: 'jetton', address: address };
     }
 };
 
