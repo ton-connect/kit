@@ -131,7 +131,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         const tonBalance = BigInt(tonBalanceStr);
 
         if (fromToken.address === 'ton') {
-            const amountBigInt = parseUnits(amount, 9);
+            const amountBigInt = parseUnits(amount, fromToken.decimals);
 
             if (amountBigInt > tonBalance) {
                 return 'Insufficient balance';
@@ -144,8 +144,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 return 'Insufficient balance';
             }
 
-            const decimals = jetton.decimalsNumber || 9;
-            const amountBigInt = parseUnits(amount, decimals);
+            const amountBigInt = parseUnits(amount, fromToken.decimals);
             const jettonBalance = BigInt(jetton.balance);
 
             if (amountBigInt > jettonBalance) {
@@ -204,28 +203,26 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 );
             }
 
-            // Determine which amount to use and convert to units
+            // Determine which amount to use (pass human-readable amount, provider handles conversion)
             let quoteParams: SwapQuoteParams;
             if (isReverseSwap) {
-                const amountInUnits = parseUnits(amount, toToken.decimals).toString();
-                quoteParams = {
-                    from: toToken,
-                    to: fromToken,
-                    network,
-                    slippageBps,
-                    maxOutgoingMessages,
-                    amount: amountInUnits,
-                    isReverseSwap: true,
-                };
-            } else {
-                const amountInUnits = parseUnits(amount, fromToken.decimals).toString();
                 quoteParams = {
                     from: fromToken,
                     to: toToken,
                     network,
                     slippageBps,
                     maxOutgoingMessages,
-                    amount: amountInUnits,
+                    amount,
+                    isReverseSwap: true,
+                };
+            } else {
+                quoteParams = {
+                    from: fromToken,
+                    to: toToken,
+                    network,
+                    slippageBps,
+                    maxOutgoingMessages,
+                    amount,
                     isReverseSwap: false,
                 };
             }
