@@ -20,7 +20,7 @@ export const TransactionExample = () => {
                 messages: [
                     {
                         address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Recipient address
-                        amount: '100000000', // 0.1 TON
+                        amount: '100000000', // 0.1 TON in nanotons (raw format)
                         payload: beginCell()
                             .storeUint(0, 32)
                             .storeStringTail('Hello')

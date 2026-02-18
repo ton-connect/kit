@@ -15,7 +15,7 @@ export const sendTransactionExample = async (appKit: AppKit) => {
         messages: [
             {
                 address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-                amount: '100000000', // 0.1 TON
+                amount: '100000000', // 0.1 TON in nanotons (raw format)
             },
         ],
     });

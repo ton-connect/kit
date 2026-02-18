@@ -33,8 +33,8 @@ export class SwapManager extends DefiManager<SwapProviderInterface> implements S
         providerId?: string,
     ): Promise<SwapQuote> {
         log.debug('Getting swap quote', {
-            fromToken: params.fromToken,
-            toToken: params.toToken,
+            fromToken: params.from,
+            toToken: params.to,
             amount: params.amount,
             isReverseSwap: params.isReverseSwap,
             providerId: providerId || this.defaultProviderId,

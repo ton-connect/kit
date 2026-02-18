@@ -8,10 +8,9 @@
 
 import { Address } from '@ton/core';
 import type { TokenAmount } from '@ton/walletkit';
-import { Network } from '@ton/walletkit';
+import { Network, formatUnits } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { formatUnits } from '../../utils';
 
 export interface GetBalanceByAddressOptions {
     address: string | Address;

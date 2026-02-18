@@ -15,7 +15,7 @@ export const SendTonButtonExample = () => {
     return (
         <SendTonButton
             recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-            amount="1" // 1 TON
+            amount="1" // 1 TON (human-readable format)
             comment="Hello from AppKit"
             onSuccess={(result) => console.log('Transaction sent:', result)}
             onError={(error) => console.error('Transaction failed:', error)}

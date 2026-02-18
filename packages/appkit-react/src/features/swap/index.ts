@@ -7,5 +7,4 @@
  */
 
 export * from './hooks/use-swap-quote';
-export * from './hooks/use-swap-quote';
 export * from './hooks/use-build-swap-transaction';

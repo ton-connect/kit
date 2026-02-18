@@ -8,10 +8,9 @@
 
 import { Address } from '@ton/core';
 import type { Jetton, JettonsResponse } from '@ton/walletkit';
-import { Network, getJettonsFromClient } from '@ton/walletkit';
+import { Network, getJettonsFromClient, formatUnits } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { formatUnits } from '../../utils';
 
 export interface GetJettonsByAddressOptions {
     address: string | Address;

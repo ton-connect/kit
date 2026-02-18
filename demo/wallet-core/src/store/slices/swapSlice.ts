@@ -17,8 +17,8 @@ const log = createComponentLogger('SwapSlice');
 
 export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
     swap: {
-        fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
+        fromToken: { address: 'ton', decimals: 9, symbol: 'TON' },
+        toToken: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6, symbol: 'USDT' },
         amount: '',
         destinationAddress: '',
         currentQuote: null,
@@ -130,22 +130,21 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
         const tonBalance = BigInt(tonBalanceStr);
 
-        if (fromToken.type === 'ton') {
-            const amountBigInt = parseUnits(amount, 9);
+        if (fromToken.address === 'ton') {
+            const amountBigInt = parseUnits(amount, fromToken.decimals);
 
             if (amountBigInt > tonBalance) {
                 return 'Insufficient balance';
             }
         } else {
             // Check jetton balance
-            const jetton = state.jettons.userJettons.find((j) => j.address === fromToken.value);
+            const jetton = state.jettons.userJettons.find((j) => j.address === fromToken.address);
 
             if (!jetton || !jetton.balance) {
                 return 'Insufficient balance';
             }
 
-            const decimals = jetton.decimalsNumber || 9;
-            const amountBigInt = parseUnits(amount, decimals);
+            const amountBigInt = parseUnits(amount, fromToken.decimals);
             const jettonBalance = BigInt(jetton.balance);
 
             if (amountBigInt > jettonBalance) {
@@ -204,30 +203,26 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 );
             }
 
-            // Determine which amount to use and convert to units
+            // Determine which amount to use (pass human-readable amount, provider handles conversion)
             let quoteParams: SwapQuoteParams;
             if (isReverseSwap) {
-                const decimals = toToken.type === 'ton' ? 9 : 6;
-                const amountInUnits = parseUnits(amount, decimals).toString();
                 quoteParams = {
-                    fromToken,
-                    toToken,
+                    from: fromToken,
+                    to: toToken,
                     network,
                     slippageBps,
                     maxOutgoingMessages,
-                    amount: amountInUnits,
+                    amount,
                     isReverseSwap: true,
                 };
             } else {
-                const decimals = fromToken.type === 'ton' ? 9 : 6;
-                const amountInUnits = parseUnits(amount, decimals).toString();
                 quoteParams = {
-                    fromToken,
-                    toToken,
+                    from: fromToken,
+                    to: toToken,
                     network,
                     slippageBps,
                     maxOutgoingMessages,
-                    amount: amountInUnits,
+                    amount,
                     isReverseSwap: false,
                 };
             }
@@ -348,8 +343,12 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
     clearSwap: () => {
         set((state) => {
-            state.swap.fromToken = { type: 'ton' };
-            state.swap.toToken = { type: 'jetton', value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' };
+            state.swap.fromToken = { address: 'ton', decimals: 9, symbol: 'TON' };
+            state.swap.toToken = {
+                address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+                decimals: 6,
+                symbol: 'USDT',
+            };
             state.swap.amount = '';
             state.swap.currentQuote = null;
             state.swap.isLoadingQuote = false;

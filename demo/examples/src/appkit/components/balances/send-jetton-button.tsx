@@ -15,7 +15,7 @@ export const SendJettonButtonExample = () => {
     return (
         <SendJettonButton
             recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-            amount="5000000" // 5 USDT
+            amount="5" // 5 USDT (human-readable format)
             comment="Payment for services"
             jetton={{
                 address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT

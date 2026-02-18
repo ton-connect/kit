@@ -47,7 +47,7 @@ const stopWatching = addConnector(
     appKit,
     new TonConnectConnector({
         tonConnectOptions: {
-            manifestUrl: 'https://tonconnect-demo-dapp-with-react-ui.vercel.app/tonconnect-manifest.json',
+            manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
         },
     }),
 );
@@ -167,6 +167,7 @@ if (!selectedWallet) {
 const balance = await getJettonBalance(appKit, {
     jettonAddress: 'EQDBE420tTQIkoWcZ9pEOTKY63WVmwyIl3hH6yWl0r_h51Tl',
     ownerAddress: selectedWallet.getAddress(),
+    jettonDecimals: 6,
 });
 console.log('Jetton Balance:', balance.toString());
 ```
@@ -406,11 +407,11 @@ Get a swap quote from registered providers.
 
 ```ts
 const quote = await getSwapQuote(appKit, {
-    fromToken: {
-        type: 'jetton',
-        value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+    from: {
+        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        decimals: 6,
     },
-    toToken: { type: 'ton' },
+    to: { address: 'ton', decimals: 9 },
     amount: '1000000000', // nanotons as string
     network: Network.mainnet(),
 });
@@ -440,7 +441,7 @@ Create a TON transfer transaction request without sending it.
 ```ts
 const tx = await createTransferTonTransaction(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '0.1', // 0.1 TON
+    amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Draft transaction',
 });
 
@@ -456,7 +457,7 @@ const result = await sendTransaction(appKit, {
     messages: [
         {
             address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-            amount: '100000000', // 0.1 TON
+            amount: '100000000', // 0.1 TON in nanotons (raw format)
         },
     ],
 });
@@ -471,7 +472,7 @@ Transfer TON to a recipient address.
 ```ts
 const result = await transferTon(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '100000000', // 0.1 TON
+    amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Hello from AppKit!',
 });
 

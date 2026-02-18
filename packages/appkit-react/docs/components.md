@@ -27,7 +27,7 @@ A specialized button for sending TON. Pre-configured for TON transfers.
 return (
     <SendTonButton
         recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-        amount="1" // 1 TON
+        amount="1" // 1 TON (human-readable format)
         comment="Hello from AppKit"
         onSuccess={(result) => console.log('Transaction sent:', result)}
         onError={(error) => console.error('Transaction failed:', error)}
@@ -43,7 +43,7 @@ A specialized button for sending Jettons. Handles jetton-specific logic.
 return (
     <SendJettonButton
         recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
-        amount="5000000" // 5 USDT
+        amount="5" // 5 USDT (human-readable format)
         comment="Payment for services"
         jetton={{
             address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
@@ -69,7 +69,7 @@ return (
             messages: [
                 {
                     address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', // Recipient address
-                    amount: '100000000', // 0.1 TON
+                    amount: '100000000', // 0.1 TON in nanotons (raw format)
                     payload: beginCell()
                         .storeUint(0, 32)
                         .storeStringTail('Hello')

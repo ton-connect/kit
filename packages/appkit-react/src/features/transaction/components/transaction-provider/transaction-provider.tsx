@@ -84,7 +84,7 @@ export const TransactionProvider: FC<TransactionProviderProps> = ({
         setIsPreparing(true);
 
         try {
-            const transactionRequest = typeof request === 'function' ? await request() : request;
+            const transactionRequest = typeof request === 'function' ? await request() : await request;
 
             if (!transactionRequest) {
                 return;

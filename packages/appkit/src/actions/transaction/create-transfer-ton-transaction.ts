@@ -6,10 +6,9 @@
  *
  */
 
-import { createCommentPayloadBase64 } from '@ton/walletkit';
+import { createCommentPayloadBase64, parseUnits } from '@ton/walletkit';
 
 import type { TransactionRequest, TransactionRequestMessage } from '../../types/transaction';
-import { parseUnits } from '../../utils';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 

@@ -52,7 +52,7 @@ const appKit = new AppKit({
     connectors: [
         new TonConnectConnector({
             tonConnectOptions: {
-                manifestUrl: 'your-manifest-url',
+                manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },
         }),
     ],
@@ -75,7 +75,7 @@ if (balance) {
 ```ts
 const result = await transferTon(appKit, {
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-    amount: '100000000', // 0.1 TON
+    amount: '0.1', // 0.1 TON (human-readable format)
     comment: 'Hello from AppKit!',
 });
 

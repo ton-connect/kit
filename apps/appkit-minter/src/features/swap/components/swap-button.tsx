@@ -8,22 +8,26 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { formatUnits, parseUnits } from '@ton/appkit';
 import { Transaction, useSwapQuote, useNetwork, useAddress, useBuildSwapTransaction } from '@ton/appkit-react';
 
-export const USDT_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
+const USDT_ADDRESS = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
+const TON = { address: 'ton', decimals: 9, symbol: 'TON' };
+const USDT = { address: USDT_ADDRESS, decimals: 6, symbol: 'USDT' };
 
 export const SwapButton: FC = () => {
     const network = useNetwork();
     const address = useAddress();
+
+    const from = TON;
+    const to = USDT;
     const {
         data: quote,
         isError,
         isLoading,
     } = useSwapQuote({
-        amount: parseUnits('1', 9).toString(),
-        fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', value: USDT_ADDRESS },
+        amount: '1',
+        from,
+        to,
         network,
         slippageBps: 100,
     });
@@ -50,7 +54,7 @@ export const SwapButton: FC = () => {
             return 'Swap Unavailable';
         }
 
-        return `Swap ${formatUnits(quote.fromAmount, 9)} TON -> ${formatUnits(quote.toAmount, 6)} USDT`;
+        return `Swap ${quote.fromAmount} ${from.symbol} -> ${quote.toAmount} ${to.symbol}`;
     }, [isLoading, isError, quote]);
 
     return (

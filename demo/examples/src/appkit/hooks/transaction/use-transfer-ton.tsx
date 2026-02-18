@@ -15,7 +15,7 @@ export const UseTransferTonExample = () => {
     const handleTransfer = () => {
         transferTon({
             recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-            amount: '1', // 1 TON
+            amount: '1', // 1 TON (human-readable format)
             comment: 'Hello from AppKit!',
         });
     };

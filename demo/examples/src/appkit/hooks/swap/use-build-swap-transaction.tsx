@@ -15,9 +15,9 @@ export const UseBuildSwapTransactionExample = () => {
     // SAMPLE_START: USE_BUILD_SWAP_TRANSACTION
     // First, get a quote
     const { data: quote } = useSwapQuote({
-        fromToken: { type: 'ton' },
-        toToken: { type: 'jetton', value: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs' },
-        amount: '1000000000',
+        from: { address: 'ton', decimals: 9 },
+        to: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6 },
+        amount: '1', // human-readable amount as string
         network: Network.mainnet(),
     });
 

@@ -11,12 +11,12 @@ import {
     createTransferTransaction,
     getJettonWalletAddressFromClient,
     DEFAULT_JETTON_GAS_FEE,
+    parseUnits,
 } from '@ton/walletkit';
 
 import type { TransactionRequest } from '../../types/transaction';
 import type { AppKit } from '../../core/app-kit';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
-import { parseUnits } from '../../utils';
 
 export interface CreateTransferJettonTransactionParameters {
     jettonAddress: string;

@@ -25,10 +25,10 @@ export const getSwapQuoteQueryOptions = <selectData = GetSwapQuoteData>(
 ): GetSwapQuoteQueryOptions<selectData> => {
     return {
         ...options.query,
-        enabled: Boolean(options.amount && options.fromToken && options.toToken && (options.query?.enabled ?? true)),
+        enabled: Boolean(options.amount && options.from && options.to && (options.query?.enabled ?? true)),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetSwapQuoteOptions];
-            if (!parameters.amount || !parameters.fromToken || !parameters.toToken) {
+            if (!parameters.amount || !parameters.from || !parameters.to) {
                 throw new Error('amount, fromToken, and toToken are required');
             }
 

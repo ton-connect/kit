@@ -6,9 +6,8 @@
  *
  */
 
+import { formatUnits } from '@ton/walletkit';
 import type { Jetton } from '@ton/walletkit';
-
-import { formatUnits } from '../amount/units';
 
 export const getJettonsSymbol = (jetton: Jetton): string | undefined => {
     if (!jetton?.info?.symbol) {

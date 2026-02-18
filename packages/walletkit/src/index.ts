@@ -153,6 +153,8 @@ export {
     getNftFromClient,
 } from './utils/assetHelpers';
 
+export { formatUnits, parseUnits } from './utils/units';
+
 // API Interfaces
 export type * from './api/interfaces';
 export * from './api/models';

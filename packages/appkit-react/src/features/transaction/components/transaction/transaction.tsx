@@ -23,6 +23,7 @@ export interface TransactionRenderProps {
 
 export type TransactionRequest =
     | SendTransactionParameters
+    | Promise<SendTransactionParameters>
     | (() => SendTransactionParameters)
     | (() => Promise<SendTransactionParameters>);
 

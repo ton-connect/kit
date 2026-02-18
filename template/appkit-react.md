@@ -11,6 +11,7 @@ React components and hooks for AppKit.
 - [Initialization](#initialization)
 - [Basic Usage](#basic-usage)
 - [Swap](#swap)
+- [Creating a Swap Provider](./docs/creating-swap-provider.md): Implement your own swap provider for any DEX or protocol.
 - [Hooks](./docs/hooks.md): React hooks for wallet connection, state, and data fetching.
 - [Components](./docs/components.md): UI components for AppKit.
 
@@ -101,7 +102,9 @@ export const Balance = () => {
 
 ## Swap
 
-AppKit supports swapping assets through `OmnistonSwapProvider`.
+AppKit uses a provider-based architecture for swaps. Any DEX or protocol can implement a swap provider by extending the `SwapProvider` class — AppKit handles routing, hooks, and transaction building through a unified interface.
+
+`OmnistonSwapProvider` is an available provider. You can use it, replace it, or run multiple providers side by side. To implement your own, see [Creating a Swap Provider](./docs/creating-swap-provider.md).
 
 ### Installation
 
