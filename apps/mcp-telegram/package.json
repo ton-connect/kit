@@ -1,0 +1,29 @@
+{
+  "name": "@ton/mcp-telegram",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --env-file=.env --import tsx/esm src/index.ts",
+    "start": "node --env-file=.env --import tsx/esm src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ton/mcp": "workspace:*",
+    "@ton/walletkit": "workspace:*",
+    "better-sqlite3": "^11.10.0",
+    "grammy": "^1.35.0",
+    "@anthropic-ai/sdk": "^0.52.0",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.15.29",
+    "typescript": "~5.9.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
