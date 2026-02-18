@@ -25,49 +25,49 @@ export interface TonConnectConnectorConfig {
 }
 
 export type TonConnectConnector = Connector & {
+    type: 'tonconnect';
     tonConnectUI: TonConnectUI | null;
 };
 
 export const tonConnect = (config: TonConnectConnectorConfig) => {
-    return createConnector(({ emitter, ssr }: { emitter: AppKitEmitter; ssr?: boolean }) => {
-        let _tonConnectUI: TonConnectUI | null = null;
+    return createConnector(({ emitter, ssr }: { emitter: AppKitEmitter; ssr?: boolean }): TonConnectConnector => {
+        let originalTonConnectUI: TonConnectUI | null = null;
         let unsubscribeTonConnect: (() => void) | null = null;
 
         const id = config.id ?? TONCONNECT_DEFAULT_CONNECTOR_ID;
 
-        function getTonConnectUI(): TonConnectUI | null {
-            if (_tonConnectUI) {
-                return _tonConnectUI;
+        function getTonConnectUI() {
+            if (originalTonConnectUI) {
+                return originalTonConnectUI;
             }
 
             if (ssr && typeof window === 'undefined') {
                 return null;
             }
 
-            if (typeof window === 'undefined') {
-                return null;
-            }
-
             // check if we have pre-defined UI
             if (config.tonConnectUI) {
-                _tonConnectUI = config.tonConnectUI;
+                originalTonConnectUI = config.tonConnectUI;
             } else {
-                _tonConnectUI = new TonConnectUI(config.tonConnectOptions);
+                originalTonConnectUI = new TonConnectUI(config.tonConnectOptions);
             }
 
             setupListeners();
+
             // restore connection
-            if (_tonConnectUI) {
-                _tonConnectUI.connector.restoreConnection();
+            if (originalTonConnectUI) {
+                originalTonConnectUI.connector.restoreConnection();
             }
 
-            return _tonConnectUI;
+            return originalTonConnectUI;
         }
 
         function getConnectedWallets(): WalletInterface[] {
             const ui = getTonConnectUI();
+
             if (ui && ui.connected && ui.wallet) {
                 const wallet = ui.wallet;
+
                 return [
                     new TonConnectWalletAdapter({
                         connectorId: id,
@@ -76,25 +76,24 @@ export const tonConnect = (config: TonConnectConnectorConfig) => {
                     }),
                 ];
             }
+
             return [];
         }
 
         function setupListeners() {
-            if (!_tonConnectUI || unsubscribeTonConnect) return;
+            if (!originalTonConnectUI || unsubscribeTonConnect) {
+                return;
+            }
 
-            unsubscribeTonConnect = _tonConnectUI.onStatusChange((wallet) => {
+            unsubscribeTonConnect = originalTonConnectUI.onStatusChange((wallet) => {
                 const wallets = getConnectedWallets();
+
                 if (wallet) {
                     emitter.emit(CONNECTOR_EVENTS.CONNECTED, { wallets, connectorId: id }, id);
                 } else {
                     emitter.emit(CONNECTOR_EVENTS.DISCONNECTED, { connectorId: id }, id);
                 }
             });
-        }
-
-        // Initialize immediately if client-side and safely possible
-        if (!ssr && typeof window !== 'undefined') {
-            getTonConnectUI();
         }
 
         return {
@@ -105,25 +104,32 @@ export const tonConnect = (config: TonConnectConnectorConfig) => {
                 iconUrl: 'https://avatars.githubusercontent.com/u/113980577',
                 ...config.metadata,
             },
+
             get tonConnectUI() {
                 return getTonConnectUI();
             },
+
+            getConnectedWallets,
+
             async connectWallet(): Promise<void> {
                 const ui = getTonConnectUI();
+
                 if (ui) {
                     await ui.openModal();
                 }
             },
+
             async disconnectWallet(): Promise<void> {
                 const ui = getTonConnectUI();
+
                 if (ui) {
                     await ui.disconnect();
                 }
             },
-            getConnectedWallets,
+
             destroy() {
                 unsubscribeTonConnect?.();
-                _tonConnectUI = null;
+                originalTonConnectUI = null;
             },
         };
     });

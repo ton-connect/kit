@@ -16,7 +16,7 @@ export interface Connector {
     /** Provider unique identifier */
     readonly id: string;
 
-    /** Protocol type (e.g. 'tonconnect', 'ledger', 'mnemonic') */
+    /** Protocol type (e.g. 'tonconnect') */
     readonly type: string;
 
     readonly metadata: ConnectorMetadata;

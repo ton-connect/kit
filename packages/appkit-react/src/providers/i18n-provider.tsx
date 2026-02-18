@@ -6,8 +6,6 @@
  *
  */
 
-'use client';
-
 import type { PropsWithChildren } from 'react';
 import { createContext, useState, useRef, useEffect } from 'react';
 

@@ -8,7 +8,6 @@
 
 'use client';
 
-import { formatUnits } from '@ton/appkit';
 import { useBalance } from '@ton/appkit-react';
 import type { FC } from 'react';
 
@@ -22,7 +21,7 @@ export const Balance: FC = () => {
     return (
         <div>
             <p className="inline font-bold">Balance: </p>
-            <p className="inline">{balance ? `${formatUnits(balance, 9)} TON` : 'Loading...'}</p>
+            <p className="inline">{balance ? `${balance} TON` : 'Loading...'}</p>
         </div>
     );
 };

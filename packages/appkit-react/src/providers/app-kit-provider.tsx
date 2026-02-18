@@ -6,8 +6,6 @@
  *
  */
 
-'use client';
-
 import type { PropsWithChildren } from 'react';
 import { createContext } from 'react';
 import type { AppKit } from '@ton/appkit';

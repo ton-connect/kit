@@ -6,8 +6,6 @@
  *
  */
 
-'use client';
-
 import { useMemo } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
