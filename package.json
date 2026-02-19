@@ -10,7 +10,7 @@
     "demo-wallet": "pnpm --filter demo-wallet",
     "demo-wallet-native": "pnpm --filter demo-wallet-native",
     "build": "turbo build",
-    "dev": "turbo dev --concurrency 11",
+    "dev": "turbo dev",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --max-warnings 0 --fix",
     "quality": "turbo quality",
