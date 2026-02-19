@@ -104,6 +104,7 @@ export { Transport } from './bridge/transport/Transport';
 export { TONCONNECT_BRIDGE_EVENT } from './bridge/utils/messageTypes';
 export { RESTORE_CONNECTION_TIMEOUT, DEFAULT_REQUEST_TIMEOUT } from './bridge/utils/timeouts';
 export { CreateTonProofMessageBytes } from './utils/tonProof';
+export { AnalyticsManager } from './analytics';
 export type { AnalyticsAppInfo, AnalyticsManagerOptions } from './analytics';
 
 // API Client types (ApiClient is exported above)
