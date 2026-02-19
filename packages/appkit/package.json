@@ -6,61 +6,61 @@
     "type": "git",
     "url": "https://github.com/ton-connect/kit"
   },
-  "type": "module",
   "sideEffects": false,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
       }
     },
     "./queries": {
       "import": {
-        "types": "./dist/queries/index.d.ts",
-        "default": "./dist/queries/index.js"
+        "types": "./dist/esm/queries/index.d.ts",
+        "default": "./dist/esm/queries/index.js"
       },
       "require": {
-        "types": "./dist/queries/index.d.ts",
-        "default": "./dist/queries/index.cjs"
+        "types": "./dist/cjs/queries/index.d.ts",
+        "default": "./dist/cjs/queries/index.js"
       }
     },
     "./swap/omniston": {
       "import": {
-        "types": "./dist/swap/omniston/index.d.ts",
-        "default": "./dist/swap/omniston/index.js"
+        "types": "./dist/esm/swap/omniston/index.d.ts",
+        "default": "./dist/esm/swap/omniston/index.js"
       },
       "require": {
-        "types": "./dist/swap/omniston/index.d.ts",
-        "default": "./dist/swap/omniston/index.cjs"
+        "types": "./dist/cjs/swap/omniston/index.d.ts",
+        "default": "./dist/cjs/swap/omniston/index.js"
       }
     }
   },
   "typesVersions": {
     "*": {
-      "tonconnect": [
-        "./dist/connectors/tonconnect/index.d.ts"
-      ],
       "queries": [
-        "./dist/queries/index.d.ts"
+        "./dist/cjs/queries/index.d.ts"
       ],
       "swap/omniston": [
-        "./dist/swap/omniston/index.d.ts"
+        "./dist/cjs/swap/omniston/index.d.ts"
       ]
     }
   },
   "scripts": {
-    "build": "tsup --onSuccess \"tsc --emitDeclarationOnly\"",
-    "dev": "pnpm run build --watch --no-clean",
+    "build": "pnpm build:clean && pnpm build:cjs && pnpm build:esm",
+    "build:clean": "git clean -xdf dist",
+    "build:esm": "tsc -p tsconfig.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "dev": "tsc -p tsconfig.json --watch",
     "quality": "pnpm test",
     "typecheck": "tsc --noEmit",
+    "clean": "git clean -xdf .turbo dist node_modules",
     "test": "vitest run"
   },
   "dependencies": {
@@ -91,7 +91,7 @@
     "@tanstack/query-core": "catalog:",
     "@ton/core": "catalog:",
     "@tonconnect/ui": "catalog:",
-    "tsup": "^8.5.0",
+    "concurrently": "9.1.2",
     "typescript": "~5.8.3",
     "vitest": "^4.0.17"
   }

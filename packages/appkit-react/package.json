@@ -36,6 +36,13 @@
     },
     "./styles.css": "./dist/esm/styles/index.css"
   },
+  "typesVersions": {
+    "*": {
+      "styles.css": [
+        "./dist/esm/styles/index.css"
+      ]
+    }
+  },
   "dependencies": {
     "@ton/appkit": "workspace:*",
     "clsx": "2.1.1",
