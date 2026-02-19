@@ -1,9 +1,13 @@
 {
   "name": "@ton/appkit-react",
   "version": "0.0.1-alpha.2",
+  "type": "module",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "pnpm run build:esm && pnpm run copy:css",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
+    "dev": "concurrently \"pnpm run build:esm --watch\" \"pnpm run copy:css:watch\"",
+    "copy:css": "cpx \"src/**/*.css\" dist/esm",
+    "copy:css:watch": "cpx \"src/**/*.css\" dist/esm --watch",
     "clean": "git clean -xdf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
@@ -14,19 +18,23 @@
     "url": "https://github.com/ton-connect/kit"
   },
   "files": [
-    "dist"
+    "dist/**",
+    "!dist/**/*.tsbuildinfo",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.stories.tsx"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.js"
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
     },
-    "./styles.css": "./dist/styles/index.css"
+    "./styles.css": "./dist/esm/styles/index.css"
   },
   "dependencies": {
     "@ton/appkit": "workspace:*",
@@ -43,10 +51,11 @@
     "@tonconnect/ui-react": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "concurrently": "9.2.1",
+    "cpx2": "8.0.0",
     "react": "catalog:",
     "react-dom": "catalog:",
     "storybook": "10.2.8",
-    "tsup": "^8.5.1",
     "typescript": "^5.9.2",
     "vite": "^7.3.1",
     "vite-plugin-node-polyfills": "^0.25.0"
