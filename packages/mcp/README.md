@@ -10,7 +10,7 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 - **NFTs**: List, inspect, and transfer NFTs
 - **DNS**: Resolve `.ton` domains and reverse-lookup addresses
 - **Known Jettons**: Built-in directory of popular tokens
-- **Dual Transport**: Stdio (default) and HTTP server modes
+- **Multiple Transports**: Stdio (default), HTTP server, and serverless modes
 
 ## Quick Start
 
@@ -181,6 +181,53 @@ Reverse-resolve a TON wallet address to its `.ton` domain.
 
 #### `get_known_jettons`
 Get a list of known/popular Jettons on TON with their addresses and metadata. Useful for looking up token addresses for swaps or transfers.
+
+## Serverless Deployment
+
+The package exports a `@ton/mcp/serverless` entry point for deploying as a serverless function (AWS Lambda, Vercel, Cloudflare Workers, etc.). Credentials are passed via request headers instead of environment variables.
+
+### Headers
+
+| Header          | Description                                              |
+|-----------------|----------------------------------------------------------|
+| `MNEMONIC`      | 24-word mnemonic phrase                                  |
+| `PRIVATE_KEY`   | Hex-encoded private key (takes priority over `MNEMONIC`) |
+| `NETWORK`       | `mainnet` (default) or `testnet`                         |
+| `TONCENTER_KEY` | Optional TonCenter API key for higher rate limits        |
+
+### AWS Lambda
+
+```typescript
+import { createServerlessHandler } from '@ton/mcp/serverless';
+
+export const handler = createServerlessHandler();
+```
+
+### Vercel
+
+```typescript
+import { createServerlessHandler } from '@ton/mcp/serverless';
+
+export default createServerlessHandler();
+```
+
+### Custom Integration
+
+```typescript
+import { createServerlessHandler } from '@ton/mcp/serverless';
+
+const handle = createServerlessHandler();
+
+const response = await handle({
+  method: 'POST',
+  url: '/mcp',
+  headers: {
+    'MNEMONIC': 'word1 word2 word3 ...',
+    'NETWORK': 'mainnet',
+  },
+  body: mcpRequestBody,
+});
+```
 
 ## Development
 

@@ -11,7 +11,7 @@ export default defineConfig([
             entryFileNames: '[name].cjs',
         },
         platform: 'node',
-        external: [/^@modelcontextprotocol/, /^zod/],
+        external: [],
     },
     {
         input: 'src/index.ts',
@@ -21,7 +21,7 @@ export default defineConfig([
             entryFileNames: '[name].js',
         },
         platform: 'node',
-        external: [/^@modelcontextprotocol/, /^zod/],
+        external: [],
     },
     {
         input: 'src/cli.ts',
@@ -32,7 +32,7 @@ export default defineConfig([
             banner: '#!/usr/bin/env node',
         },
         platform: 'node',
-        external: [/^@modelcontextprotocol/, /^zod/],
+        external: [],
     },
     {
         input: 'src/serverless.ts',
