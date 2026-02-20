@@ -47,13 +47,15 @@ export async function getBalance(args: { walletId: string }) {
 }
 
 export async function createSignerFromMnemonic(args: { mnemonic: string[]; mnemonicType?: string }) {
-    const signer = await Signer!.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' });
+    if (!Signer) throw new Error('Signer module not loaded');
+    const signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' });
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
 
 export async function createSignerFromPrivateKey(args: { secretKey: string }) {
-    const signer = await Signer!.fromPrivateKey(args.secretKey);
+    if (!Signer) throw new Error('Signer module not loaded');
+    const signer = await Signer.fromPrivateKey(args.secretKey);
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
@@ -83,7 +85,8 @@ export async function createV5R1WalletAdapter(args: {
     if (!signer) throw new Error(`Signer not found in registry: ${args.signerId}`);
 
     const network = args.network as unknown as Network;
-    const adapter = await WalletV5R1Adapter!.create(signer, {
+    if (!WalletV5R1Adapter) throw new Error('WalletV5R1Adapter module not loaded');
+    const adapter = await WalletV5R1Adapter.create(signer, {
         client: instance.getApiClient(network),
         network,
         workchain: args.workchain ?? 0,
@@ -105,7 +108,8 @@ export async function createV4R2WalletAdapter(args: {
     if (!signer) throw new Error(`Signer not found in registry: ${args.signerId}`);
 
     const network = args.network as unknown as Network;
-    const adapter = await WalletV4R2Adapter!.create(signer, {
+    if (!WalletV4R2Adapter) throw new Error('WalletV4R2Adapter module not loaded');
+    const adapter = await WalletV4R2Adapter.create(signer, {
         client: instance.getApiClient(network),
         network,
         workchain: args.workchain ?? 0,
