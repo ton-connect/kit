@@ -69,6 +69,13 @@ MNEMONIC="word1 word2 ..." npx @ton/mcp --http 3000
 
 ## Available Tools
 
+### Wallet Info
+
+#### `get_wallet`
+Get the current wallet address and network information.
+
+**Returns:** Wallet address and network (`mainnet` or `testnet`)
+
 ### Balance & History
 
 #### `get_balance`

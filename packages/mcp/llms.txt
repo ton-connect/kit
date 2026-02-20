@@ -4,9 +4,13 @@
 
 ## Overview
 
-This MCP server provides tools for managing TON blockchain wallets. It supports balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, and DNS resolution.
+This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, and DNS resolution.
 
 ## Available Tools
+
+### get_wallet
+Get current wallet address and network info.
+Returns: address, network (mainnet or testnet)
 
 ### get_balance
 Get TON balance of the wallet.
@@ -58,7 +62,7 @@ Get quote for token swap.
 Parameters:
 - fromToken (required): "TON" or jetton address
 - toToken (required): "TON" or jetton address
-- amount (required): amount in raw units
+- amount (required): human-readable amount (e.g., "1.5" for 1.5 TON)
 - slippageBps (optional): slippage in basis points (100 = 1%)
 Returns: quote details + transaction params for send_raw_transaction
 
@@ -109,6 +113,5 @@ Parameters:
 ## Important Notes
 
 - Always confirm transfers/swaps with user before executing
-- send_ton/send_jetton use human-readable amounts
-- get_swap_quote uses raw amounts (with decimals applied)
+- send_ton/send_jetton/get_swap_quote use human-readable amounts
 - Check transaction success in response

@@ -11,6 +11,8 @@ import { z } from 'zod';
 import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
 
+export const getWalletSchema = z.object({});
+
 export const getBalanceSchema = z.object({});
 
 export const getJettonBalanceSchema = z.object({
@@ -30,6 +32,29 @@ export const getTransactionsSchema = z.object({
 
 export function createMcpBalanceTools(service: McpWalletService) {
     return {
+        get_wallet: {
+            description: 'Get current wallet address and network information.',
+            inputSchema: getWalletSchema,
+            handler: async (): Promise<ToolResponse> => {
+                return {
+                    content: [
+                        {
+                            type: 'text' as const,
+                            text: JSON.stringify(
+                                {
+                                    success: true,
+                                    address: service.getAddress(),
+                                    network: service.getNetwork(),
+                                },
+                                null,
+                                2,
+                            ),
+                        },
+                    ],
+                };
+            },
+        },
+
         get_balance: {
             description: 'Get the TON balance of the wallet. Returns both human-readable and raw (nanoTON) amounts.',
             inputSchema: getBalanceSchema,

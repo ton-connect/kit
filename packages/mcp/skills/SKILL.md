@@ -5,7 +5,7 @@ Manage TON blockchain wallet operations including balance queries, transfers, sw
 ## When to Use
 
 Use this skill when the user wants to:
-- Check TON or token balances
+- Check wallet info, TON or token balances
 - Send TON, Jettons (tokens), or NFTs
 - Swap tokens on DEX
 - View transaction history
@@ -13,7 +13,8 @@ Use this skill when the user wants to:
 
 ## Tools Available
 
-### Balance & Info
+### Wallet & Balance
+- `get_wallet` - Get wallet address and network info
 - `get_balance` - Get TON balance
 - `get_jetton_balance` - Get specific token balance (needs `jettonAddress`)
 - `get_jettons` - List all tokens in wallet
@@ -27,7 +28,7 @@ Use this skill when the user wants to:
 - `send_raw_transaction` - Advanced: send raw transaction with multiple messages
 
 ### Swaps
-- `get_swap_quote` - Get swap quote (`fromToken`, `toToken`, `amount` in raw units)
+- `get_swap_quote` - Get swap quote (`fromToken`, `toToken`, `amount` in human-readable format)
   - Use "TON" or jetton address for tokens
   - Returns transaction params for `send_raw_transaction`
 
@@ -42,8 +43,9 @@ Use this skill when the user wants to:
 ## Common Workflows
 
 ### Check Balance
-1. Call `get_balance` for TON
-2. Call `get_jettons` for all tokens
+1. Call `get_wallet` for address and network
+2. Call `get_balance` for TON
+3. Call `get_jettons` for all tokens
 
 ### Send TON
 1. If user provides .ton domain, call `resolve_dns` first
@@ -61,7 +63,6 @@ Use this skill when the user wants to:
 
 ## Notes
 
-- Amounts for `send_ton` and `send_jetton` are human-readable (e.g., "1.5" = 1.5 TON)
-- Amounts for `get_swap_quote` are in raw units (apply decimals)
+- Amounts for `send_ton`, `send_jetton`, and `get_swap_quote` are human-readable (e.g., "1.5" = 1.5 TON)
 - Always confirm with user before executing transfers or swaps
 - Transaction results include success status and details

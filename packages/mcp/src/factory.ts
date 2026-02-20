@@ -99,6 +99,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         server.registerTool(name, { description: tool.description, inputSchema: tool.inputSchema }, tool.handler);
     };
 
+    // Register wallet info tools
+    registerTool('get_wallet', balanceTools.get_wallet);
+
     // Register balance tools
     registerTool('get_balance', balanceTools.get_balance);
     registerTool('get_jetton_balance', balanceTools.get_jetton_balance);
