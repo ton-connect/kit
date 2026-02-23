@@ -22,6 +22,3 @@ registerNativeCallHandler();
 registerNativeResponseHandler();
 
 window.walletkitBridge = api;
-
-export { api };
-export type { WalletKitBridgeApi } from './types';

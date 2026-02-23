@@ -6,12 +6,6 @@
  *
  */
 
-/**
- * jettons.ts – Jetton operations
- *
- * Minimal bridge for jetton operations.
- */
-
 import { walletCall } from '../utils/bridge';
 
 export const getJettons = (args: { walletId: string }) => walletCall('getJettons', args);

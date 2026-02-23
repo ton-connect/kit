@@ -8,8 +8,6 @@
 
 // Re-export bridge types for backwards compatibility
 import type {
-    WalletKitBridgeEvent as _WalletKitBridgeEvent,
-    WalletKitBridgeInitConfig as _WalletKitBridgeInitConfig,
     AndroidBridgeType,
     WalletKitNativeBridgeType,
     WalletKitBridgeApi,

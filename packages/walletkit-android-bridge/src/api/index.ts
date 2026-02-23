@@ -44,7 +44,6 @@ export const api: WalletKitBridgeApi = {
     // Wallets — unified addWallet (registry path + proxy adapter path)
     addWallet: wallets.addWallet,
     releaseRef: wallets.releaseRef,
-    releaseAdapter: wallets.releaseAdapter,
     getWallets: wallets.getWallets,
     getWallet: wallets.getWalletById,
     getWalletAddress: wallets.getWalletAddress,
@@ -91,5 +90,3 @@ export const api: WalletKitBridgeApi = {
     emitBrowserError: browser.emitBrowserError,
     emitBrowserBridgeRequest: browser.emitBrowserBridgeRequest,
 } as unknown as WalletKitBridgeApi;
-
-export type { BridgeEventListener } from './eventListeners';

@@ -75,18 +75,10 @@ export interface CreateWalletAdapterArgs {
 
 export interface AddWalletArgs {
     adapterId: string;
-    walletId?: string;
-    publicKey?: string;
-    network?: { chainId: string };
-    address?: string;
 }
 
 export interface ReleaseRefArgs {
     id: string;
-}
-
-export interface ReleaseAdapterArgs {
-    adapterId: string;
 }
 
 export interface RemoveWalletArgs {
@@ -268,14 +260,6 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
-export interface WalletDescriptor {
-    address: string;
-    publicKey: string;
-    version: string;
-    index: number;
-    network: string;
-}
-
 export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<{ ok: true }>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
@@ -294,7 +278,6 @@ export interface WalletKitBridgeApi {
     createV4R2WalletAdapter(args: CreateWalletAdapterArgs): PromiseOrValue<{ adapterId: string; address: string }>;
     addWallet(args: AddWalletArgs): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet } | null>;
     releaseRef(args: ReleaseRefArgs): PromiseOrValue<{ ok: boolean }>;
-    releaseAdapter(args: ReleaseAdapterArgs): PromiseOrValue<{ ok: boolean }>;
     getWallets(): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet }[]>;
     getWallet(args: { walletId: string }): PromiseOrValue<{ walletId: string | undefined; wallet: Wallet } | null>;
     getWalletAddress(args: { walletId: string }): PromiseOrValue<string | null>;

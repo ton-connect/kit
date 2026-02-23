@@ -14,19 +14,13 @@ import type {
     SignDataRequestEvent,
 } from '@ton/walletkit';
 
-/**
- * Shared event listener references used to manage WalletKit callbacks.
- */
-export type ConnectEventListener = ((event: ConnectionRequestEvent) => void) | null;
-export type TransactionEventListener = ((event: SendTransactionRequestEvent) => void) | null;
-export type SignDataEventListener = ((event: SignDataRequestEvent) => void) | null;
-export type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
-export type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
+type ConnectEventListener = ((event: ConnectionRequestEvent) => void) | null;
+type TransactionEventListener = ((event: SendTransactionRequestEvent) => void) | null;
+type SignDataEventListener = ((event: SignDataRequestEvent) => void) | null;
+type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
+type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
 
-/**
- * Union type for all bridge event listeners.
- */
-export type BridgeEventListener =
+type BridgeEventListener =
     | ConnectEventListener
     | TransactionEventListener
     | SignDataEventListener

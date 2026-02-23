@@ -33,14 +33,8 @@ function ensureBuffer(scope: GlobalWithBridge) {
     }
 }
 
-/**
- * Sets up the native storage bridge that connects JavaScript to Android's secure storage.
- * Creates window.WalletKitNativeStorage that delegates to WalletKitNative.
- *
- * Note: Modern Android WebView (API 24+) already supports all standard Web APIs
- * (fetch, TextEncoder, URL, etc.), so no polyfills are needed.
- */
-export function setupNativeBridge() {
+// Sets up native storage bridge: window.WalletKitNativeStorage delegates to WalletKitNative.
+function setupNativeBridge() {
     const scope = window as GlobalWithBridge;
 
     ensureBuffer(scope);
