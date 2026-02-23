@@ -9,7 +9,6 @@
 import { clsx } from 'clsx';
 import { Loader2, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { TransactionStatus as AppKitTransactionStatus } from '@ton/appkit-react';
-import type { TransactionAction } from '@ton/appkit-react';
 
 export interface TransactionStatusProps {
     boc: string;
@@ -45,7 +44,7 @@ export const TransactionStatus = ({ boc, className }: TransactionStatusProps) =>
 
     return (
         <AppKitTransactionStatus boc={boc}>
-            {({ status, totalMessages, completedMessages, pendingMessages, actions, error, isFetching }) => {
+            {({ status, totalMessages, completedMessages, pendingMessages, error, isFetching }) => {
                 if (error) {
                     return (
                         <div className="p-4 rounded-lg bg-red-500/10 text-red-500 text-sm">
@@ -86,31 +85,6 @@ export const TransactionStatus = ({ boc, className }: TransactionStatusProps) =>
                                 <div className="text-xs text-muted-foreground uppercase">Pending</div>
                             </div>
                         </div>
-
-                        {actions.length > 0 && (
-                            <div className="space-y-2">
-                                <h3 className="text-sm font-medium">Completed Actions</h3>
-                                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                                    {actions.map((action: TransactionAction, i: number) => (
-                                        <div
-                                            key={i}
-                                            className="flex items-center justify-between p-2 bg-muted rounded text-sm"
-                                        >
-                                            <span className="font-mono">{action.type}</span>
-                                            {action.success ? (
-                                                <span className="text-green-500 text-xs px-2 py-1 bg-green-500/10 rounded">
-                                                    SUCCESS
-                                                </span>
-                                            ) : (
-                                                <span className="text-red-500 text-xs px-2 py-1 bg-red-500/10 rounded">
-                                                    FAILED
-                                                </span>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 );
             }}

@@ -26,7 +26,6 @@ const TransactionStatusPreview = ({
         totalMessages,
         completedMessages,
         pendingMessages,
-        actions: [],
         isFetching: status === 'pending',
         error,
         boc: 'te6cc...',

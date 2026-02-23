@@ -51,7 +51,6 @@ export const TransactionStatusProvider = ({ boc, children }: TransactionStatusPr
         totalMessages: data?.totalMessages ?? 0,
         pendingMessages: data?.pendingMessages ?? 0,
         completedMessages: data?.completedMessages ?? 0,
-        actions: data?.actions ?? [],
         isFetching,
         error,
         boc,

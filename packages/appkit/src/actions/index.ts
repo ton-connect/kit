@@ -109,7 +109,6 @@ export {
     type GetTransactionStatusReturnType,
     type TransactionStatusData,
     type TransactionStatusType,
-    type TransactionAction,
     type GetTransactionStatusErrorType,
 } from './transaction/get-transaction-status';
 export {

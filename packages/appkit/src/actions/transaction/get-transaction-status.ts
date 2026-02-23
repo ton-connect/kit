@@ -7,35 +7,14 @@
  */
 
 import { Cell, loadMessage } from '@ton/core';
+import type { ToncenterTracesResponse } from '@ton/walletkit';
 
 import { Network } from '../../types/network';
 import type { AppKit } from '../../core/app-kit';
 import { getNormalizedExtMessageHash } from '../../utils';
+import { isFailedTx } from '../../utils';
 
 export type TransactionStatusType = 'pending' | 'completed' | 'failed';
-
-/**
- * A classified action from the transaction trace.
- *
- * Toncenter automatically classifies actions (e.g. jetton_swap, ton_transfer)
- * as the trace progresses. Actions may appear as completed before the entire
- * trace finishes — this allows consumers to detect early completion.
- *
- * @example
- * ```ts
- * // Check if a swap already succeeded while trace is still pending
- * const swapAction = status.actions.find(a => a.type === 'jetton_swap');
- * if (swapAction?.success) {
- *     // Swap is done, remaining messages are cleanup (notifications, excess returns)
- * }
- * ```
- */
-export interface TransactionAction {
-    /** Action type classified by toncenter (e.g. 'jetton_swap', 'ton_transfer', 'call_contract') */
-    type: string;
-    /** Whether this action completed successfully */
-    success: boolean;
-}
 
 export interface TransactionStatusData {
     /** Overall status of the transaction trace */
@@ -46,16 +25,6 @@ export interface TransactionStatusData {
     pendingMessages: number;
     /** Number of completed messages (totalMessages - pendingMessages) */
     completedMessages: number;
-    /**
-     * Classified actions from the trace.
-     *
-     * Actions may appear as completed before the entire trace finishes.
-     * For example, during a jetton swap the swap action can succeed on message 5/7,
-     * while messages 6-7 are just notifications and excess TON returns.
-     *
-     * Use this to detect early completion for specific action types.
-     */
-    actions: TransactionAction[];
 }
 
 export interface GetTransactionStatusParameters {
@@ -70,30 +39,34 @@ export type GetTransactionStatusReturnType = TransactionStatusData;
 export type GetTransactionStatusErrorType = Error;
 
 /**
- * Maps toncenter trace_state to a simplified status.
- * Known trace_state values: "complete", "pending", "unknown"
+ * Helper to parse ToncenterTracesResponse into TransactionStatusData.
+ * Returns null if no traces are found.
  */
-const mapTraceState = (traceState: string): TransactionStatusType => {
-    switch (traceState) {
-        case 'complete':
-            return 'completed';
-        case 'pending':
-            return 'pending';
-        default:
-            return 'failed';
+const parseTraceResponse = (response: ToncenterTracesResponse): TransactionStatusData | null => {
+    if (!response.traces || response.traces.length === 0) {
+        return null;
     }
-};
 
-/**
- * Extract classified actions from a trace item's actions array.
- */
-const extractActions = (actions?: Array<{ type: string; success: boolean }>): TransactionAction[] => {
-    if (!actions) return [];
+    const trace = response.traces[0];
+    const traceInfo = trace.trace_info;
 
-    return actions.map((action) => ({
-        type: action.type,
-        success: action.success,
-    }));
+    const isEffectivelyCompleted =
+        traceInfo.trace_state === 'complete' ||
+        (traceInfo.trace_state === 'pending' && traceInfo.pending_messages === 0);
+
+    let status: TransactionStatusType = 'pending';
+    if (isFailedTx(response)) {
+        status = 'failed';
+    } else if (isEffectivelyCompleted) {
+        status = 'completed';
+    }
+
+    return {
+        status,
+        totalMessages: traceInfo.messages,
+        pendingMessages: traceInfo.pending_messages,
+        completedMessages: traceInfo.messages - traceInfo.pending_messages,
+    };
 };
 
 /**
@@ -103,9 +76,6 @@ const extractActions = (actions?: Array<{ type: string; success: boolean }>): Tr
  * The transaction is "complete" only when the entire trace finishes.
  * This action checks toncenter's trace endpoints to determine the current status.
  *
- * The `actions` array contains classified actions (e.g. swaps, transfers) that
- * may complete before the entire trace finishes, allowing early completion detection.
- *
  * @example
  * ```ts
  * const result = await sendTransaction(appKit, { messages: [...] });
@@ -113,7 +83,6 @@ const extractActions = (actions?: Array<{ type: string; success: boolean }>): Tr
  * // status.status === 'pending' | 'completed' | 'failed'
  * // status.completedMessages === 3
  * // status.totalMessages === 5
- * // status.actions === [{ type: 'jetton_swap', success: true }]
  * ```
  */
 export const getTransactionStatus = async (
@@ -133,47 +102,21 @@ export const getTransactionStatus = async (
     const client = appKit.networkManager.getClient(network ?? Network.mainnet());
 
     // First try pending traces (transaction still being processed)
-    const pendingResponse = await client.getPendingTrace({
-        externalMessageHash: [hash],
-    });
-
-    if (pendingResponse.traces.length > 0) {
-        const trace = pendingResponse.traces[0];
-        const traceInfo = trace.trace_info;
-
-        const isEffectivelyCompleted =
-            traceInfo.trace_state === 'complete' ||
-            (traceInfo.trace_state === 'pending' && traceInfo.pending_messages === 0);
-
-        return {
-            status: isEffectivelyCompleted ? 'completed' : mapTraceState(traceInfo.trace_state),
-            totalMessages: traceInfo.messages,
-            pendingMessages: traceInfo.pending_messages,
-            completedMessages: traceInfo.messages - traceInfo.pending_messages,
-            actions: extractActions(trace.actions),
-        };
+    try {
+        const pendingResponse = await client.getPendingTrace({ externalMessageHash: [hash] });
+        const pendingStatus = parseTraceResponse(pendingResponse);
+        if (pendingStatus) return pendingStatus;
+    } catch (_e) {
+        //
     }
 
     // Try completed traces
-    const traceResponse = await client.getTrace({
-        traceId: [hash],
-    });
-
-    if (traceResponse.traces.length > 0) {
-        const trace = traceResponse.traces[0];
-        const traceInfo = trace.trace_info;
-
-        const isEffectivelyCompleted =
-            traceInfo.trace_state === 'complete' ||
-            (traceInfo.trace_state === 'pending' && traceInfo.pending_messages === 0);
-
-        return {
-            status: isEffectivelyCompleted ? 'completed' : mapTraceState(traceInfo.trace_state),
-            totalMessages: traceInfo.messages,
-            pendingMessages: traceInfo.pending_messages,
-            completedMessages: traceInfo.messages - traceInfo.pending_messages,
-            actions: extractActions(trace.actions),
-        };
+    try {
+        const traceResponse = await client.getTrace({ traceId: [hash] });
+        const completedStatus = parseTraceResponse(traceResponse);
+        if (completedStatus) return completedStatus;
+    } catch (_e) {
+        //
     }
 
     // If neither pending nor completed trace found, the transaction
@@ -183,6 +126,5 @@ export const getTransactionStatus = async (
         totalMessages: 0,
         pendingMessages: 0,
         completedMessages: 0,
-        actions: [],
     };
 };
