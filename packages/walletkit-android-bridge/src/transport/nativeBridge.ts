@@ -6,27 +6,30 @@
  *
  */
 
-/**
- * Native bridge helpers for posting messages to the Android host.
- */
 import type { BridgePayload } from '../types';
 import { bigIntReplacer } from '../utils/serialization';
 import { warn, error, info } from '../utils/logger';
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Reverse-RPC: lets JS request work from Kotlin (adapter/signer proxy calls).
-// JS sends {kind:'request', id, method, params} via postMessage.
-// Kotlin responds by calling window.__walletkitResponse(id, resultJson, errorJson).
-// ──────────────────────────────────────────────────────────────────────────────
+// Reverse-RPC: JS sends {kind:'request', id, method, params} via postMessage.
+// Kotlin responds via window.__walletkitResponse(id, resultJson, errorJson).
 
 const pendingRequests = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
 let nextRequestId = 1;
 
 /**
- * Send a request to the native (Kotlin) side and wait for a response.
- *
- * The native side is expected to call `window.__walletkitResponse(id, resultJson, errorJson)`
- * when the work is done.
+ * Synchronous bridge call via @JavascriptInterface (WalletKitNative.adapterCallSync).
+ * Used for sync WalletAdapter getters that cannot be async.
+ */
+export function bridgeRequestSync(method: string, params: Record<string, unknown>): string {
+    const native = window.WalletKitNative;
+    if (!native || typeof native.adapterCallSync !== 'function') {
+        throw new Error('WalletKitNative.adapterCallSync not available');
+    }
+    return native.adapterCallSync(method, JSON.stringify(params));
+}
+
+/**
+ * Send a request to Kotlin via postMessage and wait for a response.
  */
 export function bridgeRequest(method: string, params: Record<string, unknown>): Promise<unknown> {
     const id = `req_${nextRequestId++}`;
@@ -36,9 +39,6 @@ export function bridgeRequest(method: string, params: Record<string, unknown>): 
     });
 }
 
-/**
- * Registers the global handler that Kotlin invokes to deliver reverse-RPC responses.
- */
 export function registerNativeResponseHandler(): void {
     window.__walletkitResponse = (id: string, resultJson?: string | null, errorJson?: string | null) => {
         const entry = pendingRequests.get(id);

@@ -6,10 +6,6 @@
  *
  */
 
-/**
- * Wallet management operations.
- */
-
 import type { Hex, Network, WalletAdapter, ApiClient, Base64String, UserFriendlyAddress } from '@ton/walletkit';
 import type { WalletId } from '@ton/walletkit';
 import type { TransactionRequest } from '@ton/walletkit';
@@ -19,41 +15,36 @@ import type { ProofMessage } from '@ton/walletkit';
 import { Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '../core/moduleLoader';
 import { kit, wallet, getKit } from '../utils/bridge';
 import { retain, retainWithId, get, release } from '../utils/registry';
-import { bridgeRequest } from '../transport/nativeBridge';
+import { bridgeRequest, bridgeRequestSync } from '../transport/nativeBridge';
 
-// ──────────────────────────────────────────────────────────────────────────────
-// ProxyWalletAdapter
-//
-// Wraps a Kotlin-side TONWalletAdapter registered in AdapterManager.
-// Data accessors (publicKey, network, address, walletId) use cached values
-// passed at construction.  Signing/stateInit operations delegate to Kotlin
-// via the reverse-RPC `bridgeRequest` channel.
-// ──────────────────────────────────────────────────────────────────────────────
-
+// Wraps a Kotlin-side TONWalletAdapter. Sync getters call Kotlin synchronously
+// via @JavascriptInterface; signing/stateInit delegate via async reverse-RPC.
 class ProxyWalletAdapter implements WalletAdapter {
     constructor(
         private readonly adapterId: string,
-        private readonly _publicKey: Hex,
-        private readonly _network: Network,
-        private readonly _address: UserFriendlyAddress,
-        private readonly _walletId: WalletId,
-        private readonly _client: ApiClient,
+        private readonly apiClientProvider: (network: Network) => ApiClient,
     ) {}
 
     getPublicKey(): Hex {
-        return this._publicKey;
+        return bridgeRequestSync('getPublicKey', { adapterId: this.adapterId }) as Hex;
     }
+
     getNetwork(): Network {
-        return this._network;
+        const raw = bridgeRequestSync('getNetwork', { adapterId: this.adapterId });
+        const parsed = JSON.parse(raw);
+        return parsed as Network;
     }
+
     getClient(): ApiClient {
-        return this._client;
+        return this.apiClientProvider(this.getNetwork());
     }
+
     getAddress(): UserFriendlyAddress {
-        return this._address;
+        return bridgeRequestSync('getAddress', { adapterId: this.adapterId }) as UserFriendlyAddress;
     }
+
     getWalletId(): WalletId {
-        return this._walletId;
+        return bridgeRequestSync('getWalletId', { adapterId: this.adapterId }) as WalletId;
     }
 
     async getStateInit(): Promise<Base64String> {
@@ -201,35 +192,24 @@ export async function createV4R2WalletAdapter(args: {
 
 export async function addWallet(args: {
     adapterId: string;
-    walletId?: string;
-    publicKey?: string;
-    network?: { chainId: string };
-    address?: string;
 }) {
     const instance = await getKit();
 
-    if (args.publicKey) {
-        const { adapterId, walletId, publicKey, address } = args;
-        const network = args.network as unknown as Network;
-
-        const proxyAdapter = new ProxyWalletAdapter(
-            adapterId,
-            publicKey as Hex,
-            network,
-            address as UserFriendlyAddress,
-            walletId as WalletId,
-            instance.getApiClient(network),
-        );
-
-        const w = await instance.addWallet(proxyAdapter as Parameters<typeof instance.addWallet>[0]);
+    // Check if adapter exists in JS registry (BridgeWalletAdapter / JS-created adapter path)
+    const existingAdapter = get<WalletAdapter>(args.adapterId);
+    if (existingAdapter) {
+        const w = await instance.addWallet(existingAdapter as Parameters<typeof instance.addWallet>[0]);
         if (!w) return null;
         return { walletId: w.getWalletId?.(), wallet: w };
     }
 
-    const adapter = get<WalletAdapter>(args.adapterId);
-    if (!adapter) throw new Error(`Adapter not found in registry: ${args.adapterId}`);
+    // Kotlin-side adapter — create proxy that calls Kotlin synchronously for getters
+    const proxyAdapter = new ProxyWalletAdapter(
+        args.adapterId,
+        (network) => instance.getApiClient(network),
+    );
 
-    const w = await instance.addWallet(adapter as Parameters<typeof instance.addWallet>[0]);
+    const w = await instance.addWallet(proxyAdapter as Parameters<typeof instance.addWallet>[0]);
     if (!w) return null;
     return { walletId: w.getWalletId?.(), wallet: w };
 }
@@ -239,18 +219,5 @@ export async function addWallet(args: {
  */
 export function releaseRef(args: { id: string }) {
     release(args.id);
-    return { ok: true };
-}
-
-/**
- * Releases a Kotlin-side native adapter registered in AdapterManager.
- * Called by Kotlin when adapter.close() is invoked.
- * For proxy adapters the JS side has no registry entry — this is a no-op on JS,
- * but the Kotlin side uses it to confirm cleanup is complete.
- */
-export function releaseAdapter(args: { adapterId: string }) {
-    // Proxy adapters aren't stored in the JS registry (they're closures over adapterId).
-    // But if a JS-side adapter was also retained (createV5R1/createV4R2), clean it up.
-    release(args.adapterId);
     return { ok: true };
 }

@@ -59,6 +59,7 @@ export interface AndroidBridgeType {
 
 export interface WalletKitNativeBridgeType {
     postMessage(json: string): void;
+    adapterCallSync(method: string, paramsJson: string): string;
 }
 
 export type WalletKitAdapter = WalletAdapter;
