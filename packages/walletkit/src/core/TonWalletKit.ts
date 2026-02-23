@@ -49,6 +49,7 @@ import type { NetworkManager } from './NetworkManager';
 import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
+import { IntentHandler } from '../handlers/IntentHandler';
 import type {
     Network,
     TransactionRequest,
@@ -62,6 +63,16 @@ import type {
     SignDataApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
+    IntentRequestEvent,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentActionItem,
+    BatchedIntentEvent,
+    ConnectionApprovalProof,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
 
@@ -91,6 +102,7 @@ export class TonWalletKit implements ITonWalletKit {
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
+    private intentHandler!: IntentHandler;
 
     private config: TonWalletKitOptions;
 
@@ -250,6 +262,7 @@ export class TonWalletKit implements ITonWalletKit {
         this.requestProcessor = components.requestProcessor;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
+        this.intentHandler = new IntentHandler(this.config, this.bridgeManager, this.walletManager);
     }
 
     /**
@@ -520,6 +533,94 @@ export class TonWalletKit implements ITonWalletKit {
 
     removeErrorCallback(): void {
         this.eventRouter.removeErrorCallback();
+    }
+
+    // === Intent API ===
+
+    isIntentUrl(url: string): boolean {
+        return this.intentHandler?.isIntentUrl(url) ?? false;
+    }
+
+    async handleIntentUrl(url: string, walletId: string): Promise<void> {
+        await this.ensureInitialized();
+        return this.intentHandler.handleIntentUrl(url, walletId);
+    }
+
+    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        if (this.intentHandler) {
+            this.intentHandler.onIntentRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.intentHandler.onIntentRequest(cb);
+            });
+        }
+    }
+
+    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        this.intentHandler.removeIntentRequestCallback(cb);
+    }
+
+    async approveTransactionIntent(
+        event: TransactionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveTransactionIntent(event, walletId);
+    }
+
+    async approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveSignDataIntent(event, walletId);
+    }
+
+    async approveActionIntent(
+        event: ActionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveActionIntent(event, walletId);
+    }
+
+    async rejectIntent(event: IntentRequestEvent, reason?: string, errorCode?: number): Promise<IntentErrorResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.rejectIntent(event, reason, errorCode);
+    }
+
+    async intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest> {
+        await this.ensureInitialized();
+        return this.intentHandler.intentItemsToTransactionRequest(items, walletId);
+    }
+
+    async processConnectAfterIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        _walletId: string,
+        _proof?: ConnectionApprovalProof,
+    ): Promise<void> {
+        await this.ensureInitialized();
+
+        const eventId = event.id;
+        const connectRequest = this.intentHandler.getPendingConnectRequest(eventId);
+        if (!connectRequest) {
+            log.warn('No pending connect request for intent', { eventId });
+            return;
+        }
+
+        this.intentHandler.removePendingConnectRequest(eventId);
+
+        // Create a bridge event from the connect request and route it through the connect flow
+        const bridgeEvent: RawBridgeEventConnect = {
+            from: event.clientId || '',
+            id: eventId,
+            method: 'connect',
+            params: {
+                manifest: { url: connectRequest.manifestUrl },
+                items: connectRequest.items,
+            },
+            timestamp: Date.now(),
+            domain: '',
+        };
+
+        await this.eventRouter.routeEvent(bridgeEvent);
     }
 
     // === URL Processing API ===
