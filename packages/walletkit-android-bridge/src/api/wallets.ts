@@ -190,9 +190,7 @@ export async function createV4R2WalletAdapter(args: {
     return { adapterId, address: adapter.getAddress() };
 }
 
-export async function addWallet(args: {
-    adapterId: string;
-}) {
+export async function addWallet(args: { adapterId: string }) {
     const instance = await getKit();
 
     // Check if adapter exists in JS registry (BridgeWalletAdapter / JS-created adapter path)
@@ -204,10 +202,7 @@ export async function addWallet(args: {
     }
 
     // Kotlin-side adapter — create proxy that calls Kotlin synchronously for getters
-    const proxyAdapter = new ProxyWalletAdapter(
-        args.adapterId,
-        (network) => instance.getApiClient(network),
-    );
+    const proxyAdapter = new ProxyWalletAdapter(args.adapterId, (network) => instance.getApiClient(network));
 
     const w = await instance.addWallet(proxyAdapter as Parameters<typeof instance.addWallet>[0]);
     if (!w) return null;

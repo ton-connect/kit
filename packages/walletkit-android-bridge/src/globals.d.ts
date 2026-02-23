@@ -7,12 +7,7 @@
  */
 
 // Re-export bridge types for backwards compatibility
-import type {
-    AndroidBridgeType,
-    WalletKitNativeBridgeType,
-    WalletKitBridgeApi,
-    WalletKitApiMethod,
-} from './types';
+import type { AndroidBridgeType, WalletKitNativeBridgeType, WalletKitBridgeApi, WalletKitApiMethod } from './types';
 
 declare global {
     interface Window {

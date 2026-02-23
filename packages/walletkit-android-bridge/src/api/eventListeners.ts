@@ -20,7 +20,7 @@ type SignDataEventListener = ((event: SignDataRequestEvent) => void) | null;
 type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
 type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
 
-type BridgeEventListener =
+type _BridgeEventListener =
     | ConnectEventListener
     | TransactionEventListener
     | SignDataEventListener

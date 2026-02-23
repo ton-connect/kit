@@ -6,10 +6,11 @@
  *
  */
 
+import { v7 as uuidv7 } from 'uuid';
+
 import type { BridgePayload } from '../types';
 import { bigIntReplacer } from '../utils/serialization';
 import { warn, error, info } from '../utils/logger';
-import { v7 as uuidv7 } from 'uuid';
 
 // Reverse-RPC: JS sends {kind:'request', id, method, params} via postMessage.
 // Kotlin responds via window.__walletkitResponse(id, resultJson, errorJson).
