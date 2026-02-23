@@ -28,21 +28,22 @@ export async function main() {
     const kit = await walletKitInitializeSample();
 
     // For demo purposes, we select the last wallet in the list
-    function getSelectedWalletId() {
-        return kit.getWallets().pop()?.getWalletId() ?? '';
+    async function getSelectedWalletId() {
+        const wallet = kit.getWallets().pop();
+        return wallet ? await wallet.getWalletId() : '';
     }
 
     async function getWalletInfo() {
         // SAMPLE_START: BASIC_WALLET_OPERATIONS_1
-        const selectedWalletId = getSelectedWalletId();
-        const wallet = kit.getWallet(selectedWalletId);
+        const selectedWalletId = await getSelectedWalletId();
+        const wallet = await kit.getWallet(selectedWalletId);
         if (!wallet) {
             console.error('Selected wallet not found');
             return;
         }
         // Query balance
         const balance = await wallet.getBalance();
-        console.log('WalletBalance', wallet.getAddress(), balance.toString());
+        console.log('WalletBalance', await wallet.getAddress(), balance.toString());
         // SAMPLE_END: BASIC_WALLET_OPERATIONS_1
     }
 
@@ -69,17 +70,18 @@ export async function main() {
             // Use event.preview to display dApp info in your UI
             const name = event.dAppInfo?.name;
             if (yourConfirmLogic(`Connect to ${name}?`)) {
-                const selectedWalletId = getSelectedWalletId();
-                const wallet = kit.getWallet(selectedWalletId);
+                const selectedWalletId = await getSelectedWalletId();
+                const wallet = await kit.getWallet(selectedWalletId);
                 if (!wallet) {
                     console.error('Selected wallet not found');
                     await kit.rejectConnectRequest(event, 'No wallet available');
                     return;
                 }
-                console.log(`Using wallet ID: ${wallet.getWalletId()}, address: ${wallet.getAddress()}`);
+                const walletId = await wallet.getWalletId();
+                console.log(`Using wallet ID: ${walletId}, address: ${await wallet.getAddress()}`);
 
                 // Set walletId on the request before approving
-                event.walletId = wallet.getWalletId();
+                event.walletId = walletId;
                 await kit.approveConnectRequest(event);
             } else {
                 await kit.rejectConnectRequest(event, 'User rejected');

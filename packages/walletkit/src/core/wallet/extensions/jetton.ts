@@ -51,7 +51,7 @@ export class WalletJettonClass implements WalletJettonInterface {
         const jettonPayload = createJettonTransferPayload({
             amount: BigInt(params.transferAmount),
             destination: params.recipientAddress,
-            responseDestination: this.getAddress(),
+            responseDestination: await this.getAddress(),
             comment: params.comment,
         });
 
@@ -59,20 +59,20 @@ export class WalletJettonClass implements WalletJettonInterface {
             targetAddress: jettonWalletAddress,
             amount: DEFAULT_JETTON_GAS_FEE,
             payload: jettonPayload,
-            fromAddress: this.getAddress(),
+            fromAddress: await this.getAddress(),
         });
     }
 
     async getJettonBalance(this: Wallet, jettonAddress: UserFriendlyAddress): Promise<TokenAmount> {
         const jettonWalletAddress = await this.getJettonWalletAddress(jettonAddress);
-        return getJettonBalanceFromClient(this.getClient(), jettonWalletAddress);
+        return getJettonBalanceFromClient(await this.getClient(), jettonWalletAddress);
     }
 
     async getJettonWalletAddress(this: Wallet, jettonAddress: UserFriendlyAddress): Promise<UserFriendlyAddress> {
-        return getJettonWalletAddressFromClient(this.getClient(), jettonAddress, this.getAddress());
+        return getJettonWalletAddressFromClient(await this.getClient(), jettonAddress, await this.getAddress());
     }
 
     async getJettons(this: Wallet, params?: JettonsRequest): Promise<JettonsResponse> {
-        return getJettonsFromClient(this.getClient(), this.getAddress(), params);
+        return getJettonsFromClient(await this.getClient(), await this.getAddress(), params);
     }
 }

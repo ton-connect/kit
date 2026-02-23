@@ -17,7 +17,7 @@ import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walle
 export async function main() {
     const kit = await walletKitInitializeSample();
     // SAMPLE_START: SEND_NFTS_2
-    const wallet = kit.getWallet(getSelectedWalletAddress());
+    const wallet = await kit.getWallet(await getSelectedWalletAddress());
     if (!wallet) throw new Error('No wallet');
 
     const nftTransfer: NFTTransferRequest = {

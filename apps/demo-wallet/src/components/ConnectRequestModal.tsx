@@ -18,8 +18,13 @@ import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
 import { createComponentLogger } from '../utils/logger';
 
-// Create logger for connect request modal
 const log = createComponentLogger('ConnectRequestModal');
+
+interface ResolvedWalletInfo {
+    id: string;
+    address: string;
+    isTestnet: boolean;
+}
 
 interface ConnectRequestModalProps {
     request: ConnectionRequestEvent;
@@ -43,6 +48,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(currentWallet || null);
     const [isLoading, setIsLoading] = useState(false);
     const [showAllWallets, setShowAllWallets] = useState(false);
+    const [walletInfos, setWalletInfos] = useState<ResolvedWalletInfo[]>([]);
 
     // Auto-select current wallet or first available wallet if selectedWallet is null
     useEffect(() => {
@@ -58,7 +64,27 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         return () => clearInterval(intervalId);
     }, [selectedWallet, availableWallets, currentWallet]);
 
-    // Create a map of wallet IDs to SavedWallet data
+    // Resolve async wallet info for all available wallets
+    useEffect(() => {
+        if (availableWallets.length === 0) return;
+        let cancelled = false;
+        Promise.all(
+            availableWallets.map(async (wallet) => {
+                const [id, address, network] = await Promise.all([
+                    wallet.getWalletId(),
+                    wallet.getAddress(),
+                    wallet.getNetwork(),
+                ]);
+                return { id, address, isTestnet: network.chainId === Network.testnet().chainId };
+            }),
+        ).then((infos) => {
+            if (!cancelled) setWalletInfos(infos);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [availableWallets]);
+
     const walletDataMap = useMemo(() => {
         const map = new Map<string, SavedWallet>();
         savedWallets.forEach((savedWallet) => {
@@ -66,6 +92,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         });
         return map;
     }, [savedWallets]);
+
+    const selectedWalletIndex = selectedWallet ? availableWallets.indexOf(selectedWallet) : -1;
+    const selectedWalletInfo = selectedWalletIndex >= 0 ? walletInfos[selectedWalletIndex] : null;
 
     const handleApprove = async () => {
         if (!selectedWallet) return;
@@ -102,15 +131,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         return `${address.slice(0, halfLength)}${dots}${address.slice(-halfLength)}`;
     };
 
-    const getNetworkLabel = (wallet?: Wallet): { label: string; isTestnet: boolean } => {
-        if (!wallet) return { label: 'Unknown', isTestnet: false };
-        const network = wallet.getNetwork();
-        const isTestnet = network.chainId === Network.testnet().chainId;
-        return {
-            label: isTestnet ? 'Testnet' : 'Mainnet',
-            isTestnet,
-        };
-    };
+    const selectedNetworkLabel = selectedWalletInfo
+        ? { label: selectedWalletInfo.isTestnet ? 'Testnet' : 'Mainnet', isTestnet: selectedWalletInfo.isTestnet }
+        : { label: 'Unknown', isTestnet: false };
 
     if (!isOpen) return null;
 
@@ -128,12 +151,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                             {selectedWallet && (
                                 <span
                                     className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                        getNetworkLabel(selectedWallet).isTestnet
+                                        selectedNetworkLabel.isTestnet
                                             ? 'bg-orange-100 text-orange-800'
                                             : 'bg-green-100 text-green-800'
                                     }`}
                                 >
-                                    {getNetworkLabel(selectedWallet).label}
+                                    {selectedNetworkLabel.label}
                                 </span>
                             )}
                         </div>
@@ -162,10 +185,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                     <p className="text-xs text-gray-600 leading-relaxed">
                                                         {permission.description}
                                                     </p>
-                                                    {permission.name === 'ton_addr' && selectedWallet && (
+                                                    {permission.name === 'ton_addr' && selectedWalletInfo && (
                                                         <p className="text-xs text-gray-500 mt-1 truncate">
                                                             Your address:{' '}
-                                                            {formatAddress(selectedWallet.getAddress(), 20)}
+                                                            {formatAddress(selectedWalletInfo.address, 20)}
                                                         </p>
                                                     )}
                                                 </div>
@@ -196,12 +219,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 {showAllWallets ? (
                                     <div className="space-y-2">
                                         {availableWallets.map((wallet, index) => {
-                                            const walletId = wallet.getWalletId();
-                                            const savedWallet = walletDataMap.get(walletId);
-                                            const networkLabel =
-                                                wallet.getNetwork().chainId === Network.testnet().chainId
-                                                    ? 'testnet'
-                                                    : 'mainnet';
+                                            const info = walletInfos[index];
+                                            const walletId = info?.id ?? String(index);
+                                            const savedWallet = info ? walletDataMap.get(info.id) : undefined;
+                                            const networkLabel = info?.isTestnet ? 'testnet' : 'mainnet';
 
                                             return (
                                                 <label key={walletId} className="block cursor-pointer">
@@ -209,7 +230,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                         type="radio"
                                                         name="wallet"
                                                         value={walletId}
-                                                        checked={selectedWallet?.getWalletId() === wallet.getWalletId()}
+                                                        checked={selectedWalletIndex === index}
                                                         onChange={() => {
                                                             setSelectedWallet(wallet);
                                                             setShowAllWallets(false);
@@ -221,7 +242,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                             savedWallet || {
                                                                 id: walletId,
                                                                 name: `Wallet ${index + 1}`,
-                                                                address: wallet.getAddress(),
+                                                                address: info?.address ?? '',
                                                                 publicKey: '',
                                                                 walletType: 'mnemonic',
                                                                 walletInterfaceType: 'mnemonic',
@@ -229,9 +250,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                                 createdAt: Date.now(),
                                                             }
                                                         }
-                                                        isActive={
-                                                            selectedWallet?.getWalletId() === wallet.getWalletId()
-                                                        }
+                                                        isActive={selectedWalletIndex === index}
                                                         isCompact={false}
                                                         onClick={() => {
                                                             setSelectedWallet(wallet);
@@ -249,22 +268,19 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                         </button>
                                     </div>
                                 ) : (
-                                    selectedWallet && (
+                                    selectedWallet &&
+                                    selectedWalletInfo && (
                                         <div>
                                             <WalletPreview
                                                 wallet={
-                                                    walletDataMap.get(selectedWallet.getWalletId()) || {
-                                                        id: selectedWallet.getWalletId(),
+                                                    walletDataMap.get(selectedWalletInfo.id) || {
+                                                        id: selectedWalletInfo.id,
                                                         name: 'Selected Wallet',
-                                                        address: selectedWallet.getAddress(),
+                                                        address: selectedWalletInfo.address,
                                                         publicKey: '',
                                                         walletType: 'mnemonic',
                                                         walletInterfaceType: 'mnemonic',
-                                                        network:
-                                                            selectedWallet.getNetwork().chainId ===
-                                                            Network.testnet().chainId
-                                                                ? 'testnet'
-                                                                : 'mainnet',
+                                                        network: selectedWalletInfo.isTestnet ? 'testnet' : 'mainnet',
                                                         createdAt: Date.now(),
                                                     }
                                                 }

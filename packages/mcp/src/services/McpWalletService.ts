@@ -181,15 +181,15 @@ export class McpWalletService {
     /**
      * Get wallet address
      */
-    getAddress(): string {
+    async getAddress(): Promise<string> {
         return this.wallet.getAddress();
     }
 
     /**
      * Get wallet network
      */
-    getNetwork(): 'mainnet' | 'testnet' {
-        const network = this.wallet.getNetwork();
+    async getNetwork(): Promise<'mainnet' | 'testnet'> {
+        const network = await this.wallet.getNetwork();
         return network.chainId === Network.mainnet().chainId ? 'mainnet' : 'testnet';
     }
 
@@ -262,8 +262,8 @@ export class McpWalletService {
      * Get transaction history using events API
      */
     async getTransactions(limit: number = 20): Promise<TransactionInfo[]> {
-        const address = this.wallet.getAddress();
-        const client = this.wallet.getClient();
+        const address = await this.wallet.getAddress();
+        const client = await this.wallet.getClient();
 
         const response = await client.getEvents({
             account: address,
@@ -447,7 +447,7 @@ export class McpWalletService {
         amount: string,
         slippageBps?: number,
     ): Promise<SwapQuoteResult> {
-        const network = this.wallet.getNetwork();
+        const network = await this.wallet.getNetwork();
         const kit = await this.getKit();
 
         // Get decimals for tokens (TON has 9 decimals, jettons need to be fetched)
@@ -474,7 +474,7 @@ export class McpWalletService {
         // Build transaction params
         const swapParams: SwapParams = {
             quote,
-            userAddress: this.wallet.getAddress(),
+            userAddress: await this.wallet.getAddress(),
         };
         const tx = await kit.swap.buildSwapTransaction(swapParams);
 
@@ -597,7 +597,7 @@ export class McpWalletService {
      * Resolve a TON DNS domain (e.g., "wallet.ton") to a wallet address
      */
     async resolveDns(domain: string): Promise<string | null> {
-        const client = this.wallet.getClient();
+        const client = await this.wallet.getClient();
         return client.resolveDnsWallet(domain);
     }
 
@@ -605,7 +605,7 @@ export class McpWalletService {
      * Reverse resolve a wallet address to a TON DNS domain
      */
     async backResolveDns(address: string): Promise<string | null> {
-        const client = this.wallet.getClient();
+        const client = await this.wallet.getClient();
         return client.backResolveDnsWallet(address);
     }
 

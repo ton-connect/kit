@@ -44,14 +44,26 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
     const [showWalletSelector, setShowWalletSelector] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    let [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
+    let [selectedWalletAddress, setSelectedWalletAddress] = useState<string | null>(null);
+    useEffect(() => {
+        if (!selectedWallet) return;
+        void selectedWallet.getAddress().then(setSelectedWalletId);
+    }, [selectedWallet]);
+
+    useEffect(() => {
+        if (!selectedWallet) return;
+        void selectedWallet.getAddress().then(setSelectedWalletAddress);
+    }, [selectedWallet]);
+
     const selectedWalletData = useMemo(() => {
         if (!selectedWallet) return undefined;
 
-        const selectedWalletId = selectedWallet.getWalletId();
-        if (!selectedWalletId) return undefined;
+        // const selectedWalletId = selectedWallet.getWalletId();
+        // if (!selectedWalletId) return undefined;
 
         return savedWallets.find((wallet) => wallet.kitWalletId === selectedWalletId);
-    }, [selectedWallet, savedWallets]);
+    }, [selectedWallet, savedWallets, selectedWalletId]);
     const isLedgerWallet = selectedWalletData?.walletType === 'ledger';
 
     useEffect(() => {
@@ -127,10 +139,10 @@ export const ConnectRequestModal: FC<ConnectRequestModalProps> = ({ request, isO
                                 </ActiveTouchAction>
                             </View>
 
-                            {selectedWallet && (
+                            {selectedWallet && selectedWalletAddress && (
                                 <WalletInfoBlock
                                     name={selectedWalletData?.name || 'Selected Wallet'}
-                                    address={selectedWallet.getAddress()}
+                                    address={selectedWalletAddress}
                                 />
                             )}
                         </View>

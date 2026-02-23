@@ -128,7 +128,7 @@ async function createWalletFromCredentials(credentials: ParsedCredentials): Prom
 
     let wallet = await kit.addWallet(walletAdapter);
     if (!wallet) {
-        wallet = kit.getWallet(walletAdapter.getWalletId());
+        wallet = kit.getWallet(await walletAdapter.getWalletId());
     }
     if (!wallet) {
         throw new Error('Failed to create wallet');

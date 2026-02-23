@@ -122,8 +122,8 @@ export const createWalletManagementSlice =
                     throw new Error('Failed to find created wallet');
                 }
 
-                const address = wallet.getAddress();
-                const publicKey = wallet.getPublicKey();
+                const address = await wallet.getAddress();
+                const publicKey = await wallet.getPublicKey();
 
                 const savedWallet: SavedWallet = {
                     id: walletId,
@@ -136,7 +136,7 @@ export const createWalletManagementSlice =
                     version: walletVersion,
                     network: walletNetwork,
                     createdAt: Date.now(),
-                    kitWalletId: wallet.getWalletId(),
+                    kitWalletId: await wallet.getWalletId(),
                 };
 
                 set((state) => {
@@ -207,8 +207,8 @@ export const createWalletManagementSlice =
                     throw new Error('Failed to find created Ledger wallet');
                 }
 
-                const address = wallet.getAddress();
-                const kitWalletId = wallet.getWalletId();
+                const address = await wallet.getAddress();
+                const kitWalletId = await wallet.getWalletId();
 
                 const existingWallet = state.walletManagement.savedWallets.find((w) => w.kitWalletId === kitWalletId);
                 if (existingWallet) {
@@ -217,10 +217,10 @@ export const createWalletManagementSlice =
                 }
 
                 const balance = await wallet.getBalance();
-                const publicKey = wallet.getPublicKey();
+                const publicKey = await wallet.getPublicKey();
 
                 const ledgerPath = createLedgerPath(
-                    wallet.getNetwork().chainId === Network.testnet().chainId,
+                    (await wallet.getNetwork()).chainId === Network.testnet().chainId,
                     0,
                     state.auth.ledgerAccountNumber || 0,
                 );
@@ -245,7 +245,7 @@ export const createWalletManagementSlice =
                     version: version,
                     network: walletNetwork,
                     createdAt: Date.now(),
-                    kitWalletId: wallet.getWalletId(),
+                    kitWalletId: await wallet.getWalletId(),
                 };
 
                 set((state) => {
@@ -300,8 +300,8 @@ export const createWalletManagementSlice =
                     }
 
                     wallet = await state.walletCore.walletKit.addWallet(walletAdapter);
-                    if (wallet && wallet.getWalletId() !== savedWallet.kitWalletId) {
-                        const newKitWalletId = wallet.getWalletId();
+                    if (wallet && (await wallet.getWalletId()) !== savedWallet.kitWalletId) {
+                        const newKitWalletId = await wallet.getWalletId();
                         set((state) => {
                             const savedWalletIndex = state.walletManagement.savedWallets.findIndex(
                                 (w) => w.id === walletId,

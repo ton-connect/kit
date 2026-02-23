@@ -55,7 +55,7 @@ export class WalletTonClass implements WalletTonInterface {
 
         return {
             messages: [message],
-            fromAddress: this.getAddress(),
+            fromAddress: await this.getAddress(),
         };
     }
     async createTransferMultiTonTransaction(this: Wallet, params: TONTransferRequest[]): Promise<TransactionRequest> {
@@ -91,7 +91,7 @@ export class WalletTonClass implements WalletTonInterface {
         }
         return {
             messages,
-            fromAddress: this.getAddress(),
+            fromAddress: await this.getAddress(),
         };
     }
 
@@ -108,7 +108,7 @@ export class WalletTonClass implements WalletTonInterface {
         try {
             const boc = await this.getSignedSendTransaction(request);
 
-            await CallForSuccess(() => this.getClient().sendBoc(boc));
+            await CallForSuccess(async () => (await this.getClient()).sendBoc(boc));
 
             return { boc };
         } catch (error) {
@@ -125,6 +125,6 @@ export class WalletTonClass implements WalletTonInterface {
     }
 
     async getBalance(this: Wallet): Promise<string> {
-        return await CallForSuccess(async () => this.getClient().getBalance(this.getAddress()));
+        return await CallForSuccess(async () => (await this.getClient()).getBalance(await this.getAddress()));
     }
 }

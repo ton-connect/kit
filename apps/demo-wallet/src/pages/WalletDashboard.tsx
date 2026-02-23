@@ -6,9 +6,10 @@
  *
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/wallet-core';
+import type { Wallet } from '@ton/walletkit';
 
 import {
     Layout,
@@ -52,6 +53,7 @@ export const WalletDashboard: React.FC = () => {
     } = useWallet();
     const activeWallet = getActiveWallet();
     const network = activeWallet?.network || 'testnet';
+    const [currentConnectWallet, setCurrentConnectWallet] = useState<Wallet | undefined>(undefined);
     const {
         handleTonConnectUrl,
         pendingConnectRequest,
@@ -63,6 +65,23 @@ export const WalletDashboard: React.FC = () => {
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
     const { error } = useTonWallet();
+
+    useEffect(() => {
+        const wallets = getAvailableWallets();
+        if (!activeWallet?.kitWalletId || wallets.length === 0) {
+            setCurrentConnectWallet(undefined);
+            return;
+        }
+        let cancelled = false;
+        Promise.all(wallets.map(async (w) => ({ wallet: w, id: await w.getWalletId() }))).then((results) => {
+            if (!cancelled) {
+                setCurrentConnectWallet(results.find((r) => r.id === activeWallet.kitWalletId)?.wallet);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+        }, [activeWallet?.kitWalletId, savedWallets]); // eslint-disable-line
 
     // Use the paste handler hook
     usePasteHandler(handleTonConnectUrl);
@@ -356,7 +375,7 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingConnectRequest}
                     availableWallets={getAvailableWallets()}
                     savedWallets={savedWallets}
-                    currentWallet={getAvailableWallets().find((w) => w.getWalletId() === activeWallet?.kitWalletId)}
+                    currentWallet={currentConnectWallet}
                     isOpen={isConnectModalOpen}
                     onApprove={approveConnectRequest}
                     onReject={rejectConnectRequest}

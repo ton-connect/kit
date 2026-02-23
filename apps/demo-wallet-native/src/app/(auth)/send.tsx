@@ -10,7 +10,7 @@ import { Ionicons, AntDesign } from '@expo/vector-icons';
 import { Address } from '@ton/ton';
 import type { Jetton, TONTransferRequest } from '@ton/walletkit';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -49,8 +49,13 @@ const SendScreen: FC = () => {
     const walletKit = useWalletKit();
     const { balance, currentWallet, savedWallets } = useWallet();
 
+    let [currentWalletId, setCurrentWalletId] = useState<string | null>(null);
+    useEffect(() => {
+        if (!currentWallet) return;
+        void currentWallet.getWalletId().then(setCurrentWalletId);
+    }, [currentWallet]);
+
     const currentSavedWallet = useMemo(() => {
-        const currentWalletId = currentWallet?.getWalletId();
         if (!currentWalletId) return undefined;
 
         return savedWallets.find((wallet) => wallet.kitWalletId === currentWalletId);

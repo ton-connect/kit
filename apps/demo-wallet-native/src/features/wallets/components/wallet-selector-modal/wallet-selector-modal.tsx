@@ -8,6 +8,7 @@
 
 import type { Wallet } from '@ton/walletkit';
 import { useWallet } from '@demo/wallet-core';
+import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
@@ -46,19 +47,25 @@ export const WalletSelectorModal: FC<WalletSelectorModalProps> = ({
         <AppBottomSheet isOpened={isOpen} onClose={onClose} title={title}>
             <View style={styles.list}>
                 {wallets.map((wallet, index) => {
-                    const address = wallet.getAddress();
+                    // const address = await wallet.getAddress();
+                    let [address, setAddress] = useState<string | null>(null);
+                    useEffect(() => {
+                        void wallet.getAddress().then(setAddress);
+                    }, [wallet]);
                     const savedWallet = savedWallets.find((w) => w.address === address);
                     const isSelected = selectedWallet === wallet;
 
                     return (
-                        <ActiveTouchAction onPress={() => handleSelect(wallet)}>
-                            <WalletInfoBlock
-                                key={index}
-                                style={isSelected && styles.selected}
-                                name={savedWallet?.name || `Wallet ${index + 1}`}
-                                address={address}
-                            />
-                        </ActiveTouchAction>
+                        address && (
+                            <ActiveTouchAction onPress={() => handleSelect(wallet)}>
+                                <WalletInfoBlock
+                                    key={index}
+                                    style={isSelected && styles.selected}
+                                    name={savedWallet?.name || `Wallet ${index + 1}`}
+                                    address={address}
+                                />
+                            </ActiveTouchAction>
+                        )
                     );
                 })}
             </View>

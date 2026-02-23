@@ -115,18 +115,18 @@ describe('TonWalletKit', () => {
         });
 
         const tonTransferParams: TONTransferRequest = {
-            recipientAddress: wallet.getAddress(),
+            recipientAddress: await wallet.getAddress(),
             transferAmount: '1000000000',
         };
         const result = await wallet.createTransferTonTransaction(tonTransferParams);
 
         await kit.handleNewTransaction(wallet, result);
 
-        expect(receivedWalletId).toBe(wallet.getWalletId());
+        expect(receivedWalletId).toBe(await wallet.getWalletId());
 
         if (receivedWalletAddress) {
             expect(Address.parse(receivedWalletAddress).toString()).toEqual(
-                Address.parse(wallet.getAddress()).toString(),
+                Address.parse(await wallet.getAddress()).toString(),
             );
         }
 

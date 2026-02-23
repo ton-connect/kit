@@ -96,27 +96,27 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
         });
     }
 
-    getPublicKey(): Hex {
-        return this.publicKey;
+    getPublicKey(): Promise<Hex> {
+        return Promise.resolve(this.publicKey);
     }
 
-    getClient(): ApiClient {
-        return this.client;
+    getClient(): Promise<ApiClient> {
+        return Promise.resolve(this.client);
     }
 
-    getNetwork(): Network {
-        return this.config.network;
+    getNetwork(): Promise<Network> {
+        return Promise.resolve(this.config.network);
     }
 
     /**
      * Get wallet's TON address
      */
-    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+    getAddress(options?: { testnet?: boolean }): Promise<UserFriendlyAddress> {
+        return Promise.resolve(formatWalletAddress(this.walletContract.address, options?.testnet));
     }
 
-    getWalletId(): WalletId {
-        return createWalletId(this.getNetwork(), this.getAddress());
+    async getWalletId(): Promise<WalletId> {
+        return createWalletId(await this.getNetwork(), await this.getAddress());
     }
 
     async getSignedSendTransaction(
@@ -288,13 +288,13 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
         return true;
     }
 
-    getSupportedFeatures(): Feature[] {
-        return [
+    getSupportedFeatures(): Promise<Feature[]> {
+        return Promise.resolve([
             {
                 name: 'SendTransaction',
                 maxMessages: 1,
             },
-        ];
+        ]);
     }
 }
 

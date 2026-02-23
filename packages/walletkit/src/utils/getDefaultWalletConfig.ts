@@ -107,15 +107,15 @@ export function getWalletInfoWithDefaults(options?: Partial<WalletInfo>): Wallet
  * If wallet adapter has getSupportedFeatures(), use those features
  * Otherwise, use features from deviceInfo
  */
-export function getDeviceInfoForWallet(
+export async function getDeviceInfoForWallet(
     walletAdapter: WalletAdapter | undefined,
     deviceInfoOptions?: Partial<DeviceInfo>,
-): DeviceInfo {
+): Promise<DeviceInfo> {
     const baseDeviceInfo = getDeviceInfoWithDefaults(deviceInfoOptions);
 
     // If wallet adapter has getSupportedFeatures(), use those features
     if (walletAdapter?.getSupportedFeatures) {
-        const adapterFeatures = walletAdapter.getSupportedFeatures();
+        const adapterFeatures = await walletAdapter.getSupportedFeatures();
         const deviceInfo = {
             ...baseDeviceInfo,
             features: adapterFeatures,
