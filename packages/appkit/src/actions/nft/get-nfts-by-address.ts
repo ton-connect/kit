@@ -11,6 +11,7 @@ import type { NFTsResponse } from '@ton/walletkit';
 import { Network, getNftsFromClient } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface GetNftsByAddressOptions {
     address: string | Address;
@@ -28,7 +29,7 @@ export const getNftsByAddress = async (
     const { address, network, limit, offset } = options;
     const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(network ?? getDefaultNetwork(appKit) ?? Network.mainnet());
 
     return getNftsFromClient(client, addressString, {
         pagination: {

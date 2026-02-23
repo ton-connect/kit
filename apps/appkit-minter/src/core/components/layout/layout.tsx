@@ -11,6 +11,8 @@ import { TonConnectButton } from '@ton/appkit-react';
 
 import { ThemeSwitcher } from './theme-switcher';
 
+import { NetworkPicker } from '@/features/network';
+
 interface LayoutProps {
     children: React.ReactNode;
     title?: string;
@@ -35,9 +37,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, title = 'NFT Minter' }
                         <h1 className="text-xl font-bold text-foreground">{title}</h1>
                     </div>
 
-                    <TonConnectButton className="ml-auto mr-2" />
-
-                    <ThemeSwitcher />
+                    <div className="ml-auto flex items-center gap-2">
+                        <NetworkPicker />
+                        <TonConnectButton />
+                        <ThemeSwitcher />
+                    </div>
                 </div>
             </header>
 
