@@ -31,6 +31,7 @@ import type {
     IntentActionItem,
     BatchedIntentEvent,
     TransactionRequest,
+    SignDataPayload,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types';
 
@@ -139,6 +140,7 @@ export class IntentHandler {
             address: Address.parse(wallet.getAddress()).toRawString(),
             timestamp: signData.timestamp,
             domain: signData.domain,
+            payload: event.payload,
         };
 
         await this.sendResponse(event, result);
@@ -155,6 +157,9 @@ export class IntentHandler {
         const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
 
         if (resolvedEvent.intentType === 'transaction') {
+            if (resolvedEvent.resolvedTransaction) {
+                resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
+            }
             return this.approveTransactionIntent(resolvedEvent, walletId);
         } else if (resolvedEvent.intentType === 'signData') {
             return this.approveSignDataIntent(resolvedEvent, walletId);
@@ -231,10 +236,57 @@ export class IntentHandler {
             return;
         }
 
+        const wireResponse = this.toWireResponse(event, result);
+
         try {
-            await this.bridgeManager.sendIntentResponse(event.clientId, result);
+            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse);
         } catch (error) {
             log.error('Failed to send intent response', { error, eventId: event.id });
+        }
+    }
+
+    /**
+     * Convert SDK response model to TonConnect wire format.
+     * - Transaction: `{ result: "<boc>", id }`
+     * - SignData: `{ result: { signature, address, timestamp, domain, payload }, id }`
+     * - Error: `{ error: { code, message }, id }`
+     */
+    private toWireResponse(event: IntentRequestEvent, result: IntentResponseResult): Record<string, unknown> {
+        if (result.resultType === 'error') {
+            return {
+                error: { code: result.error.code, message: result.error.message },
+                id: event.id,
+            };
+        }
+
+        if (result.resultType === 'transaction') {
+            return { result: result.boc, id: event.id };
+        }
+
+        return {
+            result: {
+                signature: result.signature,
+                address: result.address,
+                timestamp: result.timestamp,
+                domain: result.domain,
+                payload: this.signDataPayloadToWire(result.payload),
+            },
+            id: event.id,
+        };
+    }
+
+    /**
+     * Convert SignDataPayload model back to wire format.
+     */
+    private signDataPayloadToWire(payload: SignDataPayload): Record<string, unknown> {
+        const { data } = payload;
+        switch (data.type) {
+            case 'text':
+                return { type: 'text', text: data.value.content };
+            case 'binary':
+                return { type: 'binary', bytes: data.value.content };
+            case 'cell':
+                return { type: 'cell', cell: data.value.content, schema: data.value.schema };
         }
     }
 

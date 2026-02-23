@@ -68,7 +68,7 @@ export class IntentResolver {
      */
     async fetchActionUrl(actionUrl: string, walletAddress: string): Promise<unknown> {
         const separator = actionUrl.includes('?') ? '&' : '?';
-        const url = `${actionUrl}${separator}wallet=${encodeURIComponent(walletAddress)}`;
+        const url = `${actionUrl}${separator}address=${encodeURIComponent(walletAddress)}`;
 
         log.info('Fetching action URL', { url });
 

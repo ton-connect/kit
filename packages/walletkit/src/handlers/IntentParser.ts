@@ -16,6 +16,7 @@ import type {
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
     IntentDeliveryMode,
+    TransactionRequest,
     SignDataPayload,
     SignData,
     Base64String,
@@ -266,21 +267,21 @@ export class IntentParser {
 
     /**
      * Parse an action URL response payload into a typed intent event.
-     * Used when an actionIntent URL returns a transaction or sign-data payload.
+     *
+     * Action URLs return standard TonConnect payloads:
+     * - `{ action_type: 'sendTransaction', action: { messages, valid_until?, network? } }`
+     * - `{ action_type: 'signData', action: { type, text?|bytes?|cell?, schema? } }`
      */
     parseActionResponse(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         payload: any,
         sourceEvent: ActionIntentRequestEvent,
     ): IntentRequestEvent {
-        const wire = payload as WireIntentRequest;
-        wire.id = wire.id || sourceEvent.id;
+        const { action_type, action } = payload as { action_type?: string; action?: Record<string, unknown> };
 
-        if (!wire.m) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action response missing method (m)');
+        if (!action_type || !action) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action URL response missing action_type or action');
         }
-
-        this.validateRequest(wire);
 
         const base = {
             id: sourceEvent.id,
@@ -289,31 +290,77 @@ export class IntentParser {
             hasConnectRequest: sourceEvent.hasConnectRequest,
         };
 
-        switch (wire.m) {
-            case 'txIntent':
-            case 'signMsg':
-                return {
-                    ...base,
-                    intentType: 'transaction',
-                    deliveryMode: wire.m === 'txIntent' ? 'send' : 'signOnly',
-                    network: wire.n,
-                    validUntil: wire.vu,
-                    items: this.mapItems(wire.i!),
-                } as TransactionIntentRequestEvent;
-            case 'signIntent':
-                return {
-                    ...base,
-                    intentType: 'signData',
-                    network: wire.n,
-                    manifestUrl: wire.mu || '',
-                    payload: this.wirePayloadToSignDataPayload(wire.p!),
-                } as SignDataIntentRequestEvent;
+        switch (action_type) {
+            case 'sendTransaction':
+                return this.parseActionTransaction(base, action);
+            case 'signData':
+                return this.parseActionSignData(base, action, sourceEvent.actionUrl);
             default:
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
-                    `Action response returned unsupported method: ${wire.m}`,
+                    `Action URL returned unsupported action_type: ${action_type}`,
                 );
         }
+    }
+
+    private parseActionTransaction(
+        base: { id: string; origin: string; clientId?: string; hasConnectRequest: boolean },
+        action: Record<string, unknown>,
+    ): TransactionIntentRequestEvent {
+        const rawMessages = action.messages as Array<Record<string, unknown>> | undefined;
+        if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action sendTransaction missing messages');
+        }
+
+        const messages = rawMessages.map((msg) => ({
+            address: msg.address as string,
+            amount: msg.amount as string,
+            payload: msg.payload as Base64String | undefined,
+            stateInit: (msg.stateInit ?? msg.state_init) as Base64String | undefined,
+            extraCurrency: (msg.extraCurrency ?? msg.extra_currency) as Record<string, string> | undefined,
+        }));
+
+        const resolvedTransaction: TransactionRequest = {
+            messages,
+            network: action.network as TransactionRequest['network'],
+            validUntil: (action.valid_until ?? action.validUntil) as number | undefined,
+        };
+
+        return {
+            ...base,
+            intentType: 'transaction',
+            deliveryMode: 'send',
+            network: action.network as string | undefined,
+            validUntil: resolvedTransaction.validUntil,
+            items: [],
+            resolvedTransaction,
+        } as TransactionIntentRequestEvent;
+    }
+
+    private parseActionSignData(
+        base: { id: string; origin: string; clientId?: string; hasConnectRequest: boolean },
+        action: Record<string, unknown>,
+        actionUrl: string,
+    ): SignDataIntentRequestEvent {
+        const wirePayload = {
+            type: action.type as string,
+            text: action.text as string | undefined,
+            bytes: action.bytes as string | undefined,
+            cell: action.cell as string | undefined,
+            schema: action.schema as string | undefined,
+        };
+
+        if (!wirePayload.type) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action signData missing type');
+        }
+
+        return {
+            ...base,
+            intentType: 'signData',
+            network: action.network as string | undefined,
+            manifestUrl: actionUrl,
+            payload: this.wirePayloadToSignDataPayload(wirePayload),
+        } as SignDataIntentRequestEvent;
     }
 
     // -- Wire → Model mapping -------------------------------------------------
