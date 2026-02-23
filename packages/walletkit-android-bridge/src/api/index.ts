@@ -19,6 +19,7 @@ import * as tonconnect from './tonconnect';
 import * as nft from './nft';
 import * as jettons from './jettons';
 import * as browser from './browser';
+import * as intents from './intents';
 import { eventListeners } from './eventListeners';
 
 export { eventListeners };
@@ -84,6 +85,16 @@ export const api: WalletKitBridgeApi = {
     emitBrowserPageFinished: browser.emitBrowserPageFinished,
     emitBrowserError: browser.emitBrowserError,
     emitBrowserBridgeRequest: browser.emitBrowserBridgeRequest,
+
+    // Intents
+    isIntentUrl: intents.isIntentUrl,
+    handleIntentUrl: intents.handleIntentUrl,
+    approveTransactionIntent: intents.approveTransactionIntent,
+    approveSignDataIntent: intents.approveSignDataIntent,
+    approveActionIntent: intents.approveActionIntent,
+    rejectIntent: intents.rejectIntent,
+    intentItemsToTransactionRequest: intents.intentItemsToTransactionRequest,
+    processConnectAfterIntent: intents.processConnectAfterIntent,
 } as unknown as WalletKitBridgeApi;
 
 export type { BridgeEventListener } from './eventListeners';

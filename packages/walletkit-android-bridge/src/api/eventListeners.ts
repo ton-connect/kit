@@ -12,6 +12,8 @@ import type {
     RequestErrorEvent,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    IntentRequestEvent,
+    BatchedIntentEvent,
 } from '@ton/walletkit';
 
 /**
@@ -22,6 +24,7 @@ export type TransactionEventListener = ((event: SendTransactionRequestEvent) => 
 export type SignDataEventListener = ((event: SignDataRequestEvent) => void) | null;
 export type DisconnectEventListener = ((event: DisconnectionEvent) => void) | null;
 export type ErrorEventListener = ((event: RequestErrorEvent) => void) | null;
+export type IntentEventListener = ((event: IntentRequestEvent | BatchedIntentEvent) => void) | null;
 
 /**
  * Union type for all bridge event listeners.
@@ -31,7 +34,8 @@ export type BridgeEventListener =
     | TransactionEventListener
     | SignDataEventListener
     | DisconnectEventListener
-    | ErrorEventListener;
+    | ErrorEventListener
+    | IntentEventListener;
 
 export const eventListeners = {
     onConnectListener: null as ConnectEventListener,
@@ -39,4 +43,5 @@ export const eventListeners = {
     onSignDataListener: null as SignDataEventListener,
     onDisconnectListener: null as DisconnectEventListener,
     onErrorListener: null as ErrorEventListener,
+    onIntentListener: null as IntentEventListener,
 };
