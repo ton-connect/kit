@@ -6,6 +6,8 @@
  *
  */
 
+import type { SignDataPayload } from '../core/PreparedSignData';
+
 /**
  * Successful response for transaction intent.
  */
@@ -30,6 +32,8 @@ export interface IntentSignDataResponse {
     timestamp: number;
     /** App domain */
     domain: string;
+    /** Echoed payload from the request */
+    payload: SignDataPayload;
 }
 
 /**
