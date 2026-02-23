@@ -1,39 +1,17 @@
 {
-    "compilerOptions": {
-      "incremental": true,
-      "strict": true,
-      "noFallthroughCasesInSwitch": true,
-      "noImplicitOverride": true,
-      "noImplicitReturns": true,
-      "noUncheckedIndexedAccess": true,
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-      "useDefineForClassFields": true,
-      "useUnknownInCatchVariables": true,
-      "allowJs": false,
-      "checkJs": false,
-      "forceConsistentCasingInFileNames": true,
-      "verbatimModuleSyntax": true,
-      "moduleResolution": "bundler",
-      "module": "esnext",
-      "target": "ES2021",
-      "lib": [
-        "ES2022",
-        "DOM",
-        "DOM.Iterable"
-      ],
-      "skipLibCheck": true,
-      "jsx": "react-jsx",
-      "sourceMap": true,
-      "declaration": true,
-      "declarationMap": true
-    },
-    "include": [
-      "src/**/*.ts",
-      "src/**/*.tsx"
-    ],
-    "exclude": [
-      "node_modules",
-      "dist"
-    ]
-  }
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/esm",
+    "declarationDir": "dist/types"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.stories.tsx",
+    "src/**/*.test-d.ts"
+  ]
+}
