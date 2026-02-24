@@ -160,7 +160,7 @@ export function createMcpNftTools(service: McpWalletService) {
                                         message: result.message,
                                         nftAddress: args.nftAddress,
                                         recipient: args.toAddress,
-                                        boc: result.boc,
+                                        normalizedHash: result.normalizedHash,
                                     },
                                     null,
                                     2,

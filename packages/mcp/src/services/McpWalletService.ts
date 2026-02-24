@@ -102,7 +102,7 @@ export interface TransactionInfo {
 export interface TransferResult {
     success: boolean;
     message: string;
-    boc?: string;
+    normalizedHash?: string;
 }
 
 /**
@@ -367,7 +367,7 @@ export class McpWalletService {
             return {
                 success: true,
                 message: `Successfully sent ${amountNano} nanoTON to ${toAddress}`,
-                boc: response.boc,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {
@@ -399,7 +399,7 @@ export class McpWalletService {
             return {
                 success: true,
                 message: `Successfully sent jettons to ${toAddress}`,
-                boc: response.boc,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {
@@ -429,7 +429,7 @@ export class McpWalletService {
             return {
                 success: true,
                 message: `Successfully sent transaction with ${request.messages.length} message(s)`,
-                boc: tx.boc,
+                normalizedHash: tx.normalizedHash,
             };
         } catch (error) {
             return {
@@ -440,14 +440,14 @@ export class McpWalletService {
     }
 
     /**
-     * Get the status of a transaction by its BOC.
+     * Get the status of a transaction by its normalized hash.
      *
      * In TON, a single external message triggers a tree of internal messages.
      * The transaction is "complete" only when the entire trace finishes.
      */
-    async getTransactionStatus(boc: string): Promise<TransactionStatusResponse> {
+    async getTransactionStatus(normalizedHash: string): Promise<TransactionStatusResponse> {
         const client = this.wallet.getClient();
-        return getTransactionStatus(client, boc);
+        return getTransactionStatus(client, { normalizedHash });
     }
 
     /**
@@ -590,7 +590,7 @@ export class McpWalletService {
             return {
                 success: true,
                 message: `Successfully sent NFT ${nftAddress} to ${toAddress}`,
-                boc: response.boc,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {

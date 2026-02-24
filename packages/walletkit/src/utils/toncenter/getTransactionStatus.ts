@@ -6,8 +6,6 @@
  *
  */
 
-import { Cell, loadMessage } from '@ton/core';
-
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { TransactionStatusResponse } from '../../api/models';
 import { getNormalizedExtMessageHash } from '../getNormalizedExtMessageHash';
@@ -19,18 +17,19 @@ import { parseTraceResponse } from './parseTraceResponse';
  * In TON, a single external message triggers a tree of internal messages.
  * The transaction is "complete" only when the entire trace finishes.
  */
-export async function getTransactionStatus(client: ApiClient, boc: string): Promise<TransactionStatusResponse> {
-    // Parse the BOC to get the external message hash
-    const cell = Cell.fromBase64(boc);
-    const message = loadMessage(cell.beginParse());
-    const hash =
-        message.info.type === 'external-in'
-            ? getNormalizedExtMessageHash(message).toString('base64')
-            : cell.hash().toString('base64');
+export async function getTransactionStatus(
+    client: ApiClient,
+    params: { boc: string; normalizedHash?: never } | { boc?: never; normalizedHash: string },
+): Promise<TransactionStatusResponse> {
+    const hashToSearch = params.boc ? getNormalizedExtMessageHash(params.boc).hash : params.normalizedHash;
+
+    if (!hashToSearch) {
+        throw new Error('Either boc or normalizedHash must be provided');
+    }
 
     // First try pending traces (transaction still being processed)
     try {
-        const pendingResponse = await client.getPendingTrace({ externalMessageHash: [hash] });
+        const pendingResponse = await client.getPendingTrace({ externalMessageHash: [hashToSearch] });
         const pendingStatus = parseTraceResponse(pendingResponse);
         if (pendingStatus) return pendingStatus;
     } catch (_e) {
@@ -39,7 +38,7 @@ export async function getTransactionStatus(client: ApiClient, boc: string): Prom
 
     // Try completed traces
     try {
-        const traceResponse = await client.getTrace({ traceId: [hash] });
+        const traceResponse = await client.getTrace({ traceId: [hashToSearch] });
         const completedStatus = parseTraceResponse(traceResponse);
         if (completedStatus) return completedStatus;
     } catch (_e) {

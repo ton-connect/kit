@@ -12,17 +12,18 @@ import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
 
 export const getTransactionStatusSchema = z.object({
-    boc: z.string().min(1).describe('Transaction BOC (Base64 string)'),
+    normalizedHash: z.string().min(1).describe('Normalized hash of the external-in transaction (Base64 string)'),
 });
 
 export function createMcpTransactionTools(service: McpWalletService) {
     return {
         get_transaction_status: {
-            description: 'Get the status of a transaction by its BOC to know if it is pending, completed, or failed.',
+            description:
+                'Get the status of a transaction by its normalized hash to know if it is pending, completed, or failed.',
             inputSchema: getTransactionStatusSchema,
             handler: async (args: z.infer<typeof getTransactionStatusSchema>): Promise<ToolResponse> => {
                 try {
-                    const result = await service.getTransactionStatus(args.boc);
+                    const result = await service.getTransactionStatus(args.normalizedHash);
 
                     return {
                         content: [

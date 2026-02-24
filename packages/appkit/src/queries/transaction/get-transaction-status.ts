@@ -45,6 +45,6 @@ export const getTransactionStatusQueryOptions = <selectData = GetTransactionStat
         queryFn: () => {
             return getTransactionStatus(appKit, options);
         },
-        queryKey: ['transactionStatus', options.boc] as const,
+        queryKey: ['transactionStatus', (options.boc ?? options.normalizedHash) as string] as const,
     };
 };

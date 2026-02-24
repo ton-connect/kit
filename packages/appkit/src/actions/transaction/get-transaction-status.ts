@@ -12,12 +12,23 @@ import { getTransactionStatus as walletKitGetTransactionStatus } from '@ton/wall
 import type { AppKit } from '../../core/app-kit';
 import { Network } from '../../types/network';
 
-export interface GetTransactionStatusParameters {
-    /** BOC of the sent transaction (base64) */
-    boc: string;
+export type GetTransactionStatusParameters = {
     /** Network to check the transaction on */
     network?: Network;
-}
+} & (
+    | {
+          /** BOC of the sent transaction (base64) */
+          boc: string;
+          /** Hash of the sent transaction (base64) */
+          normalizedHash?: never;
+      }
+    | {
+          /** BOC of the sent transaction (base64) */
+          boc?: never;
+          /** Normalized Hash of the external-in transaction (base64) */
+          normalizedHash: string;
+      }
+);
 
 export type GetTransactionStatusReturnType = TransactionStatusResponse;
 
@@ -43,9 +54,17 @@ export const getTransactionStatus = async (
     appKit: AppKit,
     parameters: GetTransactionStatusParameters,
 ): Promise<GetTransactionStatusReturnType> => {
-    const { boc, network } = parameters;
+    const { boc, normalizedHash, network } = parameters;
 
     const client = appKit.networkManager.getClient(network ?? Network.mainnet());
 
-    return walletKitGetTransactionStatus(client, boc);
+    if (boc) {
+        return walletKitGetTransactionStatus(client, { boc });
+    }
+
+    if (normalizedHash) {
+        return walletKitGetTransactionStatus(client, { normalizedHash });
+    }
+
+    throw new Error('Either boc or normalizedHash must be provided');
 };
