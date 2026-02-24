@@ -26,10 +26,10 @@ export function tryGetKitSample(): TonWalletKit {
 }
 
 // Helper function (placeholder for your own wallet selection logic)
-export function getSelectedWalletAddress() {
+export async function getSelectedWalletAddress(): Promise<string> {
     const kit = tryGetKitSample();
     const wallets = kit.getWallets();
-    return wallets.length > 0 ? wallets[0].getAddress() : '';
+    return wallets.length > 0 ? await wallets[0].getAddress() : '';
 }
 
 // Reset cache for testing purposes
@@ -97,7 +97,7 @@ export async function walletKitInitializeSample(): Promise<TonWalletKit> {
 
     const walletV5R1 = await kit.addWallet(walletV5R1Adapter);
     if (walletV5R1) {
-        console.log('V5R1 Address:', walletV5R1.getAddress());
+        console.log('V5R1 Address:', await walletV5R1.getAddress());
         console.log('V5R1 Balance:', await walletV5R1.getBalance());
     }
     // SAMPLE_END: INIT_KIT_4

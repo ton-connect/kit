@@ -197,7 +197,7 @@ export class SqliteSignerAdapter implements ISignerAdapter {
         return {
             walletId,
             publicKey,
-            address,
+            address: await adapter.getAddress(),
             network: networkName,
             version,
             createdAt,
@@ -239,7 +239,7 @@ export class SqliteSignerAdapter implements ISignerAdapter {
         return {
             walletId,
             publicKey,
-            address,
+            address: await adapter.getAddress(),
             network: networkName,
             version,
             createdAt,

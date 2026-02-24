@@ -85,12 +85,15 @@ export class RequestProcessor {
     /**
      * Helper to get wallet address from event
      */
-    private getWalletAddressFromEvent(event: { walletId?: string; walletAddress?: string }): string | undefined {
+    private async getWalletAddressFromEvent(event: {
+        walletId?: string;
+        walletAddress?: string;
+    }): Promise<string | undefined> {
         if (event.walletAddress) {
             return event.walletAddress;
         }
         if (event.walletId) {
-            return this.walletManager.getWallet(event.walletId)?.getAddress();
+            return (await this.walletManager.getWallet(event.walletId))?.getAddress();
         }
         return undefined;
     }
@@ -151,7 +154,7 @@ export class RequestProcessor {
                     client_id: event.from,
                     wallet_id: sessionData?.publicKey,
                     trace_id: event.traceId,
-                    network_id: wallet.getNetwork().chainId,
+                    network_id: (await wallet.getNetwork()).chainId,
                     origin_url: event.dAppInfo?.url,
                     dapp_name: event.dAppInfo?.name,
                     is_ton_addr: event.requestedItems.some((item) => item.type === 'ton_addr'),
@@ -171,7 +174,7 @@ export class RequestProcessor {
                     manifest_json_url: event.preview.dAppInfo?.manifestUrl,
                     proof_payload_size: event.requestedItems.find((item) => item.type === 'ton_proof')?.value.payload
                         ?.length,
-                    network_id: wallet.getNetwork().chainId,
+                    network_id: (await wallet.getNetwork()).chainId,
                 });
             }
 
@@ -272,8 +275,8 @@ export class RequestProcessor {
 
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
-                    const client = this.getClientForWallet(event.walletId);
-                    await CallForSuccess(() => client.sendBoc(signedBoc));
+                    const client = await this.getClientForWallet(event.walletId);
+                    await CallForSuccess(() => client?.sendBoc(signedBoc));
                 }
 
                 // Send approval response
@@ -302,14 +305,14 @@ export class RequestProcessor {
     /**
      * Send transaction analytics events
      */
-    private sendTransactionAnalytics(event: SendTransactionRequestEvent, signedBoc: string): void {
+    private async sendTransactionAnalytics(event: SendTransactionRequestEvent, signedBoc: string): Promise<void> {
         if (!this.analytics) return;
 
         const wallet = this.getWalletFromEvent(event);
 
         this.analytics.emitWalletTransactionSent({
             trace_id: event.traceId,
-            network_id: wallet?.getNetwork().chainId,
+            network_id: (await wallet?.getNetwork())?.chainId,
             client_id: event.from,
             signed_boc: signedBoc,
         });
@@ -348,7 +351,7 @@ export class RequestProcessor {
                     trace_id: event.traceId,
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
-                    network_id: wallet?.getNetwork().chainId,
+                    network_id: (await wallet?.getNetwork())?.chainId,
                     client_id: event.from,
                     decline_reason: typeof reason === 'string' ? reason : reason?.message,
                 });
@@ -386,7 +389,7 @@ export class RequestProcessor {
                     id: event.id || '',
                     result: {
                         signature: HexToBase64(response.signature),
-                        address: Address.parse(wallet.getAddress()).toRawString(),
+                        address: Address.parse(await wallet.getAddress()).toRawString(),
                         timestamp: response.timestamp,
                         domain: response.domain,
                         payload: toTonConnectSignDataPayload(event.payload),
@@ -401,13 +404,13 @@ export class RequestProcessor {
                     this.analytics.emitWalletSignDataAccepted({
                         wallet_id: sessionData?.publicKey,
                         trace_id: event.traceId,
-                        network_id: wallet?.getNetwork().chainId,
+                        network_id: (await wallet?.getNetwork())?.chainId,
                         client_id: event.from,
                     });
                     this.analytics.emitWalletSignDataSent({
                         wallet_id: sessionData?.publicKey,
                         trace_id: event.traceId,
-                        network_id: wallet?.getNetwork().chainId,
+                        network_id: (await wallet?.getNetwork())?.chainId,
                         client_id: event.from,
                     });
                 }
@@ -459,7 +462,7 @@ export class RequestProcessor {
                 const signData = PrepareSignData({
                     payload: event.payload,
                     domain: domainUrl,
-                    address: wallet.getAddress(),
+                    address: await wallet.getAddress(),
                 });
                 const signature = await wallet.getSignedSignData(signData);
                 const signatureBase64 = HexToBase64(signature);
@@ -486,7 +489,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
-                        network_id: wallet.getNetwork().chainId,
+                        network_id: (await wallet.getNetwork())?.chainId,
                         client_id: event.from,
                     });
                     this.analytics.emitWalletSignDataSent({
@@ -494,7 +497,7 @@ export class RequestProcessor {
                         trace_id: event.traceId,
                         dapp_name: event.dAppInfo?.name,
                         origin_url: event.dAppInfo?.url,
-                        network_id: wallet.getNetwork().chainId,
+                        network_id: (await wallet.getNetwork())?.chainId,
                         client_id: event.from,
                     });
                 }
@@ -547,7 +550,7 @@ export class RequestProcessor {
                     trace_id: event.traceId,
                     dapp_name: event.dAppInfo?.name,
                     origin_url: event.dAppInfo?.url,
-                    network_id: wallet?.getNetwork().chainId,
+                    network_id: (await wallet?.getNetwork())?.chainId,
                     client_id: event.from,
                 });
             }
@@ -588,10 +591,10 @@ export class RequestProcessor {
         }
 
         const walletStateInit = await wallet.getStateInit();
-        const publicKey = wallet.getPublicKey().replace('0x', '');
-        const address = wallet.getAddress();
-        const walletNetwork = wallet.getNetwork();
-        const deviceInfo = getDeviceInfoForWallet(wallet, this.walletKitOptions.deviceInfo);
+        const publicKey = (await wallet.getPublicKey()).replace('0x', '');
+        const address = await wallet.getAddress();
+        const walletNetwork = await wallet.getNetwork();
+        const deviceInfo = await getDeviceInfoForWallet(wallet, this.walletKitOptions.deviceInfo);
 
         const connectResponse: ConnectEventSuccess = {
             event: 'connect',

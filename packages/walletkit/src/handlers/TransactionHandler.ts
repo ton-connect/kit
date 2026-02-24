@@ -89,7 +89,7 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
 
-        const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
+        const requestValidation = await this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
             log.error('Failed to parse transaction request', { event, requestValidation });
             this.eventEmitter.emit('event:error', event);
@@ -135,8 +135,8 @@ export class TransactionHandler
                 data: preview,
             },
             dAppInfo: event.dAppInfo ?? {},
-            walletId: walletId ?? this.walletManager.getWalletId(wallet),
-            walletAddress: walletAddress ?? wallet.getAddress(),
+            walletId: walletId ?? (await this.walletManager.getWalletId(wallet)),
+            walletAddress: walletAddress ?? (await wallet.getAddress()),
         };
 
         if (this.analytics) {
@@ -148,7 +148,7 @@ export class TransactionHandler
                 wallet_id: sessionData?.publicKey,
 
                 dapp_name: event.dAppInfo?.name,
-                network_id: wallet.getNetwork().chainId,
+                network_id: (await wallet.getNetwork()).chainId,
                 // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
             });
@@ -161,13 +161,13 @@ export class TransactionHandler
      * Parse raw transaction request from bridge event
      */
 
-    private parseTonConnectTransactionRequest(
+    private async parseTonConnectTransactionRequest(
         event: RawBridgeEventTransaction,
         wallet: Wallet,
-    ): {
+    ): Promise<{
         result: TransactionRequest | undefined;
         validation: ValidationResult;
-    } {
+    }> {
         let errors: string[] = [];
         try {
             if (event.params.length !== 1) {
@@ -188,14 +188,14 @@ export class TransactionHandler
                 params.validUntil = validUntilValidation.result;
             }
 
-            const networkValidation = this.validateNetwork(params.network, wallet);
+            const networkValidation = await this.validateNetwork(params.network, wallet);
             if (!networkValidation.isValid) {
                 errors = errors.concat(networkValidation.errors);
             } else {
                 params.network = networkValidation.result;
             }
 
-            const fromValidation = this.validateFrom(params.from, wallet);
+            const fromValidation = await this.validateFrom(params.from, wallet);
             if (!fromValidation.isValid) {
                 errors = errors.concat(fromValidation.errors);
             } else {
@@ -225,13 +225,17 @@ export class TransactionHandler
     /**
      * Parse network from various possible formats
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<CHAIN | undefined> {
+
+    private async validateNetwork(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        network: any,
+        wallet: Wallet,
+    ): Promise<ReturnWithValidationResult<CHAIN | undefined>> {
         let errors: string[] = [];
         if (typeof network === 'string') {
             if (network === '-3' || network === '-239') {
                 const chain = network === '-3' ? CHAIN.TESTNET : CHAIN.MAINNET;
-                const walletNetwork = wallet.getNetwork();
+                const walletNetwork = await wallet.getNetwork();
                 if (chain !== walletNetwork.chainId) {
                     errors.push('Invalid network not equal to wallet network');
                 } else {
@@ -247,7 +251,7 @@ export class TransactionHandler
         return { result: undefined, isValid: errors.length === 0, errors: errors };
     }
 
-    private validateFrom(from: unknown, wallet: Wallet): ReturnWithValidationResult<string> {
+    private async validateFrom(from: unknown, wallet: Wallet): Promise<ReturnWithValidationResult<string>> {
         let errors: string[] = [];
 
         if (typeof from !== 'string') {
@@ -261,7 +265,7 @@ export class TransactionHandler
         }
 
         const fromAddress = Address.parse(from);
-        const walletAddress = Address.parse(wallet.getAddress());
+        const walletAddress = Address.parse(await wallet.getAddress());
         if (!fromAddress.equals(walletAddress)) {
             errors.push('Invalid from address not equal to wallet address');
             return { result: '', isValid: errors.length === 0, errors: errors };

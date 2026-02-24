@@ -32,17 +32,17 @@ export type { NftTransferMessage };
 
 export class WalletNftClass implements WalletNftInterface {
     async getNfts(this: Wallet, params: NFTsRequest): Promise<NFTsResponse> {
-        return getNftsFromClient(this.getClient(), this.getAddress(), params);
+        return getNftsFromClient(await this.getClient(), await this.getAddress(), params);
     }
 
     async getNft(this: Wallet, address: UserFriendlyAddress): Promise<NFT | null> {
-        return getNftFromClient(this.getClient(), address);
+        return getNftFromClient(await this.getClient(), address);
     }
 
     async createTransferNftTransaction(this: Wallet, params: NFTTransferRequest): Promise<TransactionRequest> {
         const nftPayload = createNftTransferPayload({
             newOwner: params.recipientAddress,
-            responseDestination: this.getAddress(),
+            responseDestination: await this.getAddress(),
             comment: params.comment,
         });
 
@@ -50,7 +50,7 @@ export class WalletNftClass implements WalletNftInterface {
             targetAddress: params.nftAddress,
             amount: params.transferAmount?.toString() ?? DEFAULT_NFT_GAS_FEE,
             payload: nftPayload,
-            fromAddress: this.getAddress(),
+            fromAddress: await this.getAddress(),
         });
     }
 
@@ -68,7 +68,7 @@ export class WalletNftClass implements WalletNftInterface {
             targetAddress: params.nftAddress,
             amount: params.transferAmount.toString(),
             payload: nftPayload,
-            fromAddress: this.getAddress(),
+            fromAddress: await this.getAddress(),
         });
     }
 }

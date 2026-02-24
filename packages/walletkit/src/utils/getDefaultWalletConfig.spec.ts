@@ -13,13 +13,13 @@ import type { WalletAdapter } from '../api/interfaces';
 import type { Feature } from '../types/jsBridge';
 
 describe('getDeviceInfoForWallet', () => {
-    it('should return default deviceInfo when wallet adapter does not have getSupportedFeatures', () => {
+    it('should return default deviceInfo when wallet adapter does not have getSupportedFeatures', async () => {
         const mockAdapter = {
             getPublicKey: () => '0x123',
             getNetwork: () => ({ chainId: -239 }),
         } as unknown as WalletAdapter;
 
-        const deviceInfo = getDeviceInfoForWallet(mockAdapter);
+        const deviceInfo = await getDeviceInfoForWallet(mockAdapter);
 
         expect(deviceInfo.features).toEqual([
             'SendTransaction',
@@ -30,7 +30,7 @@ describe('getDeviceInfoForWallet', () => {
         ]);
     });
 
-    it('should not add SendTransaction when adapter has no SendTransaction features', () => {
+    it('should not add SendTransaction when adapter has no SendTransaction features', async () => {
         const customFeatures: Feature[] = [
             {
                 name: 'SignData',
@@ -44,7 +44,7 @@ describe('getDeviceInfoForWallet', () => {
             getSupportedFeatures: () => customFeatures,
         } as unknown as WalletAdapter;
 
-        const deviceInfo = getDeviceInfoForWallet(mockLedgerAdapter);
+        const deviceInfo = await getDeviceInfoForWallet(mockLedgerAdapter);
 
         expect(deviceInfo.features).toEqual([
             {
@@ -54,7 +54,7 @@ describe('getDeviceInfoForWallet', () => {
         ]);
     });
 
-    it('should not duplicate SendTransaction when adapter already has it as string', () => {
+    it('should not duplicate SendTransaction when adapter already has it as string', async () => {
         const customFeatures: Feature[] = [
             'SendTransaction',
             {
@@ -69,7 +69,7 @@ describe('getDeviceInfoForWallet', () => {
             getSupportedFeatures: () => customFeatures,
         } as unknown as WalletAdapter;
 
-        const deviceInfo = getDeviceInfoForWallet(mockAdapter);
+        const deviceInfo = await getDeviceInfoForWallet(mockAdapter);
 
         expect(deviceInfo.features).toEqual([
             'SendTransaction',
@@ -80,7 +80,7 @@ describe('getDeviceInfoForWallet', () => {
         ]);
     });
 
-    it('should add SendTransaction string when adapter has only SendTransaction object', () => {
+    it('should add SendTransaction string when adapter has only SendTransaction object', async () => {
         const customFeatures: Feature[] = [
             {
                 name: 'SendTransaction',
@@ -98,7 +98,7 @@ describe('getDeviceInfoForWallet', () => {
             getSupportedFeatures: () => customFeatures,
         } as unknown as WalletAdapter;
 
-        const deviceInfo = getDeviceInfoForWallet(mockAdapter);
+        const deviceInfo = await getDeviceInfoForWallet(mockAdapter);
 
         expect(deviceInfo.features).toEqual([
             'SendTransaction',
@@ -113,7 +113,7 @@ describe('getDeviceInfoForWallet', () => {
         ]);
     });
 
-    it('should not duplicate SendTransaction when adapter has both string and object forms', () => {
+    it('should not duplicate SendTransaction when adapter has both string and object forms', async () => {
         const customFeatures: Feature[] = [
             'SendTransaction',
             {
@@ -132,7 +132,7 @@ describe('getDeviceInfoForWallet', () => {
             getSupportedFeatures: () => customFeatures,
         } as unknown as WalletAdapter;
 
-        const deviceInfo = getDeviceInfoForWallet(mockAdapter);
+        const deviceInfo = await getDeviceInfoForWallet(mockAdapter);
 
         expect(deviceInfo.features).toEqual([
             'SendTransaction',

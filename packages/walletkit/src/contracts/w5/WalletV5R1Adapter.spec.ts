@@ -42,13 +42,13 @@ describe('WalletV5R1Adapter', () => {
     });
 
     it('should create wallet with correct properties', async () => {
-        expect(wallet.publicKey).toEqual(Uint8ArrayToHex(publicKey));
-        expect(wallet.version).toEqual('v5r1');
-        expect(wallet.getAddress()).toEqual(addressV5r1.bounceableNot);
-        expect(wallet.getAddress({ testnet: true })).toEqual(addressV5r1Test.bounceableNot);
+        expect(await wallet.publicKey).toEqual(Uint8ArrayToHex(publicKey));
+        expect(await wallet.version).toEqual('v5r1');
+        expect(await wallet.getAddress()).toEqual(addressV5r1.bounceableNot);
+        expect(await wallet.getAddress({ testnet: true })).toEqual(addressV5r1Test.bounceableNot);
         expect(await wallet.getStateInit()).toEqual(stateInit);
         expect(await wallet.getWalletV5R1Id()).toEqual(walletId);
-        expect(wallet.client).toEqual(tonClient);
+        expect(await wallet.client).toEqual(tonClient);
         const contract = wallet.walletContract;
         expect(contract.address.toString()).toEqual(addressV5r1.bounceable);
         expect(await contract.walletId).toEqual(walletId);

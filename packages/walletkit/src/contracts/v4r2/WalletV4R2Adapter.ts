@@ -105,12 +105,12 @@ export class WalletV4R2Adapter implements WalletAdapter {
         });
     }
 
-    getPublicKey(): Hex {
-        return this.publicKey;
+    getPublicKey(): Promise<Hex> {
+        return Promise.resolve(this.publicKey);
     }
 
-    getClient(): ApiClient {
-        return this.client;
+    getClient(): Promise<ApiClient> {
+        return Promise.resolve(this.client);
     }
 
     /**
@@ -120,19 +120,19 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return this.signer.sign(bytes);
     }
 
-    getNetwork(): Network {
-        return this.config.network;
+    getNetwork(): Promise<Network> {
+        return Promise.resolve(this.config.network);
     }
 
     /**
      * Get wallet's TON address
      */
-    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress {
-        return formatWalletAddress(this.walletContract.address, options?.testnet);
+    getAddress(options?: { testnet?: boolean }): Promise<UserFriendlyAddress> {
+        return Promise.resolve(formatWalletAddress(this.walletContract.address, options?.testnet));
     }
 
-    getWalletId(): WalletId {
-        return createWalletId(this.getNetwork(), this.getAddress());
+    getWalletId(): Promise<WalletId> {
+        return Promise.resolve(createWalletId(this.config.network, this.walletContract.address.toString()));
     }
 
     async getSignedSendTransaction(
@@ -272,8 +272,8 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return signature;
     }
 
-    getSupportedFeatures(): Feature[] {
-        return [
+    getSupportedFeatures(): Promise<Feature[]> {
+        return Promise.resolve([
             {
                 name: 'SendTransaction',
                 maxMessages: 4,
@@ -282,6 +282,6 @@ export class WalletV4R2Adapter implements WalletAdapter {
                 name: 'SignData',
                 types: ['binary', 'cell', 'text'],
             },
-        ];
+        ]);
     }
 }

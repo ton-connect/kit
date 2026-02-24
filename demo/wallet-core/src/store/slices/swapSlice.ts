@@ -177,7 +177,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
             return;
         }
 
-        const network = state.walletManagement.currentWallet?.getNetwork();
+        const network = await state.walletManagement.currentWallet?.getNetwork();
 
         if (!network) {
             log.warn('No active wallet');
@@ -199,7 +199,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
             if (state.walletManagement.currentWallet?.getSupportedFeatures) {
                 maxOutgoingMessages = getMaxOutgoingMessages(
-                    state.walletManagement.currentWallet?.getSupportedFeatures(),
+                    await state.walletManagement.currentWallet?.getSupportedFeatures(),
                 );
             }
 
@@ -209,7 +209,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
                 quoteParams = {
                     from: fromToken,
                     to: toToken,
-                    network,
+                    network: network,
                     slippageBps,
                     maxOutgoingMessages,
                     amount,

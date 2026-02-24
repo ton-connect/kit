@@ -19,19 +19,19 @@ import type { Feature } from '../../types/jsBridge';
  */
 export interface WalletAdapter {
     /** Unique identifier for this wallet (typically public key) */
-    getPublicKey(): Hex;
+    getPublicKey(): Promise<Hex>;
 
     /** Get the network the wallet is connected to */
-    getNetwork(): Network;
+    getNetwork(): Promise<Network>;
 
     /** Get the TON client instance */
-    getClient(): ApiClient;
+    getClient(): Promise<ApiClient>;
 
     /** Get the address of the wallet */
-    getAddress(options?: { testnet?: boolean }): UserFriendlyAddress;
+    getAddress(options?: { testnet?: boolean }): Promise<UserFriendlyAddress>;
 
     /** Get the wallet ID */
-    getWalletId(): WalletId;
+    getWalletId(): Promise<WalletId>;
 
     /** Get state init for wallet deployment base64 encoded boc */
     getStateInit(): Promise<Base64String>;
@@ -60,5 +60,5 @@ export interface WalletAdapter {
      * Get supported TON Connect features for this wallet adapter
      * If not implemented, features from deviceInfo will be used
      */
-    getSupportedFeatures?(): Feature[];
+    getSupportedFeatures?(): Promise<Feature[]>;
 }

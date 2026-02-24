@@ -158,14 +158,14 @@ export class TonWalletKit implements ITonWalletKit {
                 return this.sendErrorConnectResponse(event);
             }
 
-            const walletAddress = wallet.getAddress();
+            const walletAddress = await wallet.getAddress();
 
             // Get wallet state init and public key for the response
             const walletStateInit = await wallet.getStateInit();
-            const publicKey = wallet.getPublicKey().replace('0x', '');
+            const publicKey = (await wallet.getPublicKey()).replace('0x', '');
 
             // Get device info with wallet-specific features if available
-            const deviceInfo = getDeviceInfoForWallet(wallet, this.config.deviceInfo);
+            const deviceInfo = await getDeviceInfoForWallet(wallet, this.config.deviceInfo);
 
             // Create base response data
             const tonConnectEvent: ConnectEventSuccess = {
@@ -178,7 +178,8 @@ export class TonWalletKit implements ITonWalletKit {
                             name: 'ton_addr',
                             address: Address.parse(walletAddress).toRawString(),
                             // TODO: Support multiple networks
-                            network: wallet.getNetwork().chainId === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
+                            network:
+                                (await wallet.getNetwork()).chainId === CHAIN.MAINNET ? CHAIN.MAINNET : CHAIN.TESTNET,
                             walletStateInit,
                             publicKey,
                         },
@@ -271,7 +272,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         for (const wallet of wallets) {
             try {
-                const walletId = wallet.getWalletId();
+                const walletId = await wallet.getWalletId();
                 await this.eventProcessor.startProcessing(walletId);
             } catch (error) {
                 log.error('Failed to start event processing for wallet', {
@@ -323,7 +324,7 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         // Get the wallet's network and verify we have a client for it
-        const walletNetwork = adapter.getNetwork();
+        const walletNetwork = await adapter.getNetwork();
         if (!this.networkManager.hasNetwork(walletNetwork)) {
             throw new WalletKitError(
                 ERROR_CODES.NETWORK_NOT_CONFIGURED,
@@ -350,7 +351,7 @@ export class TonWalletKit implements ITonWalletKit {
             walletId = walletIdOrAdapter;
             wallet = this.walletManager.getWallet(walletIdOrAdapter);
         } else {
-            walletId = this.walletManager.getWalletId(walletIdOrAdapter);
+            walletId = await this.walletManager.getWalletId(walletIdOrAdapter);
             wallet = this.walletManager.getWallet(walletId);
         }
 
@@ -361,7 +362,7 @@ export class TonWalletKit implements ITonWalletKit {
         }
 
         // Stop event processing for the wallet
-        await this.eventProcessor.stopProcessing(wallet.getAddress());
+        await this.eventProcessor.stopProcessing(await wallet.getAddress());
 
         await this.walletManager.removeWallet(walletId);
         // Also remove associated sessions
@@ -374,7 +375,7 @@ export class TonWalletKit implements ITonWalletKit {
         // Stop event processing for all wallets
         const wallets = this.walletManager.getWallets();
         for (const wallet of wallets) {
-            await this.eventProcessor.stopProcessing(wallet.getAddress());
+            await this.eventProcessor.stopProcessing(await wallet.getAddress());
         }
 
         await this.walletManager.clearWallets();
@@ -562,9 +563,9 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         data.validUntil ??= Math.floor(Date.now() / 1000) + 300;
-        data.network ??= wallet.getNetwork();
+        data.network ??= await wallet.getNetwork();
 
-        const walletId = wallet.getWalletId();
+        const walletId = await wallet.getWalletId();
         const bridgeEvent: RawBridgeEventTransaction = {
             id: Date.now().toString(),
             method: 'sendTransaction',
@@ -573,7 +574,7 @@ export class TonWalletKit implements ITonWalletKit {
             domain: '',
             isLocal: true,
             walletId,
-            walletAddress: asAddressFriendly(wallet.getAddress()),
+            walletAddress: asAddressFriendly(await wallet.getAddress()),
         };
         await this.eventRouter.routeEvent(bridgeEvent);
     }

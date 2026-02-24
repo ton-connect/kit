@@ -87,8 +87,8 @@ export class SignDataHandler
                 data: preview,
             },
             dAppInfo: event.dAppInfo ?? {},
-            walletId: walletId ?? (wallet ? this.walletManager.getWalletId(wallet) : ''),
-            walletAddress: walletAddress ?? wallet?.getAddress() ?? undefined,
+            walletId: walletId ?? (wallet ? await this.walletManager.getWalletId(wallet) : ''),
+            walletAddress: walletAddress ?? (await wallet?.getAddress()) ?? undefined,
         };
 
         if (this.analytics) {
@@ -100,7 +100,7 @@ export class SignDataHandler
                 client_id: event.from,
                 wallet_id: sessionData?.publicKey,
                 dapp_name: event.dAppInfo?.name,
-                network_id: wallet?.getNetwork().chainId,
+                network_id: (await wallet?.getNetwork())?.chainId,
                 // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
             });

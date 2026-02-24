@@ -116,8 +116,8 @@ export const Result = {
 
 // Mock wallet instance
 const createMockWallet = () => ({
-    getWalletId: vi.fn(() => 'mock-wallet-id'),
-    getAddress: vi.fn(() => 'EQMockAddress123'),
+    getWalletId: vi.fn(() => Promise.resolve('mock-wallet-id')),
+    getAddress: vi.fn(() => Promise.resolve('EQMockAddress123')),
     getBalance: vi.fn(() => Promise.resolve(1000000000n)),
     createTransferTonTransaction: vi.fn(() => Promise.resolve({ messages: [] })),
     createTransferJettonTransaction: vi.fn(() => Promise.resolve({ messages: [] })),
@@ -148,12 +148,15 @@ export class TonWalletKit {
     getApiClient = vi.fn(() => ({}));
 
     getWallets = vi.fn(() => [...this.wallets]);
-    getWallet = vi.fn((idOrAddress: string) => {
+    getWallet = vi.fn(async (idOrAddress: string) => {
         if (!idOrAddress) return undefined;
-        const byId = this.wallets.find((w) => w.getWalletId() === idOrAddress);
-        if (byId) return byId;
-        const byAddress = this.wallets.find((w) => w.getAddress() === idOrAddress);
-        return byAddress ?? this.wallets[0];
+        for (const wallet of this.wallets) {
+            if ((await wallet.getWalletId()) === idOrAddress) return wallet;
+        }
+        for (const wallet of this.wallets) {
+            if ((await wallet.getAddress()) === idOrAddress) return wallet;
+        }
+        return this.wallets[0];
     });
     addWallet = vi.fn(() => {
         const wallet = createMockWallet();
@@ -203,7 +206,7 @@ export const Signer = {
 export const WalletV5R1Adapter = {
     create: vi.fn(() =>
         Promise.resolve({
-            getAddress: vi.fn(() => 'EQMockV5R1Address'),
+            getAddress: vi.fn(() => Promise.resolve('EQMockV5R1Address')),
         }),
     ),
 };

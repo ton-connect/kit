@@ -55,7 +55,7 @@ export class WalletManager {
             throw new Error(`Invalid wallet: ${validation.errors.join(', ')}`);
         }
 
-        const walletId = wallet.getWalletId();
+        const walletId = await wallet.getWalletId();
         if (this.wallets.has(walletId)) {
             return walletId;
         }
@@ -72,7 +72,7 @@ export class WalletManager {
         if (typeof walletIdOrAdapter === 'string') {
             walletId = walletIdOrAdapter;
         } else {
-            walletId = walletIdOrAdapter.getWalletId();
+            walletId = await walletIdOrAdapter.getWalletId();
         }
 
         const removed = this.wallets.delete(walletId);
@@ -83,7 +83,7 @@ export class WalletManager {
      * Update existing wallet
      */
     async updateWallet(wallet: Wallet): Promise<void> {
-        const walletId = wallet.getWalletId();
+        const walletId = await wallet.getWalletId();
         if (!this.wallets.has(walletId)) {
             throw new Error(`Wallet with ID ${walletId} not found`);
         }
@@ -120,7 +120,7 @@ export class WalletManager {
     /**
      * Get wallet ID for a wallet adapter
      */
-    getWalletId(wallet: WalletAdapter): WalletId {
-        return wallet.getWalletId();
+    async getWalletId(wallet: WalletAdapter): Promise<WalletId> {
+        return await wallet.getWalletId();
     }
 }

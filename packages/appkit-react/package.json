@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "type": "module",
   "scripts": {
-    "build": "pnpm run build:esm && pnpm run copy:css",
+    "build": "pnpm run build:esm",
     "build:esm": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
     "dev": "pnpm run copy:css && pnpm run build:esm --watch",
     "copy:css": "copyfiles -u 1 \"src/**/*.css\" dist/esm",

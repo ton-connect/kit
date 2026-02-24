@@ -58,7 +58,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         const randomKeyPair = new SessionCrypto().stringifyKeypair();
 
         // Create walletId from wallet if provided
-        const walletId = wallet.getWalletId();
+        const walletId = await wallet.getWalletId();
 
         let domain: string;
 
@@ -72,7 +72,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
         const session: TONConnectSession = {
             sessionId,
             walletId,
-            walletAddress: wallet?.getAddress() ?? '',
+            walletAddress: (await wallet.getAddress()) ?? '',
             createdAt: now.toISOString(),
             lastActivityAt: now.toISOString(),
             privateKey: randomKeyPair.secretKey,
@@ -225,7 +225,7 @@ export class TONConnectStoredSessionManager implements TONConnectSessionManager 
                     if (session.walletId && !session.walletAddress) {
                         const wallet = this.walletManager.getWallet(session.walletId);
                         if (wallet) {
-                            session.walletAddress = wallet.getAddress();
+                            session.walletAddress = await wallet.getAddress();
                         } else {
                             log.warn('Session Wallet not found for session', { sessionId: session.sessionId });
                             continue;

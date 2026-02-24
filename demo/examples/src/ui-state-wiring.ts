@@ -36,10 +36,12 @@ export async function main() {
     await kit.close();
 }
 
+type WalletLike = { getAddress: () => Promise<string> };
+
 export function createMinimalUiStateWiring(kit: {
     onConnectRequest: (handler: (req: ConnectionRequestEvent) => void) => void;
     onTransactionRequest: (handler: (tx: SendTransactionRequestEvent) => void) => void;
-    getWallet: (idOrAddress: string) => { getAddress: () => string } | undefined;
+    getWallet: (idOrAddress: string) => WalletLike | undefined | Promise<WalletLike | undefined>;
     approveConnectRequest: (req: ConnectionRequestEvent) => Promise<unknown>;
     rejectConnectRequest: (req: ConnectionRequestEvent, reason: string) => Promise<unknown>;
     approveTransactionRequest: (req: SendTransactionRequestEvent) => Promise<unknown>;
@@ -63,11 +65,11 @@ export function createMinimalUiStateWiring(kit: {
 
     async function approveConnect() {
         if (!state.connectModal) return;
-        const address = getSelectedWalletAddress();
-        const wallet = kit.getWallet(address);
+        const address = await getSelectedWalletAddress();
+        const wallet = await Promise.resolve(kit.getWallet(address));
         if (!wallet) return;
         // Set wallet address on the request
-        state.connectModal.request.walletAddress = wallet.getAddress();
+        state.connectModal.request.walletAddress = await wallet.getAddress();
         await kit.approveConnectRequest(state.connectModal.request);
         state.connectModal = undefined;
     }

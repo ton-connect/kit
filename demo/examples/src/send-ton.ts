@@ -17,7 +17,7 @@ import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walle
 export async function main() {
     const kit = await walletKitInitializeSample();
     // SAMPLE_START: SEND_TON_2
-    const from = kit.getWallet(getSelectedWalletAddress());
+    const from = await kit.getWallet(await getSelectedWalletAddress());
     if (!from) throw new Error('No wallet');
 
     const tonTransfer: TONTransferRequest = {

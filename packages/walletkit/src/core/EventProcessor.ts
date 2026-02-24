@@ -328,7 +328,7 @@ export class StorageEventProcessor implements IEventProcessor {
             let walletAddress;
             if (walletId) {
                 wallet = this.walletManager.getWallet(walletId);
-                walletAddress = wallet?.getAddress();
+                walletAddress = await wallet?.getAddress();
             }
             await this.eventRouter.routeEvent({
                 ...event.rawEvent,
