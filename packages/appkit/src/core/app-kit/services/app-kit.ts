@@ -7,7 +7,7 @@
  */
 
 import type { NetworkManager } from '@ton/walletkit';
-import { Network, SwapManager } from '@ton/walletkit';
+import { Network, SwapManager, AnalyticsManager } from '@ton/walletkit';
 import type { Provider } from 'src/types/provider';
 
 import type { AppKitConfig } from '../types/config';
@@ -28,6 +28,7 @@ export class AppKit {
     readonly connectors: Connector[] = [];
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
+    readonly analyticsManager?: AnalyticsManager;
 
     readonly networkManager: NetworkManager;
     readonly config: AppKitConfig;
@@ -47,6 +48,19 @@ export class AppKit {
         this.networkManager = new AppKitNetworkManager({ networks }, this.emitter);
         this.walletsManager = new WalletsManager(this.emitter);
         this.swapManager = new SwapManager();
+
+        // Analytics
+        if (config.analytics?.enabled) {
+            this.analyticsManager = new AnalyticsManager(config.analytics);
+
+            // Track connection-completed event
+            this.emitter.on(CONNECTOR_EVENTS.CONNECTED, () => {
+                if (this.analyticsManager) {
+                    const analytics = this.analyticsManager.scoped();
+                    analytics.emitConnectionCompleted({});
+                }
+            });
+        }
 
         if (config.connectors) {
             config.connectors.forEach((connector) => {
