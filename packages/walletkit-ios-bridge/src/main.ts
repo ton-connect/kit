@@ -99,6 +99,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         bridge: configuration.bridge,
         eventProcessor: configuration.eventsConfiguration,
         storage: storage ? new SwiftStorageAdapter(storage) : new MemoryStorageAdapter({}),
+        dev: configuration.dev,
     });
 
     console.log('🚀 WalletKit iOS Bridge starting...');

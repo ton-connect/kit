@@ -1,12 +1,13 @@
 {
     "compilerOptions": {
-        "target": "es2020",
-        "outDir": "dist",
         "module": "ESNext",
-        "baseUrl": "./",
         "moduleResolution": "bundler",
+        "outDir": "dist/esm",
         "declaration": true,
-        "declarationDir": "dist",
+        "declarationDir": "dist/esm",
+
+        "target": "es2020",
+        "baseUrl": "./",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,

@@ -1,0 +1,78 @@
+name: Release MCP
+
+on:
+  workflow_dispatch:
+    branches:
+      - release
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Release
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build everything
+        run: |
+          pnpm build
+
+      - name: Check if version exists on npm
+        id: check_versions
+        run: |
+          get_npm_tag() {
+            local version=$1
+            if [[ "$version" == *"-alpha"* ]]; then
+              echo "alpha"
+            elif [[ "$version" == *"-beta"* ]]; then
+              echo "beta"
+            elif [[ "$version" == *"-rc"* ]]; then
+              echo "rc"
+            else
+              echo "latest"
+            fi
+          }
+
+          LOCAL_VERSION=$(node -p "require('./packages/mcp/package.json').version")
+          NPM_TAG=$(get_npm_tag "$LOCAL_VERSION")
+          echo "@ton/mcp local version: $LOCAL_VERSION (tag: $NPM_TAG)"
+
+          echo "mcp_version=${LOCAL_VERSION}" >> $GITHUB_OUTPUT
+          echo "mcp_tag=${NPM_TAG}" >> $GITHUB_OUTPUT
+
+          if npm view "@ton/mcp@${LOCAL_VERSION}" version 2>/dev/null; then
+            echo "@ton/mcp@${LOCAL_VERSION} already exists on npm"
+            echo "mcp_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "@ton/mcp@${LOCAL_VERSION} does not exist on npm"
+            echo "mcp_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish @ton/mcp
+        if: steps.check_versions.outputs.mcp_exists == 'false'
+        run: |
+          pnpm publish \
+            --filter="@ton/mcp" \
+            --access=public \
+            --publish-branch=release \
+            --tag=${{ steps.check_versions.outputs.mcp_tag }} \
+            --verbose

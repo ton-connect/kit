@@ -1,14 +1,14 @@
 {
   "name": "@ton/appkit-react",
-  "version": "0.0.1-alpha.2",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
-    "build": "pnpm run build:esm+types && pnpm run copy:css",
-    "build:esm+types": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
-    "copy:css": "rsync -zarv --include='*/' --include='*.css' --exclude='*' src/ dist/esm/",
+    "build": "pnpm run build:esm && pnpm run copy:css",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
+    "dev": "pnpm run copy:css && pnpm run build:esm --watch",
+    "copy:css": "copyfiles -u 1 \"src/**/*.css\" dist/esm",
     "clean": "git clean -xdf .turbo dist node_modules",
     "typecheck": "tsc --noEmit",
-    "check:types": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
@@ -35,6 +35,13 @@
     },
     "./styles.css": "./dist/esm/styles/index.css"
   },
+  "typesVersions": {
+    "*": {
+      "styles.css": [
+        "./dist/esm/styles/index.css"
+      ]
+    }
+  },
   "dependencies": {
     "@ton/appkit": "workspace:*",
     "clsx": "2.1.1",
@@ -50,6 +57,7 @@
     "@tonconnect/ui-react": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "copyfiles": "2.4.1",
     "react": "catalog:",
     "react-dom": "catalog:",
     "storybook": "10.2.8",

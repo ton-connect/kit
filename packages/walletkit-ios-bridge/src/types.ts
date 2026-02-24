@@ -37,7 +37,7 @@ export interface SwiftWalletSigner {
     publicKey: () => Hex;
 }
 
-type ReusedTonWalletKitOptions = Pick<TonWalletKitOptions, 'deviceInfo' | 'walletManifest' | 'bridge'>;
+type ReusedTonWalletKitOptions = Pick<TonWalletKitOptions, 'deviceInfo' | 'walletManifest' | 'bridge' | 'dev'>;
 
 export interface SwiftWalletKitConfiguration extends ReusedTonWalletKitOptions {
     networkConfigurations?: {
