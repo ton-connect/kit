@@ -36,7 +36,7 @@ import type {
 } from '../types/toncenter/emulation';
 import { toTransactionsResponse } from '../types/toncenter/emulation';
 import { CallForSuccess } from '../utils/retry';
-import { globalLogger } from './Logger';
+import { globalLogger } from '../core/Logger';
 import type { DNSRecordsResponseV3 } from '../types/toncenter/v3/DNSRecordsResponseV3';
 import { toDnsRecords } from '../types/toncenter/v3/DNSRecordsResponseV3';
 import {

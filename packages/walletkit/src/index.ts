@@ -22,7 +22,7 @@ export { JettonsManager } from './core/JettonsManager';
 export { SwapManager, SwapProvider, SwapError } from './defi/swap';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
-export { ApiClientToncenter } from './core/ApiClientToncenter';
+export { ApiClientToncenter } from './clients/ApiClientToncenter';
 export type { NetworkManager } from './core/NetworkManager';
 export { KitNetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';
