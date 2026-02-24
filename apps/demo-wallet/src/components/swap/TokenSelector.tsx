@@ -26,8 +26,9 @@ interface TokenSelectorProps {
 }
 
 const getTokenSymbol = (token: SwapToken, jetton?: Jetton): string => {
-    if (token.type === 'ton') return 'TON';
-    if (token.type === 'jetton' && token.value === USDT_ADDRESS) return 'USDT';
+    if (token.symbol) return token.symbol;
+    if (token.address === 'ton') return 'TON';
+    if (token.address === USDT_ADDRESS) return 'USDT';
 
     if (jetton) {
         const symbol = getJettonsSymbol(jetton);
@@ -56,9 +57,9 @@ export const TokenSelector: FC<TokenSelectorProps> = ({
     const selectedTokenInfo = useMemo(() => {
         const symbol = getTokenSymbol(selectedToken);
 
-        if (selectedToken.type === 'jetton') {
-            const jetton = userJettons.find((j) => j.address === selectedToken.value);
-            const icon = jetton ? getJettonsImage(jetton) : undefined;
+        if (selectedToken.address !== 'ton') {
+            const jetton = userJettons.find((j) => j.address === selectedToken.address);
+            const icon = selectedToken.image ?? (jetton ? getJettonsImage(jetton) : undefined);
 
             return { symbol, icon };
         }
@@ -67,7 +68,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({
             symbol,
             icon: '/ton.svg',
         };
-    }, [selectedToken]);
+    }, [selectedToken, userJettons]);
 
     return (
         <>

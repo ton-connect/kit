@@ -11,12 +11,12 @@ import type { SendTransactionRpcResponseError, WalletResponseTemplateError } fro
 import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
-import { toTransactionRequest } from '../types/internal';
+import { toTransactionRequest, parseConnectTransactionParamContent } from '../types/internal';
 import type {
     RawBridgeEvent,
     EventHandler,
     RawBridgeEventTransaction,
-    ConnectTransactionParamContent,
+    RawConnectTransactionParamContent,
 } from '../types/internal';
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
@@ -178,13 +178,14 @@ export class TransactionHandler
                     { paramCount: event.params.length, eventId: event.id },
                 );
             }
-            const params = JSON.parse(event.params[0]) as ConnectTransactionParamContent;
+            const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
+            const params = parseConnectTransactionParamContent(rawParams);
 
-            const validUntilValidation = this.validateValidUntil(params.valid_until);
+            const validUntilValidation = this.validateValidUntil(params.validUntil);
             if (!validUntilValidation.isValid) {
                 errors = errors.concat(validUntilValidation.errors);
             } else {
-                params.valid_until = validUntilValidation.result;
+                params.validUntil = validUntilValidation.result;
             }
 
             const networkValidation = this.validateNetwork(params.network, wallet);

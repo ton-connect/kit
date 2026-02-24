@@ -1,0 +1,25 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/* eslint-disable no-console */
+
+import { SendTonButton } from '@ton/appkit-react';
+
+export const SendTonButtonExample = () => {
+    // SAMPLE_START: SEND_TON_BUTTON
+    return (
+        <SendTonButton
+            recipientAddress="EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
+            amount="1" // 1 TON (human-readable format)
+            comment="Hello from AppKit"
+            onSuccess={(result) => console.log('Transaction sent:', result)}
+            onError={(error) => console.error('Transaction failed:', error)}
+        />
+    );
+    // SAMPLE_END: SEND_TON_BUTTON
+};

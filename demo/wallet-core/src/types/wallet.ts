@@ -116,6 +116,7 @@ export interface WalletKitConfig {
     jsBridgeTransport?: JSBridgeTransportFunction;
     disableHttpBridge?: boolean;
     disableNetworkSend?: boolean;
+    disableManifestDomainCheck?: boolean;
     bridgeUrl?: string;
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;

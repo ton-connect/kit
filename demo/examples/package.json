@@ -10,16 +10,23 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ton/appkit": "workspace:*",
+    "@ton/appkit-react": "workspace:*",
     "@ton/walletkit": "workspace:*",
-    "@types/node": "^24.10.1",
+    "@tonconnect/sdk": "catalog:",
+    "@tonconnect/ui-react": "catalog:",
     "@types/react": "catalog:",
     "dotenv": "^17.2.3",
     "react": "catalog:",
+    "react-dom": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
     "@vitest/coverage-v8": "^4.0.17",
+    "happy-dom": "^20.6.1",
     "vitest": "^4.0.17"
   }
 }

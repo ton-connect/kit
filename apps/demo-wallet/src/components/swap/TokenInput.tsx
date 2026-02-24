@@ -7,7 +7,7 @@
  */
 
 import type { FC } from 'react';
-import { useJettons, useWallet, formatUnits, formatTon } from '@demo/wallet-core';
+import { useJettons, useWallet, formatUnits } from '@demo/wallet-core';
 import type { SwapToken } from '@ton/walletkit';
 
 import { TokenSelector } from './TokenSelector';
@@ -40,14 +40,13 @@ export const TokenInput: FC<Props> = ({
     const { userJettons } = useJettons();
 
     const getTokenBalance = (token: SwapToken): string => {
-        if (token.type === 'ton') {
-            return formatTon(balance || '0');
+        if (token.address === 'ton') {
+            return formatUnits(balance || '0', token.decimals);
         }
 
-        const jetton = userJettons.find((j) => j.address === token.value);
-        if (jetton && jetton.balance && jetton.decimalsNumber) {
-            const decimals = jetton.decimalsNumber;
-            return formatUnits(jetton.balance, decimals);
+        const jetton = userJettons.find((j) => j.address === token.address);
+        if (jetton && jetton.balance) {
+            return formatUnits(jetton.balance, token.decimals);
         }
 
         return '0';
@@ -56,17 +55,16 @@ export const TokenInput: FC<Props> = ({
     const handleMaxClick = () => {
         if (isOutput) return;
 
-        if (token.type === 'ton') {
-            const currentBalance = parseFloat(formatTon(balance || '0'));
+        if (token.address === 'ton') {
+            const currentBalance = parseFloat(formatUnits(balance || '0', token.decimals));
             const maxAmount = currentBalance - 0.1;
             if (maxAmount > 0) {
                 onAmountChange(maxAmount.toString());
             }
         } else {
-            const jetton = userJettons.find((j) => j.address === token.value);
+            const jetton = userJettons.find((j) => j.address === token.address);
             if (jetton && jetton.balance) {
-                const decimals = jetton.decimalsNumber || 9;
-                const balanceInUnits = formatUnits(jetton.balance, decimals);
+                const balanceInUnits = formatUnits(jetton.balance, token.decimals);
                 onAmountChange(balanceInUnits);
             }
         }

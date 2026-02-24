@@ -35,8 +35,8 @@
     "@ton/walletkit": "workspace:*"
   },
   "peerDependencies": {
-    "@ton/core": "^0.62.0",
-    "@ton/crypto": "^3.3.0",
+    "@ton/core": "catalog:",
+    "@ton/crypto": "catalog:",
     "immer": "^10.2.0",
     "react": "catalog:",
     "zustand": "^5.0.8"

@@ -1,0 +1,21 @@
+.balance {
+  composes: bodyMedium from "../../../../styles/typography.module.css";
+
+  width: fit-content;
+  gap: 12px;
+  padding: 12px;
+  color: var(--ta-color-text-secondary);
+  line-height: 1;
+}
+
+.balanceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ticker {
+  composes: bodyBold from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text);
+  line-height: 1;
+}

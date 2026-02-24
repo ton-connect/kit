@@ -6,12 +6,16 @@
  *
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { resetKitCache } from '../lib/walletKitInitializeSample';
+import { resetKitCache } from '../lib/wallet-kit-initialize-sample';
 import { main as sendTon } from '../send-ton';
 import { main as sendJettons } from '../send-jettons';
 import { main as sendNft } from '../send-nft';
+
+vi.mock('@ton/walletkit', async () => {
+    return await import('../__mocks__/@ton/walletkit');
+});
 
 describe('transfers', () => {
     beforeEach(() => {

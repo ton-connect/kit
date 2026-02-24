@@ -40,7 +40,7 @@ function isJSXCode(code: string): boolean {
     return jsxPattern.test(code);
 }
 
-async function formatSampleCode(sample: string): Promise<string> {
+async function formatSampleCode(sample: string, filePath?: string): Promise<string> {
     const trimmed = sample.trim();
     if (trimmed === '') {
         return '';
@@ -48,7 +48,7 @@ async function formatSampleCode(sample: string): Promise<string> {
 
     const isJSX = isJSXCode(trimmed);
     const parser = isJSX ? 'typescript' : 'typescript';
-    const tempFilePath = isJSX ? 'temp.tsx' : 'temp.ts';
+    const tempFilePath = filePath || (isJSX ? 'temp.tsx' : 'temp.ts');
 
     const prettierConfig = await prettier.resolveConfig(process.cwd());
     let formatted = await prettier.format(trimmed, {

@@ -16,7 +16,8 @@ export type { PreparedSignData, SignDataPayload, UnpreparedSignData } from './co
 export type { UserFriendlyAddress, Hex, Base64String, LogicalTime, ResultError, Pagination } from './core/Primitives';
 export { Result } from './core/Primitives';
 export type { ProofMessage } from './core/ProofMessage';
-export { SendMode, SendModeFlag, SendModeBase } from './core/SendMode';
+export type { SendMode } from './core/SendMode';
+export { SendModeFlag, SendModeBase } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
 export type { TokenAnimation } from './core/TokenAnimation';
@@ -88,6 +89,27 @@ export type {
     TransactionTraceMoneyFlow,
     TransactionTraceMoneyFlowItem,
 } from './transactions/TransactionTraceMoneyFlow';
+
+// Intent models
+export type { SendTonAction, SendJettonAction, SendNftAction, IntentActionItem } from './intents/IntentActionItem';
+export type {
+    IntentOrigin,
+    IntentDeliveryMode,
+    IntentRequestBase,
+    TransactionIntentRequestEvent,
+    TransactionIntentPreview,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentRequestEvent,
+} from './intents/IntentRequestEvent';
+export type {
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentError,
+    IntentResponseResult,
+} from './intents/IntentResponse';
+export type { BatchedIntentEvent } from './intents/BatchedIntentEvent';
 
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';

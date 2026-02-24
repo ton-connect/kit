@@ -12,7 +12,7 @@ import 'dotenv/config';
 import type { NFTTransferRequest } from '@ton/walletkit';
 // SAMPLE_END: SEND_NFTS_1
 
-import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/walletKitInitializeSample';
+import { walletKitInitializeSample, getSelectedWalletAddress } from './lib/wallet-kit-initialize-sample';
 
 export async function main() {
     const kit = await walletKitInitializeSample();

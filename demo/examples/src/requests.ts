@@ -16,7 +16,7 @@ import type {
 } from '@ton/walletkit';
 
 import 'dotenv/config';
-import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
+import { walletKitInitializeSample } from './lib/wallet-kit-initialize-sample';
 
 const isCI = process.env.CI === 'true' || process.env.CI === '1';
 

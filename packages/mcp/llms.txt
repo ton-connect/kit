@@ -1,0 +1,117 @@
+# TON MCP Server
+
+> TON blockchain wallet operations via Model Context Protocol
+
+## Overview
+
+This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, and DNS resolution.
+
+## Available Tools
+
+### get_wallet
+Get current wallet address and network info.
+Returns: address, network (mainnet or testnet)
+
+### get_balance
+Get TON balance of the wallet.
+Returns: address, balance in TON and nanoTON
+
+### get_jetton_balance
+Get balance of a specific Jetton token.
+Parameters:
+- jettonAddress (required): Jetton master contract address
+
+### get_jettons
+List all Jettons in the wallet with balances and metadata.
+Returns: array of tokens with address, symbol, name, balance, decimals
+
+### get_transactions
+Get recent transaction history.
+Parameters:
+- limit (optional): 1-100, default 20
+Returns: transactions with type (TonTransfer, JettonTransfer, JettonSwap), amounts, addresses
+
+### get_known_jettons
+Get list of known/popular Jettons on TON.
+Returns: array with symbol, name, address, decimals
+
+### send_ton
+Send TON to an address.
+Parameters:
+- toAddress (required): recipient address
+- amount (required): amount in TON (e.g., "1.5")
+- comment (optional): transaction memo
+
+### send_jetton
+Send Jettons to an address.
+Parameters:
+- toAddress (required): recipient address
+- jettonAddress (required): token contract address
+- amount (required): human-readable amount
+- comment (optional): transaction memo
+
+### send_raw_transaction
+Send raw transaction with full control.
+Parameters:
+- messages (required): array of {address, amount (nanoTON), stateInit?, payload?}
+- validUntil (optional): expiry timestamp
+- fromAddress (optional): sender address
+
+### get_swap_quote
+Get quote for token swap.
+Parameters:
+- fromToken (required): "TON" or jetton address
+- toToken (required): "TON" or jetton address
+- amount (required): human-readable amount (e.g., "1.5" for 1.5 TON)
+- slippageBps (optional): slippage in basis points (100 = 1%)
+Returns: quote details + transaction params for send_raw_transaction
+
+### get_nfts
+List NFTs in the wallet.
+Parameters:
+- limit (optional): 1-100, default 20
+- offset (optional): pagination offset
+
+### get_nft
+Get NFT details.
+Parameters:
+- nftAddress (required): NFT item contract address
+
+### send_nft
+Transfer NFT to another address.
+Parameters:
+- nftAddress (required): NFT to transfer
+- toAddress (required): recipient address
+- comment (optional): transaction memo
+
+### resolve_dns
+Resolve .ton domain to wallet address.
+Parameters:
+- domain (required): e.g., "foundation.ton"
+
+### back_resolve_dns
+Find .ton domain for a wallet address.
+Parameters:
+- address (required): TON wallet address
+
+## Usage Patterns
+
+### Sending TON
+1. If recipient is .ton domain: resolve_dns first
+2. send_ton with resolved address
+
+### Sending Tokens
+1. get_jettons to find token address
+2. send_jetton with token details
+
+### Swapping Tokens
+1. get_known_jettons if needed for addresses
+2. get_swap_quote for quote
+3. Confirm with user
+4. send_raw_transaction with quote's transaction params
+
+## Important Notes
+
+- Always confirm transfers/swaps with user before executing
+- send_ton/send_jetton/get_swap_quote use human-readable amounts
+- Check transaction success in response

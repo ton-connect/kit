@@ -14,21 +14,21 @@ import type { OmnistonQuoteMetadata } from './types';
 import type { SwapToken } from '../../../api/models';
 
 export const tokenToAddress = (token: SwapToken): string => {
-    if (token.type === 'ton') {
+    if (token.address === 'ton') {
         return 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
     }
-    return Address.parse(token.value).toRawString();
+    return Address.parse(token.address).toRawString();
 };
 
-export const addressToToken = (address: string): SwapToken => {
+export const addressToToken = (address: string, decimals: number = 9): SwapToken => {
     if (address === 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c') {
-        return { type: 'ton' };
+        return { address: 'ton', decimals: 9 };
     }
 
     try {
-        return { type: 'jetton', value: Address.parseRaw(address).toString() };
+        return { address: Address.parseRaw(address).toString(), decimals };
     } catch {
-        return { type: 'jetton', value: address };
+        return { address, decimals };
     }
 };
 

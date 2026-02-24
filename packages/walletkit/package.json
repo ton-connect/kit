@@ -1,6 +1,6 @@
 {
   "name": "@ton/walletkit",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Wallet kit for TON Connect",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -75,13 +75,13 @@
     "@noble/curves": "^1.9.7",
     "@scure/bip39": "^2.0.1",
     "@tonconnect/bridge-sdk": "https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz",
-    "@tonconnect/protocol": "^2.3.0",
-    "@tonconnect/sdk": "^3.3.1",
+    "@tonconnect/protocol": "catalog:",
+    "@tonconnect/sdk": "catalog:",
     "lru-cache": "^11.2.4",
     "uuid": "^13.0.0"
   },
   "peerDependencies": {
-    "@ton/core": "^0.62.0",
+    "@ton/core": "^0.62.0 || ^0.63.0",
     "@ton/crypto": "^3.3.0"
   },
   "peerDependenciesMeta": {
@@ -95,11 +95,10 @@
   "devDependencies": {
     "@jest/globals": "^30.2.0",
     "@stryker-mutator/core": "^9.4.0",
-    "@ton/core": "^0.62.1",
-    "@ton/crypto": "^3.3.0",
+    "@ton/core": "catalog:",
+    "@ton/crypto": "catalog:",
     "@types/chrome": "^0.1.33",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
     "@types/webextension-polyfill": "^0.12.4",
     "@vitest/coverage-v8": "4.0.17",
     "@vitest/ui": "^4.0.17",

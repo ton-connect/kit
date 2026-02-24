@@ -13,6 +13,7 @@ export const ENV_TON_API_KEY_TESTNET =
     import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
 
 export const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
+export const DISABLE_MANIFEST_DOMAIN_CHECK = import.meta.env?.VITE_DISABLE_MANIFEST_DOMAIN_CHECK === 'true' || false;
 export const DISABLE_HTTP_BRIDGE = import.meta.env?.VITE_DISABLE_HTTP_BRIDGE === 'true' || false;
 export const DISABLE_AUTO_POPUP = import.meta.env?.VITE_DISABLE_AUTO_POPUP === 'true' || false;
 export const DISABLE_AUTO_EMULATION = import.meta.env?.VITE_DISABLE_AUTO_EMULATION === 'true' || false;

@@ -7,7 +7,7 @@
  */
 
 import 'dotenv/config';
-import { walletKitInitializeSample } from './lib/walletKitInitializeSample';
+import { walletKitInitializeSample } from './lib/wallet-kit-initialize-sample';
 
 /**
  * npx tsx src/initialize.ts

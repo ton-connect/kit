@@ -1,17 +1,79 @@
 {
   "name": "@ton/appkit-react",
-  "version": "0.0.1-alpha.2",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.2",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "pnpm run build:esm+types && pnpm run copy:css",
+    "build:esm+types": "tsc --project tsconfig.build.json --outDir dist/esm --declarationDir dist/types",
+    "copy:css": "rsync -zarv --include='*/' --include='*.css' --exclude='*' src/ dist/esm/",
+    "dev": "tsup --watch",
+    "clean": "git clean -xdf .turbo dist node_modules",
+    "typecheck": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ton-connect/kit"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.15.0"
+  "files": [
+    "dist/**",
+    "!dist/**/*.tsbuildinfo",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/**/*.stories.tsx"
+  ],
+  "main": "./dist/esm/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
+    },
+    "./styles.css": "./dist/esm/styles/index.css"
+  },
+  "dependencies": {
+    "@ton/appkit": "workspace:*",
+    "clsx": "2.1.1",
+    "radix-ui": "^1.4.3",
+    "rosetta": "1.1.0"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "10.2.8",
+    "@storybook/react": "10.2.8",
+    "@storybook/react-vite": "10.2.8",
+    "@storybook/test": "^8.6.15",
+    "@tanstack/react-query": "catalog:",
+    "@tonconnect/ui-react": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "storybook": "10.2.8",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.3.1",
+    "vite-plugin-node-polyfills": "^0.25.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": ">=5.0.0",
+    "@tonconnect/ui": ">=2.4.1",
+    "@tonconnect/ui-react": ">=2.4.1",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tonconnect/ui": {
+      "optional": true
+    },
+    "@tonconnect/ui-react": {
+      "optional": true
+    }
+  },
+  "sideEffects": [
+    "*.css"
+  ]
 }

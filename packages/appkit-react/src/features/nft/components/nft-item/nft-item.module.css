@@ -1,0 +1,74 @@
+.nftItem {
+    box-sizing: border-box;
+    width: 100%;
+    background-color: var(--ta-color-background-secondary);
+    border-radius: var(--ta-border-radius-l);
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding: 0;
+}
+
+.imageWrapper {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: var(--ta-color-background-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholderIcon {
+    width: 32px;
+    height: 32px;
+    color: var(--ta-color-text-secondary);
+}
+
+.info {
+    padding: 8px;
+    text-align: left;
+}
+
+.name {
+    composes: bodySmall from "../../../../styles/typography.module.css";
+
+    color: var(--ta-color-text);
+    font-weight: var(--ta-body-medium-font-weight);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.collectionName {
+    composes: bodySmall from "../../../../styles/typography.module.css";
+
+    color: var(--ta-color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.saleBadge {
+    composes: caption2 from "../../../../styles/typography.module.css";
+
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: var(--ta-border-radius-s);
+    font-weight: var(--ta-body-medium-font-weight);
+    background-color: var(--ta-color-primary);
+    color: var(--ta-color-text-on-primary, #fff);
+}

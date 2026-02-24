@@ -23,6 +23,17 @@ import type {
     TransactionRequest,
     Wallet,
     WalletResponse,
+    WalletSigner,
+    IntentRequestEvent,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentActionItem,
+    BatchedIntentEvent,
+    ConnectionApprovalProof,
 } from '@ton/walletkit';
 
 /**
@@ -260,6 +271,57 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
+// === Intent Args ===
+
+export interface HandleIntentUrlArgs {
+    url: string;
+    walletId: string;
+}
+
+export interface IsIntentUrlArgs {
+    url: string;
+}
+
+export interface ApproveTransactionIntentArgs {
+    event: TransactionIntentRequestEvent;
+    walletId: string;
+}
+
+export interface ApproveSignDataIntentArgs {
+    event: SignDataIntentRequestEvent;
+    walletId: string;
+}
+
+export interface ApproveActionIntentArgs {
+    event: ActionIntentRequestEvent;
+    walletId: string;
+}
+
+export interface RejectIntentArgs {
+    event: IntentRequestEvent;
+    reason?: string;
+    errorCode?: number;
+}
+
+export interface IntentItemsToTransactionRequestArgs {
+    items: IntentActionItem[];
+    walletId: string;
+}
+
+export interface ProcessConnectAfterIntentArgs {
+    event: IntentRequestEvent | BatchedIntentEvent;
+    walletId: string;
+    proof?: ConnectionApprovalProof;
+}
+
+export interface WalletDescriptor {
+    address: string;
+    publicKey: string;
+    version: string;
+    index: number;
+    network: string;
+}
+
 export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<{ ok: true }>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
@@ -311,4 +373,15 @@ export interface WalletKitBridgeApi {
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserBridgeRequest(args: EmitBrowserBridgeRequestArgs): PromiseOrValue<{ success: boolean }>;
+    // Intent API
+    isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
+    handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
+    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<IntentTransactionResponse>;
+    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<IntentSignDataResponse>;
+    approveActionIntent(
+        args: ApproveActionIntentArgs,
+    ): PromiseOrValue<IntentTransactionResponse | IntentSignDataResponse>;
+    rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentErrorResponse>;
+    intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
+    processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
 }

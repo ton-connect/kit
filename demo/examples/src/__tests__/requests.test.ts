@@ -6,12 +6,16 @@
  *
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { mockHandlers } from '../__mocks__/@ton/walletkit';
 import type { ConnectionRequestEvent } from '../__mocks__/@ton/walletkit';
-import { resetKitCache, tryGetKitSample } from '../lib/walletKitInitializeSample';
+import { resetKitCache, tryGetKitSample } from '../lib/wallet-kit-initialize-sample';
 import { main } from '../requests';
+
+vi.mock('@ton/walletkit', async () => {
+    return await import('../__mocks__/@ton/walletkit');
+});
 
 describe('requests', () => {
     beforeEach(() => {
