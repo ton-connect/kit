@@ -98,6 +98,12 @@ Get recent transaction history for the wallet (TON transfers, Jetton transfers, 
 **Parameters:**
 - `limit` (optional): Maximum number of transactions to return (default: 20, max: 100)
 
+#### `get_transaction_status`
+Get the status of a transaction by its normalized hash to know if it is pending, completed, or failed. In TON, a transaction is considered "complete" only when the entire trace finishes processing.
+
+**Parameters:**
+- `normalizedHash` (required): Normalized hash of the external-in transaction (Base64 string). Note: This must be the *normalized* hash of the message sent to the network.
+
 ### Transfers
 
 #### `send_ton`

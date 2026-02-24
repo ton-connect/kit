@@ -8,6 +8,7 @@
 
 import type { ToncenterTransaction } from '../../types/toncenter/emulation';
 import { getTxOpcode } from './getTxOpcode';
+import { isTransactionFailed } from './isTransactionFailed';
 
 /**
  * Generic factory function to create a failure detector.
@@ -21,7 +22,7 @@ import { getTxOpcode } from './getTxOpcode';
 export const createFailureDetector = (nonCriticalOpcodes: Set<string>) => {
     return (transactions: Record<string, ToncenterTransaction>): boolean => {
         for (const tx of Object.values(transactions)) {
-            if (tx.description?.aborted) {
+            if (isTransactionFailed(tx)) {
                 const opcode = getTxOpcode(tx);
 
                 // If the opcode is known and in the non-critical list, ignore the abort

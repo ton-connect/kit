@@ -9,7 +9,7 @@
 import type { ToncenterTracesResponse } from '../../types/toncenter/emulation';
 import type { TransactionStatusResponse } from '../../api/models/transactions/TransactionStatus';
 import type { TransactionStatus } from '../../api/models/transactions/TransactionStatus';
-import { isFailedTx } from './isFailedTx';
+import { isFailedTrace } from './isFailedTrace';
 
 /**
  * Helper to parse ToncenterTracesResponse into TransactionStatusResponse.
@@ -28,7 +28,8 @@ export const parseTraceResponse = (response: ToncenterTracesResponse): Transacti
         (traceInfo.trace_state === 'pending' && traceInfo.pending_messages === 0);
 
     let status: TransactionStatus = 'pending';
-    if (isFailedTx(response)) {
+
+    if (isFailedTrace(response)) {
         status = 'failed';
     } else if (isEffectivelyCompleted) {
         status = 'completed';
