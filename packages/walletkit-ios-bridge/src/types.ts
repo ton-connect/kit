@@ -15,6 +15,7 @@ import type {
     WalletAdapter,
     Wallet,
     TransactionRequest,
+    TONTransferRequest,
     BridgeEventMessageInfo,
     InjectedToExtensionBridgeRequestPayload,
     JettonsAPI,
@@ -118,4 +119,6 @@ export interface SwiftWalletKit {
     disconnect(sessionId: string): Promise<void>;
 
     sendTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
+
+    createTransferMultiTonTransaction(wallet: Wallet, params: [TONTransferRequest]): Promise<TransactionRequest>;
 }

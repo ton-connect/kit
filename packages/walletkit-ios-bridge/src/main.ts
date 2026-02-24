@@ -16,6 +16,7 @@ import type {
     NetworkAdapters,
     Wallet,
     TransactionRequest,
+    TONTransferRequest,
     Network,
     StorageAdapter,
     TONConnectSessionManager,
@@ -469,6 +470,16 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             console.log('🪙 Bridge: Sending transaction:', transaction);
 
             await walletKit.handleNewTransaction(wallet, transaction);
+        },
+
+        async createTransferMultiTonTransaction(
+            wallet: Wallet,
+            params: [TONTransferRequest],
+        ): Promise<TransactionRequest> {
+            if (!initialized) throw new Error('WalletKit Bridge not initialized');
+            console.log('🪙 Bridge: Creating multi TON transfer transaction');
+
+            return wallet.createTransferMultiTonTransaction(params);
         },
     };
 };
