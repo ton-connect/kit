@@ -8,7 +8,7 @@
 
 import type { ComponentProps, FC } from 'react';
 import clsx from 'clsx';
-import type { TransactionStatus } from '@ton/walletkit';
+import type { TransactionStatus } from '@ton/appkit';
 
 import styles from './transaction-status.module.css';
 
