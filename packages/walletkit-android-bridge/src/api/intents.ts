@@ -34,22 +34,26 @@ export async function handleIntentUrl(args: HandleIntentUrlArgs) {
 
 export async function approveTransactionIntent(args: ApproveTransactionIntentArgs) {
     const kit = await getKit();
-    return kit.approveTransactionIntent(args.event, args.walletId);
+    const event = (args.event as any).value ?? args.event;
+    return kit.approveTransactionIntent(event, args.walletId);
 }
 
 export async function approveSignDataIntent(args: ApproveSignDataIntentArgs) {
     const kit = await getKit();
-    return kit.approveSignDataIntent(args.event, args.walletId);
+    const event = (args.event as any).value ?? args.event;
+    return kit.approveSignDataIntent(event, args.walletId);
 }
 
 export async function approveActionIntent(args: ApproveActionIntentArgs) {
     const kit = await getKit();
-    return kit.approveActionIntent(args.event, args.walletId);
+    const event = (args.event as any).value ?? args.event;
+    return kit.approveActionIntent(event, args.walletId);
 }
 
 export async function rejectIntent(args: RejectIntentArgs) {
     const kit = await getKit();
-    return kit.rejectIntent(args.event, args.reason, args.errorCode);
+    const event = (args.event as any).value ?? args.event;
+    return kit.rejectIntent(event, args.reason, args.errorCode);
 }
 
 export async function intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs) {
