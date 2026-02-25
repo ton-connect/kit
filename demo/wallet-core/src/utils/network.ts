@@ -21,6 +21,16 @@ export function getChainNetwork(network: NetworkType): Network {
     }
 }
 
+export function getNetworkType(network: Network): NetworkType {
+    if (network.chainId === Network.mainnet().chainId) {
+        return 'mainnet';
+    }
+    if (network.chainId === Network.tetra().chainId) {
+        return 'tetra';
+    }
+    return 'testnet';
+}
+
 export function getNetworkLabel(network: NetworkType): string {
     switch (network) {
         case 'mainnet':

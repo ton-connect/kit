@@ -7,8 +7,8 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Network } from '@ton/walletkit';
 import type { ConnectionRequestEvent, Wallet } from '@ton/walletkit';
+import { getNetworkType, getNetworkLabel } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
@@ -102,14 +102,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         return `${address.slice(0, halfLength)}${dots}${address.slice(-halfLength)}`;
     };
 
-    const getNetworkLabel = (wallet?: Wallet): { label: string; isTestnet: boolean } => {
+    const getWalletNetworkInfo = (wallet?: Wallet): { label: string; isTestnet: boolean } => {
         if (!wallet) return { label: 'Unknown', isTestnet: false };
-        const network = wallet.getNetwork();
-        const isTestnet = network.chainId === Network.testnet().chainId;
-        const isTetra = network.chainId === Network.tetra().chainId;
+        const networkType = getNetworkType(wallet.getNetwork());
         return {
-            label: isTetra ? 'Tetra' : isTestnet ? 'Testnet' : 'Mainnet',
-            isTestnet: isTestnet || isTetra,
+            label: getNetworkLabel(networkType),
+            isTestnet: networkType !== 'mainnet',
         };
     };
 
@@ -129,12 +127,12 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                             {selectedWallet && (
                                 <span
                                     className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                        getNetworkLabel(selectedWallet).isTestnet
+                                        getWalletNetworkInfo(selectedWallet).isTestnet
                                             ? 'bg-orange-100 text-orange-800'
                                             : 'bg-green-100 text-green-800'
                                     }`}
                                 >
-                                    {getNetworkLabel(selectedWallet).label}
+                                    {getWalletNetworkInfo(selectedWallet).label}
                                 </span>
                             )}
                         </div>
@@ -199,12 +197,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                         {availableWallets.map((wallet, index) => {
                                             const walletId = wallet.getWalletId();
                                             const savedWallet = walletDataMap.get(walletId);
-                                            const networkLabel =
-                                                wallet.getNetwork().chainId === Network.testnet().chainId
-                                                    ? 'testnet'
-                                                    : wallet.getNetwork().chainId === Network.tetra().chainId
-                                                      ? 'tetra'
-                                                      : 'mainnet';
+                                            const networkLabel = getNetworkType(wallet.getNetwork());
 
                                             return (
                                                 <label key={walletId} className="block cursor-pointer">
@@ -263,14 +256,7 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                         publicKey: '',
                                                         walletType: 'mnemonic',
                                                         walletInterfaceType: 'mnemonic',
-                                                        network:
-                                                            selectedWallet.getNetwork().chainId ===
-                                                            Network.testnet().chainId
-                                                                ? 'testnet'
-                                                                : selectedWallet.getNetwork().chainId ===
-                                                                    Network.tetra().chainId
-                                                                  ? 'tetra'
-                                                                  : 'mainnet',
+                                                        network: getNetworkType(selectedWallet.getNetwork()),
                                                         createdAt: Date.now(),
                                                     }
                                                 }
