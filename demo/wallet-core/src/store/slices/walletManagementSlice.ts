@@ -13,8 +13,10 @@ import { createLedgerPath } from '@demo/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
 import { createComponentLogger } from '../../utils/logger';
+import { getChainNetwork } from '../../utils/network';
 import { createWalletAdapter, generateWalletId, generateWalletName } from '../../utils/walletAdapterFactory';
 import type { LedgerConfig, SavedWallet, WalletKitConfig } from '../../types/wallet';
+import type { NetworkType } from '../../utils/network';
 import type { SetState, WalletManagementSliceCreator } from '../../types/store';
 
 const log = createComponentLogger('WalletManagementSlice');
@@ -75,12 +77,7 @@ export const createWalletManagementSlice =
         },
 
         // Create a new wallet
-        createWallet: async (
-            mnemonic: string[],
-            name?: string,
-            version?: 'v5r1' | 'v4r2',
-            network?: 'mainnet' | 'testnet',
-        ) => {
+        createWallet: async (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2', network?: NetworkType) => {
             const state = get();
             if (!state.auth.currentPassword) {
                 throw new Error('User not authenticated');
@@ -158,16 +155,11 @@ export const createWalletManagementSlice =
             }
         },
 
-        importWallet: async (
-            mnemonic: string[],
-            name?: string,
-            version?: 'v5r1' | 'v4r2',
-            network?: 'mainnet' | 'testnet',
-        ) => {
+        importWallet: async (mnemonic: string[], name?: string, version?: 'v5r1' | 'v4r2', network?: NetworkType) => {
             return get().createWallet(mnemonic, name, version, network);
         },
 
-        createLedgerWallet: async (name?: string, network?: 'mainnet' | 'testnet') => {
+        createLedgerWallet: async (name?: string, network?: NetworkType) => {
             const state = get();
             if (!state.auth.currentPassword) {
                 throw new Error('User not authenticated');
@@ -553,7 +545,7 @@ export const createWalletManagementSlice =
                 const walletNetwork = activeWallet?.network || 'testnet';
 
                 const response = await state.walletCore.walletKit
-                    .getApiClient(walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet())
+                    .getApiClient(getChainNetwork(walletNetwork))
                     .getEvents({
                         account: state.walletManagement.address,
                         limit,

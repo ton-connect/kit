@@ -47,6 +47,12 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
                     key: walletKitConfig?.tonApiKeyTestnet,
                 },
             },
+            [Network.tetra().chainId]: {
+                apiClient: {
+                    url: 'https://tetra.tonapi.io',
+                    key: walletKitConfig?.tonApiKeyTetra,
+                },
+            },
         },
 
         storage: walletKitConfig?.storage,

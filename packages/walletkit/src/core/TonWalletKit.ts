@@ -17,7 +17,7 @@ import type {
     DisconnectEvent,
     SendTransactionRpcResponseError,
 } from '@tonconnect/protocol';
-import { CHAIN, SessionCrypto } from '@tonconnect/protocol';
+import { SessionCrypto } from '@tonconnect/protocol';
 
 import type { ITonWalletKit, TonWalletKitOptions } from '../types';
 import { Initializer, wrapWalletInterface } from './Initializer';

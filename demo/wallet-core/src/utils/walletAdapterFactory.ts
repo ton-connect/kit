@@ -6,11 +6,12 @@
  *
  */
 
-import type { WalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { SignatureDomain, WalletAdapter, WalletSigner } from '@ton/walletkit';
 import {
     WalletV5R1Adapter,
     WalletV4R2Adapter,
     DefaultSignature,
+    DefaultDomainSignature,
     MnemonicToKeyPair,
     Uint8ArrayToHex,
     Network,
@@ -20,7 +21,9 @@ import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@demo/v4ledger-adapter';
 
 import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
+import type { NetworkType } from './network';
 import { createComponentLogger } from './logger';
+import { getChainNetwork } from './network';
 
 const log = createComponentLogger('WalletAdapterFactory');
 
@@ -29,7 +32,7 @@ export interface CreateWalletAdapterParams {
     useWalletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
     ledgerAccountNumber?: number;
     storedLedgerConfig?: LedgerConfig;
-    network: 'mainnet' | 'testnet';
+    network: NetworkType;
     walletKit: ITonWalletKit;
     version: 'v5r1' | 'v4r2';
     /**
@@ -56,7 +59,14 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
         createLedgerTransport,
     } = params;
 
-    const chainNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
+    let chainNetwork = getChainNetwork(network);
+    let domain: SignatureDomain | undefined =
+        network == 'tetra'
+            ? {
+                  type: 'l2',
+                  globalId: 8124123,
+              }
+            : undefined;
 
     switch (useWalletInterfaceType) {
         case 'signer': {
@@ -68,6 +78,9 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
             const customSigner: WalletSigner = {
                 sign: async (bytes: Iterable<number>) => {
                     if (confirm('Are you sure you want to sign?')) {
+                        if (domain) {
+                            return DefaultDomainSignature(bytes, keyPair.secretKey, domain);
+                        }
                         return DefaultSignature(bytes, keyPair.secretKey);
                     }
                     throw new Error('User did not confirm');
@@ -92,7 +105,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                 throw new Error('Mnemonic required for mnemonic wallet type');
             }
 
-            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
+            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' }, domain);
 
             if (version === 'v5r1') {
                 return await WalletV5R1Adapter.create(signer, {
@@ -119,7 +132,7 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                             path: storedLedgerConfig.path,
                             publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
-                            network: storedLedgerConfig.network === 'mainnet' ? Network.mainnet() : Network.testnet(),
+                            network: getChainNetwork(storedLedgerConfig.network as NetworkType),
                             workchain: storedLedgerConfig.workchain,
                             walletId: storedLedgerConfig.walletId,
                             accountIndex: storedLedgerConfig.accountIndex,

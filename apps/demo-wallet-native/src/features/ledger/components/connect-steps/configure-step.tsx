@@ -18,8 +18,8 @@ import { AppText } from '@/core/components/app-text';
 
 interface Props {
     deviceName?: string;
-    network: 'mainnet' | 'testnet';
-    onNetworkChange: (network: 'mainnet' | 'testnet') => void;
+    network: 'mainnet' | 'testnet' | 'tetra';
+    onNetworkChange: (network: 'mainnet' | 'testnet' | 'tetra') => void;
     accountNumber: number;
     onAccountNumberChange: (accountNumber: number) => void;
     onCreateWallet: () => void;

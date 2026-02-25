@@ -35,7 +35,7 @@ const SUBTITLES: Record<ScreenState, string> = {
 const ConnectLedgerScreen: FC = () => {
     const [screenState, setScreenState] = useState<ScreenState>('instructions');
     const [selectedDevice, setSelectedDevice] = useState<LedgerDevice | null>(null);
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
+    const [network, setNetwork] = useState<'mainnet' | 'testnet' | 'tetra'>('testnet');
     const [accountNumber, setAccountNumber] = useState(0);
 
     const { setUseWalletInterfaceType, setLedgerAccountNumber } = useAuth();

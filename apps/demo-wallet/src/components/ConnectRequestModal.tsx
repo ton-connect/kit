@@ -106,9 +106,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
         if (!wallet) return { label: 'Unknown', isTestnet: false };
         const network = wallet.getNetwork();
         const isTestnet = network.chainId === Network.testnet().chainId;
+        const isTetra = network.chainId === Network.tetra().chainId;
         return {
-            label: isTestnet ? 'Testnet' : 'Mainnet',
-            isTestnet,
+            label: isTetra ? 'Tetra' : isTestnet ? 'Testnet' : 'Mainnet',
+            isTestnet: isTestnet || isTetra,
         };
     };
 
@@ -201,7 +202,9 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                             const networkLabel =
                                                 wallet.getNetwork().chainId === Network.testnet().chainId
                                                     ? 'testnet'
-                                                    : 'mainnet';
+                                                    : wallet.getNetwork().chainId === Network.tetra().chainId
+                                                      ? 'tetra'
+                                                      : 'mainnet';
 
                                             return (
                                                 <label key={walletId} className="block cursor-pointer">
@@ -264,7 +267,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                                             selectedWallet.getNetwork().chainId ===
                                                             Network.testnet().chainId
                                                                 ? 'testnet'
-                                                                : 'mainnet',
+                                                                : selectedWallet.getNetwork().chainId ===
+                                                                    Network.tetra().chainId
+                                                                  ? 'tetra'
+                                                                  : 'mainnet',
                                                         createdAt: Date.now(),
                                                     }
                                                 }

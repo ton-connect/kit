@@ -91,7 +91,7 @@ export type {
     InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
-export { DefaultSignature, FakeSignature } from './utils/sign';
+export { DefaultSignature, DefaultDomainSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
 export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';
 

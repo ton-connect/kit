@@ -17,11 +17,12 @@ import { AppInput } from '@/core/components/app-input';
 const networkOptions = [
     { value: 'testnet' as const, label: 'Testnet' },
     { value: 'mainnet' as const, label: 'Mainnet' },
+    { value: 'tetra' as const, label: 'Tetra' },
 ];
 
 interface LedgerSettingsProps {
-    network: 'mainnet' | 'testnet';
-    onNetworkChange: (network: 'mainnet' | 'testnet') => void;
+    network: 'mainnet' | 'testnet' | 'tetra';
+    onNetworkChange: (network: 'mainnet' | 'testnet' | 'tetra') => void;
     accountNumber: number;
     onAccountNumberChange: (accountNumber: number) => void;
 }

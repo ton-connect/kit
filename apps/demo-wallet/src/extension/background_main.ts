@@ -21,7 +21,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../utils/w
 
 import { JS_BRIDGE_MESSAGE_TO_BACKGROUND } from '@/lib/constants';
 import { SendMessageToExtensionContentFromBackground } from '@/lib/extensionBackground';
-import { DISABLE_AUTO_POPUP, ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/lib/env';
+import { DISABLE_AUTO_POPUP, ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_TETRA } from '@/lib/env';
 
 // Initialize WalletKit and JSBridge
 let walletKit: TonWalletKit | null = null;
@@ -54,7 +54,13 @@ async function initializeWalletKit() {
                     },
                 },
 
-                // TODO: Tetra
+                // TODO: Update tetra api client
+                [Network.tetra().chainId]: {
+                    apiClient: {
+                        url: 'https://tetra.tonapi.io',
+                        key: ENV_TON_API_KEY_TETRA,
+                    },
+                },
             },
         });
 

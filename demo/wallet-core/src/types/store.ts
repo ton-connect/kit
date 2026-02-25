@@ -31,6 +31,7 @@ import type {
     RequestQueue,
     DisconnectNotification,
 } from './wallet';
+import type { NetworkType } from '../utils/network';
 
 // Auth slice interface
 export interface AuthSlice extends AuthState {
@@ -78,15 +79,15 @@ export interface WalletManagementSlice {
         mnemonic: string[],
         name?: string,
         version?: 'v5r1' | 'v4r2',
-        network?: 'mainnet' | 'testnet',
+        network?: NetworkType,
     ) => Promise<string>;
     importWallet: (
         mnemonic: string[],
         name?: string,
         version?: 'v5r1' | 'v4r2',
-        network?: 'mainnet' | 'testnet',
+        network?: NetworkType,
     ) => Promise<string>;
-    createLedgerWallet: (name?: string, network?: 'mainnet' | 'testnet') => Promise<string>;
+    createLedgerWallet: (name?: string, network?: NetworkType) => Promise<string>;
     switchWallet: (walletId: string) => Promise<void>;
     removeWallet: (walletId: string) => void;
     renameWallet: (walletId: string, newName: string) => void;

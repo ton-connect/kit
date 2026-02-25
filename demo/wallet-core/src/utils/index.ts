@@ -8,6 +8,7 @@
 
 export * from './crypto';
 export * from './formatters';
+export * from './network';
 export * from './units';
 export * from './walletAdapterFactory';
 export * from './walletManifest';
