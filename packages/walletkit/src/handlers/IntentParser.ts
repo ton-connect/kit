@@ -14,6 +14,7 @@ import type {
     IntentActionItem,
     IntentOrigin,
     IntentRequestEvent,
+    IntentRequestBase,
     TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
@@ -22,6 +23,7 @@ import type {
     SignDataPayload,
     SignData,
     Base64String,
+    Network,
 } from '../api/models';
 
 const INTENT_INLINE_SCHEME = 'tc://intent_inline';
@@ -443,7 +445,7 @@ export class IntentParser {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action URL response missing action_type or action');
         }
 
-        const base = {
+        const base: IntentRequestBase = {
             id: sourceEvent.id,
             origin: sourceEvent.origin,
             clientId: sourceEvent.clientId,
@@ -464,9 +466,9 @@ export class IntentParser {
     }
 
     private parseActionTransaction(
-        base: { id: string; origin: string; clientId?: string; hasConnectRequest: boolean },
+        base: IntentRequestBase,
         action: Record<string, unknown>,
-    ): TransactionIntentRequestEvent {
+    ): IntentRequestEvent {
         const rawMessages = action.messages as Array<Record<string, unknown>> | undefined;
         if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action sendTransaction missing messages');
@@ -480,28 +482,32 @@ export class IntentParser {
             extraCurrency: (msg.extraCurrency ?? msg.extra_currency) as Record<string, string> | undefined,
         }));
 
+        const network: Network | undefined = action.network ? { chainId: action.network as string } : undefined;
+
         const resolvedTransaction: TransactionRequest = {
             messages,
-            network: action.network as TransactionRequest['network'],
+            network,
             validUntil: (action.valid_until ?? action.validUntil) as number | undefined,
         };
 
         return {
-            ...base,
-            intentType: 'transaction',
-            deliveryMode: 'send',
-            network: action.network as string | undefined,
-            validUntil: resolvedTransaction.validUntil,
-            items: [],
-            resolvedTransaction,
-        } as TransactionIntentRequestEvent;
+            type: 'transaction',
+            value: {
+                ...base,
+                deliveryMode: 'send' as IntentDeliveryMode,
+                network,
+                validUntil: resolvedTransaction.validUntil,
+                items: [],
+                resolvedTransaction,
+            },
+        };
     }
 
     private parseActionSignData(
-        base: { id: string; origin: string; clientId?: string; hasConnectRequest: boolean },
+        base: IntentRequestBase,
         action: Record<string, unknown>,
         actionUrl: string,
-    ): SignDataIntentRequestEvent {
+    ): IntentRequestEvent {
         const wirePayload = {
             type: action.type as string,
             text: action.text as string | undefined,
@@ -515,12 +521,14 @@ export class IntentParser {
         }
 
         return {
-            ...base,
-            intentType: 'signData',
-            network: action.network as string | undefined,
-            manifestUrl: actionUrl,
-            payload: this.wirePayloadToSignDataPayload(wirePayload),
-        } as SignDataIntentRequestEvent;
+            type: 'signData',
+            value: {
+                ...base,
+                network: action.network ? { chainId: action.network as string } : undefined,
+                manifestUrl: actionUrl,
+                payload: this.wirePayloadToSignDataPayload(wirePayload),
+            },
+        };
     }
 
     // -- Wire → Model mapping -------------------------------------------------
@@ -529,7 +537,7 @@ export class IntentParser {
         const { clientId, request, origin, traceId } = parsed;
         const hasConnectRequest = !!request.c;
 
-        const base = {
+        const base: IntentRequestBase = {
             id: request.id,
             origin,
             clientId,
@@ -545,32 +553,38 @@ export class IntentParser {
             case 'signMsg': {
                 const deliveryMode: IntentDeliveryMode = request.m === 'txIntent' ? 'send' : 'signOnly';
                 event = {
-                    ...base,
-                    intentType: 'transaction',
-                    deliveryMode,
-                    network: request.n,
-                    validUntil: request.vu,
-                    items: this.mapItems(request.i!),
-                } as TransactionIntentRequestEvent;
+                    type: 'transaction',
+                    value: {
+                        ...base,
+                        deliveryMode,
+                        network: request.n ? { chainId: request.n } : undefined,
+                        validUntil: request.vu,
+                        items: this.mapItems(request.i!),
+                    },
+                };
                 break;
             }
             case 'signIntent': {
                 const manifestUrl = request.mu || request.c?.manifestUrl || '';
                 event = {
-                    ...base,
-                    intentType: 'signData',
-                    network: request.n,
-                    manifestUrl,
-                    payload: this.wirePayloadToSignDataPayload(request.p!),
-                } as SignDataIntentRequestEvent;
+                    type: 'signData',
+                    value: {
+                        ...base,
+                        network: request.n ? { chainId: request.n } : undefined,
+                        manifestUrl,
+                        payload: this.wirePayloadToSignDataPayload(request.p!),
+                    },
+                };
                 break;
             }
             case 'actionIntent': {
                 event = {
-                    ...base,
-                    intentType: 'action',
-                    actionUrl: request.a!,
-                } as ActionIntentRequestEvent;
+                    type: 'action',
+                    value: {
+                        ...base,
+                        actionUrl: request.a!,
+                    },
+                };
                 break;
             }
         }
@@ -587,34 +601,40 @@ export class IntentParser {
             case 'ton':
                 return {
                     type: 'sendTon',
-                    address: item.a!,
-                    amount: item.am!,
-                    payload: item.p as Base64String | undefined,
-                    stateInit: item.si as Base64String | undefined,
-                    extraCurrency: item.ec,
+                    value: {
+                        address: item.a!,
+                        amount: item.am!,
+                        payload: item.p as Base64String | undefined,
+                        stateInit: item.si as Base64String | undefined,
+                        extraCurrency: item.ec,
+                    },
                 };
             case 'jetton':
                 return {
                     type: 'sendJetton',
-                    jettonMasterAddress: item.ma!,
-                    jettonAmount: item.ja!,
-                    destination: item.d!,
-                    responseDestination: item.rd,
-                    customPayload: item.cp as Base64String | undefined,
-                    forwardTonAmount: item.fta,
-                    forwardPayload: item.fp as Base64String | undefined,
-                    queryId: item.qi,
+                    value: {
+                        jettonMasterAddress: item.ma!,
+                        jettonAmount: item.ja!,
+                        destination: item.d!,
+                        responseDestination: item.rd,
+                        customPayload: item.cp as Base64String | undefined,
+                        forwardTonAmount: item.fta,
+                        forwardPayload: item.fp as Base64String | undefined,
+                        queryId: item.qi,
+                    },
                 };
             case 'nft':
                 return {
                     type: 'sendNft',
-                    nftAddress: item.na!,
-                    newOwnerAddress: item.no!,
-                    responseDestination: item.rd,
-                    customPayload: item.cp as Base64String | undefined,
-                    forwardTonAmount: item.fta,
-                    forwardPayload: item.fp as Base64String | undefined,
-                    queryId: item.qi,
+                    value: {
+                        nftAddress: item.na!,
+                        newOwnerAddress: item.no!,
+                        responseDestination: item.rd,
+                        customPayload: item.cp as Base64String | undefined,
+                        forwardTonAmount: item.fta,
+                        forwardPayload: item.fp as Base64String | undefined,
+                        queryId: item.qi,
+                    },
                 };
         }
     }

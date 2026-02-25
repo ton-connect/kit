@@ -24,6 +24,7 @@ import type {
     Wallet,
     WalletResponse,
     IntentRequestEvent,
+    BatchedIntentEvent,
     TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
@@ -31,7 +32,6 @@ import type {
     IntentSignDataResponse,
     IntentErrorResponse,
     IntentActionItem,
-    BatchedIntentEvent,
     ConnectionApprovalProof,
 } from '@ton/walletkit';
 

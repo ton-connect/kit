@@ -11,6 +11,7 @@ import type { TransactionRequest } from '../transactions/TransactionRequest';
 import type { TransactionEmulatedPreview } from '../transactions/emulation/TransactionEmulatedPreview';
 import type { SignDataPayload } from '../core/PreparedSignData';
 import type { DAppInfo } from '../core/DAppInfo';
+import type { Network } from '../core/Network';
 import type { IntentActionItem } from './IntentActionItem';
 
 /**
@@ -42,39 +43,33 @@ export interface IntentRequestBase extends BridgeEvent {
  * The `deliveryMode` field distinguishes them.
  */
 export interface TransactionIntentRequestEvent extends IntentRequestBase {
-    /** Event type discriminator */
-    intentType: 'transaction';
     /** Whether to send on-chain or return signed BoC */
     deliveryMode: IntentDeliveryMode;
-    /** Network chain ID ("-239" = mainnet, "-3" = testnet) */
-    network?: string;
-    /** Transaction validity deadline (unix timestamp) */
+    /** Network for the transaction */
+    network?: Network;
+    /**
+     * Transaction validity deadline (unix timestamp)
+     * @format timestamp
+     */
     validUntil?: number;
     /** Original intent action items (for display / re-conversion) */
     items: IntentActionItem[];
     /** Resolved transaction request (items converted to messages) */
     resolvedTransaction?: TransactionRequest;
     /** Emulated preview for display */
-    preview?: TransactionIntentPreview;
-}
-
-/**
- * Preview data for transaction intent.
- */
-export interface TransactionIntentPreview {
-    /** Emulated transaction data */
-    data?: TransactionEmulatedPreview;
+    preview?: TransactionEmulatedPreview;
 }
 
 /**
  * Sign data intent request event.
  */
 export interface SignDataIntentRequestEvent extends IntentRequestBase {
-    /** Event type discriminator */
-    intentType: 'signData';
-    /** Network chain ID */
-    network?: string;
-    /** Manifest URL (for domain binding) */
+    /** Network for sign data */
+    network?: Network;
+    /**
+     * Manifest URL (for domain binding)
+     * @format url
+     */
     manifestUrl: string;
     /** The data to sign */
     payload: SignDataPayload;
@@ -90,13 +85,17 @@ export interface SignDataIntentRequestEvent extends IntentRequestBase {
  * to a TransactionIntentRequestEvent or SignDataIntentRequestEvent.
  */
 export interface ActionIntentRequestEvent extends IntentRequestBase {
-    /** Event type discriminator */
-    intentType: 'action';
-    /** Action URL to fetch */
+    /**
+     * Action URL to fetch
+     * @format url
+     */
     actionUrl: string;
 }
 
 /**
- * Union of all intent request events, discriminated by `intentType`.
+ * Union of all intent request events, discriminated by `type`.
  */
-export type IntentRequestEvent = TransactionIntentRequestEvent | SignDataIntentRequestEvent | ActionIntentRequestEvent;
+export type IntentRequestEvent =
+    | { type: 'transaction'; value: TransactionIntentRequestEvent }
+    | { type: 'signData'; value: SignDataIntentRequestEvent }
+    | { type: 'action'; value: ActionIntentRequestEvent };

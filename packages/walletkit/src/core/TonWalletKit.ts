@@ -600,7 +600,10 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<void> {
         await this.ensureInitialized();
 
-        const eventId = event.id;
+        const isBatched = 'intents' in event;
+        const eventId = isBatched ? event.id : event.value.id;
+        const clientId = isBatched ? event.clientId : event.value.clientId;
+
         const connectRequest = this.intentHandler.getPendingConnectRequest(eventId);
         if (!connectRequest) {
             log.warn('No pending connect request for intent', { eventId });
@@ -611,7 +614,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Create a bridge event from the connect request
         const bridgeEvent: RawBridgeEventConnect = {
-            from: event.clientId || '',
+            from: clientId || '',
             id: eventId,
             method: 'connect',
             params: {

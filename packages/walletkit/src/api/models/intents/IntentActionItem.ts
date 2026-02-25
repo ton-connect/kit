@@ -6,47 +6,48 @@
  *
  */
 
-import type { Base64String } from '../core/Primitives';
+import type { Base64String, UserFriendlyAddress } from '../core/Primitives';
+import type { TokenAmount } from '../core/TokenAmount';
+import type { ExtraCurrencies } from '../core/ExtraCurrencies';
 
 /**
  * TON native coin transfer action.
  */
 export interface SendTonAction {
-    /** Action type discriminator */
-    type: 'sendTon';
     /** Destination address (user-friendly) */
-    address: string;
+    address: UserFriendlyAddress;
     /** Amount in nanotons */
-    amount: string;
+    amount: TokenAmount;
     /** Cell payload (Base64 BoC) */
     payload?: Base64String;
     /** Contract deploy stateInit (Base64 BoC) */
     stateInit?: Base64String;
     /** Extra currencies */
-    extraCurrency?: Record<string, string>;
+    extraCurrency?: ExtraCurrencies;
 }
 
 /**
  * Jetton transfer action (TEP-74).
  */
 export interface SendJettonAction {
-    /** Action type discriminator */
-    type: 'sendJetton';
     /** Jetton master contract address */
-    jettonMasterAddress: string;
+    jettonMasterAddress: UserFriendlyAddress;
     /** Transfer amount in jetton elementary units */
-    jettonAmount: string;
+    jettonAmount: TokenAmount;
     /** Recipient address */
-    destination: string;
+    destination: UserFriendlyAddress;
     /** Response destination (defaults to sender) */
-    responseDestination?: string;
+    responseDestination?: UserFriendlyAddress;
     /** Custom payload (Base64 BoC) */
     customPayload?: Base64String;
     /** Forward TON amount (nanotons) */
-    forwardTonAmount?: string;
+    forwardTonAmount?: TokenAmount;
     /** Forward payload (Base64 BoC) */
     forwardPayload?: Base64String;
-    /** Query ID */
+    /**
+     * Query ID
+     * @format int
+     */
     queryId?: number;
 }
 
@@ -54,25 +55,29 @@ export interface SendJettonAction {
  * NFT transfer action (TEP-62).
  */
 export interface SendNftAction {
-    /** Action type discriminator */
-    type: 'sendNft';
     /** NFT item address */
-    nftAddress: string;
+    nftAddress: UserFriendlyAddress;
     /** New owner address */
-    newOwnerAddress: string;
+    newOwnerAddress: UserFriendlyAddress;
     /** Response destination (defaults to sender) */
-    responseDestination?: string;
+    responseDestination?: UserFriendlyAddress;
     /** Custom payload (Base64 BoC) */
     customPayload?: Base64String;
     /** Forward TON amount (nanotons) */
-    forwardTonAmount?: string;
+    forwardTonAmount?: TokenAmount;
     /** Forward payload (Base64 BoC) */
     forwardPayload?: Base64String;
-    /** Query ID */
+    /**
+     * Query ID
+     * @format int
+     */
     queryId?: number;
 }
 
 /**
  * Union of all intent action items, discriminated by `type`.
  */
-export type IntentActionItem = SendTonAction | SendJettonAction | SendNftAction;
+export type IntentActionItem =
+    | { type: 'sendTon'; value: SendTonAction }
+    | { type: 'sendJetton'; value: SendJettonAction }
+    | { type: 'sendNft'; value: SendNftAction };

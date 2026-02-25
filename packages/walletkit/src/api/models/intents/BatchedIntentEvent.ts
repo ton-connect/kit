@@ -18,8 +18,6 @@ import type { IntentRequestEvent, IntentOrigin } from './IntentRequestEvent';
  * - action intent that resolves to multiple steps
  */
 export interface BatchedIntentEvent extends BridgeEvent {
-    /** Fixed identifier for batched events */
-    eventType: 'batchedIntent';
     /** How the batch reached the wallet */
     origin: IntentOrigin;
     /** Client public key for response routing */
