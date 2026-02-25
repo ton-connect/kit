@@ -8,17 +8,16 @@
 
 import { AppKit, Network } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
-import { TonConnectConnector } from '@ton/appkit';
+import { TonConnectConnector, ApiClientTonApi } from '@ton/appkit';
 
-import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
+import { ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
 
 export const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: ENV_TON_API_KEY_MAINNET,
-            },
+            apiClient: new ApiClientTonApi({
+                network: Network.mainnet(),
+            }),
         },
         [Network.testnet().chainId]: {
             apiClient: {

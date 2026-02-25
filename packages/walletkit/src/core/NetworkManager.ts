@@ -12,7 +12,7 @@ import { CHAIN } from '@tonconnect/protocol';
 
 import type { ApiClient } from '../types/toncenter/ApiClient';
 import type { ApiClientConfig, TonWalletKitOptions } from '../types/config';
-import { ApiClientToncenter } from '../clients/ApiClientToncenter';
+import { ApiClientToncenter } from '../clients/toncenter';
 import { globalLogger } from './Logger';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { Network } from '../api/models';
