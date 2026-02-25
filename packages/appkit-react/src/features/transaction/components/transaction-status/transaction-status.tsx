@@ -46,7 +46,7 @@ export const TransactionStatusContent: FC<Omit<TransactionStatusProps, 'boc'>> =
     ...props
 }) => {
     const context = useTransactionStatusContext();
-    const { status, completedMessages, totalMessages, error } = context;
+    const { status, onchainMessages, totalMessages, error } = context;
     const { t } = useI18n();
 
     const texts = useMemo(
@@ -72,7 +72,7 @@ export const TransactionStatusContent: FC<Omit<TransactionStatusProps, 'boc'>> =
 
     let progressText = null;
     if (isPending && totalMessages > 0) {
-        progressText = `(${completedMessages} / ${totalMessages})`;
+        progressText = `(${onchainMessages} / ${totalMessages})`;
     }
 
     return (

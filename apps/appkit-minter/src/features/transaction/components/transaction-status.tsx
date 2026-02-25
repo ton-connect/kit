@@ -44,7 +44,7 @@ export const TransactionStatus = ({ boc, className }: TransactionStatusProps) =>
 
     return (
         <AppKitTransactionStatus boc={boc}>
-            {({ status, totalMessages, completedMessages, pendingMessages, error, isFetching }) => {
+            {({ status, totalMessages, onchainMessages, pendingMessages, error, isFetching }) => {
                 if (error) {
                     return (
                         <div className="p-4 rounded-lg bg-red-500/10 text-red-500 text-sm">
@@ -77,8 +77,8 @@ export const TransactionStatus = ({ boc, className }: TransactionStatusProps) =>
                                 <div className="text-xs text-muted-foreground uppercase">Total</div>
                             </div>
                             <div className="p-3 bg-muted rounded-lg">
-                                <div className="text-2xl font-bold text-green-500">{completedMessages}</div>
-                                <div className="text-xs text-muted-foreground uppercase">Completed</div>
+                                <div className="text-2xl font-bold text-green-500">{onchainMessages}</div>
+                                <div className="text-xs text-muted-foreground uppercase">Onchain</div>
                             </div>
                             <div className="p-3 bg-muted rounded-lg">
                                 <div className="text-2xl font-bold text-yellow-500">{pendingMessages}</div>

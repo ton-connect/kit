@@ -6,7 +6,11 @@
  *
  */
 
-export type TransactionStatus = 'unknown' | 'pending' | 'completed' | 'failed';
+export type TransactionStatus =
+    | 'unknown' // we could not find the transaction in the network
+    | 'pending' // transaction is either in mempool, or only partially processed
+    | 'completed' // transaction trace is fully processed onchain and has no errors
+    | 'failed'; // transaction trace is fully processed onchain and has errors
 
 export interface TransactionStatusResponse {
     /** Overall status of the transaction trace */
@@ -15,6 +19,6 @@ export interface TransactionStatusResponse {
     totalMessages: number;
     /** Messages still pending */
     pendingMessages: number;
-    /** Number of completed messages (totalMessages - pendingMessages) */
-    completedMessages: number;
+    /** Number of onchain messages (totalMessages - pendingMessages) */
+    onchainMessages: number;
 }

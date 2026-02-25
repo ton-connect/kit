@@ -42,7 +42,7 @@ export function createMcpTransferTools(service: McpWalletService) {
     return {
         send_ton: {
             description:
-                'Send TON from the wallet to an address. Amount is in TON (e.g., "1.5" means 1.5 TON). After sending, call get_transaction_status with the returned normalizedHash to verify the transaction completed on-chain.',
+                'Send TON from the wallet to an address. Amount is in TON (e.g., "1.5" means 1.5 TON). Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendTonSchema,
             handler: async (args: z.infer<typeof sendTonSchema>): Promise<ToolResponse> => {
                 const rawAmount = toRawAmount(args.amount, TON_DECIMALS);
@@ -90,7 +90,7 @@ export function createMcpTransferTools(service: McpWalletService) {
 
         send_jetton: {
             description:
-                'Send Jettons (tokens) from the wallet to an address. Amount is in human-readable format. After sending, call get_transaction_status with the returned normalizedHash to verify the transaction completed on-chain.',
+                'Send Jettons (tokens) from the wallet to an address. Amount is in human-readable format. Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendJettonSchema,
             handler: async (args: z.infer<typeof sendJettonSchema>): Promise<ToolResponse> => {
                 // Fetch jetton info for decimals
@@ -180,7 +180,7 @@ export function createMcpTransferTools(service: McpWalletService) {
 
         send_raw_transaction: {
             description:
-                'Send a raw transaction with full control over messages. Amounts are in nanotons. Supports multiple messages in a single transaction. After sending, call get_transaction_status with the returned normalizedHash to verify the transaction completed on-chain.',
+                'Send a raw transaction with full control over messages. Amounts are in nanotons. Supports multiple messages. Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendRawTransactionSchema,
             handler: async (args: z.infer<typeof sendRawTransactionSchema>): Promise<ToolResponse> => {
                 const result = await service.sendRawTransaction({

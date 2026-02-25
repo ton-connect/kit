@@ -19,7 +19,7 @@ export function createMcpTransactionTools(service: McpWalletService) {
     return {
         get_transaction_status: {
             description:
-                'Get the status of a transaction by its normalized hash to know if it is pending, completed, or failed. Call this after send_ton, send_jetton, send_nft, or send_raw_transaction to verify the transaction actually completed on-chain.',
+                'Get the status of a transaction by its normalized hash (pending, completed, or failed). Default flow after any send: poll until completed or failed; user can specify whether to check.',
             inputSchema: getTransactionStatusSchema,
             handler: async (args: z.infer<typeof getTransactionStatusSchema>): Promise<ToolResponse> => {
                 try {

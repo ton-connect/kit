@@ -105,22 +105,22 @@ Parameters:
 ### Sending TON
 1. If recipient is .ton domain: resolve_dns first
 2. send_ton with resolved address
-3. get_transaction_status with normalizedHash from response to verify it completed on-chain
+3. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ### Sending Tokens
 1. get_jettons to find token address
 2. send_jetton with token details
-3. get_transaction_status with normalizedHash from response to verify it completed on-chain
+3. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ### Swapping Tokens
 1. get_known_jettons if needed for addresses
 2. get_swap_quote for quote
 3. Confirm with user
 4. send_raw_transaction with quote's transaction params
-5. get_transaction_status with normalizedHash from response to verify swap completed
+5. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ## Important Notes
 
 - Always confirm transfers/swaps with user before executing
 - send_ton/send_jetton/get_swap_quote use human-readable amounts
-- **After any send (send_ton, send_jetton, send_nft, send_raw_transaction)**, call get_transaction_status with the returned normalizedHash to verify the transaction actually completed on-chain—the send response alone does not guarantee finality
+- **Default flow:** After any send, poll get_transaction_status until completed or failed. User can specify whether to check status.

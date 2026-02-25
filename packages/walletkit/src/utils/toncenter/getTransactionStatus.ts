@@ -53,6 +53,6 @@ export async function getTransactionStatus(
         status: 'unknown',
         totalMessages: 0,
         pendingMessages: 0,
-        completedMessages: 0,
+        onchainMessages: 0,
     };
 }

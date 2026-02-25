@@ -29,16 +29,19 @@ export const parseTraceResponse = (response: ToncenterTracesResponse): Transacti
 
     let status: TransactionStatus = 'pending';
 
-    if (isFailedTrace(response)) {
-        status = 'failed';
-    } else if (isEffectivelyCompleted) {
-        status = 'completed';
+    // Only check for completion if the transaction is not pending
+    if (traceInfo.pending_messages === 0) {
+        if (isFailedTrace(response)) {
+            status = 'failed';
+        } else if (isEffectivelyCompleted) {
+            status = 'completed';
+        }
     }
 
     return {
         status,
         totalMessages: traceInfo.messages,
         pendingMessages: traceInfo.pending_messages,
-        completedMessages: traceInfo.messages - traceInfo.pending_messages,
+        onchainMessages: traceInfo.messages - traceInfo.pending_messages,
     };
 };

@@ -50,7 +50,7 @@ export const TransactionStatusProvider = ({ boc, children }: TransactionStatusPr
         status: data?.status ?? 'pending',
         totalMessages: data?.totalMessages ?? 0,
         pendingMessages: data?.pendingMessages ?? 0,
-        completedMessages: data?.completedMessages ?? 0,
+        onchainMessages: data?.onchainMessages ?? 0,
         isFetching,
         error,
         boc,
