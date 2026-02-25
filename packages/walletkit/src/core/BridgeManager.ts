@@ -264,7 +264,7 @@ export class BridgeManager {
      * Creates a new ephemeral SessionCrypto for one-way intent responses.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async sendIntentResponse(clientId: string, response: any): Promise<void> {
+    async sendIntentResponse(clientId: string, response: any, traceId?: string): Promise<void> {
         if (!this.bridgeProvider) {
             throw new WalletKitError(
                 ERROR_CODES.BRIDGE_NOT_INITIALIZED,
@@ -275,8 +275,8 @@ export class BridgeManager {
         const sessionCrypto = new SessionCrypto();
 
         try {
-            await this.bridgeProvider.send(response, sessionCrypto, clientId, {});
-            log.debug('Intent response sent', { clientId });
+            await this.bridgeProvider.send(response, sessionCrypto, clientId, { traceId });
+            log.debug('Intent response sent', { clientId, traceId });
         } catch (error) {
             log.error('Failed to send intent response', { clientId, error });
             throw WalletKitError.fromError(
