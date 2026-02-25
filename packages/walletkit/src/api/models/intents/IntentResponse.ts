@@ -6,29 +6,29 @@
  *
  */
 
+import type { Base64String } from '../core/Primitives';
 import type { SignDataPayload } from '../core/PreparedSignData';
 
 /**
  * Successful response for transaction intent.
  */
 export interface IntentTransactionResponse {
-    /** Result type discriminator */
-    resultType: 'transaction';
     /** Signed BoC (base64) */
-    boc: string;
+    boc: Base64String;
 }
 
 /**
  * Successful response for sign data intent.
  */
 export interface IntentSignDataResponse {
-    /** Result type discriminator */
-    resultType: 'signData';
     /** Signature (base64) */
-    signature: string;
+    signature: Base64String;
     /** Signer address (raw format: 0:hex) */
     address: string;
-    /** UNIX timestamp (seconds, UTC) */
+    /**
+     * UNIX timestamp (seconds, UTC)
+     * @format timestamp
+     */
     timestamp: number;
     /** App domain */
     domain: string;
@@ -40,8 +40,6 @@ export interface IntentSignDataResponse {
  * Error response for any intent.
  */
 export interface IntentErrorResponse {
-    /** Result type discriminator */
-    resultType: 'error';
     /** Error details */
     error: IntentError;
 }
@@ -60,6 +58,9 @@ export interface IntentError {
 }
 
 /**
- * Union of all intent responses.
+ * Union of all intent responses, discriminated by `type`.
  */
-export type IntentResponseResult = IntentTransactionResponse | IntentSignDataResponse | IntentErrorResponse;
+export type IntentResponseResult =
+    | { type: 'transaction'; value: IntentTransactionResponse }
+    | { type: 'signData'; value: IntentSignDataResponse }
+    | { type: 'error'; value: IntentErrorResponse };

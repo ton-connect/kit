@@ -97,7 +97,6 @@ export type {
     IntentDeliveryMode,
     IntentRequestBase,
     TransactionIntentRequestEvent,
-    TransactionIntentPreview,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
     IntentRequestEvent,
@@ -110,6 +109,7 @@ export type {
     IntentResponseResult,
 } from './intents/IntentResponse';
 export type { BatchedIntentEvent } from './intents/BatchedIntentEvent';
+
 
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';

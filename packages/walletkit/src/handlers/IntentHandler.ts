@@ -21,6 +21,7 @@ import type { WalletManager } from '../core/WalletManager';
 import type { Wallet } from '../api/interfaces';
 import type {
     IntentRequestEvent,
+    IntentRequestBase,
     TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
@@ -32,6 +33,8 @@ import type {
     BatchedIntentEvent,
     TransactionRequest,
     SignDataPayload,
+    Base64String,
+    Network,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types';
 
@@ -70,10 +73,10 @@ export class IntentHandler {
         const { event, connectRequest } = await this.parser.parse(url);
 
         if (connectRequest) {
-            this.pendingConnectRequests.set(event.id, connectRequest);
+            this.pendingConnectRequests.set(event.value.id, connectRequest);
         }
 
-        if (event.intentType === 'transaction') {
+        if (event.type === 'transaction') {
             await this.resolveAndEmitTransaction(event, walletId);
         } else {
             this.emit(event);
@@ -107,11 +110,10 @@ export class IntentHandler {
         }
 
         const result: IntentTransactionResponse = {
-            resultType: 'transaction',
-            boc: signedBoc,
+            boc: signedBoc as Base64String,
         };
 
-        await this.sendResponse(event, result);
+        await this.sendResponse(event, { type: 'transaction', value: result });
         return result;
     }
 
@@ -135,15 +137,14 @@ export class IntentHandler {
         const signatureBase64 = HexToBase64(signature);
 
         const result: IntentSignDataResponse = {
-            resultType: 'signData',
-            signature: signatureBase64,
+            signature: signatureBase64 as Base64String,
             address: Address.parse(wallet.getAddress()).toRawString(),
             timestamp: signData.timestamp,
             domain: signData.domain,
             payload: event.payload,
         };
 
-        await this.sendResponse(event, result);
+        await this.sendResponse(event, { type: 'signData', value: result });
         return result;
     }
 
@@ -156,18 +157,18 @@ export class IntentHandler {
         const actionResponse = await this.resolver.fetchActionUrl(event.actionUrl, wallet.getAddress());
         const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
 
-        if (resolvedEvent.intentType === 'transaction') {
-            if (resolvedEvent.resolvedTransaction) {
-                resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
+        if (resolvedEvent.type === 'transaction') {
+            if (resolvedEvent.value.resolvedTransaction) {
+                resolvedEvent.value.resolvedTransaction.fromAddress = wallet.getAddress();
             }
-            return this.approveTransactionIntent(resolvedEvent, walletId);
-        } else if (resolvedEvent.intentType === 'signData') {
-            return this.approveSignDataIntent(resolvedEvent, walletId);
+            return this.approveTransactionIntent(resolvedEvent.value, walletId);
+        } else if (resolvedEvent.type === 'signData') {
+            return this.approveSignDataIntent(resolvedEvent.value, walletId);
         }
 
         throw new WalletKitError(
             ERROR_CODES.VALIDATION_ERROR,
-            `Action URL resolved to unsupported intent type: ${resolvedEvent.intentType}`,
+            `Action URL resolved to unsupported intent type: ${resolvedEvent.type}`,
         );
     }
 
@@ -175,15 +176,14 @@ export class IntentHandler {
 
     async rejectIntent(event: IntentRequestEvent, reason?: string, errorCode?: number): Promise<IntentErrorResponse> {
         const result: IntentErrorResponse = {
-            resultType: 'error',
             error: {
                 code: errorCode ?? INTENT_ERROR_CODES.USER_DECLINED,
                 message: reason || 'User declined the request',
             },
         };
 
-        await this.sendResponse(event, result);
-        this.pendingConnectRequests.delete(event.id);
+        await this.sendResponse(event.value, { type: 'error', value: result });
+        this.pendingConnectRequests.delete(event.value.id);
         return result;
     }
 
@@ -204,18 +204,22 @@ export class IntentHandler {
 
     // -- Private: Resolution & Emulation --------------------------------------
 
-    private async resolveAndEmitTransaction(event: TransactionIntentRequestEvent, walletId: string): Promise<void> {
+    private async resolveAndEmitTransaction(
+        event: Extract<IntentRequestEvent, { type: 'transaction' }>,
+        walletId: string,
+    ): Promise<void> {
+        const txEvent = event.value;
         const wallet = this.getWallet(walletId);
 
-        const transactionRequest = await this.resolveTransaction(event, wallet);
-        event.resolvedTransaction = transactionRequest;
+        const transactionRequest = await this.resolveTransaction(txEvent, wallet);
+        txEvent.resolvedTransaction = transactionRequest;
 
         try {
             const preview = await wallet.getTransactionPreview(transactionRequest);
-            event.preview = { data: preview };
+            txEvent.preview = preview;
         } catch (error) {
             log.warn('Failed to emulate transaction preview', { error });
-            event.preview = { data: undefined };
+            txEvent.preview = undefined;
         }
 
         this.emit(event);
@@ -230,13 +234,13 @@ export class IntentHandler {
 
     // -- Private: Response sending --------------------------------------------
 
-    private async sendResponse(event: IntentRequestEvent, result: IntentResponseResult): Promise<void> {
+    private async sendResponse(event: IntentRequestBase, result: IntentResponseResult): Promise<void> {
         if (!event.clientId) {
             log.debug('No clientId on intent event, skipping response send');
             return;
         }
 
-        const wireResponse = this.toWireResponse(event, result);
+        const wireResponse = this.toWireResponse(event.id, result);
 
         try {
             await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
@@ -251,27 +255,27 @@ export class IntentHandler {
      * - SignData: `{ result: { signature, address, timestamp, domain, payload }, id }`
      * - Error: `{ error: { code, message }, id }`
      */
-    private toWireResponse(event: IntentRequestEvent, result: IntentResponseResult): Record<string, unknown> {
-        if (result.resultType === 'error') {
+    private toWireResponse(eventId: string, result: IntentResponseResult): Record<string, unknown> {
+        if (result.type === 'error') {
             return {
-                error: { code: result.error.code, message: result.error.message },
-                id: event.id,
+                error: { code: result.value.error.code, message: result.value.error.message },
+                id: eventId,
             };
         }
 
-        if (result.resultType === 'transaction') {
-            return { result: result.boc, id: event.id };
+        if (result.type === 'transaction') {
+            return { result: result.value.boc, id: eventId };
         }
 
         return {
             result: {
-                signature: result.signature,
-                address: result.address,
-                timestamp: result.timestamp,
-                domain: result.domain,
-                payload: this.signDataPayloadToWire(result.payload),
+                signature: result.value.signature,
+                address: result.value.address,
+                timestamp: result.value.timestamp,
+                domain: result.value.domain,
+                payload: this.signDataPayloadToWire(result.value.payload),
             },
-            id: event.id,
+            id: eventId,
         };
     }
 

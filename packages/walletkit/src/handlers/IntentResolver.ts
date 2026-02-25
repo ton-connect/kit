@@ -26,6 +26,7 @@ import type {
     SendJettonAction,
     SendNftAction,
     Base64String,
+    Network,
 } from '../api/models';
 
 const log = globalLogger.createChild('IntentResolver');
@@ -45,7 +46,7 @@ export class IntentResolver {
     async intentItemsToTransactionRequest(
         items: IntentActionItem[],
         wallet: Wallet,
-        network?: string,
+        network?: Network,
         validUntil?: number,
     ): Promise<TransactionRequest> {
         const messages: TransactionRequestMessage[] = [];
@@ -57,7 +58,7 @@ export class IntentResolver {
 
         return {
             messages,
-            network: network as TransactionRequest['network'],
+            network,
             validUntil,
             fromAddress: wallet.getAddress(),
         };
@@ -88,11 +89,11 @@ export class IntentResolver {
     private async resolveItem(item: IntentActionItem, wallet: Wallet): Promise<TransactionRequestMessage> {
         switch (item.type) {
             case 'sendTon':
-                return this.resolveTonItem(item);
+                return this.resolveTonItem(item.value);
             case 'sendJetton':
-                return this.resolveJettonItem(item, wallet);
+                return this.resolveJettonItem(item.value, wallet);
             case 'sendNft':
-                return this.resolveNftItem(item, wallet);
+                return this.resolveNftItem(item.value, wallet);
         }
     }
 
