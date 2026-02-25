@@ -38,7 +38,9 @@ import type { BaseApiClientConfig } from '../BaseApiClient';
 export { TonClientError } from '../TonClientError';
 import type { TonApiAccount } from './types/accounts';
 import { mapAccountState } from './mappers/map-account-state';
-
+import { mapJettonMasters } from './mappers/map-jetton-masters';
+import { mapUserJettons } from './mappers/map-user-jettons';
+import type { TonApiJettonInfo, TonApiJettonsBalances } from './types/jettons';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
         const defaultEndpoint = config.network?.chainId === '-239' ? 'https://tonapi.io' : 'https://testnet.tonapi.io';
@@ -56,6 +58,18 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         const state = await this.getAccountState(address, seqno);
 
         return state.balance;
+    }
+
+    async jettonsByAddress(request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
+        const raw = await this.getJson<TonApiJettonInfo>(`/v2/jettons/${request.address}`);
+
+        return mapJettonMasters(raw);
+    }
+
+    async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse> {
+        const raw = await this.getJson<TonApiJettonsBalances>(`/v2/accounts/${request.ownerAddress}/jettons`);
+
+        return mapUserJettons(raw);
     }
 
     async nftItemsByAddress(_request: NFTsRequest): Promise<NFTsResponse> {
@@ -97,12 +111,6 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         throw new Error('Method not implemented.');
     }
     async backResolveDnsWallet(_address: UserFriendlyAddress): Promise<string | null> {
-        throw new Error('Method not implemented.');
-    }
-    async jettonsByAddress(_request: GetJettonsByAddressRequest): Promise<ToncenterResponseJettonMasters> {
-        throw new Error('Method not implemented.');
-    }
-    async jettonsByOwnerAddress(_request: GetJettonsByOwnerRequest): Promise<JettonsResponse> {
         throw new Error('Method not implemented.');
     }
     async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {

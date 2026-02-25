@@ -6,10 +6,6 @@
  *
  */
 
-/**
- * https://docs.tonconsole.com/tonapi/rest-api/accounts
- */
-
 export interface TonApiAccount {
     address: string;
     balance: number;
@@ -26,4 +22,12 @@ export interface TonApiAccount {
     icon?: string;
     memo_required?: boolean;
     get_methods: string[];
+}
+
+export interface TonApiAccountAddress {
+    address: string;
+    name?: string;
+    is_scam: boolean;
+    icon?: string;
+    is_wallet: boolean;
 }
