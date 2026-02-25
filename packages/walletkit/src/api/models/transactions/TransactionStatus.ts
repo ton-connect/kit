@@ -6,7 +6,7 @@
  *
  */
 
-export type TransactionStatus = 'pending' | 'completed' | 'failed';
+export type TransactionStatus = 'unknown' | 'pending' | 'completed' | 'failed';
 
 export interface TransactionStatusResponse {
     /** Overall status of the transaction trace */

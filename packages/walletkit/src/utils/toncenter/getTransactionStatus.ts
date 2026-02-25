@@ -48,7 +48,7 @@ export async function getTransactionStatus(
     // If neither pending nor completed trace found, the transaction
     // is likely still propagating to the network
     return {
-        status: 'pending',
+        status: 'unknown',
         totalMessages: 0,
         pendingMessages: 0,
         completedMessages: 0,

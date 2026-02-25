@@ -8,11 +8,12 @@
 
 import type { ComponentProps, FC } from 'react';
 import clsx from 'clsx';
+import type { TransactionStatus } from '@ton/walletkit';
 
 import styles from './transaction-status.module.css';
 
 export interface TransactionStatusIconsProps extends ComponentProps<'svg'> {
-    status: 'pending' | 'completed' | 'failed';
+    status: TransactionStatus;
     isError: boolean;
 }
 
