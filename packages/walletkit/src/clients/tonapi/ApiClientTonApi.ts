@@ -37,12 +37,14 @@ import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 export { TonClientError } from '../TonClientError';
 import type { TonApiAccount } from './types/accounts';
+import { asAddressFriendly } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
 import { mapJettonMasters } from './mappers/map-jetton-masters';
 import { mapUserJettons } from './mappers/map-user-jettons';
 import { mapNftItemsResponse } from './mappers/map-nft-items';
 import type { TonApiJettonInfo, TonApiJettonsBalances } from './types/jettons';
 import type { TonApiNftItems, TonApiNftItem } from './types/nfts';
+import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './types/dns';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
         const defaultEndpoint = config.network?.chainId === '-239' ? 'https://tonapi.io' : 'https://testnet.tonapi.io';
@@ -136,12 +138,24 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         throw new Error('Method not implemented.');
     }
 
-    async resolveDnsWallet(_domain: string): Promise<string | null> {
-        throw new Error('Method not implemented.');
+    async resolveDnsWallet(domain: string): Promise<string | null> {
+        try {
+            const raw = await this.getJson<TonApiDnsResolveResponse>(`/v2/dns/${domain}`);
+            const address = raw?.item?.owner?.address;
+
+            return address ? asAddressFriendly(address) : null;
+        } catch (_e) {
+            return null;
+        }
     }
 
-    async backResolveDnsWallet(_address: UserFriendlyAddress): Promise<string | null> {
-        throw new Error('Method not implemented.');
+    async backResolveDnsWallet(address: UserFriendlyAddress): Promise<string | null> {
+        try {
+            const raw = await this.getJson<TonApiDnsBackresolveResponse>(`/v2/accounts/${address}/dns/backresolve`);
+            return raw.domains && raw.domains.length > 0 ? raw.domains[0] : null;
+        } catch (_e) {
+            return null;
+        }
     }
 
     async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {
