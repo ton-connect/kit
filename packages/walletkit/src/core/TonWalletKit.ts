@@ -50,6 +50,7 @@ import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import { IntentHandler } from '../handlers/IntentHandler';
+import { ConnectHandler } from '../handlers/ConnectHandler';
 import type {
     Network,
     TransactionRequest,
@@ -538,7 +539,8 @@ export class TonWalletKit implements ITonWalletKit {
     // === Intent API ===
 
     isIntentUrl(url: string): boolean {
-        return this.intentHandler?.isIntentUrl(url) ?? false;
+        const normalized = url.trim().toLowerCase();
+        return normalized.startsWith('tc://intent_inline') || normalized.startsWith('tc://intent');
     }
 
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
@@ -593,8 +595,8 @@ export class TonWalletKit implements ITonWalletKit {
 
     async processConnectAfterIntent(
         event: IntentRequestEvent | BatchedIntentEvent,
-        _walletId: string,
-        _proof?: ConnectionApprovalProof,
+        walletId: string,
+        proof?: ConnectionApprovalProof,
     ): Promise<void> {
         await this.ensureInitialized();
 
@@ -607,7 +609,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         this.intentHandler.removePendingConnectRequest(eventId);
 
-        // Create a bridge event from the connect request and route it through the connect flow
+        // Create a bridge event from the connect request
         const bridgeEvent: RawBridgeEventConnect = {
             from: event.clientId || '',
             id: eventId,
@@ -620,7 +622,19 @@ export class TonWalletKit implements ITonWalletKit {
             domain: '',
         };
 
-        await this.eventRouter.routeEvent(bridgeEvent);
+        // Process through ConnectHandler to fetch manifest and build ConnectionRequestEvent
+        // (no-op notify — we auto-approve instead of showing UI)
+        const connectHandler = new ConnectHandler(() => {}, this.config, this.analyticsManager);
+        const connectionEvent = await connectHandler.handle(bridgeEvent);
+
+        // Set walletId for approval
+        connectionEvent.walletId = walletId;
+
+        // Auto-approve: create session and send ConnectEvent response to dApp
+        await this.requestProcessor.approveConnectRequest(
+            connectionEvent,
+            proof ? { proof } : undefined,
+        );
     }
 
     // === URL Processing API ===
@@ -633,6 +647,16 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         try {
+            // Reject intent URLs — they must go through handleIntentUrl(url, walletId)
+            if (this.isIntentUrl(url)) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'This is an intent URL. Use handleIntentUrl(url, walletId) instead of handleTonConnectUrl(url).',
+                    undefined,
+                    { url },
+                );
+            }
+
             // Parse and validate the TON Connect URL
             const parsedUrl = this.parseTonConnectUrl(url);
             if (!parsedUrl) {

@@ -67,7 +67,7 @@ export class IntentHandler {
      * Parse an intent URL, resolve items, emulate preview, and emit the event.
      */
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
-        const { event, connectRequest } = this.parser.parse(url);
+        const { event, connectRequest } = await this.parser.parse(url);
 
         if (connectRequest) {
             this.pendingConnectRequests.set(event.id, connectRequest);
@@ -239,7 +239,7 @@ export class IntentHandler {
         const wireResponse = this.toWireResponse(event, result);
 
         try {
-            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse);
+            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
         } catch (error) {
             log.error('Failed to send intent response', { error, eventId: event.id });
         }
