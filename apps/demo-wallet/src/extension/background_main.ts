@@ -53,6 +53,14 @@ async function initializeWalletKit() {
                         key: ENV_TON_API_KEY_TESTNET,
                     },
                 },
+
+                // TODO: Tetra
+                [Network.tetra().chainId]: {
+                    apiClient: {
+                        url: 'https://testnet.toncenter.com',
+                        key: ENV_TON_API_KEY_TESTNET,
+                    },
+                },
             },
         });
 

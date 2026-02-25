@@ -33,6 +33,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             jsBridgeTransport: walletKitConfig?.jsBridgeTransport,
         },
 
+        // TODO: Tetra
         networks: {
             [Network.mainnet().chainId]: {
                 apiClient: {

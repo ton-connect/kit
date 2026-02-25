@@ -65,6 +65,7 @@ export async function createWalletV4R2Ledger(
             transport = await config.createTransport();
             const tonTransport = new TonTransport(transport);
             // Get address and public key from Ledger
+            // TODO: What to do in future with tetra testnet?
             const response = await tonTransport.getAddress(config.path, {
                 chain: config.workchain ?? 0,
                 bounceable: false,

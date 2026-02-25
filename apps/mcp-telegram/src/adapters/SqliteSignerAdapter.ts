@@ -133,6 +133,7 @@ export class SqliteSignerAdapter implements ISignerAdapter {
                 networks: {
                     [Network.mainnet().chainId]: {},
                     [Network.testnet().chainId]: {},
+                    [Network.tetra().chainId]: {},
                 },
                 storage: new MemoryStorageAdapter(),
             });
