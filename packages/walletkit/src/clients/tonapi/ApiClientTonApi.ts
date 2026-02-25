@@ -92,12 +92,21 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return mapNftItemsResponse(raw.nft_items);
     }
 
+    async sendBoc(_boc: Base64String): Promise<string> {
+        // if (this.disableNetworkSend) {
+        //     return '';
+        // }
+
+        // await this.postJson('/v2/liteserver/send_message', { boc });
+
+        // TODO: return normalized hash from getNormalizedExtMessageHash.ts after merge feat/appkit-tx-status
+        throw new Error('Method not implemented.');
+    }
+
     async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
         throw new Error('Method not implemented.');
     }
-    async sendBoc(_boc: Base64String): Promise<string> {
-        throw new Error('Method not implemented.');
-    }
+
     async runGetMethod(
         _address: UserFriendlyAddress,
         _method: string,
@@ -106,27 +115,35 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     ): Promise<GetMethodResult> {
         throw new Error('Method not implemented.');
     }
+
     async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
         throw new Error('Method not implemented.');
     }
+
     async getTransactionsByHash(_request: GetTransactionByHashRequest): Promise<TransactionsResponse> {
         throw new Error('Method not implemented.');
     }
+
     async getPendingTransactions(_request: GetPendingTransactionsRequest): Promise<TransactionsResponse> {
         throw new Error('Method not implemented.');
     }
+
     async getTrace(_request: GetTraceRequest): Promise<ToncenterTracesResponse> {
         throw new Error('Method not implemented.');
     }
+
     async getPendingTrace(_request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
         throw new Error('Method not implemented.');
     }
+
     async resolveDnsWallet(_domain: string): Promise<string | null> {
         throw new Error('Method not implemented.');
     }
+
     async backResolveDnsWallet(_address: UserFriendlyAddress): Promise<string | null> {
         throw new Error('Method not implemented.');
     }
+
     async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {
         throw new Error('Method not implemented.');
     }
