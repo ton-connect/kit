@@ -7,10 +7,12 @@
  */
 
 import type { ConnectRequest } from '@tonconnect/protocol';
+import nacl from 'tweetnacl';
 
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type {
     IntentActionItem,
+    IntentOrigin,
     IntentRequestEvent,
     TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
@@ -86,6 +88,8 @@ interface WireIntentRequest {
 export interface ParsedIntentUrl {
     clientId: string;
     request: WireIntentRequest;
+    origin: IntentOrigin;
+    traceId?: string;
 }
 
 /**
@@ -103,10 +107,10 @@ export const INTENT_ERROR_CODES = {
 export type IntentErrorCode = (typeof INTENT_ERROR_CODES)[keyof typeof INTENT_ERROR_CODES];
 
 /**
- * Pure parsing layer for intent deep links.
+ * Parsing layer for intent deep links.
  *
- * Responsibility: URL parsing, payload decoding, wire→model mapping, validation.
- * No side effects, no I/O, no crypto.
+ * Responsibility: URL parsing, payload decoding (inline + object storage),
+ * NaCl decryption, wire→model mapping, validation.
  */
 export class IntentParser {
     /**
@@ -119,15 +123,16 @@ export class IntentParser {
 
     /**
      * Parse an intent URL into a typed IntentRequestEvent.
+     * Supports both `tc://intent_inline` (URL-embedded) and `tc://intent` (object storage).
      */
-    parse(url: string): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
-        const parsed = this.parseUrl(url);
+    async parse(url: string): Promise<{ event: IntentRequestEvent; connectRequest?: ConnectRequest }> {
+        const parsed = await this.parseUrl(url);
         return this.toIntentEvent(parsed);
     }
 
     // -- URL parsing ----------------------------------------------------------
 
-    private parseUrl(url: string): ParsedIntentUrl {
+    private async parseUrl(url: string): Promise<ParsedIntentUrl> {
         try {
             const parsedUrl = new URL(url);
             const clientId = parsedUrl.searchParams.get('id');
@@ -135,14 +140,17 @@ export class IntentParser {
                 throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing client ID (id) in intent URL');
             }
 
-            if (!url.toLowerCase().startsWith(INTENT_INLINE_SCHEME)) {
-                throw new WalletKitError(
-                    ERROR_CODES.VALIDATION_ERROR,
-                    'Only inline intents (tc://intent_inline) are supported',
-                );
+            const normalized = url.trim().toLowerCase();
+
+            if (normalized.startsWith(INTENT_INLINE_SCHEME)) {
+                return this.parseInlinePayload(parsedUrl, clientId);
             }
 
-            return this.parseInlinePayload(parsedUrl, clientId);
+            if (normalized.startsWith(INTENT_SCHEME)) {
+                return this.parseObjectStoragePayload(parsedUrl, clientId);
+            }
+
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Unknown intent URL scheme');
         } catch (error) {
             if (error instanceof WalletKitError) throw error;
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid intent URL format', error as Error);
@@ -154,6 +162,7 @@ export class IntentParser {
         if (!encoded) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing payload (r) in intent URL');
         }
+        const traceId = parsedUrl.searchParams.get('trace_id') || undefined;
 
         const json = this.decodePayload(encoded);
         let request: WireIntentRequest;
@@ -164,7 +173,158 @@ export class IntentParser {
         }
 
         this.validateRequest(request);
-        return { clientId, request };
+        return { clientId, request, origin: 'deepLink', traceId };
+    }
+
+    /**
+     * Parse an object storage intent URL.
+     * Fetches encrypted payload from `get_url`, decrypts with NaCl using
+     * the provided wallet private key and client public key.
+     */
+    private async parseObjectStoragePayload(parsedUrl: URL, clientId: string): Promise<ParsedIntentUrl> {
+        const walletPrivateKey = parsedUrl.searchParams.get('pk');
+        const getUrl = parsedUrl.searchParams.get('get_url');
+        const traceId = parsedUrl.searchParams.get('trace_id') || undefined;
+
+        if (!walletPrivateKey) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing wallet private key (pk) in intent URL');
+        }
+        if (!getUrl) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing get_url in intent URL');
+        }
+
+        const encryptedPayload = await this.fetchObjectStoragePayload(getUrl);
+        const json = this.decryptPayload(encryptedPayload, clientId, walletPrivateKey);
+
+        let request: WireIntentRequest;
+        try {
+            request = JSON.parse(json) as WireIntentRequest;
+        } catch (error) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Invalid JSON in decrypted intent payload: ${json.substring(0, 100)}`,
+                error as Error,
+            );
+        }
+
+        this.validateRequest(request);
+        return { clientId, request, origin: 'objectStorage', traceId };
+    }
+
+    /**
+     * Fetch encrypted payload from object storage URL.
+     * Handles both raw binary and base64-encoded text responses.
+     */
+    private async fetchObjectStoragePayload(getUrl: string): Promise<Uint8Array> {
+        try {
+            const response = await fetch(getUrl);
+            if (!response.ok) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    `Object storage fetch failed: ${response.status} ${response.statusText}`,
+                );
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            const buffer = await response.arrayBuffer();
+            const raw = new Uint8Array(buffer);
+
+            // If the response is text (base64-encoded), decode it
+            if (contentType.includes('text') || contentType.includes('json')) {
+                const text = new TextDecoder().decode(raw).trim();
+
+                // Try to parse as JSON that contains base64 data
+                try {
+                    const jsonResp = JSON.parse(text);
+                    const b64Data = jsonResp.data || jsonResp.payload || jsonResp.body;
+                    if (typeof b64Data === 'string') {
+                        return this.base64ToBytes(b64Data);
+                    }
+                } catch {
+                    // Not JSON, try as plain base64
+                }
+
+                // Try as plain base64 string
+                if (/^[A-Za-z0-9+/=_-]+$/.test(text) && text.length > 24) {
+                    return this.base64ToBytes(text);
+                }
+            }
+
+            return raw;
+        } catch (error) {
+            if (error instanceof WalletKitError) throw error;
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Failed to fetch intent payload from object storage: ${(error as Error).message}`,
+                error as Error,
+            );
+        }
+    }
+
+    private base64ToBytes(b64: string): Uint8Array {
+        // Handle base64url encoding
+        let base64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+        const padding = base64.length % 4;
+        if (padding) base64 += '='.repeat(4 - padding);
+
+        if (typeof atob === 'function') {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+        return new Uint8Array(Buffer.from(base64, 'base64'));
+    }
+
+    /**
+     * Decrypt an object storage payload using NaCl crypto_box.
+     * Format: nonce (24 bytes) || ciphertext
+     */
+    private decryptPayload(encrypted: Uint8Array, clientPubKeyHex: string, walletPrivateKeyHex: string): string {
+        if (encrypted.length <= 24) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Encrypted payload too short (${encrypted.length} bytes, need >24)`,
+            );
+        }
+
+        const clientPubKey = this.hexToBytes(clientPubKeyHex);
+        const walletPrivateKey = this.hexToBytes(walletPrivateKeyHex);
+
+        if (clientPubKey.length !== 32) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Invalid client public key length: ${clientPubKey.length} (expected 32)`,
+            );
+        }
+        if (walletPrivateKey.length !== 32) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Invalid wallet private key length: ${walletPrivateKey.length} (expected 32)`,
+            );
+        }
+
+        const nonce = encrypted.slice(0, 24);
+        const ciphertext = encrypted.slice(24);
+        const decrypted = nacl.box.open(ciphertext, nonce, clientPubKey, walletPrivateKey);
+        if (!decrypted) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                'Failed to decrypt intent payload',
+            );
+        }
+
+        return new TextDecoder().decode(decrypted);
+    }
+
+    private hexToBytes(hex: string): Uint8Array {
+        const bytes = new Uint8Array(hex.length / 2);
+        for (let i = 0; i < hex.length; i += 2) {
+            bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+        }
+        return bytes;
     }
 
     // -- Payload decoding -----------------------------------------------------
@@ -366,14 +526,15 @@ export class IntentParser {
     // -- Wire → Model mapping -------------------------------------------------
 
     private toIntentEvent(parsed: ParsedIntentUrl): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
-        const { clientId, request } = parsed;
+        const { clientId, request, origin, traceId } = parsed;
         const hasConnectRequest = !!request.c;
 
         const base = {
             id: request.id,
-            origin: 'deepLink' as const,
+            origin,
             clientId,
             hasConnectRequest,
+            traceId,
             returnStrategy: undefined,
         };
 
