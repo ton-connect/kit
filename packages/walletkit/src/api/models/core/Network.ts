@@ -29,6 +29,11 @@ export const Network = {
     testnet: (): Network => ({ chainId: '-3' }),
 
     /**
+     * Tetra (chain ID: 662387)
+     */
+    tetra: (): Network => ({ chainId: '662387' }),
+
+    /**
      * Custom network with specified chain ID
      */
     custom: (chainId: string): Network => ({ chainId }),

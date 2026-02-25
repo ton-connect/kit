@@ -12,6 +12,7 @@ import { useDefaultNetwork, useNetworks, useSelectedWallet, Network } from '@ton
 const NETWORK_LABELS: Record<string, string> = {
     [Network.mainnet().chainId]: 'Mainnet',
     [Network.testnet().chainId]: 'Testnet',
+    [Network.tetra().chainId]: 'Tetra',
 };
 
 function getNetworkLabel(chainId: string): string {

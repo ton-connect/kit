@@ -25,6 +25,12 @@ export const appKit = new AppKit({
                 key: ENV_TON_API_KEY_TESTNET,
             },
         },
+        [Network.tetra().chainId]: {
+            apiClient: new ApiClientTonApi({
+                network: Network.tetra(),
+                endpoint: 'https://tetra.tonapi.io',
+            }),
+        },
     },
     connectors: [
         new TonConnectConnector({
