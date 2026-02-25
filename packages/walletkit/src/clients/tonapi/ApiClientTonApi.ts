@@ -40,7 +40,9 @@ import type { TonApiAccount } from './types/accounts';
 import { mapAccountState } from './mappers/map-account-state';
 import { mapJettonMasters } from './mappers/map-jetton-masters';
 import { mapUserJettons } from './mappers/map-user-jettons';
+import { mapNftItemsResponse } from './mappers/map-nft-items';
 import type { TonApiJettonInfo, TonApiJettonsBalances } from './types/jettons';
+import type { TonApiNftItems, TonApiNftItem } from './types/nfts';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
         const defaultEndpoint = config.network?.chainId === '-239' ? 'https://tonapi.io' : 'https://testnet.tonapi.io';
@@ -72,12 +74,24 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return mapUserJettons(raw);
     }
 
-    async nftItemsByAddress(_request: NFTsRequest): Promise<NFTsResponse> {
-        throw new Error('Method not implemented.');
+    async nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse> {
+        if (!request.address) {
+            throw new Error('TonApi requires an address to fetch NFT items.');
+        }
+
+        const raw = await this.getJson<TonApiNftItem>(`/v2/nfts/${request.address}`);
+        return mapNftItemsResponse([raw]);
     }
-    async nftItemsByOwner(_request: UserNFTsRequest): Promise<NFTsResponse> {
-        throw new Error('Method not implemented.');
+
+    async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
+        const query: Record<string, unknown> = {};
+        if (request.pagination?.limit) query.limit = request.pagination.limit;
+        if (request.pagination?.offset) query.offset = request.pagination.offset;
+
+        const raw = await this.getJson<TonApiNftItems>(`/v2/accounts/${request.ownerAddress}/nfts`, query);
+        return mapNftItemsResponse(raw.nft_items);
     }
+
     async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
         throw new Error('Method not implemented.');
     }

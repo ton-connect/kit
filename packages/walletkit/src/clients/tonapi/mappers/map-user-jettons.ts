@@ -7,12 +7,26 @@
  */
 
 import type { Jetton, JettonsResponse } from '../../../api/models';
+import type { AddressBookEntry } from '../../../api/models/core/AddressBook';
 import { asAddressFriendly } from '../../../utils/address';
 import type { TonApiJettonsBalances } from '../types/jettons';
 
 export function mapUserJettons(rawResponse: TonApiJettonsBalances): JettonsResponse {
+    const addressBook: Record<string, AddressBookEntry> = {};
+
     const userJettons: Jetton[] = rawResponse.balances.map((wallet) => {
         const isVerified = wallet.jetton.verification === 'whitelist';
+
+        if (wallet.wallet_address) {
+            const address = asAddressFriendly(wallet.wallet_address.address);
+            if (!addressBook[address]) {
+                addressBook[address] = {
+                    address: address,
+                    domain: wallet.wallet_address.name ?? undefined,
+                    interfaces: [],
+                };
+            }
+        }
 
         const jetton: Jetton = {
             address: asAddressFriendly(wallet.jetton.address),
@@ -45,6 +59,6 @@ export function mapUserJettons(rawResponse: TonApiJettonsBalances): JettonsRespo
 
     return {
         jettons: userJettons,
-        addressBook: {},
+        addressBook,
     };
 }
