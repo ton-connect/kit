@@ -12,6 +12,7 @@ import type { AppKit } from '../../core/app-kit';
 import type { SignDataResponse } from '../../types/signing';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import type { Base64String } from '../../types/primitives';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface SignCellParameters {
     /** Base64 encoded Bag of Cells */
@@ -45,7 +46,7 @@ export const signCell = async (appKit: AppKit, parameters: SignCellParameters): 
     }
 
     return await wallet.signData({
-        network: parameters.network,
+        network: parameters.network ?? getDefaultNetwork(appKit),
         data: {
             type: 'cell',
             value: {

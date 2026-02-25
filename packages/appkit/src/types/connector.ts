@@ -6,7 +6,7 @@
  *
  */
 
-import type { NetworkManager } from '@ton/walletkit';
+import type { NetworkManager, Network } from '@ton/walletkit';
 
 import type { WalletInterface } from './wallet';
 import type { AppKitEmitter } from '../core/app-kit';
@@ -30,7 +30,7 @@ export interface Connector {
     destroy(): void;
 
     /** Connect a wallet */
-    connectWallet(): Promise<void>;
+    connectWallet(network?: Network): Promise<void>;
 
     /** Disconnect a wallet */
     disconnectWallet(): Promise<void>;

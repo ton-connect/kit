@@ -6,7 +6,7 @@
  *
  */
 
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { getNetworks, watchNetworks } from '@ton/appkit';
 import type { GetNetworksReturnType } from '@ton/appkit';
 
@@ -19,6 +19,7 @@ export type UseNetworksReturnType = GetNetworksReturnType;
  */
 export const useNetworks = (): UseNetworksReturnType => {
     const appKit = useAppKit();
+    const cachedRef = useRef<GetNetworksReturnType>([]);
 
     const subscribe = useCallback(
         (onChange: () => void) => {
@@ -28,8 +29,18 @@ export const useNetworks = (): UseNetworksReturnType => {
     );
 
     const getSnapshot = useCallback(() => {
-        return getNetworks(appKit);
+        const networks = getNetworks(appKit);
+
+        if (
+            networks.length === cachedRef.current.length &&
+            networks.every((n, i) => n.chainId === cachedRef.current[i]?.chainId)
+        ) {
+            return cachedRef.current;
+        }
+
+        cachedRef.current = networks;
+        return networks;
     }, [appKit]);
 
-    return useSyncExternalStore(subscribe, getSnapshot, () => []);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

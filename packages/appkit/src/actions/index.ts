@@ -68,6 +68,17 @@ export {
 export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
 export { getNetwork, type GetNetworkReturnType } from './network/get-network';
 export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
+export { getDefaultNetwork, type GetDefaultNetworkReturnType } from './network/get-default-network';
+export {
+    setDefaultNetwork,
+    type SetDefaultNetworkParameters,
+    type SetDefaultNetworkReturnType,
+} from './network/set-default-network';
+export {
+    watchDefaultNetwork,
+    type WatchDefaultNetworkParameters,
+    type WatchDefaultNetworkReturnType,
+} from './network/watch-default-network';
 
 // NFT
 export {

@@ -27,6 +27,7 @@ describe('use-balance-by-address', () => {
         mockGetBalance = vi.fn();
 
         mockAppKit = {
+            getDefaultNetwork: vi.fn(),
             connectors: [],
             networkManager: {
                 getClient: vi.fn().mockReturnValue({
@@ -100,6 +101,7 @@ describe('use-balance', () => {
         };
 
         mockAppKit = {
+            getDefaultNetwork: vi.fn(),
             connectors: [],
             networkManager: {
                 getClient: vi.fn().mockReturnValue({

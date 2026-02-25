@@ -10,6 +10,7 @@ import type { JettonInfo } from '@ton/walletkit';
 import { Network } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface GetJettonInfoOptions {
     address: string;
@@ -24,7 +25,7 @@ export const getJettonInfo = async (
 ): Promise<GetJettonInfoReturnType> => {
     const { address, network } = options;
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(network ?? getDefaultNetwork(appKit) ?? Network.mainnet());
 
     const response = await client.jettonsByAddress({
         address: address,
