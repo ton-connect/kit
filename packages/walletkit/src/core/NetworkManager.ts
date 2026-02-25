@@ -26,7 +26,7 @@ export interface NetworkManager {
 /**
  * Manages multiple API clients for different networks
  *
- * Each network (identified by CHAIN) has its own ApiClient instance.
+ * Each network has its own ApiClient instance.
  * At least one network must be configured.
  */
 export class KitNetworkManager implements NetworkManager {
@@ -120,7 +120,7 @@ export class KitNetworkManager implements NetworkManager {
 
     /**
      * Get API client for a specific network
-     * @param chainId - The chain ID (CHAIN.MAINNET or CHAIN.TESTNET)
+     * @param chainId - The chain ID
      * @returns The API client for the specified network
      * @throws WalletKitError if no client is configured for the network
      */

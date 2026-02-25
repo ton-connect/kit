@@ -8,7 +8,6 @@
 
 // TON address validation logic
 
-// import { CHAIN } from '@tonconnect/protocol';
 import { Address } from '@ton/core';
 
 import type { ValidationResult, ValidationContext } from './types';
