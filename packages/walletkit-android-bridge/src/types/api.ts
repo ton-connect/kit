@@ -297,8 +297,13 @@ export interface ApproveActionIntentArgs {
     walletId: string;
 }
 
+export interface ApproveBatchedIntentArgs {
+    batch: BatchedIntentEvent;
+    walletId: string;
+}
+
 export interface RejectIntentArgs {
-    event: IntentRequestEvent;
+    event: IntentRequestEvent | BatchedIntentEvent;
     reason?: string;
     errorCode?: number;
 }
@@ -381,6 +386,7 @@ export interface WalletKitBridgeApi {
     approveActionIntent(
         args: ApproveActionIntentArgs,
     ): PromiseOrValue<IntentTransactionResponse | IntentSignDataResponse>;
+    approveBatchedIntent(args: ApproveBatchedIntentArgs): PromiseOrValue<IntentTransactionResponse>;
     rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentErrorResponse>;
     intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
     processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;

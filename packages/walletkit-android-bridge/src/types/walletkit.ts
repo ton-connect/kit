@@ -133,15 +133,17 @@ export interface WalletKitInstance {
         event: TransactionIntentRequestEvent,
         walletId: string,
     ): Promise<IntentTransactionResponse>;
-    approveSignDataIntent(
-        event: SignDataIntentRequestEvent,
-        walletId: string,
-    ): Promise<IntentSignDataResponse>;
+    approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse>;
     approveActionIntent(
         event: ActionIntentRequestEvent,
         walletId: string,
     ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
-    rejectIntent(event: IntentRequestEvent, reason?: string, errorCode?: number): Promise<IntentErrorResponse>;
+    approveBatchedIntent(batch: BatchedIntentEvent, walletId: string): Promise<IntentTransactionResponse>;
+    rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse>;
     intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest>;
     processConnectAfterIntent(
         event: IntentRequestEvent | BatchedIntentEvent,
