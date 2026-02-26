@@ -10,7 +10,7 @@ import { SettlementMethod, Omniston, GaslessSettlement } from '@ston-fi/omniston
 import type { Quote, QuoteResponseEvent, QuoteRequest } from '@ston-fi/omniston-sdk';
 import { Address } from '@ton/core';
 
-import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './types';
+import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
 import { SwapError } from '../errors';
