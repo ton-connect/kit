@@ -6,7 +6,15 @@
  *
  */
 
-import type { Hex, Network, WalletAdapter, ApiClient, Base64String, UserFriendlyAddress, Feature } from '@ton/walletkit';
+import type {
+    Hex,
+    Network,
+    WalletAdapter,
+    ApiClient,
+    Base64String,
+    UserFriendlyAddress,
+    Feature,
+} from '@ton/walletkit';
 import type { WalletId } from '@ton/walletkit';
 import type { TransactionRequest } from '@ton/walletkit';
 import type { PreparedSignData } from '@ton/walletkit';
