@@ -7,6 +7,7 @@
  */
 
 export { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
+export { SignatureDomain } from '@ton/core';
 export { TonWalletKit } from './core/TonWalletKit';
 export * from './types';
 export type * from './types/internal';

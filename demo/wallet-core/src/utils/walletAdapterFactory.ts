@@ -6,7 +6,7 @@
  *
  */
 
-import type { WalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { WalletAdapter, WalletSigner, SignatureDomain } from '@ton/walletkit';
 import {
     WalletV5R1Adapter,
     WalletV4R2Adapter,
@@ -19,7 +19,6 @@ import {
 } from '@ton/walletkit';
 import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@demo/v4ledger-adapter';
-import type { SignatureDomain } from '@ton/core';
 
 import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
 import type { NetworkType } from './network';
