@@ -100,7 +100,7 @@ Hook to get NFTs of the selected wallet.
 
 %%demo/examples/src/appkit/hooks/nft#USE_NFTS%%
 
-### `useNFTsByAddress`
+### `useNftsByAddress`
 
 Hook to get NFTs of a specific address.
 
