@@ -39,7 +39,8 @@ export type BridgePayload =
           timestamp: number;
           message?: string;
       }
-    | { kind: 'jsBridgeEvent'; sessionId: string; event: JsBridgeTransportMessage };
+    | { kind: 'jsBridgeEvent'; sessionId: string; event: JsBridgeTransportMessage }
+    | { kind: 'request'; id: string; method: string; params: Record<string, unknown> };
 
 export interface CallContext {
     id: string;

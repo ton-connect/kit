@@ -6,12 +6,6 @@
  *
  */
 
-/**
- * transactions.ts – TON transaction operations
- *
- * Minimal bridge - just forwards calls to WalletKit.
- */
-
 import type { TransactionRequest } from '@ton/walletkit';
 
 import { walletCall, clientCall, getKit, getWallet } from '../utils/bridge';

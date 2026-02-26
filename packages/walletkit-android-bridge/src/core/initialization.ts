@@ -30,20 +30,11 @@ import {
 } from '../adapters/AndroidTONConnectSessionsManager';
 import { AndroidAPIClientAdapter } from '../adapters/AndroidAPIClientAdapter';
 
-export interface InitTonWalletKitDeps {
+interface InitTonWalletKitDeps {
     emit: (type: WalletKitBridgeEvent['type'], data?: WalletKitBridgeEvent['data']) => void;
     postToNative: (payload: BridgePayload) => void;
     AndroidStorageAdapter: new () => unknown;
 }
-
-type NativeStorageBridge = {
-    storageGet: (key: string) => string | null;
-    storageSet: (key: string, value: string) => void;
-};
-
-type _AndroidBridgeWindow = Window & {
-    WalletKitNative?: NativeStorageBridge;
-};
 
 /**
  * Initializes WalletKit with Android-specific configuration and wiring.

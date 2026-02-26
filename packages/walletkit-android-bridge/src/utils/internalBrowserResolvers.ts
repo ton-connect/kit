@@ -8,12 +8,12 @@
 
 import type { JsBridgeTransportMessage } from '../types/bridge';
 
-export type InternalBrowserResponseResolver = {
+type InternalBrowserResponseResolver = {
     resolve: (response: JsBridgeTransportMessage) => void;
     reject: (error: Error) => void;
 };
 
-export type InternalBrowserResolverRegistry = Map<string, InternalBrowserResponseResolver>;
+type InternalBrowserResolverRegistry = Map<string, InternalBrowserResponseResolver>;
 
 type InternalBrowserGlobal = typeof globalThis & {
     __internalBrowserResponseResolvers?: InternalBrowserResolverRegistry;
@@ -30,8 +30,4 @@ export function ensureInternalBrowserResolverMap(): InternalBrowserResolverRegis
         internalBrowserGlobal.__internalBrowserResponseResolvers = new Map();
     }
     return internalBrowserGlobal.__internalBrowserResponseResolvers;
-}
-
-export function deleteInternalBrowserResolver(messageId: string): void {
-    internalBrowserGlobal.__internalBrowserResponseResolvers?.delete(messageId);
 }

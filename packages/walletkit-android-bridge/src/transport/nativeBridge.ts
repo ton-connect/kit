@@ -6,12 +6,72 @@
  *
  */
 
-/**
- * Native bridge helpers for posting messages to the Android host.
- */
+import { v7 as uuidv7 } from 'uuid';
+
 import type { BridgePayload } from '../types';
 import { bigIntReplacer } from '../utils/serialization';
-import { warn, error } from '../utils/logger';
+import { warn, error, info } from '../utils/logger';
+
+// Reverse-RPC: JS sends {kind:'request', id, method, params} via postMessage.
+// Kotlin responds via window.__walletkitResponse(id, resultJson, errorJson).
+
+const pendingRequests = new Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+
+/**
+ * Synchronous bridge call via @JavascriptInterface (WalletKitNative.adapterCallSync).
+ * Used for sync WalletAdapter getters that cannot be async.
+ */
+export function bridgeRequestSync(method: string, params: Record<string, unknown>): string {
+    const native = window.WalletKitNative;
+    if (!native || typeof native.adapterCallSync !== 'function') {
+        throw new Error('WalletKitNative.adapterCallSync not available');
+    }
+    return native.adapterCallSync(method, JSON.stringify(params));
+}
+
+/**
+ * Send a request to Kotlin via postMessage and wait for a response.
+ */
+export function bridgeRequest(method: string, params: Record<string, unknown>): Promise<unknown> {
+    const id = uuidv7();
+    return new Promise<unknown>((resolve, reject) => {
+        pendingRequests.set(id, { resolve, reject });
+        postToNative({ kind: 'request', id, method, params });
+    });
+}
+
+export function registerNativeResponseHandler(): void {
+    window.__walletkitResponse = (id: string, resultJson?: string | null, errorJson?: string | null) => {
+        const entry = pendingRequests.get(id);
+        if (!entry) {
+            warn('[walletkitBridge] __walletkitResponse: no pending request for id', id);
+            return;
+        }
+        pendingRequests.delete(id);
+
+        if (errorJson) {
+            try {
+                const err = JSON.parse(errorJson);
+                entry.reject(new Error(err.message ?? 'Native request failed'));
+            } catch {
+                entry.reject(new Error(errorJson));
+            }
+            return;
+        }
+
+        if (resultJson) {
+            try {
+                entry.resolve(JSON.parse(resultJson));
+            } catch {
+                // If it's not JSON, return the raw string
+                entry.resolve(resultJson);
+            }
+        } else {
+            entry.resolve(undefined);
+        }
+    };
+    info('[walletkitBridge] __walletkitResponse handler registered');
+}
 
 /**
  * Resolves WalletKit's native bridge implementation exposed on the global scope.

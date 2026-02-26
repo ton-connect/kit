@@ -27,8 +27,6 @@ export interface WalletKitBridgeEvent<T = unknown> {
     data?: T;
 }
 
-export type WalletKitBridgeEventHandler = (event: WalletKitBridgeEvent) => void;
-
 export type WalletKitBridgeEventCallback = (
     type: WalletKitBridgeEventType,
     event: WalletKitBridgeEvent['data'],

@@ -7,19 +7,13 @@
  */
 
 // Re-export bridge types for backwards compatibility
-import type {
-    WalletKitBridgeEvent as _WalletKitBridgeEvent,
-    WalletKitBridgeInitConfig as _WalletKitBridgeInitConfig,
-    AndroidBridgeType,
-    WalletKitNativeBridgeType,
-    WalletKitBridgeApi,
-    WalletKitApiMethod,
-} from './types';
+import type { AndroidBridgeType, WalletKitNativeBridgeType, WalletKitBridgeApi, WalletKitApiMethod } from './types';
 
 declare global {
     interface Window {
         walletkitBridge?: WalletKitBridgeApi;
         __walletkitCall?: (id: string, method: WalletKitApiMethod, paramsJson?: string | null) => void;
+        __walletkitResponse?: (id: string, resultJson?: string | null, errorJson?: string | null) => void;
         WalletKitNative?: WalletKitNativeBridgeType;
         AndroidBridge?: AndroidBridgeType;
     }
