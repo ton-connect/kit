@@ -9,12 +9,12 @@
 // Signer utility class for creating wallet signers
 
 import { keyPairFromSeed } from '@ton/crypto';
+import type { SignatureDomain } from '@ton/core';
 
 import { MnemonicToKeyPair } from './mnemonic';
 import { createWalletSigner } from './sign';
 import { Uint8ArrayToHex } from './base64';
 import type { WalletSigner } from '../api/interfaces';
-import type { SignatureDomain } from '../api/models';
 
 /**
  * Utility class for creating wallet signers from various sources

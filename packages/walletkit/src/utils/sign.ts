@@ -7,11 +7,12 @@
  */
 
 import { keyPairFromSeed, sign } from '@ton/crypto';
+import type { SignatureDomain } from '@ton/core';
 import { domainSign } from '@ton/core';
 
 import type { ISigner } from '../api/interfaces';
 import { Uint8ArrayToHex } from './base64';
-import type { Hex, SignatureDomain } from '../api/models';
+import type { Hex } from '../api/models';
 
 export function DefaultSignature(data: Iterable<number>, privateKey: Uint8Array): Hex {
     let fullKey = privateKey;
