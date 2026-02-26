@@ -1,6 +1,6 @@
-# @ton/appkit
+# @ton/mcp
 
-## 0.0.2
+## 0.1.13
 
 ### Patch Changes
 
@@ -8,9 +8,3 @@
 - Updated dependencies [97e06e7]
 - Updated dependencies [ac2a290]
     - @ton/walletkit@0.0.9
-
-## 0.0.1
-
-### Patch Changes
-
-- Alpha release

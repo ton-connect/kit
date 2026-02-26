@@ -1,5 +1,15 @@
 # @ton/walletkit
 
+## 0.0.9
+
+### Patch Changes
+
+- 97e06e7: getSupportedFeatures function in WalletAdapter interface is now required for implementation
+- ac2a290: Add possibility to get transaction status by boc or hash. Added 0x prefix for hash from ApiClient.sendBoc
+- Added dev params to WalletKit Swift
+- Added signer for tetra
+- Made proof for WalletKit Swift optional
+
 ## 0.0.8
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@ton/appkit-react",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "build": "pnpm run build:esm && pnpm run copy:css",
