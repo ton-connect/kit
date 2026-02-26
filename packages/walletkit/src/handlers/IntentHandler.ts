@@ -67,6 +67,10 @@ export class IntentHandler {
 
     /**
      * Parse an intent URL, resolve items, emulate preview, and emit the event.
+     *
+     * Multi-item transaction intents are split into per-item events and
+     * emitted as a {@link BatchedIntentEvent} so the wallet can display
+     * each action separately while approving/rejecting as a group.
      */
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
         const { event, connectRequest } = await this.parser.parse(url);
@@ -76,7 +80,11 @@ export class IntentHandler {
         }
 
         if (event.type === 'transaction') {
-            await this.resolveAndEmitTransaction(event, walletId);
+            if (event.value.items.length > 1) {
+                await this.resolveAndEmitBatchedTransaction(event, walletId);
+            } else {
+                await this.resolveAndEmitTransaction(event, walletId);
+            }
         } else {
             this.emit(event);
         }
@@ -113,6 +121,63 @@ export class IntentHandler {
         };
 
         await this.sendResponse(event, { type: 'transaction', value: result });
+        return result;
+    }
+
+    /**
+     * Approve a batched intent event.
+     *
+     * Collects all items from the inner transaction events, builds a single
+     * combined {@link TransactionRequest}, signs it as one transaction, and
+     * sends a single response back to the dApp.
+     */
+    async approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse> {
+        const wallet = this.getWallet(walletId);
+
+        // Collect all items from inner transaction events
+        const allItems: IntentActionItem[] = [];
+        let deliveryMode: 'send' | 'signOnly' = 'send';
+        for (const intent of batch.intents) {
+            if (intent.type === 'transaction') {
+                allItems.push(...intent.value.items);
+                if (intent.value.deliveryMode === 'signOnly') {
+                    deliveryMode = 'signOnly';
+                }
+            }
+        }
+
+        if (allItems.length === 0) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Batched intent contains no transaction items');
+        }
+
+        // Find network/validUntil from first transaction event
+        const firstTx = batch.intents.find((i) => i.type === 'transaction');
+        const network = firstTx?.type === 'transaction' ? firstTx.value.network : undefined;
+        const validUntil = firstTx?.type === 'transaction' ? firstTx.value.validUntil : undefined;
+
+        // Build combined transaction
+        const transactionRequest = await this.resolver.intentItemsToTransactionRequest(
+            allItems,
+            wallet,
+            network,
+            validUntil,
+        );
+
+        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
+
+        if (deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
+            await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
+        }
+
+        const result: IntentTransactionResponse = {
+            boc: signedBoc as Base64String,
+        };
+
+        // Send one response using the batch's identity
+        await this.sendBatchResponse(batch, { type: 'transaction', value: result });
         return result;
     }
 
@@ -173,7 +238,11 @@ export class IntentHandler {
 
     // -- Public: Rejection ----------------------------------------------------
 
-    async rejectIntent(event: IntentRequestEvent, reason?: string, errorCode?: number): Promise<IntentErrorResponse> {
+    async rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse> {
         const result: IntentErrorResponse = {
             error: {
                 code: errorCode ?? INTENT_ERROR_CODES.USER_DECLINED,
@@ -181,8 +250,14 @@ export class IntentHandler {
             },
         };
 
-        await this.sendResponse(event.value, { type: 'error', value: result });
-        this.pendingConnectRequests.delete(event.value.id);
+        const isBatched = 'intents' in event;
+        if (isBatched) {
+            await this.sendBatchResponse(event, { type: 'error', value: result });
+            this.pendingConnectRequests.delete(event.id);
+        } else {
+            await this.sendResponse(event.value, { type: 'error', value: result });
+            this.pendingConnectRequests.delete(event.value.id);
+        }
         return result;
     }
 
@@ -224,6 +299,59 @@ export class IntentHandler {
         this.emit(event);
     }
 
+    /**
+     * Split a multi-item transaction intent into per-item events,
+     * resolve and emulate each, then emit as a {@link BatchedIntentEvent}.
+     */
+    private async resolveAndEmitBatchedTransaction(
+        event: Extract<IntentRequestEvent, { type: 'transaction' }>,
+        walletId: string,
+    ): Promise<void> {
+        const txEvent = event.value;
+        const wallet = this.getWallet(walletId);
+
+        const perItemEvents: IntentRequestEvent[] = [];
+
+        for (let i = 0; i < txEvent.items.length; i++) {
+            const item = txEvent.items[i];
+            const itemEvent: TransactionIntentRequestEvent = {
+                id: `${txEvent.id}_${i}`,
+                origin: txEvent.origin,
+                clientId: txEvent.clientId,
+                hasConnectRequest: false, // connect is tracked at batch level
+                traceId: txEvent.traceId,
+                returnStrategy: txEvent.returnStrategy,
+                deliveryMode: txEvent.deliveryMode,
+                network: txEvent.network,
+                validUntil: txEvent.validUntil,
+                items: [item],
+            };
+
+            try {
+                const resolved = await this.resolveTransaction(itemEvent, wallet);
+                itemEvent.resolvedTransaction = resolved;
+                const preview = await wallet.getTransactionPreview(resolved);
+                itemEvent.preview = preview;
+            } catch (error) {
+                log.warn('Failed to resolve/emulate batched item', { error, index: i });
+            }
+
+            perItemEvents.push({ type: 'transaction', value: itemEvent });
+        }
+
+        const batch: BatchedIntentEvent = {
+            id: txEvent.id,
+            origin: txEvent.origin,
+            clientId: txEvent.clientId,
+            hasConnectRequest: txEvent.hasConnectRequest,
+            traceId: txEvent.traceId,
+            returnStrategy: txEvent.returnStrategy,
+            intents: perItemEvents,
+        };
+
+        this.emit(batch);
+    }
+
     private async resolveTransaction(
         event: TransactionIntentRequestEvent,
         wallet: Wallet,
@@ -245,6 +373,21 @@ export class IntentHandler {
             await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
         } catch (error) {
             log.error('Failed to send intent response', { error, eventId: event.id });
+        }
+    }
+
+    private async sendBatchResponse(batch: BatchedIntentEvent, result: IntentResponseResult): Promise<void> {
+        if (!batch.clientId) {
+            log.debug('No clientId on batched intent, skipping response send');
+            return;
+        }
+
+        const wireResponse = this.toWireResponse(batch.id, result);
+
+        try {
+            await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
+        } catch (error) {
+            log.error('Failed to send batched intent response', { error, batchId: batch.id });
         }
     }
 
