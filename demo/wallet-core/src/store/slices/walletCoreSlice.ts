@@ -6,7 +6,7 @@
  *
  */
 
-import { TonWalletKit, Network, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import { TonWalletKit, Network, createDeviceInfo, createWalletManifest, ApiClientTonApi } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
@@ -16,6 +16,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../util
 import type { SetState, WalletCoreSliceCreator } from '../../types/store';
 import type { WalletKitConfig } from '../../types/wallet';
 import { getErrorMessage } from '../../utils/error';
+import type { NetworkType } from '../../utils';
 
 const log = createComponentLogger('WalletCoreSlice');
 
@@ -33,6 +34,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             jsBridgeTransport: walletKitConfig?.jsBridgeTransport,
         },
 
+        // TODO: Tetra
         networks: {
             [Network.mainnet().chainId]: {
                 apiClient: {
@@ -45,6 +47,11 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
                     url: 'https://testnet.toncenter.com',
                     key: walletKitConfig?.tonApiKeyTestnet,
                 },
+            },
+            [Network.tetra().chainId]: {
+                apiClient: new ApiClientTonApi({
+                    network: Network.tetra(),
+                }),
             },
         },
 
@@ -80,7 +87,7 @@ export const createWalletCoreSlice =
             initializationError: null,
         },
 
-        initializeWalletKit: async (network: 'mainnet' | 'testnet' = 'testnet'): Promise<void> => {
+        initializeWalletKit: async (network: NetworkType = 'testnet'): Promise<void> => {
             const state = get();
 
             // Check if we need to reinitialize

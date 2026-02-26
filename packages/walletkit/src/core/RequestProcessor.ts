@@ -20,7 +20,6 @@ import type {
     TonProofItemReply,
 } from '@tonconnect/protocol';
 import {
-    CHAIN,
     CONNECT_EVENT_ERROR_CODES,
     SEND_TRANSACTION_ERROR_CODES,
     SessionCrypto,
@@ -602,7 +601,7 @@ export class RequestProcessor {
                     {
                         name: 'ton_addr',
                         address: Address.parse(address).toRawString(),
-                        network: walletNetwork.chainId as CHAIN,
+                        network: walletNetwork.chainId,
                         walletStateInit,
                         publicKey,
                     },
@@ -773,26 +772,16 @@ function parseDomain(url?: string): { lengthBytes: number; value: string } {
 }
 
 function toTonConnectSignDataPayload(payload: SignDataPayload): TonConnectSignDataPayload {
-    let network: CHAIN | undefined;
-
-    if (payload.network?.chainId === CHAIN.MAINNET) {
-        network = CHAIN.MAINNET;
-    } else if (payload.network?.chainId === CHAIN.TESTNET) {
-        network = CHAIN.TESTNET;
-    } else {
-        network = undefined;
-    }
-
     if (payload.data.type === 'text') {
         return {
-            network: network,
+            network: payload.network?.chainId,
             from: payload.fromAddress,
             type: 'text',
             text: payload.data.value.content,
         };
     } else if (payload.data.type === 'cell') {
         return {
-            network: network,
+            network: payload.network?.chainId,
             from: payload.fromAddress,
             type: 'cell',
             schema: payload.data.value.schema,
@@ -800,7 +789,7 @@ function toTonConnectSignDataPayload(payload: SignDataPayload): TonConnectSignDa
         };
     } else {
         return {
-            network: network,
+            network: payload.network?.chainId,
             from: payload.fromAddress,
             type: 'binary',
             bytes: payload.data.value.content,

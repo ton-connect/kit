@@ -41,7 +41,8 @@ export const sendRawTransactionSchema = z.object({
 export function createMcpTransferTools(service: McpWalletService) {
     return {
         send_ton: {
-            description: 'Send TON from the wallet to an address. Amount is in TON (e.g., "1.5" means 1.5 TON).',
+            description:
+                'Send TON from the wallet to an address. Amount is in TON (e.g., "1.5" means 1.5 TON). Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendTonSchema,
             handler: async (args: z.infer<typeof sendTonSchema>): Promise<ToolResponse> => {
                 const rawAmount = toRawAmount(args.amount, TON_DECIMALS);
@@ -75,6 +76,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                         to: args.toAddress,
                                         amount: `${args.amount} TON`,
                                         comment: args.comment || null,
+                                        normalizedHash: result.normalizedHash,
                                     },
                                 },
                                 null,
@@ -87,7 +89,8 @@ export function createMcpTransferTools(service: McpWalletService) {
         },
 
         send_jetton: {
-            description: 'Send Jettons (tokens) from the wallet to an address. Amount is in human-readable format.',
+            description:
+                'Send Jettons (tokens) from the wallet to an address. Amount is in human-readable format. Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendJettonSchema,
             handler: async (args: z.infer<typeof sendJettonSchema>): Promise<ToolResponse> => {
                 // Fetch jetton info for decimals
@@ -163,6 +166,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                         jettonAddress: args.jettonAddress,
                                         amount: `${args.amount} ${symbol || 'tokens'}`,
                                         comment: args.comment || null,
+                                        normalizedHash: result.normalizedHash,
                                     },
                                 },
                                 null,
@@ -176,7 +180,7 @@ export function createMcpTransferTools(service: McpWalletService) {
 
         send_raw_transaction: {
             description:
-                'Send a raw transaction with full control over messages. Amounts are in nanotons. Supports multiple messages in a single transaction.',
+                'Send a raw transaction with full control over messages. Amounts are in nanotons. Supports multiple messages. Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendRawTransactionSchema,
             handler: async (args: z.infer<typeof sendRawTransactionSchema>): Promise<ToolResponse> => {
                 const result = await service.sendRawTransaction({
@@ -214,6 +218,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                             to: m.address,
                                             amount: `${m.amount} nanoTON`,
                                         })),
+                                        normalizedHash: result.normalizedHash,
                                     },
                                 },
                                 null,

@@ -8,7 +8,6 @@
 
 // TON address validation logic
 
-import { CHAIN } from '@tonconnect/protocol';
 import { Address } from '@ton/core';
 
 import type { ValidationResult, ValidationContext } from './types';
@@ -130,27 +129,5 @@ export function detectAddressFormat(address: string): 'raw' | 'bounceable' | 'no
     if (validateRawAddress(address).isValid) return 'raw';
     if (validateBouncableAddress(address).isValid) return 'bounceable';
     if (validateNonBouncableAddress(address).isValid) return 'non-bounceable';
-    return 'unknown';
-}
-
-/**
- * Check if address is for mainnet or testnet
- */
-export function detectAddressNetwork(address: string): CHAIN | 'unknown' {
-    const format = detectAddressFormat(address);
-
-    if (format === 'raw') {
-        return 'unknown';
-    }
-
-    if (format === 'bounceable' || format === 'non-bounceable') {
-        const parsed = Address.parseFriendly(address);
-        if (parsed.isTestOnly) {
-            return CHAIN.TESTNET;
-        } else {
-            return CHAIN.MAINNET;
-        }
-    }
-
     return 'unknown';
 }

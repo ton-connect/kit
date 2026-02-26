@@ -24,6 +24,7 @@ import { TonWalletKit, Signer, WalletV5R1Adapter, MemoryStorageAdapter, Network 
 import type { Wallet, ApiClientConfig, WalletSigner } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
+import type { NetworkType } from './types/config.js';
 
 export interface ServerlessRequest {
     headers: Record<string, string | string[] | undefined>;
@@ -41,7 +42,7 @@ export interface ServerlessResponse {
 interface ParsedCredentials {
     mnemonic?: string[];
     privateKey?: Buffer;
-    network: 'mainnet' | 'testnet';
+    network: NetworkType;
     toncenterKey?: string;
 }
 
@@ -82,7 +83,7 @@ function parseCredentials(headers: Record<string, string | string[] | undefined>
         return null;
     }
 
-    const network = (networkStr === 'testnet' ? 'testnet' : 'mainnet') as 'mainnet' | 'testnet';
+    const network = (networkStr === 'testnet' ? 'testnet' : 'mainnet') as NetworkType;
 
     return {
         mnemonic,

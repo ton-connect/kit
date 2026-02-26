@@ -16,6 +16,8 @@ import type {
 } from '@ton/walletkit';
 import type Transport from '@ledgerhq/hw-transport';
 
+import type { NetworkType } from '../utils/network';
+
 /**
  * Function that creates a Ledger transport.
  * For web: use TransportWebHID.create() or TransportWebUSB.create()
@@ -33,7 +35,7 @@ export interface SavedWallet {
     walletType: 'mnemonic' | 'signer' | 'ledger';
     walletInterfaceType: 'signer' | 'mnemonic' | 'ledger';
     version?: 'v5r1' | 'v4r2';
-    network: 'mainnet' | 'testnet';
+    network: NetworkType;
     createdAt: number;
     /** WalletKit wallet ID */
     kitWalletId?: string;
@@ -120,6 +122,7 @@ export interface WalletKitConfig {
     bridgeUrl?: string;
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
+    tonApiKeyTetra?: string;
     analytics?: AnalyticsManagerOptions;
     disableAutoEmulation?: boolean;
     /**

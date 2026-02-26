@@ -21,6 +21,7 @@ import {
     ENV_BRIDGE_URL,
     ENV_TON_API_KEY_MAINNET,
     ENV_TON_API_KEY_TESTNET,
+    ENV_TON_API_KEY_TETRA,
 } from '@/lib/env';
 import { isExtension } from '@/utils/isExtension';
 import type { SendMessageToExtensionContent, CreateExtensionStorageAdapter } from '@/lib/extensionPopup';
@@ -63,6 +64,7 @@ const walletKitConfig: WalletKitConfig = {
     bridgeUrl: ENV_BRIDGE_URL,
     tonApiKeyMainnet: ENV_TON_API_KEY_MAINNET,
     tonApiKeyTestnet: ENV_TON_API_KEY_TESTNET,
+    tonApiKeyTetra: ENV_TON_API_KEY_TETRA,
     createLedgerTransport: createWebLedgerTransport,
     analytics: {
         appInfo: {

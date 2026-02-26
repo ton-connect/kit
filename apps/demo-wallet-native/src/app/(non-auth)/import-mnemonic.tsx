@@ -11,6 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
+import type { NetworkType } from '@demo/wallet-core';
 import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
@@ -25,11 +26,12 @@ const regexp = /\s+/;
 const networkOptions = [
     { value: 'testnet' as const, label: 'Testnet' },
     { value: 'mainnet' as const, label: 'Mainnet' },
+    { value: 'tetra' as const, label: 'Tetra' },
 ];
 
 const ImportMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState('');
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
+    const [network, setNetwork] = useState<NetworkType>('testnet');
     const [isLoading, setIsLoading] = useState(false);
     const [, setError] = useState('');
 

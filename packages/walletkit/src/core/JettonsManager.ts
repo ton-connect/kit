@@ -9,8 +9,8 @@
 // Jettons API Manager - handles jetton information caching and retrieval
 
 import { Address } from '@ton/core';
-import type { CHAIN } from '@tonconnect/protocol';
 import { LRUCache } from 'lru-cache';
+import type { ChainId } from '@tonconnect/protocol';
 
 import type { EmulationTokenInfoMasters } from '../types/toncenter/emulation';
 import { globalLogger } from './Logger';
@@ -65,7 +65,7 @@ export class JettonsManager implements JettonsAPI {
                 'metadata' in emulationResult &&
                 'network' in emulationResult
             ) {
-                const network = (emulationResult as { network: CHAIN }).network;
+                const network = (emulationResult as { network: ChainId }).network;
                 this.addJettonsFromEmulationMetadata(
                     Network.custom(network),
                     (emulationResult as { metadata: Record<string, { is_indexed: boolean; token_info?: unknown[] }> })

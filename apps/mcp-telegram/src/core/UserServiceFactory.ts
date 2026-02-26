@@ -118,6 +118,8 @@ export class UserServiceFactory {
                 testnetConfig.key = this.networks.testnet.apiKey;
             }
 
+            // TODO: Tetra
+
             this.kit = new TonWalletKit({
                 networks: {
                     [Network.mainnet().chainId]: { apiClient: mainnetConfig },

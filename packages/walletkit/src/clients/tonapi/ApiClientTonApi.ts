@@ -18,6 +18,7 @@ import type {
     GetTransactionByHashRequest,
     TransactionsByAddressRequest,
 } from '../../types/toncenter/ApiClient';
+import { Network } from '../../api/models';
 import type {
     Base64String,
     GetMethodResult,
@@ -47,7 +48,20 @@ import type { TonApiNftItems, TonApiNftItem } from './types/nfts';
 import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './types/dns';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
-        const defaultEndpoint = config.network?.chainId === '-239' ? 'https://tonapi.io' : 'https://testnet.tonapi.io';
+        let defaultEndpoint: string;
+
+        switch (config.network?.chainId) {
+            case Network.mainnet().chainId:
+                defaultEndpoint = 'https://tonapi.io';
+                break;
+            case Network.tetra().chainId:
+                defaultEndpoint = 'https://tetra.tonapi.io';
+                break;
+            default:
+                defaultEndpoint = 'https://testnet.tonapi.io';
+                break;
+        }
+
         super(config, defaultEndpoint);
     }
 

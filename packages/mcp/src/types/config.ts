@@ -14,6 +14,8 @@ import type { Wallet } from '@ton/walletkit';
 
 import type { IContactResolver } from './contacts.js';
 
+export type NetworkType = 'mainnet' | 'testnet' | 'tetra';
+
 /**
  * Network-specific configuration
  */

@@ -92,7 +92,7 @@ export type {
     InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
 export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
-export { DefaultSignature, FakeSignature } from './utils/sign';
+export { DefaultSignature, DefaultDomainSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
 export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';
 
@@ -144,6 +144,8 @@ export type {
     NftTransferRawParams,
     CreateTransferTransactionParams,
 } from './utils/messageBuilders';
+export { getTransactionStatus } from './utils/toncenter/getTransactionStatus';
+export { getNormalizedExtMessageHash } from './utils/getNormalizedExtMessageHash';
 
 // Asset helpers
 export {

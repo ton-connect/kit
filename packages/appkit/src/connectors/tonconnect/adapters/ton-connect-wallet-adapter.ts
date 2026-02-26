@@ -8,10 +8,9 @@
 
 import { Address } from '@ton/core';
 import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
-import { CHAIN } from '@tonconnect/sdk';
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/sdk';
 import type { SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
-import { Network, asHex, createWalletId } from '@ton/walletkit';
+import { Network, asHex, createWalletId, getNormalizedExtMessageHash } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
 import type { TransactionRequest } from '../../../types/transaction';
@@ -86,12 +85,17 @@ export class TonConnectWalletAdapter implements WalletInterface {
                 payload: msg.payload,
                 stateInit: msg.stateInit,
             })),
-            network: (request.network?.chainId as CHAIN) ?? this.tonConnectWallet.account?.chain,
+            network: request.network?.chainId ?? this.tonConnectWallet.account?.chain,
         };
 
         const result = await this.tonConnectUI.sendTransaction(transaction);
+        const { hash, boc: normalizedBoc } = getNormalizedExtMessageHash(result.boc);
 
-        return { boc: result.boc as Base64String };
+        return {
+            boc: result.boc as Base64String,
+            normalizedBoc,
+            normalizedHash: hash,
+        };
     }
 
     async signData(payload: SignDataRequest): Promise<SignDataResponse> {
@@ -110,21 +114,8 @@ export class TonConnectWalletAdapter implements WalletInterface {
     // Private helpers
     // ==========================================
 
-    private mapNetworkToChain(network: Network): CHAIN {
-        switch (network.chainId) {
-            case Network.mainnet().chainId:
-                return CHAIN.MAINNET;
-            case Network.testnet().chainId:
-                return CHAIN.TESTNET;
-            default:
-                return network.chainId as CHAIN;
-        }
-    }
-
     private mapSignDataRequest(request: SignDataRequest): TonConnectSignDataPayload {
-        const chainId = request.network
-            ? this.mapNetworkToChain(request.network)
-            : (this.getNetwork().chainId as CHAIN);
+        const chainId = request.network?.chainId ?? this.getNetwork().chainId;
 
         const { data } = request;
 

@@ -9,6 +9,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { CreateTonMnemonic } from '@ton/walletkit';
 import { useWallet, useAuth } from '@demo/wallet-core';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { createComponentLogger } from '../utils/logger';
 
@@ -26,8 +27,8 @@ interface UseTonWalletReturn {
     error: string | null;
     initializeWallet: () => Promise<void>;
     createNewWallet: () => Promise<string[]>;
-    createLedgerWallet: (network?: 'mainnet' | 'testnet') => Promise<void>;
-    importWallet: (mnemonic: string[], version?: 'v5r1' | 'v4r2', network?: 'mainnet' | 'testnet') => Promise<void>;
+    createLedgerWallet: (network?: NetworkType) => Promise<void>;
+    importWallet: (mnemonic: string[], version?: 'v5r1' | 'v4r2', network?: NetworkType) => Promise<void>;
 }
 
 export const useTonWallet = (): UseTonWalletReturn => {
@@ -81,7 +82,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
     }, [tonKit, walletStore]);
 
     const createLedgerWallet = useCallback(
-        async (network?: 'mainnet' | 'testnet'): Promise<void> => {
+        async (network?: NetworkType): Promise<void> => {
             if (!tonKit) throw new Error('TON Kit not initialized');
 
             try {
@@ -99,7 +100,7 @@ export const useTonWallet = (): UseTonWalletReturn => {
     );
 
     const importWallet = useCallback(
-        async (mnemonic: string[], version?: 'v5r1' | 'v4r2', network?: 'mainnet' | 'testnet'): Promise<void> => {
+        async (mnemonic: string[], version?: 'v5r1' | 'v4r2', network?: NetworkType): Promise<void> => {
             if (!tonKit) throw new Error('TON Kit not initialized');
 
             try {
