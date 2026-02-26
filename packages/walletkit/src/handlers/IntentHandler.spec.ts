@@ -95,15 +95,22 @@ describe('IntentHandler', () => {
 
             expect(result.boc).toBe('signed-boc-base64');
             expect(mockWallet.getSignedSendTransaction).toHaveBeenCalled();
-            expect((mockWallet.getClient() as any).sendBoc).toHaveBeenCalledWith('signed-boc-base64');
+            expect(
+                (mockWallet.getClient() as unknown as { sendBoc: ReturnType<typeof vi.fn> }).sendBoc,
+            ).toHaveBeenCalledWith('signed-boc-base64');
             expect(bridgeManager.sendIntentResponse).toHaveBeenCalled();
         });
 
         it('does not send boc when deliveryMode is signOnly', async () => {
-            const result = await handler.approveTransactionIntent(txEvent({ id: 'tx-2', deliveryMode: 'signOnly' }), 'wallet-1');
+            const result = await handler.approveTransactionIntent(
+                txEvent({ id: 'tx-2', deliveryMode: 'signOnly' }),
+                'wallet-1',
+            );
 
             expect(result.boc).toBe('signed-boc-base64');
-            expect((mockWallet.getClient() as any).sendBoc).not.toHaveBeenCalled();
+            expect(
+                (mockWallet.getClient() as unknown as { sendBoc: ReturnType<typeof vi.fn> }).sendBoc,
+            ).not.toHaveBeenCalled();
         });
 
         it('does not send boc when dev.disableNetworkSend is true', async () => {
@@ -114,7 +121,9 @@ describe('IntentHandler', () => {
             );
 
             await devHandler.approveTransactionIntent(txEvent({ id: 'tx-3' }), 'wallet-1');
-            expect((mockWallet.getClient() as any).sendBoc).not.toHaveBeenCalled();
+            expect(
+                (mockWallet.getClient() as unknown as { sendBoc: ReturnType<typeof vi.fn> }).sendBoc,
+            ).not.toHaveBeenCalled();
         });
 
         it('skips bridge send when clientId is absent', async () => {
@@ -269,11 +278,7 @@ describe('IntentHandler', () => {
 /**
  * Helper: Build a tc://intent_inline URL from a wire request object.
  */
-function buildInlineUrl(
-    clientId: string,
-    request: Record<string, unknown>,
-    opts?: { traceId?: string },
-): string {
+function buildInlineUrl(clientId: string, request: Record<string, unknown>, opts?: { traceId?: string }): string {
     const json = JSON.stringify(request);
     const b64 = Buffer.from(json, 'utf-8').toString('base64url');
     let url = `tc://intent_inline?id=${clientId}&r=${b64}`;
