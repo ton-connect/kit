@@ -14,11 +14,7 @@ import { IntentParser } from './IntentParser';
  * Helper: Build a tc://intent_inline URL from a wire request object.
  * Encodes the request as base64url in the `r` parameter.
  */
-function buildInlineUrl(
-    clientId: string,
-    request: Record<string, unknown>,
-    opts?: { traceId?: string },
-): string {
+function buildInlineUrl(clientId: string, request: Record<string, unknown>, opts?: { traceId?: string }): string {
     const json = JSON.stringify(request);
     // base64url encode
     const b64 = Buffer.from(json, 'utf-8').toString('base64url');
@@ -174,7 +170,6 @@ describe('IntentParser', () => {
                 }
             }
         });
-
     });
 
     // ── parse – inline signIntent ────────────────────────────────────────────
@@ -415,9 +410,7 @@ describe('IntentParser', () => {
             const payload = {
                 action_type: 'sendTransaction',
                 action: {
-                    messages: [
-                        { address: 'EQAddr', amount: '500', payload: 'abc123' },
-                    ],
+                    messages: [{ address: 'EQAddr', amount: '500', payload: 'abc123' }],
                     valid_until: 1700000000,
                     network: '-239',
                 },
@@ -452,9 +445,7 @@ describe('IntentParser', () => {
         });
 
         it('rejects missing action_type', () => {
-            expect(() => parser.parseActionResponse({ action: {} }, baseActionEvent)).toThrow(
-                'missing action_type',
-            );
+            expect(() => parser.parseActionResponse({ action: {} }, baseActionEvent)).toThrow('missing action_type');
         });
 
         it('rejects missing action', () => {
@@ -464,12 +455,9 @@ describe('IntentParser', () => {
         });
 
         it('rejects unsupported action_type', () => {
-            expect(() =>
-                parser.parseActionResponse(
-                    { action_type: 'unknown', action: {} },
-                    baseActionEvent,
-                ),
-            ).toThrow('unsupported action_type');
+            expect(() => parser.parseActionResponse({ action_type: 'unknown', action: {} }, baseActionEvent)).toThrow(
+                'unsupported action_type',
+            );
         });
 
         it('rejects sendTransaction without messages', () => {
@@ -483,12 +471,8 @@ describe('IntentParser', () => {
 
         it('rejects signData without type', () => {
             expect(() =>
-                parser.parseActionResponse(
-                    { action_type: 'signData', action: { text: 'hello' } },
-                    baseActionEvent,
-                ),
+                parser.parseActionResponse({ action_type: 'signData', action: { text: 'hello' } }, baseActionEvent),
             ).toThrow('missing type');
         });
     });
-
 });
