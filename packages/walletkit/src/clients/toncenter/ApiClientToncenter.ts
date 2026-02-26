@@ -66,6 +66,7 @@ import type { BaseApiClientConfig } from '../BaseApiClient';
 import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest } from './types';
 import { padBase64, parseInternalTransactionId, prepareAddress } from './utils';
 import { TonClientError } from '../TonClientError';
+import { getNormalizedExtMessageHash } from '../../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -133,7 +134,9 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         if (this.disableNetworkSend) {
             return '';
         }
+
         const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
+
         return Base64ToBigInt(response.message_hash_norm).toString(16);
     }
 

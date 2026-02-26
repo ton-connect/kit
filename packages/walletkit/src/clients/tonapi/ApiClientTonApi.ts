@@ -46,6 +46,7 @@ import { mapNftItemsResponse } from './mappers/map-nft-items';
 import type { TonApiJettonInfo, TonApiJettonsBalances } from './types/jettons';
 import type { TonApiNftItems, TonApiNftItem } from './types/nfts';
 import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './types/dns';
+import { Base64ToBigInt, getNormalizedExtMessageHash } from '../../utils';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
         let defaultEndpoint: string;
@@ -115,15 +116,15 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return mapNftItemsResponse(raw.nft_items);
     }
 
-    async sendBoc(_boc: Base64String): Promise<string> {
-        // if (this.disableNetworkSend) {
-        //     return '';
-        // }
+    async sendBoc(boc: Base64String): Promise<string> {
+        if (this.disableNetworkSend) {
+            return '';
+        }
 
-        // await this.postJson('/v2/liteserver/send_message', { boc });
+        await this.postJson('/v2/liteserver/send_message', { boc });
+        const { hash } = getNormalizedExtMessageHash(boc);
 
-        // TODO: return normalized hash from getNormalizedExtMessageHash.ts after merge feat/appkit-tx-status
-        throw new Error('Method not implemented.');
+        return Base64ToBigInt(hash).toString(16);
     }
 
     async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
