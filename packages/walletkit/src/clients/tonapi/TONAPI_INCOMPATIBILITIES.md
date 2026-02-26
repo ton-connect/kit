@@ -1,7 +1,6 @@
 # TonAPI vs Toncenter
 
 ## `getAccountState`
-- ❌ No `code`, `data`, `lastTransaction`, `frozenHash` — always `null`
 - ❌ No historical state query (`seqno` ignored)
 
 ## `jettonsByAddress`

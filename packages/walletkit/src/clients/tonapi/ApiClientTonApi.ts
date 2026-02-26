@@ -36,7 +36,7 @@ import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '..
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';
-import type { TonApiAccount } from './types/accounts';
+import type { TonApiBlockchainAccount } from './types/accounts';
 import { asAddressFriendly } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
 import { mapJettonMasters } from './mappers/map-jetton-masters';
@@ -53,7 +53,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async getAccountState(address: UserFriendlyAddress, _seqno?: number): Promise<FullAccountState> {
         // Note: seqno parameter is not supported by TonApi /v2/accounts endpoint for historical state queries
-        const raw = await this.getJson<TonApiAccount>(`/v2/accounts/${address}`);
+        const raw = await this.getJson<TonApiBlockchainAccount>(`/v2/blockchain/accounts/${address}`);
 
         return mapAccountState(raw);
     }
