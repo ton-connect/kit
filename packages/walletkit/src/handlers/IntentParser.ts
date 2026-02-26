@@ -15,8 +15,6 @@ import type {
     IntentOrigin,
     IntentRequestEvent,
     IntentRequestBase,
-    TransactionIntentRequestEvent,
-    SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
     IntentDeliveryMode,
     TransactionRequest,
@@ -312,10 +310,7 @@ export class IntentParser {
         const ciphertext = encrypted.slice(24);
         const decrypted = nacl.box.open(ciphertext, nonce, clientPubKey, walletPrivateKey);
         if (!decrypted) {
-            throw new WalletKitError(
-                ERROR_CODES.VALIDATION_ERROR,
-                'Failed to decrypt intent payload',
-            );
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Failed to decrypt intent payload');
         }
 
         return new TextDecoder().decode(decrypted);
@@ -465,10 +460,7 @@ export class IntentParser {
         }
     }
 
-    private parseActionTransaction(
-        base: IntentRequestBase,
-        action: Record<string, unknown>,
-    ): IntentRequestEvent {
+    private parseActionTransaction(base: IntentRequestBase, action: Record<string, unknown>): IntentRequestEvent {
         const rawMessages = action.messages as Array<Record<string, unknown>> | undefined;
         if (!rawMessages || !Array.isArray(rawMessages) || rawMessages.length === 0) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action sendTransaction missing messages');
