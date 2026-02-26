@@ -634,10 +634,7 @@ export class TonWalletKit implements ITonWalletKit {
         connectionEvent.walletId = walletId;
 
         // Auto-approve: create session and send ConnectEvent response to dApp
-        await this.requestProcessor.approveConnectRequest(
-            connectionEvent,
-            proof ? { proof } : undefined,
-        );
+        await this.requestProcessor.approveConnectRequest(connectionEvent, proof ? { proof } : undefined);
     }
 
     // === URL Processing API ===

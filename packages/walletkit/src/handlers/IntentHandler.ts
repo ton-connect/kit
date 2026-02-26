@@ -34,7 +34,6 @@ import type {
     SignDataPayload,
     Base64String,
     UserFriendlyAddress,
-    Network,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types';
 
