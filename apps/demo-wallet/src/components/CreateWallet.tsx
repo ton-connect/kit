@@ -8,6 +8,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { CreateTonMnemonic } from '@ton/walletkit';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { MnemonicGrid } from './MnemonicGrid';
@@ -15,7 +16,7 @@ import { MnemonicSkeleton } from './MnemonicSkeleton';
 import { NetworkSelector } from './NetworkSelector';
 
 interface CreateWalletProps {
-    onConfirm: (mnemonic: string[], network: 'mainnet' | 'testnet') => Promise<void>;
+    onConfirm: (mnemonic: string[], network: NetworkType) => Promise<void>;
     isLoading: boolean;
     error: string;
 }
@@ -25,7 +26,7 @@ export const CreateWallet: React.FC<CreateWalletProps> = ({ onConfirm, isLoading
     const [showMnemonic, setShowMnemonic] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+    const [network, setNetwork] = useState<NetworkType>('mainnet');
     const [generationError, setGenerationError] = useState('');
 
     const generateMnemonic = useCallback(async () => {

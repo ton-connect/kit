@@ -42,11 +42,12 @@ import {
 import type { Wallet, ApiClientConfig, WalletSigner } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
+import type { NetworkType } from './types/config.js';
 
 const SERVER_NAME = 'ton-mcp';
 
 // Read configuration from environment variables
-const NETWORK = (process.env.NETWORK as 'mainnet' | 'testnet') || 'mainnet';
+const NETWORK = (process.env.NETWORK as NetworkType) || 'mainnet';
 const MNEMONIC = process.env.MNEMONIC;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const WALLET_VERSION = (process.env.WALLET_VERSION as 'v5r1' | 'v4r2') || 'v5r1';

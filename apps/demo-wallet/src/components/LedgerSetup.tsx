@@ -8,19 +8,20 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@demo/wallet-core';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { NetworkSelector } from './NetworkSelector';
 
 interface LedgerSetupProps {
-    onConnect: (network: 'mainnet' | 'testnet') => Promise<void>;
+    onConnect: (network: NetworkType) => Promise<void>;
     onBack: () => void;
     isLoading: boolean;
     error: string;
 }
 
 export const LedgerSetup: React.FC<LedgerSetupProps> = ({ onConnect, onBack, isLoading, error }) => {
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+    const [network, setNetwork] = useState<NetworkType>('mainnet');
     const { ledgerAccountNumber, setLedgerAccountNumber } = useAuth();
 
     const handleConnect = async () => {

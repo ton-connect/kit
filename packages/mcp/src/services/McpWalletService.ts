@@ -29,6 +29,7 @@ import type {
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
 import type { IContactResolver } from '../types/contacts.js';
+import type { NetworkType } from '../types/config.js';
 
 /**
  * Jetton information
@@ -190,9 +191,13 @@ export class McpWalletService {
     /**
      * Get wallet network
      */
-    getNetwork(): 'mainnet' | 'testnet' {
+    getNetwork(): NetworkType {
         const network = this.wallet.getNetwork();
-        return network.chainId === Network.mainnet().chainId ? 'mainnet' : 'testnet';
+        return network.chainId === Network.mainnet().chainId
+            ? 'mainnet'
+            : Network.tetra().chainId
+              ? 'tetra'
+              : 'testnet';
     }
 
     /**

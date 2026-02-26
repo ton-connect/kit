@@ -7,6 +7,7 @@
  */
 
 import React, { useState } from 'react';
+import { getNetworkLabel } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
 
 import { createComponentLogger } from '../utils/logger';
@@ -113,10 +114,12 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
                                     className={`px-1.5 py-0.5 text-xs font-medium rounded ${
                                         activeWallet.network === 'mainnet'
                                             ? 'bg-green-100 text-green-800'
-                                            : 'bg-blue-100 text-blue-800'
+                                            : activeWallet.network === 'tetra'
+                                              ? 'bg-purple-100 text-purple-800'
+                                              : 'bg-blue-100 text-blue-800'
                                     }`}
                                 >
-                                    {activeWallet.network === 'mainnet' ? 'Mainnet' : 'Testnet'}
+                                    {getNetworkLabel(activeWallet.network)}
                                 </span>
                             )}
                         </div>
@@ -218,10 +221,12 @@ export const WalletSwitcher: React.FC<WalletSwitcherProps> = ({
                                                         className={`px-1.5 py-0.5 text-xs font-medium rounded ${
                                                             wallet.network === 'mainnet'
                                                                 ? 'bg-green-100 text-green-800'
-                                                                : 'bg-blue-100 text-blue-800'
+                                                                : wallet.network === 'tetra'
+                                                                  ? 'bg-purple-100 text-purple-800'
+                                                                  : 'bg-blue-100 text-blue-800'
                                                         }`}
                                                     >
-                                                        {wallet.network === 'mainnet' ? 'Mainnet' : 'Testnet'}
+                                                        {getNetworkLabel(wallet.network)}
                                                     </span>
                                                     {isActive && (
                                                         <span className="text-xs text-blue-600 font-medium">

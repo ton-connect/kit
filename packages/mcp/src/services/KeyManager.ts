@@ -19,6 +19,8 @@ import { join } from 'node:path';
 
 import { mnemonicNew, keyPairFromSeed, mnemonicToPrivateKey } from '@ton/crypto';
 
+import type { NetworkType } from '../types/config.js';
+
 export interface StoredKeyData {
     /** User's wallet address that this keypair controls */
     walletAddress: string;
@@ -26,8 +28,8 @@ export interface StoredKeyData {
     publicKey: string;
     /** Private key (seed) in hex format */
     privateKey: string;
-    /** Network: mainnet or testnet */
-    network: 'mainnet' | 'testnet';
+    /** Network */
+    network: NetworkType;
     /** Creation timestamp */
     createdAt: string;
 }
@@ -69,7 +71,7 @@ export class KeyManager {
     /**
      * Generate a new keypair and store it
      */
-    static async generateAndStoreKey(walletAddress: string, network: 'mainnet' | 'testnet'): Promise<StoredKeyData> {
+    static async generateAndStoreKey(walletAddress: string, network: NetworkType): Promise<StoredKeyData> {
         // Generate new mnemonic and derive keypair
         const mnemonic = await mnemonicNew(24);
         const keyPair = await mnemonicToPrivateKey(mnemonic);

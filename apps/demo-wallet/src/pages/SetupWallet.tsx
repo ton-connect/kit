@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useWallet } from '@demo/wallet-core';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { Layout, Button, ImportWallet, CreateWallet, LedgerSetup } from '../components';
 import { useTonWallet } from '../hooks';
@@ -25,7 +26,7 @@ export const SetupWallet: React.FC = () => {
     const { setUseWalletInterfaceType } = useAuth();
     const { hasWallet } = useWallet();
 
-    const handleCreateWallet = async (mnemonic: string[], network: 'mainnet' | 'testnet') => {
+    const handleCreateWallet = async (mnemonic: string[], network: NetworkType) => {
         setError('');
         setIsLoading(true);
 
@@ -44,7 +45,7 @@ export const SetupWallet: React.FC = () => {
         mnemonicArray: string[],
         interfaceType: 'signer' | 'mnemonic',
         version?: 'v5r1' | 'v4r2',
-        network?: 'mainnet' | 'testnet',
+        network?: NetworkType,
     ) => {
         setError('');
         setIsLoading(true);
@@ -64,7 +65,7 @@ export const SetupWallet: React.FC = () => {
         }
     };
 
-    const handleCreateLedgerWallet = async (network: 'mainnet' | 'testnet') => {
+    const handleCreateLedgerWallet = async (network: NetworkType) => {
         setError('');
         setIsLoading(true);
 

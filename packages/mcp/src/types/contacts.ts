@@ -6,6 +6,8 @@
  *
  */
 
+import type { NetworkType } from './config.js';
+
 /**
  * IContactResolver - Optional interface for resolving friend names to TON addresses
  *
@@ -22,7 +24,7 @@ export interface Contact {
     /** TON address */
     address: string;
     /** Optional network specification (defaults to any) */
-    network?: 'mainnet' | 'testnet';
+    network?: NetworkType;
 }
 
 /**
