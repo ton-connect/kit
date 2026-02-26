@@ -45,6 +45,7 @@ import {
     ROOT_DNS_RESOLVER_TESTNET,
 } from '../../types/toncenter/dnsResolve';
 import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
+import { Network } from '../../api/models';
 import type {
     Base64String,
     GetMethodResult,
@@ -76,7 +77,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
 
     constructor(config: ApiClientConfig = {}) {
         const defaultEndpoint =
-            this.network?.chainId === Network.mainnet().chainId
+            config.network?.chainId === Network.mainnet().chainId
                 ? 'https://toncenter.com'
                 : 'https://testnet.toncenter.com';
 
