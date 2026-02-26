@@ -8,13 +8,13 @@
 
 import type { AppKit } from '@ton/appkit';
 import { addConnector } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit';
+import { tonConnect } from '@ton/appkit';
 
 export const addConnectorExample = (appKit: AppKit) => {
     // SAMPLE_START: ADD_CONNECTOR
     const stopWatching = addConnector(
         appKit,
-        new TonConnectConnector({
+        tonConnect({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },

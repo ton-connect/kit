@@ -7,15 +7,15 @@
  */
 
 import type { AppKit } from '../../core/app-kit';
-import type { Connector } from '../../types/connector';
+import type { CreateConnectorFn } from '../../types/connector';
 
-export type AddConnectorParameters = Connector;
+export type AddConnectorParameters = CreateConnectorFn;
 
 export type AddConnectorReturnType = () => void;
 
 /**
  * Add a wallet connector
  */
-export const addConnector = (appKit: AppKit, connector: AddConnectorParameters): AddConnectorReturnType => {
-    return appKit.addConnector(connector);
+export const addConnector = (appKit: AppKit, connectorFn: AddConnectorParameters): AddConnectorReturnType => {
+    return appKit.addConnector(connectorFn);
 };

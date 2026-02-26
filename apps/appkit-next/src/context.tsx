@@ -6,12 +6,20 @@
  *
  */
 
-import { AppKit, Network, tonConnect } from '@ton/appkit';
-import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
+'use client';
 
-import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from '@/core/configs/env';
+import { AppKit, Network, AppKitProvider, tonConnect } from '@ton/appkit-react';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+// import { useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
-export const appKit = new AppKit({
+import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET } from './config/env';
+
+// Import styles
+import '@ton/appkit-react/styles.css';
+
+const appKit = new AppKit({
+    ssr: true,
     networks: {
         [Network.mainnet().chainId]: {
             apiClient: {
@@ -33,5 +41,14 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new OmnistonSwapProvider()],
 });
+
+const queryClient = new QueryClient();
+
+export default function AppKitContext({ children }: { children: ReactNode }) {
+    return (
+        <AppKitProvider appKit={appKit}>
+            <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </AppKitProvider>
+    );
+}

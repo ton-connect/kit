@@ -8,7 +8,7 @@
 
 import type { NetworkAdapters } from '@ton/walletkit';
 
-import type { Connector } from '../../../types/connector';
+import type { CreateConnectorFn } from '../../../types/connector';
 import type { Provider } from '../../../types/provider';
 
 /**
@@ -23,6 +23,19 @@ export interface AppKitConfig {
      * Values contain apiClient configuration (url and optional API key)
      */
     networks?: NetworkAdapters;
-    connectors?: Connector[];
+
+    /**
+     * Wallet connectors
+     */
+    connectors?: CreateConnectorFn[];
+
+    /**
+     * Wallet providers
+     */
     providers?: Provider[];
+
+    /**
+     * Enable server-side rendering support
+     */
+    ssr?: boolean;
 }
