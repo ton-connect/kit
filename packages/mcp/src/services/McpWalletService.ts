@@ -16,7 +16,7 @@
  * with user-specific wallet instances.
  */
 
-import { TonWalletKit, MemoryStorageAdapter, Network, wrapWalletInterface } from '@ton/walletkit';
+import { TonWalletKit, MemoryStorageAdapter, Network, wrapWalletInterface, getTransactionStatus } from '@ton/walletkit';
 import type {
     Wallet,
     SwapQuoteParams,
@@ -24,6 +24,7 @@ import type {
     ApiClientConfig,
     WalletAdapter,
     TransactionRequest,
+    TransactionStatusResponse,
 } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
@@ -101,6 +102,7 @@ export interface TransactionInfo {
 export interface TransferResult {
     success: boolean;
     message: string;
+    normalizedHash?: string;
 }
 
 /**
@@ -360,11 +362,12 @@ export class McpWalletService {
                 comment,
             });
 
-            await this.wallet.sendTransaction(tx);
+            const response = await this.wallet.sendTransaction(tx);
 
             return {
                 success: true,
                 message: `Successfully sent ${amountNano} nanoTON to ${toAddress}`,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {
@@ -391,11 +394,12 @@ export class McpWalletService {
                 comment,
             });
 
-            await this.wallet.sendTransaction(tx);
+            const response = await this.wallet.sendTransaction(tx);
 
             return {
                 success: true,
                 message: `Successfully sent jettons to ${toAddress}`,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {
@@ -420,11 +424,12 @@ export class McpWalletService {
         fromAddress?: string;
     }): Promise<TransferResult> {
         try {
-            await this.wallet.sendTransaction(request as TransactionRequest);
+            const tx = await this.wallet.sendTransaction(request as TransactionRequest);
 
             return {
                 success: true,
                 message: `Successfully sent transaction with ${request.messages.length} message(s)`,
+                normalizedHash: tx.normalizedHash,
             };
         } catch (error) {
             return {
@@ -432,6 +437,17 @@ export class McpWalletService {
                 message: error instanceof Error ? error.message : 'Unknown error',
             };
         }
+    }
+
+    /**
+     * Get the status of a transaction by its normalized hash.
+     *
+     * In TON, a single external message triggers a tree of internal messages.
+     * The transaction is "complete" only when the entire trace finishes.
+     */
+    async getTransactionStatus(normalizedHash: string): Promise<TransactionStatusResponse> {
+        const client = this.wallet.getClient();
+        return getTransactionStatus(client, { normalizedHash });
     }
 
     /**
@@ -569,11 +585,12 @@ export class McpWalletService {
                 comment,
             });
 
-            await this.wallet.sendTransaction(tx);
+            const response = await this.wallet.sendTransaction(tx);
 
             return {
                 success: true,
                 message: `Successfully sent NFT ${nftAddress} to ${toAddress}`,
+                normalizedHash: response.normalizedHash,
             };
         } catch (error) {
             return {

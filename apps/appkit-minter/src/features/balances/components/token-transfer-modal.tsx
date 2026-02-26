@@ -8,10 +8,11 @@
 
 import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/appkit';
-import { getFormattedJettonInfo, formatUnits, getErrorMessage } from '@ton/appkit';
+import { getFormattedJettonInfo, getErrorMessage } from '@ton/appkit';
 import { SendTonButton, SendJettonButton } from '@ton/appkit-react';
 
 import { Button } from '@/core/components';
+import { TransactionStatus } from '@/features/transaction';
 
 interface TokenTransferModalProps {
     tokenType: 'TON' | 'JETTON';
@@ -32,6 +33,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
     const [amount, setAmount] = useState('');
     const [comment, setComment] = useState('');
     const [transferError, setTransferError] = useState<string | null>(null);
+    const [txBoc, setTxBoc] = useState<string | null>(null);
 
     const tokenInfo = useMemo(() => {
         if (tokenType === 'TON') {
@@ -39,7 +41,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                 name: 'Toncoin',
                 symbol: 'TON',
                 decimals: 9,
-                balance: formatUnits(tonBalance, 9),
+                balance: tonBalance,
                 image: './ton.png',
                 address: null,
             };
@@ -66,6 +68,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
         setAmount('');
         setComment('');
         setTransferError(null);
+        setTxBoc(null);
         onClose();
     };
 
@@ -113,105 +116,118 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                         </button>
                     </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-1">
-                                Recipient Address
-                            </label>
-                            <input
-                                type="text"
-                                value={recipientAddress}
-                                onChange={(e) => setRecipientAddress(e.target.value)}
-                                placeholder="Enter TON address"
-                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                            />
+                    {txBoc ? (
+                        <div className="space-y-6">
+                            <TransactionStatus boc={txBoc} />
+                            <Button className="w-full" onClick={handleClose}>
+                                Close
+                            </Button>
                         </div>
+                    ) : (
+                        <>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                        Recipient Address
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={recipientAddress}
+                                        onChange={(e) => setRecipientAddress(e.target.value)}
+                                        placeholder="Enter TON address"
+                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-1">Amount</label>
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="0.00"
-                                step="any"
-                                min="0"
-                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                            />
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                        Amount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={(e) => setAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        step="any"
+                                        min="0"
+                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-1">
-                                Comment (optional)
-                            </label>
-                            <input
-                                type="text"
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                placeholder="Add a comment"
-                                className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                            />
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                                        Comment (optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Add a comment"
+                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
+                                    />
+                                </div>
 
-                        {transferError && (
-                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                                <p className="text-sm text-destructive">{transferError}</p>
+                                {transferError && (
+                                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                                        <p className="text-sm text-destructive">{transferError}</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <div className="flex mt-6 gap-3">
-                        {tokenType === 'TON' && (
-                            <SendTonButton
-                                recipientAddress={recipientAddress}
-                                amount={amount}
-                                comment={comment}
-                                onError={(error) => setTransferError(getErrorMessage(error))}
-                                onSuccess={handleClose}
-                            >
-                                {({ isLoading, onSubmit, disabled, text }) => (
-                                    <Button
-                                        isLoading={isLoading}
-                                        onClick={onSubmit}
-                                        disabled={disabled}
-                                        className="flex-1"
+                            <div className="flex mt-6 gap-3">
+                                {tokenType === 'TON' && (
+                                    <SendTonButton
+                                        recipientAddress={recipientAddress}
+                                        amount={amount}
+                                        comment={comment}
+                                        onError={(error) => setTransferError(getErrorMessage(error))}
+                                        onSuccess={(data) => setTxBoc(data.boc)}
                                     >
-                                        {text}
-                                    </Button>
+                                        {({ isLoading, onSubmit, disabled, text }) => (
+                                            <Button
+                                                isLoading={isLoading}
+                                                onClick={onSubmit}
+                                                disabled={disabled}
+                                                className="flex-1"
+                                            >
+                                                {text}
+                                            </Button>
+                                        )}
+                                    </SendTonButton>
                                 )}
-                            </SendTonButton>
-                        )}
 
-                        {tokenType === 'JETTON' && jetton?.address && (
-                            <SendJettonButton
-                                jetton={{
-                                    address: jetton.address,
-                                    symbol: jetton.info?.symbol || 'Jetton',
-                                    decimals: tokenInfo.decimals,
-                                }}
-                                recipientAddress={recipientAddress}
-                                amount={amount}
-                                comment={comment}
-                                onError={(error) => setTransferError(getErrorMessage(error))}
-                                onSuccess={handleClose}
-                            >
-                                {({ isLoading, onSubmit, disabled, text }) => (
-                                    <Button
-                                        isLoading={isLoading}
-                                        onClick={onSubmit}
-                                        disabled={disabled}
-                                        className="flex-1"
+                                {tokenType === 'JETTON' && jetton?.address && (
+                                    <SendJettonButton
+                                        jetton={{
+                                            address: jetton.address,
+                                            symbol: jetton.info?.symbol || 'Jetton',
+                                            decimals: tokenInfo.decimals,
+                                        }}
+                                        recipientAddress={recipientAddress}
+                                        amount={amount}
+                                        comment={comment}
+                                        onError={(error) => setTransferError(getErrorMessage(error))}
+                                        onSuccess={(data) => setTxBoc(data.boc)}
                                     >
-                                        {text}
-                                    </Button>
+                                        {({ isLoading, onSubmit, disabled, text }) => (
+                                            <Button
+                                                isLoading={isLoading}
+                                                onClick={onSubmit}
+                                                disabled={disabled}
+                                                className="flex-1"
+                                            >
+                                                {text}
+                                            </Button>
+                                        )}
+                                    </SendJettonButton>
                                 )}
-                            </SendJettonButton>
-                        )}
 
-                        <Button variant="secondary" onClick={handleClose} className="flex-1">
-                            Cancel
-                        </Button>
-                    </div>
+                                <Button variant="secondary" onClick={handleClose} className="flex-1">
+                                    Cancel
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

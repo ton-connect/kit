@@ -331,57 +331,58 @@ export class ApiClientToncenter implements ApiClient {
 
         const traceId = padBase64(Base64Normalize(inTraceId || '').replace(/=/g, ''));
 
-        try {
-            const response = await CallForSuccess(() =>
-                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
-                    tx_hash: traceId,
-                }),
-            );
-            if (response.traces.length > 0) {
-                return response;
-            }
-        } catch (error) {
-            log.error('Error fetching trace', { error });
-        }
-
-        try {
-            const response = await CallForSuccess(() =>
-                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
-                    trace_id: traceId,
-                }),
+        const tryGetTrace = async (field: 'tx_hash' | 'trace_id' | 'msg_hash') => {
+            const response = await CallForSuccess(
+                () => this.getJson<ToncenterTracesResponse>('/api/v3/traces', { [field]: traceId }),
+                undefined,
+                undefined,
+                // 422: toncenter failed to decode field value
+                (err) => (err instanceof TonClientError ? err.status !== 422 : true),
             );
 
-            if (response.traces.length > 0) {
+            if (response?.traces?.length > 0) {
                 return response;
             }
-        } catch (error) {
-            log.error('Error fetching trace', { error });
+
+            throw new Error(`No traces found for ${field}`);
+        };
+
+        const results = await Promise.allSettled([
+            tryGetTrace('tx_hash'),
+            tryGetTrace('trace_id'),
+            tryGetTrace('msg_hash'),
+        ]);
+
+        const fulfilledResult = results.find((result) => result.status === 'fulfilled');
+
+        if (fulfilledResult) {
+            return fulfilledResult.value;
         }
 
-        try {
-            const response = await CallForSuccess(() =>
-                this.getJson<ToncenterTracesResponse>('/api/v3/traces', {
-                    msg_hash: traceId,
-                }),
-            );
-            if (response.traces.length > 0) {
-                return response;
+        results.forEach((result) => {
+            if (result.status === 'rejected') {
+                log.error('Error fetching trace', { error: result.reason });
             }
-        } catch (error) {
-            log.error('Error fetching pending trace', { error });
-        }
+        });
 
         throw new Error('Failed to fetch trace');
     }
 
     async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
         try {
-            const response = await CallForSuccess(() =>
-                this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
-                    ext_msg_hash: request.externalMessageHash,
-                }),
+            const response = await CallForSuccess(
+                () => {
+                    return this.getJson<ToncenterTracesResponse>('/api/v3/pendingTraces', {
+                        ext_msg_hash: request.externalMessageHash,
+                    });
+                },
+                undefined,
+                undefined,
+                // 422: toncenter failed to decode field value
+                (err) => (err instanceof TonClientError ? err.status !== 422 : true),
             );
-            if (response.traces.length > 0) {
+
+            if (response?.traces?.length > 0) {
                 return response;
             }
         } catch (error) {

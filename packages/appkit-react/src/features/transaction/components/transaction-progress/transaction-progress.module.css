@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+    color: var(--ta-color-text);
+}
+
+.iconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ta-color-text-secondary);
+}
+
+.spinner {
+    animation: transaction-status-spin 1s linear infinite;
+    color: var(--ta-color-primary);
+}
+
+.success {
+    color: #4caf50;
+}
+
+.failed {
+    color: #f44336;
+}
+
+.message {
+    composes: bodyLargeMedium from "../../../../styles/typography.module.css";
+    text-align: center;
+    font-family: var(--ta-font-family-mono);
+}
+
+@keyframes transaction-status-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

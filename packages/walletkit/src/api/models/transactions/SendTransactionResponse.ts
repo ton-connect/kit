@@ -13,4 +13,12 @@ export interface SendTransactionResponse {
      * BOC of the sent transaction
      */
     boc: Base64String;
+    /**
+     * Normalized BOC of the external-in message
+     */
+    normalizedBoc: Base64String;
+    /**
+     * Hash of the normalized external-in message
+     */
+    normalizedHash: Base64String;
 }

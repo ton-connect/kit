@@ -144,7 +144,8 @@ export function createMcpNftTools(service: McpWalletService) {
         },
 
         send_nft: {
-            description: 'Transfer an NFT from the wallet to another address.',
+            description:
+                'Transfer an NFT from the wallet to another address. Returns normalizedHash. Default flow: poll get_transaction_status until completed or failed; user can skip.',
             inputSchema: sendNftSchema,
             handler: async (args: z.infer<typeof sendNftSchema>): Promise<ToolResponse> => {
                 try {
@@ -160,6 +161,7 @@ export function createMcpNftTools(service: McpWalletService) {
                                         message: result.message,
                                         nftAddress: args.nftAddress,
                                         recipient: args.toAddress,
+                                        normalizedHash: result.normalizedHash,
                                     },
                                     null,
                                     2,

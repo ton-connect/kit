@@ -179,3 +179,12 @@ export {
     type SendTransactionParameters,
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
+export {
+    getTransactionStatusQueryOptions,
+    type GetTransactionStatusData,
+    type GetTransactionStatusErrorType,
+    type GetTransactionStatusParameters,
+    type GetTransactionStatusReturnType,
+    type GetTransactionStatusQueryConfig,
+    type GetTransactionStatusQueryOptions,
+} from './transaction/get-transaction-status';

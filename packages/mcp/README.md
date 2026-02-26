@@ -98,10 +98,18 @@ Get recent transaction history for the wallet (TON transfers, Jetton transfers, 
 **Parameters:**
 - `limit` (optional): Maximum number of transactions to return (default: 20, max: 100)
 
+#### `get_transaction_status`
+Get the status of a transaction by its normalized hash to know if it is pending, completed, or failed. In TON, a transaction is considered "complete" only when the entire trace finishes processing.
+
+**Default flow:** After sending a transaction, poll this until status is completed or failed. User can specify whether to check status.
+
+**Parameters:**
+- `normalizedHash` (required): Normalized hash of the external-in transaction (Base64 string). Note: This must be the *normalized* hash of the message sent to the network.
+
 ### Transfers
 
 #### `send_ton`
-Send TON to an address. Amount is in human-readable format (e.g., `"1.5"` means 1.5 TON).
+Send TON to an address. Amount is in human-readable format (e.g., `"1.5"` means 1.5 TON). Returns `normalizedHash`. Default flow: poll `get_transaction_status` until completed or failed; user can skip.
 
 **Parameters:**
 - `toAddress` (required): Recipient TON address
@@ -109,7 +117,7 @@ Send TON to an address. Amount is in human-readable format (e.g., `"1.5"` means 
 - `comment` (optional): Transaction comment/memo
 
 #### `send_jetton`
-Send Jettons to an address. Amount is in human-readable format.
+Send Jettons to an address. Amount is in human-readable format. Returns `normalizedHash`. Default flow: poll `get_transaction_status` until completed or failed; user can skip.
 
 **Parameters:**
 - `toAddress` (required): Recipient TON address
@@ -118,7 +126,7 @@ Send Jettons to an address. Amount is in human-readable format.
 - `comment` (optional): Transaction comment/memo
 
 #### `send_raw_transaction`
-Send a raw transaction with full control over messages. Supports multiple messages in a single transaction.
+Send a raw transaction with full control over messages. Supports multiple messages. Returns `normalizedHash`. Default flow: poll `get_transaction_status` until completed or failed; user can skip.
 
 **Parameters:**
 - `messages` (required): Array of messages, each with:
@@ -156,7 +164,7 @@ Get detailed information about a specific NFT by its address.
 - `nftAddress` (required): NFT item contract address
 
 #### `send_nft`
-Transfer an NFT from the wallet to another address.
+Transfer an NFT from the wallet to another address. Returns `normalizedHash`. Default flow: poll `get_transaction_status` until completed or failed; user can skip.
 
 **Parameters:**
 - `nftAddress` (required): NFT item contract address to transfer

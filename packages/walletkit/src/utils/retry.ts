@@ -15,6 +15,7 @@ export async function CallForSuccess<T extends (...args: any[]) => any>(
     toCall: T,
     attempts = 20,
     delayMs = 100,
+    shouldRetry?: (error: unknown) => boolean,
 ): Promise<ReturnType<T>> {
     if (typeof toCall !== 'function') {
         throw new Error('unknown input');
@@ -29,6 +30,11 @@ export async function CallForSuccess<T extends (...args: any[]) => any>(
             return res;
         } catch (err) {
             lastError = err;
+
+            if (shouldRetry && !shouldRetry(err)) {
+                throw err;
+            }
+
             i++;
             await delay(delayMs);
         }

@@ -50,19 +50,22 @@ Use this skill when the user wants to:
 ### Send TON
 1. If user provides .ton domain, call `resolve_dns` first
 2. Call `send_ton` with address and amount
+3. By default, poll `get_transaction_status` until status is completed or failed. User can ask to skip.
 
 ### Send Token
 1. Call `get_jettons` to find token address and verify balance
 2. Call `send_jetton` with token address and amount
+3. By default, poll `get_transaction_status` until status is completed or failed. User can ask to skip.
 
 ### Swap Tokens
 1. Call `get_known_jettons` if user mentions token by name
 2. Call `get_swap_quote` to get quote and transaction params
 3. Show quote to user and ask for confirmation
 4. Call `send_raw_transaction` with the transaction params
+5. By default, poll `get_transaction_status` until status is completed or failed. User can ask to skip.
 
 ## Notes
 
 - Amounts for `send_ton`, `send_jetton`, and `get_swap_quote` are human-readable (e.g., "1.5" = 1.5 TON)
 - Always confirm with user before executing transfers or swaps
-- Transaction results include success status and details
+- **Default flow:** After sending, poll `get_transaction_status` until completed or failed. User can specify whether to check status.
