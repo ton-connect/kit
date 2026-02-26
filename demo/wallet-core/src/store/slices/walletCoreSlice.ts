@@ -16,6 +16,7 @@ import { getTonConnectDeviceInfo, getTonConnectWalletManifest } from '../../util
 import type { SetState, WalletCoreSliceCreator } from '../../types/store';
 import type { WalletKitConfig } from '../../types/wallet';
 import { getErrorMessage } from '../../utils/error';
+import type { NetworkType } from '../../utils';
 
 const log = createComponentLogger('WalletCoreSlice');
 
@@ -87,7 +88,7 @@ export const createWalletCoreSlice =
             initializationError: null,
         },
 
-        initializeWalletKit: async (network: 'mainnet' | 'testnet' = 'testnet'): Promise<void> => {
+        initializeWalletKit: async (network: NetworkType = 'testnet'): Promise<void> => {
             const state = get();
 
             // Check if we need to reinitialize

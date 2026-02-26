@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { LedgerSettings } from '../ledger-settings';
 
@@ -18,8 +19,8 @@ import { AppText } from '@/core/components/app-text';
 
 interface Props {
     deviceName?: string;
-    network: 'mainnet' | 'testnet' | 'tetra';
-    onNetworkChange: (network: 'mainnet' | 'testnet' | 'tetra') => void;
+    network: NetworkType;
+    onNetworkChange: (network: NetworkType) => void;
     accountNumber: number;
     onAccountNumberChange: (accountNumber: number) => void;
     onCreateWallet: () => void;

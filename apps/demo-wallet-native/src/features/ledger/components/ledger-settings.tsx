@@ -9,6 +9,7 @@
 import type { FC } from 'react';
 import { View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { AppText } from '@/core/components/app-text';
 import { TabControl } from '@/core/components/tab-control';
@@ -21,8 +22,8 @@ const networkOptions = [
 ];
 
 interface LedgerSettingsProps {
-    network: 'mainnet' | 'testnet' | 'tetra';
-    onNetworkChange: (network: 'mainnet' | 'testnet' | 'tetra') => void;
+    network: NetworkType;
+    onNetworkChange: (network: NetworkType) => void;
     accountNumber: number;
     onAccountNumberChange: (accountNumber: number) => void;
 }
