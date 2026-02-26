@@ -6,7 +6,6 @@
  *
  */
 
-import { Address } from '@ton/core';
 import type { ConnectRequest } from '@tonconnect/protocol';
 
 import { globalLogger } from '../core/Logger';
@@ -34,6 +33,7 @@ import type {
     TransactionRequest,
     SignDataPayload,
     Base64String,
+    UserFriendlyAddress,
     Network,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types';
@@ -138,7 +138,7 @@ export class IntentHandler {
 
         const result: IntentSignDataResponse = {
             signature: signatureBase64 as Base64String,
-            address: Address.parse(wallet.getAddress()).toRawString(),
+            address: wallet.getAddress() as UserFriendlyAddress,
             timestamp: signData.timestamp,
             domain: signData.domain,
             payload: event.payload,
