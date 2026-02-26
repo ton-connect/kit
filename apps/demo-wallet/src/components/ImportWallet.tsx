@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import type { NetworkType } from '@demo/wallet-core';
 
 import { Button } from './Button';
 import { NetworkSelector } from './NetworkSelector';
@@ -16,7 +17,7 @@ interface ImportWalletProps {
         mnemonic: string[],
         interfaceType: 'signer' | 'mnemonic',
         version?: 'v5r1' | 'v4r2',
-        network?: 'mainnet' | 'testnet',
+        network?: NetworkType,
     ) => Promise<void>;
     onBack: () => void;
     isLoading: boolean;
@@ -28,7 +29,7 @@ export const ImportWallet: React.FC<ImportWalletProps> = ({ onImport, onBack, is
     const [activeInput, setActiveInput] = useState(0);
     const [interfaceType, setInterfaceType] = useState<'signer' | 'mnemonic'>('mnemonic');
     const [walletVersion, setWalletVersion] = useState<'v5r1' | 'v4r2'>('v5r1');
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('mainnet');
+    const [network, setNetwork] = useState<NetworkType>('mainnet');
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Initialize refs array

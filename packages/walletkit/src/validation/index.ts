@@ -25,7 +25,6 @@ export {
     validateBouncableAddress,
     validateNonBouncableAddress,
     detectAddressFormat,
-    detectAddressNetwork,
 } from './address';
 
 export {

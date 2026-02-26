@@ -33,6 +33,7 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             jsBridgeTransport: walletKitConfig?.jsBridgeTransport,
         },
 
+        // TODO: Tetra
         networks: {
             [Network.mainnet().chainId]: {
                 apiClient: {
@@ -44,6 +45,12 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
                 apiClient: {
                     url: 'https://testnet.toncenter.com',
                     key: walletKitConfig?.tonApiKeyTestnet,
+                },
+            },
+            [Network.tetra().chainId]: {
+                apiClient: {
+                    url: 'https://tetra.tonapi.io',
+                    key: walletKitConfig?.tonApiKeyTetra,
                 },
             },
         },

@@ -7,8 +7,8 @@
  */
 
 import { Address } from '@ton/core';
-import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
-import { CHAIN, SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
+import type { ChainId, SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
+import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
 import { toTransactionRequest, parseConnectTransactionParamContent } from '../types/internal';
@@ -226,19 +226,14 @@ export class TransactionHandler
      * Parse network from various possible formats
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<CHAIN | undefined> {
+    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<ChainId | undefined> {
         let errors: string[] = [];
         if (typeof network === 'string') {
-            if (network === '-3' || network === '-239') {
-                const chain = network === '-3' ? CHAIN.TESTNET : CHAIN.MAINNET;
-                const walletNetwork = wallet.getNetwork();
-                if (chain !== walletNetwork.chainId) {
-                    errors.push('Invalid network not equal to wallet network');
-                } else {
-                    return { result: chain, isValid: errors.length === 0, errors: errors };
-                }
+            const walletNetwork = wallet.getNetwork();
+            if (network !== walletNetwork.chainId) {
+                errors.push('Invalid network not equal to wallet network');
             } else {
-                errors.push('Invalid network not a valid network');
+                return { result: network, isValid: errors.length === 0, errors: errors };
             }
         } else {
             errors.push('Invalid network not a string');

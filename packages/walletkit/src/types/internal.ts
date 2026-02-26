@@ -13,7 +13,7 @@ import type {
     SendTransactionRpcRequest,
     SignDataRpcRequest,
     WalletResponseTemplateError,
-    CHAIN,
+    ChainId,
 } from '@tonconnect/protocol';
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
@@ -113,14 +113,14 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
  */
 export interface RawConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: CHAIN;
+    network?: ChainId;
     valid_until?: number;
     from?: string;
 }
 
 export interface ConnectTransactionParamContent {
     messages: ConnectTransactionParamMessage[];
-    network?: CHAIN;
+    network?: ChainId;
     validUntil?: number;
     from?: string;
 }
@@ -182,7 +182,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
 export function toConnectTransactionParamContent(request: TransactionRequest): RawConnectTransactionParamContent {
     return {
         messages: request.messages.map(toConnectTransactionParamMessage),
-        network: request.network?.chainId as CHAIN,
+        network: request.network?.chainId,
         valid_until: request.validUntil,
         from: request.fromAddress,
     };

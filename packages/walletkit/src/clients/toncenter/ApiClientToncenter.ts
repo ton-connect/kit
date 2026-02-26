@@ -8,7 +8,6 @@
 
 import type { ExtraCurrency } from '@ton/core';
 import { Address } from '@ton/core';
-import { CHAIN } from '@tonconnect/protocol';
 
 import { Base64ToBigInt, Base64Normalize, Base64ToHex } from '../../utils/base64';
 import type { FullAccountState } from '../../types/toncenter/api';
@@ -77,12 +76,14 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
 
     constructor(config: ApiClientConfig = {}) {
         const defaultEndpoint =
-            config.network?.chainId === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+            this.network?.chainId === Network.mainnet().chainId
+                ? 'https://toncenter.com'
+                : 'https://testnet.toncenter.com';
 
         super(config, defaultEndpoint);
 
         const dnsResolver =
-            this.network?.chainId === CHAIN.MAINNET ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
+            this.network?.chainId === Network.mainnet().chainId ? ROOT_DNS_RESOLVER_MAINNET : ROOT_DNS_RESOLVER_TESTNET;
 
         this.dnsResolver = config.dnsResolver ?? dnsResolver;
     }

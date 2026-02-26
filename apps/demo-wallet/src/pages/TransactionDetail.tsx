@@ -8,9 +8,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Base64Normalize, Network } from '@ton/walletkit';
+import { Base64Normalize } from '@ton/walletkit';
 import type { TransactionMessage } from '@ton/walletkit';
-import { useWalletKit, useWalletStore } from '@demo/wallet-core';
+import { useWalletKit, useWalletStore, getChainNetwork } from '@demo/wallet-core';
 
 interface TransactionDetailData {
     hash: string;
@@ -40,7 +40,7 @@ export const TransactionDetail: React.FC = () => {
     // Get the active wallet's network
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
     const walletNetwork = activeWallet?.network || 'testnet';
-    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
+    const chainNetwork = getChainNetwork(walletNetwork);
 
     const formatTonAmount = (amount: string): string => {
         const tonAmount = parseFloat(amount || '0') / 1000000000;

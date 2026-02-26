@@ -34,7 +34,7 @@ export interface NetworkConfig {
 
 /**
  * Multi-network configuration keyed by chain ID
- * Example: { [CHAIN.MAINNET]: { apiClient: {...} }, [CHAIN.TESTNET]: { apiClient: {...} } }
+ * Example: { [Networl.mainnet().chainId]: { apiClient: {...} }, [Networl.testnet().chainId]: { apiClient: {...} } }
  */
 export type NetworkAdapters = {
     [key: string]: NetworkConfig | undefined;

@@ -8,8 +8,6 @@
 
 // Network management for multi-network support
 
-import { CHAIN } from '@tonconnect/protocol';
-
 import type { ApiClient } from '../types/toncenter/ApiClient';
 import type { ApiClientConfig, TonWalletKitOptions } from '../types/config';
 import { ApiClientToncenter } from '../clients/toncenter';
@@ -28,7 +26,7 @@ export interface NetworkManager {
 /**
  * Manages multiple API clients for different networks
  *
- * Each network (identified by CHAIN) has its own ApiClient instance.
+ * Each network has its own ApiClient instance.
  * At least one network must be configured.
  */
 export class KitNetworkManager implements NetworkManager {
@@ -83,9 +81,16 @@ export class KitNetworkManager implements NetworkManager {
             return apiClientConfig;
         }
 
-        // Create a new ApiClientToncenter
-        const defaultEndpoint =
-            network.chainId === CHAIN.MAINNET ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
+        let defaultEndpoint: string;
+
+        // TODO: Tetra
+        if (network.chainId == Network.mainnet().chainId) {
+            defaultEndpoint = 'https://toncenter.com';
+        } else if (network.chainId == Network.tetra().chainId) {
+            defaultEndpoint = 'https://tetra.tonapi.io';
+        } else {
+            defaultEndpoint = 'https://testnet.toncenter.com';
+        }
 
         const endpoint = apiClientConfig?.url || defaultEndpoint;
 
@@ -115,7 +120,7 @@ export class KitNetworkManager implements NetworkManager {
 
     /**
      * Get API client for a specific network
-     * @param chainId - The chain ID (CHAIN.MAINNET or CHAIN.TESTNET)
+     * @param chainId - The chain ID
      * @returns The API client for the specified network
      * @throws WalletKitError if no client is configured for the network
      */

@@ -6,7 +6,6 @@
  *
  */
 
-import { CHAIN } from '@tonconnect/protocol';
 import { Address } from '@ton/core';
 
 import { mockFn, mocked, useFakeTimers, useRealTimers } from '../../mock.config';
@@ -14,6 +13,7 @@ import { TonWalletKit } from './TonWalletKit';
 import type { TonWalletKitOptions } from '../types';
 import { createDummyWallet, createMockApiClient } from '../contracts/w5/WalletV5R1.fixture';
 import type { InjectedToExtensionBridgeRequest, InjectedToExtensionBridgeRequestPayload } from '../types/jsBridge';
+import { Network } from '../api/models';
 import type { TONTransferRequest } from '../api/models';
 
 const mockApiClient = createMockApiClient();
@@ -37,7 +37,7 @@ describe('TonWalletKit', () => {
         const options: TonWalletKitOptions = {
             // Use networks config (required) - MAINNET to match the dummy wallet fixture
             networks: {
-                [CHAIN.MAINNET]: {},
+                [Network.mainnet().chainId]: {},
             },
             bridge: {
                 enableJsBridge: false,

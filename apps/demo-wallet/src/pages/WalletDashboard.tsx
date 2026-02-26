@@ -191,7 +191,7 @@ export const WalletDashboard: React.FC = () => {
                         {address && (
                             <div className="flex items-center justify-center space-x-6">
                                 <a
-                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonscan.org/address/${address}`}
+                                    href={`https://${network === 'testnet' ? 'testnet.' : network === 'tetra' ? 'tetra.' : ''}tonscan.org/address/${address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all hover:scale-110"
@@ -201,7 +201,7 @@ export const WalletDashboard: React.FC = () => {
                                     <img src="https://tonscan.org/favicon.ico" alt="TONScan" className="w-6 h-6" />
                                 </a>
                                 <a
-                                    href={`https://${network === 'testnet' ? 'testnet.' : ''}tonviewer.com/${address}`}
+                                    href={`https://${network === 'testnet' ? 'testnet.' : network === 'tetra' ? 'tetra.' : ''}tonviewer.com/${address}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all hover:scale-110"

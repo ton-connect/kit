@@ -7,7 +7,6 @@
  */
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
-import { Network } from '@ton/walletkit';
 import type {
     JettonInfo,
     TransactionEmulatedPreview,
@@ -15,8 +14,8 @@ import type {
     TransactionTraceMoneyFlowItem,
 } from '@ton/walletkit';
 import { Address } from '@ton/core';
-import { useWalletKit, useAuth, useWalletStore, useTransactionRequests } from '@demo/wallet-core';
-import type { SavedWallet } from '@demo/wallet-core';
+import { useWalletKit, useAuth, useWalletStore, useTransactionRequests, getChainNetwork } from '@demo/wallet-core';
+import type { SavedWallet, NetworkType } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';
@@ -342,7 +341,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     );
 };
 
-function useActiveWalletNetwork(): 'mainnet' | 'testnet' {
+function useActiveWalletNetwork(): NetworkType {
     const savedWallets = useWalletStore((state) => state.walletManagement.savedWallets);
     const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
@@ -353,7 +352,7 @@ function useJettonInfo(jettonAddress: Address | string | null) {
     const walletKit = useWalletKit();
     const network = useActiveWalletNetwork();
     const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
-    const chainNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
+    const chainNetwork = getChainNetwork(network);
 
     useEffect(() => {
         if (!jettonAddress) {

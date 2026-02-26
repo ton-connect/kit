@@ -25,11 +25,12 @@ const regexp = /\s+/;
 const networkOptions = [
     { value: 'testnet' as const, label: 'Testnet' },
     { value: 'mainnet' as const, label: 'Mainnet' },
+    { value: 'tetra' as const, label: 'Tetra' },
 ];
 
 const ImportMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState('');
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
+    const [network, setNetwork] = useState<'mainnet' | 'testnet' | 'tetra'>('testnet');
     const [isLoading, setIsLoading] = useState(false);
     const [, setError] = useState('');
 
