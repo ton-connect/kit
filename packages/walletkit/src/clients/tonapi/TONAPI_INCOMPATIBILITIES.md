@@ -28,7 +28,6 @@
 ## Not implemented
 - `sendBoc`
 - `fetchEmulation`
-- `runGetMethod`
 - `getAccountTransactions`
 - `getTransactionsByHash`
 - `getPendingTransactions`

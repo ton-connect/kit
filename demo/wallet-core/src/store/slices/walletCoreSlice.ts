@@ -37,10 +37,9 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
         // TODO: Tetra
         networks: {
             [Network.mainnet().chainId]: {
-                apiClient: {
-                    url: 'https:/toncenter.com',
-                    key: walletKitConfig?.tonApiKeyMainnet,
-                },
+                apiClient: new ApiClientTonApi({
+                    network: Network.mainnet(),
+                }),
             },
             [Network.testnet().chainId]: {
                 apiClient: {

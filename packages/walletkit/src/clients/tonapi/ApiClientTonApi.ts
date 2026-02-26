@@ -46,6 +46,8 @@ import { mapNftItemsResponse } from './mappers/map-nft-items';
 import type { TonApiJettonInfo, TonApiJettonsBalances } from './types/jettons';
 import type { TonApiNftItems, TonApiNftItem } from './types/nfts';
 import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './types/dns';
+import type { TonApiMethodExecutionResult } from './types/methods';
+import { mapTonApiGetMethodArgs, mapTonApiTvmStackRecord } from './mappers/map-methods';
 import { Base64ToBigInt, getNormalizedExtMessageHash } from '../../utils';
 export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     constructor(config: BaseApiClientConfig = {}) {
@@ -121,7 +123,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
             return '';
         }
 
-        await this.postJson('/v2/liteserver/send_message', { boc });
+        await this.postJson('/v2/liteserver/send_message', { body: boc });
         const { hash } = getNormalizedExtMessageHash(boc);
 
         return Base64ToBigInt(hash).toString(16);
@@ -132,12 +134,28 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     }
 
     async runGetMethod(
-        _address: UserFriendlyAddress,
-        _method: string,
-        _stack?: RawStackItem[],
+        address: UserFriendlyAddress,
+        method: string,
+        stack?: RawStackItem[],
         _seqno?: number,
     ): Promise<GetMethodResult> {
-        throw new Error('Method not implemented.');
+        const args = mapTonApiGetMethodArgs(stack);
+
+        const raw = await this.postJson<TonApiMethodExecutionResult>(
+            `/v2/blockchain/accounts/${address}/methods/${method}`,
+            { args },
+        );
+
+        if (!raw.success) {
+            throw new Error(`TonApi runGetMethod '${method}' failed with exit code ${raw.exit_code}`);
+        }
+
+        return {
+            // TonApi does not return gas_used
+            gasUsed: 0,
+            exitCode: raw.exit_code,
+            stack: (raw.stack || []).map(mapTonApiTvmStackRecord),
+        };
     }
 
     async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
