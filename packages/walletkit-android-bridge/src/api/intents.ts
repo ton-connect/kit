@@ -10,58 +10,36 @@
  * intents.ts – Bridge API for intent operations
  */
 
-import { getKit } from '../utils/bridge';
-import type {
-    HandleIntentUrlArgs,
-    IsIntentUrlArgs,
-    ApproveTransactionIntentArgs,
-    ApproveSignDataIntentArgs,
-    ApproveActionIntentArgs,
-    RejectIntentArgs,
-    IntentItemsToTransactionRequestArgs,
-    ProcessConnectAfterIntentArgs,
-} from '../types';
+import { kit } from '../utils/bridge';
 
-export async function isIntentUrl(args: IsIntentUrlArgs) {
-    const kit = await getKit();
-    return kit.isIntentUrl(args.url);
+export async function isIntentUrl(args: unknown[]) {
+    return kit('isIntentUrl', ...args);
 }
 
-export async function handleIntentUrl(args: HandleIntentUrlArgs) {
-    const kit = await getKit();
-    return kit.handleIntentUrl(args.url, args.walletId);
+export async function handleIntentUrl(args: unknown[]) {
+    return kit('handleIntentUrl', ...args);
 }
 
-export async function approveTransactionIntent(args: ApproveTransactionIntentArgs) {
-    const kit = await getKit();
-    const event = (args.event as any).value ?? args.event;
-    return kit.approveTransactionIntent(event, args.walletId);
+export async function approveTransactionIntent(args: unknown[]) {
+    return kit('approveTransactionIntent', ...args);
 }
 
-export async function approveSignDataIntent(args: ApproveSignDataIntentArgs) {
-    const kit = await getKit();
-    const event = (args.event as any).value ?? args.event;
-    return kit.approveSignDataIntent(event, args.walletId);
+export async function approveSignDataIntent(args: unknown[]) {
+    return kit('approveSignDataIntent', ...args);
 }
 
-export async function approveActionIntent(args: ApproveActionIntentArgs) {
-    const kit = await getKit();
-    const event = (args.event as any).value ?? args.event;
-    return kit.approveActionIntent(event, args.walletId);
+export async function approveActionIntent(args: unknown[]) {
+    return kit('approveActionIntent', ...args);
 }
 
-export async function rejectIntent(args: RejectIntentArgs) {
-    const kit = await getKit();
-    const event = (args.event as any).value ?? args.event;
-    return kit.rejectIntent(event, args.reason, args.errorCode);
+export async function rejectIntent(args: unknown[]) {
+    return kit('rejectIntent', ...args);
 }
 
-export async function intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs) {
-    const kit = await getKit();
-    return kit.intentItemsToTransactionRequest(args.items, args.walletId);
+export async function intentItemsToTransactionRequest(args: unknown[]) {
+    return kit('intentItemsToTransactionRequest', ...args);
 }
 
-export async function processConnectAfterIntent(args: ProcessConnectAfterIntentArgs) {
-    const kit = await getKit();
-    return kit.processConnectAfterIntent(args.event, args.walletId, args.proof);
+export async function processConnectAfterIntent(args: unknown[]) {
+    return kit('processConnectAfterIntent', ...args);
 }

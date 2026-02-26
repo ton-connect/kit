@@ -110,6 +110,5 @@ export type {
 } from './intents/IntentResponse';
 export type { BatchedIntentEvent } from './intents/BatchedIntentEvent';
 
-
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';
