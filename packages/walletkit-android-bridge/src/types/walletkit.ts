@@ -133,10 +133,7 @@ export interface WalletKitInstance {
         event: TransactionIntentRequestEvent,
         walletId: string,
     ): Promise<IntentTransactionResponse>;
-    approveSignDataIntent(
-        event: SignDataIntentRequestEvent,
-        walletId: string,
-    ): Promise<IntentSignDataResponse>;
+    approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse>;
     approveActionIntent(
         event: ActionIntentRequestEvent,
         walletId: string,
