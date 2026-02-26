@@ -19,13 +19,13 @@ export type GetTransactionStatusParameters = {
     | {
           /** BOC of the sent transaction (base64) */
           boc: string;
-          /** Hash of the sent transaction (base64) */
+          /** Hash of the sent transaction (hex) */
           normalizedHash?: never;
       }
     | {
           /** BOC of the sent transaction (base64) */
           boc?: never;
-          /** Normalized Hash of the external-in transaction (base64) */
+          /** Normalized Hash of the external-in transaction (hex) */
           normalizedHash: string;
       }
 );

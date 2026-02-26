@@ -15,10 +15,19 @@ export type TransactionStatus =
 export interface TransactionStatusResponse {
     /** Overall status of the transaction trace */
     status: TransactionStatus;
-    /** Total messages in the trace */
+    /**
+     * Total messages in the trace
+     * @format int
+     */
     totalMessages: number;
-    /** Messages still pending */
+    /**
+     * Messages still pending
+     * @format int
+     */
     pendingMessages: number;
-    /** Number of onchain messages (totalMessages - pendingMessages) */
+    /**
+     * Number of onchain messages (totalMessages - pendingMessages)
+     * @format int
+     */
     onchainMessages: number;
 }
