@@ -19,6 +19,11 @@ export default {
     transaction: {
         sendTransaction: 'Send Transaction',
         processing: 'Processing...',
+        status: {
+            pending: 'Processing...',
+            completed: 'Success',
+            failed: 'Failed',
+        },
     },
 
     // Balances

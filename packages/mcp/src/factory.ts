@@ -16,7 +16,13 @@ import type { WalletAdapter } from '@ton/walletkit';
 import type { IContactResolver } from './types/contacts.js';
 import type { NetworkConfig } from './services/McpWalletService.js';
 import { McpWalletService } from './services/McpWalletService.js';
-import { createMcpBalanceTools, createMcpTransferTools, createMcpSwapTools, createMcpNftTools } from './tools/index.js';
+import {
+    createMcpBalanceTools,
+    createMcpTransferTools,
+    createMcpSwapTools,
+    createMcpNftTools,
+    createMcpTransactionTools,
+} from './tools/index.js';
 import { createMcpKnownJettonsTools } from './tools/known-jettons-tools.js';
 import { createMcpDnsTools } from './tools/dns-tools.js';
 
@@ -92,6 +98,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const knownJettonsTools = createMcpKnownJettonsTools();
     const nftTools = createMcpNftTools(walletService);
     const dnsTools = createMcpDnsTools(walletService);
+    const transactionTools = createMcpTransactionTools(walletService);
 
     // Helper to register tools with type assertion (Zod version mismatch workaround)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,6 +119,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     registerTool('send_ton', transferTools.send_ton);
     registerTool('send_jetton', transferTools.send_jetton);
     registerTool('send_raw_transaction', transferTools.send_raw_transaction);
+
+    // Register transaction tools
+    registerTool('get_transaction_status', transactionTools.get_transaction_status);
 
     // Register swap tools
     registerTool('get_swap_quote', swapTools.get_swap_quote);

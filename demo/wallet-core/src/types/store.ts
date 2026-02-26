@@ -53,7 +53,7 @@ export interface WalletCoreSlice {
         initializationError: string | null;
     };
 
-    initializeWalletKit: (network?: 'mainnet' | 'testnet') => Promise<void>;
+    initializeWalletKit: (network?: NetworkType) => Promise<void>;
 }
 
 // Wallet Management slice - Wallet CRUD and data

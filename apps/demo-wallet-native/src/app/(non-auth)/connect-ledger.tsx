@@ -11,6 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
+import type { NetworkType } from '@demo/wallet-core';
 import { useAuth, useWallet } from '@demo/wallet-core';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -35,7 +36,7 @@ const SUBTITLES: Record<ScreenState, string> = {
 const ConnectLedgerScreen: FC = () => {
     const [screenState, setScreenState] = useState<ScreenState>('instructions');
     const [selectedDevice, setSelectedDevice] = useState<LedgerDevice | null>(null);
-    const [network, setNetwork] = useState<'mainnet' | 'testnet' | 'tetra'>('testnet');
+    const [network, setNetwork] = useState<NetworkType>('testnet');
     const [accountNumber, setAccountNumber] = useState(0);
 
     const { setUseWalletInterfaceType, setLedgerAccountNumber } = useAuth();

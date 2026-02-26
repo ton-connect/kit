@@ -31,6 +31,12 @@ Parameters:
 - limit (optional): 1-100, default 20
 Returns: transactions with type (TonTransfer, JettonTransfer, JettonSwap), amounts, addresses
 
+### get_transaction_status
+Get the status of a transaction by its normalized hash to know if it is pending, completed, or failed.
+Parameters:
+- normalizedHash (required): Normalized hash of the external-in transaction (Base64 string)
+Returns: Transaction status (pending, completed, failed) and trace details
+
 ### get_known_jettons
 Get list of known/popular Jettons on TON.
 Returns: array with symbol, name, address, decimals
@@ -99,19 +105,22 @@ Parameters:
 ### Sending TON
 1. If recipient is .ton domain: resolve_dns first
 2. send_ton with resolved address
+3. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ### Sending Tokens
 1. get_jettons to find token address
 2. send_jetton with token details
+3. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ### Swapping Tokens
 1. get_known_jettons if needed for addresses
 2. get_swap_quote for quote
 3. Confirm with user
 4. send_raw_transaction with quote's transaction params
+5. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
 ## Important Notes
 
 - Always confirm transfers/swaps with user before executing
 - send_ton/send_jetton/get_swap_quote use human-readable amounts
-- Check transaction success in response
+- **Default flow:** After any send, poll get_transaction_status until completed or failed. User can specify whether to check status.

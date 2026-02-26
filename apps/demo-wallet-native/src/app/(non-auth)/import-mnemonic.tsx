@@ -11,6 +11,7 @@ import type { FC } from 'react';
 import { Alert, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { router } from 'expo-router';
+import type { NetworkType } from '@demo/wallet-core';
 import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
@@ -30,7 +31,7 @@ const networkOptions = [
 
 const ImportMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState('');
-    const [network, setNetwork] = useState<'mainnet' | 'testnet' | 'tetra'>('testnet');
+    const [network, setNetwork] = useState<NetworkType>('testnet');
     const [isLoading, setIsLoading] = useState(false);
     const [, setError] = useState('');
 
