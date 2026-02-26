@@ -32,6 +32,10 @@ export async function approveActionIntent(args: unknown[]) {
     return kit('approveActionIntent', ...args);
 }
 
+export async function approveBatchedIntent(args: unknown[]) {
+    return kit('approveBatchedIntent', ...args);
+}
+
 export async function rejectIntent(args: unknown[]) {
     return kit('rejectIntent', ...args);
 }

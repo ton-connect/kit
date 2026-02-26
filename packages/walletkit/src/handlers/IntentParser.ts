@@ -86,7 +86,7 @@ interface WireIntentRequest {
  * Parsed intent URL — intermediate result before event creation.
  */
 export interface ParsedIntentUrl {
-    clientId: string;
+    clientId?: string;
     request: WireIntentRequest;
     origin: IntentOrigin;
     traceId?: string;
@@ -135,10 +135,7 @@ export class IntentParser {
     private async parseUrl(url: string): Promise<ParsedIntentUrl> {
         try {
             const parsedUrl = new URL(url);
-            const clientId = parsedUrl.searchParams.get('id');
-            if (!clientId) {
-                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing client ID (id) in intent URL');
-            }
+            const clientId = parsedUrl.searchParams.get('id') || undefined;
 
             const normalized = url.trim().toLowerCase();
 
@@ -147,6 +144,12 @@ export class IntentParser {
             }
 
             if (normalized.startsWith(INTENT_SCHEME)) {
+                if (!clientId) {
+                    throw new WalletKitError(
+                        ERROR_CODES.VALIDATION_ERROR,
+                        'Missing client ID (id) in object storage intent URL (required for decryption)',
+                    );
+                }
                 return this.parseObjectStoragePayload(parsedUrl, clientId);
             }
 
@@ -157,7 +160,7 @@ export class IntentParser {
         }
     }
 
-    private parseInlinePayload(parsedUrl: URL, clientId: string): ParsedIntentUrl {
+    private parseInlinePayload(parsedUrl: URL, clientId: string | undefined): ParsedIntentUrl {
         const encoded = parsedUrl.searchParams.get('r');
         if (!encoded) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing payload (r) in intent URL');

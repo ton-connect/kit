@@ -273,11 +273,18 @@ describe('IntentParser', () => {
     // ── parse – validation errors ────────────────────────────────────────────
 
     describe('parse – validation', () => {
-        it('rejects URL without client ID', async () => {
+        it('allows inline URL without client ID (fire-and-forget)', async () => {
             const json = JSON.stringify({ id: 'x', m: 'txIntent', i: [{ t: 'ton', a: 'A', am: '1' }] });
             const b64 = Buffer.from(json).toString('base64url');
             const url = `tc://intent_inline?r=${b64}`;
 
+            const { event } = await parser.parse(url);
+            expect(event.type).toBe('transaction');
+            expect(event.value.clientId).toBeUndefined();
+        });
+
+        it('rejects object storage URL without client ID', async () => {
+            const url = 'tc://intent?pk=abc123&get_url=https%3A%2F%2Fexample.com%2Fpayload';
             await expect(parser.parse(url)).rejects.toThrow('Missing client ID');
         });
 

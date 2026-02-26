@@ -583,7 +583,19 @@ export class TonWalletKit implements ITonWalletKit {
         return this.intentHandler.approveActionIntent(event, walletId);
     }
 
-    async rejectIntent(event: IntentRequestEvent, reason?: string, errorCode?: number): Promise<IntentErrorResponse> {
+    async approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveBatchedIntent(batch, walletId);
+    }
+
+    async rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse> {
         await this.ensureInitialized();
         return this.intentHandler.rejectIntent(event, reason, errorCode);
     }
