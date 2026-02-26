@@ -37,6 +37,7 @@ describe('Transaction Hooks Examples', () => {
         mockWallet.sendTransaction = mockSendTransaction;
 
         mockAppKit = {
+            getDefaultNetwork: vi.fn(),
             connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,

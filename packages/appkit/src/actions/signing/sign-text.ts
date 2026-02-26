@@ -11,6 +11,7 @@ import type { Network } from '@ton/walletkit';
 import type { AppKit } from '../../core/app-kit';
 import type { SignDataResponse } from '../../types/signing';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface SignTextParameters {
     /** Text message to sign */
@@ -38,7 +39,7 @@ export const signText = async (appKit: AppKit, parameters: SignTextParameters): 
     }
 
     return await wallet.signData({
-        network: parameters.network,
+        network: parameters.network ?? getDefaultNetwork(appKit),
         data: {
             type: 'text',
             value: { content: parameters.text },

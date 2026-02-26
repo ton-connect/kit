@@ -10,7 +10,7 @@
 
 import type { ApiClient } from '../types/toncenter/ApiClient';
 import type { ApiClientConfig, TonWalletKitOptions } from '../types/config';
-import { ApiClientToncenter } from './ApiClientToncenter';
+import { ApiClientToncenter } from '../clients/toncenter';
 import { globalLogger } from './Logger';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { Network } from '../api/models';

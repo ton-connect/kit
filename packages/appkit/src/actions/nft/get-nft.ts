@@ -11,6 +11,7 @@ import type { NFT } from '@ton/walletkit';
 import { Network, getNftFromClient } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface GetNftOptions {
     address: string | Address;
@@ -23,7 +24,7 @@ export const getNft = async (appKit: AppKit, options: GetNftOptions): Promise<Ge
     const { address, network } = options;
     const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(network ?? getDefaultNetwork(appKit) ?? Network.mainnet());
 
     return getNftFromClient(client, addressString);
 };

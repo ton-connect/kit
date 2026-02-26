@@ -12,6 +12,7 @@ import type { AppKit } from '../../core/app-kit';
 import type { SignDataResponse } from '../../types/signing';
 import { getSelectedWallet } from '../wallets/get-selected-wallet';
 import type { Base64String } from '../../types/primitives';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface SignBinaryParameters {
     /** Binary data to sign (base64 encoded) */
@@ -39,7 +40,7 @@ export const signBinary = async (appKit: AppKit, parameters: SignBinaryParameter
     }
 
     return await wallet.signData({
-        network: parameters.network,
+        network: parameters.network ?? getDefaultNetwork(appKit),
         data: {
             type: 'binary',
             value: { content: parameters.bytes },

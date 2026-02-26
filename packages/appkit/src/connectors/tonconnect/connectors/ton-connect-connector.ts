@@ -8,6 +8,7 @@
 
 import { TonConnectUI } from '@tonconnect/ui';
 import type { TonConnectUiCreateOptions } from '@tonconnect/ui';
+import type { Network } from '@ton/walletkit';
 
 import { TonConnectWalletAdapter } from '../adapters/ton-connect-wallet-adapter';
 import { CONNECTOR_EVENTS } from '../../../core/app-kit';
@@ -73,7 +74,8 @@ export class TonConnectConnector implements Connector {
         this.emitter = null;
     }
 
-    async connectWallet(): Promise<void> {
+    async connectWallet(network?: Network): Promise<void> {
+        this.tonConnectUI.setConnectionNetwork(network?.chainId);
         await this.tonConnectUI.openModal();
     }
 

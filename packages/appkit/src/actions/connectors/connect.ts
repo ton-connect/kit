@@ -7,6 +7,7 @@
  */
 
 import type { AppKit } from '../../core/app-kit';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export type ConnectParameters = {
     connectorId: string;
@@ -25,5 +26,6 @@ export const connect = async (appKit: AppKit, parameters: ConnectParameters): Pr
         throw new Error(`Connector with id "${connectorId}" not found`);
     }
 
-    await connector.connectWallet();
+    const network = getDefaultNetwork(appKit);
+    await connector.connectWallet(network);
 };

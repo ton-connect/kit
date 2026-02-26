@@ -6,7 +6,7 @@
  *
  */
 
-import { TonWalletKit, Network, createDeviceInfo, createWalletManifest } from '@ton/walletkit';
+import { TonWalletKit, Network, createDeviceInfo, createWalletManifest, ApiClientTonApi } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
@@ -49,10 +49,9 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
                 },
             },
             [Network.tetra().chainId]: {
-                apiClient: {
-                    url: 'https://tetra.tonapi.io',
-                    key: walletKitConfig?.tonApiKeyTetra,
-                },
+                apiClient: new ApiClientTonApi({
+                    network: Network.tetra(),
+                }),
             },
         },
 

@@ -11,6 +11,7 @@ import type { TokenAmount, UserFriendlyAddress } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
 import { getJettonWalletAddress } from './get-jetton-wallet-address';
+import { getDefaultNetwork } from '../network/get-default-network';
 
 export interface GetJettonBalanceOptions {
     jettonAddress: UserFriendlyAddress;
@@ -27,7 +28,7 @@ export const getJettonBalance = async (
 ): Promise<GetJettonBalanceReturnType> => {
     const { jettonAddress, ownerAddress, jettonDecimals, network } = options;
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(network ?? getDefaultNetwork(appKit) ?? Network.mainnet());
 
     const jettonWalletAddress = await getJettonWalletAddress(appKit, {
         jettonAddress,
