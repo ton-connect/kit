@@ -6,7 +6,7 @@
  *
  */
 
-import type { Base64String } from '../core/Primitives';
+import type { Base64String, UserFriendlyAddress } from '../core/Primitives';
 import type { SignDataPayload } from '../core/PreparedSignData';
 
 /**
@@ -23,8 +23,8 @@ export interface IntentTransactionResponse {
 export interface IntentSignDataResponse {
     /** Signature (base64) */
     signature: Base64String;
-    /** Signer address (raw format: 0:hex) */
-    address: string;
+    /** Signer address */
+    address: UserFriendlyAddress;
     /**
      * UNIX timestamp (seconds, UTC)
      * @format timestamp
