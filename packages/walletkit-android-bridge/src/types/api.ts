@@ -32,7 +32,6 @@ import type {
     IntentSignDataResponse,
     IntentErrorResponse,
     IntentActionItem,
-    ConnectionApprovalProof,
 } from '@ton/walletkit';
 
 /**
@@ -312,12 +311,6 @@ export interface IntentItemsToTransactionRequestArgs {
     walletId: string;
 }
 
-export interface ProcessConnectAfterIntentArgs {
-    event: IntentRequestEvent | BatchedIntentEvent;
-    walletId: string;
-    proof?: ConnectionApprovalProof;
-}
-
 export interface WalletDescriptor {
     address: string;
     publicKey: string;
@@ -388,5 +381,4 @@ export interface WalletKitBridgeApi {
     approveBatchedIntent(args: ApproveBatchedIntentArgs): PromiseOrValue<IntentTransactionResponse>;
     rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentErrorResponse>;
     intentItemsToTransactionRequest(args: IntentItemsToTransactionRequestArgs): PromiseOrValue<TransactionRequest>;
-    processConnectAfterIntent(args: ProcessConnectAfterIntentArgs): PromiseOrValue<void>;
 }

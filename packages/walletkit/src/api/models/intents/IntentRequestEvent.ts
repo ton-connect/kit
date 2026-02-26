@@ -7,6 +7,7 @@
  */
 
 import type { BridgeEvent } from '../bridge/BridgeEvent';
+import type { ConnectionRequestEvent } from '../bridge/ConnectionRequestEvent';
 import type { TransactionRequest } from '../transactions/TransactionRequest';
 import type { TransactionEmulatedPreview } from '../transactions/emulation/TransactionEmulatedPreview';
 import type { SignDataPayload } from '../core/PreparedSignData';
@@ -32,8 +33,6 @@ export interface IntentRequestBase extends BridgeEvent {
     origin: IntentOrigin;
     /** Client public key (for response encryption) */
     clientId?: string;
-    /** Whether a connect flow should follow after intent approval */
-    hasConnectRequest: boolean;
 }
 
 /**
@@ -94,8 +93,13 @@ export interface ActionIntentRequestEvent extends IntentRequestBase {
 
 /**
  * Union of all intent request events, discriminated by `type`.
+ *
+ * The `connect` variant is used when an intent URL carries a connect request.
+ * It appears as the first item in a {@link BatchedIntentEvent} so the wallet
+ * can display it alongside the transaction/sign-data items.
  */
 export type IntentRequestEvent =
     | { type: 'transaction'; value: TransactionIntentRequestEvent }
     | { type: 'signData'; value: SignDataIntentRequestEvent }
-    | { type: 'action'; value: ActionIntentRequestEvent };
+    | { type: 'action'; value: ActionIntentRequestEvent }
+    | { type: 'connect'; value: ConnectionRequestEvent };

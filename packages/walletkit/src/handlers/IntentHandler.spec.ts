@@ -80,7 +80,6 @@ describe('IntentHandler', () => {
                 id: 'tx-1',
                 origin: 'deepLink',
                 clientId: 'client-1',
-                hasConnectRequest: false,
                 deliveryMode: 'send',
                 items: [{ type: 'sendTon', value: { address: 'EQAddr', amount: '1000000000' } }],
                 resolvedTransaction: {
@@ -145,7 +144,6 @@ describe('IntentHandler', () => {
                 id: 'sd-1',
                 origin: 'deepLink',
                 clientId: 'client-1',
-                hasConnectRequest: false,
                 manifestUrl: 'https://example.com/manifest.json',
                 payload: signPayload,
             };
@@ -165,7 +163,6 @@ describe('IntentHandler', () => {
                 id: 'sd-2',
                 origin: 'deepLink',
                 clientId: 'client-1',
-                hasConnectRequest: false,
                 manifestUrl: 'not-a-valid-url',
                 payload: signPayload,
             };
@@ -185,7 +182,6 @@ describe('IntentHandler', () => {
                     id: 'tx-r1',
                     origin: 'deepLink',
                     clientId: 'client-1',
-                    hasConnectRequest: false,
                     deliveryMode: 'send',
                     items: [],
                 },
@@ -205,7 +201,6 @@ describe('IntentHandler', () => {
                     id: 'sd-r1',
                     origin: 'deepLink',
                     clientId: 'client-1',
-                    hasConnectRequest: false,
                     manifestUrl: 'https://example.com',
                     payload: { data: { type: 'text', value: { content: 'test' } } },
                 },
@@ -217,8 +212,12 @@ describe('IntentHandler', () => {
             expect(result.error.message).toBe('Not supported');
         });
 
-        it('cleans up pending connect request on reject', async () => {
-            // Store a pending connect request
+        it('emits batch with connect item for single-item intent with connect', async () => {
+            let emitted: IntentRequestEvent | BatchedIntentEvent | undefined;
+            handler.onIntentRequest((e) => {
+                emitted = e;
+            });
+
             const url = buildInlineUrl('c1', {
                 id: 'tx-pcr',
                 m: 'txIntent',
@@ -227,25 +226,12 @@ describe('IntentHandler', () => {
             });
             await handler.handleIntentUrl(url, 'wallet-1');
 
-            // Should have pending connect request
-            expect(handler.getPendingConnectRequest('tx-pcr')).toBeDefined();
-
-            // Reject
-            const event: IntentRequestEvent = {
-                type: 'transaction',
-                value: {
-                    id: 'tx-pcr',
-                    origin: 'deepLink',
-                    clientId: 'c1',
-                    hasConnectRequest: true,
-                    deliveryMode: 'send',
-                    items: [],
-                },
-            };
-            await handler.rejectIntent(event);
-
-            // Pending connect request should be cleaned up
-            expect(handler.getPendingConnectRequest('tx-pcr')).toBeUndefined();
+            // Should be a batch because of connect
+            expect(emitted).toBeDefined();
+            expect('intents' in emitted!).toBe(true);
+            const batch = emitted as BatchedIntentEvent;
+            expect(batch.intents[0].type).toBe('connect');
+            expect(batch.intents[1].type).toBe('transaction');
         });
     });
 
@@ -309,7 +295,7 @@ describe('IntentHandler', () => {
             expect((emitted as IntentRequestEvent).type).toBe('transaction');
         });
 
-        it('preserves hasConnectRequest at batch level', async () => {
+        it('emits connect as first item in batch when connect request present', async () => {
             let emitted: IntentRequestEvent | BatchedIntentEvent | undefined;
             handler.onIntentRequest((e) => {
                 emitted = e;
@@ -328,11 +314,12 @@ describe('IntentHandler', () => {
             await handler.handleIntentUrl(url, 'wallet-1');
 
             const batch = emitted as BatchedIntentEvent;
-            expect(batch.hasConnectRequest).toBe(true);
-            // Inner items should NOT have hasConnectRequest
-            for (const intent of batch.intents) {
-                expect(intent.value.hasConnectRequest).toBe(false);
-            }
+            // Connect is the first item
+            expect(batch.intents[0].type).toBe('connect');
+            // Followed by transaction items
+            expect(batch.intents[1].type).toBe('transaction');
+            expect(batch.intents[2].type).toBe('transaction');
+            expect(batch.intents).toHaveLength(3);
         });
     });
 
@@ -344,7 +331,6 @@ describe('IntentHandler', () => {
                 id: 'batch-1',
                 origin: 'deepLink',
                 clientId: 'client-b',
-                hasConnectRequest: false,
                 intents: [
                     {
                         type: 'transaction',
@@ -352,7 +338,6 @@ describe('IntentHandler', () => {
                             id: 'batch-1_0',
                             origin: 'deepLink',
                             clientId: 'client-b',
-                            hasConnectRequest: false,
                             deliveryMode: 'send',
                             items: [{ type: 'sendTon', value: { address: 'EQAddr1', amount: '100' } }],
                         },
@@ -363,7 +348,6 @@ describe('IntentHandler', () => {
                             id: 'batch-1_1',
                             origin: 'deepLink',
                             clientId: 'client-b',
-                            hasConnectRequest: false,
                             deliveryMode: 'send',
                             items: [{ type: 'sendTon', value: { address: 'EQAddr2', amount: '200' } }],
                         },
@@ -405,7 +389,6 @@ describe('IntentHandler', () => {
                             id: 'sd-1',
                             origin: 'deepLink',
                             clientId: 'client-b',
-                            hasConnectRequest: false,
                             manifestUrl: 'https://example.com',
                             payload: { data: { type: 'text', value: { content: 'x' } } },
                         },
@@ -433,7 +416,6 @@ describe('IntentHandler', () => {
                 id: 'batch-r',
                 origin: 'deepLink',
                 clientId: 'client-br',
-                hasConnectRequest: false,
                 intents: [
                     {
                         type: 'transaction',
@@ -441,7 +423,6 @@ describe('IntentHandler', () => {
                             id: 'batch-r_0',
                             origin: 'deepLink',
                             clientId: 'client-br',
-                            hasConnectRequest: false,
                             deliveryMode: 'send',
                             items: [{ type: 'sendTon', value: { address: 'EQ1', amount: '100' } }],
                         },
@@ -465,34 +446,26 @@ describe('IntentHandler', () => {
             expect(result.error.message).toBe('Batch rejected');
         });
 
-        it('cleans up pending connect request on batch reject', async () => {
-            // Set up a pending connect via a multi-item URL with connect request
-            const url = buildInlineUrl('cr', {
-                id: 'batch-pcr',
-                m: 'txIntent',
-                i: [
-                    { t: 'ton', a: 'EQ1', am: '100' },
-                    { t: 'ton', a: 'EQ2', am: '200' },
-                ],
-                c: { manifestUrl: 'https://d.com/m.json', items: [{ name: 'ton_addr' }] },
-            });
-
-            handler.onIntentRequest(() => {}); // need callback to not discard
-            await handler.handleIntentUrl(url, 'wallet-1');
-
-            expect(handler.getPendingConnectRequest('batch-pcr')).toBeDefined();
-
-            // Reject the batch
+        it('rejects a batch that includes a connect item', async () => {
             const batch: BatchedIntentEvent = {
                 id: 'batch-pcr',
                 origin: 'deepLink',
                 clientId: 'cr',
-                hasConnectRequest: true,
-                intents: [],
+                intents: [
+                    {
+                        type: 'connect',
+                        value: {
+                            id: 'batch-pcr',
+                            from: 'cr',
+                            requestedItems: [],
+                            preview: { permissions: [] },
+                        },
+                    },
+                ],
             };
-            await handler.rejectIntent(batch);
-
-            expect(handler.getPendingConnectRequest('batch-pcr')).toBeUndefined();
+            const result = await handler.rejectIntent(batch);
+            expect(result.error.code).toBe(300);
+            expect(bridgeManager.sendIntentResponse).toHaveBeenCalled();
         });
     });
 
@@ -509,7 +482,6 @@ describe('IntentHandler', () => {
                 id: 'tx-nw',
                 origin: 'deepLink',
                 clientId: 'c1',
-                hasConnectRequest: false,
                 deliveryMode: 'send',
                 items: [{ type: 'sendTon', value: { address: 'EQ1', amount: '100' } }],
                 resolvedTransaction: {

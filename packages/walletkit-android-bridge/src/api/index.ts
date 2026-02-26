@@ -100,5 +100,4 @@ export const api: WalletKitBridgeApi = {
     approveBatchedIntent: intents.approveBatchedIntent,
     rejectIntent: intents.rejectIntent,
     intentItemsToTransactionRequest: intents.intentItemsToTransactionRequest,
-    processConnectAfterIntent: intents.processConnectAfterIntent,
 } as unknown as WalletKitBridgeApi;

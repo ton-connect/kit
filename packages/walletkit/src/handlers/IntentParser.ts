@@ -447,7 +447,6 @@ export class IntentParser {
             id: sourceEvent.id,
             origin: sourceEvent.origin,
             clientId: sourceEvent.clientId,
-            hasConnectRequest: sourceEvent.hasConnectRequest,
         };
 
         switch (action_type) {
@@ -530,13 +529,11 @@ export class IntentParser {
 
     private toIntentEvent(parsed: ParsedIntentUrl): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
         const { clientId, request, origin, traceId } = parsed;
-        const hasConnectRequest = !!request.c;
 
         const base: IntentRequestBase = {
             id: request.id,
             origin,
             clientId,
-            hasConnectRequest,
             traceId,
             returnStrategy: undefined,
         };
