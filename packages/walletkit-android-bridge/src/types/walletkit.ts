@@ -10,7 +10,6 @@ import type {
     ApiClient,
     BatchedIntentEvent,
     BridgeEventMessageInfo,
-    ConnectionApprovalProof,
     ConnectionApprovalResponse,
     ConnectionRequestEvent,
     DeviceInfo,
@@ -145,9 +144,4 @@ export interface WalletKitInstance {
         errorCode?: number,
     ): Promise<IntentErrorResponse>;
     intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest>;
-    processConnectAfterIntent(
-        event: IntentRequestEvent | BatchedIntentEvent,
-        walletId: string,
-        proof?: ConnectionApprovalProof,
-    ): Promise<void>;
 }

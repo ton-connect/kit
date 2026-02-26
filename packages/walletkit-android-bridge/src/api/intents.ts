@@ -43,7 +43,3 @@ export async function rejectIntent(args: unknown[]) {
 export async function intentItemsToTransactionRequest(args: unknown[]) {
     return kit('intentItemsToTransactionRequest', ...args);
 }
-
-export async function processConnectAfterIntent(args: unknown[]) {
-    return kit('processConnectAfterIntent', ...args);
-}

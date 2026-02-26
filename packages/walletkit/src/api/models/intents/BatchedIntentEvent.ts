@@ -24,6 +24,4 @@ export interface BatchedIntentEvent extends BridgeEvent {
     clientId?: string;
     /** The intent requests in this batch */
     intents: IntentRequestEvent[];
-    /** Whether a connect flow should follow after all intents are approved */
-    hasConnectRequest: boolean;
 }

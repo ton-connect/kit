@@ -79,7 +79,6 @@ describe('IntentParser', () => {
             expect(tx.id).toBe('tx-1');
             expect(tx.origin).toBe('deepLink');
             expect(tx.clientId).toBe('client-123');
-            expect(tx.hasConnectRequest).toBe(false);
             expect(tx.deliveryMode).toBe('send');
             expect(tx.network).toEqual({ chainId: '-239' });
             expect(tx.validUntil).toBe(1700000000);
@@ -246,7 +245,6 @@ describe('IntentParser', () => {
             expect(connectRequest).toBeDefined();
             if (event.type === 'signData') {
                 expect(event.value.manifestUrl).toBe('https://dapp.com/manifest.json');
-                expect(event.value.hasConnectRequest).toBe(true);
             }
         });
     });
@@ -409,7 +407,6 @@ describe('IntentParser', () => {
             id: 'a-1',
             origin: 'deepLink' as const,
             clientId: 'c1',
-            hasConnectRequest: false,
             actionUrl: 'https://api.example.com/action',
         };
 

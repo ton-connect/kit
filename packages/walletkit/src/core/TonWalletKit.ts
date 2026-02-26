@@ -50,7 +50,6 @@ import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import { IntentHandler } from '../handlers/IntentHandler';
-import { ConnectHandler } from '../handlers/ConnectHandler';
 import type {
     Network,
     TransactionRequest,
@@ -263,7 +262,7 @@ export class TonWalletKit implements ITonWalletKit {
         this.requestProcessor = components.requestProcessor;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
-        this.intentHandler = new IntentHandler(this.config, this.bridgeManager, this.walletManager);
+        this.intentHandler = new IntentHandler(this.config, this.bridgeManager, this.walletManager, this.analyticsManager);
     }
 
     /**
@@ -586,8 +585,19 @@ export class TonWalletKit implements ITonWalletKit {
     async approveBatchedIntent(
         batch: BatchedIntentEvent,
         walletId: string,
+        proof?: ConnectionApprovalProof,
     ): Promise<IntentTransactionResponse> {
         await this.ensureInitialized();
+
+        // Process connect items first — create session before sending tx
+        const connectItems = batch.intents.filter((i) => i.type === 'connect');
+        for (const item of connectItems) {
+            if (item.type === 'connect') {
+                item.value.walletId = walletId;
+                await this.requestProcessor.approveConnectRequest(item.value, proof ? { proof } : undefined);
+            }
+        }
+
         return this.intentHandler.approveBatchedIntent(batch, walletId);
     }
 
@@ -603,50 +613,6 @@ export class TonWalletKit implements ITonWalletKit {
     async intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest> {
         await this.ensureInitialized();
         return this.intentHandler.intentItemsToTransactionRequest(items, walletId);
-    }
-
-    async processConnectAfterIntent(
-        event: IntentRequestEvent | BatchedIntentEvent,
-        walletId: string,
-        proof?: ConnectionApprovalProof,
-    ): Promise<void> {
-        await this.ensureInitialized();
-
-        const isBatched = 'intents' in event;
-        const eventId = isBatched ? event.id : event.value.id;
-        const clientId = isBatched ? event.clientId : event.value.clientId;
-
-        const connectRequest = this.intentHandler.getPendingConnectRequest(eventId);
-        if (!connectRequest) {
-            log.warn('No pending connect request for intent', { eventId });
-            return;
-        }
-
-        this.intentHandler.removePendingConnectRequest(eventId);
-
-        // Create a bridge event from the connect request
-        const bridgeEvent: RawBridgeEventConnect = {
-            from: clientId || '',
-            id: eventId,
-            method: 'connect',
-            params: {
-                manifest: { url: connectRequest.manifestUrl },
-                items: connectRequest.items,
-            },
-            timestamp: Date.now(),
-            domain: '',
-        };
-
-        // Process through ConnectHandler to fetch manifest and build ConnectionRequestEvent
-        // (no-op notify — we auto-approve instead of showing UI)
-        const connectHandler = new ConnectHandler(() => {}, this.config, this.analyticsManager);
-        const connectionEvent = await connectHandler.handle(bridgeEvent);
-
-        // Set walletId for approval
-        connectionEvent.walletId = walletId;
-
-        // Auto-approve: create session and send ConnectEvent response to dApp
-        await this.requestProcessor.approveConnectRequest(connectionEvent, proof ? { proof } : undefined);
     }
 
     // === URL Processing API ===

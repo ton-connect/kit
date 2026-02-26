@@ -15,9 +15,12 @@ import { PrepareSignData } from '../utils/signData/sign';
 import { HexToBase64 } from '../utils/base64';
 import { IntentParser, INTENT_ERROR_CODES } from './IntentParser';
 import { IntentResolver } from './IntentResolver';
+import { ConnectHandler } from './ConnectHandler';
 import type { BridgeManager } from '../core/BridgeManager';
 import type { WalletManager } from '../core/WalletManager';
 import type { Wallet } from '../api/interfaces';
+import type { RawBridgeEventConnect } from '../types/internal';
+import type { AnalyticsManager } from '../analytics';
 import type {
     IntentRequestEvent,
     IntentRequestBase,
@@ -30,6 +33,7 @@ import type {
     IntentResponseResult,
     IntentActionItem,
     BatchedIntentEvent,
+    ConnectionRequestEvent,
     TransactionRequest,
     SignDataPayload,
     Base64String,
@@ -51,12 +55,12 @@ export class IntentHandler {
     private parser = new IntentParser();
     private resolver = new IntentResolver();
     private callbacks: IntentCallback[] = [];
-    private pendingConnectRequests = new Map<string, ConnectRequest>();
 
     constructor(
         private walletKitOptions: TonWalletKitOptions,
         private bridgeManager: BridgeManager,
         private walletManager: WalletManager,
+        private analyticsManager?: AnalyticsManager,
     ) {}
 
     // -- Public: Parsing ------------------------------------------------------
@@ -68,25 +72,45 @@ export class IntentHandler {
     /**
      * Parse an intent URL, resolve items, emulate preview, and emit the event.
      *
-     * Multi-item transaction intents are split into per-item events and
-     * emitted as a {@link BatchedIntentEvent} so the wallet can display
-     * each action separately while approving/rejecting as a group.
+     * When a connect request is present, the result is always a
+     * {@link BatchedIntentEvent} with the connect as the first item.
+     * Multi-item transaction intents are also batched (one item per action).
      */
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
         const { event, connectRequest } = await this.parser.parse(url);
 
+        // parser.parse() never returns connect events
+        if (event.type === 'connect') return;
+
+        // Resolve connect request into a ConnectionRequestEvent if present
+        let connectItem: IntentRequestEvent | undefined;
         if (connectRequest) {
-            this.pendingConnectRequests.set(event.value.id, connectRequest);
+            const connectionEvent = await this.resolveConnectRequest(connectRequest, event);
+            connectItem = { type: 'connect', value: connectionEvent };
         }
 
         if (event.type === 'transaction') {
-            if (event.value.items.length > 1) {
-                await this.resolveAndEmitBatchedTransaction(event, walletId);
+            if (connectItem || event.value.items.length > 1) {
+                // Batch when there's a connect or multiple tx items
+                await this.resolveAndEmitBatchedTransaction(event, walletId, connectItem);
             } else {
                 await this.resolveAndEmitTransaction(event, walletId);
             }
         } else {
-            this.emit(event);
+            if (connectItem) {
+                // Batch: connect + single non-tx intent
+                const batch: BatchedIntentEvent = {
+                    id: event.value.id,
+                    origin: event.value.origin,
+                    clientId: event.value.clientId,
+                    traceId: event.value.traceId,
+                    returnStrategy: event.value.returnStrategy,
+                    intents: [connectItem, event],
+                };
+                this.emit(batch);
+            } else {
+                this.emit(event);
+            }
         }
     }
 
@@ -253,10 +277,8 @@ export class IntentHandler {
         const isBatched = 'intents' in event;
         if (isBatched) {
             await this.sendBatchResponse(event, { type: 'error', value: result });
-            this.pendingConnectRequests.delete(event.id);
-        } else {
+        } else if (event.type !== 'connect') {
             await this.sendResponse(event.value, { type: 'error', value: result });
-            this.pendingConnectRequests.delete(event.value.id);
         }
         return result;
     }
@@ -266,14 +288,6 @@ export class IntentHandler {
     async intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest> {
         const wallet = this.getWallet(walletId);
         return this.resolver.intentItemsToTransactionRequest(items, wallet);
-    }
-
-    getPendingConnectRequest(eventId: string): ConnectRequest | undefined {
-        return this.pendingConnectRequests.get(eventId);
-    }
-
-    removePendingConnectRequest(eventId: string): void {
-        this.pendingConnectRequests.delete(eventId);
     }
 
     // -- Private: Resolution & Emulation --------------------------------------
@@ -300,12 +314,44 @@ export class IntentHandler {
     }
 
     /**
+     * Resolve a `ConnectRequest` (manifestUrl + items) into a full
+     * `ConnectionRequestEvent` by fetching the manifest.
+     */
+    private async resolveConnectRequest(
+        connectRequest: ConnectRequest,
+        event: Exclude<IntentRequestEvent, { type: 'connect' }>,
+    ): Promise<ConnectionRequestEvent> {
+        const bridgeEvent: RawBridgeEventConnect = {
+            from: event.value.clientId || '',
+            id: event.value.id,
+            method: 'connect',
+            params: {
+                manifest: { url: connectRequest.manifestUrl },
+                items: connectRequest.items,
+            },
+            timestamp: Date.now(),
+            domain: '',
+        };
+
+        const connectHandler = new ConnectHandler(
+            () => {},
+            this.walletKitOptions,
+            this.analyticsManager,
+        );
+        return connectHandler.handle(bridgeEvent);
+    }
+
+    /**
      * Split a multi-item transaction intent into per-item events,
      * resolve and emulate each, then emit as a {@link BatchedIntentEvent}.
+     *
+     * If `connectItem` is provided it is prepended to the batch so the
+     * wallet can display the connect alongside the transaction items.
      */
     private async resolveAndEmitBatchedTransaction(
         event: Extract<IntentRequestEvent, { type: 'transaction' }>,
         walletId: string,
+        connectItem?: IntentRequestEvent,
     ): Promise<void> {
         const txEvent = event.value;
         const wallet = this.getWallet(walletId);
@@ -318,7 +364,6 @@ export class IntentHandler {
                 id: `${txEvent.id}_${i}`,
                 origin: txEvent.origin,
                 clientId: txEvent.clientId,
-                hasConnectRequest: false, // connect is tracked at batch level
                 traceId: txEvent.traceId,
                 returnStrategy: txEvent.returnStrategy,
                 deliveryMode: txEvent.deliveryMode,
@@ -339,14 +384,17 @@ export class IntentHandler {
             perItemEvents.push({ type: 'transaction', value: itemEvent });
         }
 
+        const intents: IntentRequestEvent[] = [];
+        if (connectItem) intents.push(connectItem);
+        intents.push(...perItemEvents);
+
         const batch: BatchedIntentEvent = {
             id: txEvent.id,
             origin: txEvent.origin,
             clientId: txEvent.clientId,
-            hasConnectRequest: txEvent.hasConnectRequest,
             traceId: txEvent.traceId,
             returnStrategy: txEvent.returnStrategy,
-            intents: perItemEvents,
+            intents,
         };
 
         this.emit(batch);
