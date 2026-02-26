@@ -35,7 +35,7 @@ import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
-export { TonClientError } from '../TonClientError';
+import { TonClientError } from '../TonClientError';
 import type { TonApiAccount } from './types/accounts';
 import { asAddressFriendly } from '../../utils/address';
 import { mapAccountState } from './mappers/map-account-state';
@@ -81,8 +81,15 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
             throw new Error('TonApi requires an address to fetch NFT items.');
         }
 
-        const raw = await this.getJson<TonApiNftItem>(`/v2/nfts/${request.address}`);
-        return mapNftItemsResponse([raw]);
+        try {
+            const raw = await this.getJson<TonApiNftItem>(`/v2/nfts/${request.address}`);
+            return mapNftItemsResponse([raw]);
+        } catch (e) {
+            if (e instanceof TonClientError && e.status === 404) {
+                return { addressBook: {}, nfts: [] };
+            }
+            throw e;
+        }
     }
 
     async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
@@ -140,8 +147,8 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async resolveDnsWallet(domain: string): Promise<string | null> {
         try {
-            const raw = await this.getJson<TonApiDnsResolveResponse>(`/v2/dns/${domain}`);
-            const address = raw?.item?.owner?.address;
+            const raw = await this.getJson<TonApiDnsResolveResponse>(`/v2/dns/${domain}/resolve`);
+            const address = raw?.wallet?.address;
 
             return address ? asAddressFriendly(address) : null;
         } catch (_e) {

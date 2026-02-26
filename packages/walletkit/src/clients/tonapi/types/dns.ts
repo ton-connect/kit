@@ -7,35 +7,22 @@
  */
 
 export interface TonApiDnsResolveResponse {
-    name: string;
-    expiring_at?: number;
-    item: {
+    wallet?: {
         address: string;
-        index: number;
-        verified: boolean;
-        owner: {
+        account: {
             address: string;
+            name?: string;
             is_scam: boolean;
             is_wallet: boolean;
-            icon?: string;
-            name?: string;
         };
-        collection?: {
-            address?: string;
-            name?: string;
-            description?: string;
-        };
-        metadata: {
-            image?: string;
-            buttons?: { label: string; uri: string }[];
-            description?: string;
-            name?: string;
-        };
-        previews: { resolution: string; url: string }[];
-        dns: string;
-        approved_by: string[];
-        trust: string;
+        is_wallet: boolean;
+        has_method_pubkey: boolean;
+        has_method_seqno: boolean;
+        names: string[];
     };
+    next_resolver?: string;
+    sites: string[];
+    storage?: string;
 }
 
 export interface TonApiDnsBackresolveResponse {

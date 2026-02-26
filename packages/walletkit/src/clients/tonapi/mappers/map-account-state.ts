@@ -29,9 +29,9 @@ export function mapAccountState(raw: TonApiAccount): FullAccountState {
     }
 
     const extraCurrencies: Record<number, bigint> = {};
-    if (raw.extra_balance) {
-        for (const [key, amount] of Object.entries(raw.extra_balance)) {
-            extraCurrencies[parseInt(key)] = BigInt(amount);
+    if (raw.extra_balance && Array.isArray(raw.extra_balance)) {
+        for (const extra of raw.extra_balance) {
+            extraCurrencies[extra.preview.id] = BigInt(extra.amount);
         }
     }
 
@@ -39,30 +39,10 @@ export function mapAccountState(raw: TonApiAccount): FullAccountState {
         status,
         balance: raw.balance.toString(),
         extraCurrencies,
-        code: raw.code || '',
-        data: raw.data || '',
+        code: null,
+        data: null,
         lastTransaction: null,
     };
-
-    if (
-        raw.last_transaction_hash &&
-        raw.last_transaction_hash !== '0000000000000000000000000000000000000000000000000000000000000000'
-    ) {
-        const hashValue = (raw.last_transaction_hash.startsWith('0x')
-            ? raw.last_transaction_hash
-            : `0x${raw.last_transaction_hash}`) as unknown as NonNullable<FullAccountState['lastTransaction']>['hash'];
-
-        out.lastTransaction = {
-            lt: raw.last_transaction_lt.toString(),
-            hash: hashValue,
-        };
-    }
-
-    if (raw.frozen_hash) {
-        out.frozenHash = (raw.frozen_hash.startsWith('0x')
-            ? raw.frozen_hash
-            : `0x${raw.frozen_hash}`) as unknown as FullAccountState['frozenHash'];
-    }
 
     return out;
 }

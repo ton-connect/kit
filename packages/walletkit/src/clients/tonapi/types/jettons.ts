@@ -13,19 +13,22 @@ export interface TonApiJettonMetadata {
     name: string;
     symbol: string;
     decimals: string;
-    image: string;
-    description: string;
-    social: string[];
-    websites: string[];
-    catalogs: string[];
+    image?: string;
+    description?: string;
+    social?: string[];
+    websites?: string[];
+    catalogs?: string[];
+    custom_payload_api_uri?: string;
 }
 
 export interface TonApiJettonInfo {
     mintable: boolean;
     total_supply: string;
-    admin: TonApiAccountAddress;
+    admin?: TonApiAccountAddress;
     metadata: TonApiJettonMetadata;
-    verification: 'whitelist' | 'blacklist' | 'none';
+    verification: 'whitelist' | 'graylist' | 'blacklist' | 'none';
+    holders_count: number;
+    preview?: string;
 }
 
 export interface TonApiJettonPreview {
@@ -34,7 +37,8 @@ export interface TonApiJettonPreview {
     symbol: string;
     decimals: number;
     image: string;
-    verification: 'whitelist' | 'blacklist' | 'none';
+    verification: 'whitelist' | 'graylist' | 'blacklist' | 'none';
+    score: number;
 }
 
 export interface TonApiJettonBalance {

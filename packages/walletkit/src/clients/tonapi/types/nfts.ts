@@ -39,8 +39,11 @@ export interface TonApiNftItem {
     collection?: TonApiNftCollection;
     verified: boolean;
     metadata: TonApiNftMetadata;
+    sale?: unknown;
     previews?: TonApiNftPreview[];
+    dns?: string;
     approved_by?: string[];
+    include_cnft?: boolean;
     trust: 'whitelist' | 'blacklist' | 'none';
 }
 

@@ -9,12 +9,12 @@
 export interface TonApiAccount {
     address: string;
     balance: number;
-    extra_balance?: Record<string, string>;
-    code?: string;
-    data?: string;
-    last_transaction_lt: number;
-    last_transaction_hash: string;
-    frozen_hash?: string;
+    extra_balance: {
+        amount: string;
+        preview: { id: number; symbol: string; decimals: number; image: string };
+    }[];
+    currencies_balance: Record<string, unknown>;
+    last_activity: number;
     status: 'nonexist' | 'uninit' | 'active' | 'frozen';
     interfaces?: string[];
     name?: string;
@@ -22,6 +22,8 @@ export interface TonApiAccount {
     icon?: string;
     memo_required?: boolean;
     get_methods: string[];
+    is_suspended?: boolean;
+    is_wallet?: boolean;
 }
 
 export interface TonApiAccountAddress {
