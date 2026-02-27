@@ -13,33 +13,8 @@ import type { Quote } from '@ston-fi/omniston-sdk';
  */
 export interface OmnistonQuoteMetadata {
     /**
-     * The unique identifier of the quote
-     */
-    quoteId: string;
-
-    /**
-     * The unique identifier of the resolver
-     */
-    resolverId: string;
-
-    /**
-     * The name of the resolver
-     */
-    resolverName?: string;
-
-    /**
      * The actual omniston quote object
      * @format unknown
      */
     omnistonQuote: Quote;
-
-    /**
-     * The estimated gas budget required
-     */
-    gasBudget?: string;
-
-    /**
-     * The estimated gas consumption for the swap
-     */
-    estimatedGasConsumption?: string;
 }

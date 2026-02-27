@@ -259,7 +259,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             };
 
             log.debug('Built Omniston swap transaction', {
-                quoteId: metadata.quoteId,
+                quoteId: metadata.omnistonQuote.quoteId,
                 transaction,
             });
 
@@ -281,12 +281,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     private mapOmnistonQuoteToSwapQuote(quote: Quote, params: SwapQuoteParams): SwapQuote {
         const metadata: OmnistonQuoteMetadata = {
-            quoteId: quote.quoteId,
-            resolverId: quote.resolverId,
-            resolverName: quote.resolverName,
             omnistonQuote: quote,
-            gasBudget: quote.gasBudget,
-            estimatedGasConsumption: quote.estimatedGasConsumption,
         };
 
         const fee: SwapFee[] = [];
