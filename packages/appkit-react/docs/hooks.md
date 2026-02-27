@@ -348,7 +348,7 @@ return (
 );
 ```
 
-### `useNFTsByAddress`
+### `useNftsByAddress`
 
 Hook to get NFTs of a specific address.
 
@@ -357,7 +357,7 @@ const {
     data: nfts,
     isLoading,
     error,
-} = useNFTsByAddress({
+} = useNftsByAddress({
     address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     limit: 10,
 });

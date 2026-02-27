@@ -6,7 +6,7 @@
  *
  */
 
-import { useNFTsByAddress } from '@ton/appkit-react';
+import { useNftsByAddress } from '@ton/appkit-react';
 
 export const UseNftsByAddressExample = () => {
     // SAMPLE_START: USE_NFTS_BY_ADDRESS
@@ -14,7 +14,7 @@ export const UseNftsByAddressExample = () => {
         data: nfts,
         isLoading,
         error,
-    } = useNFTsByAddress({
+    } = useNftsByAddress({
         address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         limit: 10,
     });

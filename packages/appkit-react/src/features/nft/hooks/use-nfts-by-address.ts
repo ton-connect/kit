@@ -20,7 +20,7 @@ export type UseNFTsByAddressReturnType<selectData = GetNFTsData> = UseQueryRetur
 /**
  * Hook to get NFTs
  */
-export const useNFTsByAddress = <selectData = GetNFTsData>(
+export const useNftsByAddress = <selectData = GetNFTsData>(
     parameters: UseNFTsByAddressParameters<selectData> = {},
 ): UseNFTsByAddressReturnType<selectData> => {
     const appKit = useAppKit();
