@@ -21,6 +21,10 @@ import type {
     WalletAdapter,
     SwapQuote,
     SwapToken,
+    IntentRequestEvent,
+    BatchedIntentEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
 } from '@ton/walletkit';
 
 import type {
@@ -233,12 +237,46 @@ export interface SwapSlice {
     validateSwapInputs: () => string | null;
 }
 
+// Intent slice - Intent URL handling and approval
+export interface IntentSlice {
+    intent: {
+        pendingIntentEvent?: IntentRequestEvent;
+        pendingBatchedIntentEvent?: BatchedIntentEvent;
+        isIntentModalOpen: boolean;
+        isBatchedIntentModalOpen: boolean;
+        intentResult?: IntentTransactionResponse | IntentSignDataResponse;
+        intentError?: string;
+    };
+
+    // Intent URL handling
+    handleIntentUrl: (url: string) => Promise<void>;
+    isIntentUrl: (url: string) => boolean;
+
+    // Show intent (called from listener)
+    showIntentRequest: (event: IntentRequestEvent) => void;
+    showBatchedIntentRequest: (event: BatchedIntentEvent) => void;
+
+    // Approve / Reject
+    approveIntent: () => Promise<void>;
+    rejectIntent: (reason?: string) => Promise<void>;
+    approveBatchedIntent: () => Promise<void>;
+    rejectBatchedIntent: (reason?: string) => Promise<void>;
+
+    // Modal controls
+    closeIntentModal: () => void;
+    closeBatchedIntentModal: () => void;
+
+    // Setup listeners
+    setupIntentListeners: (walletKit: ITonWalletKit) => void;
+}
+
 // Combined app state
 export interface AppState
     extends AuthSlice,
         WalletCoreSlice,
         WalletManagementSlice,
         TonConnectSlice,
+        IntentSlice,
         JettonsSlice,
         NftsSlice,
         SwapSlice {
@@ -264,6 +302,8 @@ export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
 export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
 
 export type SwapSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], SwapSlice>;
+
+export type IntentSliceCreator = StateCreator<AppState, [], [], IntentSlice>;
 
 // Migration types
 export interface MigrationState {

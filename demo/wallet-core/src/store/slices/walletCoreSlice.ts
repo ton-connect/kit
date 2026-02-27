@@ -109,6 +109,7 @@ export const createWalletCoreSlice =
             try {
                 await walletKit.ensureInitialized();
                 get().setupTonConnectListeners(walletKit);
+                get().setupIntentListeners(walletKit);
 
                 set((state) => {
                     state.walletCore.walletKit = walletKit;

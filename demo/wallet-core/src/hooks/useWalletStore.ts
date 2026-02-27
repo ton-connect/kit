@@ -229,3 +229,27 @@ export const useSwap = () => {
         })),
     );
 };
+
+/**
+ * Hook for Intent state and actions
+ */
+export const useIntents = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            pendingIntentEvent: state.intent.pendingIntentEvent,
+            pendingBatchedIntentEvent: state.intent.pendingBatchedIntentEvent,
+            isIntentModalOpen: state.intent.isIntentModalOpen,
+            isBatchedIntentModalOpen: state.intent.isBatchedIntentModalOpen,
+            intentResult: state.intent.intentResult,
+            intentError: state.intent.intentError,
+            handleIntentUrl: state.handleIntentUrl,
+            isIntentUrl: state.isIntentUrl,
+            approveIntent: state.approveIntent,
+            rejectIntent: state.rejectIntent,
+            approveBatchedIntent: state.approveBatchedIntent,
+            rejectBatchedIntent: state.rejectBatchedIntent,
+            closeIntentModal: state.closeIntentModal,
+            closeBatchedIntentModal: state.closeBatchedIntentModal,
+        })),
+    );
+};

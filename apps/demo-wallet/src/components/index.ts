@@ -28,6 +28,7 @@ export { SettingsDropdown } from './SettingsDropdown';
 export { ProtectedRoute } from './ProtectedRoute';
 export { RecentTransactions } from './RecentTransactions';
 export { SignDataRequestModal } from './SignDataRequestModal';
+export { IntentRequestModal, BatchedIntentRequestModal } from './IntentRequestModal';
 export { TraceRow } from './TraceRow';
 export { TransactionRequestModal } from './TransactionRequestModal';
 export { WalletPreview } from './WalletPreview';
