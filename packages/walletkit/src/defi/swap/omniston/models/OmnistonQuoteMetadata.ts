@@ -6,7 +6,7 @@
  *
  */
 
-import type { OmnistonQuote } from './OmnistonQuote';
+import type { Quote } from '@ston-fi/omniston-sdk';
 
 /**
  * Metadata associated with an Omniston quote
@@ -29,8 +29,9 @@ export interface OmnistonQuoteMetadata {
 
     /**
      * The actual omniston quote object
+     * @format unknown
      */
-    omnistonQuote: OmnistonQuote;
+    omnistonQuote: Quote;
 
     /**
      * The estimated gas budget required
