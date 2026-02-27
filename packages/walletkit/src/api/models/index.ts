@@ -92,5 +92,25 @@ export type {
     TransactionTraceMoneyFlowItem,
 } from './transactions/TransactionTraceMoneyFlow';
 
+// Intent models
+export type { SendTonAction, SendJettonAction, SendNftAction, IntentActionItem } from './intents/IntentActionItem';
+export type {
+    IntentOrigin,
+    IntentDeliveryMode,
+    IntentRequestBase,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentRequestEvent,
+} from './intents/IntentRequestEvent';
+export type {
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentError,
+    IntentResponseResult,
+} from './intents/IntentResponse';
+export type { BatchedIntentEvent } from './intents/BatchedIntentEvent';
+
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';

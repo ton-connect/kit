@@ -49,6 +49,7 @@ import type { NetworkManager } from './NetworkManager';
 import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
+import { IntentHandler } from '../handlers/IntentHandler';
 import type {
     Network,
     TransactionRequest,
@@ -62,6 +63,16 @@ import type {
     SignDataApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
+    IntentRequestEvent,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentActionItem,
+    BatchedIntentEvent,
+    ConnectionApprovalProof,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
 
@@ -91,6 +102,7 @@ export class TonWalletKit implements ITonWalletKit {
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
+    private intentHandler!: IntentHandler;
 
     private config: TonWalletKitOptions;
 
@@ -250,6 +262,12 @@ export class TonWalletKit implements ITonWalletKit {
         this.requestProcessor = components.requestProcessor;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
+        this.intentHandler = new IntentHandler(
+            this.config,
+            this.bridgeManager,
+            this.walletManager,
+            this.analyticsManager,
+        );
     }
 
     /**
@@ -522,6 +540,86 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventRouter.removeErrorCallback();
     }
 
+    // === Intent API ===
+
+    isIntentUrl(url: string): boolean {
+        const normalized = url.trim().toLowerCase();
+        return normalized.startsWith('tc://intent_inline') || normalized.startsWith('tc://intent');
+    }
+
+    async handleIntentUrl(url: string, walletId: string): Promise<void> {
+        await this.ensureInitialized();
+        return this.intentHandler.handleIntentUrl(url, walletId);
+    }
+
+    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        if (this.intentHandler) {
+            this.intentHandler.onIntentRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.intentHandler.onIntentRequest(cb);
+            });
+        }
+    }
+
+    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        this.intentHandler.removeIntentRequestCallback(cb);
+    }
+
+    async approveTransactionIntent(
+        event: TransactionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveTransactionIntent(event, walletId);
+    }
+
+    async approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveSignDataIntent(event, walletId);
+    }
+
+    async approveActionIntent(
+        event: ActionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveActionIntent(event, walletId);
+    }
+
+    async approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+        proof?: ConnectionApprovalProof,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        await this.ensureInitialized();
+
+        // Process connect items first — create session before sending tx
+        const connectItems = batch.intents.filter((i) => i.type === 'connect');
+        for (const item of connectItems) {
+            if (item.type === 'connect') {
+                item.value.walletId = walletId;
+                await this.requestProcessor.approveConnectRequest(item.value, proof ? { proof } : undefined);
+            }
+        }
+
+        return this.intentHandler.approveBatchedIntent(batch, walletId);
+    }
+
+    async rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.rejectIntent(event, reason, errorCode);
+    }
+
+    async intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest> {
+        await this.ensureInitialized();
+        return this.intentHandler.intentItemsToTransactionRequest(items, walletId);
+    }
+
     // === URL Processing API ===
 
     /**
@@ -532,6 +630,16 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         try {
+            // Reject intent URLs — they must go through handleIntentUrl(url, walletId)
+            if (this.isIntentUrl(url)) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'This is an intent URL. Use handleIntentUrl(url, walletId) instead of handleTonConnectUrl(url).',
+                    undefined,
+                    { url },
+                );
+            }
+
             // Parse and validate the TON Connect URL
             const parsedUrl = this.parseTonConnectUrl(url);
             if (!parsedUrl) {
