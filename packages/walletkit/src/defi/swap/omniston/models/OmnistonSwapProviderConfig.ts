@@ -8,9 +8,29 @@
 
 import type { OmnistonReferrerOptions } from './OmnistonReferrerOptions';
 
+/**
+ * Configuration for the Omniston Swap Provider
+ */
 export interface OmnistonSwapProviderConfig extends OmnistonReferrerOptions {
+    /**
+     * Optional URL for the Omniston API
+     */
     apiUrl?: string;
+
+    /**
+     * Default slippage tolerance in basis points (1 bp = 0.01%)
+     * @format int
+     */
     defaultSlippageBps?: number;
+
+    /**
+     * Timeout for quote requests in milliseconds
+     * @format int
+     */
     quoteTimeoutMs?: number;
+
+    /**
+     * Identifier for the provider
+     */
     providerId?: string;
 }

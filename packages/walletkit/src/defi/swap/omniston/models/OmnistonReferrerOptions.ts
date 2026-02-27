@@ -6,8 +6,23 @@
  *
  */
 
+/**
+ * Options for configuring the referrer in Omniston swap operations
+ */
 export interface OmnistonReferrerOptions {
+    /**
+     * The address of the referrer
+     */
     referrerAddress?: string;
+
+    /**
+     * Referrer fee in basis points (1 bp = 0.01%)
+     * @format int
+     */
     referrerFeeBps?: number;
+
+    /**
+     * Whether a flexible referrer fee is allowed
+     */
     flexibleReferrerFee?: boolean;
 }
