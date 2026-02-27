@@ -13,8 +13,6 @@ import type { WalletKitBridgeApi } from './api';
 
 export type WalletKitApiMethod = keyof WalletKitBridgeApi;
 
-export type DiagnosticStage = 'start' | 'checkpoint' | 'success' | 'error';
-
 /**
  * Union type for all messages passed through jsBridgeTransport from walletkit.
  */
@@ -30,14 +28,6 @@ export type BridgePayload =
           tonClientEndpoint?: string;
           source?: string;
           timestamp?: number;
-      }
-    | {
-          kind: 'diagnostic-call';
-          id: string;
-          method: WalletKitApiMethod;
-          stage: DiagnosticStage;
-          timestamp: number;
-          message?: string;
       }
     | { kind: 'jsBridgeEvent'; sessionId: string; event: JsBridgeTransportMessage }
     | { kind: 'request'; id: string; method: string; params: Record<string, unknown> };
