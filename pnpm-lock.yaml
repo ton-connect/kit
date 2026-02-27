@@ -12,9 +12,6 @@ catalogs:
     '@tanstack/react-query':
       specifier: 5.90.20
       version: 5.90.20
-    '@ton/core':
-      specifier: ^0.63.0
-      version: 0.63.0
     '@ton/crypto':
       specifier: 3.3.0
       version: 3.3.0
@@ -52,6 +49,9 @@ catalogs:
     react-native:
       specifier: 0.81.5
       version: 0.81.5
+
+overrides:
+  '@ton/core': ^0.63.0
 
 importers:
 
@@ -97,7 +97,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/appkit-react
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: 'catalog:'
@@ -203,7 +203,7 @@ importers:
         specifier: ^4.1.18
         version: 4.1.18(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.1))
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: 'catalog:'
@@ -360,7 +360,7 @@ importers:
         specifier: 7.3.0
         version: 7.3.0(@ton/core@0.63.0(@ton/crypto@3.3.0))
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: 'catalog:'
@@ -597,7 +597,7 @@ importers:
         specifier: ^7.3.0
         version: 7.3.0(@ton/core@0.63.0(@ton/crypto@3.3.0))
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/walletkit':
         specifier: workspace:*
@@ -625,7 +625,7 @@ importers:
         specifier: workspace:*
         version: link:../v4ledger-adapter
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: 'catalog:'
@@ -666,7 +666,7 @@ importers:
         specifier: 'catalog:'
         version: 5.90.20
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@tonconnect/ui':
         specifier: 'catalog:'
@@ -804,7 +804,7 @@ importers:
         specifier: ^9.4.0
         version: 9.5.1(@types/node@24.10.13)
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       '@ton/crypto':
         specifier: 'catalog:'
@@ -890,7 +890,7 @@ importers:
         version: 6.0.3
     devDependencies:
       '@ton/core':
-        specifier: 'catalog:'
+        specifier: ^0.63.0
         version: 0.63.0(@ton/crypto@3.3.0)
       typescript:
         specifier: ^5.9.3
@@ -3760,7 +3760,7 @@ packages:
   '@ton-community/ton-ledger@7.3.0':
     resolution: {integrity: sha512-eG4KqQaQoUgdVzedUlt8ZkwHDw7JiXnPqZOO+1fUKISwjU2OdiRIeo+TB0yKK3X3fm/0hgQbFBEZAbGSCKvzTw==}
     peerDependencies:
-      '@ton/core': '>=0.52.2'
+      '@ton/core': ^0.63.0
 
   '@ton/core@0.63.0':
     resolution: {integrity: sha512-uBc0WQNYVzjAwPvIazf0Ryhpv4nJd4dKIuHoj766gUdwe8sVzGM+TxKKKJETL70hh/mxACyUlR4tAwN0LWDNow==}
@@ -3776,7 +3776,7 @@ packages:
   '@ton/ton@16.1.0':
     resolution: {integrity: sha512-vRlMZVJ0/JABFDTFInyLh3C4LRP6AF3VtOl2iwCEcPfqRxdPcHW4r+bJLkKvo5fCknaGS8CEVdBeu6ziXHv2Ig==}
     peerDependencies:
-      '@ton/core': '>=0.62.0 <1.0.0'
+      '@ton/core': ^0.63.0
       '@ton/crypto': '>=3.2.0'
 
   '@ton/toolchain@https://codeload.github.com/the-ton-tech/toolchain/tar.gz/31376da778155bd0984d68abf2a46dce417bacb8':
