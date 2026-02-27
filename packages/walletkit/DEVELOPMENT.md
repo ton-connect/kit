@@ -148,9 +148,16 @@ ALLURE_API_TOKEN="" # Access token for Allure for getting test data
 ALLURE_PROJECT_ID="100" # Allure project ID
 ALLURE_BASE_URL="https://ton-connect-test-runner.tapps.ninja/api/v1/allure-proxy"
 E2E_SLOW_MO="0" # (optional) Slows down Playwright operations by the specified amount of milliseconds
-CI="1" # (optional) allows headless mode
+CI="1" # (optional) allows headless mode, forces E2E_SLOW_MO to 0
+ENABLE_HEADLESS="true" # (optional) allows headless mode while respecting E2E_SLOW_MO
 TIMEOUT="30000" # (optional) default 60000
 WORKERS_COUNT="16" # (optional) default not set
+
+## <!-- Env for TON API Keys start -->
+VITE_TON_API_KEY="your_mainnet_api_key"
+VITE_TON_API_TESTNET_KEY="your_testnet_api_key"
+VITE_TON_API_TETRA_KEY="your_tetra_api_key"
+## <!-- Env for TON API Keys end -->
 
 ## <!-- Env for testing extension start -->
 E2E_WALLET_SOURCE_EXTENSION="../../dist-extension-chrome" # (optional) path to the extension
@@ -165,6 +172,8 @@ E2E_WALLET_SOURCE="http://localhost:5173/" # (optional) custom url for the web m
 
 VITE_DISABLE_NETWORK_SEND="true" # (optional) defaults to false, disables broadcast to the blockchain
 VITE_DISABLE_AUTO_POPUP="true" # (optional) defaults to false, disables auto open for extension popup
+VITE_DISABLE_AUTO_EMULATION="true" # (optional) defaults to false, disables auto transaction emulation
+VITE_DISABLE_MANIFEST_DOMAIN_CHECK="true" # (optional) defaults to false, disables manifest domain check
 VITE_BRIDGE_URL="https://connect.ton.org/bridge" # (optional) use custom url bridge in web app
 ## <!-- Env for testing webapp end -->
 ```
