@@ -586,7 +586,7 @@ export class TonWalletKit implements ITonWalletKit {
         batch: BatchedIntentEvent,
         walletId: string,
         proof?: ConnectionApprovalProof,
-    ): Promise<IntentTransactionResponse> {
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
         await this.ensureInitialized();
 
         // Process connect items first — create session before sending tx

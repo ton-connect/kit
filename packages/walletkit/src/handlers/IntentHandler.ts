@@ -158,7 +158,7 @@ export class IntentHandler {
     async approveBatchedIntent(
         batch: BatchedIntentEvent,
         walletId: string,
-    ): Promise<IntentTransactionResponse> {
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
         const wallet = this.getWallet(walletId);
 
         // Collect all items from inner transaction events
@@ -173,36 +173,73 @@ export class IntentHandler {
             }
         }
 
-        if (allItems.length === 0) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Batched intent contains no transaction items');
+        // If the batch contains transaction items, process them
+        if (allItems.length > 0) {
+            // Find network/validUntil from first transaction event
+            const firstTx = batch.intents.find((i) => i.type === 'transaction');
+            const network = firstTx?.type === 'transaction' ? firstTx.value.network : undefined;
+            const validUntil = firstTx?.type === 'transaction' ? firstTx.value.validUntil : undefined;
+
+            // Build combined transaction
+            const transactionRequest = await this.resolver.intentItemsToTransactionRequest(
+                allItems,
+                wallet,
+                network,
+                validUntil,
+            );
+
+            const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
+
+            if (deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
+                await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
+            }
+
+            const result: IntentTransactionResponse = {
+                boc: signedBoc as Base64String,
+            };
+
+            // Send one response using the batch's identity
+            await this.sendBatchResponse(batch, { type: 'transaction', value: result });
+            return result;
         }
 
-        // Find network/validUntil from first transaction event
-        const firstTx = batch.intents.find((i) => i.type === 'transaction');
-        const network = firstTx?.type === 'transaction' ? firstTx.value.network : undefined;
-        const validUntil = firstTx?.type === 'transaction' ? firstTx.value.validUntil : undefined;
+        // Check for signData intents
+        const signDataIntent = batch.intents.find((i) => i.type === 'signData');
+        if (signDataIntent && signDataIntent.type === 'signData') {
+            const event = signDataIntent.value;
 
-        // Build combined transaction
-        const transactionRequest = await this.resolver.intentItemsToTransactionRequest(
-            allItems,
-            wallet,
-            network,
-            validUntil,
+            let domain = event.manifestUrl;
+            try {
+                domain = new URL(event.manifestUrl).host;
+            } catch {
+                // use as-is
+            }
+
+            const signData = PrepareSignData({
+                payload: event.payload,
+                domain,
+                address: wallet.getAddress(),
+            });
+
+            const signature = await wallet.getSignedSignData(signData);
+            const signatureBase64 = HexToBase64(signature);
+
+            const result: IntentSignDataResponse = {
+                signature: signatureBase64 as Base64String,
+                address: wallet.getAddress() as UserFriendlyAddress,
+                timestamp: signData.timestamp,
+                domain: signData.domain,
+                payload: event.payload,
+            };
+
+            await this.sendBatchResponse(batch, { type: 'signData', value: result });
+            return result;
+        }
+
+        throw new WalletKitError(
+            ERROR_CODES.VALIDATION_ERROR,
+            'Batched intent contains no transaction or signData items',
         );
-
-        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
-
-        if (deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
-            await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
-        }
-
-        const result: IntentTransactionResponse = {
-            boc: signedBoc as Base64String,
-        };
-
-        // Send one response using the batch's identity
-        await this.sendBatchResponse(batch, { type: 'transaction', value: result });
-        return result;
     }
 
     async approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse> {

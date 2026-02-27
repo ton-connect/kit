@@ -380,8 +380,8 @@ describe('IntentHandler', () => {
             ).not.toHaveBeenCalled();
         });
 
-        it('throws when batch contains no transaction items', async () => {
-            const emptyBatch = makeBatch({
+        it('signs data when batch contains only signData items', async () => {
+            const signDataBatch = makeBatch({
                 intents: [
                     {
                         type: 'signData',
@@ -396,8 +396,31 @@ describe('IntentHandler', () => {
                 ],
             });
 
+            const result = await handler.approveBatchedIntent(signDataBatch, 'wallet-1');
+            expect('signature' in result).toBe(true);
+            expect(mockWallet.getSignedSignData).toHaveBeenCalled();
+            expect(bridgeManager.sendIntentResponse).toHaveBeenCalled();
+        });
+
+        it('throws when batch contains no transaction or signData items', async () => {
+            const emptyBatch = makeBatch({
+                intents: [
+                    {
+                        type: 'connect',
+                        value: {
+                            from: 'client-b',
+                            id: 'c-1',
+                            method: 'connect',
+                            params: { manifest: { url: 'https://example.com' }, items: [] },
+                            timestamp: Date.now(),
+                            domain: '',
+                        },
+                    } as unknown as IntentRequestEvent,
+                ],
+            });
+
             await expect(handler.approveBatchedIntent(emptyBatch, 'wallet-1')).rejects.toThrow(
-                'Batched intent contains no transaction items',
+                'Batched intent contains no transaction or signData items',
             );
         });
 
