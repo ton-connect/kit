@@ -10,3 +10,4 @@ export type { OmnistonProviderOptions } from './OmnistonProviderOptions';
 export type { OmnistonSwapProviderConfig } from './OmnistonSwapProviderConfig';
 export type { OmnistonQuoteMetadata } from './OmnistonQuoteMetadata';
 export type { OmnistonReferrerOptions } from './OmnistonReferrerOptions';
+export type { OmnistonQuote } from './OmnistonQuote';

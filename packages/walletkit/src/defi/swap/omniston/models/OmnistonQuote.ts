@@ -6,13 +6,60 @@
  *
  */
 
-import type { OmnistonAddress } from './OmnistonAddress';
-
 /**
- * This interface is copied from @ston-fi/omniston-sdk.
- * We need concrete models here to ensure seamless porting
- * of walletkit to iOS and Android versions.
+ * These interfaces are copied from @ston-fi/omniston-sdk.
+ * We need concrete models here to ensure seamless porting to iOS and Android versions.
  */
+
+interface OmnistonAddress {
+    blockchain: number;
+    address: string;
+}
+
+interface SwapChunk {
+    protocol: string;
+    bidAmount: string;
+    askAmount: string;
+    extraVersion: number;
+    extra: number[];
+}
+
+interface SwapStep {
+    bidAssetAddress: OmnistonAddress | undefined;
+    askAssetAddress: OmnistonAddress | undefined;
+    chunks: SwapChunk[];
+}
+
+interface SwapRoute {
+    steps: SwapStep[];
+}
+
+interface SwapSettlementParams {
+    routes: SwapRoute[];
+    minAskAmount: string;
+    recommendedMinAskAmount: string;
+    recommendedSlippageBps: number;
+}
+
+interface EscrowSettlementParams {
+    contractAddress: OmnistonAddress | undefined;
+    resolverAddress: OmnistonAddress | undefined;
+    resolveTimeout: number;
+    gasless: boolean;
+}
+
+interface HtlcSettlementParams {
+    contractAddress: OmnistonAddress | undefined;
+    resolverAddress: OmnistonAddress | undefined;
+    resolveTimeout: number;
+}
+
+interface Quote_ParamsOneOf {
+    swap?: SwapSettlementParams | undefined;
+    escrow?: EscrowSettlementParams | undefined;
+    htlc?: HtlcSettlementParams | undefined;
+}
+
 export interface OmnistonQuote {
     quoteId: string;
     resolverId: string;
@@ -22,12 +69,13 @@ export interface OmnistonQuote {
     bidUnits: string;
     askUnits: string;
     referrerAddress: OmnistonAddress | undefined;
+    referrerFeeAsset: OmnistonAddress | undefined;
+    referrerFeeUnits: string;
     protocolFeeAsset: OmnistonAddress | undefined;
     protocolFeeUnits: string;
     quoteTimestamp: number;
     tradeStartDeadline: number;
-    // TODO: add params
-    // params: Quote_ParamsOneOf | undefined;
+    params: Quote_ParamsOneOf | undefined;
     gasBudget: string;
     estimatedGasConsumption: string;
 }
