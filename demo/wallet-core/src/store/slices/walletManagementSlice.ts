@@ -309,13 +309,20 @@ export const createWalletManagementSlice =
                     throw new Error('Failed to load wallet');
                 }
 
-                const balance = await wallet.getBalance();
+                // Activate the wallet immediately, even if API calls fail
+                let balance: string | undefined;
+                try {
+                    const balanceResult = await wallet.getBalance();
+                    balance = balanceResult.toString();
+                } catch (balanceError) {
+                    log.warn('Failed to fetch balance during wallet switch (API may be down):', balanceError);
+                }
 
                 set((state) => {
                     state.walletManagement.activeWalletId = walletId;
                     state.walletManagement.address = savedWallet.address;
                     state.walletManagement.publicKey = savedWallet.publicKey;
-                    state.walletManagement.balance = balance.toString();
+                    state.walletManagement.balance = balance ?? state.walletManagement.balance;
                     state.walletManagement.currentWallet = wallet;
                     state.walletManagement.events = [];
                 });
@@ -420,10 +427,18 @@ export const createWalletManagementSlice =
                     await state.walletCore.walletKit.addWallet(walletAdapter);
                 }
 
-                if (state.walletManagement.savedWallets.length > 0 && !state.walletManagement.activeWalletId) {
-                    await get().switchWallet(state.walletManagement.savedWallets[0].id);
-                } else if (state.walletManagement.activeWalletId) {
-                    await get().switchWallet(state.walletManagement.activeWalletId);
+                // Switch to active wallet — errors here should not block login
+                try {
+                    if (
+                        state.walletManagement.savedWallets.length > 0 &&
+                        !state.walletManagement.activeWalletId
+                    ) {
+                        await get().switchWallet(state.walletManagement.savedWallets[0].id);
+                    } else if (state.walletManagement.activeWalletId) {
+                        await get().switchWallet(state.walletManagement.activeWalletId);
+                    }
+                } catch (switchError) {
+                    log.warn('Failed to switch wallet during loadAllWallets (API may be down):', switchError);
                 }
 
                 set((state) => {
@@ -434,7 +449,12 @@ export const createWalletManagementSlice =
                 log.info('All wallets loaded successfully');
             } catch (error) {
                 log.error('Error loading wallets:', error);
-                throw new Error('Failed to load wallets');
+                // Still mark as authenticated if we have saved wallets —
+                // the user should be able to enter the app even if API is down
+                set((state) => {
+                    state.walletManagement.hasWallet = state.walletManagement.savedWallets.length > 0;
+                    state.walletManagement.isAuthenticated = state.walletManagement.savedWallets.length > 0;
+                });
             }
         },
 
@@ -514,7 +534,6 @@ export const createWalletManagementSlice =
                 });
             } catch (error) {
                 log.error('Error updating balance:', error);
-                throw new Error('Failed to update balance');
             }
         },
 
@@ -560,7 +579,6 @@ export const createWalletManagementSlice =
                 log.info(`Loaded ${response.events.length} events`);
             } catch (error) {
                 log.error('Error loading events:', error);
-                throw new Error('Failed to load events');
             }
         },
 
