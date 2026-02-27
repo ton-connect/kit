@@ -15,6 +15,7 @@ export interface OmnistonQuoteMetadata {
     /**
      * The actual omniston quote object
      * @format unknown
+     * @frozen
      */
     omnistonQuote: Quote;
 }
