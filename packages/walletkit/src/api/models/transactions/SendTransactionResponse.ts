@@ -6,7 +6,7 @@
  *
  */
 
-import type { Base64String } from '../core/Primitives';
+import type { Base64String, Hex } from '../core/Primitives';
 
 export interface SendTransactionResponse {
     /**
@@ -20,5 +20,5 @@ export interface SendTransactionResponse {
     /**
      * Hash of the normalized external-in message
      */
-    normalizedHash: Base64String;
+    normalizedHash: Hex;
 }

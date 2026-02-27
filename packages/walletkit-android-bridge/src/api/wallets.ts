@@ -6,7 +6,15 @@
  *
  */
 
-import type { Hex, Network, WalletAdapter, ApiClient, Base64String, UserFriendlyAddress } from '@ton/walletkit';
+import type {
+    Hex,
+    Network,
+    WalletAdapter,
+    ApiClient,
+    Base64String,
+    UserFriendlyAddress,
+    Feature,
+} from '@ton/walletkit';
 import type { WalletId } from '@ton/walletkit';
 import type { TransactionRequest } from '@ton/walletkit';
 import type { PreparedSignData } from '@ton/walletkit';
@@ -84,6 +92,16 @@ class ProxyWalletAdapter implements WalletAdapter {
         });
         if (!result) throw new Error('adapterSignTonProof: no result from native');
         return result as Hex;
+    }
+
+    getSupportedFeatures(): Feature[] | undefined {
+        const raw = bridgeRequestSync('getSupportedFeatures', { adapterId: this.adapterId });
+        if (!raw || raw === 'null') return undefined;
+        try {
+            return JSON.parse(raw) as Feature[];
+        } catch {
+            return undefined;
+        }
     }
 }
 

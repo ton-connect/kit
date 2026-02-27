@@ -12,7 +12,7 @@ import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
 
 export const getTransactionStatusSchema = z.object({
-    normalizedHash: z.string().min(1).describe('Normalized hash of the external-in transaction (Base64 string)'),
+    normalizedHash: z.string().min(1).describe('Normalized hash of the external-in transaction (Hex string)'),
 });
 
 export function createMcpTransactionTools(service: McpWalletService) {

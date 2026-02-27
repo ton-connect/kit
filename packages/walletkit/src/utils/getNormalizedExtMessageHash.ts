@@ -8,7 +8,7 @@
 
 import { Cell, beginCell, loadMessage, storeMessage } from '@ton/core';
 
-import type { Base64String } from '../api/models';
+import type { Base64String, Hex } from '../api/models';
 
 /**
  * Generates a normalized hash of an "external-in" message for comparison.
@@ -17,10 +17,10 @@ import type { Base64String } from '../api/models';
  * See documentation: https://docs.ton.org/ecosystem/ton-connect/message-lookup#transaction-lookup-using-external-message-from-ton-connect
  *
  * @param params - An object containing the built BOC as a base64 string.
- * @returns An object containing the hash (Base64 string) and the boc (Base64 string) of the normalized message.
+ * @returns An object containing the hash (Hex string) and the boc (Base64 string) of the normalized message.
  * @throws if the message type is not `external-in`.
  */
-export function getNormalizedExtMessageHash(boc: string): { hash: Base64String; boc: Base64String } {
+export function getNormalizedExtMessageHash(boc: string): { hash: Hex; boc: Base64String } {
     const cell = Cell.fromBase64(boc);
     const message = loadMessage(cell.beginParse());
 
@@ -45,7 +45,7 @@ export function getNormalizedExtMessageHash(boc: string): { hash: Base64String; 
         .endCell();
 
     return {
-        hash: normalizedCell.hash().toString('base64') as Base64String,
+        hash: `0x${normalizedCell.hash().toString('hex')}` as Hex,
         boc: normalizedCell.toBoc().toString('base64') as Base64String,
     };
 }

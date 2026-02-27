@@ -61,6 +61,7 @@ import type {
 import { Network } from '../api/models';
 import { asAddressFriendly } from '../utils/address';
 import type { ToncenterEmulationResult } from '../utils/toncenterEmulation';
+import { isHex } from '../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 
@@ -153,7 +154,8 @@ export class ApiClientToncenter implements ApiClient {
             return '';
         }
         const response = await this.postJson<V2SendMessageResult>('/api/v3/message', { boc });
-        return Base64ToBigInt(response.message_hash_norm).toString(16);
+
+        return `0x${Base64ToBigInt(response.message_hash_norm).toString(16)}`;
     }
 
     async runGetMethod(
@@ -329,7 +331,9 @@ export class ApiClientToncenter implements ApiClient {
     async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
         const inTraceId = request.traceId ? request.traceId[0] : undefined;
 
-        const traceId = padBase64(Base64Normalize(inTraceId || '').replace(/=/g, ''));
+        const traceIdStr = inTraceId || '';
+        const isHexId = isHex(traceIdStr);
+        const traceId = isHexId ? traceIdStr : padBase64(Base64Normalize(traceIdStr).replace(/=/g, ''));
 
         const tryGetTrace = async (field: 'tx_hash' | 'trace_id' | 'msg_hash') => {
             const response = await CallForSuccess(

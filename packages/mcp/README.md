@@ -104,7 +104,7 @@ Get the status of a transaction by its normalized hash to know if it is pending,
 **Default flow:** After sending a transaction, poll this until status is completed or failed. User can specify whether to check status.
 
 **Parameters:**
-- `normalizedHash` (required): Normalized hash of the external-in transaction (Base64 string). Note: This must be the *normalized* hash of the message sent to the network.
+- `normalizedHash` (required): Normalized hash of the external-in transaction (Hex string). Note: This must be the *normalized* hash of the message sent to the network.
 
 ### Transfers
 
