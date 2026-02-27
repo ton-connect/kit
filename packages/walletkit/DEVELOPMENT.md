@@ -5,7 +5,7 @@
 ```bash
 pnpm install         # Install dependencies
 pnpm build           # Build all packages
-pnpm kit dev         # Watch mode for development kit
+pnpm walletkit dev         # Watch mode for development kit
 pnpm demo-wallet dev # Watch mode for development demo wallet and use kit
 ```
 
