@@ -9,8 +9,8 @@
 import { useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import type { Jetton } from '@ton/appkit';
-import { getFormattedJettonInfo, Network } from '@ton/appkit';
-import { CurrencyItem, useJettons, useBalance, useSelectedWallet } from '@ton/appkit-react';
+import { getFormattedJettonInfo } from '@ton/appkit';
+import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-react';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
@@ -23,7 +23,6 @@ interface SelectedToken {
 
 export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
     const [selectedToken, setSelectedToken] = useState<SelectedToken | null>(null);
-    const [wallet] = useSelectedWallet();
 
     const {
         data: balance,
@@ -45,26 +44,9 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
 
     const totalTokens = jettons.length + 1; // +1 for TON
 
-    const networkTitle = useMemo(() => {
-        if (!wallet) {
-            return 'Balances';
-        }
-
-        switch (wallet.getNetwork().chainId) {
-            case Network.mainnet().chainId:
-                return 'Balances (Mainnet)';
-            case Network.testnet().chainId:
-                return 'Balances (Testnet)';
-            case Network.tetra().chainId:
-                return 'Balances (Tetra)';
-            default:
-                return 'Unknown';
-        }
-    }, [wallet]);
-
     if (isError) {
         return (
-            <Card title={networkTitle} {...props}>
+            <Card title="Balances" {...props}>
                 <div className="flex flex-col items-center text-center py-4">
                     <div className="text-destructive mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -88,7 +70,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
 
     return (
         <>
-            <Card title={networkTitle} {...props}>
+            <Card title="Balances" {...props}>
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
