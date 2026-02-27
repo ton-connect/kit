@@ -6,12 +6,12 @@
  *
  */
 
-import { Network, getJettonBalanceFromClient, formatUnits } from '@ton/walletkit';
-import type { TokenAmount, UserFriendlyAddress } from '@ton/walletkit';
+import { getJettonBalanceFromClient, formatUnits } from '@ton/walletkit';
+import type { Network, TokenAmount, UserFriendlyAddress } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
 import { getJettonWalletAddress } from './get-jetton-wallet-address';
-import { getDefaultNetwork } from '../network/get-default-network';
+import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export interface GetJettonBalanceOptions {
     jettonAddress: UserFriendlyAddress;
@@ -28,7 +28,7 @@ export const getJettonBalance = async (
 ): Promise<GetJettonBalanceReturnType> => {
     const { jettonAddress, ownerAddress, jettonDecimals, network } = options;
 
-    const client = appKit.networkManager.getClient(network ?? getDefaultNetwork(appKit) ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(resolveNetwork(appKit, network));
 
     const jettonWalletAddress = await getJettonWalletAddress(appKit, {
         jettonAddress,

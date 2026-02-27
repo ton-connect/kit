@@ -20,4 +20,5 @@ export * from './predicate/is-string';
 export * from './promise/cancel-promise';
 export * from './promise/sleep';
 export * from './query/filter-query-options';
+export * from './network/resolve-network';
 export * from './string/middle-ellipsis';

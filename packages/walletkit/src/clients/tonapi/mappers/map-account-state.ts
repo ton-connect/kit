@@ -15,6 +15,8 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
     let status: AccountStatus;
     switch (raw.status) {
         case 'nonexist':
+            status = 'non-existing';
+            break;
         case 'uninit':
             status = 'uninitialized';
             break;
@@ -25,7 +27,7 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
             status = 'frozen';
             break;
         default:
-            status = 'uninitialized';
+            status = 'non-existing';
     }
 
     const extraCurrencies: Record<number, bigint> = {};

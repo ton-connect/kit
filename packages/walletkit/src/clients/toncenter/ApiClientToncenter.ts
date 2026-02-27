@@ -66,7 +66,6 @@ import type { BaseApiClientConfig } from '../BaseApiClient';
 import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest } from './types';
 import { padBase64, parseInternalTransactionId, prepareAddress } from './utils';
 import { TonClientError } from '../TonClientError';
-import { getNormalizedExtMessageHash } from '../../utils';
 
 const log = globalLogger.createChild('ApiClientToncenter');
 

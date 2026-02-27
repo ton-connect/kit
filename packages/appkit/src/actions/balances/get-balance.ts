@@ -27,6 +27,6 @@ export const getBalance = async (appKit: AppKit, options: GetBalanceOptions = {}
 
     return getBalanceByAddress(appKit, {
         address: selectedWallet.getAddress(),
-        network: options.network,
+        network: options.network ?? selectedWallet.getNetwork(),
     });
 };

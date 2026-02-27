@@ -70,9 +70,24 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async getAccountState(address: UserFriendlyAddress, _seqno?: number): Promise<FullAccountState> {
         // Note: seqno parameter is not supported by TonApi /v2/accounts endpoint for historical state queries
-        const raw = await this.getJson<TonApiBlockchainAccount>(`/v2/blockchain/accounts/${address}`);
+        try {
+            const raw = await this.getJson<TonApiBlockchainAccount>(`/v2/blockchain/accounts/${address}`);
 
-        return mapAccountState(raw);
+            return mapAccountState(raw);
+        } catch (e) {
+            // TonApi returns 404 for non-existent accounts
+            if (e instanceof TonClientError && e.status === 404) {
+                return {
+                    status: 'non-existing',
+                    balance: '0',
+                    extraCurrencies: {},
+                    code: null,
+                    data: null,
+                    lastTransaction: null,
+                };
+            }
+            throw e;
+        }
     }
 
     async getBalance(address: UserFriendlyAddress, seqno?: number): Promise<TokenAmount> {
