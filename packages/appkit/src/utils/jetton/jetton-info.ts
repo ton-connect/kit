@@ -6,7 +6,6 @@
  *
  */
 
-import { formatUnits } from '@ton/walletkit';
 import type { Jetton } from '@ton/walletkit';
 
 export const getJettonsSymbol = (jetton: Jetton): string | undefined => {
@@ -46,7 +45,6 @@ export const getFormattedJettonInfo = (jetton: Jetton) => {
     const jettonImage = getJettonsImage(jetton);
     const jettonBalance = jetton.balance || '0';
     const jettonDecimals = jetton.decimalsNumber;
-    const formattedBalance = jettonDecimals ? formatUnits(jettonBalance, jettonDecimals) : '0';
 
     return {
         address: jetton.address,
@@ -56,7 +54,7 @@ export const getFormattedJettonInfo = (jetton: Jetton) => {
         symbol: jettonSymbol,
         image: jettonImage,
         imageData: jetton.info?.image?.data,
-        balance: formattedBalance,
+        balance: jettonBalance,
         decimals: jettonDecimals,
     };
 };

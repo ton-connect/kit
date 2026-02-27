@@ -6,7 +6,7 @@
  *
  */
 
-import { formatAddress } from '@demo/wallet-core';
+import { formatAddress, getNetworkLabel } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
 import type { FC } from 'react';
 import { View } from 'react-native';
@@ -19,7 +19,7 @@ interface WalletItemInfoProps {
 }
 
 export const WalletItemInfo: FC<WalletItemInfoProps> = ({ wallet }) => {
-    const networkLabel = wallet.network === 'mainnet' ? 'Mainnet' : 'Testnet';
+    const networkLabel = getNetworkLabel(wallet.network);
 
     return (
         <View style={styles.container}>

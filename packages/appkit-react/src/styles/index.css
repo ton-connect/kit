@@ -1,6 +1,7 @@
 :root {
   /* Font */
   --ta-font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, Tahoma, Verdana, sans-serif;
+  --ta-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   
   /* Typography */
   /* Headings */

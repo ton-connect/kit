@@ -7,10 +7,11 @@
  */
 
 import React from 'react';
+import type { NetworkType } from '@demo/wallet-core';
 
 interface NetworkSelectorProps {
-    value: 'mainnet' | 'testnet';
-    onChange: (network: 'mainnet' | 'testnet') => void;
+    value: NetworkType;
+    onChange: (network: NetworkType) => void;
     label?: string;
     compact?: boolean;
 }
@@ -46,6 +47,16 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
                     >
                         Testnet
                     </button>
+                    <button
+                        type="button"
+                        data-testid="network-select-tetra"
+                        onClick={() => onChange('tetra')}
+                        className={`px-3 py-1.5 text-xs font-medium transition-all border-l border-gray-200 ${
+                            value === 'tetra' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                    >
+                        Tetra
+                    </button>
                 </div>
             </div>
         );
@@ -54,7 +65,7 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
     return (
         <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">{label}</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <button
                     type="button"
                     data-testid="network-select-mainnet"
@@ -85,11 +96,28 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
                         <span className="text-xs text-gray-500">For development</span>
                     </div>
                 </button>
+                <button
+                    type="button"
+                    data-testid="network-select-tetra"
+                    onClick={() => onChange('tetra')}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-all border-2 ${
+                        value === 'tetra'
+                            ? 'bg-blue-50 text-blue-700 border-blue-500'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                    }`}
+                >
+                    <div className="flex flex-col items-center space-y-1">
+                        <span className="font-semibold">Tetra</span>
+                        <span className="text-xs text-gray-500">Tetra network</span>
+                    </div>
+                </button>
             </div>
             <p className="text-xs text-gray-500 mt-1">
                 {value === 'mainnet'
                     ? 'Use mainnet for real transactions with real TON.'
-                    : 'Use testnet for development and testing with test TON.'}
+                    : value === 'testnet'
+                      ? 'Use testnet for development and testing with test TON.'
+                      : 'Use Tetra network for Tetra transactions.'}
             </p>
         </div>
     );

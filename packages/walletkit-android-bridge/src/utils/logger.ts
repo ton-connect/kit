@@ -7,17 +7,10 @@
  */
 
 /**
- * Flexible logging utility for the Android WalletKit bridge.
- *
- * Logging can be controlled by setting the log level from the Android SDK:
- * window.__WALLETKIT_LOG_LEVEL__ = 'DEBUG'; // OFF, ERROR, WARN, INFO, DEBUG
- *
- * Default is 'OFF' in production for performance.
+ * Logging utility controlled via window.__WALLETKIT_LOG_LEVEL__.
+ * Defaults to OFF in production.
  */
 
-/**
- * Log levels in order of verbosity
- */
 export enum LogLevel {
     OFF = 0,
     ERROR = 1,
@@ -47,40 +40,24 @@ function getCurrentLogLevel(): LogLevel {
     return LogLevel[levelStr] ?? LogLevel.OFF;
 }
 
-/**
- * Debug logger - logs detailed debugging information
- * Only logs when level is DEBUG or higher
- */
 export const log = (...args: unknown[]): void => {
     if (getCurrentLogLevel() >= LogLevel.DEBUG) {
         consoleRef?.log?.('[WalletKit]', ...args);
     }
 };
 
-/**
- * Info logger - logs informational messages
- * Only logs when level is INFO or higher
- */
 export const info = (...args: unknown[]): void => {
     if (getCurrentLogLevel() >= LogLevel.INFO) {
         consoleRef?.log?.('[WalletKit]', ...args);
     }
 };
 
-/**
- * Warning logger - logs warnings
- * Only logs when level is WARN or higher
- */
 export const warn = (...args: unknown[]): void => {
     if (getCurrentLogLevel() >= LogLevel.WARN) {
         consoleRef?.warn?.('[WalletKit]', ...args);
     }
 };
 
-/**
- * Error logger - logs errors
- * Only logs when level is ERROR or higher
- */
 export const error = (...args: unknown[]): void => {
     if (getCurrentLogLevel() >= LogLevel.ERROR) {
         consoleRef?.error?.('[WalletKit]', ...args);

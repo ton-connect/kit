@@ -6,12 +6,6 @@
  *
  */
 
-/**
- * nft.ts – NFT operations
- *
- * Minimal bridge for NFT operations.
- */
-
 import { walletCall } from '../utils/bridge';
 
 export const getNfts = (args: { walletId: string }) => walletCall('getNfts', args);

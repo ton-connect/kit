@@ -11,3 +11,4 @@ export { createMcpTransferTools } from './transfer-tools.js';
 export { createMcpSwapTools } from './swap-tools.js';
 export { createMcpKnownJettonsTools, KNOWN_JETTONS } from './known-jettons-tools.js';
 export { createMcpNftTools } from './nft-tools.js';
+export { createMcpTransactionTools } from './transaction-tools.js';

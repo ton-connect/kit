@@ -272,7 +272,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return signature;
     }
 
-    getSupportedFeatures(): Feature[] {
+    getSupportedFeatures(): Feature[] | undefined {
         return [
             {
                 name: 'SendTransaction',

@@ -59,7 +59,7 @@ export interface AndroidBridgeType {
 
 export interface WalletKitNativeBridgeType {
     postMessage(json: string): void;
-    signWithCustomSigner?(signerId: string, bytes: number[]): Promise<string>;
+    adapterCallSync(method: string, paramsJson: string): string;
 }
 
 export type WalletKitAdapter = WalletAdapter;

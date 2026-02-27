@@ -12,6 +12,7 @@ import { Alert, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { CreateTonMnemonic } from '@ton/walletkit';
 import { router } from 'expo-router';
+import type { NetworkType } from '@demo/wallet-core';
 import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { AppButton } from '@/core/components/app-button';
@@ -26,11 +27,12 @@ import { MnemonicView } from '@/features/wallets';
 const networkOptions = [
     { value: 'testnet' as const, label: 'Testnet' },
     { value: 'mainnet' as const, label: 'Mainnet' },
+    { value: 'tetra' as const, label: 'Tetra' },
 ];
 
 const CreateMnemonicScreen: FC = () => {
     const [mnemonic, setMnemonic] = useState<string[]>([]);
-    const [network, setNetwork] = useState<'mainnet' | 'testnet'>('testnet');
+    const [network, setNetwork] = useState<NetworkType>('testnet');
     const [isWarningShown, setIsWarningShown] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 

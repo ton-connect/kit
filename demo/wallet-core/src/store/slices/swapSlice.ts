@@ -197,10 +197,10 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
 
             let maxOutgoingMessages = 1;
 
-            if (state.walletManagement.currentWallet?.getSupportedFeatures) {
-                maxOutgoingMessages = getMaxOutgoingMessages(
-                    state.walletManagement.currentWallet?.getSupportedFeatures(),
-                );
+            const walletSupportedFeatures = state.walletManagement.currentWallet?.getSupportedFeatures();
+
+            if (walletSupportedFeatures) {
+                maxOutgoingMessages = getMaxOutgoingMessages(walletSupportedFeatures);
             }
 
             // Determine which amount to use (pass human-readable amount, provider handles conversion)

@@ -11,6 +11,7 @@ export const ENV_TON_API_KEY_MAINNET =
     import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
 export const ENV_TON_API_KEY_TESTNET =
     import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
+export const ENV_TON_API_KEY_TETRA = import.meta.env.VITE_TON_API_TETRA_KEY ?? '';
 
 export const DISABLE_NETWORK_SEND = import.meta.env?.VITE_DISABLE_NETWORK_SEND === 'true' || false;
 export const DISABLE_MANIFEST_DOMAIN_CHECK = import.meta.env?.VITE_DISABLE_MANIFEST_DOMAIN_CHECK === 'true' || false;

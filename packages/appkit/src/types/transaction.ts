@@ -10,6 +10,8 @@ import type { ExtraCurrencies, TokenAmount } from '@ton/walletkit';
 
 import type { Network } from './network';
 
+export type { TransactionStatus } from '@ton/walletkit';
+
 export interface TransactionRequest {
     /**
      * List of messages to include in the transaction

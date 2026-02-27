@@ -17,6 +17,7 @@ describe('getDeviceInfoForWallet', () => {
         const mockAdapter = {
             getPublicKey: () => '0x123',
             getNetwork: () => ({ chainId: -239 }),
+            getSupportedFeatures: () => undefined,
         } as unknown as WalletAdapter;
 
         const deviceInfo = getDeviceInfoForWallet(mockAdapter);

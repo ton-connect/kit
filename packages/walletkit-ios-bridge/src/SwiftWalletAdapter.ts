@@ -16,6 +16,7 @@ import type {
     TransactionRequest,
     PreparedSignData,
     ProofMessage,
+    Feature,
 } from '@ton/walletkit';
 
 import type { WalletId } from '../../walletkit/dist/cjs';
@@ -80,5 +81,9 @@ export class SwiftWalletAdapter implements WalletAdapter {
         },
     ): Promise<Hex> {
         return this.swiftWalletAdapter.getSignedTonProof(input, options);
+    }
+
+    getSupportedFeatures(): Feature[] | undefined {
+        return this.swiftWalletAdapter.getSupportedFeatures();
     }
 }

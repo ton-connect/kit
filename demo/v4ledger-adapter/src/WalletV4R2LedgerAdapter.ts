@@ -288,7 +288,7 @@ export class WalletV4R2LedgerAdapter implements WalletAdapter {
         return true;
     }
 
-    getSupportedFeatures(): Feature[] {
+    getSupportedFeatures(): Feature[] | undefined {
         return [
             {
                 name: 'SendTransaction',

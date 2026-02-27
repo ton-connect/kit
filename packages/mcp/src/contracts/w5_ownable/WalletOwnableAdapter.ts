@@ -377,7 +377,7 @@ export class WalletOwnableAdapter implements WalletAdapter {
         return signature;
     }
 
-    getSupportedFeatures(): Feature[] {
+    getSupportedFeatures(): Feature[] | undefined {
         return [
             {
                 name: 'SendTransaction',

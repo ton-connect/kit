@@ -344,7 +344,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
         return signature;
     }
 
-    getSupportedFeatures(): Feature[] {
+    getSupportedFeatures(): Feature[] | undefined {
         return [
             {
                 name: 'SendTransaction',

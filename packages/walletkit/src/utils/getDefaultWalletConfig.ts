@@ -114,11 +114,12 @@ export function getDeviceInfoForWallet(
     const baseDeviceInfo = getDeviceInfoWithDefaults(deviceInfoOptions);
 
     // If wallet adapter has getSupportedFeatures(), use those features
-    if (walletAdapter?.getSupportedFeatures) {
-        const adapterFeatures = walletAdapter.getSupportedFeatures();
+    const walletSupportedFeatures = walletAdapter?.getSupportedFeatures();
+
+    if (walletSupportedFeatures) {
         const deviceInfo = {
             ...baseDeviceInfo,
-            features: adapterFeatures,
+            features: walletSupportedFeatures,
         };
 
         return addLegacySendTransactionFeature(deviceInfo);

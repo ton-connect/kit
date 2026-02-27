@@ -7,16 +7,10 @@
  */
 
 /**
- * Cryptographic helpers backed by WalletKit and custom signer coordination.
+ * Cryptographic helpers.
  */
-import type { Hex } from '@ton/walletkit';
 
 import { CreateTonMnemonic, MnemonicToKeyPair, DefaultSignature } from '../core/moduleLoader';
-
-export async function signWithCustomSigner(signerId: string, bytes: Uint8Array): Promise<Hex> {
-    const result = await window.WalletKitNative?.signWithCustomSigner?.(signerId, Array.from(bytes));
-    return result as Hex;
-}
 
 export async function mnemonicToKeyPair(args: { mnemonic: string[]; mnemonicType?: string }) {
     if (!MnemonicToKeyPair) {

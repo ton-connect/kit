@@ -84,6 +84,8 @@ export * from './transactions/TransactionTrace';
 export type { TransactionEmulatedPreview } from './transactions/emulation/TransactionEmulatedPreview';
 export type { TransactionEmulatedTrace } from './transactions/emulation/TransactionEmulatedTrace';
 export type { SendTransactionResponse } from './transactions/SendTransactionResponse';
+export { TransactionStatus } from './transactions/TransactionStatus';
+export type { TransactionStatusResponse } from './transactions/TransactionStatus';
 export type { TransactionsResponse } from './transactions/TransactionsResponse';
 export type {
     TransactionTraceMoneyFlow,
@@ -92,5 +94,3 @@ export type {
 
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';
-
-export type { SignatureDomain, SignatureDomainL2, SignatureDomainEmpty } from './core/SignatureDomain';

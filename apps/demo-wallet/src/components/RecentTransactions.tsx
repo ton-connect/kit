@@ -8,9 +8,9 @@
 
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useWalletStore, useWalletKit } from '@demo/wallet-core';
+import { useWalletStore, useWalletKit, getChainNetwork } from '@demo/wallet-core';
 import type { PreviewTransaction } from '@demo/wallet-core';
-import { Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
+import { Base64NormalizeUrl, HexToBase64 } from '@ton/walletkit';
 import type { Event, Action } from '@ton/walletkit';
 
 import { TraceRow } from './TraceRow';
@@ -42,7 +42,7 @@ export const RecentTransactions: React.FC = memo(() => {
     // Get the active wallet's network
     const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
     const walletNetwork = activeWallet?.network || 'testnet';
-    const chainNetwork = walletNetwork === 'mainnet' ? Network.mainnet() : Network.testnet();
+    const chainNetwork = getChainNetwork(walletNetwork);
 
     // Check for pending transactions
     const checkPendingTransactions = async () => {

@@ -60,5 +60,5 @@ export interface WalletAdapter {
      * Get supported TON Connect features for this wallet adapter
      * If not implemented, features from deviceInfo will be used
      */
-    getSupportedFeatures?(): Feature[];
+    getSupportedFeatures(): Feature[] | undefined;
 }

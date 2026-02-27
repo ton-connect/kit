@@ -11,6 +11,7 @@ import { isValidNanotonAmount, validateTransactionMessage } from '../../../valid
 import { CallForSuccess } from '../../../utils/retry';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
 import { createCommentPayloadBase64 } from '../../../utils/messageBuilders';
+import { getNormalizedExtMessageHash } from '../../../utils/getNormalizedExtMessageHash';
 import { ERROR_CODES, WalletKitError } from '../../../errors';
 import { globalLogger } from '../../Logger';
 import type {
@@ -110,7 +111,8 @@ export class WalletTonClass implements WalletTonInterface {
 
             await CallForSuccess(() => this.getClient().sendBoc(boc));
 
-            return { boc };
+            const { hash: normalizedHash, boc: normalizedBoc } = getNormalizedExtMessageHash(boc);
+            return { boc, normalizedBoc, normalizedHash };
         } catch (error) {
             log.error('Failed to send transaction', { error });
 

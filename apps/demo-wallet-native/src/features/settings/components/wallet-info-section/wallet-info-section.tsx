@@ -7,14 +7,14 @@
  */
 
 import type { FC } from 'react';
-import { useWallet } from '@demo/wallet-core';
+import { useWallet, getNetworkLabel } from '@demo/wallet-core';
 
 import { DataBlock } from '@/core/components/data-block';
 
 export const WalletInfoSection: FC = () => {
     const { address, publicKey, getActiveWallet } = useWallet();
     const activeWallet = getActiveWallet();
-    const networkLabel = activeWallet?.network === 'mainnet' ? 'Mainnet' : 'Testnet';
+    const networkLabel = getNetworkLabel(activeWallet?.network || 'testnet');
 
     return (
         <DataBlock.Container>

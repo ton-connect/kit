@@ -34,11 +34,16 @@ export const api: WalletKitBridgeApi = {
     sign: cryptography.sign,
     createTonMnemonic: cryptography.createTonMnemonic,
 
-    // Wallets
-    createSigner: wallets.createSigner,
-    createAdapter: wallets.createAdapter,
-    getAdapterAddress: wallets.getAdapterAddress,
+    // Wallets — 3-step factory
+    createSignerFromMnemonic: wallets.createSignerFromMnemonic,
+    createSignerFromPrivateKey: wallets.createSignerFromPrivateKey,
+    createSignerFromCustom: wallets.createSignerFromCustom,
+    createV5R1WalletAdapter: wallets.createV5R1WalletAdapter,
+    createV4R2WalletAdapter: wallets.createV4R2WalletAdapter,
+
+    // Wallets — unified addWallet (registry path + proxy adapter path)
     addWallet: wallets.addWallet,
+    releaseRef: wallets.releaseRef,
     getWallets: wallets.getWallets,
     getWallet: wallets.getWalletById,
     getWalletAddress: wallets.getWalletAddress,
@@ -85,5 +90,3 @@ export const api: WalletKitBridgeApi = {
     emitBrowserError: browser.emitBrowserError,
     emitBrowserBridgeRequest: browser.emitBrowserBridgeRequest,
 } as unknown as WalletKitBridgeApi;
-
-export type { BridgeEventListener } from './eventListeners';
