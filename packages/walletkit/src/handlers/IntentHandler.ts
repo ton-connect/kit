@@ -134,7 +134,10 @@ export class IntentHandler {
 
         const transactionRequest = event.resolvedTransaction ?? (await this.resolveTransaction(event, wallet));
 
-        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
+        // signOnly (signMsg) uses internal opcode (0x73696e74) for gasless relaying
+        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
+            internal: event.deliveryMode === 'signOnly',
+        });
 
         if (event.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
             await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
@@ -188,7 +191,10 @@ export class IntentHandler {
                 validUntil,
             );
 
-            const signedBoc = await wallet.getSignedSendTransaction(transactionRequest);
+            // signOnly (signMsg) uses internal opcode (0x73696e74) for gasless relaying
+            const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
+                internal: deliveryMode === 'signOnly',
+            });
 
             if (deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
                 await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
