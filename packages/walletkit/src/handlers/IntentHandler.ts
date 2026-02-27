@@ -376,11 +376,7 @@ export class IntentHandler {
             domain: '',
         };
 
-        const connectHandler = new ConnectHandler(
-            () => {},
-            this.walletKitOptions,
-            this.analyticsManager,
-        );
+        const connectHandler = new ConnectHandler(() => {}, this.walletKitOptions, this.analyticsManager);
         return connectHandler.handle(bridgeEvent);
     }
 

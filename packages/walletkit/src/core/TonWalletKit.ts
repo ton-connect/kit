@@ -262,7 +262,12 @@ export class TonWalletKit implements ITonWalletKit {
         this.requestProcessor = components.requestProcessor;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
-        this.intentHandler = new IntentHandler(this.config, this.bridgeManager, this.walletManager, this.analyticsManager);
+        this.intentHandler = new IntentHandler(
+            this.config,
+            this.bridgeManager,
+            this.walletManager,
+            this.analyticsManager,
+        );
     }
 
     /**
