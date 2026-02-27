@@ -429,10 +429,7 @@ export const createWalletManagementSlice =
 
                 // Switch to active wallet — errors here should not block login
                 try {
-                    if (
-                        state.walletManagement.savedWallets.length > 0 &&
-                        !state.walletManagement.activeWalletId
-                    ) {
+                    if (state.walletManagement.savedWallets.length > 0 && !state.walletManagement.activeWalletId) {
                         await get().switchWallet(state.walletManagement.savedWallets[0].id);
                     } else if (state.walletManagement.activeWalletId) {
                         await get().switchWallet(state.walletManagement.activeWalletId);
