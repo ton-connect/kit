@@ -12,6 +12,7 @@ export type { WalletSigner, ISigner } from './WalletSigner';
 // Defi interfaces
 export type { DefiManagerAPI } from './DefiManagerAPI';
 export type { SwapAPI, SwapProviderInterface } from './SwapAPI';
+export type { OnrampAPI, OnrampProviderInterface } from './OnrampAPI';
 export type { DefiProvider } from './DefiProvider';
 
 export type { TONConnectSessionManager } from './TONConnectSessionManager';

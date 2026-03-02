@@ -9,7 +9,7 @@
 /**
  * Type of provider
  */
-export type DefiProviderType = 'swap';
+export type DefiProviderType = 'swap' | 'onramp';
 
 /**
  * Base interface for all providers

@@ -75,6 +75,18 @@ export type { SwapQuote } from './swaps/SwapQuote';
 export type { SwapQuoteParams } from './swaps/SwapQuoteParams';
 export type { SwapParams } from './swaps/SwapParams';
 
+// Onramp models
+export type {
+    OnrampParams,
+    OnrampQuote,
+    OnrampQuoteParams,
+    OnrampLimits,
+    OnrampLimitParams,
+    OnrampTransactionStatus,
+    OnrampStatus,
+    OnrampTransactionParams,
+} from './onramps';
+
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
