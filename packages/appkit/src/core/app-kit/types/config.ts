@@ -6,7 +6,7 @@
  *
  */
 
-import type { NetworkAdapters } from '@ton/walletkit';
+import type { NetworkAdapters, AnalyticsManagerOptions } from '@ton/walletkit';
 
 import type { Connector } from '../../../types/connector';
 import type { Provider } from '../../../types/provider';
@@ -25,4 +25,11 @@ export interface AppKitConfig {
     networks?: NetworkAdapters;
     connectors?: Connector[];
     providers?: Provider[];
+
+    /**
+     * Analytics configuration
+     */
+    analytics?: AnalyticsManagerOptions & {
+        enabled?: boolean;
+    };
 }
