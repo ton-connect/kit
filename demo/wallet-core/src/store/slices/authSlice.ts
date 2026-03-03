@@ -86,8 +86,18 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
     },
 
     reset: () => {
-        // const state = get();
+        const state = get();
+
+        // Clear WalletKit internal storage (wallets + sessions)
+        const walletKit = state.walletCore.walletKit;
+        if (walletKit) {
+            walletKit.clearWallets().catch((err) => {
+                log.error('Failed to clear walletKit wallets on reset:', err);
+            });
+        }
+
         set((state) => {
+            // Auth
             state.auth.isPasswordSet = false;
             state.auth.isUnlocked = false;
             state.auth.currentPassword = undefined;
@@ -95,6 +105,32 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
             state.auth.persistPassword = false;
             state.auth.useWalletInterfaceType = 'mnemonic';
             state.auth.ledgerAccountNumber = 0;
+
+            // Wallet management
+            state.walletManagement.savedWallets = [];
+            state.walletManagement.activeWalletId = undefined;
+            state.walletManagement.address = undefined;
+            state.walletManagement.balance = undefined;
+            state.walletManagement.publicKey = undefined;
+            state.walletManagement.events = [];
+            state.walletManagement.hasNextEvents = false;
+            state.walletManagement.currentWallet = undefined;
+            state.walletManagement.hasWallet = false;
+            state.walletManagement.isAuthenticated = false;
+
+            // TonConnect
+            state.tonConnect.requestQueue = {
+                items: [],
+                currentRequestId: undefined,
+                isProcessing: false,
+            };
+            state.tonConnect.pendingConnectRequestEvent = undefined;
+            state.tonConnect.isConnectModalOpen = false;
+            state.tonConnect.pendingTransactionRequestEvent = undefined;
+            state.tonConnect.isTransactionModalOpen = false;
+            state.tonConnect.pendingSignDataRequestEvent = undefined;
+            state.tonConnect.isSignDataModalOpen = false;
+            state.tonConnect.disconnectedSessions = [];
         });
     },
 

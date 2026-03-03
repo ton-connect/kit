@@ -8,7 +8,6 @@
 
 import type { WalletKitBridgeEvent, WalletKitBridgeApi, WalletKitApiMethod, CallContext } from '../types';
 import { postToNative } from './nativeBridge';
-import { emitCallDiagnostic } from './diagnostics';
 import { error } from '../utils/logger';
 
 let apiRef: WalletKitBridgeApi | undefined;
@@ -48,16 +47,13 @@ export async function handleCall(id: string, method: WalletKitApiMethod, params?
     if (!apiRef) {
         throw new Error('Bridge API not registered');
     }
-    emitCallDiagnostic(id, method, 'start');
     try {
         const context: CallContext = { id, method };
         const value = await invokeApiMethod(apiRef, method, params, context);
-        emitCallDiagnostic(id, method, 'success');
         respond(id, value);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         error(`[walletkitBridge] handleCall error for ${method}:`, message);
-        emitCallDiagnostic(id, method, 'error', message);
         respond(id, undefined, { message });
     }
 }

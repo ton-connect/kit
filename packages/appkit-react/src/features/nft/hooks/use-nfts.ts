@@ -9,7 +9,7 @@
 import type { GetNFTsData } from '@ton/appkit/queries';
 
 import { useAddress } from '../../wallets/hooks/use-address';
-import { useNFTsByAddress } from './use-nfts-by-address';
+import { useNftsByAddress } from './use-nfts-by-address';
 import type { UseNFTsByAddressParameters, UseNFTsByAddressReturnType } from './use-nfts-by-address';
 
 export type UseNFTsParameters<selectData = GetNFTsData> = UseNFTsByAddressParameters<selectData>;
@@ -24,5 +24,5 @@ export const useNfts = <selectData = GetNFTsData>(
 ): UseNFTsReturnType<selectData> => {
     const address = useAddress();
 
-    return useNFTsByAddress({ ...parameters, address });
+    return useNftsByAddress({ ...parameters, address });
 };
