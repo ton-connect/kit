@@ -80,11 +80,6 @@ export type {
     OnrampParams,
     OnrampQuote,
     OnrampQuoteParams,
-    OnrampLimits,
-    OnrampLimitParams,
-    OnrampTransactionStatus,
-    OnrampStatus,
-    OnrampTransactionParams,
 } from './onramps';
 
 // Transaction models

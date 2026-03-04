@@ -29,7 +29,7 @@ export interface OnrampLimits {
      * Maximum crypto amount allowed
      */
     maxQuoteAmount?: number;
-    
+
     /**
      * Provider identifier
      */

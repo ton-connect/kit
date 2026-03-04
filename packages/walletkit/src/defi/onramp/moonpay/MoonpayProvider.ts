@@ -6,16 +6,7 @@
  *
  */
 
-import type {
-    OnrampParams,
-    OnrampQuote,
-    OnrampQuoteParams,
-    OnrampLimits,
-    OnrampLimitParams,
-    OnrampTransactionStatus,
-    OnrampTransactionParams,
-    OnrampStatus,
-} from '../../../api/models/onramps';
+import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../../api/models/onramps';
 import { OnrampProvider } from '../OnrampProvider';
 import { OnrampError } from '../errors';
 
@@ -34,11 +25,6 @@ export interface MoonpayOnrampOptions {
      * E.g. dark or light color theme for the widget
      */
     theme?: 'dark' | 'light';
-
-    /**
-     * The URL to redirect to after successful payment
-     */
-    redirectUrl?: string;
 }
 
 /**
@@ -47,7 +33,7 @@ export interface MoonpayOnrampOptions {
  * Note: Moonpay relies heavily on widget redirects. Quotes are typically estimates
  * and the final price is confirmed on the Moonpay widget.
  */
-export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, MoonpayOnrampOptions, undefined, undefined> {
+export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, MoonpayOnrampOptions> {
     readonly providerId = 'moonpay';
 
     private readonly baseUrl = 'https://buy.moonpay.com';
@@ -102,76 +88,6 @@ export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, Moonpay
         }
     }
 
-    async getLimits(params: OnrampLimitParams<undefined>): Promise<OnrampLimits> {
-        try {
-            const url = new URL(`${this.apiUrl}/v3/currencies/${params.cryptoCurrency.toLowerCase()}/limits`);
-            url.searchParams.append('apiKey', this.apiKey);
-            url.searchParams.append('baseCurrencyCode', params.fiatCurrency.toLowerCase());
-
-            const response = await fetch(url.toString());
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            // Moonpay limits format validation
-            if (!data.baseCurrency || typeof data.baseCurrency.minBuyAmount !== 'number') {
-                throw new Error('No limits returned from provider');
-            }
-
-            return {
-                minBaseAmount: data.baseCurrency.minBuyAmount,
-                maxBaseAmount: data.baseCurrency.maxBuyAmount,
-                providerId: this.providerId,
-            };
-        } catch (error) {
-            throw new OnrampError('Failed to get Moonpay limits', OnrampError.PROVIDER_ERROR, error);
-        }
-    }
-
-    async getTransactionStatus(params: OnrampTransactionParams<undefined>): Promise<OnrampTransactionStatus> {
-        try {
-            const url = new URL(`${this.apiUrl}/v1/transactions/${params.transactionId}`);
-            url.searchParams.append('apiKey', this.apiKey);
-
-            const response = await fetch(url.toString());
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            let normalizedStatus: OnrampStatus = 'unknown';
-            switch (data.status) {
-                case 'pending':
-                case 'waitingPayment':
-                    normalizedStatus = 'pending';
-                    break;
-                case 'completed':
-                    normalizedStatus = 'completed';
-                    break;
-                case 'failed':
-                    normalizedStatus = 'failed';
-                    break;
-            }
-
-            return {
-                status: normalizedStatus,
-                rawStatus: data.status,
-                transactionId: data.id,
-                fiatCurrency: data.baseCurrency.code,
-                fiatAmount: data.baseCurrencyAmount.toString(),
-                cryptoCurrency: data.currency.code,
-                txHash: data.cryptoTransactionId,
-                walletAddress: data.walletAddress,
-                providerId: this.providerId,
-            };
-        } catch (error) {
-            throw new OnrampError('Failed to get Moonpay transaction status', OnrampError.PROVIDER_ERROR, error);
-        }
-    }
-
     async buildOnrampUrl(params: OnrampParams<MoonpayOnrampOptions>): Promise<string> {
         try {
             const url = new URL(this.baseUrl);
@@ -179,24 +95,18 @@ export class MoonpayProvider extends OnrampProvider<MoonpayQuoteOptions, Moonpay
             url.searchParams.append('apiKey', this.apiKey);
             url.searchParams.append('walletAddress', params.userAddress);
 
-            // If we have a quote, we can prefill amounts and currencies
-            if (params.quote) {
-                // Moonpay expects lowercase currency codes
-                url.searchParams.append('currencyCode', params.quote.cryptoCurrency.toLowerCase());
-                url.searchParams.append('baseCurrencyCode', params.quote.fiatCurrency.toLowerCase());
-                url.searchParams.append('baseCurrencyAmount', params.quote.fiatAmount);
-            } else {
-                // Default to TON if no quote is provided
-                url.searchParams.append('currencyCode', 'ton');
-            }
+            // Moonpay expects lowercase currency codes
+            url.searchParams.append('currencyCode', params.quote.cryptoCurrency.toLowerCase());
+            url.searchParams.append('baseCurrencyCode', params.quote.fiatCurrency.toLowerCase());
+            url.searchParams.append('baseCurrencyAmount', params.quote.fiatAmount);
 
             // Apply specific provider options
             if (params.providerOptions?.theme) {
                 url.searchParams.append('theme', params.providerOptions.theme);
             }
 
-            if (params.providerOptions?.redirectUrl) {
-                url.searchParams.append('redirectURL', params.providerOptions.redirectUrl);
+            if (params.redirectUrl) {
+                url.searchParams.append('redirectURL', params.redirectUrl);
             }
 
             return url.toString();

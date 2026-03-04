@@ -11,7 +11,7 @@ export interface OnrampLimitParams<TProviderOptions = unknown> {
      * Crypto currency ticker (e.g. 'ton')
      */
     cryptoCurrency: string;
-    
+
     /**
      * Fiat currency ticker (e.g. 'usd')
      */

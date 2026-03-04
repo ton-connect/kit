@@ -14,14 +14,19 @@ import type { OnrampQuote } from './OnrampQuote';
  */
 export interface OnrampParams<TProviderOptions = unknown> {
     /**
-     * The onramp quote to base the transaction on (optional, some providers can generate URL without it)
+     * The onramp quote to base the transaction on
      */
-    quote?: OnrampQuote;
+    quote: OnrampQuote;
 
     /**
      * Address of the user receiving the crypto
      */
     userAddress: UserFriendlyAddress;
+
+    /**
+     * URL to redirect the user to after a successful transaction (if supported by provider)
+     */
+    redirectUrl?: string;
 
     /**
      * Provider-specific options

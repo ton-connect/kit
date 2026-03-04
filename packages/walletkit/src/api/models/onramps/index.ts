@@ -11,5 +11,3 @@ export type { OnrampQuote } from './OnrampQuote';
 export type { OnrampQuoteParams } from './OnrampQuoteParams';
 export type { OnrampLimits } from './OnrampLimits';
 export type { OnrampLimitParams } from './OnrampLimitParams';
-export type { OnrampTransactionStatus, OnrampStatus } from './OnrampTransactionStatus';
-export type { OnrampTransactionParams } from './OnrampTransactionParams';

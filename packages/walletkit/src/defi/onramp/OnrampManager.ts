@@ -7,15 +7,7 @@
  */
 
 import type { OnrampAPI, OnrampProviderInterface } from '../../api/interfaces';
-import type {
-    OnrampParams,
-    OnrampQuote,
-    OnrampQuoteParams,
-    OnrampLimits,
-    OnrampLimitParams,
-    OnrampTransactionStatus,
-    OnrampTransactionParams,
-} from '../../api/models/onramps';
+import type { OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../api/models/onramps';
 import { OnrampError } from './errors';
 import { globalLogger } from '../../core/Logger';
 import { DefiManager } from '../DefiManager';
@@ -65,66 +57,43 @@ export class OnrampManager extends DefiManager<OnrampProviderInterface> implemen
     }
 
     /**
-     * Get fiat/crypto limits for purchasing
-     * @param params - Limit parameters
-     * @param providerId - Optional provider name to use
-     * @returns Promise resolving to onramp limits
+     * Get quotes for onramping fiat to crypto from all registered providers
+     * @param params - Quote parameters
+     * @returns Promise resolving to an array of onramp quotes
      */
-    async getLimits<TProviderOptions = unknown>(
-        params: OnrampLimitParams<TProviderOptions>,
-        providerId?: string,
-    ): Promise<OnrampLimits> {
-        const selectedProviderId = providerId || this.defaultProviderId;
-        log.debug('Getting onramp limits', {
+    async getQuotes<TProviderOptions = unknown>(params: OnrampQuoteParams<TProviderOptions>): Promise<OnrampQuote[]> {
+        log.debug('Getting onramp quotes from all providers', {
             fiatCurrency: params.fiatCurrency,
             cryptoCurrency: params.cryptoCurrency,
-            providerId: selectedProviderId,
+            amount: params.amount,
+            isFiatAmount: params.isFiatAmount,
         });
 
-        try {
-            const limits = await this.getProvider(selectedProviderId).getLimits(params);
+        const providers = this.getProviders();
 
-            log.debug('Received onramp limits', {
-                minBaseAmount: limits.minBaseAmount,
-                maxBaseAmount: limits.maxBaseAmount,
-            });
+        // Execute all getQuote requests concurrently
+        const results = await Promise.allSettled(
+            providers.map((provider: OnrampProviderInterface) => provider.getQuote(params)),
+        );
 
-            return limits;
-        } catch (error) {
-            log.error('Failed to get onramp limits', { error, params });
-            throw error;
-        }
-    }
+        const quotes: OnrampQuote[] = [];
 
-    /**
-     * Get the status of an ongoing or completed transaction
-     * @param params - Transaction parameters
-     * @param providerId - Optional provider name to use
-     * @returns Promise resolving to the transaction status
-     */
-    async getTransactionStatus<TProviderOptions = unknown>(
-        params: OnrampTransactionParams<TProviderOptions>,
-        providerId?: string,
-    ): Promise<OnrampTransactionStatus> {
-        const selectedProviderId = providerId || this.defaultProviderId;
-        log.debug('Getting onramp transaction status', {
-            transactionId: params.transactionId,
-            providerId: selectedProviderId,
+        results.forEach((result: PromiseSettledResult<OnrampQuote>, index: number) => {
+            if (result.status === 'fulfilled') {
+                quotes.push(result.value);
+            } else {
+                log.debug(`Provider ${providers[index].providerId} failed to return a quote`, {
+                    error: result.reason,
+                    params,
+                });
+            }
         });
 
-        try {
-            const status = await this.getProvider(selectedProviderId).getTransactionStatus(params);
+        log.debug(`Received ${quotes.length} onramp quotes`, {
+            successfulProviders: quotes.map((q) => q.providerId),
+        });
 
-            log.debug('Received onramp transaction status', {
-                status: status.status,
-                transactionId: status.transactionId,
-            });
-
-            return status;
-        } catch (error) {
-            log.error('Failed to get onramp transaction status', { error, params });
-            throw error;
-        }
+        return quotes;
     }
 
     /**

@@ -10,10 +10,6 @@ import type {
     OnrampParams,
     OnrampQuote,
     OnrampQuoteParams,
-    OnrampLimits,
-    OnrampLimitParams,
-    OnrampTransactionStatus,
-    OnrampTransactionParams,
 } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
@@ -31,20 +27,11 @@ export interface OnrampAPI extends DefiManagerAPI<OnrampProviderInterface> {
     getQuote(params: OnrampQuoteParams, providerId?: string): Promise<OnrampQuote>;
 
     /**
-     * Get fiat/crypto limits for purchasing
-     * @param params Limit parameters
-     * @param providerId Provider identifier
-     * @returns A promise that resolves to OnrampLimits
+     * Get quotes for onramping fiat to crypto from all registered providers
+     * @param params Quote parameters (fiat, crypto, amount, etc.)
+     * @returns A promise that resolves to an array of OnrampQuotes
      */
-    getLimits(params: OnrampLimitParams, providerId?: string): Promise<OnrampLimits>;
-
-    /**
-     * Get the status of an ongoing or completed transaction
-     * @param params Transaction parameters including ID
-     * @param providerId Provider identifier
-     * @returns A promise that resolves to the transaction status
-     */
-    getTransactionStatus(params: OnrampTransactionParams, providerId?: string): Promise<OnrampTransactionStatus>;
+    getQuotes(params: OnrampQuoteParams): Promise<OnrampQuote[]>;
 
     /**
      * Build an onramp URL for redirecting the user to the provider
@@ -61,8 +48,6 @@ export interface OnrampAPI extends DefiManagerAPI<OnrampProviderInterface> {
 export interface OnrampProviderInterface<
     TQuoteOptions = unknown,
     TOnrampOptions = unknown,
-    TLimitOptions = unknown,
-    TTransactionOptions = unknown,
 > extends DefiProvider {
     readonly type: 'onramp';
 
@@ -77,20 +62,6 @@ export interface OnrampProviderInterface<
      * @returns A promise that resolves to an OnrampQuote
      */
     getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote>;
-
-    /**
-     * Get fiat/crypto limits for purchasing
-     * @param params Limit parameters
-     * @returns A promise that resolves to OnrampLimits
-     */
-    getLimits(params: OnrampLimitParams<TLimitOptions>): Promise<OnrampLimits>;
-
-    /**
-     * Get the status of an ongoing or completed transaction
-     * @param params Transaction parameters including ID
-     * @returns A promise that resolves to the transaction status
-     */
-    getTransactionStatus(params: OnrampTransactionParams<TTransactionOptions>): Promise<OnrampTransactionStatus>;
 
     /**
      * Build an onramp URL for redirecting the user to the provider
