@@ -212,9 +212,10 @@ export class BridgeManager {
 
         const sessionId = event.from || event.sessionId;
         if (!sessionId) {
+            log.error(JSON.stringify(event));
             throw new WalletKitError(
                 ERROR_CODES.SESSION_ID_REQUIRED,
-                'Session ID is required for sending response',
+                `Session ID is required for sending response ${JSON.stringify(event)}`,
                 undefined,
                 { event: { id: event.id } },
             );
@@ -531,7 +532,7 @@ export class BridgeManager {
             event.traceId = uuidv7();
         }
 
-        if (event.method == 'connect') {
+        if (event.method == 'connect' || event.method == 'intent') {
             this.eventQueue.push({
                 ...event,
                 isJsBridge: true,

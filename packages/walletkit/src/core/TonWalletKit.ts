@@ -553,17 +553,20 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
-        if (this.intentHandler) {
+        const register = () => {
             this.intentHandler.onIntentRequest(cb);
+            this.eventRouter.onIntentRequest(cb);
+        };
+        if (this.intentHandler && this.eventRouter) {
+            register();
         } else {
-            this.ensureInitialized().then(() => {
-                this.intentHandler.onIntentRequest(cb);
-            });
+            this.ensureInitialized().then(register);
         }
     }
 
     removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
         this.intentHandler.removeIntentRequestCallback(cb);
+        this.eventRouter.removeIntentRequestCallback(cb);
     }
 
     async approveTransactionIntent(

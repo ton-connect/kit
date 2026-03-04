@@ -10,6 +10,7 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 
 import type { BridgeConfig } from './BridgeConfig';
 import type { Transport } from '../transport/Transport';
+import type { WireIntentRequest } from '../../handlers/IntentParser';
 
 /**
  * Core TonConnect JS Bridge implementation
@@ -45,6 +46,23 @@ export class TonConnectBridge {
      * Initiates connect request - forwards to transport
      */
     async connect(protocolVersion: number, message: ConnectRequest): Promise<unknown> {
+        if (protocolVersion < 2) {
+            throw new Error('Unsupported protocol version');
+        }
+
+        return this.transport.send({
+            method: 'connect',
+            params: { protocolVersion, ...message },
+        });
+    }
+
+    /**
+     * Initiates connect request - forwards to transport
+     */
+    async sendIntent(
+        message: WireIntentRequest,
+        { traceId, protocolVersion }: { traceId?: string; protocolVersion: number },
+    ): Promise<unknown> {
         if (protocolVersion < 2) {
             throw new Error('Unsupported protocol version');
         }

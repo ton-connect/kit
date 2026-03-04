@@ -41,7 +41,7 @@ export class ConnectHandler
     }
 
     canHandle(event: RawBridgeEvent): event is RawBridgeEventConnect {
-        return event.method === 'connect';
+        return event.method === 'connect' && !('m' in event.params);
     }
 
     async handle(event: RawBridgeEventConnect): Promise<ConnectionRequestEvent> {

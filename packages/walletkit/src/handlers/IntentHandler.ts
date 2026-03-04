@@ -365,6 +365,7 @@ export class IntentHandler {
         event: Exclude<IntentRequestEvent, { type: 'connect' }>,
     ): Promise<ConnectionRequestEvent> {
         const bridgeEvent: RawBridgeEventConnect = {
+            ...event,
             from: event.value.clientId || '',
             id: event.value.id,
             method: 'connect',
@@ -400,6 +401,7 @@ export class IntentHandler {
         for (let i = 0; i < txEvent.items.length; i++) {
             const item = txEvent.items[i];
             const itemEvent: TransactionIntentRequestEvent = {
+                ...event,
                 id: `${txEvent.id}_${i}`,
                 origin: txEvent.origin,
                 clientId: txEvent.clientId,
@@ -428,6 +430,7 @@ export class IntentHandler {
         intents.push(...perItemEvents);
 
         const batch: BatchedIntentEvent = {
+            ...event,
             id: txEvent.id,
             origin: txEvent.origin,
             clientId: txEvent.clientId,
@@ -449,12 +452,33 @@ export class IntentHandler {
     // -- Private: Response sending --------------------------------------------
 
     private async sendResponse(event: IntentRequestBase, result: IntentResponseResult): Promise<void> {
-        if (!event.clientId) {
-            log.debug('No clientId on intent event, skipping response send');
+        const wireResponse = this.toWireResponse(event.id, result);
+        if (event.isJsBridge) {
+            log.info('SEND JS EVENT', { intentResponse: wireResponse, event });
+            await this.bridgeManager
+                .sendJsBridgeResponse(
+                    event?.tabId?.toString() || '',
+                    true,
+                    event?.id ?? event?.messageId,
+                    { intentResponse: wireResponse }, // TODO: connect?
+                )
+                .catch(() => log.error('Failed to send js bridge intent response'));
             return;
         }
-
-        const wireResponse = this.toWireResponse(event.id, result);
+        if (!event.clientId) {
+            log.info('SEND JS EVENT', { intentResponse: wireResponse, event });
+            await this.bridgeManager
+                .sendJsBridgeResponse(
+                    event?.tabId?.toString() || '',
+                    true,
+                    event?.id ?? event?.messageId,
+                    { intentResponse: wireResponse }, // TODO: connect?
+                )
+                .catch(() => log.error('Failed to send js bridge intent response'));
+            return;
+            // log.debug('No clientId on intent event, skipping response send');
+            // return;
+        }
 
         try {
             await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);

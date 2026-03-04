@@ -18,6 +18,8 @@ import type {
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
+import type { WireIntentRequest } from '../handlers/IntentParser';
+import type { IntentRequestEvent, BatchedIntentEvent } from '../api/models';
 import type {
     ExtraCurrencies,
     TransactionRequest,
@@ -79,6 +81,11 @@ export interface RawBridgeEventConnect extends BridgeEvent {
         returnStrategy?: string;
     };
     timestamp?: number;
+}
+
+export interface RawBridgeEventIntent extends BridgeEvent {
+    method: 'connect'; // TODO: intnet
+    params: WireIntentRequest & { protocolVersion: number };
 }
 
 export interface RawBridgeEventRestoreConnection extends BridgeEvent {
@@ -206,10 +213,11 @@ export type RawBridgeEvent =
     | RawBridgeEventRestoreConnection
     | RawBridgeEventTransaction
     | RawBridgeEventSignData
-    | RawBridgeEventDisconnect;
+    | RawBridgeEventDisconnect
+    | RawBridgeEventIntent;
 
 // Internal event routing types
-export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection';
+export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'disconnect' | 'restoreConnection' | 'intent';
 
 export interface EventHandler<T extends BridgeEvent = BridgeEvent, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;

@@ -10,6 +10,7 @@
 
 import type { RawBridgeEvent, EventHandler, EventCallback, EventType } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
+import { BridgeIntentHandler } from '../handlers/BridgeIntentHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
 import { SignDataHandler } from '../handlers/SignDataHandler';
 import { DisconnectHandler } from '../handlers/DisconnectHandler';
@@ -28,6 +29,7 @@ import type {
     SignDataRequestEvent,
     ConnectionRequestEvent,
 } from '../api/models';
+import type { IntentRequestEvent, BatchedIntentEvent } from '../api/models';
 import type { TonWalletKitOptions } from '../types/config';
 
 const log = globalLogger.createChild('EventRouter');
@@ -42,6 +44,7 @@ export class EventRouter {
     private signDataRequestCallback: EventCallback<SignDataRequestEvent> | undefined = undefined;
     private disconnectCallback: EventCallback<DisconnectionEvent> | undefined = undefined;
     private errorCallback: EventCallback<RequestErrorEvent> | undefined = undefined;
+    private intentRequestCallback: EventCallback<IntentRequestEvent | BatchedIntentEvent> | undefined = undefined;
 
     constructor(
         private config: TonWalletKitOptions,
@@ -82,7 +85,7 @@ export class EventRouter {
                         }
                         return;
                     }
-                    await handler.notify(result as BridgeEvent);
+                    await handler.notify(result);
                     break;
                 }
             }
@@ -115,6 +118,10 @@ export class EventRouter {
         this.errorCallback = callback;
     }
 
+    onIntentRequest(callback: EventCallback<IntentRequestEvent | BatchedIntentEvent>): void {
+        this.intentRequestCallback = callback;
+    }
+
     /**
      * Remove specific callback
      */
@@ -138,6 +145,12 @@ export class EventRouter {
         this.errorCallback = undefined;
     }
 
+    removeIntentRequestCallback(cb?: EventCallback<IntentRequestEvent | BatchedIntentEvent>): void {
+        if (!cb || this.intentRequestCallback === cb) {
+            this.intentRequestCallback = undefined;
+        }
+    }
+
     /**
      * Clear all callbacks
      */
@@ -147,6 +160,7 @@ export class EventRouter {
         this.signDataRequestCallback = undefined;
         this.disconnectCallback = undefined;
         this.errorCallback = undefined;
+        this.intentRequestCallback = undefined;
     }
 
     /**
@@ -154,6 +168,7 @@ export class EventRouter {
      */
     private setupHandlers(): void {
         this.handlers = [
+            new BridgeIntentHandler(this.notifyIntentRequestCallbacks.bind(this), this.config, this.analyticsManager),
             new ConnectHandler(this.notifyConnectRequestCallbacks.bind(this), this.config, this.analyticsManager),
             new TransactionHandler(
                 this.notifyTransactionRequestCallbacks.bind(this),
@@ -206,6 +221,13 @@ export class EventRouter {
      */
     private async notifyErrorCallback(event: RequestErrorEvent): Promise<void> {
         return await this.errorCallback?.(event);
+    }
+
+    /**
+     * Notify intent request callbacks
+     */
+    private async notifyIntentRequestCallbacks(event: IntentRequestEvent | BatchedIntentEvent): Promise<void> {
+        return await this.intentRequestCallback?.(event);
     }
 
     /**

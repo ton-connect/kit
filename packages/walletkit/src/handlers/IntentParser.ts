@@ -67,7 +67,7 @@ interface WireIntentItem {
 /**
  * Wire-format intent request payload.
  */
-interface WireIntentRequest {
+export interface WireIntentRequest {
     id: string;
     m: WireIntentMethod;
     c?: ConnectRequest;
@@ -523,6 +523,24 @@ export class IntentParser {
                 payload: this.wirePayloadToSignDataPayload(wirePayload),
             },
         };
+    }
+
+    /**
+     * Parse a wire-format intent request (e.g. from bridge) into an intent event.
+     * Use when the request is already in WireIntentRequest shape (not from URL).
+     */
+    fromWireRequest(
+        wire: WireIntentRequest,
+        context: { clientId: string; origin: IntentOrigin; traceId?: string },
+    ): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
+        this.validateRequest(wire);
+        const parsed: ParsedIntentUrl = {
+            clientId: context.clientId,
+            request: wire,
+            origin: context.origin,
+            traceId: context.traceId,
+        };
+        return this.toIntentEvent(parsed);
     }
 
     // -- Wire → Model mapping -------------------------------------------------

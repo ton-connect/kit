@@ -29,6 +29,7 @@ export { KitNetworkManager } from './core/NetworkManager';
 export { StorageEventStore } from './core/EventStore';
 export { StorageEventProcessor } from './core/EventProcessor';
 export { ConnectHandler } from './handlers/ConnectHandler';
+export { BridgeIntentHandler } from './handlers/BridgeIntentHandler';
 export { TransactionHandler } from './handlers/TransactionHandler';
 export { SignDataHandler } from './handlers/SignDataHandler';
 export { DisconnectHandler } from './handlers/DisconnectHandler';
