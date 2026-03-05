@@ -109,7 +109,9 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     }
 
     async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse> {
-        const raw = await this.getJson<TonApiJettonsBalances>(`/v2/accounts/${request.ownerAddress}/jettons`);
+        const raw = await this.getJson<TonApiJettonsBalances>(
+            `/v2/accounts/${request.ownerAddress}/jettons?currencies=usd`,
+        );
 
         return mapUserJettons(raw);
     }
