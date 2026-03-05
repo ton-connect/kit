@@ -279,12 +279,28 @@ class AnnotatedTypeFormatterWithIntegers extends tsj.AnnotatedTypeFormatter {
     getDefinition(type) {
         const def = super.getDefinition(type);
 
+        // Handle frozen format — strip original type completely
+        if (def.format === 'frozen') {
+            const frozenDef = { type: 'object', 'x-frozen': true };
+            if (def.description) frozenDef.description = def.description;
+            return frozenDef;
+        }
+
         // Fix number type with integer format
         if (def.type === 'number' && def.format && INTEGER_FORMATS.includes(def.format)) {
             def.type = 'integer';
         }
 
         return def;
+    }
+
+    getChildren(type) {
+        // Don't generate child types for frozen fields
+        const annotations = type.getAnnotations ? type.getAnnotations() : {};
+        if (annotations.format === 'frozen') {
+            return [];
+        }
+        return super.getChildren(type);
     }
 }
 
@@ -1152,6 +1168,244 @@ class AllTypesSchemaGenerator extends tsj.SchemaGenerator {
 }
 
 // ============================================================================
+// Post-processing: Interface Discriminated Unions
+// ============================================================================
+
+/**
+ * Convert a string to camelCase.
+ */
+function toCamelCase(str) {
+    if (str.includes('_')) {
+        return str.toLowerCase().replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    }
+    // PascalCase to camelCase
+    if (str.length > 0 && str[0] === str[0].toUpperCase() && str[0] !== str[0].toLowerCase()) {
+        return str[0].toLowerCase() + str.slice(1);
+    }
+    return str;
+}
+
+/**
+ * Extract type name from a $ref string like "#/components/schemas/TestWithMessage"
+ */
+function typeNameFromRef(ref) {
+    const parts = ref.split('/');
+    return decodeURIComponent(parts[parts.length - 1]);
+}
+
+/**
+ * Detect if a schema object is an interface discriminated union.
+ * ts-json-schema-generator generates: allOf with if/then conditionals, properties with enum for discriminator.
+ * Returns { discriminatorField, cases: [{rawValue, ref}] } or null.
+ */
+function detectDiscriminatedUnion(schemaDef) {
+    if (!schemaDef.allOf || !Array.isArray(schemaDef.allOf)) return null;
+
+    // Find if/then entries in allOf
+    const ifThenEntries = schemaDef.allOf.filter((item) => item.if && item.then);
+    if (ifThenEntries.length === 0) return null;
+
+    // Extract discriminator field and cases from if/then entries
+    let discriminatorField = null;
+    const cases = [];
+
+    for (const entry of ifThenEntries) {
+        const ifProps = entry.if?.properties;
+        if (!ifProps) continue;
+
+        const fieldNames = Object.keys(ifProps);
+        if (fieldNames.length !== 1) continue;
+
+        const fieldName = fieldNames[0];
+        const constValue = ifProps[fieldName]?.const;
+        if (constValue === undefined) continue;
+
+        const ref = entry.then?.$ref;
+        if (!ref) continue;
+
+        if (discriminatorField === null) {
+            discriminatorField = fieldName;
+        } else if (discriminatorField !== fieldName) {
+            return null; // Inconsistent discriminator fields
+        }
+
+        cases.push({ rawValue: String(constValue), ref });
+    }
+
+    if (!discriminatorField || cases.length === 0) return null;
+    return { discriminatorField, cases };
+}
+
+/**
+ * Build a discriminated union schema from detected cases.
+ * Returns the transformed definition.
+ */
+function buildInterfaceUnionSchema(discriminatorField, cases) {
+    const properties = {};
+
+    for (const { rawValue, ref } of cases) {
+        const caseName = toCamelCase(rawValue);
+        const propKey = `x_${caseName}`;
+
+        properties[propKey] = {
+            allOf: [{ $ref: ref }],
+            'x-enum-case-name': caseName,
+            'x-enum-case-raw-value': rawValue,
+        };
+    }
+
+    return {
+        type: 'object',
+        properties,
+        'x-discriminated-union': true,
+        'x-interface-union': true,
+        'x-discriminator-field': discriminatorField,
+    };
+}
+
+/**
+ * Process member types: remove discriminator property, add x-constant-fields.
+ */
+function processDiscriminatorMemberTypes(cases, discriminatorField, definitions) {
+    for (const { rawValue, ref } of cases) {
+        const memberName = typeNameFromRef(ref);
+        const memberDef = definitions[memberName];
+        if (!memberDef || !memberDef.properties) continue;
+
+        // Skip if already processed (member may participate in multiple unions)
+        if (memberDef['x-constant-fields']) continue;
+
+        const discProp = memberDef.properties[discriminatorField];
+        if (!discProp) continue;
+
+        // Get the constant value
+        const constantValue = discProp.const || (discProp.enum && discProp.enum[0]) || rawValue;
+
+        // Remove discriminator from properties
+        delete memberDef.properties[discriminatorField];
+
+        // Remove from required
+        if (memberDef.required) {
+            memberDef.required = memberDef.required.filter((r) => r !== discriminatorField);
+            if (memberDef.required.length === 0) {
+                delete memberDef.required;
+            }
+        }
+
+        // Add constant fields extension
+        memberDef['x-constant-fields'] = [
+            {
+                name: discriminatorField,
+                value: String(constantValue),
+                type: 'String',
+            },
+        ];
+    }
+}
+
+/**
+ * Post-process schema to transform interface discriminated unions.
+ * Handles both top-level type aliases and inline property unions.
+ *
+ * ts-json-schema-generator generates discriminated unions as:
+ * { allOf: [{ if: { properties: { name: { const: "value" } } }, then: { $ref: "..." } }, ...] }
+ */
+function postProcessDiscriminatedUnions(schema) {
+    const definitions = schema.definitions || {};
+
+    for (const typeDef of Object.values(definitions)) {
+        // Case A: Top-level discriminated union
+        const topLevel = detectDiscriminatedUnion(typeDef);
+        if (topLevel) {
+            const unionSchema = buildInterfaceUnionSchema(topLevel.discriminatorField, topLevel.cases);
+            // Replace definition in-place
+            Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+            Object.assign(typeDef, unionSchema);
+            processDiscriminatorMemberTypes(topLevel.cases, topLevel.discriminatorField, definitions);
+            continue;
+        }
+
+        // Case B: Inline discriminated union properties
+        // Instead of creating a synthetic top-level type, add vendor extensions
+        // to the property and parent type so the template renders a nested enum.
+        if (!typeDef.properties) continue;
+        for (const [propName, propDef] of Object.entries(typeDef.properties)) {
+            const inlineUnion = detectDiscriminatedUnion(propDef);
+            if (!inlineUnion) continue;
+
+            // Build case data with type names for template rendering
+            const cases = inlineUnion.cases.map(({ rawValue, ref }) => ({
+                caseName: toCamelCase(rawValue),
+                rawValue,
+                typeName: typeNameFromRef(ref),
+            }));
+
+            // Add inline union info to parent type for nested enum rendering
+            if (!typeDef['x-inline-interface-unions']) {
+                typeDef['x-inline-interface-unions'] = [];
+            }
+            typeDef['x-inline-interface-unions'].push({
+                propertyName: propName,
+                discriminatorField: inlineUnion.discriminatorField,
+                cases,
+            });
+
+            // Replace property with simple object type + marker
+            // The template will override the type to use the nested enum name
+            Object.keys(propDef).forEach((k) => delete propDef[k]);
+            propDef.type = 'object';
+            propDef['x-interface-union'] = true;
+
+            processDiscriminatorMemberTypes(inlineUnion.cases, inlineUnion.discriminatorField, definitions);
+        }
+    }
+}
+
+/**
+ * Post-process schema to convert single-literal properties to constant fields.
+ * Properties with { const: "value" } or { enum: ["singleValue"] } become x-constant-fields.
+ */
+function postProcessConstantFields(schema) {
+    const definitions = schema.definitions || {};
+
+    for (const typeDef of Object.values(definitions)) {
+        if (!typeDef.properties) continue;
+
+        for (const [propName, propDef] of Object.entries(typeDef.properties)) {
+            // Detect single-literal: { const: "value" } or { enum: ["value"] }
+            let constantValue = null;
+            if (propDef.const !== undefined) {
+                constantValue = String(propDef.const);
+            } else if (propDef.enum && Array.isArray(propDef.enum) && propDef.enum.length === 1) {
+                constantValue = String(propDef.enum[0]);
+            }
+            if (constantValue === null) continue;
+
+            // Remove from properties
+            delete typeDef.properties[propName];
+
+            // Remove from required
+            if (typeDef.required) {
+                typeDef.required = typeDef.required.filter((r) => r !== propName);
+                if (typeDef.required.length === 0) {
+                    delete typeDef.required;
+                }
+            }
+
+            // Add to x-constant-fields
+            if (!typeDef['x-constant-fields']) {
+                typeDef['x-constant-fields'] = [];
+            }
+            typeDef['x-constant-fields'].push({
+                name: propName,
+                value: constantValue,
+                type: 'String',
+            });
+        }
+    }
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -1197,8 +1451,11 @@ try {
     const generator = new AllTypesSchemaGenerator(program, parser, formatter, config);
     const schema = generator.createSchema(config.type);
 
-    // Note: Generic interfaces are now handled by GenericInterfaceNodeParser
-    // The post-processing approach has been replaced with proper library integration
+    // Post-process: transform @discriminator annotated unions into discriminated union schemas
+    postProcessDiscriminatedUnions(schema);
+
+    // Post-process: convert single-literal properties to constant fields
+    postProcessConstantFields(schema);
 
     fs.writeFileSync(outputPath, JSON.stringify(schema, null, 2));
 } catch (error) {
