@@ -27,6 +27,7 @@ export const WALLETS_EVENTS = {
  */
 export const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',
+    DEFAULT_CHANGED: 'networks:default-changed',
 } as const;
 
 /**

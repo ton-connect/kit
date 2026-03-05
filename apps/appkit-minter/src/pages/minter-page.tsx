@@ -12,7 +12,7 @@ import { useSelectedWallet } from '@ton/appkit-react';
 import { TokensCard } from '@/features/balances';
 import { CardGenerator } from '@/features/mint';
 import { NftsCard } from '@/features/nft';
-import { WalletConnect } from '@/features/wallet';
+import { WalletInfo } from '@/features/wallet';
 import { Layout } from '@/core/components';
 import { SwapButton } from '@/features/swap';
 import { SignMessageCard } from '@/features/signing';
@@ -24,8 +24,7 @@ export const MinterPage: React.FC = () => {
     return (
         <Layout title="NFT Minter">
             <div className="space-y-4">
-                {/* Wallet Connection - shown when not connected */}
-                {!isConnected && <WalletConnect />}
+                <WalletInfo />
 
                 {/* Card Generator with integrated mint button */}
                 <CardGenerator />

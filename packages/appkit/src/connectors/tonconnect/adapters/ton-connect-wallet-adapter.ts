@@ -10,7 +10,7 @@ import { Address } from '@ton/core';
 import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/sdk';
 import type { SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
-import { Network, asHex, createWalletId, getNormalizedExtMessageHash } from '@ton/walletkit';
+import { asHex, createWalletId, getNormalizedExtMessageHash } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
 import type { TransactionRequest } from '../../../types/transaction';
@@ -18,6 +18,7 @@ import type { Base64String } from '../../../types/primitives';
 import { getValidUntil } from '../utils/transaction';
 import type { WalletInterface } from '../../../types/wallet';
 import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
+import { Network } from '../../../types/network';
 
 /**
  * Configuration for TonConnectWalletAdapter

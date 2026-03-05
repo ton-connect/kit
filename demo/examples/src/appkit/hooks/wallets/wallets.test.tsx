@@ -107,6 +107,7 @@ describe('Wallet Hooks Examples', () => {
             emitter: mockEmitter,
             networkManager: {
                 getClient: vi.fn(),
+                getDefaultNetwork: vi.fn(),
             },
         };
     });

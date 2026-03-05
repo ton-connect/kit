@@ -6,10 +6,11 @@
  *
  */
 
-import type { Network, SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
+import type { SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
 
 import type { TransactionRequest } from './transaction';
 import type { SignDataRequest, SignDataResponse } from './signing';
+import type { Network } from './network';
 
 /**
  * Minimal wallet interface for appkit.

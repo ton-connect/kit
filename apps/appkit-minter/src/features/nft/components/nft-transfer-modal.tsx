@@ -11,6 +11,7 @@ import type { NFT } from '@ton/appkit';
 import { getFormattedNftInfo, createTransferNftTransaction, getErrorMessage } from '@ton/appkit';
 import { Transaction, useAppKit } from '@ton/appkit-react';
 import { toast } from 'sonner';
+import { X, Image as ImageIcon } from 'lucide-react';
 
 import { Button } from '@/core/components';
 
@@ -53,14 +54,7 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-card-foreground">Transfer NFT</h3>
                         <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
+                            <X className="w-6 h-6" />
                         </button>
                     </div>
 
@@ -70,19 +64,7 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
                             {nftInfo.image ? (
                                 <img src={nftInfo.image} alt={nftInfo.name} className="w-full h-full object-cover" />
                             ) : (
-                                <svg
-                                    className="w-16 h-16 text-muted-foreground"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                    />
-                                </svg>
+                                <ImageIcon className="w-16 h-16 text-muted-foreground" />
                             )}
                         </div>
                         <h4 className="font-medium text-card-foreground">{nftInfo.name}</h4>
