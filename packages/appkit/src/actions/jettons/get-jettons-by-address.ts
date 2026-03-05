@@ -8,9 +8,11 @@
 
 import { Address } from '@ton/core';
 import type { Jetton, JettonsResponse } from '@ton/walletkit';
-import { Network, getJettonsFromClient, formatUnits } from '@ton/walletkit';
+import { getJettonsFromClient, formatUnits } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { resolveNetwork } from '../../utils/network/resolve-network';
+import type { Network } from '../../types/network';
 
 export interface GetJettonsByAddressOptions {
     address: string | Address;
@@ -28,7 +30,7 @@ export const getJettonsByAddress = async (
     const { address, network, limit, offset } = options;
     const addressString = Address.isAddress(address) ? address.toString() : Address.parse(address).toString();
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(resolveNetwork(appKit, network));
     const response = await getJettonsFromClient(client, addressString, {
         pagination: {
             limit,

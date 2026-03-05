@@ -16,4 +16,5 @@ export type {
     WalletConnectedPayload,
     WalletDisconnectedPayload,
     PluginRegisteredPayload,
+    DefaultNetworkChangedPayload,
 } from './types/events';

@@ -9,12 +9,14 @@
 import { TonConnectUI } from '@tonconnect/ui';
 import type { TonConnectUiCreateOptions } from '@tonconnect/ui';
 
+import type { Network } from '../../../types/network';
 import { TonConnectWalletAdapter } from '../adapters/ton-connect-wallet-adapter';
-import { CONNECTOR_EVENTS } from '../../../core/app-kit';
+import { CONNECTOR_EVENTS, NETWORKS_EVENTS } from '../../../core/app-kit';
 import type { Connector, ConnectorMetadata } from '../../../types/connector';
 import type { WalletInterface } from '../../../types/wallet';
 import type { AppKitEmitter } from '../../../core/app-kit';
 import { TONCONNECT_DEFAULT_CONNECTOR_ID } from '../constants/id';
+import type { AppKitNetworkManager } from '../../../core/network';
 
 export interface TonConnectConnectorConfig {
     id?: string;
@@ -49,7 +51,7 @@ export class TonConnectConnector implements Connector {
         };
     }
 
-    async initialize(emitter: AppKitEmitter): Promise<void> {
+    async initialize(emitter: AppKitEmitter, networkManager: AppKitNetworkManager): Promise<void> {
         this.emitter = emitter;
 
         // Subscribe to TonConnect status changes
@@ -63,6 +65,12 @@ export class TonConnectConnector implements Connector {
             }
         });
 
+        // Set default network and subscribe to changes
+        this.tonConnectUI.setConnectionNetwork(networkManager.getDefaultNetwork()?.chainId);
+        this.emitter?.on(NETWORKS_EVENTS.DEFAULT_CHANGED, ({ payload }) => {
+            this.tonConnectUI.setConnectionNetwork(payload.network?.chainId);
+        });
+
         // Restore existing connection
         await this.tonConnectUI.connector.restoreConnection();
     }
@@ -73,7 +81,8 @@ export class TonConnectConnector implements Connector {
         this.emitter = null;
     }
 
-    async connectWallet(): Promise<void> {
+    async connectWallet(network?: Network): Promise<void> {
+        this.tonConnectUI.setConnectionNetwork(network?.chainId);
         await this.tonConnectUI.openModal();
     }
 

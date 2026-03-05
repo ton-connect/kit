@@ -6,4 +6,4 @@
  *
  */
 
-export { WalletConnect } from './wallet-connect';
+export { ApiClientToncenter } from './ApiClientToncenter';
