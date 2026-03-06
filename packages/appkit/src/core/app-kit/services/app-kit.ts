@@ -6,8 +6,7 @@
  *
  */
 
-import type { NetworkManager } from '@ton/walletkit';
-import { Network, SwapManager } from '@ton/walletkit';
+import { SwapManager } from '@ton/walletkit';
 import type { Provider } from 'src/types/provider';
 
 import type { AppKitConfig } from '../types/config';
@@ -17,7 +16,8 @@ import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../types/wallet';
 import { WalletsManager } from '../../wallets-manager';
-import { AppKitNetworkManager } from './app-kit-network-manager';
+import { AppKitNetworkManager } from '../../network';
+import { Network } from '../../../types/network';
 
 /**
  * Central hub for wallet management.
@@ -29,7 +29,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
 
-    readonly networkManager: NetworkManager;
+    readonly networkManager: AppKitNetworkManager;
     readonly config: AppKitConfig;
 
     constructor(config: AppKitConfig) {

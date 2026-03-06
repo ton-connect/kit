@@ -91,11 +91,11 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
-
-            state.clearCurrentRequestFromQueue();
         } catch (error) {
             log.error('Failed to approve connect request:', error);
             throw error;
+        } finally {
+            state.clearCurrentRequestFromQueue();
         }
     },
 
@@ -135,6 +135,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             state.tonConnect.isConnectModalOpen = false;
             state.tonConnect.pendingConnectRequestEvent = undefined;
         });
+        get().clearCurrentRequestFromQueue();
     },
 
     // Transaction request actions
@@ -156,15 +157,21 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             throw new Error('WalletKit not initialized');
         }
 
-        await state.walletCore.walletKit.approveTransactionRequest(state.tonConnect.pendingTransactionRequestEvent);
-        setTimeout(() => {
-            set((state) => {
-                state.tonConnect.pendingTransactionRequestEvent = undefined;
-                state.tonConnect.isTransactionModalOpen = false;
-            });
+        try {
+            await state.walletCore.walletKit.approveTransactionRequest(state.tonConnect.pendingTransactionRequestEvent);
+            setTimeout(() => {
+                set((state) => {
+                    state.tonConnect.pendingTransactionRequestEvent = undefined;
+                    state.tonConnect.isTransactionModalOpen = false;
+                });
 
+                state.clearCurrentRequestFromQueue();
+            }, 3000);
+        } catch (error) {
+            log.error('Failed to approve transaction request:', error);
             state.clearCurrentRequestFromQueue();
-        }, 3000);
+            throw error;
+        }
     },
 
     rejectTransactionRequest: async (reason?: string) => {
@@ -180,6 +187,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 state.tonConnect.pendingTransactionRequestEvent = undefined;
                 state.tonConnect.isTransactionModalOpen = false;
             });
+            state.clearCurrentRequestFromQueue();
             return;
         }
 
@@ -205,6 +213,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             state.tonConnect.isTransactionModalOpen = false;
             state.tonConnect.pendingTransactionRequestEvent = undefined;
         });
+        get().clearCurrentRequestFromQueue();
     },
 
     // Sign data request actions
@@ -239,6 +248,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             }, 3000);
         } catch (error) {
             log.error('Failed to approve sign data request:', error);
+            state.clearCurrentRequestFromQueue();
             throw error;
         }
     },
@@ -256,6 +266,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 state.tonConnect.pendingSignDataRequestEvent = undefined;
                 state.tonConnect.isSignDataModalOpen = false;
             });
+            state.clearCurrentRequestFromQueue();
             return;
         }
 
@@ -281,6 +292,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             state.tonConnect.isSignDataModalOpen = false;
             state.tonConnect.pendingSignDataRequestEvent = undefined;
         });
+        get().clearCurrentRequestFromQueue();
     },
 
     // Disconnect events

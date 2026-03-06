@@ -14,7 +14,9 @@
     "@demo/v4ledger-adapter",
     "walletkit-android-bridge",
     "walletkit-ios-bridge",
-    "@ton/walletkit-examples"
+    "@ton/walletkit-examples",
+    "appkit-minter",
+    "@ton/mcp-telegram"
   ]
 }
 

@@ -11,6 +11,7 @@ import type { FC, ComponentProps } from 'react';
 import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
 import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-react';
+import { AlertCircle } from 'lucide-react';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
@@ -49,13 +50,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
             <Card title="Balances" {...props}>
                 <div className="flex flex-col items-center text-center py-4">
                     <div className="text-destructive mb-2">
-                        <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                                fillRule="evenodd"
-                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
+                        <AlertCircle className="w-8 h-8 mx-auto" />
                     </div>
 
                     <p className="text-sm text-destructive mb-3">Failed to load balances</p>

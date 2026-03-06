@@ -10,6 +10,7 @@ import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo, getErrorMessage } from '@ton/appkit';
 import { SendTonButton, SendJettonButton } from '@ton/appkit-react';
+import { Gem, X } from 'lucide-react';
 
 import { Button } from '@/core/components';
 import { TransactionStatus } from '@/features/transaction';
@@ -88,9 +89,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                                         className="w-full h-full object-cover"
                                     />
                                 ) : tokenType === 'TON' ? (
-                                    <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                                    </svg>
+                                    <Gem className="w-6 h-6 text-primary" />
                                 ) : (
                                     <span className="text-sm font-bold text-muted-foreground">
                                         {tokenInfo.symbol?.slice(0, 2)}
@@ -105,14 +104,7 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
                             </div>
                         </div>
                         <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
-                            </svg>
+                            <X className="w-6 h-6" />
                         </button>
                     </div>
 

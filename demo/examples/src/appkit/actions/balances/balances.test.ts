@@ -56,6 +56,7 @@ describe('Balance Actions Examples (Integration)', () => {
             const mockWallet = {
                 getAddress: () => VALID_ADDRESS,
                 getWalletId: () => 'mock-wallet-id',
+                getNetwork: () => 'mainnet',
             } as unknown as WalletInterface;
 
             appKit.walletsManager.setWallets([mockWallet]);

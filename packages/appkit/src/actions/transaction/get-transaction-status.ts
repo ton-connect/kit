@@ -10,7 +10,8 @@ import type { TransactionStatusResponse } from '@ton/walletkit';
 import { getTransactionStatus as walletKitGetTransactionStatus } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
-import { Network } from '../../types/network';
+import type { Network } from '../../types/network';
+import { resolveNetwork } from '../../utils/network/resolve-network';
 
 export type GetTransactionStatusParameters = {
     /** Network to check the transaction on */
@@ -56,7 +57,7 @@ export const getTransactionStatus = async (
 ): Promise<GetTransactionStatusReturnType> => {
     const { boc, normalizedHash, network } = parameters;
 
-    const client = appKit.networkManager.getClient(network ?? Network.mainnet());
+    const client = appKit.networkManager.getClient(resolveNetwork(appKit, network));
 
     if (boc) {
         return walletKitGetTransactionStatus(client, { boc });

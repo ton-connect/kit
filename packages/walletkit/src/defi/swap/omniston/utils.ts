@@ -10,7 +10,7 @@ import { Address } from '@ton/core';
 import type { Address as OmnistonAddress } from '@ston-fi/omniston-sdk';
 
 import { Network } from '../../../api/models';
-import type { OmnistonQuoteMetadata } from './types';
+import type { OmnistonQuoteMetadata } from './models';
 import type { SwapToken } from '../../../api/models';
 
 export const tokenToAddress = (token: SwapToken): string => {

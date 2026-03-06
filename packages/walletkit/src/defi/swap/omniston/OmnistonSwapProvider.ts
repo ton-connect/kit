@@ -10,7 +10,7 @@ import { SettlementMethod, Omniston, GaslessSettlement } from '@ston-fi/omniston
 import type { Quote, QuoteResponseEvent, QuoteRequest } from '@ston-fi/omniston-sdk';
 import { Address } from '@ton/core';
 
-import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './types';
+import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
 import { SwapError } from '../errors';
@@ -259,7 +259,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             };
 
             log.debug('Built Omniston swap transaction', {
-                quoteId: metadata.quoteId,
+                quoteId: metadata.omnistonQuote.quoteId,
                 transaction,
             });
 
@@ -281,12 +281,7 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
     private mapOmnistonQuoteToSwapQuote(quote: Quote, params: SwapQuoteParams): SwapQuote {
         const metadata: OmnistonQuoteMetadata = {
-            quoteId: quote.quoteId,
-            resolverId: quote.resolverId,
-            resolverName: quote.resolverName,
             omnistonQuote: quote,
-            gasBudget: quote.gasBudget,
-            estimatedGasConsumption: quote.estimatedGasConsumption,
         };
 
         const fee: SwapFee[] = [];

@@ -6,4 +6,4 @@
  *
  */
 
-export { WalletConnect } from './components/wallet-connect';
+export { WalletInfo } from './components/wallet-info';
