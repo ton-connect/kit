@@ -16,15 +16,20 @@ export interface BaseApiClientConfig {
     fetchApi?: typeof fetch;
     network?: Network;
     disableNetworkSend?: boolean;
+    minRequestIntervalMs?: number;
 }
 
 export abstract class BaseApiClient {
+    private static readonly endpointLocks = new Map<string, Promise<void>>();
+    private static readonly endpointNextAllowedAt = new Map<string, number>();
+
     protected readonly endpoint: string;
     protected readonly apiKey?: string;
     protected readonly timeout: number;
     protected readonly fetchApi: typeof fetch;
     protected readonly network?: Network;
     protected readonly disableNetworkSend?: boolean;
+    protected readonly minRequestIntervalMs: number;
 
     constructor(config: BaseApiClientConfig, defaultEndpoint: string) {
         this.network = config.network;
@@ -33,12 +38,14 @@ export abstract class BaseApiClient {
         this.timeout = config.timeout ?? 30000;
         this.fetchApi = config.fetchApi ?? fetch;
         this.disableNetworkSend = config.disableNetworkSend ?? false;
+        this.minRequestIntervalMs = config.minRequestIntervalMs ?? 1000;
     }
 
     protected abstract appendAuthHeaders(headers: Headers): void;
 
     private async doRequest(url: URL, init: globalThis.RequestInit = {}): Promise<globalThis.Response> {
         const fetchFn = this.fetchApi;
+        await this.waitForRateLimit();
 
         if (!this.timeout || this.timeout <= 0) {
             return fetchFn(url, init);
@@ -51,6 +58,36 @@ export abstract class BaseApiClient {
             return await fetchFn(url, { ...init, signal: controller.signal });
         } finally {
             clearTimeout(timeoutId);
+        }
+    }
+
+    private async waitForRateLimit(): Promise<void> {
+        if (this.minRequestIntervalMs <= 0) {
+            return;
+        }
+
+        const endpointKey = new URL(this.endpoint).origin;
+        const prevLock = BaseApiClient.endpointLocks.get(endpointKey) ?? Promise.resolve();
+        let releaseLock: () => void = () => undefined;
+        const currentLock = new Promise<void>((resolve) => {
+            releaseLock = resolve;
+        });
+
+        BaseApiClient.endpointLocks.set(endpointKey, prevLock.then(() => currentLock));
+        await prevLock;
+
+        try {
+            const now = Date.now();
+            const nextAllowedAt = BaseApiClient.endpointNextAllowedAt.get(endpointKey) ?? now;
+            const waitMs = Math.max(0, nextAllowedAt - now);
+
+            if (waitMs > 0) {
+                await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+            }
+
+            BaseApiClient.endpointNextAllowedAt.set(endpointKey, Date.now() + this.minRequestIntervalMs);
+        } finally {
+            releaseLock();
         }
     }
 

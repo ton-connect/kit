@@ -136,14 +136,17 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         const props: Record<string, unknown> = {
             address,
             method,
-            stack: stack, //serializeStack(stack),
+            stack: toV2Stack(stack),
         };
         if (typeof seqno === 'number') props.seqno = seqno;
-        const raw = await this.postJson<V3RunGetMethodRequest>('/api/v3/runGetMethod', props);
+        const raw = await this.postJson<V2RunGetMethodResponse>('/api/v2/runGetMethod', props);
+        if (!raw.ok) {
+            throw new TonClientError(`runGetMethod failed: ${raw.error ?? 'Unknown error'}`, 200, raw);
+        }
         return {
-            gasUsed: raw.gas_used,
-            stack: raw.stack,
-            exitCode: raw.exit_code,
+            gasUsed: raw.result.gas_used,
+            stack: fromV2Stack(raw.result.stack),
+            exitCode: raw.result.exit_code,
         };
     }
 
@@ -444,4 +447,97 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
         }
         return out;
     }
+}
+
+type V2RawStackItem = [string] | [string, unknown];
+
+interface V2RunGetMethodResult {
+    gas_used: number;
+    stack: V2RawStackItem[];
+    exit_code: number;
+}
+interface V2RunGetMethodResponse {
+    ok: boolean;
+    result: V2RunGetMethodResult;
+    error?: string;
+    code?: number;
+}
+
+function toToncenterNum(value: string): string {
+    const isNegative = value.startsWith('-');
+    const normalized = isNegative ? value.slice(1) : value;
+    const bigint = BigInt(normalized);
+    return `${isNegative ? '-' : ''}0x${bigint.toString(16)}`;
+}
+
+function toV2StackItem(item: RawStackItem): V2RawStackItem {
+    switch (item.type) {
+        case 'null':
+            return ['null'];
+        case 'num':
+            return ['num', toToncenterNum(item.value)];
+        case 'cell':
+        case 'slice':
+        case 'builder':
+            return [item.type, { bytes: item.value }];
+        case 'tuple':
+        case 'list':
+            return [item.type, item.value.map((nested) => toV2StackItem(nested))];
+        default: {
+            const neverItem: never = item;
+            throw new TonClientError(`Unsupported stack item type: ${(neverItem as { type?: string }).type ?? 'unknown'}`, 0);
+        }
+    }
+}
+
+function toV2Stack(items: RawStackItem[]): V2RawStackItem[] {
+    return items.map((item) => toV2StackItem(item));
+}
+
+function readV2CellBytes(value: unknown): string {
+    if (typeof value === 'string') {
+        return value;
+    }
+    if (value && typeof value === 'object' && 'bytes' in value) {
+        const bytes = (value as { bytes?: unknown }).bytes;
+        if (typeof bytes === 'string') {
+            return bytes;
+        }
+    }
+    throw new TonClientError(`Invalid stack cell-like payload: ${JSON.stringify(value)}`, 0);
+}
+
+function fromV2StackItem(item: unknown): RawStackItem {
+    if (!Array.isArray(item) || item.length === 0 || typeof item[0] !== 'string') {
+        throw new TonClientError(`Invalid v2 stack item format: ${JSON.stringify(item)}`, 0);
+    }
+
+    const type = item[0];
+    const value = item[1];
+
+    switch (type) {
+        case 'null':
+            return { type: 'null' };
+        case 'num':
+            if (typeof value !== 'string') {
+                throw new TonClientError(`Invalid num stack item value: ${JSON.stringify(value)}`, 0);
+            }
+            return { type: 'num', value };
+        case 'cell':
+        case 'slice':
+        case 'builder':
+            return { type, value: readV2CellBytes(value) };
+        case 'tuple':
+        case 'list':
+            if (!Array.isArray(value)) {
+                throw new TonClientError(`Invalid ${type} stack item value: ${JSON.stringify(value)}`, 0);
+            }
+            return { type, value: value.map((nested) => fromV2StackItem(nested)) };
+        default:
+            throw new TonClientError(`Unsupported v2 stack item type: ${type}`, 0);
+    }
+}
+
+function fromV2Stack(items: unknown[]): RawStackItem[] {
+    return items.map((item) => fromV2StackItem(item));
 }

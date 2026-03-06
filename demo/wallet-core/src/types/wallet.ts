@@ -123,6 +123,7 @@ export interface WalletKitConfig {
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
     tonApiKeyTetra?: string;
+    tonApiMinRequestIntervalMs?: number;
     analytics?: AnalyticsManagerOptions;
     disableAutoEmulation?: boolean;
     /**
