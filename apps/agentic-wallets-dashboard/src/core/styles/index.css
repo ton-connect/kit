@@ -5,12 +5,19 @@
     --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 
     --color-surface: #050505;
-    --color-surface-1: rgba(255, 255, 255, 0.02);
-    --color-surface-2: rgba(255, 255, 255, 0.03);
-    --color-surface-3: rgba(255, 255, 255, 0.04);
+    --color-surface-1: rgba(255, 255, 255, 0.03);
+    --color-surface-2: rgba(255, 255, 255, 0.05);
+    --color-surface-3: rgba(255, 255, 255, 0.07);
 
-    --color-border: rgba(255, 255, 255, 0.06);
-    --color-border-strong: rgba(255, 255, 255, 0.1);
+    --color-border: rgba(255, 255, 255, 0.09);
+    --color-border-strong: rgba(255, 255, 255, 0.14);
+
+    /* Slightly brighter neutral scale for better text contrast on dark surfaces. */
+    --color-neutral-300: #cdd2da;
+    --color-neutral-400: #b0b6bf;
+    --color-neutral-500: #939ba5;
+    --color-neutral-600: #797f88;
+    --color-neutral-700: #636972;
 
     --animate-fade-in: fade-in 0.3s ease-out;
     --animate-slide-up: slide-up 0.3s ease-out;

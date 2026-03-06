@@ -30,3 +30,21 @@ export function isSameTonAddress(a: string | undefined | null, b: string | undef
 
     return (a ?? '').trim() === (b ?? '').trim();
 }
+
+export function formatTonAddressForNetwork(
+    address: string | undefined | null,
+    chainId: string | undefined | null,
+): string {
+    if (!address) {
+        return '';
+    }
+
+    try {
+        return Address.parse(address).toString({
+            bounceable: false,
+            testOnly: String(chainId) === '-3',
+        });
+    } catch {
+        return address;
+    }
+}

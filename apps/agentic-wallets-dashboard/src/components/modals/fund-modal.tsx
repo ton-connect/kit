@@ -61,6 +61,12 @@ interface FundingItem {
     amount: string;
 }
 
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 const PER_NON_TON_RESERVE_NANO = toNano('0.06');
 
 export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
@@ -333,13 +339,32 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                 await new Promise((resolve) => setTimeout(resolve, 1500));
             }
 
-            await Promise.all([
-                onSuccess?.(),
-                queryClient.invalidateQueries({ queryKey: ['balance'] }),
-                queryClient.invalidateQueries({ queryKey: ['jettons'] }),
-                queryClient.invalidateQueries({ queryKey: ['nfts'] }),
-                queryClient.invalidateQueries({ queryKey: ['agentic-wallet-activity'] }),
-            ]);
+            const refreshNow = async () => {
+                await Promise.all([
+                    onSuccess?.(),
+                    queryClient.invalidateQueries({ queryKey: ['balance'] }),
+                    queryClient.invalidateQueries({ queryKey: ['jettons'] }),
+                    queryClient.invalidateQueries({ queryKey: ['nfts'] }),
+                    queryClient.invalidateQueries({ queryKey: ['agentic-wallet-activity'] }),
+                    queryClient.invalidateQueries({ queryKey: ['agentic-wallets-owner-nfts'] }),
+                    queryClient.invalidateQueries({ queryKey: ['agentic-wallets-chain-state'] }),
+                ]);
+            };
+
+            await refreshNow();
+            void (async () => {
+                for (let attempt = 0; attempt < 5; attempt += 1) {
+                    await delay(2500);
+                    await Promise.all([
+                        queryClient.refetchQueries({ queryKey: ['balance'], type: 'active' }),
+                        queryClient.refetchQueries({ queryKey: ['jettons'], type: 'active' }),
+                        queryClient.refetchQueries({ queryKey: ['nfts'], type: 'active' }),
+                        queryClient.refetchQueries({ queryKey: ['agentic-wallet-activity'], type: 'active' }),
+                        queryClient.refetchQueries({ queryKey: ['agentic-wallets-owner-nfts'], type: 'active' }),
+                        queryClient.refetchQueries({ queryKey: ['agentic-wallets-chain-state'], type: 'active' }),
+                    ]);
+                }
+            })();
 
             if (confirmation === 'completed') {
                 toast.success(`Funded ${messages.length} asset${messages.length > 1 ? 's' : ''} to ${agentName}`);

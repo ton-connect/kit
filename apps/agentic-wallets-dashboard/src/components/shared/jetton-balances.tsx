@@ -6,8 +6,11 @@
  *
  */
 
+import { useMemo } from 'react';
 import type { Network } from '@ton/appkit-react';
 import { useJettonsByAddress, useNetwork } from '@ton/appkit-react';
+
+import { tryParseUiAmountToUnits } from '@/features/agents/lib/amount';
 
 interface JettonBalancesProps {
     address: string;
@@ -19,7 +22,21 @@ export function JettonBalances({ address, compact = false, network }: JettonBala
     const connectedNetwork = useNetwork();
     const effectiveNetwork = network ?? connectedNetwork;
     const { data: jettonsResponse } = useJettonsByAddress({ address, network: effectiveNetwork });
-    const jettons = jettonsResponse?.jettons ?? [];
+    const jettons = useMemo(
+        () =>
+            [...(jettonsResponse?.jettons ?? [])]
+                .filter((j) => (tryParseUiAmountToUnits(j.balance ?? '0', j.decimalsNumber ?? 9) ?? 0n) > 0n)
+                .sort((a, b) => {
+                    const usdPriceA = Number(a.prices?.find((p) => p.currency?.toUpperCase() === 'USD')?.value ?? '0');
+                    const usdPriceB = Number(b.prices?.find((p) => p.currency?.toUpperCase() === 'USD')?.value ?? '0');
+                    const balanceA = Number(a.balance ?? '0');
+                    const balanceB = Number(b.balance ?? '0');
+                    const usdEquivalentA = (Number.isFinite(usdPriceA) ? usdPriceA : 0) * (Number.isFinite(balanceA) ? balanceA : 0);
+                    const usdEquivalentB = (Number.isFinite(usdPriceB) ? usdPriceB : 0) * (Number.isFinite(balanceB) ? balanceB : 0);
+                    return usdEquivalentB - usdEquivalentA;
+                }),
+        [jettonsResponse?.jettons],
+    );
 
     if (jettons.length === 0) return null;
 

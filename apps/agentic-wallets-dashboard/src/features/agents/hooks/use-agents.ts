@@ -234,8 +234,14 @@ export function useAgents() {
     const newAgents = useMemo(() => agents.filter((a) => a.isNew), [agents]);
 
     const refresh = async () => {
-        await refetchNfts();
-        await refetchChain();
+        await Promise.all([
+            refetchNfts(),
+            refetchChain(),
+            queryClient.invalidateQueries({ queryKey: ['balance'] }),
+            queryClient.invalidateQueries({ queryKey: ['jettons'] }),
+            queryClient.invalidateQueries({ queryKey: ['nfts'] }),
+            queryClient.invalidateQueries({ queryKey: ['agentic-wallet-activity'] }),
+        ]);
     };
 
     return {
