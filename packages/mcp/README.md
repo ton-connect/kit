@@ -25,6 +25,12 @@ MNEMONIC="word1 word2 ..." npx @ton/mcp --http
 
 # Run as HTTP server on custom port
 MNEMONIC="word1 word2 ..." npx @ton/mcp --http 8080
+
+# Run with custom agentic wallet contract
+PRIVATE_KEY="0xyour_private_key" \
+WALLET_VERSION="agentic" \
+AGENTIC_WALLET_ADDRESS="EQ..." \
+npx @ton/mcp
 ```
 
 ## Usage with MCP Clients
@@ -64,7 +70,10 @@ MNEMONIC="word1 word2 ..." npx @ton/mcp --http 3000
 | `NETWORK`         | `mainnet` | TON network (`mainnet` / `testnet`)                   |
 | `MNEMONIC`        |           | Space-separated 24-word mnemonic phrase for wallet    |
 | `PRIVATE_KEY`     |           | Hex-encoded private key (alternative to mnemonic)     |
-| `WALLET_VERSION`  | `v5r1`    | Wallet version to use (`v5r1` or `v4r2`)              |
+| `WALLET_VERSION`  | `v5r1`    | Wallet version to use (`v5r1`, `v4r2`, or `agentic`)  |
+| `AGENTIC_WALLET_ADDRESS` |   | Agentic wallet address (required for `WALLET_VERSION=agentic`, unless derived from init params) |
+| `AGENTIC_WALLET_NFT_INDEX` | | Agentic wallet NFT index / subwallet id (`uint256`, optional) |
+| `AGENTIC_COLLECTION_ADDRESS` | | Agentic collection address (optional, used with NFT index to derive state init/address) |
 | `TONCENTER_API_KEY`|          | API key for Toncenter (optional, for higher rate limits)|
 
 ## Available Tools

@@ -46,3 +46,9 @@ export type {
     SwapQuoteResult,
     TransactionInfo,
 } from './services/McpWalletService.js';
+
+// ===========================================
+// Contracts
+// ===========================================
+
+export { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';

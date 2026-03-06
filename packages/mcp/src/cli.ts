@@ -22,7 +22,10 @@
  *   NETWORK         - Network to use (mainnet or testnet, default: mainnet)
  *   MNEMONIC        - 24-word mnemonic phrase for wallet
  *   PRIVATE_KEY     - Hex-encoded private key (alternative to MNEMONIC)
- *   WALLET_VERSION  - Wallet version (v5r1 or v4r2, default: v5r1)
+ *   WALLET_VERSION  - Wallet version (v5r1, v4r2, or agentic; default: v5r1)
+ *   AGENTIC_WALLET_ADDRESS - Agentic wallet address (required for WALLET_VERSION=agentic unless derived from init params)
+ *   AGENTIC_WALLET_NFT_INDEX - walletNftIndex / subwallet id for agentic wallet (uint256, optional)
+ *   AGENTIC_COLLECTION_ADDRESS - collection address for agentic wallet state init derivation (optional)
  *   TONCENTER_API_KEY - API key for Toncenter (optional, for higher rate limits)
  */
 
@@ -43,6 +46,7 @@ import type { Wallet, ApiClientConfig, WalletSigner } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
 import type { NetworkType } from './types/config.js';
+import { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';
 
 const SERVER_NAME = 'ton-mcp';
 
@@ -50,7 +54,10 @@ const SERVER_NAME = 'ton-mcp';
 const NETWORK = (process.env.NETWORK as NetworkType) || 'mainnet';
 const MNEMONIC = process.env.MNEMONIC;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const WALLET_VERSION = (process.env.WALLET_VERSION as 'v5r1' | 'v4r2') || 'v5r1';
+const WALLET_VERSION = (process.env.WALLET_VERSION as 'v5r1' | 'v4r2' | 'agentic') || 'v5r1';
+const AGENTIC_WALLET_ADDRESS = process.env.AGENTIC_WALLET_ADDRESS;
+const AGENTIC_WALLET_NFT_INDEX = process.env.AGENTIC_WALLET_NFT_INDEX;
+const AGENTIC_COLLECTION_ADDRESS = process.env.AGENTIC_COLLECTION_ADDRESS;
 const TONCENTER_API_KEY = process.env.TONCENTER_API_KEY;
 
 function log(message: string) {
@@ -76,6 +83,31 @@ function parseArgs() {
     return { mode: 'http' as const, port, host };
 }
 
+const UINT_256_MAX = 1n << 256n;
+
+function parseOptionalBigInt(input?: string): bigint | undefined {
+    if (!input) {
+        return undefined;
+    }
+    const value = input.trim();
+    if (!value) {
+        return undefined;
+    }
+
+    let parsed: bigint;
+    try {
+        parsed = BigInt(value);
+    } catch {
+        throw new Error(`Invalid AGENTIC_WALLET_NFT_INDEX: "${input}"`);
+    }
+
+    if (parsed < 0n || parsed >= UINT_256_MAX) {
+        throw new Error('AGENTIC_WALLET_NFT_INDEX must be a uint256 value');
+    }
+
+    return parsed;
+}
+
 async function createMnemonicWallet(kit: TonWalletKit, network: Network, mnemonic: string[]): Promise<Wallet> {
     const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
     return createWalletFromSigner(kit, network, signer);
@@ -93,10 +125,18 @@ async function createWalletFromSigner(kit: TonWalletKit, network: Network, signe
                   client: kit.getApiClient(network),
                   network,
               })
-            : await WalletV4R2Adapter.create(signer, {
-                  client: kit.getApiClient(network),
-                  network,
-              });
+            : WALLET_VERSION === 'v4r2'
+              ? await WalletV4R2Adapter.create(signer, {
+                    client: kit.getApiClient(network),
+                    network,
+                })
+              : await AgenticWalletAdapter.create(signer, {
+                    client: kit.getApiClient(network),
+                    network,
+                    walletAddress: AGENTIC_WALLET_ADDRESS,
+                    walletNftIndex: parseOptionalBigInt(AGENTIC_WALLET_NFT_INDEX),
+                    collectionAddress: AGENTIC_COLLECTION_ADDRESS,
+                });
 
     let wallet = await kit.addWallet(walletAdapter);
     if (!wallet) {
