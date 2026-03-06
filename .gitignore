@@ -1,7 +1,7 @@
-node_modules
+*node_modules*
 .env
 .DS_Store
-dist
+*dist
 dist-android
 .idea
 .turbo
