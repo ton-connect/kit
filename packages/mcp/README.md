@@ -6,6 +6,7 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 
 - **Balance Queries**: Check TON and Jetton balances, view transaction history
 - **Transfers**: Send TON, Jettons, and NFTs to any address
+- **Agentic Sub-wallet Deploy**: Deploy additional Agentic wallets from a root Agentic wallet
 - **Swaps**: Get quotes for token swaps via DEX aggregators
 - **NFTs**: List, inspect, and transfer NFTs
 - **DNS**: Resolve `.ton` domains and reverse-lookup addresses
@@ -92,6 +93,14 @@ Get the TON balance of the wallet.
 
 **Returns:** Balance in TON and nanoTON
 
+#### `get_balance_by_address`
+Get the TON balance of any address.
+
+**Parameters:**
+- `address` (required): TON wallet address
+
+**Returns:** Address balance in TON and nanoTON
+
 #### `get_jetton_balance`
 Get the balance of a specific Jetton in the wallet.
 
@@ -100,6 +109,27 @@ Get the balance of a specific Jetton in the wallet.
 
 #### `get_jettons`
 List all Jettons held by the wallet with balances and metadata.
+
+#### `get_jettons_by_address`
+List Jettons held by any address with balances and metadata.
+
+**Parameters:**
+- `address` (required): Owner wallet address
+- `limit` (optional): Maximum number of jettons to return (default: 20, max: 100)
+- `offset` (optional): Offset for pagination (default: 0)
+
+#### `get_jetton_info`
+Get metadata for a Jetton master contract.
+
+**Parameters:**
+- `address` (required): Jetton master contract address
+
+#### `get_jetton_wallet_address`
+Get the jetton-wallet address for a given Jetton master and owner address.
+
+**Parameters:**
+- `jettonAddress` (required): Jetton master contract address
+- `ownerAddress` (required): Owner wallet address
 
 #### `get_transactions`
 Get recent transaction history for the wallet (TON transfers, Jetton transfers, swaps, etc.).
@@ -146,6 +176,17 @@ Send a raw transaction with full control over messages. Supports multiple messag
 - `validUntil` (optional): Unix timestamp after which the transaction becomes invalid
 - `fromAddress` (optional): Sender wallet address
 
+#### `deploy_agentic_subwallet`
+Deploy a new Agentic sub-wallet from the current wallet. Works only with `WALLET_VERSION=agentic` and only when the current wallet is a user-root wallet (`deployedByUser=true`). Returns `normalizedHash`, deployed sub-wallet address, and computed sub-wallet NFT index.
+NFT metadata is written in onchain TEP-64 format.
+
+**Default flow:** Poll `get_transaction_status` with the returned `normalizedHash` until completion.
+
+**Parameters:**
+- `operatorPublicKey` (required): New sub-wallet operator public key (`uint256`, decimal or `0x`-prefixed hex)
+- `metadata` (required): Onchain TEP-64 metadata object. Must include at least `name` (non-empty string).
+- `amountTon` (optional): TON amount to attach for deployment in TON units (default: `"0.05"`)
+
 ### Swaps
 
 #### `get_swap_quote`
@@ -163,6 +204,14 @@ Get a quote for swapping tokens. Returns quote details and transaction params th
 List all NFTs in the wallet with metadata, collection info, and attributes.
 
 **Parameters:**
+- `limit` (optional): Maximum number of NFTs to return (default: 20, max: 100)
+- `offset` (optional): Offset for pagination (default: 0)
+
+#### `get_nfts_by_address`
+List NFTs held by any address with metadata, collection info, and attributes.
+
+**Parameters:**
+- `address` (required): Owner wallet address
 - `limit` (optional): Maximum number of NFTs to return (default: 20, max: 100)
 - `offset` (optional): Offset for pagination (default: 0)
 

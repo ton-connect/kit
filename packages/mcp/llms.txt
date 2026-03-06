@@ -16,6 +16,12 @@ Returns: address, network (mainnet or testnet)
 Get TON balance of the wallet.
 Returns: address, balance in TON and nanoTON
 
+### get_balance_by_address
+Get TON balance for any address.
+Parameters:
+- address (required): TON wallet address
+Returns: address, balance in TON and nanoTON
+
 ### get_jetton_balance
 Get balance of a specific Jetton token.
 Parameters:
@@ -24,6 +30,27 @@ Parameters:
 ### get_jettons
 List all Jettons in the wallet with balances and metadata.
 Returns: array of tokens with address, symbol, name, balance, decimals
+
+### get_jettons_by_address
+List all Jettons for any owner address.
+Parameters:
+- address (required): owner wallet address
+- limit (optional): 1-100, default 20
+- offset (optional): pagination offset
+Returns: array of tokens with address, symbol, name, balance, decimals
+
+### get_jetton_info
+Get Jetton master metadata.
+Parameters:
+- address (required): Jetton master contract address
+Returns: Jetton metadata (address, name, symbol, decimals, description, image, uri)
+
+### get_jetton_wallet_address
+Resolve Jetton wallet address by master+owner.
+Parameters:
+- jettonAddress (required): Jetton master contract address
+- ownerAddress (required): owner wallet address
+Returns: derived jetton wallet address
 
 ### get_transactions
 Get recent transaction history.
@@ -63,6 +90,14 @@ Parameters:
 - validUntil (optional): expiry timestamp
 - fromAddress (optional): sender address
 
+### deploy_agentic_subwallet
+Deploy a new Agentic sub-wallet from a user-root Agentic wallet.
+Parameters:
+- operatorPublicKey (required): new sub-wallet operator public key (`uint256`, decimal or `0x`-hex)
+- metadata (required): onchain NFT metadata in TEP-64 format with mandatory `name`
+- amountTon (optional): attached TON amount, default `"0.05"`
+Returns: normalizedHash, deployed sub-wallet address, sub-wallet NFT index
+
 ### get_swap_quote
 Get quote for token swap.
 Parameters:
@@ -75,6 +110,13 @@ Returns: quote details + transaction params for send_raw_transaction
 ### get_nfts
 List NFTs in the wallet.
 Parameters:
+- limit (optional): 1-100, default 20
+- offset (optional): pagination offset
+
+### get_nfts_by_address
+List NFTs for any owner address.
+Parameters:
+- address (required): owner wallet address
 - limit (optional): 1-100, default 20
 - offset (optional): pagination offset
 

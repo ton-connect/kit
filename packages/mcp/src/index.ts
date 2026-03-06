@@ -42,7 +42,10 @@ export { McpWalletService } from './services/McpWalletService.js';
 export type {
     McpWalletServiceConfig,
     JettonInfoResult,
+    JettonMetadataResult,
+    AddressBalanceResult,
     TransferResult,
+    DeployAgenticSubwalletResult,
     SwapQuoteResult,
     TransactionInfo,
 } from './services/McpWalletService.js';

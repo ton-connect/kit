@@ -22,6 +22,8 @@ import {
     createMcpSwapTools,
     createMcpNftTools,
     createMcpTransactionTools,
+    createMcpAgenticTools,
+    createMcpAddressTools,
 } from './tools/index.js';
 import { createMcpKnownJettonsTools } from './tools/known-jettons-tools.js';
 import { createMcpDnsTools } from './tools/dns-tools.js';
@@ -99,6 +101,8 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const nftTools = createMcpNftTools(walletService);
     const dnsTools = createMcpDnsTools(walletService);
     const transactionTools = createMcpTransactionTools(walletService);
+    const agenticTools = createMcpAgenticTools(walletService);
+    const addressTools = createMcpAddressTools(walletService);
 
     // Helper to register tools with type assertion (Zod version mismatch workaround)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,14 +115,19 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 
     // Register balance tools
     registerTool('get_balance', balanceTools.get_balance);
+    registerTool('get_balance_by_address', addressTools.get_balance_by_address);
     registerTool('get_jetton_balance', balanceTools.get_jetton_balance);
     registerTool('get_jettons', balanceTools.get_jettons);
+    registerTool('get_jettons_by_address', addressTools.get_jettons_by_address);
+    registerTool('get_jetton_info', addressTools.get_jetton_info);
+    registerTool('get_jetton_wallet_address', addressTools.get_jetton_wallet_address);
     registerTool('get_transactions', balanceTools.get_transactions);
 
     // Register transfer tools
     registerTool('send_ton', transferTools.send_ton);
     registerTool('send_jetton', transferTools.send_jetton);
     registerTool('send_raw_transaction', transferTools.send_raw_transaction);
+    registerTool('deploy_agentic_subwallet', agenticTools.deploy_agentic_subwallet);
 
     // Register transaction tools
     registerTool('get_transaction_status', transactionTools.get_transaction_status);
@@ -131,6 +140,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 
     // Register NFT tools
     registerTool('get_nfts', nftTools.get_nfts);
+    registerTool('get_nfts_by_address', addressTools.get_nfts_by_address);
     registerTool('get_nft', nftTools.get_nft);
     registerTool('send_nft', nftTools.send_nft);
 
