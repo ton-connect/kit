@@ -10,26 +10,29 @@ import { AppKit, Network } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { TonConnectConnector, ApiClientTonApi } from '@ton/appkit';
 
-import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
+import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET, ENV_TON_API_MIN_REQUEST_INTERVAL_MS } from '@/core/configs/env';
 
 export const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: ENV_TON_API_KEY_MAINNET,
-            },
+            apiClient: new ApiClientTonApi({
+                network: Network.mainnet(),
+                apiKey: ENV_TON_API_KEY_MAINNET,
+                minRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
+            }),
         },
         [Network.testnet().chainId]: {
-            apiClient: {
-                url: 'https://testnet.toncenter.com',
-                key: ENV_TON_API_KEY_TESTNET,
-            },
+            apiClient: new ApiClientTonApi({
+                network: Network.testnet(),
+                apiKey: ENV_TON_API_KEY_TESTNET,
+                minRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
+            }),
         },
         [Network.tetra().chainId]: {
             apiClient: new ApiClientTonApi({
                 network: Network.tetra(),
                 endpoint: 'https://tetra.tonapi.io',
+                minRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
             }),
         },
     },

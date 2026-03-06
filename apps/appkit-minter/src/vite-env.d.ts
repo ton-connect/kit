@@ -11,6 +11,8 @@
 interface ImportMetaEnv {
     readonly VITE_BRIDGE_URL?: string;
     readonly VITE_TON_API_KEY?: string;
+    readonly VITE_TON_API_TESTNET_KEY?: string;
+    readonly VITE_TON_API_MIN_REQUEST_INTERVAL_MS?: string;
 }
 
 interface ImportMeta {

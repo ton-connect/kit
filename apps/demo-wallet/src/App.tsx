@@ -22,6 +22,7 @@ import {
     ENV_TON_API_KEY_MAINNET,
     ENV_TON_API_KEY_TESTNET,
     ENV_TON_API_KEY_TETRA,
+    ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
 } from '@/lib/env';
 import { isExtension } from '@/utils/isExtension';
 import type { SendMessageToExtensionContent, CreateExtensionStorageAdapter } from '@/lib/extensionPopup';
@@ -65,6 +66,7 @@ const walletKitConfig: WalletKitConfig = {
     tonApiKeyMainnet: ENV_TON_API_KEY_MAINNET,
     tonApiKeyTestnet: ENV_TON_API_KEY_TESTNET,
     tonApiKeyTetra: ENV_TON_API_KEY_TETRA,
+    tonApiMinRequestIntervalMs: ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
     createLedgerTransport: createWebLedgerTransport,
     analytics: {
         appInfo: {

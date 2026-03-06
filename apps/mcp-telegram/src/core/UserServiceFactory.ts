@@ -21,8 +21,9 @@ import {
     MemoryStorageAdapter,
     Network,
     createWalletId,
+    ApiClientTonApi,
 } from '@ton/walletkit';
-import type { Wallet, ApiClientConfig } from '@ton/walletkit';
+import type { Wallet } from '@ton/walletkit';
 import { McpWalletService } from '@ton/mcp';
 
 import type { ISignerAdapter, IStorageAdapter, WalletInfo } from '../adapters/index.js';
@@ -63,8 +64,8 @@ export interface UserServiceFactoryConfig {
     storage: IStorageAdapter;
     defaultNetwork?: 'mainnet' | 'testnet';
     networks?: {
-        mainnet?: { apiKey?: string };
-        testnet?: { apiKey?: string };
+        mainnet?: { apiKey?: string; minRequestIntervalMs?: number };
+        testnet?: { apiKey?: string; minRequestIntervalMs?: number };
     };
 }
 
@@ -88,8 +89,8 @@ export class UserServiceFactory {
     private readonly storage: IStorageAdapter;
     private readonly defaultNetwork: 'mainnet' | 'testnet';
     private readonly networks?: {
-        mainnet?: { apiKey?: string };
-        testnet?: { apiKey?: string };
+        mainnet?: { apiKey?: string; minRequestIntervalMs?: number };
+        testnet?: { apiKey?: string; minRequestIntervalMs?: number };
     };
     private readonly userContexts = new Map<string, UserContext>();
     private kit: TonWalletKit | null = null;
@@ -106,24 +107,24 @@ export class UserServiceFactory {
      */
     private async getKit(): Promise<TonWalletKit> {
         if (!this.kit) {
-            const mainnetConfig: ApiClientConfig = {};
-            const testnetConfig: ApiClientConfig = {};
-
-            if (this.networks?.mainnet?.apiKey) {
-                mainnetConfig.url = 'https://toncenter.com';
-                mainnetConfig.key = this.networks.mainnet.apiKey;
-            }
-            if (this.networks?.testnet?.apiKey) {
-                testnetConfig.url = 'https://testnet.toncenter.com';
-                testnetConfig.key = this.networks.testnet.apiKey;
-            }
-
             // TODO: Tetra
 
             this.kit = new TonWalletKit({
                 networks: {
-                    [Network.mainnet().chainId]: { apiClient: mainnetConfig },
-                    [Network.testnet().chainId]: { apiClient: testnetConfig },
+                    [Network.mainnet().chainId]: {
+                        apiClient: new ApiClientTonApi({
+                            network: Network.mainnet(),
+                            apiKey: this.networks?.mainnet?.apiKey,
+                            minRequestIntervalMs: this.networks?.mainnet?.minRequestIntervalMs,
+                        }),
+                    },
+                    [Network.testnet().chainId]: {
+                        apiClient: new ApiClientTonApi({
+                            network: Network.testnet(),
+                            apiKey: this.networks?.testnet?.apiKey,
+                            minRequestIntervalMs: this.networks?.testnet?.minRequestIntervalMs,
+                        }),
+                    },
                 },
                 storage: new MemoryStorageAdapter(),
             });

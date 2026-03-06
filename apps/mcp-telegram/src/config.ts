@@ -23,10 +23,12 @@ export interface Config {
     tonNetwork: 'mainnet' | 'testnet';
     /** SQLite database path */
     databasePath: string;
-    /** TonCenter API key for mainnet */
-    toncenterApiKeyMainnet?: string;
-    /** TonCenter API key for testnet */
-    toncenterApiKeyTestnet?: string;
+    /** TonAPI API key for mainnet */
+    tonApiKeyMainnet?: string;
+    /** TonAPI API key for testnet */
+    tonApiKeyTestnet?: string;
+    /** Minimum interval between TON API requests in milliseconds */
+    tonApiMinRequestIntervalMs: number;
 }
 
 /**
@@ -65,7 +67,14 @@ export function loadConfig(): Config {
         anthropicModel: process.env.ANTHROPIC_MODEL ?? 'claude-opus-4-5-20250514',
         tonNetwork,
         databasePath: process.env.DATABASE_PATH ?? `./data/bot-${tonNetwork}.db`,
-        toncenterApiKeyMainnet: process.env.TONCENTER_API_KEY_MAINNET,
-        toncenterApiKeyTestnet: process.env.TONCENTER_API_KEY_TESTNET,
+        tonApiKeyMainnet:
+            process.env.TON_API_KEY_MAINNET ??
+            process.env.TONCENTER_API_KEY_MAINNET ??
+            'AECTPKOIYZUDZ7AAAAAMSOZQCF2U46X2VU6LGOCWRTA4ARB3SIDBKPY6KJDLCXXIBWMHPPQ',
+        tonApiKeyTestnet:
+            process.env.TON_API_KEY_TESTNET ??
+            process.env.TONCENTER_API_KEY_TESTNET ??
+            'AECTPKOIYZUDZ7AAAAAMSOZQCF2U46X2VU6LGOCWRTA4ARB3SIDBKPY6KJDLCXXIBWMHPPQ',
+        tonApiMinRequestIntervalMs: Number(process.env.TON_API_MIN_REQUEST_INTERVAL_MS ?? '1000'),
     };
 }

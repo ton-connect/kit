@@ -63,8 +63,12 @@ async function main(): Promise<void> {
         storage: storageAdapter,
         defaultNetwork: config.tonNetwork,
         networks: {
-            mainnet: config.toncenterApiKeyMainnet ? { apiKey: config.toncenterApiKeyMainnet } : undefined,
-            testnet: config.toncenterApiKeyTestnet ? { apiKey: config.toncenterApiKeyTestnet } : undefined,
+            mainnet: config.tonApiKeyMainnet
+                ? { apiKey: config.tonApiKeyMainnet, minRequestIntervalMs: config.tonApiMinRequestIntervalMs }
+                : undefined,
+            testnet: config.tonApiKeyTestnet
+                ? { apiKey: config.tonApiKeyTestnet, minRequestIntervalMs: config.tonApiMinRequestIntervalMs }
+                : undefined,
         },
     });
     log('User service factory initialized');
