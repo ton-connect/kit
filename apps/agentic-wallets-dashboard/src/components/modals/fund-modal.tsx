@@ -403,7 +403,7 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
 
     return (
         <Modal open={!!agent} onClose={handleClose} title={`Fund ${agentName}`}>
-            <div ref={contentRef} className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+            <div ref={contentRef} className="max-h-[70vh] space-y-4 overflow-y-auto pr-0 sm:pr-1">
                 <div className="mb-1.5 flex items-center justify-between gap-3">
                     <label className="block text-xs text-neutral-500">Assets</label>
                     <span className="text-[11px] text-neutral-500">
@@ -440,10 +440,19 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                             onClick={() => setOpenSelectorUid((current) => (current === item.uid ? null : item.uid))}
                                             className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-left text-sm text-white outline-none transition-colors hover:border-white/[0.15] focus:border-amber-500/50"
                                         >
-                                            <span className="flex items-center gap-2">
+                                            <span className="flex min-w-0 items-center gap-2">
                                                 <AssetIcon asset={asset} />
-                                                <span>{asset.label}</span>
-                                                {asset.sublabel && <span className="text-neutral-500">{asset.sublabel}</span>}
+                                                <span className="truncate">{asset.label}</span>
+                                                {asset.kind === 'jetton' && (
+                                                    <span className="font-mono text-xs text-neutral-400 sm:hidden">
+                                                        {formatBalance(asset.balance ?? '0')}
+                                                    </span>
+                                                )}
+                                                {asset.sublabel && (
+                                                    <span className="hidden truncate text-neutral-500 sm:inline">
+                                                        {asset.sublabel}
+                                                    </span>
+                                                )}
                                             </span>
                                             <svg
                                                 width="12"
@@ -512,10 +521,14 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                                     item.assetId === option.id ? 'text-amber-500' : 'text-white'
                                                                 }`}
                                                             >
-                                                                <span className="flex items-center gap-2">
+                                                                <span className="flex min-w-0 items-center gap-2">
                                                                     <AssetIcon asset={option} />
-                                                                    <span>{option.label}</span>
-                                                                    {option.sublabel && <span className="text-neutral-500">{option.sublabel}</span>}
+                                                                    <span className="truncate">{option.label}</span>
+                                                                    {option.sublabel && (
+                                                                        <span className="hidden truncate text-neutral-500 sm:inline">
+                                                                            {option.sublabel}
+                                                                        </span>
+                                                                    )}
                                                                 </span>
                                                                 <span className="font-mono text-xs text-neutral-400">
                                                                     {formatBalance(option.balance ?? '0')}
@@ -558,8 +571,12 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                                 }`}
                                                             >
                                                                 <AssetIcon asset={option} />
-                                                                <span>{option.label}</span>
-                                                                {option.sublabel && <span className="text-neutral-500">{option.sublabel}</span>}
+                                                                <span className="truncate">{option.label}</span>
+                                                                {option.sublabel && (
+                                                                    <span className="hidden truncate text-neutral-500 sm:inline">
+                                                                        {option.sublabel}
+                                                                    </span>
+                                                                )}
                                                             </button>
                                                         ))}
                                                 {nftsOpen && availableNfts.length === 0 && (

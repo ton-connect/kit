@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { useAgentActivity, useAgentOperations, useAgents, useAgentsStore } from '@/features/agents';
 import type { AgentWallet } from '@/features/agents';
 import { StatusDot } from '@/components/shared/status-dot';
-import { CopyableAddress } from '@/components/shared/copyable-address';
+import { CopyableAddress, CopyableValue } from '@/components/shared/copyable-address';
 import { JettonBalances } from '@/components/shared/jetton-balances';
 import { NftBalances } from '@/components/shared/nft-balances';
 import { FundModal } from '@/components/modals/fund-modal';
@@ -139,7 +139,7 @@ export function AgentDetailPage() {
                 Back to dashboard
             </Link>
 
-            <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-3">
                     <StatusDot status={agent.status} />
                     <div>
@@ -157,24 +157,24 @@ export function AgentDetailPage() {
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-wrap justify-end gap-3">
+                <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end sm:gap-3">
                     {!isRevoked && (
                         <>
                             <button
                                 onClick={() => setShowFund(true)}
-                                className="rounded-full bg-amber-500 px-6 py-2.5 text-sm font-medium text-black transition-colors hover:bg-amber-400"
+                                className="order-1 w-full rounded-full bg-amber-500 px-6 py-2.5 text-sm font-medium text-black transition-colors hover:bg-amber-400 sm:order-none sm:w-auto"
                             >
                                 Fund
                             </button>
                             <button
                                 onClick={() => setShowWithdraw(true)}
-                                className="rounded-full border border-white/[0.1] px-6 py-2.5 text-sm text-neutral-400 transition-colors hover:bg-white/[0.04] hover:text-white"
+                                className="order-2 w-full rounded-full border border-white/[0.1] px-6 py-2.5 text-sm text-neutral-400 transition-colors hover:bg-white/[0.04] hover:text-white sm:order-none sm:w-auto"
                             >
                                 Withdraw
                             </button>
                             <button
                                 onClick={() => setShowRevoke(true)}
-                                className="rounded-full border border-red-500/25 bg-red-500/10 px-6 py-2.5 text-sm text-red-300 transition-colors hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-200"
+                                className="order-4 w-full rounded-full border border-red-500/25 bg-red-500/10 px-6 py-2.5 text-sm text-red-300 transition-colors hover:border-red-500/50 hover:bg-red-500/20 hover:text-red-200 sm:order-none sm:w-auto"
                             >
                                 Revoke
                             </button>
@@ -182,9 +182,9 @@ export function AgentDetailPage() {
                     )}
                     <button
                         onClick={() => setShowChangePublicKey(true)}
-                        className="rounded-full border border-white/[0.1] px-6 py-2.5 text-sm text-neutral-300 transition-colors hover:bg-white/[0.04] hover:text-white"
+                        className="order-3 w-full rounded-full border border-white/[0.1] px-6 py-2.5 text-sm text-neutral-300 transition-colors hover:bg-white/[0.04] hover:text-white sm:order-none sm:w-auto"
                     >
-                        Change public key
+                        Change key
                     </button>
                 </div>
             </div>
@@ -223,18 +223,32 @@ export function AgentDetailPage() {
 
             <div className="mb-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] divide-y divide-white/[0.04]">
                 <InfoRow label="Agent Address">
-                    <CopyableAddress address={agent.address} truncate={false} />
+                    <CopyableAddress
+                        address={agent.address}
+                        adaptive
+                        className="w-full justify-between sm:w-full sm:justify-end"
+                    />
                 </InfoRow>
                 <InfoRow label="Operator Public Key">
-                    <span className="break-all font-mono text-xs text-neutral-500">{agent.operatorPubkey}</span>
+                    <CopyableValue
+                        value={agent.operatorPubkey}
+                        adaptive
+                        className="w-full justify-between sm:w-full sm:justify-end"
+                    />
                 </InfoRow>
                 <InfoRow label="Origin Operator Public Key">
-                    <span className="break-all font-mono text-xs text-neutral-500">
-                        {agent.originOperatorPublicKey}
-                    </span>
+                    <CopyableValue
+                        value={agent.originOperatorPublicKey}
+                        adaptive
+                        className="w-full justify-between sm:w-full sm:justify-end"
+                    />
                 </InfoRow>
                 <InfoRow label="Owner Address">
-                    <CopyableAddress address={agent.ownerAddress} truncate={false} />
+                    <CopyableAddress
+                        address={agent.ownerAddress}
+                        adaptive
+                        className="w-full justify-between sm:w-full sm:justify-end"
+                    />
                 </InfoRow>
                 <InfoRow label="Created">{createdDate}</InfoRow>
                 <InfoRow label="Source">{agent.source}</InfoRow>
@@ -284,7 +298,7 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
     return (
         <div className="flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-xs text-neutral-600">{label}</span>
-            <span className="text-sm text-neutral-300">{children}</span>
+            <div className="min-w-0 text-sm text-neutral-300 sm:ml-6 sm:flex-1 sm:text-right">{children}</div>
         </div>
     );
 }

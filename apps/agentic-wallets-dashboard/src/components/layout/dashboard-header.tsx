@@ -13,15 +13,17 @@ import { WalletButton } from '@/components/shared/wallet-button';
 export function DashboardHeader() {
     return (
         <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#050505]/80 backdrop-blur-md">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-                <div className="flex items-center gap-6">
-                    <Link to="/" className="flex items-center gap-3">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:px-6 sm:py-3">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-6">
+                    <Link to="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                         <AgentLogo />
-                        <span className="text-sm font-semibold tracking-tight">Agentic Wallets</span>
+                        <span className="text-xs font-semibold tracking-tight whitespace-nowrap sm:text-sm">
+                            Agentic Wallets
+                        </span>
                     </Link>
                     <Link
                         to="/create"
-                        className="rounded-full border border-white/[0.1] px-3 py-1.5 text-xs text-neutral-300 transition-colors hover:border-white/[0.2] hover:text-white"
+                        className="rounded-full border border-white/[0.1] px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:border-white/[0.2] hover:text-white sm:px-3"
                     >
                         Create
                     </Link>
