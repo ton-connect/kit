@@ -7,7 +7,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { useBalanceByAddress, useNetwork } from '@ton/appkit-react';
+import { useNetwork } from '@ton/appkit-react';
 import { AlertTriangle } from 'lucide-react';
 
 import type { AgentWallet } from '@/features/agents';
@@ -18,21 +18,29 @@ import { NftBalances } from '@/components/shared/nft-balances';
 
 interface AgentCardProps {
     agent: AgentWallet;
+    balanceNano?: bigint;
     onFund?: () => void;
     onWithdraw?: () => void;
     onRevoke?: () => void;
 }
 
-export function AgentCard({ agent, onFund, onWithdraw, onRevoke }: AgentCardProps) {
+function formatTonWithTwoDecimals(nano: bigint): string {
+    const abs = nano < 0n ? -nano : nano;
+    const sign = nano < 0n ? '-' : '';
+    const whole = abs / 1_000_000_000n;
+    const fractional = (abs % 1_000_000_000n) / 10_000_000n;
+    return `${sign}${whole.toString()}.${fractional.toString().padStart(2, '0')}`;
+}
+
+export function AgentCard({ agent, balanceNano, onFund, onWithdraw, onRevoke }: AgentCardProps) {
     const network = useNetwork();
-    const { data: balance } = useBalanceByAddress({ address: agent.address, network });
-    const balanceStr = balance != null ? parseFloat(balance).toFixed(2) : '—';
-    const isZero = balance != null && parseFloat(balance) === 0;
+    const balanceStr = balanceNano != null ? formatTonWithTwoDecimals(balanceNano) : '—';
+    const isZero = balanceNano === 0n;
     const isRevoked = agent.status === 'revoked';
 
     return (
-        <div className="group rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 transition-colors hover:border-white/[0.1] hover:bg-white/[0.03] animate-slide-up">
-            <Link to={`/agent/${agent.id}`} className="block">
+        <div className="group flex h-full flex-col rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 transition-colors hover:border-white/[0.1] hover:bg-white/[0.03] animate-slide-up">
+            <Link to={`/agent/${agent.id}`} className="block flex-1">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                         <StatusDot status={agent.status} />
@@ -58,7 +66,7 @@ export function AgentCard({ agent, onFund, onWithdraw, onRevoke }: AgentCardProp
             </Link>
 
             {!isRevoked && (
-                <div className="mt-4 flex items-center gap-2 border-t border-white/[0.04] pt-3">
+                <div className="mt-auto flex items-center gap-2 border-t border-white/[0.04] pt-3">
                     <button
                         onClick={onFund}
                         className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-medium text-black transition-colors hover:bg-amber-400"
@@ -81,7 +89,7 @@ export function AgentCard({ agent, onFund, onWithdraw, onRevoke }: AgentCardProp
             )}
 
             {isRevoked && (
-                <div className="mt-4 border-t border-white/[0.04] pt-3">
+                <div className="mt-auto border-t border-white/[0.04] pt-3">
                     <p className="text-xs text-neutral-600">Operator deactivated. Agent can no longer transact.</p>
                 </div>
             )}

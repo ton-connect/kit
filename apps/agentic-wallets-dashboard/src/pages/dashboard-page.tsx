@@ -57,19 +57,30 @@ export function DashboardPage() {
         });
     }, [agents]);
 
-    const { data: totalBalanceNano = 0n } = useQuery({
-        queryKey: ['agentic-wallets-total-balance', network?.chainId, activeAgents.map((a) => a.address)],
-        enabled: !!network && activeAgents.length > 0,
-        queryFn: async () => {
+    const agentAddresses = useMemo(() => Array.from(new Set(agents.map((agent) => agent.address))).sort(), [agents]);
+
+    const { data: balancesByAddress = {} as Record<string, bigint> } = useQuery({
+        queryKey: ['agentic-wallets-balances', network?.chainId, agentAddresses],
+        enabled: !!network && agentAddresses.length > 0,
+        queryFn: async (): Promise<Record<string, bigint>> => {
             if (!network) {
-                return 0n;
+                return {};
             }
 
             const client = appKit.networkManager.getClient(network);
-            const balances = await mapWithConcurrency(activeAgents, 8, async (agent) => client.getBalance(agent.address));
-            return balances.reduce((acc, value) => acc + BigInt(value), 0n);
+            const entries = await mapWithConcurrency(agentAddresses, 8, async (agentAddress) => {
+                const balance = await client.getBalance(agentAddress);
+                return [agentAddress, BigInt(balance)] as const;
+            });
+
+            return Object.fromEntries(entries);
         },
     });
+
+    const totalBalanceNano = useMemo(
+        () => activeAgents.reduce((acc, agent) => acc + (balancesByAddress[agent.address] ?? 0n), 0n),
+        [activeAgents, balancesByAddress],
+    );
     const totalBalanceTon = formatUnitsTrimmed(totalBalanceNano, 9);
 
     if (!address) {
@@ -123,6 +134,7 @@ export function DashboardPage() {
                         <AgentCard
                             key={agent.id}
                             agent={agent}
+                            balanceNano={balancesByAddress[agent.address]}
                             onFund={() => {
                                 markAgentKnown(agent.id);
                                 setFundAgent(agent);

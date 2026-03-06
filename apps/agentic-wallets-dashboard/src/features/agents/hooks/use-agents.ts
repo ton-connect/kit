@@ -11,7 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAddress, useAppKit, useNetwork } from '@ton/appkit-react';
 import type { NFT } from '@ton/appkit';
 
-import { ENV_AGENTIC_COLLECTION_MAINNET, ENV_AGENTIC_COLLECTION_TESTNET } from '@/core/configs/env';
+import { ENV_AGENTIC_ACTIVITY_POLL_MS, ENV_AGENTIC_COLLECTION_MAINNET, ENV_AGENTIC_COLLECTION_TESTNET } from '@/core/configs/env';
 
 import { useAgentsStore } from '../store/agents-store';
 import type { AgentWallet } from '../types';
@@ -64,6 +64,8 @@ export function useAgents() {
     } = useQuery({
         queryKey: ['agentic-wallets-owner-nfts', chainId, ownerAddress],
         enabled: !!network && !!ownerAddress,
+        refetchInterval: ENV_AGENTIC_ACTIVITY_POLL_MS,
+        refetchIntervalInBackground: true,
         queryFn: async () => {
             if (!network || !ownerAddress) {
                 return { nfts: [] as NFT[] };
@@ -107,7 +109,7 @@ export function useAgents() {
         }
 
         const all = nftsResponse?.nfts ?? [];
-        return all.filter((nft) => isSameTonAddress(nft.collection?.address, collectionAddress) || !nft.collection?.address);
+        return all.filter((nft) => isSameTonAddress(nft.collection?.address, collectionAddress));
     }, [nftsResponse, collectionAddress]);
 
     const chainWalletAddresses = useMemo(

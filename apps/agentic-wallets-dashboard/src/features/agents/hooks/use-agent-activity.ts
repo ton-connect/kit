@@ -58,6 +58,7 @@ export interface AgentActivityItem {
 const OP_CHANGE_OPERATOR = '0xea4e36cf';
 const OP_CHANGE_NFT_CONTENT = '0x1a0b9d51';
 const OP_WALLET_EXTENSION_ACTION = '0x6578746e';
+const OP_DEPLOY_SUB_WALLET = '0x0609e47b';
 const TON_ICON_URL = '/icons/ton.svg';
 const NFT_PREFETCH_CONCURRENCY = 6;
 const NFT_PLACEHOLDER_URL =
@@ -335,7 +336,7 @@ function classifyCategory(type: string, isAgentOperation: boolean): ActivityCate
     if (type === 'JettonTransfer') return 'jetton';
     if (type === 'NftItemTransfer') return 'nft';
     if (type === 'JettonSwap') return 'swap';
-    if (type === 'ContractDeploy') return 'contract';
+    if (type === 'ContractDeploy') return isAgentOperation ? 'agent_ops' : 'contract';
     if (type === 'SmartContractExec') {
         return isAgentOperation ? 'agent_ops' : 'contract';
     }
@@ -717,6 +718,11 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             actionLabel = 'Execute Owner Operation';
                             summary = actionLabel;
                             actor = 'user';
+                            isAgentOperation = true;
+                        } else if (opcode === OP_DEPLOY_SUB_WALLET) {
+                            actionLabel = 'Deployed sub-wallet';
+                            summary = actionLabel;
+                            actor = 'agent';
                             isAgentOperation = true;
                         } else if (opcode === OP_CHANGE_OPERATOR) {
                             const nextKey =
