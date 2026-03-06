@@ -6,8 +6,8 @@
  *
  */
 
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Address, toNano } from '@ton/core';
 import { createTransferJettonTransaction, createTransferNftTransaction } from '@ton/appkit';
@@ -83,8 +83,134 @@ interface DepositAssetDraft {
     amount: string;
 }
 
+interface CreateDeepLinkAssetInput {
+    kind: DepositAssetKind;
+    address?: string;
+    amount?: string;
+    symbol?: string;
+    label?: string;
+}
+
+interface CreateDeepLinkPayload {
+    operatorPublicKey?: string;
+    agentName?: string;
+    source?: string;
+    tonDeposit?: string;
+    assets: CreateDeepLinkAssetInput[];
+}
+
+function getFirstQueryParam(searchParams: URLSearchParams, keys: string[]): string | undefined {
+    for (const key of keys) {
+        const value = searchParams.get(key);
+        if (value && value.trim()) {
+            return value.trim();
+        }
+    }
+    return undefined;
+}
+
+function parseAssetToken(value: string): CreateDeepLinkAssetInput | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const parts = trimmed.split(':');
+    if (parts.length < 2) {
+        return null;
+    }
+
+    const kind = parts[0]?.toLowerCase();
+    const address = parts[1]?.trim();
+    const amount = parts.slice(2).join(':').trim();
+    if (!address) {
+        return null;
+    }
+
+    if (kind === 'jetton') {
+        return { kind: 'jetton', address, amount: amount || undefined };
+    }
+    if (kind === 'nft') {
+        return { kind: 'nft', address };
+    }
+
+    return null;
+}
+
+function parseCreateDeepLink(searchParams: URLSearchParams): CreateDeepLinkPayload {
+    const assets: CreateDeepLinkAssetInput[] = [];
+
+    const jsonAssetsRaw = searchParams.get('assets');
+    if (jsonAssetsRaw) {
+        try {
+            const parsed = JSON.parse(jsonAssetsRaw);
+            if (Array.isArray(parsed)) {
+                for (const item of parsed) {
+                    const kind = item?.kind === 'nft' ? 'nft' : item?.kind === 'jetton' ? 'jetton' : null;
+                    if (!kind) {
+                        continue;
+                    }
+                    const address = typeof item?.address === 'string' ? item.address.trim() : undefined;
+                    const amount = typeof item?.amount === 'string' ? item.amount.trim() : undefined;
+                    const symbol = typeof item?.symbol === 'string' ? item.symbol.trim() : undefined;
+                    const label = typeof item?.label === 'string' ? item.label.trim() : undefined;
+                    assets.push({ kind, address, amount, symbol, label });
+                }
+            }
+        } catch {
+            // ignore malformed JSON
+        }
+    }
+
+    for (const value of searchParams.getAll('asset')) {
+        const parsed = parseAssetToken(value);
+        if (parsed) {
+            assets.push(parsed);
+        }
+    }
+
+    for (const value of searchParams.getAll('jetton')) {
+        const [addressPart, amountPart] = value.split(':');
+        const address = addressPart?.trim();
+        if (!address) {
+            continue;
+        }
+        assets.push({
+            kind: 'jetton',
+            address,
+            amount: amountPart?.trim() || undefined,
+        });
+    }
+
+    for (const value of searchParams.getAll('nft')) {
+        const address = value.trim();
+        if (!address) {
+            continue;
+        }
+        assets.push({
+            kind: 'nft',
+            address,
+        });
+    }
+
+    return {
+        operatorPublicKey: getFirstQueryParam(searchParams, [
+            'originOperatorPublicKey',
+            'operatorPublicKey',
+            'operatorPubkey',
+            'operator',
+            'pubkey',
+        ]),
+        agentName: getFirstQueryParam(searchParams, ['agentName', 'name']),
+        source: getFirstQueryParam(searchParams, ['source']),
+        tonDeposit: getFirstQueryParam(searchParams, ['tonDeposit', 'ton', 'tonAmount']),
+        assets,
+    };
+}
+
 export function CreateAgentPage() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const queryClient = useQueryClient();
     const appKit = useAppKit();
     const [wallet] = useSelectedWallet();
@@ -104,6 +230,9 @@ export function CreateAgentPage() {
     const [jettonsOpenById, setJettonsOpenById] = useState<Record<string, boolean>>({});
     const [nftsOpenById, setNftsOpenById] = useState<Record<string, boolean>>({});
     const [isAwaitingIndexing, setIsAwaitingIndexing] = useState(false);
+    const isDeepLinkScalarsAppliedRef = useRef(false);
+    const isDeepLinkAssetsAppliedRef = useRef(false);
+    const deepLinkPayload = useMemo(() => parseCreateDeepLink(searchParams), [searchParams]);
 
     const collectionAddress = useMemo(() => collectionAddressByChain(network?.chainId), [network?.chainId]);
     const walletFeatures = (
@@ -159,6 +288,97 @@ export function CreateAgentPage() {
         return ownerTonBalanceNano > reserveNano ? ownerTonBalanceNano - reserveNano : 0n;
     })();
     const initialTonDepositMaxString = formatUnitsTrimmed(initialTonDepositMaxNano, 9);
+
+    useEffect(() => {
+        if (isDeepLinkScalarsAppliedRef.current) {
+            return;
+        }
+
+        if (deepLinkPayload.operatorPublicKey) {
+            setOriginOperatorPublicKey(deepLinkPayload.operatorPublicKey);
+        }
+        if (deepLinkPayload.agentName) {
+            setAgentName(deepLinkPayload.agentName);
+        }
+        if (deepLinkPayload.source) {
+            setSource(deepLinkPayload.source);
+        }
+        if (deepLinkPayload.tonDeposit) {
+            setTonDeposit(deepLinkPayload.tonDeposit);
+        }
+
+        isDeepLinkScalarsAppliedRef.current = true;
+    }, [deepLinkPayload]);
+
+    useEffect(() => {
+        if (isDeepLinkAssetsAppliedRef.current) {
+            return;
+        }
+
+        if (deepLinkPayload.assets.length === 0) {
+            isDeepLinkAssetsAppliedRef.current = true;
+            return;
+        }
+
+        if (depositAssets.length === 0) {
+            return;
+        }
+        if (maxDepositsAllowed <= 0) {
+            return;
+        }
+
+        const usedAssetIds = new Set<string>();
+        const linkedDeposits: DepositAssetDraft[] = [];
+
+        const findAsset = (assetInput: CreateDeepLinkAssetInput): DepositAssetItem | undefined => {
+            const normalizedAddress = assetInput.address?.trim();
+            if (normalizedAddress) {
+                return depositAssets.find(
+                    (asset) =>
+                        asset.kind === assetInput.kind &&
+                        isSameTonAddress(asset.address, normalizedAddress) &&
+                        !usedAssetIds.has(asset.id),
+                );
+            }
+
+            const normalizedSymbol = assetInput.symbol?.trim().toLowerCase();
+            const normalizedLabel = assetInput.label?.trim().toLowerCase();
+            if (!normalizedSymbol && !normalizedLabel) {
+                return undefined;
+            }
+
+            return depositAssets.find((asset) => {
+                if (asset.kind !== assetInput.kind || usedAssetIds.has(asset.id)) {
+                    return false;
+                }
+                const bySymbol = normalizedSymbol ? asset.label.toLowerCase() === normalizedSymbol : false;
+                const byLabel = normalizedLabel
+                    ? asset.label.toLowerCase() === normalizedLabel || asset.sublabel?.toLowerCase() === normalizedLabel
+                    : false;
+                return bySymbol || byLabel;
+            });
+        };
+
+        for (const [index, assetInput] of deepLinkPayload.assets.entries()) {
+            const asset = findAsset(assetInput);
+            if (!asset) {
+                continue;
+            }
+
+            usedAssetIds.add(asset.id);
+            linkedDeposits.push({
+                id: `deeplink-${index}-${asset.id}`,
+                assetId: asset.id,
+                amount: asset.kind === 'jetton' ? (assetInput.amount ?? '').trim() : '',
+            });
+        }
+
+        if (linkedDeposits.length > 0) {
+            setAssetDeposits(linkedDeposits.slice(0, maxDepositsAllowed));
+        }
+
+        isDeepLinkAssetsAppliedRef.current = true;
+    }, [deepLinkPayload.assets, depositAssets, maxDepositsAllowed]);
 
     const getAssetById = (assetId: string): DepositAssetItem | undefined => depositAssets.find((asset) => asset.id === assetId);
     const isSelectedInOtherDraft = (assetId: string, draftId: string): boolean =>

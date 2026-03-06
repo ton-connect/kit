@@ -18,7 +18,6 @@ import type { AgentWallet } from '../types';
 import { extractNameFromMetadata } from '../lib/metadata';
 import { getAgentWalletState } from '../lib/agentic-wallet';
 import { isSameTonAddress } from '../lib/address';
-import { isAllowedNftTrust } from '../lib/nft-trust';
 import { mapWithConcurrency } from '../lib/async';
 
 function getCollectionAddressForNetwork(chainId: string | undefined): string {
@@ -84,7 +83,7 @@ export function useAgents() {
                     },
                 });
                 const nfts = response.nfts ?? [];
-                allNfts.push(...nfts.filter(isAllowedNftTrust));
+                allNfts.push(...nfts);
 
                 if (nfts.length < pageLimit) {
                     break;
