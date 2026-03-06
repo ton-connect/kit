@@ -6,7 +6,7 @@
  *
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAddress, useAppKit, useNetwork } from '@ton/appkit-react';
 import type { NFT } from '@ton/appkit';
@@ -192,7 +192,23 @@ export function useAgents() {
         });
     }, [nftsResponse, collectionAddress, chainState]);
 
+    useEffect(() => {
+        if (knownAgentIds.length > 0) {
+            return;
+        }
+
+        const initialIds = collectionNfts.map((nft) => nft.address);
+        if (initialIds.length === 0) {
+            return;
+        }
+
+        // Build initial baseline silently: no "new" notifications for the first discovered set.
+        markManyKnown(initialIds);
+    }, [knownAgentIds.length, collectionNfts, markManyKnown]);
+
     const agents = useMemo(() => {
+        const hasKnownBaseline = knownAgentIds.length > 0;
+
         return collectionNfts.map((nft): AgentWallet => {
             const chain = chainState?.[nft.address];
             const onchainName = chain ? extractNameFromMetadata(chain.nftItemContent) : null;
@@ -200,7 +216,7 @@ export function useAgents() {
 
             const source = getAttribute(nft, 'source') ?? nft.info?.description ?? nft.collection?.name ?? 'Unknown';
             const createdAt = getAttribute(nft, 'created_at') ?? new Date().toISOString();
-            const isNew = !knownAgentIds.includes(nft.address);
+            const isNew = hasKnownBaseline && !knownAgentIds.includes(nft.address);
 
             const fallbackPublicKey = parseBigint(getAttribute(nft, 'operator_pubkey')) ?? 0n;
             const fallbackOriginPublicKey =

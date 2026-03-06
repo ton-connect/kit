@@ -36,6 +36,7 @@ import {
     cellToBase64,
     createDeployWalletBody,
     createQueryId,
+    getAgentWalletState,
     getCollectionAddressByIndex,
 } from '@/features/agents/lib/agentic-wallet';
 import { buildOnchainMetadataCell } from '@/features/agents/lib/metadata';
@@ -470,6 +471,22 @@ export function CreateAgentPage() {
             const expectedAddress = await getCollectionAddressByIndex(client, collection.toString(), nftItemIndex);
             if (!expectedAddress.equals(localAddress)) {
                 throw new Error('Computed wallet address does not match collection.get_nft_address_by_index');
+            }
+
+            try {
+                const existingState = await getAgentWalletState(client, localAddress.toString());
+                if (existingState.isInitialized) {
+                    throw new Error(
+                        `Agent wallet with this operator public key already exists: ${localAddress.toString()}`,
+                    );
+                }
+            } catch (error) {
+                if (
+                    !(error instanceof Error) ||
+                    !error.message.startsWith('Account state data is empty for')
+                ) {
+                    throw error;
+                }
             }
 
             const deployBody = createDeployWalletBody({

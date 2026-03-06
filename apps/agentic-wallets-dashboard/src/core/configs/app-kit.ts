@@ -47,7 +47,7 @@ export const appKit = new AppKit({
                                 primary: '#0a0a0a',
                                 secondary: '#141414',
                                 segment: '#1a1a1a',
-                                tint: 'rgba(245, 158, 11, 0.12)',
+                                tint: '#2b1c05',
                                 qr: '#ffffff',
                             },
                             text: {

@@ -59,8 +59,9 @@ const OP_CHANGE_OPERATOR = '0xea4e36cf';
 const OP_CHANGE_NFT_CONTENT = '0x1a0b9d51';
 const OP_WALLET_EXTENSION_ACTION = '0x6578746e';
 const TON_ICON_URL = '/icons/ton.svg';
-const TX_PREFETCH_CONCURRENCY = 8;
 const NFT_PREFETCH_CONCURRENCY = 6;
+const NFT_PLACEHOLDER_URL =
+    'https://cache.tonapi.io/imgproxy/ungelhcbfJKsnhEzUP8QCI7Rd4BkE0RSN6yvBn27NT8/rs:fill:500:500:1/g:no/aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3RvbmtlZXBlci9vcGVudG9uYXBpL21hc3Rlci9wa2cvcmVmZXJlbmNlcy9tZWRpYS90b2tlbl9wbGFjZWhvbGRlci5wbmc.webp';
 const SHOW_EXECUTE_OWNER_OPERATION = false;
 
 function formatJettonAmount(amount: unknown, decimals: unknown): string {
@@ -216,44 +217,10 @@ function normalizeOpcode(value: unknown): string {
     return '';
 }
 
-function findSumTypeDeep(node: unknown): string | null {
-    if (!node || typeof node !== 'object') return null;
-
-    const maybeSumType = (node as any).sum_type;
-    if (typeof maybeSumType === 'string') {
-        if (maybeSumType === 'StonfiSwap' || maybeSumType === 'DedustSwap') {
-            return maybeSumType;
-        }
-    }
-
-    if (Array.isArray(node)) {
-        for (const item of node) {
-            const found = findSumTypeDeep(item);
-            if (found) {
-                return found;
-            }
-        }
-        return null;
-    }
-
-    for (const value of Object.values(node)) {
-        const found = findSumTypeDeep(value);
-        if (found) {
-            return found;
-        }
-    }
-
-    return null;
-}
-
-function detectSwapProtocol(action: any, txDecoded: unknown): SwapProtocol {
+function detectSwapProtocol(action: any): SwapProtocol {
     const dex = String(action?.JettonSwap?.dex ?? '').toLowerCase();
     if (dex === 'stonfi') return 'stonfi';
     if (dex === 'dedust') return 'dedust';
-
-    const sumType = findSumTypeDeep(txDecoded);
-    if (sumType === 'StonfiSwap') return 'stonfi';
-    if (sumType === 'DedustSwap') return 'dedust';
 
     return 'other';
 }
@@ -517,18 +484,7 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
             const events = response.events ?? [];
             const items: AgentActivityItem[] = [];
 
-            const txCache = new Map<string, any>();
             const nftImageCache = new Map<string, string | null>();
-
-            const loadTx = async (hash: string): Promise<any> => {
-                if (!hash) return null;
-                try {
-                    const txResponse = await client.getTransactionsByHash({ bodyHash: hash });
-                    return txResponse.transactions?.[0] ?? null;
-                } catch {
-                    return null;
-                }
-            };
 
             const loadNftThumbnail = async (nftAddress: string): Promise<string | undefined> => {
                 if (!client.nftItemsByAddress || !nftAddress) {
@@ -543,28 +499,11 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                 }
             };
 
-            const txHashesToPrefetch = new Set<string>();
             const nftAddressesToPrefetch = new Map<string, string>();
 
             for (const event of events as any[]) {
                 const actions = Array.isArray(event?.actions) ? event.actions : [];
                 for (const action of actions) {
-                    const baseTransactions = Array.isArray(action?.baseTransactions)
-                        ? (action.baseTransactions as string[])
-                        : [];
-
-                    if (
-                        action?.type === 'JettonSwap' ||
-                        action?.type === 'SmartContractExec' ||
-                        action?.type === 'ContractDeploy'
-                    ) {
-                        for (const txHash of baseTransactions) {
-                            if (typeof txHash === 'string' && txHash) {
-                                txHashesToPrefetch.add(txHash);
-                            }
-                        }
-                    }
-
                     if (action?.type === 'NftItemTransfer') {
                         const nftAddress =
                             typeof action?.NftItemTransfer?.nft === 'string' ? action.NftItemTransfer.nft : undefined;
@@ -586,12 +525,6 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                 }
             }
 
-            await mapWithConcurrency([...txHashesToPrefetch], TX_PREFETCH_CONCURRENCY, async (txHash) => {
-                const tx = await loadTx(txHash);
-                txCache.set(txHash, tx);
-                return tx;
-            });
-
             await mapWithConcurrency(
                 [...nftAddressesToPrefetch.values()],
                 NFT_PREFETCH_CONCURRENCY,
@@ -601,13 +534,6 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                     return image;
                 },
             );
-
-            const getTx = (hash: string | undefined | null): any => {
-                if (!hash) {
-                    return null;
-                }
-                return txCache.get(hash) ?? null;
-            };
 
             const getNftThumbnail = (nftAddress: unknown): string | undefined => {
                 if (typeof nftAddress !== 'string' || !nftAddress) {
@@ -734,6 +660,7 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                         if (!thumbnailUrl && nftAddress) {
                             thumbnailUrl = getNftThumbnail(nftAddress);
                         }
+                        thumbnailUrl = thumbnailUrl ?? NFT_PLACEHOLDER_URL;
                         counterparty = chooseCounterparty(
                             action?.NftItemTransfer?.sender,
                             action?.NftItemTransfer?.recipient,
@@ -741,23 +668,7 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             agentAddress,
                         );
                     } else if (action?.type === 'JettonSwap') {
-                        const baseTransactions = Array.isArray(action?.baseTransactions)
-                            ? (action.baseTransactions as string[])
-                            : [];
-
-                        let tx: any = null;
-                        protocol = detectSwapProtocol(action, null);
-                        if (protocol === 'other') {
-                            for (const txHash of baseTransactions) {
-                                tx = getTx(txHash);
-                                const txDecoded = tx?.inMessage?.messageContent?.decoded;
-                                const fallbackProtocol = detectSwapProtocol(action, txDecoded);
-                                if (fallbackProtocol !== 'other') {
-                                    protocol = fallbackProtocol;
-                                    break;
-                                }
-                            }
-                        }
+                        protocol = detectSwapProtocol(action);
 
                         swap = extractSwapLegsFromJettonSwapPayload(action?.JettonSwap);
                         actionLabel = buildSwapLabel(protocol);
@@ -774,17 +685,6 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             agentAddress,
                             ownerAddress,
                         );
-
-                        if (actor === 'unknown') {
-                            if (!tx && baseTxHash) {
-                                tx = getTx(baseTxHash);
-                            }
-                            const sender = tx?.inMessage?.source;
-                            const inferredActor = detectActorFromSender(sender, agentAddress, ownerAddress);
-                            if (inferredActor !== 'unknown') {
-                                actor = inferredActor;
-                            }
-                        }
 
                         if (direction === 'outgoing' && swap?.sent) {
                             amount = {
@@ -805,13 +705,10 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                         }
                     }
 
-                    if ((action?.type === 'SmartContractExec' || action?.type === 'ContractDeploy') && baseTxHash) {
-                        const tx = getTx(baseTxHash);
+                    if (action?.type === 'SmartContractExec' || action?.type === 'ContractDeploy') {
                         const opcode =
-                            normalizeOpcode(tx?.inMessage?.opcode) ||
                             normalizeOpcode(action?.SmartContractExec?.operation) ||
                             normalizeOpcode(action?.ContractDeploy?.operation);
-                        const decoded = tx?.inMessage?.messageContent?.decoded;
                         const ownerWalletExtensionOperation =
                             isOwnerInitiatedWalletExtension(action, ownerAddress) ||
                             opcode === OP_WALLET_EXTENSION_ACTION;
@@ -823,8 +720,6 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             isAgentOperation = true;
                         } else if (opcode === OP_CHANGE_OPERATOR) {
                             const nextKey =
-                                parseBigIntUnknown((decoded as any)?.newOperatorPublicKey) ??
-                                parseBigIntUnknown((decoded as any)?.new_operator_public_key) ??
                                 parseBigIntUnknown((action?.SmartContractExec as any)?.newOperatorPublicKey) ??
                                 parseBigIntUnknown((action?.SmartContractExec as any)?.new_operator_public_key);
                             if (nextKey === 0n) {
@@ -846,31 +741,15 @@ export function useAgentActivity(agentAddress: string | null, ownerAddress: stri
                             actionLabel =
                                 action?.type === 'ContractDeploy' ? 'Contract deployment' : 'Smart contract execution';
                             summary = actionLabel;
-                            const sender = tx?.inMessage?.source;
-                            const inferredActor = detectActorFromSender(sender, agentAddress, ownerAddress);
-                            if (inferredActor !== 'unknown') {
-                                actor = inferredActor;
-                            }
                         }
 
                         if (action?.type === 'SmartContractExec') {
                             counterparty =
                                 toCounterparty(action?.SmartContractExec?.contract) ??
-                                toCounterparty(action?.SmartContractExec?.executor) ??
-                                toCounterparty(tx?.inMessage?.destination);
+                                toCounterparty(action?.SmartContractExec?.executor);
                         } else {
-                            counterparty =
-                                toCounterparty(action?.ContractDeploy?.address) ??
-                                toCounterparty(tx?.inMessage?.destination);
+                            counterparty = toCounterparty(action?.ContractDeploy?.address);
                         }
-                    } else if (action?.type === 'SmartContractExec' || action?.type === 'ContractDeploy') {
-                        actionLabel =
-                            action?.type === 'ContractDeploy' ? 'Contract deployment' : 'Smart contract execution';
-                        summary = actionLabel;
-                        counterparty =
-                            toCounterparty(action?.SmartContractExec?.contract) ??
-                            toCounterparty(action?.SmartContractExec?.executor) ??
-                            toCounterparty(action?.ContractDeploy?.address);
                     }
 
                     if (
