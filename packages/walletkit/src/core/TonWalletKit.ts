@@ -598,8 +598,9 @@ export class TonWalletKit implements ITonWalletKit {
         const connectItems = batch.intents.filter((i) => i.type === 'connect');
         for (const item of connectItems) {
             if (item.type === 'connect') {
-                item.value.walletId = walletId;
-                await this.requestProcessor.approveConnectRequest(item.value, proof ? { proof } : undefined);
+                // Clone to avoid mutating frozen/immutable event objects (e.g. from Immer state)
+                const connectValue = { ...item.value, walletId };
+                await this.requestProcessor.approveConnectRequest(connectValue, proof ? { proof } : undefined);
             }
         }
 
