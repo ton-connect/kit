@@ -91,8 +91,20 @@ async function findTemplateFiles(): Promise<string[]> {
         return [];
     }
 
-    const entries = await fs.readdir(templateDir);
-    return entries.filter((name) => name.endsWith('.md')).map((name) => path.join(templateDir, name));
+    const files: string[] = [];
+    async function walk(dir: string): Promise<void> {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                await walk(fullPath);
+            } else if (entry.isFile() && entry.name.endsWith('.md')) {
+                files.push(fullPath);
+            }
+        }
+    }
+    await walk(templateDir);
+    return files.sort();
 }
 
 function parseTemplateParams(content: string): { params: TemplateParams; body: string } {
