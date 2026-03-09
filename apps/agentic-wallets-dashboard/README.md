@@ -2,9 +2,9 @@
 
 Веб-приложение для управления `agentic wallet` в сети TON:
 - просмотр найденных agent-кошельков владельца;
-- создание нового agent-кошелька с первичным фондированием;
-- пополнение, вывод активов, смена ключа оператора, revoke;
-- просмотр activity-ленты по агенту.
+- создание нового agent-кошелька с первичным депозитом;
+- пополнение, вывод активов (TON, NFT, Jettons), смена ключа оператора, revoke;
+- просмотр ленты активности по агентскому кошельку.
 
 Приложение построено на `React + Vite + @tanstack/react-query + @ton/appkit-react`.
 
@@ -17,25 +17,24 @@
 ## Основной функционал
 
 1. Обнаружение агентов владельца:
-- загрузка NFT владельца;
-- фильтрация по configured collection;
+- загрузка NFT владельца с фильтрацией по configured collection;
 - дозагрузка on-chain state кошельков.
 
 2. Создание агента (`/create`):
-- ввод `origin operator public key`, имени и источника;
+- ввод `origin operator public key`, имени и источника (доступно автозаполнение по диплинку);
 - расчёт индекса и детерминированного адреса agent-кошелька;
-- deploy + первичное фондирование TON и/или ассетами в одном флоу.
+- deploy + первичное пополнение TON и/или ассетами в одном флоу.
 
 3. Операции по агенту:
 - `fund` (TON / jetton / NFT);
-- `withdraw all` (или выборочно, в зависимости от UI-модалки);
+- `withdraw` (TON / jetton / NFT);
 - `revoke` (установка operator key в `0`);
 - `change public key`;
 - `rename`.
 
 4. Activity feed:
+- получение через tonapi events
 - классификация действий (`ton`, `jetton`, `nft`, `swap`, `contract`, `agent_ops`);
-- дедуп по hash;
 - периодический polling (`VITE_AGENTIC_ACTIVITY_POLL_MS`).
 
 ## Deep Link автозаполнение `/create`
@@ -81,7 +80,7 @@
   - при `assets=<json-array>` возможен fallback по `symbol/label`.
 - Неизвестные/недоступные ассеты игнорируются.
 - Для `jetton` подставляется `amount`, для `nft` amount не используется.
-- Применяется ограничение по числу ассетов (`max outgoing messages - 1`).
+- Применяется ограничение по числу ассетов, в соответствии с ограничениями кошелька (`max outgoing messages - 1`).
 
 ### Примеры deep link
 
@@ -122,5 +121,4 @@
 
 ## Технические замечания
 
-- Используется `BrowserRouter`; для прямых переходов по `/create` и `/agent/:id` сервер должен отдавать `index.html` (SPA fallback).
 - Для on-chain запросов используется `ApiClientTonApi` через `AppKit`.
