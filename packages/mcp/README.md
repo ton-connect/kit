@@ -70,7 +70,7 @@ MNEMONIC="word1 word2 ..." npx @ton/mcp --http 3000
 |-------------------|-----------|-------------------------------------------------------|
 | `NETWORK`         | `mainnet` | TON network (`mainnet` / `testnet`)                   |
 | `MNEMONIC`        |           | Space-separated 24-word mnemonic phrase for wallet    |
-| `PRIVATE_KEY`     |           | Hex-encoded private key (alternative to mnemonic)     |
+| `PRIVATE_KEY`     |           | Hex-encoded private key: 32-byte seed or 64-byte `private||public` (alternative to mnemonic) |
 | `WALLET_VERSION`  | `v5r1`    | Wallet version to use (`v5r1`, `v4r2`, or `agentic`)  |
 | `AGENTIC_WALLET_ADDRESS` |   | Agentic wallet address (required for `WALLET_VERSION=agentic`, unless derived from init params) |
 | `AGENTIC_WALLET_NFT_INDEX` | | Agentic wallet NFT index / subwallet id (`uint256`, optional) |
@@ -257,7 +257,7 @@ The package exports a `@ton/mcp/serverless` entry point for deploying as a serve
 | Header          | Description                                              |
 |-----------------|----------------------------------------------------------|
 | `MNEMONIC`      | 24-word mnemonic phrase                                  |
-| `PRIVATE_KEY`   | Hex-encoded private key (takes priority over `MNEMONIC`) |
+| `PRIVATE_KEY`   | Hex-encoded private key: 32-byte seed or 64-byte `private||public` (takes priority over `MNEMONIC`) |
 | `NETWORK`       | `mainnet` (default) or `testnet`                         |
 | `TONCENTER_KEY` | Optional TonCenter API key for higher rate limits        |
 

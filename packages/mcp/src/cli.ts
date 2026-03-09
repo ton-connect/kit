@@ -113,9 +113,29 @@ async function createMnemonicWallet(kit: TonWalletKit, network: Network, mnemoni
     return createWalletFromSigner(kit, network, signer);
 }
 
+function parsePrivateKeyInput(privateKey: string): Buffer {
+    const privateKeyStripped = privateKey.replace(/^0x/i, '').trim();
+    if (!/^[0-9a-fA-F]+$/.test(privateKeyStripped)) {
+        throw new Error('Invalid PRIVATE_KEY: expected hex-encoded value');
+    }
+
+    if (privateKeyStripped.length !== 64 && privateKeyStripped.length !== 128) {
+        throw new Error(
+            `Invalid PRIVATE_KEY: expected 32-byte (64 hex chars) or 64-byte (128 hex chars) key, got ${privateKeyStripped.length} hex chars`,
+        );
+    }
+
+    const privateKeyBuffer = Buffer.from(privateKeyStripped, 'hex');
+    if (privateKeyBuffer.length === 64) {
+        // Some TON tooling exports secret as private||public (64 bytes). Signer expects only private seed.
+        return privateKeyBuffer.subarray(0, 32);
+    }
+
+    return privateKeyBuffer;
+}
+
 async function createPrivateKeyWallet(kit: TonWalletKit, network: Network, privateKey: string): Promise<Wallet> {
-    const privateKeyStripped = privateKey.replace('0x', '');
-    const signer = await Signer.fromPrivateKey(Buffer.from(privateKeyStripped, 'hex'));
+    const signer = await Signer.fromPrivateKey(parsePrivateKeyInput(privateKey));
     return createWalletFromSigner(kit, network, signer);
 }
 async function createWalletFromSigner(kit: TonWalletKit, network: Network, signer: WalletSigner): Promise<Wallet> {
