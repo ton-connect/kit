@@ -67,6 +67,7 @@ export const useWallet = () => {
             isAuthenticated: state.walletManagement.isAuthenticated,
             hasWallet: state.walletManagement.hasWallet,
             address: state.walletManagement.address,
+            isStreamingConnected: state.walletManagement.isStreamingConnected,
             balance: state.walletManagement.balance,
             publicKey: state.walletManagement.publicKey,
             events: state.walletManagement.events,

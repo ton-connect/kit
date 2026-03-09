@@ -24,6 +24,16 @@ export { SwapManager, SwapProvider, SwapError } from './defi/swap';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './clients/toncenter';
+export { ToncenterWebSocketClient, getGlobalWebSocketClient } from './core/ToncenterWebSocketClient';
+export type {
+    WebSocketSubscriptionConfig,
+    WebSocketEventHandlers,
+    TransactionEvent,
+    ActionEvent,
+    AccountStateChangeEvent,
+    JettonChangeEvent,
+    TraceInvalidatedEvent,
+} from './core/ToncenterWebSocketClient';
 export { ApiClientTonApi } from './clients/tonapi';
 export type { NetworkManager } from './core/NetworkManager';
 export { KitNetworkManager } from './core/NetworkManager';

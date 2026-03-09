@@ -79,6 +79,9 @@ export interface WalletManagementSlice {
         currentWallet?: Wallet;
         hasWallet: boolean;
         isAuthenticated: boolean;
+
+        // WebSocket streaming state
+        isStreamingConnected: boolean;
     };
 
     // Multi-wallet actions
@@ -108,6 +111,12 @@ export interface WalletManagementSlice {
     // Wallet state actions
     clearWallet: () => void;
     updateBalance: () => Promise<void>;
+
+    // WebSocket streaming actions
+    startWebSocketStreaming: () => Promise<void>;
+    stopWebSocketStreaming: () => Promise<void>;
+    updateWebSocketSubscription: () => Promise<void>;
+
     // Events-based history
     // addEvent: (event: unknown) => void;
     loadEvents: (limit?: number, offset?: number) => Promise<void>;

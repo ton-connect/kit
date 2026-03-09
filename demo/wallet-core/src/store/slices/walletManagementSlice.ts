@@ -6,9 +6,10 @@
  *
  */
 
-import { Network } from '@ton/walletkit';
+import { Network, getGlobalWebSocketClient } from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
 import type { Wallet, ITonWalletKit } from '@ton/walletkit';
+import type { WebSocketSubscriptionConfig, WebSocketEventHandlers } from '@ton/walletkit';
 import { createLedgerPath } from '@demo/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
@@ -36,6 +37,7 @@ export const createWalletManagementSlice =
             currentWallet: undefined,
             hasWallet: false,
             isAuthenticated: false,
+            isStreamingConnected: false,
         },
 
         // Load all saved wallets into WalletKit
@@ -148,6 +150,7 @@ export const createWalletManagementSlice =
                     state.walletManagement.currentWallet = wallet;
                 });
 
+                await get().startWebSocketStreaming();
                 log.info(`Created wallet ${walletId} (${walletName})`);
                 return walletId;
             } catch (error) {
@@ -252,6 +255,7 @@ export const createWalletManagementSlice =
                     state.walletManagement.currentWallet = wallet;
                 });
 
+                await get().startWebSocketStreaming();
                 log.info(`Created Ledger wallet ${getneratedWalletId} (${walletName})`);
                 return getneratedWalletId;
             } catch (error) {
@@ -277,6 +281,8 @@ export const createWalletManagementSlice =
 
             try {
                 log.info(`Switching to wallet ${walletId} (${savedWallet.name})`);
+
+                await get().stopWebSocketStreaming();
 
                 let wallet = savedWallet.kitWalletId
                     ? state.walletCore.walletKit.getWallet(savedWallet.kitWalletId)
@@ -328,6 +334,7 @@ export const createWalletManagementSlice =
                     state.walletManagement.events = [];
                 });
 
+                await get().startWebSocketStreaming();
                 void get()
                     .loadEvents()
                     .catch((err) => log.error('Error loading events after switching wallet:', err));
@@ -347,10 +354,13 @@ export const createWalletManagementSlice =
                 throw new Error('Wallet not found');
             }
 
+            const isRemovingActiveWallet = state.walletManagement.activeWalletId === walletId;
+            const isLastWallet = state.walletManagement.savedWallets.length === 1;
+
             set((state) => {
                 state.walletManagement.savedWallets.splice(walletIndex, 1);
 
-                if (state.walletManagement.activeWalletId === walletId) {
+                if (isRemovingActiveWallet) {
                     if (state.walletManagement.savedWallets.length > 0) {
                         const newActiveId = state.walletManagement.savedWallets[0].id;
                         state.walletManagement.activeWalletId = newActiveId;
@@ -363,9 +373,14 @@ export const createWalletManagementSlice =
                         state.walletManagement.balance = undefined;
                         state.walletManagement.currentWallet = undefined;
                         state.walletManagement.events = [];
+                        state.walletManagement.isStreamingConnected = false;
                     }
                 }
             });
+
+            if (isRemovingActiveWallet && isLastWallet) {
+                void get().stopWebSocketStreaming();
+            }
 
             log.info(`Removed wallet ${walletId}`);
 
@@ -497,6 +512,7 @@ export const createWalletManagementSlice =
         },
 
         clearWallet: () => {
+            void get().stopWebSocketStreaming();
             set((state) => {
                 state.walletManagement.isAuthenticated = false;
                 state.walletManagement.hasWallet = false;
@@ -507,6 +523,7 @@ export const createWalletManagementSlice =
                 state.walletManagement.publicKey = undefined;
                 state.walletManagement.events = [];
                 state.walletManagement.currentWallet = undefined;
+                state.walletManagement.isStreamingConnected = false;
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
                 state.tonConnect.pendingTransactionRequestEvent = undefined;
@@ -533,6 +550,104 @@ export const createWalletManagementSlice =
             } catch (error) {
                 log.error('Error updating balance:', error);
             }
+        },
+
+        startWebSocketStreaming: async () => {
+            const state = get();
+            if (!state.walletManagement.address || state.walletManagement.isStreamingConnected) {
+                return;
+            }
+
+            const wallet = state.walletManagement.currentWallet;
+            const network = wallet?.getNetwork();
+            let apiKey =
+                network?.chainId === Network.mainnet().chainId
+                    ? walletKitConfig?.tonApiKeyMainnet
+                    : network?.chainId === Network.tetra().chainId
+                      ? walletKitConfig?.tonApiKeyTetra
+                      : walletKitConfig?.tonApiKeyTestnet;
+            if (!apiKey && walletKitConfig?.tonApiKeyTestnet) {
+                apiKey = walletKitConfig.tonApiKeyTestnet;
+            }
+            if (!apiKey && walletKitConfig?.tonApiKeyMainnet) {
+                apiKey = walletKitConfig.tonApiKeyMainnet;
+            }
+
+            const wsClient = getGlobalWebSocketClient({ network, apiKey });
+
+            const config: WebSocketSubscriptionConfig = {
+                addresses: [state.walletManagement.address],
+                types: ['transactions', 'account_state_change', 'jettons_change'],
+                minFinality: 'pending',
+                includeAddressBook: true,
+                includeMetadata: true,
+            };
+
+            const handlers: WebSocketEventHandlers = {
+                onTransaction: () => {
+                    void get()
+                        .loadEvents()
+                        .catch((err) => log.error('Error loading events after WebSocket transaction:', err));
+                },
+                onAccountStateChange: (event) => {
+                    set((s) => {
+                        if (s.walletManagement.balance !== event.state.balance) {
+                            s.walletManagement.balance = event.state.balance;
+                            log.info('Balance updated via WebSocket:', event.state.balance);
+                        }
+                    });
+                },
+                onJettonChange: () => {
+                    void get()
+                        .refreshJettons()
+                        .catch((err) => log.error('Error refreshing jettons after WebSocket:', err));
+                },
+                onTraceInvalidated: () => {
+                    void get()
+                        .loadEvents()
+                        .catch((err) => log.error('Error loading events after trace invalidated:', err));
+                },
+                onConnect: () => {
+                    set((s) => {
+                        s.walletManagement.isStreamingConnected = true;
+                    });
+                },
+                onDisconnect: () => {
+                    set((s) => {
+                        s.walletManagement.isStreamingConnected = false;
+                    });
+                },
+                onError: () => {
+                    set((s) => {
+                        s.walletManagement.isStreamingConnected = false;
+                    });
+                },
+            };
+
+            try {
+                await wsClient.subscribe(config, handlers);
+                log.info('WebSocket streaming started for address:', state.walletManagement.address);
+            } catch (error) {
+                log.error('Failed to start WebSocket streaming:', error);
+            }
+        },
+
+        stopWebSocketStreaming: async () => {
+            const wsClient = getGlobalWebSocketClient();
+            wsClient.unsubscribe();
+            set((s) => {
+                s.walletManagement.isStreamingConnected = false;
+            });
+            log.info('WebSocket streaming stopped');
+        },
+
+        updateWebSocketSubscription: async () => {
+            const state = get();
+            if (!state.walletManagement.address) {
+                return;
+            }
+            await get().stopWebSocketStreaming();
+            await get().startWebSocketStreaming();
         },
 
         loadEvents: async (limit = 10, offset = 0) => {

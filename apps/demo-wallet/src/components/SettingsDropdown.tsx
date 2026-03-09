@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useWallet } from '@demo/wallet-core';
 
 import { MnemonicDisplay } from './MnemonicDisplay';
+import { StreamingStatus } from './StreamingStatus';
 import { createComponentLogger } from '../utils/logger';
 
 // Create logger for settings dropdown component
@@ -204,7 +205,10 @@ export const SettingsDropdown: React.FC = () => {
 
                             {/* Settings Section */}
                             <div className="px-4 py-3">
-                                <h3 className="text-sm font-medium text-gray-700 mb-3">Settings</h3>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-sm font-medium text-gray-700">Settings</h3>
+                                    <StreamingStatus />
+                                </div>
                                 <div className="space-y-4">
                                     {/* Auto-Lock */}
                                     <div className="flex items-center justify-between">
