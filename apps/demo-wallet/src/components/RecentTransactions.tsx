@@ -12,6 +12,7 @@ import { useWalletStore } from '@demo/wallet-core';
 import { Base64NormalizeUrl, HexToBase64 } from '@ton/walletkit';
 import type { Event, Action } from '@ton/walletkit';
 
+import { formatTonForDisplay, sameAddress } from '../utils';
 import { TraceRow } from './TraceRow';
 import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
 
@@ -97,32 +98,55 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
 
     const eventItems = useMemo(() => (events || []) as Event[], [events]);
 
-    // Build set of confirmed trace IDs (normalized) to filter duplicate pending
-    const confirmedTraceIds = useMemo(
-        () =>
-            new Set(eventItems.map((ev) => ev.eventId && Base64NormalizeUrl(HexToBase64(ev.eventId))).filter(Boolean)),
-        [eventItems],
-    );
+    // Build sets: trace_id and trace_external_hash are different - never compare one to the other
+    const { confirmedTraceIds, confirmedExternalHashes } = useMemo(() => {
+        const traceIds = new Set<string>();
+        const extHashes = new Set<string>();
+        for (const ev of eventItems) {
+            if (ev.eventId) traceIds.add(Base64NormalizeUrl(HexToBase64(ev.eventId)));
+            if (ev.traceExternalHash) extHashes.add(Base64NormalizeUrl(ev.traceExternalHash));
+        }
+        return { confirmedTraceIds: traceIds, confirmedExternalHashes: extHashes };
+    }, [eventItems]);
 
-    // Merge pending + events, sort by timestamp desc, filter pending that have matching confirmed
+    // Merge pending + events, sort by timestamp desc. Remove pending when we have matching event (confirmed).
     const mergedItems = useMemo(() => {
-        const filteredPending = pendingTransactions.filter((p) => !confirmedTraceIds.has(p.traceId));
-        const pendingAsItems = filteredPending.map((p) => ({
+        const filteredPending = pendingTransactions.filter((p) => {
+            if (p.traceIdFromFirstTx && confirmedTraceIds.has(Base64NormalizeUrl(p.traceIdFromFirstTx))) return false;
+            if (p.traceId && confirmedTraceIds.has(Base64NormalizeUrl(p.traceId))) return false;
+            if (p.externalHash && confirmedExternalHashes.has(Base64NormalizeUrl(p.externalHash))) return false;
+            return true;
+        });
+        // Dedupe pending by trace_id
+        const seenByTraceId = new Set<string>();
+        const dedupedPending = filteredPending.filter((p) => {
+            const key = Base64NormalizeUrl(p.traceId);
+            if (seenByTraceId.has(key)) return false;
+            seenByTraceId.add(key);
+            return true;
+        });
+        const pendingAsItems = dedupedPending.map((p) => ({
             type: 'pending' as const,
             traceId: p.traceId,
+            externalHash: p.externalHash,
             timestamp: p.preview?.timestamp ?? Math.floor(Date.now() / 1000),
             data: p,
         }));
-        const eventAsItems = eventItems.map((ev) => ({
-            type: 'event' as const,
-            traceId: Base64NormalizeUrl(HexToBase64(ev.eventId)),
-            timestamp: ev.timestamp,
-            data: ev,
-        }));
+        const eventAsItems = eventItems.map((ev) => {
+            const traceIdNorm = Base64NormalizeUrl(HexToBase64(ev.eventId));
+            return {
+                type: 'event' as const,
+                traceId: traceIdNorm,
+                externalHash: ev.traceExternalHash ? Base64NormalizeUrl(ev.traceExternalHash) : undefined,
+                timestamp: ev.timestamp,
+                data: ev,
+            };
+        });
         const combined = [...pendingAsItems, ...eventAsItems];
         combined.sort((a, b) => b.timestamp - a.timestamp);
+
         return combined;
-    }, [pendingTransactions, eventItems, confirmedTraceIds]);
+    }, [pendingTransactions, eventItems, confirmedTraceIds, confirmedExternalHashes]);
 
     const header = !embedded && (
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -209,27 +233,21 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                             action={p.action}
                                             myAddress={address || ''}
                                             timestamp={preview?.timestamp ?? Math.floor(Date.now() / 1000)}
-                                            traceLink={`/wallet/trace/${p.traceId}`}
+                                            traceLink={`/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`}
                                             isPending={isPending}
+                                            debugId={`pending-${p.traceId.slice(0, 12)}`}
                                         />
                                     );
                                 }
 
-                                const formatTonAmount = (amount: string) =>
-                                    (parseFloat(amount || '0') / 1e9).toFixed(4);
-                                const amountFormatted = preview ? formatTonAmount(preview.amount) : '0';
-                                const isDone = p.finality === 'confirmed' || p.finality === 'finalized';
+                                const amountFormatted = preview ? formatTonForDisplay(preview.amount) : '0';
                                 const description = preview
-                                    ? isDone
-                                        ? preview.type === 'send'
-                                            ? `Sent ${amountFormatted} TON`
-                                            : preview.type === 'receive'
-                                              ? `Received ${amountFormatted} TON`
-                                              : `Transfer ${amountFormatted} TON`
-                                        : `Transferring ${amountFormatted} TON`
-                                    : isDone
-                                      ? 'Completed'
-                                      : 'Processing';
+                                    ? preview.type === 'send'
+                                        ? `Sent ${amountFormatted} TON`
+                                        : preview.type === 'receive'
+                                          ? `Received ${amountFormatted} TON`
+                                          : `Transfer ${amountFormatted} TON`
+                                    : 'Processing';
                                 const value = preview ? `${amountFormatted} TON` : '0 TON';
 
                                 const pendingAction = {
@@ -269,31 +287,58 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                         action={pendingAction}
                                         myAddress={address || ''}
                                         timestamp={preview?.timestamp ?? Math.floor(Date.now() / 1000)}
-                                        traceLink={`/wallet/trace/${p.traceId}`}
+                                        traceLink={`/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`}
                                         isPending={isPending}
+                                        debugId={`pending-${p.traceId.slice(0, 12)}`}
                                     />
                                 );
                             }
 
                             const ev = item.data;
                             const traceId = item.traceId;
+                            const externalHash = item.externalHash ?? traceId;
 
                             if (!ev.actions || ev.actions.length === 0) {
-                                return <TraceRow key={ev.eventId} traceId={traceId} />;
+                                const rowDebugId = `event-row-${traceId.slice(0, 12)}`;
+                                return (
+                                    <div key={traceId} className="relative">
+                                        <span
+                                            className="absolute top-1 right-1 text-[9px] font-mono text-gray-300 z-10"
+                                            title={rowDebugId}
+                                        >
+                                            {rowDebugId}
+                                        </span>
+                                        <TraceRow traceId={traceId} externalHash={externalHash} />
+                                    </div>
+                                );
                             }
 
-                            const relevantAction =
-                                ev.actions.find((a: Action) =>
-                                    a.simplePreview?.accounts?.some((acc) => acc.address === (address || '')),
-                                ) || ev.actions[0];
+                            const myAddr = address || '';
+                            const withMe = ev.actions.filter((a: Action) =>
+                                a.simplePreview?.accounts?.some((acc) => sameAddress(acc.address, myAddr)),
+                            );
+                            const preferSender = (a: Action) => {
+                                if (a.type === 'TonTransfer' && 'TonTransfer' in a)
+                                    return sameAddress(a.TonTransfer.sender.address, myAddr);
+                                if (a.type === 'JettonTransfer' && 'JettonTransfer' in a)
+                                    return sameAddress(a.JettonTransfer.sender.address, myAddr);
+                                if (a.type === 'NftItemTransfer' && 'NftItemTransfer' in a)
+                                    return sameAddress(a.NftItemTransfer.sender.address, myAddr);
+                                return (
+                                    a.simplePreview?.accounts?.[0] &&
+                                    sameAddress(a.simplePreview.accounts[0].address, myAddr)
+                                );
+                            };
+                            const relevantAction = withMe.find(preferSender) || withMe[0] || ev.actions[0];
 
                             return (
                                 <ActionCard
-                                    key={ev.eventId}
+                                    key={traceId}
                                     action={relevantAction}
                                     myAddress={address || ''}
                                     timestamp={ev.timestamp}
                                     traceLink={`/wallet/trace/${traceId}`}
+                                    debugId={`event-${traceId.slice(0, 12)}`}
                                 />
                             );
                         })}

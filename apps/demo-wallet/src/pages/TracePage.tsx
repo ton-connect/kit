@@ -14,7 +14,7 @@ import { TraceRow } from '../components/TraceRow';
 export const TracePage: React.FC = () => {
     const { traceId: fullTraceId } = useParams<{ traceId: string }>();
     const traceId = fullTraceId?.split(':')?.[0];
-    const extHash = fullTraceId?.split(':')?.[1];
+    const extHash = fullTraceId?.split(':')?.[1] ?? traceId;
 
     if (!traceId) {
         return (

@@ -19,6 +19,8 @@ export interface TransactionCardProps {
     traceLink: string;
     status: 'pending' | 'success' | 'failure';
     isOutgoing?: boolean;
+    /** Debug ID for DOM inspection (data-debug-id) */
+    debugId?: string;
 }
 
 /**
@@ -26,7 +28,7 @@ export interface TransactionCardProps {
  * Same layout: description, value, timestamp. Only status icon differs.
  */
 export const TransactionCard: React.FC<TransactionCardProps> = memo(
-    ({ description, value, valueImage, timestamp, traceLink, status, isOutgoing = false }) => {
+    ({ description, value, valueImage, timestamp, traceLink, status, isOutgoing = false, debugId }) => {
         const isFailed = status === 'failure';
         const isPending = status === 'pending';
 
@@ -89,7 +91,11 @@ export const TransactionCard: React.FC<TransactionCardProps> = memo(
         const statusText = isPending ? 'Pending' : isFailed ? 'Failed' : formatTimestamp(timestamp);
 
         return (
-            <Link to={traceLink} className="block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors">
+            <Link
+                to={traceLink}
+                className="block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors"
+                {...(debugId && { 'data-debug-id': debugId })}
+            >
                 {/* Row 1: description + value */}
                 <div className="flex items-center justify-between gap-2 min-w-0">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -115,12 +121,17 @@ export const TransactionCard: React.FC<TransactionCardProps> = memo(
                     </div>
                 </div>
                 {/* Row 2: timestamp */}
-                <div className="flex justify-end">
+                <div className="flex flex-col gap-0.5 items-end">
                     <p
                         className={`text-[10px] ${isPending ? 'text-yellow-600' : isFailed ? 'text-red-500' : 'text-gray-400'}`}
                     >
                         {statusText}
                     </p>
+                    {debugId && (
+                        <span className="text-[9px] font-mono text-gray-300" title={debugId}>
+                            {debugId}
+                        </span>
+                    )}
                 </div>
             </Link>
         );

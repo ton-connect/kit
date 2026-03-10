@@ -102,6 +102,7 @@ export const createWalletManagementSlice =
             hasNextEvents: false,
             pendingTransactions: [],
             confirmedTraceIds: [],
+            confirmedExternalHashes: [],
             currentWallet: undefined,
             hasWallet: false,
             isAuthenticated: false,
@@ -443,6 +444,7 @@ export const createWalletManagementSlice =
                         state.walletManagement.events = [];
                         state.walletManagement.pendingTransactions = [];
                         state.walletManagement.confirmedTraceIds = [];
+                        state.walletManagement.confirmedExternalHashes = [];
                         state.walletManagement.isStreamingConnected = false;
                     }
                 }
@@ -594,6 +596,7 @@ export const createWalletManagementSlice =
                 state.walletManagement.events = [];
                 state.walletManagement.pendingTransactions = [];
                 state.walletManagement.confirmedTraceIds = [];
+                state.walletManagement.confirmedExternalHashes = [];
                 state.walletManagement.currentWallet = undefined;
                 state.walletManagement.isStreamingConnected = false;
                 state.tonConnect.pendingConnectRequestEvent = undefined;
@@ -658,15 +661,32 @@ export const createWalletManagementSlice =
             const handlers: WebSocketEventHandlers = {
                 onTransaction: (event) => {
                     const { finality, trace_external_hash_norm, transactions } = event;
-                    const firstTx = transactions?.[0];
-                    const externalHash = (firstTx as { in_msg?: { hash?: string } })?.in_msg?.hash;
+                    // Sort by LT to get root tx (matches API trace_id = transactions_order[0])
+                    const sorted =
+                        (transactions as Array<{ hash?: string; lt?: string }>)
+                            ?.slice()
+                            .sort((a, b) => (BigInt(a.lt ?? '0') < BigInt(b.lt ?? '0') ? -1 : 1)) ?? [];
+                    const rootTx = sorted[0] as { hash?: string; trace_id?: string; lt?: string } | undefined;
+                    const firstTx = transactions?.[0] as { hash?: string; trace_id?: string; lt?: string } | undefined;
+                    const externalHash = trace_external_hash_norm;
+                    // Use trace_id (root tx hash, matches API trace_id) when available; else tx hash
+                    const traceIdFromFirstTx = rootTx?.trace_id
+                        ? Base64NormalizeUrl(rootTx.trace_id)
+                        : firstTx?.trace_id
+                          ? Base64NormalizeUrl(firstTx.trace_id)
+                          : rootTx?.hash
+                            ? Base64NormalizeUrl(rootTx.hash)
+                            : firstTx?.hash
+                              ? Base64NormalizeUrl(firstTx.hash)
+                              : undefined;
+                    const traceId = traceIdFromFirstTx ?? Base64NormalizeUrl(trace_external_hash_norm);
 
                     if (finality === 'pending') {
                         let preview: StreamingTransactionPreview | undefined;
-                        if (firstTx) {
+                        if (firstTx || rootTx) {
                             try {
                                 const p = transformToncenterTransaction(
-                                    firstTx as Parameters<typeof transformToncenterTransaction>[0],
+                                    (rootTx ?? firstTx) as Parameters<typeof transformToncenterTransaction>[0],
                                 );
                                 const type = p.type === 'send' ? 'send' : p.type === 'receive' ? 'receive' : 'contract';
                                 preview = {
@@ -680,33 +700,46 @@ export const createWalletManagementSlice =
                             }
                         }
                         set((s) => {
-                            if (s.walletManagement.confirmedTraceIds.includes(trace_external_hash_norm)) return;
+                            if (traceIdFromFirstTx && s.walletManagement.confirmedTraceIds.includes(traceIdFromFirstTx))
+                                return;
                             const existing = s.walletManagement.pendingTransactions.find(
-                                (p) => p.traceId === trace_external_hash_norm,
+                                (p) =>
+                                    p.traceId === traceId ||
+                                    (traceIdFromFirstTx && p.traceIdFromFirstTx === traceIdFromFirstTx) ||
+                                    (externalHash &&
+                                        p.externalHash &&
+                                        Base64NormalizeUrl(p.externalHash) === Base64NormalizeUrl(externalHash)),
                             );
                             if (!existing) {
                                 s.walletManagement.pendingTransactions.push({
-                                    traceId: trace_external_hash_norm,
+                                    traceId,
+                                    traceIdFromFirstTx,
                                     externalHash,
                                     preview,
                                     finality: 'pending',
                                 });
                             } else if (preview) {
                                 existing.preview = preview;
+                                if (traceIdFromFirstTx) {
+                                    existing.traceIdFromFirstTx = traceIdFromFirstTx;
+                                    existing.traceId = traceId;
+                                }
                             }
                         });
                     } else if (finality === 'confirmed' || finality === 'finalized') {
                         // Update pending tx to show as confirmed - don't remove, let loadEvents dedupe when in history.
                         set((s) => {
-                            const ids = s.walletManagement.confirmedTraceIds;
-                            if (!ids.includes(trace_external_hash_norm)) {
-                                ids.push(trace_external_hash_norm);
-                                if (ids.length > 50) {
-                                    s.walletManagement.confirmedTraceIds = ids.slice(-50);
+                            if (traceIdFromFirstTx) {
+                                const ids = s.walletManagement.confirmedTraceIds;
+                                if (!ids.includes(traceIdFromFirstTx)) {
+                                    ids.push(traceIdFromFirstTx);
+                                    if (ids.length > 50) {
+                                        s.walletManagement.confirmedTraceIds = ids.slice(-50);
+                                    }
                                 }
                             }
                             const p = s.walletManagement.pendingTransactions.find(
-                                (t) => t.traceId === trace_external_hash_norm,
+                                (t) => t.traceId === traceId || t.traceIdFromFirstTx === traceIdFromFirstTx,
                             );
                             if (p) {
                                 p.finality = finality;
@@ -715,6 +748,14 @@ export const createWalletManagementSlice =
                         void get()
                             .loadEvents()
                             .catch((err) => log.error('Error loading events after WebSocket transaction:', err));
+                        // API indexes traces after WebSocket; retry so tid match can dedupe
+                        setTimeout(
+                            () =>
+                                void get()
+                                    .loadEvents()
+                                    .catch((err) => log.error('Error on delayed loadEvents:', err)),
+                            3000,
+                        );
                     }
                 },
                 onAction: (event) => {
@@ -728,15 +769,19 @@ export const createWalletManagementSlice =
                         .map((a) => streamingActionToAction(a, account, addrBook, meta))
                         .find((a): a is Action => a !== null);
                     if (!action) return;
+                    const extNorm = Base64NormalizeUrl(trace_external_hash_norm);
                     set((s) => {
                         let p = s.walletManagement.pendingTransactions.find(
-                            (t) => t.traceId === trace_external_hash_norm,
+                            (t) =>
+                                t.traceId === trace_external_hash_norm ||
+                                (t.externalHash && Base64NormalizeUrl(t.externalHash) === extNorm),
                         );
                         if (p) {
                             p.action = action;
-                        } else if (!s.walletManagement.confirmedTraceIds.includes(trace_external_hash_norm)) {
+                        } else if (!s.walletManagement.confirmedExternalHashes.includes(extNorm)) {
                             s.walletManagement.pendingTransactions.push({
                                 traceId: trace_external_hash_norm,
+                                externalHash: trace_external_hash_norm,
                                 preview: {
                                     type: 'contract',
                                     amount: '0',
@@ -806,6 +851,7 @@ export const createWalletManagementSlice =
                 s.walletManagement.isStreamingConnected = false;
                 s.walletManagement.pendingTransactions = [];
                 s.walletManagement.confirmedTraceIds = [];
+                s.walletManagement.confirmedExternalHashes = [];
             });
             log.info('WebSocket streaming stopped');
         },
@@ -856,16 +902,29 @@ export const createWalletManagementSlice =
                 set((state) => {
                     state.walletManagement.events = response.events;
                     state.walletManagement.hasNextEvents = response.hasNext;
-                    // Remove pending transactions that now appear in history (same trace)
-                    const eventTraceIds = new Set(
-                        (response.events as Array<{ eventId?: string }>)
-                            .filter((ev): ev is { eventId: string } => !!ev.eventId)
-                            .map((ev) =>
+                    // Remove pending that now appear in history. trace_id and trace_external_hash are different - match each to its own.
+                    const eventTraceIds = new Set<string>();
+                    const eventExtHashes = new Set<string>();
+                    for (const ev of response.events as Array<{ eventId?: string; traceExternalHash?: string }>) {
+                        if (ev.eventId)
+                            eventTraceIds.add(
                                 Base64NormalizeUrl(HexToBase64(ev.eventId as Parameters<typeof HexToBase64>[0])),
-                            ),
-                    );
+                            );
+                        if (ev.traceExternalHash) eventExtHashes.add(Base64NormalizeUrl(ev.traceExternalHash));
+                    }
+                    state.walletManagement.confirmedTraceIds = [
+                        ...state.walletManagement.confirmedTraceIds,
+                        ...eventTraceIds,
+                    ].slice(-50);
+                    state.walletManagement.confirmedExternalHashes = [
+                        ...state.walletManagement.confirmedExternalHashes,
+                        ...eventExtHashes,
+                    ].slice(-50);
                     state.walletManagement.pendingTransactions = state.walletManagement.pendingTransactions.filter(
-                        (p) => !eventTraceIds.has(p.traceId),
+                        (p) =>
+                            !(p.traceIdFromFirstTx && eventTraceIds.has(Base64NormalizeUrl(p.traceIdFromFirstTx))) &&
+                            !(p.traceId && eventTraceIds.has(Base64NormalizeUrl(p.traceId))) &&
+                            !(p.externalHash && eventExtHashes.has(Base64NormalizeUrl(p.externalHash))),
                     );
                 });
 

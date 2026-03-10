@@ -80,8 +80,10 @@ export interface WalletManagementSlice {
         /** Pending transactions from WebSocket streaming */
         pendingTransactions: PendingTransaction[];
 
-        /** Trace IDs we've received as confirmed - ignore late pending events for these */
+        /** Trace IDs (trace_id) we've received as confirmed - never mix with trace_external_hash */
         confirmedTraceIds: string[];
+        /** External hashes (trace_external_hash_norm) confirmed - never mix with trace_id */
+        confirmedExternalHashes: string[];
 
         currentWallet?: Wallet;
         hasWallet: boolean;
