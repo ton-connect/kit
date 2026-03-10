@@ -1494,6 +1494,27 @@ function postProcessConstantFields(schema) {
     }
 }
 
+/**
+ * Post-process schema to convert pure $ref definitions (type aliases) into
+ * x-type-alias markers so openapi-generator will create a file and the
+ * template can emit a Swift typealias.
+ */
+function postProcessTypeAliases(schema) {
+    const definitions = schema.definitions || {};
+
+    for (const [, typeDef] of Object.entries(definitions)) {
+        if (typeDef.$ref && !typeDef.type && !typeDef.properties && !typeDef.allOf && !typeDef['x-enum-case-name']) {
+            const targetName = typeNameFromRef(typeDef.$ref);
+
+            Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+            typeDef.type = 'object';
+            typeDef.properties = { _alias: { type: 'string' } };
+            typeDef['x-type-alias'] = true;
+            typeDef['x-alias-target'] = targetName;
+        }
+    }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1545,6 +1566,9 @@ try {
 
     // Post-process: convert single-literal properties to constant fields
     postProcessConstantFields(schema);
+
+    // Post-process: convert pure $ref definitions (type aliases) to x-type-alias
+    postProcessTypeAliases(schema);
 
     fs.writeFileSync(outputPath, JSON.stringify(schema, null, 2));
 } catch (error) {
