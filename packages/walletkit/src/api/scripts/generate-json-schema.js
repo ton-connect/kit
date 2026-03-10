@@ -1499,6 +1499,20 @@ function postProcessConstantFields(schema) {
  * x-type-alias markers so openapi-generator will create a file and the
  * template can emit a Swift typealias.
  */
+/**
+ * Post-process schema to strip `default` values from properties.
+ * @default JSDoc is documentation-only and should not produce default values in generated code.
+ */
+function postProcessStripDefaults(schema) {
+    const definitions = schema.definitions || {};
+    for (const typeDef of Object.values(definitions)) {
+        if (!typeDef.properties) continue;
+        for (const propDef of Object.values(typeDef.properties)) {
+            delete propDef.default;
+        }
+    }
+}
+
 function postProcessTypeAliases(schema) {
     const definitions = schema.definitions || {};
 
@@ -1566,6 +1580,9 @@ try {
 
     // Post-process: convert single-literal properties to constant fields
     postProcessConstantFields(schema);
+
+    // Post-process: strip @default values (documentation-only, not for codegen)
+    postProcessStripDefaults(schema);
 
     // Post-process: convert pure $ref definitions (type aliases) to x-type-alias
     postProcessTypeAliases(schema);
