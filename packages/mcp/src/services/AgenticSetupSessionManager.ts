@@ -160,7 +160,7 @@ export class AgenticSetupSessionManager {
     private cleanupExpiredSessions(): void {
         this.syncFromStore();
         const now = Date.now();
-        for (const [setupId, session] of this.sessions.entries()) {
+        for (const [_setupId, session] of this.sessions.entries()) {
             if (new Date(session.expiresAt).getTime() <= now && session.status === 'pending') {
                 this.persistSession({ ...session, status: 'expired' });
             }

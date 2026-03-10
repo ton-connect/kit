@@ -164,7 +164,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 
     const registerRegistryWalletTool = (
         name: string,
-        tool: any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tool: { description: string; inputSchema: any },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createTool: (service: McpWalletService) => any,
         options?: { requiresSigning?: boolean },
     ) => {

@@ -8,10 +8,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-    buildAgenticCreateDeepLink,
-    buildAgenticDashboardLink,
-} from '../utils/agentic.js';
+import { buildAgenticCreateDeepLink, buildAgenticDashboardLink } from '../utils/agentic.js';
 
 describe('mcp agentic helpers', () => {
     it('builds create deeplinks for dashboard flow', () => {
@@ -39,5 +36,4 @@ describe('mcp agentic helpers', () => {
         expect(url.origin + '/').toBe('https://agentic-wallets-dashboard.vercel.app/');
         expect(url.pathname).toBe('/agent/kQAgent');
     });
-
 });

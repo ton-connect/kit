@@ -52,7 +52,6 @@ import {
     loadConfig,
     saveConfig,
 } from '../registry/config.js';
-import type { StoredWallet } from '../registry/config.js';
 import { WalletRegistryService } from '../services/WalletRegistryService.js';
 
 describe('WalletRegistryService', () => {
