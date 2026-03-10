@@ -10,7 +10,7 @@ import { expect } from '@playwright/test';
 import type { NetworkType } from '@demo/wallet-core';
 
 import { testWithUIFixture } from './UITestFixture';
-import { TEST_TEST_PASSWORD } from '../constants';
+import { TEST_PASSWORD } from '../constants';
 
 const test = testWithUIFixture();
 

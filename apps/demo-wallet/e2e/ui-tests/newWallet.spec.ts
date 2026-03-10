@@ -9,7 +9,7 @@
 import { expect } from '@playwright/test';
 
 import { testWithUIFixture } from './UITestFixture';
-import { TEST_TEST_PASSWORD } from '../constants';
+import { TEST_PASSWORD } from '../constants';
 
 const test = testWithUIFixture();
 
