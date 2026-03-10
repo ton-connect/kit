@@ -31,7 +31,7 @@ export const useSelectedWallet = (): UseSelectedWalletReturnType => {
         return getSelectedWallet(appKit);
     }, [appKit]);
 
-    const wallet = useSyncExternalStore(subscribe, getSnapshot, () => null);
+    const wallet = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
     const setWalletId = useCallback(
         (walletId: string | null) => {
