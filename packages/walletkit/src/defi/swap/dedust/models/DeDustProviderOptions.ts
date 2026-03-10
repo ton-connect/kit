@@ -26,7 +26,6 @@ export interface DeDustProviderOptions extends DeDustReferralOptions {
 
     /**
      * Only use verified pools
-     * @format bool
      */
     onlyVerifiedPools?: boolean;
 
@@ -44,7 +43,6 @@ export interface DeDustProviderOptions extends DeDustReferralOptions {
 
     /**
      * Exclude volatile pools
-     * @format bool
      */
     excludeVolatilePools?: boolean;
 }
