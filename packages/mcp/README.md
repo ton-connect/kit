@@ -369,19 +369,19 @@ Cancel a pending root-agent onboarding draft and remove its pending state.
 
 The package exports a `@ton/mcp/serverless` entry point for deploying as a serverless function (AWS Lambda, Vercel, Cloudflare Workers, etc.). Credentials are passed via request headers instead of environment variables.
 
-Current limitations:
+By design, serverless mode:
 
-- serverless mode is single-wallet only
-- wallet registry mode is not used
-- wallet management and onboarding tools are not exposed
-- wallet type is standard `v5r1`
+- operates in single-wallet mode only
+- does not use the wallet registry
+- does not expose wallet management and onboarding tools
+- uses standard `v5r1` wallet type
 
 ### Headers
 
 | Header          | Description                                              |
 |-----------------|----------------------------------------------------------|
 | `MNEMONIC`      | 24-word mnemonic phrase                                  |
-| `PRIVATE_KEY`   | Hex-encoded private key: 32-byte seed or 64-byte `private||public` (takes priority over `MNEMONIC`) |
+| `PRIVATE_KEY`   | Hex-encoded private key: 32-byte seed or 64-byte (takes priority over `MNEMONIC`) |
 | `NETWORK`       | `mainnet` (default) or `testnet`                         |
 | `TONCENTER_KEY` | Optional TonCenter API key for higher rate limits        |
 
