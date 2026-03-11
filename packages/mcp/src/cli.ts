@@ -17,6 +17,9 @@
  *   npx @ton/mcp --http                   # HTTP server on 0.0.0.0:3000
  *   npx @ton/mcp --http 8080              # HTTP server on custom port
  *   npx @ton/mcp --http --host 127.0.0.1  # HTTP server on custom host
+ *   npx @ton/mcp get_balance              # raw CLI: call tool and exit
+ *   npx @ton/mcp get_transactions --limit 5
+ *   npx @ton/mcp get_jetton_balance --jettonAddress EQAbc...
  *
  * Environment variables:
  *   NETWORK         - Network to use (mainnet or testnet, default: mainnet)
@@ -34,6 +37,9 @@
 
 import { createServer } from 'node:http';
 
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
     TonWalletKit,
@@ -81,22 +87,54 @@ function log(message: string) {
     console.error(`[${SERVER_NAME}] ${message}`);
 }
 
+function parseNamedArgs(args: string[]): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (!arg.startsWith('--')) continue;
+        const key = arg.slice(2);
+        const next = args[i + 1];
+        if (!next || next.startsWith('--')) {
+            result[key] = true;
+            continue;
+        }
+        i++;
+        // Only JSON-parse objects and arrays; keep everything else as a plain string.
+        // This avoids turning "0.1" into the number 0.1, which breaks tools that expect string amounts.
+        if (next.startsWith('{') || next.startsWith('[')) {
+            try {
+                result[key] = JSON.parse(next);
+            } catch {
+                result[key] = next;
+            }
+        } else {
+            result[key] = next;
+        }
+    }
+    return result;
+}
+
 function parseArgs() {
     const args = process.argv.slice(2);
     const httpIndex = args.indexOf('--http');
 
-    if (httpIndex === -1) {
-        return { mode: 'stdio' as const };
+    if (httpIndex !== -1) {
+        const nextArg = args[httpIndex + 1];
+        const port = nextArg && !nextArg.startsWith('-') ? parseInt(nextArg, 10) : 3000;
+
+        const hostIndex = args.indexOf('--host');
+        const hostArg = hostIndex !== -1 ? args[hostIndex + 1] : undefined;
+        const host = hostArg && !hostArg.startsWith('-') ? hostArg : '0.0.0.0';
+
+        return { mode: 'http' as const, port, host };
     }
 
-    const nextArg = args[httpIndex + 1];
-    const port = nextArg && !nextArg.startsWith('-') ? parseInt(nextArg, 10) : 3000;
+    const toolName = args.find((a) => !a.startsWith('-'));
+    if (toolName) {
+        return { mode: 'cli' as const, toolName, toolArgs: parseNamedArgs(args) };
+    }
 
-    const hostIndex = args.indexOf('--host');
-    const hostArg = hostIndex !== -1 ? args[hostIndex + 1] : undefined;
-    const host = hostArg && !hostArg.startsWith('-') ? hostArg : '0.0.0.0';
-
-    return { mode: 'http' as const, port, host };
+    return { mode: 'stdio' as const };
 }
 
 function parseAgenticWalletNftIndex(input?: string): bigint | undefined {
@@ -340,6 +378,41 @@ function createHttpSessionManager(host: string, port: number): AgenticSetupSessi
     });
 }
 
+async function startCli(toolName: string, toolArgs: Record<string, unknown>) {
+    const sessionManager = createStdioSessionManager();
+    const { server, kit } = await createWalletAndServer(sessionManager);
+
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport);
+
+    const client = new Client({ name: 'ton-mcp-cli', version: '0.0.1' });
+    await client.connect(clientTransport);
+
+    let isError = false;
+    try {
+        const result = await client.callTool({ name: toolName, arguments: toolArgs }, CallToolResultSchema);
+        const content = result.content as Array<{ type: string; text?: string }>;
+        for (const item of content) {
+            if (item.type === 'text' && item.text !== undefined) {
+                process.stdout.write(item.text + '\n');
+            }
+        }
+        isError = !!result.isError;
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`[${SERVER_NAME}] Tool error:`, error instanceof Error ? error.message : error);
+        isError = true;
+    } finally {
+        await client.close();
+        await sessionManager.close();
+        if (kit) {
+            await kit.close();
+        }
+    }
+
+    process.exit(isError ? 1 : 0);
+}
+
 async function startStdio() {
     log('Starting in stdio mode...');
 
@@ -405,18 +478,18 @@ async function startHttp(port: number, host: string) {
     });
 }
 
+function fatalError(error: unknown) {
+    // eslint-disable-next-line no-console
+    console.error(`[${SERVER_NAME}] Fatal error:`, error);
+    process.exit(1);
+}
+
 const config = parseArgs();
 
 if (config.mode === 'http') {
-    startHttp(config.port, config.host).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`[${SERVER_NAME}] Fatal error:`, error);
-        process.exit(1);
-    });
+    startHttp(config.port, config.host).catch(fatalError);
+} else if (config.mode === 'cli') {
+    startCli(config.toolName, config.toolArgs).catch(fatalError);
 } else {
-    startStdio().catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(`[${SERVER_NAME}] Fatal error:`, error);
-        process.exit(1);
-    });
+    startStdio().catch(fatalError);
 }
