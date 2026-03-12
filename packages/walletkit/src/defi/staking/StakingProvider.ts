@@ -14,10 +14,10 @@ import type {
     UnstakeParams,
     StakingBalance,
     StakingProviderInfo,
-    StakingProviderInterface,
     StakingQuoteParams,
     StakingQuote,
-} from './types';
+} from '../../api/models';
+import type { StakingProviderInterface } from '../../api/interfaces';
 
 /**
  * Abstract base class for staking providers

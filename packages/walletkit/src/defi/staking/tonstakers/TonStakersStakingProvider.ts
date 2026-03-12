@@ -18,10 +18,9 @@ import type {
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
-} from '../types';
+} from '../../../api/models';
 import { StakingError, StakingErrorCode } from '../errors';
-import { StakingQuoteDirection, UnstakeMode } from '../types';
-import type { TonStakersProviderConfig } from './types';
+import type { TonStakersProviderConfig } from './models/TonStakersProviderConfig';
 import { CONTRACT } from './constants';
 import { PoolContract } from './PoolContract';
 import { StakingCache } from './StakingCache';
@@ -64,7 +63,7 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
  *     amount: toNano('5').toString(),
  *     userAddress: wallet.getAddress(),
  *     network: Network.mainnet(),
- *     unstakeMode: UnstakeMode.Instant
+ *     unstakeMode: 'instant'
  * });
  * ```
  */
@@ -110,34 +109,36 @@ export class TonStakersStakingProvider extends StakingProvider {
         const contract = this.getContract(params.network);
         const rates = await contract.getRates();
 
-        if (params.direction === StakingQuoteDirection.Stake) {
+        if (params.direction === 'stake') {
             // User deposits TON, receives tsTON: tsTON = TON / rate
             const amountInTokens = Number(formatUnits(params.amount, 9));
             const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
             const amountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
 
             return {
-                direction: StakingQuoteDirection.Stake,
+                direction: 'stake',
                 amountIn: params.amount,
                 amountOut,
-                provider: 'tonstakers',
+                network: params.network || Network.mainnet(),
+                providerId: 'tonstakers',
                 apy: stakingInfo.apy,
             };
         } else {
             // User burns tsTON, receives TON: TON = tsTON * rate
             const amountInTokens = Number(formatUnits(params.amount, 9));
             const amountOutTokens =
-                params.unstakeMode === UnstakeMode.Instant
+                params.unstakeMode === 'instant'
                     ? amountInTokens * rates.tsTONTON
                     : amountInTokens * rates.tsTONTONProjected;
             const amountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
 
             return {
-                direction: StakingQuoteDirection.Unstake,
+                direction: 'unstake',
                 amountIn: params.amount,
                 amountOut,
-                provider: 'tonstakers',
-                unstakeMode: params.unstakeMode || UnstakeMode.Delayed,
+                network: params.network || Network.mainnet(),
+                providerId: 'tonstakers',
+                unstakeMode: params.unstakeMode || 'delayed',
             };
         }
     }
@@ -149,15 +150,15 @@ export class TonStakersStakingProvider extends StakingProvider {
      * and receives tsTON liquid staking tokens in return.
      * A fee reserve of 1 TON is automatically added to the amount.
      *
-     * @param params - Stake parameters including amount and user address
+     * @param params - Stake parameters including quote and user address
      * @returns Transaction request ready to be signed and sent
      */
     async buildStakeTransaction(params: StakeParams): Promise<TransactionRequest> {
         log.debug('TonStakers stake requested', { params });
 
-        const network = params.network;
+        const network = params.quote.network;
         const contractAddress = this.getStakingContractAddress(network);
-        const amount = BigInt(params.amount);
+        const amount = BigInt(params.quote.amountIn);
         const totalAmount = amount + CONTRACT.STAKE_FEE_RES;
 
         const contract = this.getContract(network);
@@ -184,29 +185,29 @@ export class TonStakersStakingProvider extends StakingProvider {
      * - **Instant**: Immediate withdrawal if pool has sufficient liquidity (fillOrKill)
      * - **BestRate**: Wait until round end for best exchange rate
      *
-     * @param params - Unstake parameters including amount, user address, and optional mode
+     * @param params - Unstake parameters including quote and user address
      * @returns Transaction request ready to be signed and sent
      */
     async buildUnstakeTransaction(params: UnstakeParams): Promise<TransactionRequest> {
-        log.debug('TonStakers unstake requested', { amount: params.amount, userAddress: params.userAddress });
+        log.debug('TonStakers unstake requested', { amount: params.quote.amountIn, userAddress: params.userAddress });
 
-        const network = params.network;
-        const amount = BigInt(params.amount);
-        const unstakeMode = params.unstakeMode || UnstakeMode.Delayed;
+        const network = params.quote.network;
+        const amount = BigInt(params.quote.amountIn);
+        const unstakeMode = params.quote.unstakeMode || 'delayed';
 
         let waitTillRoundEnd = false;
         let fillOrKill = false;
 
         switch (unstakeMode) {
-            case UnstakeMode.Instant:
+            case 'instant':
                 waitTillRoundEnd = false;
                 fillOrKill = true;
                 break;
-            case UnstakeMode.BestRate:
+            case 'bestRate':
                 waitTillRoundEnd = true;
                 fillOrKill = false;
                 break;
-            case UnstakeMode.Delayed:
+            case 'delayed':
             default:
                 waitTillRoundEnd = false;
                 fillOrKill = false;

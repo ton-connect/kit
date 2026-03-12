@@ -10,9 +10,7 @@ export { StakingProvider } from './StakingProvider';
 export { StakingManager } from './StakingManager';
 export { StakingError } from './errors';
 export type { StakingErrorCode } from './errors';
-export { StakingQuoteDirection, UnstakeMode } from './types';
-export type * from './types';
-export { TonStakersStakingProvider } from './tonstakers/TonStakersStakingProvider';
-export { PoolContract } from './tonstakers/PoolContract';
-export { StakingCache } from './tonstakers/StakingCache';
-export type { TonStakersProviderConfig } from './tonstakers/types';
+
+// TonStakers
+export { TonStakersStakingProvider, PoolContract, StakingCache } from './tonstakers';
+export type { TonStakersProviderConfig } from './tonstakers';

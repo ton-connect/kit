@@ -11,10 +11,9 @@ import type { MockInstance } from 'vitest';
 
 import { TonStakersStakingProvider } from './TonStakersStakingProvider';
 import { PoolContract } from './PoolContract';
-import { StakingQuoteDirection, UnstakeMode } from '../types';
 import { CONTRACT } from './constants';
 import { Network } from '../../../api/models';
-import type { Base64String } from '../../../api/models';
+import type { Base64String, UnstakeMode } from '../../../api/models';
 
 const mockApiClient = {
     runGetMethod: vi.fn(),
@@ -67,17 +66,17 @@ describe('TonStakersStakingProvider', () => {
         it('should return correct quote with APY for stake direction', async () => {
             const amount = '1000000000';
             const quote = await provider.getQuote({
-                direction: StakingQuoteDirection.Stake,
+                direction: 'stake',
                 amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
             });
 
-            expect(quote.direction).toBe(StakingQuoteDirection.Stake);
+            expect(quote.direction).toBe('stake');
             expect(quote.amountIn).toBe(amount);
             // amountOut = 1000000000 / 1.1 = 909090909
             expect(quote.amountOut).toBe('909090909');
-            expect(quote.provider).toBe('tonstakers');
+            expect(quote.providerId).toBe('tonstakers');
             expect(quote.apy).toBe(0.05);
             expect(getApyFromTonApiSpy).toHaveBeenCalled();
         });
@@ -85,39 +84,45 @@ describe('TonStakersStakingProvider', () => {
         it('should return correct quote with unstakeMode for unstake direction', async () => {
             const amount = '1000000000';
             const quote = await provider.getQuote({
-                direction: StakingQuoteDirection.Unstake,
+                direction: 'unstake',
                 amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
-                unstakeMode: UnstakeMode.Instant,
+                unstakeMode: 'instant',
             });
 
-            expect(quote.direction).toBe(StakingQuoteDirection.Unstake);
+            expect(quote.direction).toBe('unstake');
             expect(quote.amountIn).toBe(amount);
             // amountOut = 1000000000 * 1.05 = 1050000000
             expect(quote.amountOut).toBe('1050000000');
-            expect(quote.provider).toBe('tonstakers');
-            expect(quote.unstakeMode).toBe(UnstakeMode.Instant);
+            expect(quote.providerId).toBe('tonstakers');
+            expect(quote.unstakeMode).toBe('instant');
         });
 
         it('should default to Delayed unstakeMode when not specified', async () => {
             const quote = await provider.getQuote({
-                direction: StakingQuoteDirection.Unstake,
+                direction: 'unstake',
                 amount: '1000000000',
                 network: Network.mainnet(),
             });
 
-            expect(quote.unstakeMode).toBe(UnstakeMode.Delayed);
+            expect(quote.unstakeMode).toBe('delayed');
         });
     });
 
     describe('stake', () => {
         it('should build correct transaction with stake payload', async () => {
             const amount = '1000000000';
-            const tx = await provider.buildStakeTransaction({
+            const quote = await provider.getQuote({
+                direction: 'stake',
                 amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
+            });
+
+            const tx = await provider.buildStakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(tx.fromAddress).toBe(testUserAddress);
@@ -137,11 +142,18 @@ describe('TonStakersStakingProvider', () => {
 
     describe('unstake', () => {
         it('should build correct transaction for Delayed mode', async () => {
-            const tx = await provider.buildUnstakeTransaction({
-                amount: '1000000000',
+            const amount = '1000000000';
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
-                unstakeMode: UnstakeMode.Delayed,
+                unstakeMode: 'delayed',
+            });
+
+            const tx = await provider.buildUnstakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(tx.fromAddress).toBe(testUserAddress);
@@ -158,11 +170,18 @@ describe('TonStakersStakingProvider', () => {
         });
 
         it('should build correct transaction for Instant mode', async () => {
-            await provider.buildUnstakeTransaction({
-                amount: '1000000000',
+            const amount = '1000000000';
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
-                unstakeMode: UnstakeMode.Instant,
+                unstakeMode: 'instant',
+            });
+
+            await provider.buildUnstakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(buildUnstakeMessageSpy).toHaveBeenCalledWith({
@@ -174,11 +193,18 @@ describe('TonStakersStakingProvider', () => {
         });
 
         it('should build correct transaction for BestRate mode', async () => {
-            await provider.buildUnstakeTransaction({
-                amount: '1000000000',
+            const amount = '1000000000';
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
-                unstakeMode: UnstakeMode.BestRate,
+                unstakeMode: 'bestRate',
+            });
+
+            await provider.buildUnstakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(buildUnstakeMessageSpy).toHaveBeenCalledWith({
@@ -189,11 +215,18 @@ describe('TonStakersStakingProvider', () => {
             });
         });
 
-        it('should default to Delayed mode when unstakeMode not specified', async () => {
-            await provider.buildUnstakeTransaction({
-                amount: '1000000000',
+        it('should default to Delayed mode when unstakeMode not specified in quote', async () => {
+            const amount = '1000000000';
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
+            });
+
+            await provider.buildUnstakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(buildUnstakeMessageSpy).toHaveBeenCalledWith({
@@ -207,15 +240,22 @@ describe('TonStakersStakingProvider', () => {
 
     describe('unstake mode flags', () => {
         it.each([
-            { mode: UnstakeMode.Delayed, waitTillRoundEnd: false, fillOrKill: false },
-            { mode: UnstakeMode.Instant, waitTillRoundEnd: false, fillOrKill: true },
-            { mode: UnstakeMode.BestRate, waitTillRoundEnd: true, fillOrKill: false },
+            { mode: 'delayed', waitTillRoundEnd: false, fillOrKill: false },
+            { mode: 'instant', waitTillRoundEnd: false, fillOrKill: true },
+            { mode: 'bestRate', waitTillRoundEnd: true, fillOrKill: false },
         ])('should set correct flags for $mode mode', async ({ mode, waitTillRoundEnd, fillOrKill }) => {
-            await provider.buildUnstakeTransaction({
-                amount: '1000000000',
+            const amount = '1000000000';
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount,
                 userAddress: testUserAddress,
                 network: Network.mainnet(),
-                unstakeMode: mode,
+                unstakeMode: mode as UnstakeMode,
+            });
+
+            await provider.buildUnstakeTransaction({
+                quote,
+                userAddress: testUserAddress,
             });
 
             expect(buildUnstakeMessageSpy).toHaveBeenCalledWith(
@@ -237,6 +277,31 @@ describe('TonStakersStakingProvider', () => {
             // Ensure exchange rates are NOT in the response
             expect(info).not.toHaveProperty('tsTONTON');
             expect(info).not.toHaveProperty('tsTONTONProjected');
+        });
+    });
+
+    describe('getStakedBalance', () => {
+        it('should return user balance and provider info', async () => {
+            mockApiClient.getBalance.mockResolvedValue('2000000000'); // 2 TON
+            vi.spyOn(PoolContract.prototype, 'getStakedBalance').mockResolvedValue('1000000000'); // 1 tsTON
+
+            const balance = await provider.getStakedBalance(testUserAddress, Network.mainnet());
+
+            expect(balance.stakedBalance).toBe('1000000000');
+            // availableBalance = 2 TON - 1.1 TON reserve = 0.9 TON
+            expect(balance.availableBalance).toBe('900000000');
+            expect(balance.instantUnstakeAvailable).toBe('500000000000');
+            expect(balance.providerId).toBe('tonstakers');
+            expect(mockApiClient.getBalance).toHaveBeenCalledWith(testUserAddress);
+        });
+
+        it('should return 0 available balance if TON balance is below reserve', async () => {
+            mockApiClient.getBalance.mockResolvedValue('500000000'); // 0.5 TON
+            vi.spyOn(PoolContract.prototype, 'getStakedBalance').mockResolvedValue('0');
+
+            const balance = await provider.getStakedBalance(testUserAddress, Network.mainnet());
+
+            expect(balance.availableBalance).toBe('0');
         });
     });
 });

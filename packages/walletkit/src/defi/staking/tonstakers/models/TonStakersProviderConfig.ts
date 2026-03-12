@@ -6,9 +6,11 @@
  *
  */
 
+import type { UserFriendlyAddress } from '../../../../api/models';
+
 export interface TonStakersProviderConfig {
     [chainId: string]: {
-        contractAddress: string;
+        contractAddress: UserFriendlyAddress;
         /**
          * Optional TonAPI token used exclusively for fetching historical APY.
          * The provider is fully functional without this token.

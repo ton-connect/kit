@@ -8,15 +8,14 @@
 
 import type { TransactionRequest, UserFriendlyAddress, Network } from '../../api/models';
 import type {
-    StakingAPI,
     StakeParams,
     UnstakeParams,
     StakingBalance,
     StakingProviderInfo,
-    StakingProviderInterface,
     StakingQuoteParams,
     StakingQuote,
-} from './types';
+} from '../../api/models';
+import type { StakingAPI, StakingProviderInterface } from '../../api/interfaces';
 import { StakingError, StakingErrorCode } from './errors';
 import { globalLogger } from '../../core/Logger';
 import { DefiManager } from '../DefiManager';
@@ -51,7 +50,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param params - Staking parameters
      * @param providerId - Optional provider id to use
      */
-    async stake(params: StakeParams, providerId?: string): Promise<TransactionRequest> {
+    async buildStakeTransaction(params: StakeParams, providerId?: string): Promise<TransactionRequest> {
         log.debug('Building staking transaction', params);
         try {
             return await this.getProvider(providerId).buildStakeTransaction(params);
@@ -68,7 +67,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param params - Unstaking parameters
      * @param providerId - Optional provider id to use
      */
-    async unstake(params: UnstakeParams, providerId?: string): Promise<TransactionRequest> {
+    async buildUnstakeTransaction(params: UnstakeParams, providerId?: string): Promise<TransactionRequest> {
         log.debug('Building unstaking transaction', params);
         try {
             return await this.getProvider(providerId).buildUnstakeTransaction(params);
@@ -86,7 +85,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param network - Network to query
      * @param providerId - Optional provider id to use
      */
-    async getBalance(
+    async getStakedBalance(
         userAddress: UserFriendlyAddress,
         network?: Network,
         providerId?: string,
