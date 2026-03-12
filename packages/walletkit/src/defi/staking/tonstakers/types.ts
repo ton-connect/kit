@@ -6,15 +6,13 @@
  *
  */
 
-export type TonStakersProviderConfig = {
-    [key: string]: {
+export interface TonStakersProviderConfig {
+    [chainId: string]: {
         contractAddress: string;
+        /**
+         * Optional TonAPI token used exclusively for fetching historical APY.
+         * The provider is fully functional without this token.
+         */
+        tonApiToken?: string;
     };
-};
-
-export interface TonStakersPoolInfo {
-    apy: number;
-    tvl: bigint;
-    instantLiquidity: bigint;
 }
-export type { PoolFullData } from './PoolContract';

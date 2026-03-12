@@ -37,8 +37,7 @@ describe('TonStakersStakingProvider', () => {
 
     let buildStakePayloadSpy: MockInstance;
     let buildUnstakeMessageSpy: MockInstance;
-    let getPoolDataSpy: MockInstance;
-    let calculateApySpy: MockInstance;
+    let getApyFromTonApiSpy: MockInstance;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -52,20 +51,16 @@ describe('TonStakersStakingProvider', () => {
             amount: CONTRACT.UNSTAKE_FEE_RES.toString(),
             payload: 'mock-unstake-payload' as Base64String,
         });
-
-        getPoolDataSpy = vi.spyOn(PoolContract.prototype, 'getPoolData').mockResolvedValue({
-            state: 0,
-            halted: false,
-            totalBalance: '1000000000000',
-            supply: '900000000000',
-            interestRatePercent: 0.1,
+        vi.spyOn(PoolContract.prototype, 'getPoolBalance').mockResolvedValue(500000000000n);
+        vi.spyOn(PoolContract.prototype, 'getRates').mockResolvedValue({
+            tsTONTON: 1.05,
+            tsTONTONProjected: 1.1,
         });
 
-        calculateApySpy = vi.spyOn(PoolContract.prototype, 'calculateApy').mockReturnValue(0.05);
-
-        vi.spyOn(PoolContract.prototype, 'getPoolBalance').mockResolvedValue(500000000000n);
-
         provider = new TonStakersStakingProvider(mockNetworkManager as never, mockEventEmitter as never);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        getApyFromTonApiSpy = vi.spyOn(provider as any, 'getApyFromTonApi').mockResolvedValue(0.05);
     });
 
     describe('getQuote', () => {
@@ -80,11 +75,11 @@ describe('TonStakersStakingProvider', () => {
 
             expect(quote.direction).toBe(StakingQuoteDirection.Stake);
             expect(quote.amountIn).toBe(amount);
-            expect(quote.amountOut).toBe(amount);
+            // amountOut = 1000000000 / 1.1 = 909090909
+            expect(quote.amountOut).toBe('909090909');
             expect(quote.provider).toBe('tonstakers');
             expect(quote.apy).toBe(0.05);
-            expect(getPoolDataSpy).toHaveBeenCalled();
-            expect(calculateApySpy).toHaveBeenCalledWith(0.1);
+            expect(getApyFromTonApiSpy).toHaveBeenCalled();
         });
 
         it('should return correct quote with unstakeMode for unstake direction', async () => {
@@ -99,7 +94,8 @@ describe('TonStakersStakingProvider', () => {
 
             expect(quote.direction).toBe(StakingQuoteDirection.Unstake);
             expect(quote.amountIn).toBe(amount);
-            expect(quote.amountOut).toBe(amount);
+            // amountOut = 1000000000 * 1.05 = 1050000000
+            expect(quote.amountOut).toBe('1050000000');
             expect(quote.provider).toBe('tonstakers');
             expect(quote.unstakeMode).toBe(UnstakeMode.Instant);
         });
@@ -228,6 +224,19 @@ describe('TonStakersStakingProvider', () => {
                     fillOrKill,
                 }),
             );
+        });
+    });
+
+    describe('getStakingProviderInfo', () => {
+        it('should return simplified info with APY and liquidity', async () => {
+            const info = await provider.getStakingProviderInfo(Network.mainnet());
+
+            expect(info.apy).toBe(0.05);
+            expect(info.instantUnstakeAvailable).toBe('500000000000');
+            expect(info.providerId).toBe('tonstakers');
+            // Ensure exchange rates are NOT in the response
+            expect(info).not.toHaveProperty('tsTONTON');
+            expect(info).not.toHaveProperty('tsTONTONProjected');
         });
     });
 });

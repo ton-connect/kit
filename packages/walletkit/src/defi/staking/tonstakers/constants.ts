@@ -8,17 +8,7 @@
 
 import { toNano } from '@ton/core';
 
-// Timing-related constants
-export const TIMING = {
-    DEFAULT_INTERVAL: 5000,
-    TIMEOUT: 600000,
-    CACHE_TIMEOUT: 30000,
-    ESTIMATED_TIME_BW_TX_S: 3,
-    ESTIMATED_TIME_AFTER_ROUND_S: 10 * 60,
-    CYCLE_LENGTH_HOURS: 18,
-    CYCLES_PER_YEAR: (365.25 * 24) / 18,
-    PROTOCOL_FEE: 0.1,
-};
+export const CACHE_TIMEOUT = 30000;
 
 // Contract-related constants
 export const CONTRACT = {

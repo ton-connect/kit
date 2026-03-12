@@ -18,23 +18,22 @@ import type {
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
-    RoundInfo,
 } from '../types';
 import { StakingError, StakingErrorCode } from '../errors';
 import { StakingQuoteDirection, UnstakeMode } from '../types';
 import type { TonStakersProviderConfig } from './types';
-import { CONTRACT, TIMING } from './constants';
-import type { PoolFullData } from './PoolContract';
+import { CONTRACT } from './constants';
 import { PoolContract } from './PoolContract';
 import { StakingCache } from './StakingCache';
+import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
+import { formatUnits, parseUnits } from '../../../utils/units';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');
 
 /**
  * TonStakersStakingProvider - Staking provider for the Tonstakers liquid staking protocol.
  *
- * This provider implements all staking operations using ONLY Toncenter API
- * (no TonAPI dependency). It supports:
+ * This provider implements all staking operations. It supports:
  * - Stake: Deposit TON to receive tsTON liquid staking tokens
  * - Unstake: Burn tsTON to withdraw TON with 3 modes:
  *   - Delayed: Standard withdrawal at end of round (~18 hours)
@@ -108,21 +107,35 @@ export class TonStakersStakingProvider extends StakingProvider {
         });
 
         const stakingInfo = await this.getStakingProviderInfo(params.network);
+        const contract = this.getContract(params.network);
+        const rates = await contract.getRates();
 
         if (params.direction === StakingQuoteDirection.Stake) {
+            // User deposits TON, receives tsTON: tsTON = TON / rate
+            const amountInTokens = Number(formatUnits(params.amount, 9));
+            const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
+            const amountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
+
             return {
                 direction: StakingQuoteDirection.Stake,
                 amountIn: params.amount,
-                amountOut: params.amount, // 1:1 for staking
+                amountOut,
                 provider: 'tonstakers',
                 apy: stakingInfo.apy,
             };
         } else {
-            // For unstaking, amount is the same (1:1)
+            // User burns tsTON, receives TON: TON = tsTON * rate
+            const amountInTokens = Number(formatUnits(params.amount, 9));
+            const amountOutTokens =
+                params.unstakeMode === UnstakeMode.Instant
+                    ? amountInTokens * rates.tsTONTON
+                    : amountInTokens * rates.tsTONTONProjected;
+            const amountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
+
             return {
                 direction: StakingQuoteDirection.Unstake,
                 amountIn: params.amount,
-                amountOut: params.amount,
+                amountOut,
                 provider: 'tonstakers',
                 unstakeMode: params.unstakeMode || UnstakeMode.Delayed,
             };
@@ -274,10 +287,7 @@ export class TonStakersStakingProvider extends StakingProvider {
 
     /**
      * Get staking pool information including APY and liquidity.
-     *
-     * APY is calculated from on-chain data using the formula:
-     * (interest_rate / 2^24) * cycles_per_year * (1 - protocol_fee)
-     *
+     * APY is fetched from TonAPI.
      * Results are cached for 30 seconds to reduce API calls.
      *
      * @param network - Network to query (defaults to mainnet)
@@ -289,86 +299,17 @@ export class TonStakersStakingProvider extends StakingProvider {
         const targetNetwork = network ?? Network.mainnet();
         const cacheKey = `staking-info:${targetNetwork.chainId}`;
 
-        try {
-            return await this.cache.get(
-                cacheKey,
-                async () => {
-                    const contract = this.getContract(targetNetwork);
-                    const poolData = await contract.getPoolData();
-                    const apy = contract.calculateApy(poolData.interestRatePercent);
-                    const instantLiquidity = await contract.getPoolBalance();
+        return await this.cache.get(cacheKey, async () => {
+            const contract = this.getContract(targetNetwork);
+            const instantLiquidity = await contract.getPoolBalance();
+            const apy = await this.getApyFromTonApi(targetNetwork);
 
-                    return {
-                        apy,
-                        instantUnstakeAvailable: instantLiquidity.toString(),
-                        providerId: 'tonstakers',
-                    };
-                },
-                TIMING.CACHE_TIMEOUT,
-            );
-        } catch (error) {
-            log.warn('Failed to get staking info from on-chain', { error });
             return {
-                apy: 0,
-                instantUnstakeAvailable: '0',
+                apy,
+                instantUnstakeAvailable: instantLiquidity.toString(),
                 providerId: 'tonstakers',
             };
-        }
-    }
-
-    /**
-     * Get full pool data from on-chain getter.
-     * Results are cached for 30 seconds.
-     *
-     * @param network - Network to query (defaults to mainnet)
-     * @returns Pool data including total_balance, supply, interest_rate
-     */
-    async getPoolFullData(network?: Network): Promise<PoolFullData> {
-        const targetNetwork = network ?? Network.mainnet();
-        const cacheKey = `pool-full-data:${targetNetwork.chainId}`;
-
-        return this.cache.get(
-            cacheKey,
-            async () => {
-                const contract = this.getContract(targetNetwork);
-                return contract.getPoolFullData();
-            },
-            TIMING.CACHE_TIMEOUT,
-        );
-    }
-
-    /**
-     * Get current round timing information.
-     * Note: Returns estimated values based on ~18 hour cycle length.
-     *
-     * @param network - Network to query (defaults to mainnet)
-     * @returns Round info with cycle_start, cycle_end, and cycle_length
-     */
-    async getRoundInfo(network?: Network): Promise<RoundInfo> {
-        const contract = this.getContract(network);
-        return contract.getRoundInfo();
-    }
-
-    /**
-     * Get instant unstake liquidity available in the pool.
-     * This is the amount that can be withdrawn instantly.
-     * Results are cached for 30 seconds.
-     *
-     * @param network - Network to query (defaults to mainnet)
-     * @returns Available liquidity in nanotons
-     */
-    async getInstantLiquidity(network?: Network): Promise<bigint> {
-        const targetNetwork = network ?? Network.mainnet();
-        const cacheKey = `instant-liquidity:${targetNetwork.chainId}`;
-
-        return this.cache.get(
-            cacheKey,
-            async () => {
-                const contract = this.getContract(targetNetwork);
-                return contract.getPoolBalance();
-            },
-            TIMING.CACHE_TIMEOUT,
-        );
+        });
     }
 
     /**
@@ -399,5 +340,20 @@ export class TonStakersStakingProvider extends StakingProvider {
         const apiClient = this.getApiClient(targetNetwork);
         const contractAddress = this.getStakingContractAddress(targetNetwork);
         return new PoolContract(contractAddress, apiClient);
+    }
+
+    private async getApyFromTonApi(network: Network): Promise<number> {
+        const networkConfig = this.config[network.chainId];
+        const token = networkConfig?.tonApiToken;
+        const address = this.getStakingContractAddress(network);
+        const client = new ApiClientTonApi({ network, apiKey: token });
+
+        const poolInfo = await client.getJson<{ pool: { apy: number } }>(`/v2/staking/pool/${address}`);
+
+        if (!poolInfo?.pool?.apy) {
+            throw new Error('Invalid APY data from TonAPI');
+        }
+
+        return Number(poolInfo.pool.apy) / 100;
     }
 }

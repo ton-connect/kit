@@ -15,5 +15,4 @@ export type * from './types';
 export { TonStakersStakingProvider } from './tonstakers/TonStakersStakingProvider';
 export { PoolContract } from './tonstakers/PoolContract';
 export { StakingCache } from './tonstakers/StakingCache';
-export type { TonStakersProviderConfig, PoolFullData, TonStakersPoolInfo } from './tonstakers/types';
-export { CONTRACT, TIMING } from './tonstakers/constants';
+export type { TonStakersProviderConfig } from './tonstakers/types';

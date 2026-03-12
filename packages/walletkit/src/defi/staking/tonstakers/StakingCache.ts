@@ -8,14 +8,14 @@
 
 import { LRUCache } from 'lru-cache';
 
-import { TIMING } from './constants';
+import { CACHE_TIMEOUT } from './constants';
 
 export class StakingCache {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private cache: LRUCache<string, any>;
     private readonly defaultTtl: number;
 
-    constructor(maxSize: number = 100, defaultTtl: number = TIMING.CACHE_TIMEOUT) {
+    constructor(maxSize: number = 100, defaultTtl: number = CACHE_TIMEOUT) {
         this.defaultTtl = defaultTtl;
         this.cache = new LRUCache({
             max: maxSize,

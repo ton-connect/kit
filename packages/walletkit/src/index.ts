@@ -27,13 +27,11 @@ export {
     TonStakersStakingProvider,
     PoolContract,
     StakingCache,
-    CONTRACT,
-    TIMING,
     UnstakeMode,
     StakingQuoteDirection,
 } from './defi/staking';
 export type * from './defi/staking/types';
-export type { TonStakersProviderConfig, PoolFullData, TonStakersPoolInfo } from './defi/staking/tonstakers/types';
+export type { TonStakersProviderConfig } from './defi/staking/tonstakers/types';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './clients/toncenter';

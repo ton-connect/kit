@@ -20,12 +20,6 @@ export enum UnstakeMode {
     BestRate = 'bestRate',
 }
 
-export interface RoundInfo {
-    cycle_start: number;
-    cycle_end: number;
-    cycle_length?: number;
-}
-
 /**
  * Parameters for requesting a staking quote
  */
@@ -50,14 +44,6 @@ export interface StakingQuote {
     estimatedUnstakeDelayHours?: number;
     instantUnstakeAvailable?: TokenAmount;
     metadata?: unknown;
-}
-
-/**
- * Parameters for building a market swap transaction for st-tokens
- */
-export interface StakingMarketSwapParams {
-    quote: StakingQuote;
-    userAddress: UserFriendlyAddress;
 }
 
 /**
@@ -123,13 +109,4 @@ export interface StakingProviderInterface extends DefiProvider {
     buildUnstakeTransaction(params: UnstakeParams): Promise<TransactionRequest>;
     getStakedBalance(userAddress: UserFriendlyAddress, network?: Network): Promise<StakingBalance>;
     getStakingProviderInfo(network?: Network): Promise<StakingProviderInfo>;
-}
-
-/**
- * Optional interface for market providers that exchange st-tokens.
- * This should remain separate from staking provider logic.
- */
-export interface StakingMarketProviderInterface {
-    getQuote(params: StakingQuoteParams): Promise<StakingQuote>;
-    buildSwapTransaction(params: StakingMarketSwapParams): Promise<TransactionRequest>;
 }

@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Cell } from '@ton/core';
 
 import { PoolContract } from './PoolContract';
-import { CONTRACT, TIMING } from './constants';
+import { CONTRACT } from './constants';
 
 const mockApiClient = {
     runGetMethod: vi.fn(),
@@ -135,30 +135,6 @@ describe('TonStakersContract', () => {
 
             slice.loadUint(32);
             expect(slice.loadUintBig(64)).toBe(customQueryId);
-        });
-    });
-
-    describe('calculateApy', () => {
-        it('should calculate APY from interest rate', () => {
-            const interestRate = 0.001;
-            const apy = contract.calculateApy(interestRate);
-
-            const expectedApy = interestRate * TIMING.CYCLES_PER_YEAR * (1 - TIMING.PROTOCOL_FEE);
-
-            expect(apy).toBeCloseTo(expectedApy, 10);
-        });
-
-        it('should return 0 for zero interest rate', () => {
-            const apy = contract.calculateApy(0);
-            expect(apy).toBe(0);
-        });
-
-        it('should handle large interest rates', () => {
-            const largeInterestRate = 0.5;
-            const apy = contract.calculateApy(largeInterestRate);
-
-            expect(apy).toBeGreaterThan(0);
-            expect(Number.isFinite(apy)).toBe(true);
         });
     });
 });
