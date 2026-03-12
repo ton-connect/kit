@@ -7,7 +7,7 @@ disable-model-invocation: false
 
 # Create TON Agentic Wallet
 
-Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the user deploys the wallet contract from the dashboard, and a callback completes the setup automatically.
+Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the user deploys the wallet contract from the dashboard, then provides the wallet address to complete setup.
 
 ## MCP Tools
 
@@ -31,9 +31,9 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the
 ## Workflow
 
 1. Call `agentic_start_root_wallet_setup` — this generates an operator key pair and returns a `setupId` and `dashboardUrl`
-2. Tell the user to open the `dashboardUrl` and deploy the wallet from their TON wallet
-3. Poll `agentic_get_root_wallet_setup` with the `setupId` to check callback status
-4. When status shows `callback_received`, or the user provides the wallet address manually, call `agentic_complete_root_wallet_setup`
+2. Show the `dashboardUrl` to the user and tell them to open it, deploy the wallet from their TON wallet, and then come back with the deployed wallet address
+3. **Ask the user for the wallet address** — in CLI/stdio mode there is no callback, so the agent must ask the user to paste the wallet address after they finish deployment on the dashboard
+4. Call `agentic_complete_root_wallet_setup` with the `setupId` and the `walletAddress` provided by the user
 5. Confirm the wallet is active with `get_current_wallet` or `list_wallets` (see `ton-manage-wallets` skill)
 
 ## How It Works
@@ -53,6 +53,6 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the
 
 ## Notes
 
-- Callback state is persisted locally; use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` in stdio mode for a stable callback endpoint across restarts
-- If the callback never arrives, the user can provide the wallet address manually to `agentic_complete_root_wallet_setup`
+- In CLI/stdio mode there is no callback — always ask the user for the wallet address after showing the dashboard URL
+- Do **not** poll for callback status in CLI mode; just wait for the user to provide the address
 - After wallet creation, fund the wallet with TON before using transfer or swap skills
