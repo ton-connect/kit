@@ -68,6 +68,7 @@ export {
 export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
 export { getNetwork, type GetNetworkReturnType } from './network/get-network';
 export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
+export { getBlockNumber, type GetBlockNumberOptions, type GetBlockNumberReturnType } from './network/get-block-number';
 export { getDefaultNetwork, type GetDefaultNetworkReturnType } from './network/get-default-network';
 export {
     setDefaultNetwork,

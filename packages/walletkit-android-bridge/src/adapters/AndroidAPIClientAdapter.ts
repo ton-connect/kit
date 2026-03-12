@@ -31,6 +31,7 @@ import type {
     GetJettonsByAddressRequest,
     GetEventsRequest,
     GetEventsResponse,
+    MasterchainInfo,
     Network,
 } from '@ton/walletkit';
 
@@ -47,6 +48,7 @@ type AndroidAPIClientBridge = {
         seqno: number,
     ) => string;
     apiGetBalance: (networkJson: string, address: string, seqno: number) => string;
+    apiGetMasterchainInfo: (networkJson: string) => string;
 };
 
 type AndroidWindow = Window & {
@@ -195,5 +197,16 @@ export class AndroidAPIClientAdapter implements ApiClient {
 
     async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {
         throw new Error('getEvents is not implemented yet');
+    }
+
+    async getMasterchainInfo(): Promise<MasterchainInfo> {
+        try {
+            const networkJson = JSON.stringify(this.network);
+            const resultJson = this.androidBridge.apiGetMasterchainInfo(networkJson);
+            return JSON.parse(resultJson) as MasterchainInfo;
+        } catch (err) {
+            error('[AndroidAPIClientAdapter] getMasterchainInfo failed:', err);
+            throw err;
+        }
     }
 }

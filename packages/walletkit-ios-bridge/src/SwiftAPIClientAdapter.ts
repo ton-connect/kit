@@ -31,6 +31,7 @@ import type {
     GetJettonsByAddressRequest,
     GetEventsRequest,
     GetEventsResponse,
+    MasterchainInfo,
 } from '@ton/walletkit';
 
 export class SwiftAPIClientAdapter implements ApiClient {
@@ -111,5 +112,9 @@ export class SwiftAPIClientAdapter implements ApiClient {
 
     async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {
         throw new Error('getEvents is not implemented yet');
+    }
+
+    async getMasterchainInfo(): Promise<MasterchainInfo> {
+        return this.swiftApiClient.getMasterchainInfo();
     }
 }

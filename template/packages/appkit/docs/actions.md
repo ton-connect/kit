@@ -128,6 +128,30 @@ Watch configured networks.
 
 %%demo/examples/src/appkit/actions/network#WATCH_NETWORKS%%
 
+### `getBlockNumber`
+
+Get the current masterchain block number.
+
+%%demo/examples/src/appkit/actions/network#GET_BLOCK_NUMBER%%
+
+### `getDefaultNetwork`
+
+Get the currently configured default network.
+
+%%demo/examples/src/appkit/actions/network#GET_DEFAULT_NETWORK%%
+
+### `setDefaultNetwork`
+
+Set the default network for wallet connections. If set, connectors (e.g. TonConnect) will enforce this network when connecting a wallet. Pass `undefined` to allow any network.
+
+%%demo/examples/src/appkit/actions/network#SET_DEFAULT_NETWORK%%
+
+### `watchDefaultNetwork`
+
+Watch for changes in the default network.
+
+%%demo/examples/src/appkit/actions/network#WATCH_DEFAULT_NETWORK%%
+
 ## NFTs
 
 ### `getNfts`

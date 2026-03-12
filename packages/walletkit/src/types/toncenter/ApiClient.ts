@@ -22,6 +22,7 @@ import type {
     JettonsResponse,
     RawStackItem,
     GetMethodResult,
+    MasterchainInfo,
 } from '../../api/models';
 import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 
@@ -122,4 +123,6 @@ export interface ApiClient {
     jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse>;
 
     getEvents(request: GetEventsRequest): Promise<GetEventsResponse>;
+
+    getMasterchainInfo(): Promise<MasterchainInfo>;
 }
