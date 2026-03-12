@@ -7,6 +7,7 @@
  */
 
 import {
+    Base64NormalizeUrl,
     Base64ToBigInt,
     Base64ToHex,
     Base64ToUint8Array,
@@ -29,6 +30,11 @@ describe('base64', () => {
 
     it('base64ToBigInt/bigIntToBase64', async () => {
         expect(BigIntToBase64(Base64ToBigInt(data) as bigint)).toEqual(data);
+    });
+
+    it('normalizes base64 to base64url', () => {
+        expect(Base64NormalizeUrl('a+/=')).toEqual('a-_');
+        expect(Base64NormalizeUrl('a-_')).toEqual('a-_');
     });
 
     describe('asBase64', () => {

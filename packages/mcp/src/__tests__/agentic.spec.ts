@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { ParseBase64 } from '@ton/walletkit';
 
 import { buildAgenticCreateDeepLink, buildAgenticDashboardLink } from '../utils/agentic.js';
 
@@ -30,7 +31,7 @@ describe('mcp agentic helpers', () => {
         const encodedPayload = url.searchParams.get('data');
         expect(encodedPayload).toBeTruthy();
 
-        const payload = JSON.parse(Buffer.from(encodedPayload!, 'base64url').toString('utf8'));
+        const payload = JSON.parse(ParseBase64(encodedPayload!));
         expect(payload).toEqual({
             originOperatorPublicKey: '0x1234',
             callbackUrl: 'http://127.0.0.1:4567/agentic/callback/setup-1',

@@ -9,7 +9,7 @@
 import { randomBytes } from 'node:crypto';
 
 import { Address, Cell } from '@ton/core';
-import { CallForSuccess, getNftsFromClient, Signer } from '@ton/walletkit';
+import { Base64NormalizeUrl, CallForSuccess, getNftsFromClient, Signer, Uint8ArrayToBase64 } from '@ton/walletkit';
 import type { ApiClient, FullAccountState } from '@ton/walletkit';
 
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
@@ -209,7 +209,8 @@ export function buildAgenticCreateDeepLink(input: {
     if (input.tonDeposit?.trim()) {
         payload.tonDeposit = input.tonDeposit.trim();
     }
-    url.searchParams.set('data', Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url'));
+    const payloadBytes = new TextEncoder().encode(JSON.stringify(payload));
+    url.searchParams.set('data', Base64NormalizeUrl(Uint8ArrayToBase64(payloadBytes)));
     return url.toString();
 }
 
