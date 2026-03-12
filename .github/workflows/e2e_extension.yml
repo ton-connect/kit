@@ -74,9 +74,9 @@ jobs:
         chmod +x allurectl
         ./allurectl upload --endpoint $ALLURE_BASE_URL --token $ALLURE_API_TOKEN --project-id $ALLURE_PROJECT_ID apps/demo-wallet/allure-results
       env:
-        ALLURE_BASE_URL: ${{ secrets.ALLURE_BASE_URL }}
-        ALLURE_API_TOKEN: ${{ secrets.ALLURE_API_TOKEN_CI }}
-        ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+        ALLURE_BASE_URL: ${{ secrets.ALLURE_DEMO_ENDPOINT }}
+        ALLURE_API_TOKEN: ${{ secrets.ALLURE_DEMO_API_TOKEN }}
+        ALLURE_PROJECT_ID: ${{ secrets.ALLURE_DEMO_PROJECT_ID }}
 
     - name: Upload Allure Results
       if: always()
