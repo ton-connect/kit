@@ -8,10 +8,10 @@ const binDir = path.dirname(fileURLToPath(import.meta.url));
 const cliEntrypoint = path.resolve(binDir, '../dist/cli.js');
 
 if (!existsSync(cliEntrypoint)) {
-  console.error(
-    'The @ton/mcp CLI has not been built yet. Run `pnpm --filter @ton/mcp build` from the workspace root and retry.'
-  );
-  process.exit(1);
+    process.stderr.write(
+        'The @ton/mcp CLI has not been built yet. Run `pnpm --filter @ton/mcp build` from the workspace root and retry.\n',
+    );
+    process.exit(1);
 }
 
 await import(pathToFileURL(cliEntrypoint).href);

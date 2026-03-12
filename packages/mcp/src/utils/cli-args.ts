@@ -22,7 +22,9 @@ function normalizeCliValue(value: unknown, schema?: JsonSchema): unknown {
     if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('['))) {
         try {
             return normalizeCliValue(JSON.parse(value), schema);
-        } catch {}
+        } catch {
+            // ignore parse errors and fallback to original value
+        }
     }
 
     const variants = schema?.oneOf ?? schema?.anyOf;
@@ -42,7 +44,10 @@ function normalizeCliValue(value: unknown, schema?: JsonSchema): unknown {
                 continue;
             }
             if (typeof normalized === 'number') {
-                if (Number.isFinite(normalized) && (types.includes('number') || (Number.isInteger(normalized) && types.includes('integer')))) {
+                if (
+                    Number.isFinite(normalized) &&
+                    (types.includes('number') || (Number.isInteger(normalized) && types.includes('integer')))
+                ) {
                     return normalized;
                 }
                 continue;
