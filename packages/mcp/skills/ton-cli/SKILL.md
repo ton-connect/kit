@@ -14,7 +14,7 @@ Run any TON wallet MCP tool directly from the command line. The binary invokes t
 
 | Command | Description |
 | ------- | ----------- |
-| `npx @ton/mcp` | stdio MCP server (for Claude Desktop / MCP clients) |
+| `npx @ton/mcp@alpha` | stdio MCP server (for Claude Desktop / MCP clients) |
 | `npx @ton/mcp@alpha --http [port]` | HTTP MCP server |
 | `npx @ton/mcp@alpha <tool_name> [--arg value ...]` | **Raw CLI: call one tool and exit** |
 
