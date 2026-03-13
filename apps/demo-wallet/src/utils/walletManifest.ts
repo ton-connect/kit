@@ -53,6 +53,9 @@ export function getTonConnectFeatures(): Feature[] {
         },
         // Intent features (new in protocol — cast until @tonconnect/protocol types are updated)
         {
+            name: 'SignMessage',
+        },
+        {
             name: 'SendTransactionDraft',
             types: ['ton', 'jetton', 'nft'],
         },
