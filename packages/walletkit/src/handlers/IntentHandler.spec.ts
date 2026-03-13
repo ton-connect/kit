@@ -217,12 +217,15 @@ describe('IntentHandler', () => {
                 emitted = e;
             });
 
-            const url = buildInlineUrl('c1', {
-                id: 'tx-pcr',
-                m: 'txDraft',
-                i: [{ t: 'ton', a: 'EQAddr', am: '100' }],
-                c: { manifestUrl: 'https://dapp.com/m.json', items: [{ name: 'ton_addr' }] },
-            });
+            const url = buildInlineUrl(
+                'c1',
+                {
+                    id: 'tx-pcr',
+                    method: 'txDraft',
+                    params: { i: [{ t: 'ton', a: 'EQAddr', am: '100' }] },
+                },
+                { connectRequest: { manifestUrl: 'https://dapp.com/m.json', items: [{ name: 'ton_addr' }] } },
+            );
             await handler.handleIntentUrl(url, 'wallet-1');
 
             // Should be a batch because of connect
@@ -245,11 +248,13 @@ describe('IntentHandler', () => {
 
             const url = buildInlineUrl('c-batch', {
                 id: 'tx-batch',
-                m: 'txDraft',
-                i: [
-                    { t: 'ton', a: 'EQAddr1', am: '100' },
-                    { t: 'ton', a: 'EQAddr2', am: '200' },
-                ],
+                method: 'txDraft',
+                params: {
+                    i: [
+                        { t: 'ton', a: 'EQAddr1', am: '100' },
+                        { t: 'ton', a: 'EQAddr2', am: '200' },
+                    ],
+                },
             });
 
             await handler.handleIntentUrl(url, 'wallet-1');
@@ -282,8 +287,8 @@ describe('IntentHandler', () => {
 
             const url = buildInlineUrl('c-single', {
                 id: 'tx-single',
-                m: 'txDraft',
-                i: [{ t: 'ton', a: 'EQAddr1', am: '100' }],
+                method: 'txDraft',
+                params: { i: [{ t: 'ton', a: 'EQAddr1', am: '100' }] },
             });
 
             await handler.handleIntentUrl(url, 'wallet-1');
@@ -300,15 +305,20 @@ describe('IntentHandler', () => {
                 emitted = e;
             });
 
-            const url = buildInlineUrl('c-conn', {
-                id: 'tx-conn',
-                m: 'txDraft',
-                i: [
-                    { t: 'ton', a: 'EQAddr1', am: '100' },
-                    { t: 'ton', a: 'EQAddr2', am: '200' },
-                ],
-                c: { manifestUrl: 'https://dapp.com/m.json', items: [{ name: 'ton_addr' }] },
-            });
+            const url = buildInlineUrl(
+                'c-conn',
+                {
+                    id: 'tx-conn',
+                    method: 'txDraft',
+                    params: {
+                        i: [
+                            { t: 'ton', a: 'EQAddr1', am: '100' },
+                            { t: 'ton', a: 'EQAddr2', am: '200' },
+                        ],
+                    },
+                },
+                { connectRequest: { manifestUrl: 'https://dapp.com/m.json', items: [{ name: 'ton_addr' }] } },
+            );
 
             await handler.handleIntentUrl(url, 'wallet-1');
 
@@ -505,12 +515,17 @@ describe('IntentHandler', () => {
 });
 
 /**
- * Helper: Build a tc://?m=intent URL from a wire request object.
+ * Helper: Build a tc://?m=intent URL from a spec-format request object.
  */
-function buildInlineUrl(clientId: string, request: Record<string, unknown>, opts?: { traceId?: string }): string {
+function buildInlineUrl(
+    clientId: string,
+    request: Record<string, unknown>,
+    opts?: { traceId?: string; connectRequest?: Record<string, unknown> },
+): string {
     const json = JSON.stringify(request);
     const b64 = Buffer.from(json, 'utf-8').toString('base64url');
     let url = `tc://?m=intent&id=${clientId}&mp=${b64}`;
     if (opts?.traceId) url += `&trace_id=${opts.traceId}`;
+    if (opts?.connectRequest) url += `&r=${encodeURIComponent(JSON.stringify(opts.connectRequest))}`;
     return url;
 }
