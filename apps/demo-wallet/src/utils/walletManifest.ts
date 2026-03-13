@@ -51,6 +51,9 @@ export function getTonConnectFeatures(): Feature[] {
             types: ['text', 'binary', 'cell'],
         },
         {
+            name: 'SignMessage',
+        },
+        {
             name: 'SendTransactionDraft',
             types: ['ton', 'jetton', 'nft'],
         },

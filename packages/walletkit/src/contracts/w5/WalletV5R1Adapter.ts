@@ -362,6 +362,16 @@ export class WalletV5R1Adapter implements WalletAdapter {
                 name: 'SignData',
                 types: ['binary', 'cell', 'text'],
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { name: 'SignMessage' } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { name: 'SendTransactionDraft', types: ['ton', 'jetton', 'nft'] } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { name: 'SignMessageDraft', types: ['ton', 'jetton', 'nft'] } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { name: 'ActionDraft' } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            { name: 'Intents', types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'] } as any,
         ];
     }
 }
