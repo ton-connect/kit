@@ -54,7 +54,7 @@ test.describe('SetupPassword', () => {
         });
 
         test('helper text is visible', async ({ setupPassword }) => {
-            await step('Verify helper text contains "At least 4 characters"', async () => {
+            await step('Verify helper text contains "At least 8 characters with uppercase, lowercase, and numbers"', async () => {
                 await expect(setupPassword.helperText).toBeVisible();
             });
         });

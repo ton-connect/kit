@@ -34,7 +34,7 @@ export class SetupPasswordPage {
     }
 
     get helperText() {
-        return this.page.getByText('At least 4 characters');
+        return this.page.getByText('At least 8 characters with uppercase, lowercase, and numbers');
     }
 
     get errorMessage() {
