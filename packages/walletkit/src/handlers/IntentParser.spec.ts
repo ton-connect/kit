@@ -6,7 +6,8 @@
  *
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import nacl from 'tweetnacl';
 
 import { IntentParser } from './IntentParser';
 
@@ -310,6 +311,52 @@ describe('IntentParser', () => {
         it('rejects object storage URL without client ID', async () => {
             const url = 'tc://?m=intent_remote&pk=abc123&get_url=https%3A%2F%2Fexample.com%2Fpayload';
             await expect(parser.parse(url)).rejects.toThrow('Missing client ID');
+        });
+
+        it('decrypts object storage payload using SDK self-encryption scheme', async () => {
+            // Reproduce the SDK's encryption scheme:
+            //   const sessionCrypto = new SessionCrypto();
+            //   sessionCrypto.encrypt(payload, sessionCrypto.publicKey)
+            // which is: nacl.box(payload, randomNonce, ownPub, ownSec) || nonce prepended
+            const ephemeral = nacl.box.keyPair();
+            const toHex = (b: Uint8Array) => Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join('');
+
+            const payload = {
+                id: 'os-1',
+                method: 'txDraft',
+                params: { i: [{ t: 'ton', a: 'EQAddr1', am: '500000000' }] },
+            };
+            const nonce = nacl.randomBytes(24);
+            const ciphertext = nacl.box(
+                new TextEncoder().encode(JSON.stringify(payload)),
+                nonce,
+                ephemeral.publicKey,  // self-encrypt: receiverPub = own pub
+                ephemeral.secretKey,
+            );
+            const encrypted = new Uint8Array(nonce.length + ciphertext.length);
+            encrypted.set(nonce);
+            encrypted.set(ciphertext, nonce.length);
+
+            const encryptedB64 = Buffer.from(encrypted).toString('base64');
+            const getUrl = 'https://storage.example.com/payload';
+
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    headers: { get: () => 'text/plain' },
+                    arrayBuffer: async () => new TextEncoder().encode(encryptedB64).buffer,
+                }),
+            );
+
+            const clientId = toHex(nacl.box.keyPair().publicKey); // existing session id — not used for decrypt
+            const pk = toHex(ephemeral.secretKey);
+            const url = `tc://?m=intent_remote&id=${clientId}&pk=${pk}&get_url=${encodeURIComponent(getUrl)}`;
+
+            const { event } = await parser.parse(url);
+            expect(event.type).toBe('transaction');
+
+            vi.unstubAllGlobals();
         });
 
         it('rejects URL without payload', async () => {

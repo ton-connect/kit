@@ -318,8 +318,12 @@ export class IntentParser {
     /**
      * Decrypt an object storage payload using NaCl crypto_box.
      * Format: nonce (24 bytes) || ciphertext
+     *
+     * The SDK self-encrypts using the ephemeral keypair it puts in `pk`:
+     *   nacl.box(payload, nonce, ephemeralPub, ephemeralSec)
+     * So we derive the public key from `pk` and open with the same keypair.
      */
-    private decryptPayload(encrypted: Uint8Array, clientPubKeyHex: string, walletPrivateKeyHex: string): string {
+    private decryptPayload(encrypted: Uint8Array, _clientPubKeyHex: string, walletPrivateKeyHex: string): string {
         if (encrypted.length <= 24) {
             throw new WalletKitError(
                 ERROR_CODES.VALIDATION_ERROR,
@@ -327,15 +331,8 @@ export class IntentParser {
             );
         }
 
-        const clientPubKey = this.hexToBytes(clientPubKeyHex);
         const walletPrivateKey = this.hexToBytes(walletPrivateKeyHex);
 
-        if (clientPubKey.length !== 32) {
-            throw new WalletKitError(
-                ERROR_CODES.VALIDATION_ERROR,
-                `Invalid client public key length: ${clientPubKey.length} (expected 32)`,
-            );
-        }
         if (walletPrivateKey.length !== 32) {
             throw new WalletKitError(
                 ERROR_CODES.VALIDATION_ERROR,
@@ -343,9 +340,12 @@ export class IntentParser {
             );
         }
 
+        // Derive the public key from the private key — the SDK encrypted for this same keypair
+        const walletPublicKey = nacl.box.keyPair.fromSecretKey(walletPrivateKey).publicKey;
+
         const nonce = encrypted.slice(0, 24);
         const ciphertext = encrypted.slice(24);
-        const decrypted = nacl.box.open(ciphertext, nonce, clientPubKey, walletPrivateKey);
+        const decrypted = nacl.box.open(ciphertext, nonce, walletPublicKey, walletPrivateKey);
         if (!decrypted) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Failed to decrypt intent payload');
         }
