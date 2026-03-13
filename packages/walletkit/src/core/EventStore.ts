@@ -402,6 +402,13 @@ export class StorageEventStore implements EventStore {
                 return 'disconnect';
             case 'restoreConnection':
                 return 'restoreConnection';
+            // Draft intent methods delivered via bridge when already connected
+            case 'txDraft':
+                return 'txDraft';
+            case 'signMsg':
+                return 'signMsg';
+            case 'actionDraft':
+                return 'actionDraft';
             default:
                 throw new Error(`Unknown event method: ${method}`);
         }
