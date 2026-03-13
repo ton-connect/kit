@@ -280,7 +280,7 @@ export interface IsIntentUrlArgs {
     url: string;
 }
 
-export interface ApproveTransactionIntentArgs {
+export interface ApproveTransactionDraftArgs {
     event: TransactionIntentRequestEvent;
     walletId: string;
 }
@@ -373,7 +373,7 @@ export interface WalletKitBridgeApi {
     // Intent API
     isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
     handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
-    approveTransactionIntent(args: ApproveTransactionIntentArgs): PromiseOrValue<IntentTransactionResponse>;
+    approveTransactionIntent(args: ApproveTransactionDraftArgs): PromiseOrValue<IntentTransactionResponse>;
     approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<IntentSignDataResponse>;
     approveActionIntent(
         args: ApproveActionIntentArgs,
