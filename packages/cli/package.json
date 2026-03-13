@@ -1,0 +1,75 @@
+{
+  "name": "@ton/cli",
+  "version": "0.1.0",
+  "description": "TON CLI - Agent-friendly command-line wallet toolkit for TON blockchain",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ton": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "pnpm build:clean && rolldown -c && pnpm build:types && pnpm build:chmod",
+    "build:clean": "rimraf dist",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "build:chmod": "chmod +x dist/cli.js",
+    "dev": "rolldown --watch -c",
+    "dev:cli": "node --import tsx/esm src/cli.ts",
+    "lint": "eslint src --max-warnings 0",
+    "lint:fix": "eslint src --max-warnings 0 --fix",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ton",
+    "cli",
+    "wallet",
+    "blockchain",
+    "agent",
+    "agentic"
+  ],
+  "author": "TON Tech",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ton-connect/kit"
+  },
+  "dependencies": {
+    "@ton/walletkit": "workspace:*",
+    "cfonts": "^3.3.0",
+    "ora": "^8.2.0",
+    "picocolors": "^1.1.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "rimraf": "^6.1.0",
+    "rolldown": "1.0.0-rc.2",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
