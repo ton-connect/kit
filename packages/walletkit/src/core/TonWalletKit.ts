@@ -31,6 +31,7 @@ import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
 import { SwapManager } from '../defi/swap';
 import type {
+    RawBridgeEvent,
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
     RawBridgeEventTransaction,
