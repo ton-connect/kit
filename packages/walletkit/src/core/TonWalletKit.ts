@@ -543,8 +543,20 @@ export class TonWalletKit implements ITonWalletKit {
     // === Intent API ===
 
     isIntentUrl(url: string): boolean {
+        if (this.intentHandler) {
+            return this.intentHandler.isIntentUrl(url);
+        }
+        // Pre-init fallback: mirror IntentParser.isIntentUrl logic for the new URL format
+        // New format: tc://?m=intent&... or tc://?m=intent_remote&...
         const normalized = url.trim().toLowerCase();
-        return normalized.startsWith('tc://intent_inline') || normalized.startsWith('tc://intent');
+        if (!normalized.startsWith('tc://')) return false;
+        try {
+            const parsedUrl = new URL(url);
+            const method = parsedUrl.searchParams.get('m') || parsedUrl.searchParams.get('M');
+            return method?.toLowerCase() === 'intent' || method?.toLowerCase() === 'intent_remote';
+        } catch {
+            return false;
+        }
     }
 
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
