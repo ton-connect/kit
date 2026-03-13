@@ -9,7 +9,7 @@
 import type {
     IntentRequestEvent,
     BatchedIntentEvent,
-    TransactionDraftRequestEvent,
+    TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
     IntentTransactionResponse,
@@ -123,19 +123,19 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
             switch (event.type) {
                 case 'transaction':
                     result = await walletKit.approveTransactionDraft(
-                        cloneEvent(event.value) as TransactionDraftRequestEvent,
+                        cloneEvent(event) as TransactionIntentRequestEvent,
                         activeWallet.kitWalletId,
                     );
                     break;
                 case 'signData':
                     result = await walletKit.approveSignDataIntent(
-                        cloneEvent(event.value) as SignDataIntentRequestEvent,
+                        cloneEvent(event),
                         activeWallet.kitWalletId,
                     );
                     break;
                 case 'action':
                     result = await walletKit.approveActionDraft(
-                        cloneEvent(event.value) as ActionIntentRequestEvent,
+                        cloneEvent(event),
                         activeWallet.kitWalletId,
                     );
                     break;
