@@ -684,6 +684,21 @@ export class BridgeManager {
                 }
             }
 
+            // Draft events from an already-connected session are ephemeral RPC calls.
+            // Route them directly via the event emitter so IntentHandler can respond
+            // using the existing session crypto (not the durable event pipeline).
+            const DRAFT_METHODS = ['txDraft', 'signMsgDraft', 'actionDraft'];
+            if (DRAFT_METHODS.includes(rawEvent.method)) {
+                log.info('Bridge draft event received, routing directly', {
+                    eventId: rawEvent.id,
+                    method: rawEvent.method,
+                });
+                if (this.eventEmitter) {
+                    this.eventEmitter.emit('bridge-draft-intent', rawEvent);
+                }
+                return;
+            }
+
             // Store event durably if enabled
             if (!this.eventStore) {
                 throw new WalletKitError(ERROR_CODES.EVENT_STORE_NOT_INITIALIZED, 'Event store is not initialized');
