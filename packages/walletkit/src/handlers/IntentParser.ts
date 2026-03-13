@@ -26,12 +26,7 @@ import type {
 
 const TC_SCHEME = 'tc://';
 
-/**
- * Wire-format intent method identifiers from the TonConnect spec.
- */
-type WireIntentMethod = 'txDraft' | 'signMsgDraft' | 'signData' | 'actionDraft';
-
-const VALID_METHODS: WireIntentMethod[] = ['txDraft', 'signMsgDraft', 'signData', 'actionDraft'];
+const VALID_METHODS = ['txDraft', 'signMsgDraft', 'signData', 'actionDraft'] as const;
 
 /**
  * Wire-format intent item types.
@@ -63,23 +58,28 @@ interface WireIntentItem {
     no?: string;
 }
 
-/**
- * Wire-format intent request payload.
- */
-interface WireIntentRequest {
-    id: string;
-    m: WireIntentMethod;
-    c?: ConnectRequest;
-    // txDraft / signMsgDraft
-    i?: WireIntentItem[];
+interface TxDraftParams {
     vu?: number;
+    f?: string;
     n?: string;
-    // signData
-    mu?: string;
-    p?: { type: string; text?: string; bytes?: string; schema?: string; cell?: string };
-    // actionDraft
-    action_type?: string;
-    url?: string;
+    i: WireIntentItem[];
+}
+
+type SignDataParams = [string];
+
+interface ActionDraftParams {
+    url: string;
+}
+
+/**
+ * Spec-compliant intent request payload (PR #103).
+ * method names match the spec: txDraft | signMsgDraft | signData | actionDraft.
+ * params is nested (not flat) and ConnectRequest lives in the URL r param, not here.
+ */
+interface SpecIntentRequest {
+    id: string;
+    method: 'txDraft' | 'signMsgDraft' | 'signData' | 'actionDraft';
+    params: TxDraftParams | SignDataParams | ActionDraftParams;
 }
 
 /**
@@ -87,7 +87,8 @@ interface WireIntentRequest {
  */
 export interface ParsedIntentUrl {
     clientId?: string;
-    request: WireIntentRequest;
+    request: SpecIntentRequest;
+    connectRequest?: ConnectRequest;
     origin: IntentOrigin;
     traceId?: string;
 }
@@ -180,16 +181,22 @@ export class IntentParser {
         }
         const traceId = parsedUrl.searchParams.get('trace_id') || undefined;
 
+        let connectRequest: ConnectRequest | undefined;
+        const rParam = parsedUrl.searchParams.get('r');
+        if (rParam) {
+            try { connectRequest = JSON.parse(rParam) as ConnectRequest; } catch { /* optional */ }
+        }
+
         const json = this.decodePayload(encoded);
-        let request: WireIntentRequest;
+        let request: SpecIntentRequest;
         try {
-            request = JSON.parse(json) as WireIntentRequest;
+            request = JSON.parse(json) as SpecIntentRequest;
         } catch (error) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid JSON in intent payload', error as Error);
         }
 
         this.validateRequest(request);
-        return { clientId, request, origin: 'deepLink', traceId };
+        return { clientId, request, connectRequest, origin: 'deepLink', traceId };
     }
 
     /**
@@ -209,12 +216,18 @@ export class IntentParser {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing get_url in intent URL');
         }
 
+        let connectRequest: ConnectRequest | undefined;
+        const rParam = parsedUrl.searchParams.get('r');
+        if (rParam) {
+            try { connectRequest = JSON.parse(rParam) as ConnectRequest; } catch { /* optional */ }
+        }
+
         const encryptedPayload = await this.fetchObjectStoragePayload(getUrl);
         const json = this.decryptPayload(encryptedPayload, clientId, walletPrivateKey);
 
-        let request: WireIntentRequest;
+        let request: SpecIntentRequest;
         try {
-            request = JSON.parse(json) as WireIntentRequest;
+            request = JSON.parse(json) as SpecIntentRequest;
         } catch (error) {
             throw new WalletKitError(
                 ERROR_CODES.VALIDATION_ERROR,
@@ -224,7 +237,7 @@ export class IntentParser {
         }
 
         this.validateRequest(request);
-        return { clientId, request, origin: 'objectStorage', traceId };
+        return { clientId, request, connectRequest, origin: 'objectStorage', traceId };
     }
 
     /**
@@ -366,15 +379,15 @@ export class IntentParser {
 
     // -- Validation -----------------------------------------------------------
 
-    private validateRequest(request: WireIntentRequest): void {
+    private validateRequest(request: SpecIntentRequest): void {
         if (!request.id) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Intent request missing id');
         }
-        if (!request.m || !VALID_METHODS.includes(request.m)) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, `Invalid intent method: ${request.m}`);
+        if (!request.method || !VALID_METHODS.includes(request.method)) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, `Invalid intent method: ${request.method}`);
         }
 
-        switch (request.m) {
+        switch (request.method) {
             case 'txDraft':
             case 'signMsgDraft':
                 this.validateTransactionItems(request);
@@ -388,11 +401,12 @@ export class IntentParser {
         }
     }
 
-    private validateTransactionItems(request: WireIntentRequest): void {
-        if (!request.i || !Array.isArray(request.i) || request.i.length === 0) {
+    private validateTransactionItems(request: SpecIntentRequest): void {
+        const params = request.params as TxDraftParams;
+        if (!params?.i || !Array.isArray(params.i) || params.i.length === 0) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Transaction intent missing items (i)');
         }
-        for (const item of request.i) {
+        for (const item of params.i) {
             this.validateItem(item);
         }
     }
@@ -422,19 +436,26 @@ export class IntentParser {
         }
     }
 
-    private validateSignData(request: WireIntentRequest): void {
-        const manifestUrl = request.mu || request.c?.manifestUrl;
-        if (!manifestUrl) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Sign data intent missing manifest URL');
-        }
-        if (!request.p || !request.p.type) {
+    private validateSignData(request: SpecIntentRequest): void {
+        const params = request.params as SignDataParams;
+        if (!Array.isArray(params) || !params[0]) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Sign data intent missing payload');
+        }
+        let raw: Record<string, unknown>;
+        try {
+            raw = JSON.parse(params[0]) as Record<string, unknown>;
+        } catch {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid JSON in sign data payload');
+        }
+        if (!raw.type) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Sign data intent missing type');
         }
     }
 
-    private validateAction(request: WireIntentRequest): void {
-        if (!request.url && !request.action_type) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent missing url or action_type');
+    private validateAction(request: SpecIntentRequest): void {
+        const params = request.params as ActionDraftParams;
+        if (!params?.url) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent missing url');
         }
     }
 
@@ -537,7 +558,7 @@ export class IntentParser {
     // -- Wire → Model mapping -------------------------------------------------
 
     private toIntentEvent(parsed: ParsedIntentUrl): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
-        const { clientId, request, origin, traceId } = parsed;
+        const { clientId, request, connectRequest, origin, traceId } = parsed;
 
         const base: IntentRequestBase = {
             id: request.id,
@@ -549,43 +570,52 @@ export class IntentParser {
 
         let event: IntentRequestEvent;
 
-        switch (request.m) {
+        switch (request.method) {
             case 'txDraft':
             case 'signMsgDraft': {
-                const deliveryMode: IntentDeliveryMode = request.m === 'txDraft' ? 'send' : 'signOnly';
+                const params = request.params as TxDraftParams;
+                const deliveryMode: IntentDeliveryMode = request.method === 'txDraft' ? 'send' : 'signOnly';
                 event = {
                     type: 'transaction' as const,
                     ...base,
                     deliveryMode,
-                    network: request.n ? { chainId: request.n } : undefined,
-                    validUntil: request.vu,
-                    items: this.mapItems(request.i!),
+                    network: params.n ? { chainId: params.n } : undefined,
+                    validUntil: params.vu,
+                    items: this.mapItems(params.i),
                 };
                 break;
             }
             case 'signData': {
-                const manifestUrl = request.mu || request.c?.manifestUrl || '';
+                const params = request.params as SignDataParams;
+                let raw: Record<string, unknown> = {};
+                try { raw = JSON.parse(params[0]) as Record<string, unknown>; } catch { /* validated earlier */ }
                 event = {
                     type: 'signData' as const,
                     ...base,
-                    network: request.n ? { chainId: request.n } : undefined,
-                    manifestUrl,
-                    payload: this.wirePayloadToSignDataPayload(request.p!),
+                    network: raw.network ? { chainId: raw.network as string } : undefined,
+                    manifestUrl: connectRequest?.manifestUrl || '',
+                    payload: this.wirePayloadToSignDataPayload({
+                        type: raw.type as string,
+                        text: raw.text as string | undefined,
+                        bytes: raw.bytes as string | undefined,
+                        cell: raw.cell as string | undefined,
+                        schema: raw.schema as string | undefined,
+                    }),
                 };
                 break;
             }
             case 'actionDraft': {
+                const params = request.params as ActionDraftParams;
                 event = {
                     type: 'action' as const,
                     ...base,
-                    actionUrl: request.url || '',
-                    actionType: request.action_type,
+                    actionUrl: params.url,
                 };
                 break;
             }
         }
 
-        return { event, connectRequest: request.c };
+        return { event: event!, connectRequest };
     }
 
     private mapItems(wireItems: WireIntentItem[]): IntentActionItem[] {
