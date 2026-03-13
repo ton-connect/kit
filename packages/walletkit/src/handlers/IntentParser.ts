@@ -24,7 +24,6 @@ import type {
     Network,
 } from '../api/models';
 
-const TC_SCHEME = 'tc://';
 
 const VALID_METHODS = ['txDraft', 'signMsgDraft', 'signData', 'actionDraft'] as const;
 
@@ -118,8 +117,6 @@ export class IntentParser {
      * Check if a URL is a TonConnect intent deep link.
      */
     isIntentUrl(url: string): boolean {
-        const normalized = url.trim().toLowerCase();
-        if (!normalized.startsWith(TC_SCHEME)) return false;
         try {
             const parsedUrl = new URL(url);
             const method = parsedUrl.searchParams.get('m') || parsedUrl.searchParams.get('M');
@@ -144,11 +141,6 @@ export class IntentParser {
         try {
             const parsedUrl = new URL(url);
             const clientId = parsedUrl.searchParams.get('id') || undefined;
-
-            const normalized = url.trim().toLowerCase();
-            if (!normalized.startsWith(TC_SCHEME)) {
-                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Unknown intent URL scheme');
-            }
 
             const methodKey = Array.from(parsedUrl.searchParams.keys()).find((k) => k.toLowerCase() === 'm');
             const method = methodKey ? parsedUrl.searchParams.get(methodKey)?.toLowerCase() : null;

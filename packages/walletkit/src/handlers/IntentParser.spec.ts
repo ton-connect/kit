@@ -52,6 +52,12 @@ describe('IntentParser', () => {
             expect(parser.isIntentUrl('  TC://?M=INTENT_REMOTE&id=abc  ')).toBe(true);
         });
 
+        it('accepts https universal link scheme with m=intent', () => {
+            expect(
+                parser.isIntentUrl('https://wallet.example.com/ton-connect?v=2&id=abc&m=intent&mp=data'),
+            ).toBe(true);
+        });
+
         it('returns false for non-intent URLs', () => {
             expect(parser.isIntentUrl('https://example.com')).toBe(false);
             expect(parser.isIntentUrl('tc://?m=connect&id=abc')).toBe(false);
