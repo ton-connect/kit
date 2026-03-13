@@ -17,6 +17,7 @@
     "walletkit-ios-bridge": "0.0.1"
   },
   "changesets": [
-    "chubby-deer-battle"
+    "chubby-deer-battle",
+    "five-horses-cough"
   ]
 }

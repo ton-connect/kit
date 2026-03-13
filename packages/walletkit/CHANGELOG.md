@@ -1,5 +1,11 @@
 # @ton/walletkit
 
+## 0.0.11-alpha.0
+
+### Patch Changes
+
+- Use public version of @tonconnect/bridge-sdk
+
 ## 0.0.10
 
 ### Patch Changes

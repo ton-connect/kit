@@ -1,6 +1,6 @@
 {
   "name": "@ton/walletkit",
-  "version": "0.0.10",
+  "version": "0.0.11-alpha.0",
   "description": "Wallet kit for TON Connect",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -97,7 +97,7 @@
   "dependencies": {
     "@noble/curves": "^1.9.7",
     "@scure/bip39": "^2.0.1",
-    "@tonconnect/bridge-sdk": "https://github.com/ton-connect/bridge-sdk/releases/download/v0.2.6/tonconnect-bridge-sdk-0.2.6.tgz",
+    "@tonconnect/bridge-sdk": "^0.2.4",
     "@tonconnect/protocol": "catalog:",
     "@tonconnect/sdk": "catalog:",
     "lru-cache": "^11.2.4",
