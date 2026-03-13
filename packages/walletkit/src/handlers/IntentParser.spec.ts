@@ -319,7 +319,10 @@ describe('IntentParser', () => {
             //   sessionCrypto.encrypt(payload, sessionCrypto.publicKey)
             // which is: nacl.box(payload, randomNonce, ownPub, ownSec) || nonce prepended
             const ephemeral = nacl.box.keyPair();
-            const toHex = (b: Uint8Array) => Array.from(b).map((x) => x.toString(16).padStart(2, '0')).join('');
+            const toHex = (b: Uint8Array) =>
+                Array.from(b)
+                    .map((x) => x.toString(16).padStart(2, '0'))
+                    .join('');
 
             const payload = {
                 id: 'os-1',
@@ -330,7 +333,7 @@ describe('IntentParser', () => {
             const ciphertext = nacl.box(
                 new TextEncoder().encode(JSON.stringify(payload)),
                 nonce,
-                ephemeral.publicKey,  // self-encrypt: receiverPub = own pub
+                ephemeral.publicKey, // self-encrypt: receiverPub = own pub
                 ephemeral.secretKey,
             );
             const encrypted = new Uint8Array(nonce.length + ciphertext.length);
