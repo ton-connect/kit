@@ -245,6 +245,72 @@ export class IntentHandler {
             return result;
         }
 
+        // Check for action intents — fetch the action URL, resolve to tx/signData,
+        // sign the result, then respond using the batch's identity.
+        const actionIntent = batch.intents.find((i) => i.type === 'action');
+        if (actionIntent && actionIntent.type === 'action') {
+            if (!actionIntent.actionUrl) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Action intent missing actionUrl, cannot fetch action response.',
+                );
+            }
+
+            const actionResponse = await this.resolver.fetchActionUrl(actionIntent.actionUrl, wallet.getAddress());
+            const resolvedEvent = this.parser.parseActionResponse(actionResponse, actionIntent);
+
+            if (resolvedEvent.type === 'transaction') {
+                if (resolvedEvent.resolvedTransaction) {
+                    resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
+                }
+                const transactionRequest =
+                    resolvedEvent.resolvedTransaction ?? (await this.resolveTransaction(resolvedEvent, wallet));
+                const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
+                    internal: resolvedEvent.deliveryMode === 'signOnly',
+                });
+                if (resolvedEvent.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
+                    await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
+                }
+                const txResult: IntentTransactionResponse = {
+                    type: 'transaction',
+                    boc: signedBoc as Base64String,
+                };
+                await this.sendBatchResponse(batch, txResult);
+                return txResult;
+            }
+
+            if (resolvedEvent.type === 'signData') {
+                let domain = resolvedEvent.manifestUrl;
+                try {
+                    domain = new URL(resolvedEvent.manifestUrl).host;
+                } catch {
+                    // use as-is
+                }
+                const signData = PrepareSignData({
+                    payload: resolvedEvent.payload,
+                    domain,
+                    address: wallet.getAddress(),
+                });
+                const signature = await wallet.getSignedSignData(signData);
+                const signatureBase64 = HexToBase64(signature);
+                const sdResult: IntentSignDataResponse = {
+                    type: 'signData',
+                    signature: signatureBase64 as Base64String,
+                    address: wallet.getAddress() as UserFriendlyAddress,
+                    timestamp: signData.timestamp,
+                    domain: signData.domain,
+                    payload: resolvedEvent.payload,
+                };
+                await this.sendBatchResponse(batch, sdResult);
+                return sdResult;
+            }
+
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Action URL resolved to unsupported intent type: ${resolvedEvent.type}`,
+            );
+        }
+
         throw new WalletKitError(
             ERROR_CODES.VALIDATION_ERROR,
             'Batched intent contains no transaction or signData items',
