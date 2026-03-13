@@ -217,15 +217,43 @@ export const useSwap = () => {
             isReverseSwap: state.swap.isReverseSwap,
             setFromToken: state.setFromToken,
             setToToken: state.setToToken,
-            setAmount: state.setAmount,
+            setSwapAmount: state.setSwapAmount,
             setDestinationAddress: state.setDestinationAddress,
             setSlippageBps: state.setSlippageBps,
             setIsReverseSwap: state.setIsReverseSwap,
             swapTokens: state.swapTokens,
-            getQuote: state.getQuote,
+            getSwapQuote: state.getSwapQuote,
             executeSwap: state.executeSwap,
             clearSwap: state.clearSwap,
             validateSwapInputs: state.validateSwapInputs,
+        })),
+    );
+};
+/**
+ * Hook for Staking
+ */
+export const useStaking = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            amount: state.staking.amount,
+            providerId: state.staking.providerId,
+            currentQuote: state.staking.currentQuote,
+            isLoadingQuote: state.staking.isLoadingQuote,
+            isStaking: state.staking.isStaking,
+            isUnstaking: state.staking.isUnstaking,
+            error: state.staking.error,
+            stakedBalance: state.staking.stakedBalance,
+            providerInfo: state.staking.providerInfo,
+            unstakeMode: state.staking.unstakeMode,
+            setStakingAmount: state.setStakingAmount,
+            setStakingProviderId: state.setStakingProviderId,
+            setUnstakeMode: state.setUnstakeMode,
+            getStakingQuote: state.getStakingQuote,
+            stake: state.stake,
+            unstake: state.unstake,
+            loadStakingData: state.loadStakingData,
+            clearStaking: state.clearStaking,
+            validateStakingInputs: state.validateStakingInputs,
         })),
     );
 };

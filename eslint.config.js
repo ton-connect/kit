@@ -33,6 +33,7 @@ module.exports = [
             '**/Packages/TONWalletKit/*',
             '**/TONWalletApp/TONWalletApp/*',
             '**/androidkit/**',
+            '**/analytics/swagger/generated.ts',
         ],
     },
     {

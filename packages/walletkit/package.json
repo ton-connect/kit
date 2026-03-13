@@ -50,6 +50,16 @@
         "types": "./dist/cjs/defi/swap/dedust/index.d.ts",
         "default": "./dist/cjs/defi/swap/dedust/index.js"
       }
+    },
+    "./staking/tonstakers": {
+      "import": {
+        "types": "./dist/esm/defi/staking/tonstakers/index.d.ts",
+        "default": "./dist/esm/defi/staking/tonstakers/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/staking/tonstakers/index.d.ts",
+        "default": "./dist/cjs/defi/staking/tonstakers/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -62,6 +72,9 @@
       ],
       "swap/dedust": [
         "./dist/cjs/defi/swap/dedust/index.d.ts"
+      ],
+      "staking/tonstakers": [
+        "./dist/cjs/defi/staking/tonstakers/index.d.ts"
       ]
     }
   },

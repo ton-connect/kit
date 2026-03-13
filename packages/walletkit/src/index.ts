@@ -20,6 +20,7 @@ export { RequestProcessor } from './core/RequestProcessor';
 export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';
 export { SwapManager, SwapProvider, SwapError } from './defi/swap';
+export { StakingManager, StakingProvider, StakingError } from './defi/staking';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener } from './core/EventEmitter';
 export { ApiClientToncenter } from './clients/toncenter';
