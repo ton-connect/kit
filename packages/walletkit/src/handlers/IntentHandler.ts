@@ -19,7 +19,7 @@ import { ConnectHandler } from './ConnectHandler';
 import type { BridgeManager } from '../core/BridgeManager';
 import type { WalletManager } from '../core/WalletManager';
 import type { Wallet } from '../api/interfaces';
-import type { RawBridgeEventConnect } from '../types/internal';
+import type { RawBridgeEvent, RawBridgeEventConnect } from '../types/internal';
 import type { AnalyticsManager } from '../analytics';
 import type {
     IntentRequestEvent,
@@ -111,6 +111,26 @@ export class IntentHandler {
             } else {
                 this.emit(event);
             }
+        }
+    }
+
+    /**
+     * Parse and emit a draft intent event received via the existing bridge session.
+     * Called when txDraft/signMsgDraft/actionDraft arrives while already connected.
+     */
+    async handleBridgeDraftEvent(rawEvent: RawBridgeEvent, walletId: string): Promise<void> {
+        try {
+            const event = this.parser.parseBridgeDraftPayload(rawEvent);
+
+            if (event.type === 'connect') return;
+
+            if (event.type === 'transaction') {
+                await this.resolveAndEmitTransaction(event, walletId);
+            } else {
+                this.emit(event);
+            }
+        } catch (error) {
+            log.error('Failed to handle bridge draft event', { error, eventId: rawEvent.id });
         }
     }
 
@@ -534,7 +554,13 @@ export class IntentHandler {
         const wireResponse = this.toWireResponse(event.id, result);
 
         try {
-            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
+            // For intents delivered via an existing bridge session, respond using the
+            // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
+            if (event.origin === 'connectedBridge') {
+                await this.bridgeManager.sendResponse(event as import('../api/models').BridgeEvent, wireResponse);
+            } else {
+                await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
+            }
         } catch (error) {
             log.error('Failed to send intent response', { error, eventId: event.id });
         }

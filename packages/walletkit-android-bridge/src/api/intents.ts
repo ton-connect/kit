@@ -20,16 +20,16 @@ export async function handleIntentUrl(args: unknown[]) {
     return kit('handleIntentUrl', ...args);
 }
 
-export async function approveTransactionIntent(args: unknown[]) {
-    return kit('approveTransactionIntent', ...args);
+export async function approveTransactionDraft(args: unknown[]) {
+    return kit('approveTransactionDraft', ...args);
 }
 
 export async function approveSignDataIntent(args: unknown[]) {
     return kit('approveSignDataIntent', ...args);
 }
 
-export async function approveActionIntent(args: unknown[]) {
-    return kit('approveActionIntent', ...args);
+export async function approveActionDraft(args: unknown[]) {
+    return kit('approveActionDraft', ...args);
 }
 
 export async function approveBatchedIntent(args: unknown[]) {

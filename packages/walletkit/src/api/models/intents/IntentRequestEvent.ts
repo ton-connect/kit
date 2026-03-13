@@ -18,7 +18,7 @@ import type { IntentActionItem } from './IntentActionItem';
 /**
  * Origin of the intent request.
  */
-export type IntentOrigin = 'deepLink' | 'objectStorage' | 'bridge' | 'jsBridge';
+export type IntentOrigin = 'deepLink' | 'objectStorage' | 'bridge' | 'jsBridge' | 'connectedBridge';
 
 /**
  * Delivery mode for the signed transaction.

@@ -31,6 +31,7 @@ import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
 import { SwapManager } from '../defi/swap';
 import type {
+    RawBridgeEvent,
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
     RawBridgeEventTransaction,
@@ -141,6 +142,18 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Initialize SwapManager
         this.swapManager = new SwapManager();
+
+        this.eventEmitter.on('bridge-draft-intent', async (event: RawBridgeEvent) => {
+            const walletId = event.walletId;
+            if (!walletId) {
+                log.error('bridge-draft-intent received without walletId', { eventId: event.id });
+                return;
+            }
+            await this.ensureInitialized();
+            if (this.intentHandler) {
+                await this.intentHandler.handleBridgeDraftEvent(event, walletId);
+            }
+        });
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {

@@ -10,6 +10,7 @@ import type { ConnectRequest } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
 import { WalletKitError, ERROR_CODES } from '../errors';
+import type { RawBridgeEvent } from '../types/internal';
 import type {
     IntentActionItem,
     IntentOrigin,
@@ -133,6 +134,32 @@ export class IntentParser {
     async parse(url: string): Promise<{ event: IntentRequestEvent; connectRequest?: ConnectRequest }> {
         const parsed = await this.parseUrl(url);
         return this.toIntentEvent(parsed);
+    }
+
+    /**
+     * Parse a bridge-delivered draft RPC event into a typed IntentRequestEvent.
+     * Used when the wallet is already connected and receives txDraft/signMsgDraft/actionDraft
+     * via the existing bridge session (sendRequest path).
+     */
+    parseBridgeDraftPayload(rawEvent: RawBridgeEvent): IntentRequestEvent {
+        const request: SpecIntentRequest = {
+            id: rawEvent.id,
+            method: rawEvent.method as 'txDraft' | 'signMsgDraft' | 'actionDraft',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            params: ((rawEvent.params as any)?.[0] ?? rawEvent.params ?? {}) as TxDraftParams | SignDataParams | ActionDraftParams,
+        };
+        this.validateRequest(request);
+        const parsed: ParsedIntentUrl = {
+            clientId: rawEvent.from,
+            request,
+            connectRequest: undefined,
+            origin: 'connectedBridge',
+            traceId: rawEvent.traceId,
+        };
+        const { event } = this.toIntentEvent(parsed);
+        // Carry `from` so bridgeManager.sendResponse can look up the existing session
+        event.from = rawEvent.from;
+        return event;
     }
 
     // -- URL parsing ----------------------------------------------------------
