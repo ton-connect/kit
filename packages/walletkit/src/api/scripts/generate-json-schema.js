@@ -614,6 +614,13 @@ class DiscriminatedUnionTypeFormatter {
         if (this.hasRecursiveReference(type)) {
             return false;
         }
+        // Interface unions (named types without a `value` wrapper) are handled
+        // by ts-json-schema-generator's default allOf[if/then] output, then
+        // transformed by postProcessDiscriminatedUnions. Don't claim them here.
+        const hasValueWrapper = type.getTypes().every((variant) => this.getAssociatedValueType(variant) !== null);
+        if (!hasValueWrapper) {
+            return false;
+        }
         return true;
     }
 
