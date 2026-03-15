@@ -23,13 +23,13 @@ Swap tokens on TON via DEX aggregator. Two-step flow: get a quote, confirm with 
 2. Call `get_swap_quote` with `fromToken`, `toToken`, and `amount`
    - Use `"TON"` for native TON, or the jetton master contract address for tokens
    - Amount is human-readable (e.g., `"1.5"` = 1.5 TON)
-3. Show the quote details to the user and ask for confirmation
+3. Show the quote details to the user and ask one short yes/no confirmation
 4. Call `send_raw_transaction` with the transaction params returned by the quote
 5. Poll `get_transaction_status` with the returned `normalizedHash` until status is `completed` or `failed` (see `ton-balance` skill). User can ask to skip polling.
 
 ## Notes
 
-- Always confirm the swap with the user before executing
+- Always confirm the swap with the user before executing; prefer the host client's structured confirmation UI when available, otherwise accept natural-language yes/no and do not require a fixed confirmation phrase
 - The quote returns transaction messages ready for `send_raw_transaction`
 - After execution, poll `get_transaction_status` by default. User can specify whether to check status.
 - If no wallet is configured, use the `ton-create-wallet` skill first

@@ -7,7 +7,7 @@ disable-model-invocation: false
 
 # Create TON Agentic Wallet
 
-Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the user deploys the wallet contract from the dashboard, then provides the wallet address to complete setup.
+Deploy an on-chain agentic wallet on TON. The agent generates operator keys, opens the dashboard when local browser/shell tools are available, and uses callback-based completion only in long-lived stdio/HTTP MCP server sessions.
 
 ## MCP Tools
 
@@ -30,11 +30,12 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the
 
 ## Workflow
 
-1. Call `agentic_start_root_wallet_setup` — this generates an operator key pair and returns a `setupId` and `dashboardUrl`
-2. Show the `dashboardUrl` to the user and tell them to open it, deploy the wallet from their TON wallet, and then come back with the deployed wallet address
-3. **Ask the user for the wallet address** — in CLI/stdio mode there is no callback, so the agent must ask the user to paste the wallet address after they finish deployment on the dashboard
-4. Call `agentic_complete_root_wallet_setup` with the `setupId` and the `walletAddress` provided by the user
-5. Confirm the wallet is active with `get_current_wallet` or `list_wallets` (see `ton-manage-wallets` skill)
+1. Call `agentic_start_root_wallet_setup` — this generates an operator key pair and returns a `setupId`, `dashboardUrl`, and `callbackUrl`
+2. If the environment exposes local browser or shell tools, open `dashboardUrl` yourself with the platform opener (`open`, `xdg-open`, `start`) or browser automation; only paste the link to the user if automatic opening is unavailable or fails
+3. Tell the user only to approve wallet deployment from their main TON wallet; do not ask them to retype the URL or copy intermediate data
+4. In long-lived stdio/HTTP MCP server sessions, poll `agentic_get_root_wallet_setup` or `agentic_list_pending_root_wallet_setups` and wait for `status: "callback_received"` when callback flow is available; then call `agentic_complete_root_wallet_setup` with `setupId`;
+5. In raw one-shot CLI usage, skip callback polling and ask for `walletAddress` after the user deploys the wallet; then call `agentic_complete_root_wallet_setup` with `walletAddress` 
+6. Confirm the wallet is active with `get_current_wallet` or `list_wallets` (see `ton-manage-wallets` skill)
 
 ## How It Works
 
@@ -53,6 +54,7 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, the
 
 ## Notes
 
-- In CLI/stdio mode there is no callback — always ask the user for the wallet address after showing the dashboard URL
-- Do **not** poll for callback status in CLI mode; just wait for the user to provide the address
+- Callback-driven completion is for long-lived stdio/HTTP MCP server sessions; raw CLI should use manual `walletAddress` completion
+- If automatic dashboard opening is supported in the current environment, do it instead of asking the user to open the URL manually
+- In raw CLI mode, ask for the wallet address after deployment because the callback server is not available long enough to complete the flow
 - After wallet creation, fund the wallet with TON before using transfer or swap skills

@@ -152,6 +152,7 @@ npx @ton/mcp@alpha get_swap_quote --fromToken TON --toToken EQCxE6mUtQJKFnGfaROT
 
 ## Notes
 
-- Always confirm with the user before running `send_ton`, `send_jetton`, `send_nft`, or `send_raw_transaction`.
+- Always confirm with the user before running `send_ton`, `send_jetton`, `send_nft`, or `send_raw_transaction`; 
+- For confirmations and small option sets, prefer the host client's structured confirmation/choice UI when available; otherwise use a short natural-language yes/no prompt and never require an exact magic word;
 - After sending, poll `get_transaction_status --normalizedHash <hash>` until status is `completed` or `failed` (unless the user asks to skip).
 - In registry mode the active wallet from `~/.config/ton/config.json` is used by default.

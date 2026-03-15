@@ -321,7 +321,7 @@ Import an existing agentic wallet into the local TON config registry, recovering
 - `name` (optional): Wallet display name
 
 #### `agentic_start_root_wallet_setup` (registry mode only)
-Start first-root-agent setup: generate operator keys, persist a pending draft, and return a dashboard URL for the user to create the wallet from their main wallet.
+Start first-root-agent setup: generate operator keys, persist a pending draft, and return a dashboard URL for the user to create the wallet from their main wallet. Agents with local shell/browser access should open the dashboard URL for the user. Callback-based completion is for long-lived stdio/HTTP server sessions; raw CLI should use manual completion.
 
 **Parameters:**
 - `network` (optional): Network for the new root wallet

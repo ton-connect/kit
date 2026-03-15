@@ -243,7 +243,7 @@ export function createMcpWalletManagementTools(registry: WalletRegistryService) 
 
         rotate_operator_key: {
             description:
-                'Start agentic operator key rotation: generate or accept a replacement operator key, persist a pending draft, and return a dashboard URL for the on-chain change.',
+                'Start agentic operator key rotation: generate or accept a replacement operator key, persist a pending draft, and return a dashboard URL for the on-chain change. Agents with shell/browser access should open the dashboard URL instead of asking the user to copy it manually.',
             inputSchema: rotateOperatorKeySchema,
             handler: async (args: z.infer<typeof rotateOperatorKeySchema>): Promise<ToolResponse> => {
                 try {

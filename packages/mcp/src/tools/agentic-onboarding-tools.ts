@@ -69,7 +69,7 @@ export function createMcpAgenticOnboardingTools(onboarding: AgenticOnboardingSer
     return {
         start_agentic_root_wallet_setup: {
             description:
-                'Start first-root-agent setup: generate operator keys, persist a pending draft, and return a dashboard URL for the user to create the wallet from their main wallet.',
+                'Start first-root-agent setup: generate operator keys, persist a pending draft, and return dashboard and callback URLs. Agents with shell/browser access should open the dashboard URL. Waiting for callback_received applies to long-lived stdio/HTTP server sessions; raw CLI should complete manually with walletAddress.',
             inputSchema: startAgenticRootWalletSetupSchema,
             handler: async (args: z.infer<typeof startAgenticRootWalletSetupSchema>): Promise<ToolResponse> => {
                 try {

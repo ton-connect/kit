@@ -22,20 +22,20 @@ Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` a
 
 ### Send TON
 1. If the user provides a DNS name (e.g., `foundation.ton`, `user.t.me`) instead of a raw address, call `resolve_dns` first
-2. Confirm the amount and recipient with the user
+2. Ask one short yes/no confirmation that restates the amount and recipient
 3. Call `send_ton` with address and amount
 4. Poll `get_transaction_status` with the returned `normalizedHash` until status is `completed` or `failed` (see `ton-balance` skill). User can ask to skip polling.
 
 ### Send Jetton (Token)
 1. If user mentions a token by name, call `get_known_jettons` (see `ton-balance` skill) to find the `jettonAddress`
 2. Call `get_jetton_balance` to verify sufficient balance
-3. Confirm with the user
+3. Ask one short yes/no confirmation before sending
 4. Call `send_jetton` with the `jettonAddress`, `toAddress`, and `amount`
 5. Poll `get_transaction_status` until completed or failed
 
 ## Notes
 
 - Amounts are human-readable (e.g., `"1.5"` = 1.5 TON, `"100"` = 100 tokens)
-- Always confirm with the user before executing a transfer
+- Always confirm with the user before executing a transfer; prefer the host client's structured confirmation UI when available, otherwise accept natural-language yes/no and do not require a fixed confirmation phrase
 - After sending, poll `get_transaction_status` by default. User can specify whether to check status.
 - If no wallet is configured, use the `ton-create-wallet` skill first
