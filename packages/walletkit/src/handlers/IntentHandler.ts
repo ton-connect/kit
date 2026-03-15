@@ -551,7 +551,7 @@ export class IntentHandler {
             return;
         }
 
-        const wireResponse = this.toWireResponse(event.id, result);
+        const wireResponse = this.toWireResponse(event.id, result, event);
 
         try {
             // For intents delivered via an existing bridge session, respond using the
@@ -583,11 +583,12 @@ export class IntentHandler {
 
     /**
      * Convert SDK response model to TonConnect wire format.
-     * - Transaction: `{ result: "<boc>", id }`
+     * - Transaction (send): `{ result: "<boc>", id }`
+     * - Transaction (signOnly/signMsgDraft): `{ result: { internal_boc: "<boc>" }, id }`
      * - SignData: `{ result: { signature, address, timestamp, domain, payload }, id }`
      * - Error: `{ error: { code, message }, id }`
      */
-    private toWireResponse(eventId: string, result: IntentResponseResult): Record<string, unknown> {
+    private toWireResponse(eventId: string, result: IntentResponseResult, event?: IntentRequestBase): Record<string, unknown> {
         if (result.type === 'error') {
             return {
                 error: { code: result.error.code, message: result.error.message },
@@ -596,6 +597,10 @@ export class IntentHandler {
         }
 
         if (result.type === 'transaction') {
+            const txEvent = event as Extract<IntentRequestEvent, { type: 'transaction' }> | undefined;
+            if (txEvent?.deliveryMode === 'signOnly') {
+                return { result: { internal_boc: result.boc }, id: eventId };
+            }
             return { result: result.boc, id: eventId };
         }
 
