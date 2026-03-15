@@ -1,5 +1,12 @@
 # @ton/appkit
 
+## 0.0.4-alpha.1
+
+### Patch Changes
+
+- Updated dependencies
+    - @ton/walletkit@0.0.11-alpha.1
+
 ## 0.0.4-alpha.0
 
 ### Patch Changes

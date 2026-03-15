@@ -35,6 +35,8 @@
  *   AGENTIC_CALLBACK_PORT - port for local callback server in stdio mode (default: random free port)
  */
 
+import './suppress-punycode-deprecation.js';
+
 import { createServer } from 'node:http';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -259,7 +261,7 @@ async function createWalletAndServer(agenticSessionManager?: AgenticSetupSession
     wallet?: Wallet;
 }> {
     if (!MNEMONIC && !PRIVATE_KEY) {
-        log('No direct wallet credentials provided. Starting in config-registry mode.');
+        // log('No direct wallet credentials provided. Starting in config-registry mode.');
         const server = await createTonWalletMCP({
             agenticSessionManager,
             walletVersion: WALLET_VERSION,

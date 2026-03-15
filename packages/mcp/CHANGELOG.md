@@ -1,5 +1,13 @@
 # @ton/mcp
 
+## 0.1.15-alpha.6
+
+### Patch Changes
+
+- Added logs level from env for walletkit, supressed node deprecation warnings for mcp
+- Updated dependencies
+    - @ton/walletkit@0.0.11-alpha.1
+
 ## 0.1.15-alpha.5
 
 ### Patch Changes

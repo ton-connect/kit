@@ -1,5 +1,11 @@
 # @ton/walletkit
 
+## 0.0.11-alpha.1
+
+### Patch Changes
+
+- Added logs level from env for walletkit, supressed node deprecation warnings for mcp
+
 ## 0.0.11-alpha.0
 
 ### Patch Changes
