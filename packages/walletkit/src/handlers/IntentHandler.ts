@@ -227,7 +227,7 @@ export class IntentHandler {
             };
 
             // Send one response using the batch's identity
-            await this.sendBatchResponse(batch, result);
+            await this.sendBatchResponse(batch, result, deliveryMode);
             return result;
         }
 
@@ -295,7 +295,7 @@ export class IntentHandler {
                     type: 'transaction',
                     boc: signedBoc as Base64String,
                 };
-                await this.sendBatchResponse(batch, txResult);
+                await this.sendBatchResponse(batch, txResult, resolvedEvent.deliveryMode);
                 return txResult;
             }
 
@@ -566,13 +566,13 @@ export class IntentHandler {
         }
     }
 
-    private async sendBatchResponse(batch: BatchedIntentEvent, result: IntentResponseResult): Promise<void> {
+    private async sendBatchResponse(batch: BatchedIntentEvent, result: IntentResponseResult, deliveryMode?: 'send' | 'signOnly'): Promise<void> {
         if (!batch.clientId) {
             log.debug('No clientId on batched intent, skipping response send');
             return;
         }
 
-        const wireResponse = this.toWireResponse(batch.id, result);
+        const wireResponse = this.toWireResponse(batch.id, result, undefined, deliveryMode);
 
         try {
             await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
@@ -588,7 +588,7 @@ export class IntentHandler {
      * - SignData: `{ result: { signature, address, timestamp, domain, payload }, id }`
      * - Error: `{ error: { code, message }, id }`
      */
-    private toWireResponse(eventId: string, result: IntentResponseResult, event?: IntentRequestBase): Record<string, unknown> {
+    private toWireResponse(eventId: string, result: IntentResponseResult, event?: IntentRequestBase, deliveryMode?: 'send' | 'signOnly'): Record<string, unknown> {
         if (result.type === 'error') {
             return {
                 error: { code: result.error.code, message: result.error.message },
@@ -598,7 +598,8 @@ export class IntentHandler {
 
         if (result.type === 'transaction') {
             const txEvent = event as Extract<IntentRequestEvent, { type: 'transaction' }> | undefined;
-            if (txEvent?.deliveryMode === 'signOnly') {
+            const isSignOnly = deliveryMode === 'signOnly' || txEvent?.deliveryMode === 'signOnly';
+            if (isSignOnly) {
                 return { result: { internal_boc: result.boc }, id: eventId };
             }
             return { result: result.boc, id: eventId };
