@@ -81,20 +81,20 @@ export class IntentResolver {
             );
         }
 
+        const rawBody = await response.text();
         try {
-            return await response.json();
+            return JSON.parse(rawBody);
         } catch (error) {
-            const rawBody = await response.text().catch(() => '');
             if (rawBody.trim().startsWith('<')) {
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
-                    `Action URL returned HTML instead of JSON. Ensure the Action dApp endpoint returns a valid JSON payload.`,
+                    `Action URL returned HTML instead of JSON`,
                     error as Error,
                 );
             }
             throw new WalletKitError(
                 ERROR_CODES.VALIDATION_ERROR,
-                `Action URL returned invalid JSON. ${(error as Error).message}`,
+                `Action URL returned invalid JSON: ${(error as Error).message}`,
                 error as Error,
             );
         }
