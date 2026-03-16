@@ -55,6 +55,6 @@ Manage the local wallet registry and perform advanced agentic wallet operations 
 - Use available shell/browser tools to open dashboard URLs for the user whenever possible
 - For confirmations and small option sets, prefer the host client's structured confirmation/choice UI when available; otherwise use a short natural-language yes/no prompt and never require an exact magic word
 - Registry data is stored in `~/.config/ton/config.json` (or `TON_CONFIG_PATH`)
-- Read tools work with imported agentic wallets that don't yet have an `operator_private_key`; write tools require it
+- Read tools work with imported agentic wallets that don't yet have a `private_key`; write tools require it
 - Management tool responses never expose private keys, mnemonics, or API keys
 - To create a brand new agentic wallet, use the `ton-create-wallet` skill instead

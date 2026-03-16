@@ -97,11 +97,11 @@ describe('AgenticSetupSessionManager', () => {
 
         await manager.createSession('setup-3');
         manager.markCompleted('setup-3');
-        expect(manager.getSession('setup-3')).toBeNull();
+        expect(manager.getSession('setup-3')).toBeUndefined();
 
         await manager.createSession('setup-4');
         manager.cancelSession('setup-4');
-        expect(manager.getSession('setup-4')).toBeNull();
+        expect(manager.getSession('setup-4')).toBeUndefined();
     });
 
     it('restores persisted callback payloads and callback urls from config-backed store', async () => {

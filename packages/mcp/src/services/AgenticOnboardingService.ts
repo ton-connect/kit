@@ -13,16 +13,6 @@ import type { WalletRegistryService } from './WalletRegistryService.js';
 import type { AgenticSetupSessionManager } from './AgenticSetupSessionManager.js';
 import type { AgenticDeployCallbackPayload, AgenticSetupSession } from './AgenticSetupSessionManager.js';
 
-function getDefaultAgenticSource(source?: string): string {
-    const trimmed = source?.trim();
-    return trimmed || 'Deployed via @ton/mcp';
-}
-
-function getDefaultAgenticName(name: string | undefined, operatorPublicKey: string): string {
-    const trimmed = name?.trim();
-    return trimmed || `Agent ${operatorPublicKey.replace(/^0x/i, '').slice(0, 6)}`;
-}
-
 function payloadMatchesNetwork(payload: AgenticDeployCallbackPayload, network: TonNetwork): boolean {
     const chainId = String(payload.network?.chainId ?? '');
     return network === 'mainnet'
@@ -33,7 +23,7 @@ function payloadMatchesNetwork(payload: AgenticDeployCallbackPayload, network: T
 export interface AgenticRootWalletSetupStatus {
     setupId: string;
     pendingDeployment: PendingAgenticDeployment;
-    session: AgenticSetupSession | null;
+    session?: AgenticSetupSession;
     status: AgenticSetupSession['status'] | 'pending_without_callback';
     dashboardUrl?: string;
 }
@@ -60,11 +50,11 @@ export class AgenticOnboardingService {
     }> {
         const network = normalizeNetwork(input.network, 'mainnet');
         const operator = await generateOperatorKeyPair();
-        const resolvedName = getDefaultAgenticName(input.name, operator.publicKey);
-        const resolvedSource = getDefaultAgenticSource(input.source);
+        const resolvedName = input.name?.trim() || `Agent ${operator.publicKey.replace(/^0x/i, '').slice(0, 6)}`;
+        const resolvedSource = input.source?.trim() || 'Deployed via @ton/mcp';
         const pendingDeployment = await this.registry.createPendingAgenticSetup({
             network,
-            operatorPrivateKey: operator.privateKey,
+            privateKey: operator.privateKey,
             operatorPublicKey: operator.publicKey,
             name: resolvedName,
             source: resolvedSource,
@@ -95,10 +85,10 @@ export class AgenticOnboardingService {
         return pending.map((deployment) => this.composeStatus(deployment));
     }
 
-    async getRootWalletSetup(setupId: string): Promise<AgenticRootWalletSetupStatus | null> {
+    async getRootWalletSetup(setupId: string): Promise<AgenticRootWalletSetupStatus | undefined> {
         const pending = await this.registry.getPendingAgenticSetup(setupId);
         if (!pending) {
-            return null;
+            return undefined;
         }
         return this.composeStatus(pending);
     }

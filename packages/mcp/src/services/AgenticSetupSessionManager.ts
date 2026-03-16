@@ -9,15 +9,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 
-import {
-    createEmptyConfig,
-    findAgenticSetupSession,
-    listAgenticSetupSessions,
-    loadConfig,
-    removeAgenticSetupSession,
-    saveConfig,
-    upsertAgenticSetupSession,
-} from '../registry/config.js';
+import { createEmptyConfig, removeAgenticSetupSession, upsertAgenticSetupSession } from '../registry/config.js';
+import { loadConfig, saveConfigTransition } from '../registry/config-persistence.js';
 import type { AgenticSetupStatus, StoredAgenticSetupSession } from '../registry/config.js';
 
 export interface AgenticDeployCallbackPayload {
@@ -63,20 +56,20 @@ export interface AgenticSetupSessionStore {
 
 export class ConfigBackedAgenticSetupSessionStore implements AgenticSetupSessionStore {
     listSessions(): StoredAgenticSetupSession[] {
-        return listAgenticSetupSessions(loadConfig() ?? createEmptyConfig());
+        return [...(loadConfig() ?? createEmptyConfig()).agentic_setup_sessions];
     }
 
     upsertSession(session: StoredAgenticSetupSession): void {
         const config = loadConfig() ?? createEmptyConfig();
-        saveConfig(upsertAgenticSetupSession(config, session));
+        saveConfigTransition(config, upsertAgenticSetupSession(config, session));
     }
 
     removeSession(setupId: string): void {
         const config = loadConfig() ?? createEmptyConfig();
-        if (!findAgenticSetupSession(config, setupId)) {
+        if (!config.agentic_setup_sessions.find((session) => session.setup_id === setupId)) {
             return;
         }
-        saveConfig(removeAgenticSetupSession(config, setupId));
+        saveConfigTransition(config, removeAgenticSetupSession(config, setupId));
     }
 }
 
@@ -297,11 +290,11 @@ export class AgenticSetupSessionManager {
         return { ...session };
     }
 
-    getSession(setupId: string): AgenticSetupSession | null {
+    getSession(setupId: string): AgenticSetupSession | undefined {
         this.syncFromStore();
         this.cleanupExpiredSessions();
         const session = this.sessions.get(setupId);
-        return session ? { ...session } : null;
+        return session ? { ...session } : undefined;
     }
 
     listSessions(): AgenticSetupSession[] {
