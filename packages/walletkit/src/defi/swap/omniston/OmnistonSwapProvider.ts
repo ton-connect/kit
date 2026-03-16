@@ -15,7 +15,7 @@ import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
-import { tokenToAddress, addressToToken, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
+import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
 import type { TransactionRequest } from '../../../api/models';
 import { asBase64, getUnixtime } from '../../../utils';
 import { formatUnits, parseUnits } from '../../../utils/units';

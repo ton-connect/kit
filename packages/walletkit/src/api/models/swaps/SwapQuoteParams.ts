@@ -7,7 +7,6 @@
  */
 
 import type { Network } from '../core/Network';
-import type { TokenAmount } from '../core/TokenAmount';
 import type { SwapToken } from './SwapToken';
 
 /**

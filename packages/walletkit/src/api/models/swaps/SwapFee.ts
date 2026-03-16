@@ -6,7 +6,6 @@
  *
  */
 
-import type { TokenAmount } from '../core/TokenAmount';
 import type { SwapToken } from './SwapToken';
 
 /**
