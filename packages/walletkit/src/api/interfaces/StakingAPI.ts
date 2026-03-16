@@ -18,6 +18,7 @@ import type {
     UnstakeParams,
     TransactionRequest,
     UserFriendlyAddress,
+    UnstakeMode,
 } from '../models';
 
 /**
@@ -64,6 +65,13 @@ export interface StakingAPI extends DefiManagerAPI<StakingProviderInterface> {
      * @returns A promise that resolves to a StakingProviderInfo
      */
     getStakingProviderInfo(network?: Network, providerId?: string): Promise<StakingProviderInfo>;
+
+    /**
+     * Get supported unstake modes
+     * @param providerId Provider identifier (optional, uses default if not specified)
+     * @returns An array of supported unstake modes
+     */
+    getSupportedUnstakeModes(providerId?: string): UnstakeMode[];
 }
 
 /**
@@ -112,4 +120,10 @@ export interface StakingProviderInterface extends DefiProvider {
      * @returns A promise that resolves to a StakingProviderInfo
      */
     getStakingProviderInfo(network?: Network): Promise<StakingProviderInfo>;
+
+    /**
+     * Get supported unstake modes
+     * @returns An array of supported unstake modes
+     */
+    getSupportedUnstakeModes(): UnstakeMode[];
 }

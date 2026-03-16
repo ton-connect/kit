@@ -288,4 +288,11 @@ describe('TonStakersStakingProvider', () => {
             expect(balance.providerId).toBe('tonstakers');
         });
     });
+
+    describe('getSupportedUnstakeModes', () => {
+        it('should return supported unstake modes', () => {
+            const modes = provider.getSupportedUnstakeModes();
+            expect(modes).toEqual(['delayed', 'instant', 'bestRate']);
+        });
+    });
 });

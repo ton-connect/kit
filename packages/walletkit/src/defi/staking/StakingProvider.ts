@@ -14,6 +14,7 @@ import type {
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
+    UnstakeMode,
 } from '../../api/models';
 import type { StakingProviderInterface } from '../../api/interfaces';
 
@@ -63,4 +64,10 @@ export abstract class StakingProvider implements StakingProviderInterface {
      * @param network - Optional network to fetch info for
      */
     abstract getStakingProviderInfo(network?: Network): Promise<StakingProviderInfo>;
+
+    /**
+     * Get supported unstake modes
+     * @returns An array of supported unstake modes
+     */
+    abstract getSupportedUnstakeModes(): UnstakeMode[];
 }

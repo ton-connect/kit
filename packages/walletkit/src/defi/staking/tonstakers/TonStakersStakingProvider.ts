@@ -17,6 +17,7 @@ import type {
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
+    UnstakeMode,
 } from '../../../api/models';
 import { StakingError, StakingErrorCode } from '../errors';
 import type { TonStakersProviderConfig } from './models/TonStakersProviderConfig';
@@ -40,6 +41,8 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
  *   - BestRate: Wait for best exchange rate at round end
  */
 export class TonStakersStakingProvider extends StakingProvider {
+    readonly supportedUnstakeModes: UnstakeMode[] = ['delayed', 'instant', 'bestRate'];
+
     protected config: TonStakersProviderConfig;
     private cache: StakingCache;
 
@@ -280,6 +283,14 @@ export class TonStakersStakingProvider extends StakingProvider {
                 providerId: 'tonstakers',
             };
         });
+    }
+
+    /**
+     * Get supported unstake modes
+     * @returns An array of supported unstake modes
+     */
+    getSupportedUnstakeModes(): UnstakeMode[] {
+        return ['delayed', 'instant', 'bestRate'];
     }
 
     /**

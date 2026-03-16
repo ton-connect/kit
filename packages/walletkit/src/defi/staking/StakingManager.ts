@@ -14,6 +14,7 @@ import type {
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
+    UnstakeMode,
 } from '../../api/models';
 import type { StakingAPI, StakingProviderInterface } from '../../api/interfaces';
 import { StakingError, StakingErrorCode } from './errors';
@@ -123,6 +124,15 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
         } catch (error) {
             throw this.createError('Failed to get staking info', StakingErrorCode.InvalidParams, { error, network });
         }
+    }
+
+    /**
+     * Get supported unstake modes
+     * @param providerId Provider identifier (optional, uses default if not specified)
+     * @returns An array of supported unstake modes
+     */
+    getSupportedUnstakeModes(providerId?: string): UnstakeMode[] {
+        return this.getProvider(providerId).getSupportedUnstakeModes();
     }
 
     protected createError(message: string, code: string, details?: unknown): StakingError {
