@@ -50,6 +50,7 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
+        // Intent features (new in protocol — cast until @tonconnect/protocol types are updated)
         {
             name: 'SignMessage',
         },
@@ -68,5 +69,5 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'Intents',
             types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'],
         },
-    ];
+    ] as unknown as Feature[];
 }
