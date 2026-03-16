@@ -53,9 +53,8 @@ describe('IntentParser', () => {
         });
 
         it('accepts https universal link scheme with m=intent', () => {
-            expect(
-                parser.isIntentUrl('https://wallet.example.com/ton-connect?v=2&id=abc&m=intent&mp=data'),
-            ).toBe(true);
+            const url = 'https://wallet.example.com/ton-connect?v=2&id=abc&m=intent&mp=data';
+            expect(parser.isIntentUrl(url)).toBe(true);
         });
 
         it('returns false for non-intent URLs', () => {
