@@ -65,9 +65,11 @@ export interface LogContext {
     [key: string]: any;
 }
 
-// Default log level is ERROR if not set
-const defaultLogLevel =
-    process?.env?.WALLETKIT_LOG_LEVEL === 'debug'
+function getDefaultLogLevel(): LogLevel {
+    if (typeof process === 'undefined' || typeof process?.env === 'undefined') {
+        return LogLevel.ERROR;
+    }
+    return process?.env?.WALLETKIT_LOG_LEVEL === 'debug'
         ? LogLevel.DEBUG
         : process?.env?.WALLETKIT_LOG_LEVEL === 'none'
           ? LogLevel.NONE
@@ -78,6 +80,7 @@ const defaultLogLevel =
               : process?.env?.WALLETKIT_LOG_LEVEL === 'off'
                 ? LogLevel.NONE
                 : LogLevel.ERROR;
+}
 
 /**
  * Logger class for TonWalletKit
@@ -249,7 +252,7 @@ export class Logger {
  * Default logger instance
  */
 export const globalLogger = new Logger({
-    level: defaultLogLevel,
+    level: getDefaultLogLevel(),
     enableStackTrace: true,
 });
 
