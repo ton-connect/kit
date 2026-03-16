@@ -25,7 +25,6 @@ import type {
     Network,
 } from '../api/models';
 
-
 const VALID_METHODS = ['txDraft', 'signMsgDraft', 'signData', 'actionDraft'] as const;
 
 /**
@@ -146,7 +145,10 @@ export class IntentParser {
             id: rawEvent.id,
             method: rawEvent.method as 'txDraft' | 'signMsgDraft' | 'actionDraft',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            params: ((rawEvent.params as any)?.[0] ?? rawEvent.params ?? {}) as TxDraftParams | SignDataParams | ActionDraftParams,
+            params: ((rawEvent.params as any)?.[0] ?? rawEvent.params ?? {}) as
+                | TxDraftParams
+                | SignDataParams
+                | ActionDraftParams,
         };
         this.validateRequest(request);
         const parsed: ParsedIntentUrl = {
@@ -250,7 +252,7 @@ export class IntentParser {
         }
 
         const encryptedPayload = await this.fetchObjectStoragePayload(getUrl);
-        const json = this.decryptPayload(encryptedPayload, clientId, walletPrivateKey);
+        const json = this.decryptPayload(encryptedPayload, walletPrivateKey);
 
         let request: SpecIntentRequest;
         try {
@@ -342,7 +344,7 @@ export class IntentParser {
      *   nacl.box(payload, nonce, ephemeralPub, ephemeralSec)
      * So we derive the public key from `pk` and open with the same keypair.
      */
-    private decryptPayload(encrypted: Uint8Array, _clientPubKeyHex: string, walletPrivateKeyHex: string): string {
+    private decryptPayload(encrypted: Uint8Array, walletPrivateKeyHex: string): string {
         if (encrypted.length <= 24) {
             throw new WalletKitError(
                 ERROR_CODES.VALIDATION_ERROR,
@@ -644,9 +646,11 @@ export class IntentParser {
                 };
                 break;
             }
+            default:
+                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, `Unhandled intent method: ${request.method}`);
         }
 
-        return { event: event!, connectRequest };
+        return { event, connectRequest };
     }
 
     private mapItems(wireItems: WireIntentItem[]): IntentActionItem[] {

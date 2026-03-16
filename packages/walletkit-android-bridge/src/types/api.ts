@@ -285,12 +285,12 @@ export interface ApproveTransactionDraftArgs {
     walletId: string;
 }
 
-export interface ApproveSignDataIntentArgs {
+export interface ApproveSignDataDraftArgs {
     event: SignDataIntentRequestEvent;
     walletId: string;
 }
 
-export interface ApproveActionIntentArgs {
+export interface ApproveActionDraftArgs {
     event: ActionIntentRequestEvent;
     walletId: string;
 }
@@ -374,9 +374,9 @@ export interface WalletKitBridgeApi {
     isIntentUrl(args: IsIntentUrlArgs): PromiseOrValue<boolean>;
     handleIntentUrl(args: HandleIntentUrlArgs): PromiseOrValue<void>;
     approveTransactionDraft(args: ApproveTransactionDraftArgs): PromiseOrValue<IntentTransactionResponse>;
-    approveSignDataIntent(args: ApproveSignDataIntentArgs): PromiseOrValue<IntentSignDataResponse>;
+    approveSignDataIntent(args: ApproveSignDataDraftArgs): PromiseOrValue<IntentSignDataResponse>;
     approveActionDraft(
-        args: ApproveActionIntentArgs,
+        args: ApproveActionDraftArgs,
     ): PromiseOrValue<IntentTransactionResponse | IntentSignDataResponse>;
     approveBatchedIntent(args: ApproveBatchedIntentArgs): PromiseOrValue<IntentTransactionResponse>;
     rejectIntent(args: RejectIntentArgs): PromiseOrValue<IntentErrorResponse>;

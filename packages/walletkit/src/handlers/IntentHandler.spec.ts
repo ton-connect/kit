@@ -419,7 +419,7 @@ describe('IntentHandler', () => {
             });
 
             await expect(handler.approveBatchedIntent(emptyBatch, 'wallet-1')).rejects.toThrow(
-                'Batched intent contains no transaction or signData items',
+                'Batched intent contains no actionable items',
             );
         });
 

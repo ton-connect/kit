@@ -382,14 +382,6 @@ export class StorageEventStore implements EventStore {
         });
     }
 
-    private async removeEvent(eventId: string): Promise<void> {
-        return this.withLock('storage', async () => {
-            const allEvents = await this.getAllEventsFromStorage();
-            delete allEvents[eventId];
-            await this.storage.set(this.storageKey, allEvents);
-        });
-    }
-
     private extractEventType(method: string): EventType {
         switch (method) {
             case 'connect':
@@ -402,13 +394,6 @@ export class StorageEventStore implements EventStore {
                 return 'disconnect';
             case 'restoreConnection':
                 return 'restoreConnection';
-            // Draft intent methods delivered via bridge when already connected
-            case 'txDraft':
-                return 'txDraft';
-            case 'signMsgDraft':
-                return 'signMsgDraft';
-            case 'actionDraft':
-                return 'actionDraft';
             default:
                 throw new Error(`Unknown event method: ${method}`);
         }

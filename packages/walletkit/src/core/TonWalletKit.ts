@@ -51,6 +51,7 @@ import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import { IntentHandler } from '../handlers/IntentHandler';
+import { IntentParser } from '../handlers/IntentParser';
 import type {
     Network,
     TransactionRequest,
@@ -555,21 +556,10 @@ export class TonWalletKit implements ITonWalletKit {
 
     // === Intent API ===
 
+    private static readonly intentParserInstance = new IntentParser();
+
     isIntentUrl(url: string): boolean {
-        if (this.intentHandler) {
-            return this.intentHandler.isIntentUrl(url);
-        }
-        // Pre-init fallback: mirror IntentParser.isIntentUrl logic for the new URL format
-        // New format: tc://?m=intent&... or tc://?m=intent_remote&...
-        const normalized = url.trim().toLowerCase();
-        if (!normalized.startsWith('tc://')) return false;
-        try {
-            const parsedUrl = new URL(url);
-            const method = parsedUrl.searchParams.get('m') || parsedUrl.searchParams.get('M');
-            return method?.toLowerCase() === 'intent' || method?.toLowerCase() === 'intent_remote';
-        } catch {
-            return false;
-        }
+        return TonWalletKit.intentParserInstance.isIntentUrl(url);
     }
 
     async handleIntentUrl(url: string, walletId: string): Promise<void> {
@@ -577,17 +567,13 @@ export class TonWalletKit implements ITonWalletKit {
         return this.intentHandler.handleIntentUrl(url, walletId);
     }
 
-    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
-        if (this.intentHandler) {
-            this.intentHandler.onIntentRequest(cb);
-        } else {
-            this.ensureInitialized().then(() => {
-                this.intentHandler.onIntentRequest(cb);
-            });
-        }
+    async onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): Promise<void> {
+        await this.ensureInitialized();
+        this.intentHandler.onIntentRequest(cb);
     }
 
-    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+    async removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): Promise<void> {
+        await this.ensureInitialized();
         this.intentHandler.removeIntentRequestCallback(cb);
     }
 
@@ -619,12 +605,9 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
         await this.ensureInitialized();
 
-        // Process connect items first — create session before sending tx
-        const connectItems = batch.intents.filter((i) => i.type === 'connect');
-        for (const item of connectItems) {
+        for (const item of batch.intents) {
             if (item.type === 'connect') {
-                item.walletId = walletId;
-                await this.requestProcessor.approveConnectRequest(item, proof ? { proof } : undefined);
+                await this.requestProcessor.approveConnectRequest({ ...item, walletId }, proof ? { proof } : undefined);
             }
         }
 

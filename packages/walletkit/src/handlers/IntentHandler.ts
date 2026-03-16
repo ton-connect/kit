@@ -33,6 +33,7 @@ import type {
     IntentResponseResult,
     IntentActionItem,
     BatchedIntentEvent,
+    BridgeEvent,
     ConnectionRequestEvent,
     TransactionRequest,
     SignDataPayload,
@@ -151,23 +152,7 @@ export class IntentHandler {
         walletId: string,
     ): Promise<IntentTransactionResponse> {
         const wallet = this.getWallet(walletId);
-
-        const transactionRequest = event.resolvedTransaction ?? (await this.resolveTransaction(event, wallet));
-
-        // signOnly (signMsg) uses internal opcode (0x73696e74) for gasless relaying
-        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
-            internal: event.deliveryMode === 'signOnly',
-        });
-
-        if (event.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
-            await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
-        }
-
-        const result: IntentTransactionResponse = {
-            type: 'transaction',
-            boc: signedBoc as Base64String,
-        };
-
+        const result = await this.signAndSendTransaction(event, wallet);
         await this.sendResponse(event, result);
         return result;
     }
@@ -175,9 +160,9 @@ export class IntentHandler {
     /**
      * Approve a batched intent event.
      *
-     * Collects all items from the inner transaction events, builds a single
-     * combined {@link TransactionRequest}, signs it as one transaction, and
-     * sends a single response back to the dApp.
+     * Finds the first actionable intent (transaction > signData > action),
+     * delegates to the corresponding single-item approval method, and
+     * sends one response back using the batch's identity.
      */
     async approveBatchedIntent(
         batch: BatchedIntentEvent,
@@ -197,174 +182,43 @@ export class IntentHandler {
             }
         }
 
-        // If the batch contains transaction items, process them
         if (allItems.length > 0) {
-            // Find network/validUntil from first transaction event
             const firstTx = batch.intents.find((i) => i.type === 'transaction');
-            const network = firstTx?.type === 'transaction' ? firstTx.network : undefined;
-            const validUntil = firstTx?.type === 'transaction' ? firstTx.validUntil : undefined;
-
-            // Build combined transaction
-            const transactionRequest = await this.resolver.intentItemsToTransactionRequest(
-                allItems,
-                wallet,
-                network,
-                validUntil,
-            );
-
-            // signOnly (signMsg) uses internal opcode (0x73696e74) for gasless relaying
-            const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
-                internal: deliveryMode === 'signOnly',
-            });
-
-            if (deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
-                await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
-            }
-
-            const result: IntentTransactionResponse = {
+            const combinedEvent: TransactionIntentRequestEvent = {
                 type: 'transaction',
-                boc: signedBoc as Base64String,
+                id: batch.id,
+                origin: batch.origin,
+                clientId: batch.clientId,
+                deliveryMode,
+                network: firstTx?.type === 'transaction' ? firstTx.network : undefined,
+                validUntil: firstTx?.type === 'transaction' ? firstTx.validUntil : undefined,
+                items: allItems,
             };
-
-            // Send one response using the batch's identity
+            const result = await this.signAndSendTransaction(combinedEvent, wallet);
             await this.sendBatchResponse(batch, result, deliveryMode);
             return result;
         }
 
-        // Check for signData intents
         const signDataIntent = batch.intents.find((i) => i.type === 'signData');
-        if (signDataIntent && signDataIntent.type === 'signData') {
-            const event = signDataIntent;
-
-            let domain = event.manifestUrl;
-            try {
-                domain = new URL(event.manifestUrl).host;
-            } catch {
-                // use as-is
-            }
-
-            const signData = PrepareSignData({
-                payload: event.payload,
-                domain,
-                address: wallet.getAddress(),
-            });
-
-            const signature = await wallet.getSignedSignData(signData);
-            const signatureBase64 = HexToBase64(signature);
-
-            const result: IntentSignDataResponse = {
-                type: 'signData',
-                signature: signatureBase64 as Base64String,
-                address: wallet.getAddress() as UserFriendlyAddress,
-                timestamp: signData.timestamp,
-                domain: signData.domain,
-                payload: event.payload,
-            };
-
+        if (signDataIntent?.type === 'signData') {
+            const result = await this.signSignData(signDataIntent, wallet);
             await this.sendBatchResponse(batch, result);
             return result;
         }
 
-        // Check for action intents — fetch the action URL, resolve to tx/signData,
-        // sign the result, then respond using the batch's identity.
         const actionIntent = batch.intents.find((i) => i.type === 'action');
-        if (actionIntent && actionIntent.type === 'action') {
-            if (!actionIntent.actionUrl) {
-                throw new WalletKitError(
-                    ERROR_CODES.VALIDATION_ERROR,
-                    'Action intent missing actionUrl, cannot fetch action response.',
-                );
-            }
-
-            const actionResponse = await this.resolver.fetchActionUrl(actionIntent.actionUrl, wallet.getAddress());
-            const resolvedEvent = this.parser.parseActionResponse(actionResponse, actionIntent);
-
-            if (resolvedEvent.type === 'transaction') {
-                if (resolvedEvent.resolvedTransaction) {
-                    resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
-                }
-                const transactionRequest =
-                    resolvedEvent.resolvedTransaction ?? (await this.resolveTransaction(resolvedEvent, wallet));
-                const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
-                    internal: resolvedEvent.deliveryMode === 'signOnly',
-                });
-                if (resolvedEvent.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
-                    await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
-                }
-                const txResult: IntentTransactionResponse = {
-                    type: 'transaction',
-                    boc: signedBoc as Base64String,
-                };
-                await this.sendBatchResponse(batch, txResult, resolvedEvent.deliveryMode);
-                return txResult;
-            }
-
-            if (resolvedEvent.type === 'signData') {
-                let domain = resolvedEvent.manifestUrl;
-                try {
-                    domain = new URL(resolvedEvent.manifestUrl).host;
-                } catch {
-                    // use as-is
-                }
-                const signData = PrepareSignData({
-                    payload: resolvedEvent.payload,
-                    domain,
-                    address: wallet.getAddress(),
-                });
-                const signature = await wallet.getSignedSignData(signData);
-                const signatureBase64 = HexToBase64(signature);
-                const sdResult: IntentSignDataResponse = {
-                    type: 'signData',
-                    signature: signatureBase64 as Base64String,
-                    address: wallet.getAddress() as UserFriendlyAddress,
-                    timestamp: signData.timestamp,
-                    domain: signData.domain,
-                    payload: resolvedEvent.payload,
-                };
-                await this.sendBatchResponse(batch, sdResult);
-                return sdResult;
-            }
-
-            throw new WalletKitError(
-                ERROR_CODES.VALIDATION_ERROR,
-                `Action URL resolved to unsupported intent type: ${resolvedEvent.type}`,
-            );
+        if (actionIntent?.type === 'action') {
+            const result = await this.resolveAndApproveAction(actionIntent, wallet);
+            await this.sendBatchResponse(batch, result, result.type === 'transaction' ? deliveryMode : undefined);
+            return result;
         }
 
-        throw new WalletKitError(
-            ERROR_CODES.VALIDATION_ERROR,
-            'Batched intent contains no transaction or signData items',
-        );
+        throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Batched intent contains no actionable items');
     }
 
     async approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse> {
         const wallet = this.getWallet(walletId);
-
-        let domain = event.manifestUrl;
-        try {
-            domain = new URL(event.manifestUrl).host;
-        } catch {
-            // use as-is
-        }
-
-        const signData = PrepareSignData({
-            payload: event.payload,
-            domain,
-            address: wallet.getAddress(),
-        });
-
-        const signature = await wallet.getSignedSignData(signData);
-        const signatureBase64 = HexToBase64(signature);
-
-        const result: IntentSignDataResponse = {
-            type: 'signData',
-            signature: signatureBase64 as Base64String,
-            address: wallet.getAddress() as UserFriendlyAddress,
-            timestamp: signData.timestamp,
-            domain: signData.domain,
-            payload: event.payload,
-        };
-
+        const result = await this.signSignData(event, wallet);
         await this.sendResponse(event, result);
         return result;
     }
@@ -374,30 +228,9 @@ export class IntentHandler {
         walletId: string,
     ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
         const wallet = this.getWallet(walletId);
-
-        if (!event.actionUrl) {
-            throw new WalletKitError(
-                ERROR_CODES.VALIDATION_ERROR,
-                'Action intent missing actionUrl, cannot fetch action response.',
-            );
-        }
-
-        const actionResponse = await this.resolver.fetchActionUrl(event.actionUrl, wallet.getAddress());
-        const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
-
-        if (resolvedEvent.type === 'transaction') {
-            if (resolvedEvent.resolvedTransaction) {
-                resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
-            }
-            return this.approveTransactionDraft(resolvedEvent, walletId);
-        } else if (resolvedEvent.type === 'signData') {
-            return this.approveSignDataIntent(resolvedEvent, walletId);
-        }
-
-        throw new WalletKitError(
-            ERROR_CODES.VALIDATION_ERROR,
-            `Action URL resolved to unsupported intent type: ${resolvedEvent.type}`,
-        );
+        const result = await this.resolveAndApproveAction(event, wallet);
+        await this.sendResponse(event, result);
+        return result;
     }
 
     // -- Public: Rejection ----------------------------------------------------
@@ -543,6 +376,74 @@ export class IntentHandler {
         return this.resolver.intentItemsToTransactionRequest(event.items, wallet, event.network, event.validUntil);
     }
 
+    private async signAndSendTransaction(
+        event: TransactionIntentRequestEvent,
+        wallet: Wallet,
+    ): Promise<IntentTransactionResponse> {
+        const transactionRequest = event.resolvedTransaction ?? (await this.resolveTransaction(event, wallet));
+        const signedBoc = await wallet.getSignedSendTransaction(transactionRequest, {
+            internal: event.deliveryMode === 'signOnly',
+        });
+
+        if (event.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
+            await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
+        }
+
+        return { type: 'transaction', boc: signedBoc as Base64String };
+    }
+
+    private async signSignData(event: SignDataIntentRequestEvent, wallet: Wallet): Promise<IntentSignDataResponse> {
+        let domain = event.manifestUrl;
+        try {
+            domain = new URL(event.manifestUrl).host;
+        } catch {
+            // use as-is
+        }
+
+        const signData = PrepareSignData({
+            payload: event.payload,
+            domain,
+            address: wallet.getAddress(),
+        });
+
+        const signature = await wallet.getSignedSignData(signData);
+        return {
+            type: 'signData',
+            signature: HexToBase64(signature) as Base64String,
+            address: wallet.getAddress() as UserFriendlyAddress,
+            timestamp: signData.timestamp,
+            domain: signData.domain,
+            payload: event.payload,
+        };
+    }
+
+    private async resolveAndApproveAction(
+        event: ActionIntentRequestEvent,
+        wallet: Wallet,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        if (!event.actionUrl) {
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent missing actionUrl');
+        }
+
+        const actionResponse = await this.resolver.fetchActionUrl(event.actionUrl, wallet.getAddress());
+        const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
+
+        if (resolvedEvent.type === 'transaction') {
+            if (resolvedEvent.resolvedTransaction) {
+                resolvedEvent.resolvedTransaction.fromAddress = wallet.getAddress();
+            }
+            return this.signAndSendTransaction(resolvedEvent, wallet);
+        }
+        if (resolvedEvent.type === 'signData') {
+            return this.signSignData(resolvedEvent, wallet);
+        }
+
+        throw new WalletKitError(
+            ERROR_CODES.VALIDATION_ERROR,
+            `Action URL resolved to unsupported type: ${resolvedEvent.type}`,
+        );
+    }
+
     // -- Private: Response sending --------------------------------------------
 
     private async sendResponse(event: IntentRequestBase, result: IntentResponseResult): Promise<void> {
@@ -557,7 +458,7 @@ export class IntentHandler {
             // For intents delivered via an existing bridge session, respond using the
             // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
             if (event.origin === 'connectedBridge') {
-                await this.bridgeManager.sendResponse(event as import('../api/models').BridgeEvent, wireResponse);
+                await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
             } else {
                 await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
             }
@@ -566,7 +467,11 @@ export class IntentHandler {
         }
     }
 
-    private async sendBatchResponse(batch: BatchedIntentEvent, result: IntentResponseResult, deliveryMode?: 'send' | 'signOnly'): Promise<void> {
+    private async sendBatchResponse(
+        batch: BatchedIntentEvent,
+        result: IntentResponseResult,
+        deliveryMode?: 'send' | 'signOnly',
+    ): Promise<void> {
         if (!batch.clientId) {
             log.debug('No clientId on batched intent, skipping response send');
             return;
@@ -588,7 +493,12 @@ export class IntentHandler {
      * - SignData: `{ result: { signature, address, timestamp, domain, payload }, id }`
      * - Error: `{ error: { code, message }, id }`
      */
-    private toWireResponse(eventId: string, result: IntentResponseResult, event?: IntentRequestBase, deliveryMode?: 'send' | 'signOnly'): Record<string, unknown> {
+    private toWireResponse(
+        eventId: string,
+        result: IntentResponseResult,
+        event?: IntentRequestBase,
+        deliveryMode?: 'send' | 'signOnly',
+    ): Record<string, unknown> {
         if (result.type === 'error') {
             return {
                 error: { code: result.error.code, message: result.error.message },
