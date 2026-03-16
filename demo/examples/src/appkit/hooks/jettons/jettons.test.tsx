@@ -38,30 +38,31 @@ describe('Jetton Hooks Examples', () => {
 
     describe('UseJettonInfoExample', () => {
         it('should render loading state', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
                 isLoading: true,
                 data: undefined,
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonInfoExample />);
             expect(screen.getByText('Loading...')).toBeDefined();
         });
 
         it('should render error state', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
                 isLoading: false,
                 data: undefined,
                 error: new Error('Failed to fetch'),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonInfoExample />);
             expect(screen.getByText('Error: Failed to fetch')).toBeDefined();
         });
 
         it('should render jetton info', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
                 isLoading: false,
                 data: {
@@ -70,8 +71,7 @@ describe('Jetton Hooks Examples', () => {
                     decimals: 9,
                 },
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonInfoExample />);
             expect(screen.getByText('Name: Test Jetton')).toBeDefined();
@@ -82,12 +82,12 @@ describe('Jetton Hooks Examples', () => {
 
     describe('UseJettonBalanceByAddressExample', () => {
         it('should render balance', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonBalanceByAddress).mockReturnValue({
                 isLoading: false,
                 data: '1000000',
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonBalanceByAddressExample />);
             expect(screen.getByText('Jetton Balance: 1000000')).toBeDefined();
@@ -96,12 +96,12 @@ describe('Jetton Hooks Examples', () => {
 
     describe('UseJettonWalletAddressExample', () => {
         it('should render wallet address', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonWalletAddress).mockReturnValue({
                 isLoading: false,
                 data: 'EQB-mock-address',
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonWalletAddressExample />);
             expect(screen.getByText('Jetton Wallet Address: EQB-mock-address')).toBeDefined();
@@ -110,6 +110,7 @@ describe('Jetton Hooks Examples', () => {
 
     describe('UseJettonsByAddressExample', () => {
         it('should render list of jettons', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettonsByAddress).mockReturnValue({
                 isLoading: false,
                 data: {
@@ -119,8 +120,7 @@ describe('Jetton Hooks Examples', () => {
                     ],
                 },
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonsByAddressExample />);
             expect(screen.getByText('Jetton 1: 10')).toBeDefined();
@@ -130,14 +130,14 @@ describe('Jetton Hooks Examples', () => {
 
     describe('UseJettonsExample', () => {
         it('should render list of jettons for current wallet', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useJettons).mockReturnValue({
                 isLoading: false,
                 data: {
                     jettons: [{ walletAddress: 'addr1', info: { name: 'My Jetton' }, balance: '100' }],
                 },
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseJettonsExample />);
             expect(screen.getByText('My Jetton: 100')).toBeDefined();
@@ -147,12 +147,12 @@ describe('Jetton Hooks Examples', () => {
     describe('UseTransferJettonExample', () => {
         it('should call transfer mutation on button click', () => {
             const mockMutate = vi.fn();
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useTransferJetton).mockReturnValue({
                 mutate: mockMutate,
                 isPending: false,
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseTransferJettonExample />);
             const button = screen.getByText('Transfer Jetton');
@@ -167,12 +167,12 @@ describe('Jetton Hooks Examples', () => {
         });
 
         it('should disable button when loading', () => {
+            // @ts-expect-error - mock
             vi.mocked(AppKitReact.useTransferJetton).mockReturnValue({
                 mutate: vi.fn(),
                 isPending: true,
                 error: null,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
+            });
 
             render(<UseTransferJettonExample />);
             const button = screen.getByText('Transferring...');
