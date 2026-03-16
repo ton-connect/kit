@@ -214,6 +214,7 @@ const IntentEventDetails: React.FC<{ event: IntentRequestEvent }> = ({ event }) 
 interface IntentRequestModalProps {
     event: IntentRequestEvent;
     savedWallets: SavedWallet[];
+    activeWalletId?: string;
     isOpen: boolean;
     onApprove: () => Promise<void>;
     onReject: (reason?: string) => Promise<void>;
@@ -222,6 +223,7 @@ interface IntentRequestModalProps {
 export const IntentRequestModal: React.FC<IntentRequestModalProps> = ({
     event,
     savedWallets,
+    activeWalletId,
     isOpen,
     onApprove,
     onReject,
@@ -232,8 +234,8 @@ export const IntentRequestModal: React.FC<IntentRequestModalProps> = ({
     const { holdToSign } = useAuth();
 
     const currentWallet = useMemo(() => {
-        return savedWallets[0] || null;
-    }, [savedWallets]);
+        return savedWallets.find((w) => w.kitWalletId === activeWalletId) ?? savedWallets[0] ?? null;
+    }, [savedWallets, activeWalletId]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -357,6 +359,7 @@ export const IntentRequestModal: React.FC<IntentRequestModalProps> = ({
 interface BatchedIntentRequestModalProps {
     batch: BatchedIntentEvent;
     savedWallets: SavedWallet[];
+    activeWalletId?: string;
     isOpen: boolean;
     onApprove: () => Promise<void>;
     onReject: (reason?: string) => Promise<void>;
@@ -365,6 +368,7 @@ interface BatchedIntentRequestModalProps {
 export const BatchedIntentRequestModal: React.FC<BatchedIntentRequestModalProps> = ({
     batch,
     savedWallets,
+    activeWalletId,
     isOpen,
     onApprove,
     onReject,
@@ -375,8 +379,8 @@ export const BatchedIntentRequestModal: React.FC<BatchedIntentRequestModalProps>
     const { holdToSign } = useAuth();
 
     const currentWallet = useMemo(() => {
-        return savedWallets[0] || null;
-    }, [savedWallets]);
+        return savedWallets.find((w) => w.kitWalletId === activeWalletId) ?? savedWallets[0] ?? null;
+    }, [savedWallets, activeWalletId]);
 
     useEffect(() => {
         if (!isOpen) {

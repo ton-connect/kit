@@ -13,7 +13,6 @@ import type {
     IntentTransactionResponse,
     IntentSignDataResponse,
 } from '@ton/walletkit';
-import { TonWalletKit } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
 import type { SetState, IntentSliceCreator } from '../../types/store';
@@ -48,10 +47,6 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
             throw new Error('WalletKit not initialized');
         }
 
-        if (!(walletKit instanceof TonWalletKit)) {
-            throw new Error('Intent API requires TonWalletKit instance');
-        }
-
         const activeWallet = state.getActiveWallet();
         if (!activeWallet?.kitWalletId) {
             throw new Error('No active wallet');
@@ -69,7 +64,7 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
     isIntentUrl: (url: string): boolean => {
         const state = get();
         const walletKit = state.walletCore.walletKit;
-        if (!walletKit || !(walletKit instanceof TonWalletKit)) {
+        if (!walletKit) {
             return false;
         }
         return walletKit.isIntentUrl(url);
@@ -102,7 +97,7 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
         const walletKit = state.walletCore.walletKit;
         const event = state.intent.pendingIntentEvent;
 
-        if (!walletKit || !(walletKit instanceof TonWalletKit)) {
+        if (!walletKit) {
             throw new Error('WalletKit not initialized');
         }
         if (!event) {
@@ -156,7 +151,7 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
         const walletKit = state.walletCore.walletKit;
         const event = state.intent.pendingIntentEvent;
 
-        if (!walletKit || !(walletKit instanceof TonWalletKit)) {
+        if (!walletKit) {
             throw new Error('WalletKit not initialized');
         }
         if (!event) {
@@ -182,7 +177,7 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
         const walletKit = state.walletCore.walletKit;
         const batch = state.intent.pendingBatchedIntentEvent;
 
-        if (!walletKit || !(walletKit instanceof TonWalletKit)) {
+        if (!walletKit) {
             throw new Error('WalletKit not initialized');
         }
         if (!batch) {
@@ -218,7 +213,7 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
         const walletKit = state.walletCore.walletKit;
         const batch = state.intent.pendingBatchedIntentEvent;
 
-        if (!walletKit || !(walletKit instanceof TonWalletKit)) {
+        if (!walletKit) {
             throw new Error('WalletKit not initialized');
         }
         if (!batch) {
@@ -256,16 +251,10 @@ export const createIntentSlice: IntentSliceCreator = (set: SetState, get) => ({
     // === Setup intent listeners (called from walletCoreSlice) ===
 
     setupIntentListeners: (walletKit) => {
-        if (!(walletKit instanceof TonWalletKit)) {
-            log.warn('Intent listeners require TonWalletKit instance, skipping');
-            return;
-        }
-
         walletKit.onIntentRequest((event) => {
-            log.info('Intent request received:', { type: 'type' in event ? event.type : 'batched' });
+            log.info('Intent request received:', { type: event.type });
 
-            // Check if it's a batched event (has `intents` array)
-            if ('intents' in event) {
+            if (event.type === 'batched') {
                 get().showBatchedIntentRequest(event as BatchedIntentEvent);
             } else {
                 get().showIntentRequest(event as IntentRequestEvent);

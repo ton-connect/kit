@@ -41,7 +41,6 @@ export function getTonConnectDeviceInfo(): DeviceInfo {
 
 export function getTonConnectFeatures(): Feature[] {
     return [
-        'SendTransaction',
         {
             name: 'SendTransaction',
             maxMessages: 4,
@@ -50,5 +49,8 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
-    ];
+        { name: 'SendTransactionDraft' },
+        { name: 'SignMessageDraft' },
+        { name: 'SendActionDraft' },
+    ] as Feature[];
 }

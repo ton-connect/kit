@@ -236,29 +236,17 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                 state.clearExpiredRequests();
                             }
 
-                            // Resume processing if there are queued requests
-                            // if (
-                            //     state.tonConnect.requestQueue.items.length > 0 &&
-                            //     !state.tonConnect.requestQueue.isProcessing &&
-                            //     state.processNextRequest
-                            // ) {
-                            //     log.info('Resuming queue processing after rehydration');
-                            //     state.processNextRequest();
-                            // }
-
-                            const processTimeoutCallback = () => {
+                            // Resume processing if there are queued requests after a short delay
+                            setTimeout(() => {
                                 if (
                                     state.tonConnect.requestQueue.items.length > 0 &&
                                     !state.tonConnect.requestQueue.isProcessing &&
                                     state.processNextRequest
                                 ) {
-                                    log.info('Calling processNextRequest after timeout');
+                                    log.info('Resuming queue processing after rehydration');
                                     state.processNextRequest();
                                 }
-                                setTimeout(() => processTimeoutCallback(), 1000);
-                            };
-                            processTimeoutCallback();
-                            // setTimeout(() => {}, 1000);
+                            }, 100);
                         },
                     },
                 ),

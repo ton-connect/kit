@@ -303,7 +303,7 @@ export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
 
 export type SwapSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], SwapSlice>;
 
-export type IntentSliceCreator = StateCreator<AppState, [], [], IntentSlice>;
+export type IntentSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], IntentSlice>;
 
 // Migration types
 export interface MigrationState {

@@ -427,6 +427,7 @@ export const WalletDashboard: React.FC = () => {
                 <IntentRequestModal
                     event={pendingIntentEvent}
                     savedWallets={savedWallets}
+                    activeWalletId={activeWallet?.kitWalletId}
                     isOpen={isIntentModalOpen}
                     onApprove={approveIntent}
                     onReject={rejectIntent}
@@ -438,6 +439,7 @@ export const WalletDashboard: React.FC = () => {
                 <BatchedIntentRequestModal
                     batch={pendingBatchedIntentEvent}
                     savedWallets={savedWallets}
+                    activeWalletId={activeWallet?.kitWalletId}
                     isOpen={isBatchedIntentModalOpen}
                     onApprove={approveBatchedIntent}
                     onReject={rejectBatchedIntent}
