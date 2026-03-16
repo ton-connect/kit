@@ -279,11 +279,6 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return [
             { name: 'SendTransaction', maxMessages: 4 },
             { name: 'SignData', types: ['binary', 'cell', 'text'] },
-            { name: 'SignMessage' },
-            { name: 'SendTransactionDraft', types: ['ton', 'jetton', 'nft'] },
-            { name: 'SignMessageDraft', types: ['ton', 'jetton', 'nft'] },
-            { name: 'ActionDraft' },
-            { name: 'Intents', types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'] },
-        ] as unknown as Feature[];
+        ];
     }
 }
