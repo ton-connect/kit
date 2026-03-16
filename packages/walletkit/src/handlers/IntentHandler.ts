@@ -101,6 +101,7 @@ export class IntentHandler {
             if (connectItem) {
                 // Batch: connect + single non-tx intent
                 const batch: BatchedIntentEvent = {
+                    type: 'batched',
                     id: event.id,
                     origin: event.origin,
                     clientId: event.clientId,
@@ -358,6 +359,7 @@ export class IntentHandler {
         intents.push(...perItemEvents);
 
         const batch: BatchedIntentEvent = {
+            type: 'batched',
             id: event.id,
             origin: event.origin,
             clientId: event.clientId,

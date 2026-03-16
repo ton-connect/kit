@@ -337,6 +337,7 @@ describe('IntentHandler', () => {
     describe('approveBatchedIntent', () => {
         function makeBatch(overrides: Partial<BatchedIntentEvent> = {}): BatchedIntentEvent {
             return {
+                type: 'batched',
                 id: 'batch-1',
                 origin: 'deepLink',
                 clientId: 'client-b',
@@ -435,6 +436,7 @@ describe('IntentHandler', () => {
     describe('rejectIntent (batched)', () => {
         function makeBatch(): BatchedIntentEvent {
             return {
+                type: 'batched',
                 id: 'batch-r',
                 origin: 'deepLink',
                 clientId: 'client-br',
@@ -468,6 +470,7 @@ describe('IntentHandler', () => {
 
         it('rejects a batch that includes a connect item', async () => {
             const batch: BatchedIntentEvent = {
+                type: 'batched',
                 id: 'batch-pcr',
                 origin: 'deepLink',
                 clientId: 'cr',
