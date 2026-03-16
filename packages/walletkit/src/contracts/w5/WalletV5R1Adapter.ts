@@ -356,6 +356,10 @@ export class WalletV5R1Adapter implements WalletAdapter {
         return [
             { name: 'SendTransaction', maxMessages: 255 },
             { name: 'SignData', types: ['binary', 'cell', 'text'] },
-        ];
+            // Intent features — type cast needed until @tonconnect/protocol exports these names
+            { name: 'SendTransactionDraft' },
+            { name: 'SignMessageDraft' },
+            { name: 'SendActionDraft' },
+        ] as unknown as Feature[];
     }
 }

@@ -91,7 +91,7 @@ export interface ActionIntentRequestEvent extends IntentRequestBase {
      * Action URL to fetch
      * @format url
      */
-    actionUrl?: string;
+    actionUrl: string;
     /**
      * Optional action type.
      */

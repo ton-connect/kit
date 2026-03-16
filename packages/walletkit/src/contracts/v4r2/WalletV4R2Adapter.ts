@@ -279,6 +279,10 @@ export class WalletV4R2Adapter implements WalletAdapter {
         return [
             { name: 'SendTransaction', maxMessages: 4 },
             { name: 'SignData', types: ['binary', 'cell', 'text'] },
-        ];
+            // Intent features — type cast needed until @tonconnect/protocol exports these names
+            { name: 'SendTransactionDraft' },
+            { name: 'SendActionDraft' },
+            // SignMessageDraft (gasless) requires internal opcode — W5R1 only
+        ] as unknown as Feature[];
     }
 }

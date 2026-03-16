@@ -86,6 +86,8 @@ interface SpecIntentRequest {
  */
 export interface ParsedIntentUrl {
     clientId?: string;
+    /** Raw sender ID for connectedBridge events (used for session crypto lookup) */
+    from?: string;
     request: SpecIntentRequest;
     connectRequest?: ConnectRequest;
     origin: IntentOrigin;
@@ -153,14 +155,13 @@ export class IntentParser {
         this.validateRequest(request);
         const parsed: ParsedIntentUrl = {
             clientId: rawEvent.from,
+            from: rawEvent.from,
             request,
             connectRequest: undefined,
             origin: 'connectedBridge',
             traceId: rawEvent.traceId,
         };
         const { event } = this.toIntentEvent(parsed);
-        // Carry `from` so bridgeManager.sendResponse can look up the existing session
-        event.from = rawEvent.from;
         return event;
     }
 
@@ -271,7 +272,11 @@ export class IntentParser {
 
     /**
      * Fetch encrypted payload from object storage URL.
-     * Handles both raw binary and base64-encoded text responses.
+     *
+     * The SDK stores the payload as raw bytes with Content-Type: text/plain.
+     * Some object storage providers base64-encode binary content when returning
+     * it as text, so we attempt base64 decode for text responses before falling
+     * back to raw bytes.
      */
     private async fetchObjectStoragePayload(getUrl: string): Promise<Uint8Array> {
         try {
@@ -287,24 +292,14 @@ export class IntentParser {
             const buffer = await response.arrayBuffer();
             const raw = new Uint8Array(buffer);
 
-            // If the response is text (base64-encoded), decode it
-            if (contentType.includes('text') || contentType.includes('json')) {
+            if (contentType.includes('text')) {
                 const text = new TextDecoder().decode(raw).trim();
-
-                // Try to parse as JSON that contains base64 data
-                try {
-                    const jsonResp = JSON.parse(text);
-                    const b64Data = jsonResp.data || jsonResp.payload || jsonResp.body;
-                    if (typeof b64Data === 'string') {
-                        return this.base64ToBytes(b64Data);
-                    }
-                } catch {
-                    // Not JSON, try as plain base64
-                }
-
-                // Try as plain base64 string
                 if (/^[A-Za-z0-9+/=_-]+$/.test(text) && text.length > 24) {
-                    return this.base64ToBytes(text);
+                    try {
+                        return this.base64ToBytes(text);
+                    } catch {
+                        // Not valid base64, fall through to raw bytes
+                    }
                 }
             }
 
@@ -516,7 +511,7 @@ export class IntentParser {
             case 'sendTransaction':
                 return this.parseActionTransaction(base, action);
             case 'signData':
-                return this.parseActionSignData(base, action, sourceEvent.actionUrl || '');
+                return this.parseActionSignData(base, action, sourceEvent.actionUrl);
             default:
                 throw new WalletKitError(
                     ERROR_CODES.VALIDATION_ERROR,
@@ -587,12 +582,13 @@ export class IntentParser {
     // -- Wire → Model mapping -------------------------------------------------
 
     private toIntentEvent(parsed: ParsedIntentUrl): { event: IntentRequestEvent; connectRequest?: ConnectRequest } {
-        const { clientId, request, connectRequest, origin, traceId } = parsed;
+        const { clientId, from, request, connectRequest, origin, traceId } = parsed;
 
         const base: IntentRequestBase = {
             id: request.id,
             origin,
             clientId,
+            from,
             traceId,
             returnStrategy: undefined,
         };

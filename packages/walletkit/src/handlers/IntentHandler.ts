@@ -421,10 +421,6 @@ export class IntentHandler {
         event: ActionIntentRequestEvent,
         wallet: Wallet,
     ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
-        if (!event.actionUrl) {
-            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent missing actionUrl');
-        }
-
         const actionResponse = await this.resolver.fetchActionUrl(event.actionUrl, wallet.getAddress());
         const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
 
