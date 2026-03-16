@@ -9,6 +9,7 @@
 import { TonWalletKit, Network, createDeviceInfo, createWalletManifest, ApiClientTonApi } from '@ton/walletkit';
 import type { ITonWalletKit } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+import { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
 
 import { createComponentLogger } from '../../utils/logger';
 import { isExtension } from '../../utils/isExtension';
@@ -34,7 +35,6 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
             jsBridgeTransport: walletKitConfig?.jsBridgeTransport,
         },
 
-        // TODO: Tetra
         networks: {
             [Network.mainnet().chainId]: {
                 apiClient: {
@@ -74,6 +74,16 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
     }) as ITonWalletKit;
 
     walletKit.swap.registerProvider(new OmnistonSwapProvider());
+    walletKit.staking.registerProvider(
+        new TonStakersStakingProvider({
+            [Network.mainnet().chainId]: {
+                apiClient: walletKit.getApiClient(Network.mainnet()),
+            },
+            [Network.testnet().chainId]: {
+                apiClient: walletKit.getApiClient(Network.testnet()),
+            },
+        }),
+    );
 
     log.info(`WalletKit initialized with network: ${isExtension() ? 'extension' : 'web'}`);
     return walletKit;

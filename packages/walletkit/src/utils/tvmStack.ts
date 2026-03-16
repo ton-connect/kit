@@ -8,6 +8,7 @@
 
 import type { TupleItem } from '@ton/core';
 import { Cell } from '@ton/core';
+import { TupleReader } from '@ton/core';
 
 import type { RawStackItem } from '../api/models/';
 export type { RawStackItem };
@@ -42,6 +43,10 @@ export function ParseStack(list: RawStackItem[]): TupleItem[] {
         stack.push(ParseStackItem(item));
     }
     return stack;
+}
+
+export function ReaderStack(list: RawStackItem[]): TupleReader {
+    return new TupleReader(ParseStack(list));
 }
 
 // todo - add support for all types

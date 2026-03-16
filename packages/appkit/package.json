@@ -50,18 +50,31 @@
         "types": "./dist/cjs/swap/dedust/index.d.ts",
         "default": "./dist/cjs/swap/dedust/index.js"
       }
+    },
+    "./staking/tonstakers": {
+      "import": {
+        "types": "./dist/esm/staking/tonstakers/index.d.ts",
+        "default": "./dist/esm/staking/tonstakers/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/staking/tonstakers/index.d.ts",
+        "default": "./dist/cjs/staking/tonstakers/index.js"
+      }
     }
   },
   "typesVersions": {
     "*": {
       "queries": [
-        "./dist/cjs/queries/index.d.ts"
+        "./dist/esm/queries/index.d.ts"
       ],
       "swap/omniston": [
-        "./dist/cjs/swap/omniston/index.d.ts"
+        "./dist/esm/swap/omniston/index.d.ts"
       ],
       "swap/dedust": [
-        "./dist/cjs/swap/dedust/index.d.ts"
+        "./dist/esm/swap/dedust/index.d.ts"
+      ],
+      "staking/tonstakers": [
+        "./dist/esm/staking/tonstakers/index.d.ts"
       ]
     }
   },

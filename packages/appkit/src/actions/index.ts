@@ -67,6 +67,7 @@ export {
 // Network
 export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
 export { getNetwork, type GetNetworkReturnType } from './network/get-network';
+export { getApiClient, type GetApiClientOptions, type GetApiClientReturnType } from './network/get-api-client';
 export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
 export { getDefaultNetwork, type GetDefaultNetworkReturnType } from './network/get-default-network';
 export {
@@ -106,6 +107,35 @@ export {
     type BuildSwapTransactionOptions,
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
+
+// Staking
+export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
+export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
+export {
+    getStakingQuote,
+    type GetStakingQuoteOptions,
+    type GetStakingQuoteReturnType,
+} from './staking/get-staking-quote';
+export {
+    buildStakeTransaction,
+    type BuildStakeTransactionOptions,
+    type BuildStakeTransactionReturnType,
+} from './staking/build-stake-transaction';
+export {
+    buildUnstakeTransaction,
+    type BuildUnstakeTransactionOptions,
+    type BuildUnstakeTransactionReturnType,
+} from './staking/build-unstake-transaction';
+export {
+    getStakedBalance,
+    type GetStakedBalanceOptions,
+    type GetStakedBalanceReturnType,
+} from './staking/get-staked-balance';
+export {
+    getStakingProviderInfo,
+    type GetStakingProviderInfoOptions,
+    type GetStakingProviderInfoReturnType,
+} from './staking/get-staking-provider-info';
 
 // Transactions
 export {

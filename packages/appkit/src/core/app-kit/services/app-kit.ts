@@ -6,7 +6,8 @@
  *
  */
 
-import { SwapManager } from '@ton/walletkit';
+import { SwapManager, StakingManager } from '@ton/walletkit';
+import type { SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
 import type { Provider } from 'src/types/provider';
 
 import type { AppKitConfig } from '../types/config';
@@ -28,6 +29,7 @@ export class AppKit {
     readonly connectors: Connector[] = [];
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
+    readonly stakingManager: StakingManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly config: AppKitConfig;
@@ -47,6 +49,7 @@ export class AppKit {
         this.networkManager = new AppKitNetworkManager({ networks }, this.emitter);
         this.walletsManager = new WalletsManager(this.emitter);
         this.swapManager = new SwapManager();
+        this.stakingManager = new StakingManager();
 
         if (config.connectors) {
             config.connectors.forEach((connector) => {
@@ -99,7 +102,10 @@ export class AppKit {
     registerProvider(provider: Provider): void {
         switch (provider.type) {
             case 'swap':
-                this.swapManager.registerProvider(provider);
+                this.swapManager.registerProvider(provider as SwapProviderInterface);
+                break;
+            case 'staking':
+                this.stakingManager.registerProvider(provider as StakingProviderInterface);
                 break;
             default:
                 throw new Error('Unknown provider type');
