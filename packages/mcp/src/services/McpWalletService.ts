@@ -16,20 +16,40 @@
  * with user-specific wallet instances.
  */
 
-import { TonWalletKit, MemoryStorageAdapter, Network, wrapWalletInterface, getTransactionStatus } from '@ton/walletkit';
+import { createHash } from 'node:crypto';
+
+import {
+    TonWalletKit,
+    MemoryStorageAdapter,
+    Network,
+    wrapWalletInterface,
+    getTransactionStatus,
+    formatUnits,
+    getJettonsFromClient,
+    getNftsFromClient,
+    getJettonWalletAddressFromClient,
+} from '@ton/walletkit';
 import type {
     Wallet,
     SwapQuoteParams,
     SwapParams,
-    ApiClientConfig,
     WalletAdapter,
     TransactionRequest,
     TransactionStatusResponse,
 } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
 
 import type { IContactResolver } from '../types/contacts.js';
 import type { NetworkType } from '../types/config.js';
+import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
+import { createApiClient } from '../utils/ton-client.js';
+import { UINT_256_MAX } from '../utils/math.js';
+
+const OP_DEPLOY_WALLET = 0x0609e47b;
+const AGENTIC_DEFAULT_VALID_UNTIL = 600;
+const TEP64_ONCHAIN_CONTENT_PREFIX = 0x00;
+const TEP64_SNAKE_CONTENT_PREFIX = 0x00;
 
 /**
  * Jetton information
@@ -40,6 +60,22 @@ export interface JettonInfoResult {
     name?: string;
     symbol?: string;
     decimals?: number;
+}
+
+export interface JettonMetadataResult {
+    address: string;
+    name?: string;
+    symbol?: string;
+    decimals?: number;
+    description?: string;
+    image?: string;
+    uri?: string;
+}
+
+export interface AddressBalanceResult {
+    address: string;
+    balanceNano: string;
+    balanceTon: string;
 }
 
 /**
@@ -106,6 +142,16 @@ export interface TransferResult {
     normalizedHash?: string;
 }
 
+export interface DeployAgenticSubwalletResult extends TransferResult {
+    subwalletAddress?: string;
+    subwalletNftIndex?: string;
+    ownerAddress?: string;
+    collectionAddress?: string;
+    operatorPublicKey?: string;
+    amountNano?: string;
+    queryId?: string;
+}
+
 /**
  * Swap quote result with transaction params
  */
@@ -163,6 +209,19 @@ interface McpWalletServiceInternalConfig {
     };
 }
 
+interface DeployAgenticSubwalletParams {
+    operatorPublicKey: string;
+    amountNano: string;
+    metadata: Record<string, string | number | boolean>;
+}
+
+interface AgenticRootWalletState {
+    ownerAddress: Address;
+    collectionAddress: Address;
+    originOperatorPublicKey: bigint;
+    deployedByUser: boolean;
+}
+
 /**
  * McpWalletService manages wallet operations for a single wallet.
  */
@@ -174,6 +233,158 @@ export class McpWalletService {
     private constructor(config: McpWalletServiceInternalConfig) {
         this.config = config;
         this.wallet = config.wallet;
+    }
+
+    private static parseUint256(input: string, fieldName: string): bigint {
+        const value = input.trim();
+        if (!value) {
+            throw new Error(`${fieldName} is required`);
+        }
+
+        let parsed: bigint;
+        try {
+            parsed = BigInt(value);
+        } catch {
+            throw new Error(`${fieldName} must be a uint256 value (decimal or 0x-prefixed hex)`);
+        }
+
+        if (parsed < 0n || parsed >= UINT_256_MAX) {
+            throw new Error(`${fieldName} must be in range [0, 2^256 - 1]`);
+        }
+
+        return parsed;
+    }
+
+    private static createQueryId(): bigint {
+        const now = BigInt(Date.now());
+        const rand = BigInt(Math.floor(Math.random() * 0xffff));
+        return (now << 16n) | rand;
+    }
+
+    private static onchainMetadataKey(key: string): bigint {
+        const hashHex = createHash('sha256').update(key, 'utf8').digest('hex');
+        return BigInt(`0x${hashHex}`);
+    }
+
+    private static buildOnchainMetadataValue(value: string | number | boolean): Cell {
+        const stringValue = typeof value === 'string' ? value : value.toString();
+        return beginCell().storeUint(TEP64_SNAKE_CONTENT_PREFIX, 8).storeStringTail(stringValue).endCell();
+    }
+
+    private static buildOnchainMetadata(metadata: Record<string, string | number | boolean>): Cell {
+        const dict = Dictionary.empty(Dictionary.Keys.BigUint(256), Dictionary.Values.Cell());
+        for (const [key, value] of Object.entries(metadata)) {
+            dict.set(McpWalletService.onchainMetadataKey(key), McpWalletService.buildOnchainMetadataValue(value));
+        }
+
+        const metadataDictCell = beginCell().storeDictDirect(dict).endCell();
+        return beginCell().storeUint(TEP64_ONCHAIN_CONTENT_PREFIX, 8).storeMaybeRef(metadataDictCell).endCell();
+    }
+
+    private static buildAgenticWalletConfigData(nftItemIndex: bigint, collectionAddress: Address): Cell {
+        return beginCell()
+            .storeUint(nftItemIndex, 256)
+            .storeAddress(collectionAddress)
+            .storeBit(true)
+            .storeUint(0, 32)
+            .storeDict(null)
+            .storeMaybeRef(null)
+            .endCell();
+    }
+
+    private static calculateAgenticWalletIndex(
+        ownerAddress: Address,
+        originOperatorPublicKey: bigint,
+        deployedByUser: boolean,
+    ): bigint {
+        const seedCell = beginCell()
+            .storeAddress(ownerAddress)
+            .storeUint(originOperatorPublicKey, 256)
+            .storeBit(deployedByUser)
+            .endCell();
+        return BigInt(`0x${seedCell.hash().toString('hex')}`);
+    }
+
+    private static createDeployWalletBody(
+        queryId: bigint,
+        walletDataCell: Cell,
+        senderOriginOperatorPublicKey: bigint,
+    ): Cell {
+        return beginCell()
+            .storeUint(OP_DEPLOY_WALLET, 32)
+            .storeUint(queryId, 64)
+            .storeRef(walletDataCell)
+            .storeUint(senderOriginOperatorPublicKey, 256)
+            .endCell();
+    }
+
+    private static isAgenticWalletInitialized(accountDataBase64: string): boolean {
+        const stateCell = Cell.fromBase64(accountDataBase64);
+        const slice = stateCell.beginParse();
+        slice.loadUintBig(256); // nftItemIndex
+        slice.loadAddress(); // collectionAddress
+        slice.loadBit(); // isSignatureAllowed
+        slice.loadUint(32); // seqno
+
+        const hasExtensionsDict = slice.loadBit();
+        if (hasExtensionsDict) {
+            slice.loadRef();
+        }
+
+        return slice.loadMaybeRef() !== null;
+    }
+
+    private assertAgenticWalletVersion(): void {
+        const version = (this.wallet as unknown as { version?: string }).version;
+        if (version !== 'agentic') {
+            throw new Error('deploy_agentic_subwallet is available only for WALLET_VERSION=agentic');
+        }
+    }
+
+    private async getAgenticRootWalletState(): Promise<AgenticRootWalletState> {
+        const accountState = await this.wallet.getClient().getAccountState(this.wallet.getAddress());
+        if (!accountState.data) {
+            throw new Error(`Account state data is empty for ${this.wallet.getAddress()}`);
+        }
+
+        let stateCell: Cell;
+        try {
+            stateCell = Cell.fromBase64(accountState.data);
+        } catch (error) {
+            throw new Error(
+                `Failed to decode account state for ${this.wallet.getAddress()}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
+        }
+
+        const slice = stateCell.beginParse();
+        const _nftItemIndex = slice.loadUintBig(256);
+        const collectionAddress = slice.loadAddress();
+        const _isSignatureAllowed = slice.loadBit();
+        const _seqno = slice.loadUint(32);
+
+        const hasExtensionsDict = slice.loadBit();
+        if (hasExtensionsDict) {
+            slice.loadRef();
+        }
+
+        const walletDataRef = slice.loadMaybeRef();
+        if (!walletDataRef) {
+            throw new Error('Current agentic wallet is not initialized. Deploy the root wallet first.');
+        }
+
+        const walletData = walletDataRef.beginParse();
+        const ownerAddress = walletData.loadAddress();
+        walletData.loadMaybeRef(); // nftItemContent
+        const originOperatorPublicKey = walletData.loadUintBig(256);
+        const _operatorPublicKey = walletData.loadUintBig(256);
+        const deployedByUser = walletData.loadBit();
+
+        return {
+            ownerAddress,
+            collectionAddress,
+            originOperatorPublicKey,
+            deployedByUser,
+        };
     }
 
     static async create(config: McpWalletServiceConfig): Promise<McpWalletService> {
@@ -205,23 +416,14 @@ export class McpWalletService {
      */
     private async getKit(): Promise<TonWalletKit> {
         if (!this.kit) {
-            // Build network config with optional API keys
-            const mainnetConfig: ApiClientConfig = {};
-            const testnetConfig: ApiClientConfig = {};
-
-            if (this.config.networks?.mainnet?.apiKey) {
-                mainnetConfig.url = 'https://toncenter.com';
-                mainnetConfig.key = this.config.networks.mainnet.apiKey;
-            }
-            if (this.config.networks?.testnet?.apiKey) {
-                testnetConfig.url = 'https://testnet.toncenter.com';
-                testnetConfig.key = this.config.networks.testnet.apiKey;
-            }
-
             this.kit = new TonWalletKit({
                 networks: {
-                    [Network.mainnet().chainId]: { apiClient: mainnetConfig },
-                    [Network.testnet().chainId]: { apiClient: testnetConfig },
+                    [Network.mainnet().chainId]: {
+                        apiClient: createApiClient('mainnet', this.config.networks?.mainnet?.apiKey),
+                    },
+                    [Network.testnet().chainId]: {
+                        apiClient: createApiClient('testnet', this.config.networks?.testnet?.apiKey),
+                    },
                 },
                 storage: new MemoryStorageAdapter(),
             });
@@ -244,10 +446,105 @@ export class McpWalletService {
     }
 
     /**
+     * Get TON balance for any address.
+     */
+    async getBalanceByAddress(address: string): Promise<AddressBalanceResult> {
+        const normalizedAddress = Address.parse(address).toString();
+        const balanceNano = await this.wallet.getClient().getBalance(normalizedAddress);
+
+        return {
+            address: normalizedAddress,
+            balanceNano,
+            balanceTon: formatUnits(balanceNano, 9),
+        };
+    }
+
+    /**
      * Get Jetton balance
      */
     async getJettonBalance(jettonAddress: string): Promise<string> {
         return this.wallet.getJettonBalance(jettonAddress);
+    }
+
+    /**
+     * Get Jettons for any address.
+     */
+    async getJettonsByAddress(address: string, limit: number = 20, offset: number = 0): Promise<JettonInfoResult[]> {
+        const normalizedAddress = Address.parse(address).toString();
+        const response = await getJettonsFromClient(this.wallet.getClient(), normalizedAddress, {
+            pagination: { limit, offset },
+        });
+
+        return response.jettons.map((jetton) => ({
+            address: jetton.address,
+            balance: jetton.balance,
+            name: jetton.info.name,
+            symbol: jetton.info.symbol,
+            decimals: jetton.decimalsNumber,
+        }));
+    }
+
+    /**
+     * Get metadata for a Jetton master.
+     */
+    async getJettonInfo(jettonAddress: string): Promise<JettonMetadataResult | null> {
+        const normalizedAddress = Address.parse(jettonAddress).toString();
+        const client = this.wallet.getClient();
+        const response = await client.jettonsByAddress({
+            address: normalizedAddress,
+            offset: 0,
+            limit: 1,
+        });
+
+        if (!response.jetton_masters?.length || !response.jetton_masters[0]) {
+            return null;
+        }
+
+        const jetton = response.jetton_masters[0];
+        const jettonMasterAddress = (jetton as { address?: string; jetton?: string }).address ?? jetton.jetton;
+        const metadata = jettonMasterAddress ? response.metadata?.[jettonMasterAddress] : undefined;
+        const tokenInfo = metadata?.token_info?.find((item) => item.valid && item.type === 'jetton_masters') as
+            | {
+                  name?: string;
+                  symbol?: string;
+                  description?: string;
+                  image?: string;
+                  extra?: { decimals?: string | number; uri?: string };
+              }
+            | undefined;
+
+        let decimals: number | undefined;
+        if (tokenInfo?.extra?.decimals !== undefined) {
+            const value = tokenInfo.extra.decimals;
+            decimals = typeof value === 'string' ? Number.parseInt(value, 10) : value;
+            if (!Number.isFinite(decimals)) {
+                decimals = undefined;
+            }
+        }
+
+        return {
+            address: jettonMasterAddress ?? normalizedAddress,
+            name: tokenInfo?.name ?? '',
+            symbol: tokenInfo?.symbol ?? '',
+            decimals,
+            description: tokenInfo?.description ?? '',
+            image: tokenInfo?.image,
+            uri: tokenInfo?.extra?.uri,
+        };
+    }
+
+    /**
+     * Resolve jetton-wallet address for an owner.
+     */
+    async getJettonWalletAddress(jettonAddress: string, ownerAddress: string): Promise<string> {
+        const normalizedJettonAddress = Address.parse(jettonAddress).toString();
+        const normalizedOwnerAddress = Address.parse(ownerAddress).toString();
+
+        return getJettonWalletAddressFromClient(
+            this.wallet.getClient(),
+            normalizedJettonAddress,
+            normalizedOwnerAddress,
+        );
     }
 
     /**
@@ -271,15 +568,17 @@ export class McpWalletService {
     async getTransactions(limit: number = 20): Promise<TransactionInfo[]> {
         const address = this.wallet.getAddress();
         const client = this.wallet.getClient();
+        const safeLimit = Math.max(limit, 10);
 
         const response = await client.getEvents({
             account: address,
-            limit,
+            limit: safeLimit,
+            offset: 0,
         });
 
         const results: TransactionInfo[] = [];
 
-        for (const event of response.events) {
+        for (const event of response.events.slice(0, limit)) {
             for (const action of event.actions) {
                 const info: TransactionInfo = {
                     eventId: event.eventId,
@@ -445,6 +744,117 @@ export class McpWalletService {
     }
 
     /**
+     * Deploy a new Agentic sub-wallet from the current Agentic root wallet.
+     */
+    async deployAgenticSubwallet(params: DeployAgenticSubwalletParams): Promise<DeployAgenticSubwalletResult> {
+        try {
+            this.assertAgenticWalletVersion();
+
+            if (!/^\d+$/.test(params.amountNano) || BigInt(params.amountNano) <= 0n) {
+                throw new Error('amountNano must be a positive integer in nanotons');
+            }
+
+            const operatorPublicKey = McpWalletService.parseUint256(params.operatorPublicKey, 'operatorPublicKey');
+            if (operatorPublicKey === 0n) {
+                throw new Error('operatorPublicKey must be non-zero');
+            }
+
+            const metadataName = params.metadata?.name;
+            if (typeof metadataName !== 'string' || metadataName.trim().length === 0) {
+                throw new Error('metadata.name is required and must be a non-empty string');
+            }
+
+            const rootState = await this.getAgenticRootWalletState();
+            if (!rootState.deployedByUser) {
+                throw new Error(
+                    'Current wallet has deployedByUser=false and cannot deploy sub-wallets. Use the user-root wallet.',
+                );
+            }
+            const nftItemContent = McpWalletService.buildOnchainMetadata(params.metadata);
+
+            const subwalletNftIndex = McpWalletService.calculateAgenticWalletIndex(
+                rootState.ownerAddress,
+                operatorPublicKey,
+                false,
+            );
+            const queryId = McpWalletService.createQueryId();
+
+            const childWalletData = beginCell()
+                .storeAddress(rootState.ownerAddress)
+                .storeMaybeRef(nftItemContent)
+                .storeUint(operatorPublicKey, 256)
+                .storeUint(operatorPublicKey, 256)
+                .storeBit(false)
+                .endCell();
+
+            const deployBody = McpWalletService.createDeployWalletBody(
+                queryId,
+                childWalletData,
+                rootState.originOperatorPublicKey,
+            );
+
+            const childInit = {
+                code: AgenticWalletCodeCell,
+                data: McpWalletService.buildAgenticWalletConfigData(subwalletNftIndex, rootState.collectionAddress),
+            };
+            const childAddress = contractAddress(0, childInit);
+            const childAddressFriendly = childAddress.toString();
+            const childState = await this.wallet.getClient().getAccountState(childAddressFriendly);
+
+            if (childState.data) {
+                let isInitialized: boolean;
+                try {
+                    isInitialized = McpWalletService.isAgenticWalletInitialized(childState.data);
+                } catch (error) {
+                    throw new Error(
+                        `Failed to preflight sub-wallet ${childAddressFriendly}: ${
+                            error instanceof Error ? error.message : 'Unknown error'
+                        }`,
+                    );
+                }
+
+                if (isInitialized) {
+                    throw new Error(
+                        `Sub-wallet already initialized for operatorPublicKey=${operatorPublicKey.toString()} at ${childAddressFriendly}`,
+                    );
+                }
+            }
+
+            const stateInit = beginCell().store(storeStateInit(childInit)).endCell();
+
+            const response = await this.wallet.sendTransaction({
+                validUntil: Math.floor(Date.now() / 1000) + AGENTIC_DEFAULT_VALID_UNTIL,
+                messages: [
+                    {
+                        address: childAddressFriendly,
+                        amount: params.amountNano,
+                        stateInit: stateInit.toBoc().toString('base64'),
+                        payload: deployBody.toBoc().toString('base64'),
+                    },
+                ],
+            } as TransactionRequest);
+
+            return {
+                success: true,
+                message: `Successfully sent deploy transaction for sub-wallet ${childAddressFriendly}`,
+                normalizedHash: response.normalizedHash,
+                subwalletAddress: childAddressFriendly,
+                subwalletNftIndex: subwalletNftIndex.toString(),
+                ownerAddress: rootState.ownerAddress.toString(),
+                collectionAddress: rootState.collectionAddress.toString(),
+                operatorPublicKey: operatorPublicKey.toString(),
+                amountNano: params.amountNano,
+                queryId: queryId.toString(),
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error instanceof Error ? error.message : 'Unknown error',
+            };
+        }
+    }
+
+    /**
      * Get the status of a transaction by its normalized hash.
      *
      * In TON, a single external message triggers a tree of internal messages.
@@ -526,6 +936,37 @@ export class McpWalletService {
         const nftsResponse = await this.wallet.getNfts({ pagination: { limit, offset } });
 
         return nftsResponse.nfts.map((nft) => ({
+            address: nft.address,
+            name: nft.info?.name,
+            description: nft.info?.description,
+            image: typeof nft.info?.image === 'string' ? nft.info.image : nft.info?.image?.url,
+            collection: nft.collection
+                ? {
+                      address: nft.collection.address,
+                      name: nft.collection.name,
+                  }
+                : undefined,
+            attributes: nft.attributes?.map((attr) => ({
+                trait_type: attr.traitType,
+                value: attr.value,
+            })),
+            ownerAddress: nft.ownerAddress,
+            isOnSale: nft.isOnSale,
+            isSoulbound: nft.isSoulbound,
+            saleContractAddress: nft.saleContractAddress,
+        }));
+    }
+
+    /**
+     * Get NFTs for any address.
+     */
+    async getNftsByAddress(address: string, limit: number = 20, offset: number = 0): Promise<NftInfoResult[]> {
+        const normalizedAddress = Address.parse(address).toString();
+        const response = await getNftsFromClient(this.wallet.getClient(), normalizedAddress, {
+            pagination: { limit, offset },
+        });
+
+        return response.nfts.map((nft) => ({
             address: nft.address,
             name: nft.info?.name,
             description: nft.info?.description,

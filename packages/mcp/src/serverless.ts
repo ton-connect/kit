@@ -21,10 +21,10 @@
 
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { TonWalletKit, Signer, WalletV5R1Adapter, MemoryStorageAdapter, Network } from '@ton/walletkit';
-import type { Wallet, ApiClientConfig, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletSigner } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
-import type { NetworkType } from './types/config.js';
+import { createApiClient } from './utils/ton-client.js';
 
 export interface ServerlessRequest {
     headers: Record<string, string | string[] | undefined>;
@@ -42,7 +42,7 @@ export interface ServerlessResponse {
 interface ParsedCredentials {
     mnemonic?: string[];
     privateKey?: Buffer;
-    network: NetworkType;
+    network: 'mainnet' | 'testnet';
     toncenterKey?: string;
 }
 
@@ -83,7 +83,7 @@ function parseCredentials(headers: Record<string, string | string[] | undefined>
         return null;
     }
 
-    const network = (networkStr === 'testnet' ? 'testnet' : 'mainnet') as NetworkType;
+    const network = networkStr === 'testnet' ? 'testnet' : 'mainnet';
 
     return {
         mnemonic,
@@ -99,15 +99,9 @@ async function createWalletFromCredentials(credentials: ParsedCredentials): Prom
 }> {
     const network = credentials.network === 'mainnet' ? Network.mainnet() : Network.testnet();
 
-    const apiConfig: ApiClientConfig = {};
-    if (credentials.toncenterKey) {
-        apiConfig.url = credentials.network === 'mainnet' ? 'https://toncenter.com' : 'https://testnet.toncenter.com';
-        apiConfig.key = credentials.toncenterKey;
-    }
-
     const kit = new TonWalletKit({
         networks: {
-            [network.chainId]: { apiClient: apiConfig },
+            [network.chainId]: { apiClient: createApiClient(credentials.network, credentials.toncenterKey) },
         },
         storage: new MemoryStorageAdapter(),
     });
@@ -175,6 +169,7 @@ export function createServerlessHandler() {
 
             const server = await createTonWalletMCP({
                 wallet,
+                walletVersion: 'v5r1',
                 networks: {
                     mainnet:
                         credentials.toncenterKey && credentials.network === 'mainnet'

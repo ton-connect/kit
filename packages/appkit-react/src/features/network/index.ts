@@ -7,6 +7,7 @@
  */
 
 // Hooks
+export { useBlockNumber, type UseBlockNumberParameters, type UseBlockNumberReturnType } from './hooks/use-block-number';
 export { useNetworks, type UseNetworksReturnType } from './hooks/use-networks';
 export { useNetwork, type UseNetworkReturnType } from './hooks/use-network';
 export { useDefaultNetwork, type UseDefaultNetworkReturnType } from './hooks/use-default-network';

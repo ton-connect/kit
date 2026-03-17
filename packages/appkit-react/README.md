@@ -170,7 +170,7 @@ npm install @ston-fi/omniston-sdk
 Initialize `AppKit` with `OmnistonSwapProvider`:
 
 ```ts
-// Initialize AppKit with swap provider
+// Initialize AppKit with swap providers
 const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: {
@@ -182,9 +182,12 @@ const appKit = new AppKit({
     },
     providers: [
         new OmnistonSwapProvider({
-            // Optional configuration
             apiUrl: 'https://api.ston.fi',
             defaultSlippageBps: 100, // 1%
+        }),
+        new DeDustSwapProvider({
+            defaultSlippageBps: 100,
+            referralAddress: 'EQ...', // Optional
         }),
     ],
 });

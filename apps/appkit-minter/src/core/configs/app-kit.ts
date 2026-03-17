@@ -7,8 +7,9 @@
  */
 
 import { AppKit, Network } from '@ton/appkit';
-import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { TonConnectConnector, ApiClientTonApi } from '@ton/appkit';
+import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
+import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
 
@@ -40,5 +41,5 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new OmnistonSwapProvider()],
+    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider()],
 });

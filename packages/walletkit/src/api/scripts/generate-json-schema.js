@@ -1494,6 +1494,41 @@ function postProcessConstantFields(schema) {
     }
 }
 
+/**
+ * Post-process schema to convert pure $ref definitions (type aliases) into
+ * x-type-alias markers so openapi-generator will create a file and the
+ * template can emit a Swift typealias.
+ */
+/**
+ * Post-process schema to strip `default` values from properties.
+ * @default JSDoc is documentation-only and should not produce default values in generated code.
+ */
+function postProcessStripDefaults(schema) {
+    const definitions = schema.definitions || {};
+    for (const typeDef of Object.values(definitions)) {
+        if (!typeDef.properties) continue;
+        for (const propDef of Object.values(typeDef.properties)) {
+            delete propDef.default;
+        }
+    }
+}
+
+function postProcessTypeAliases(schema) {
+    const definitions = schema.definitions || {};
+
+    for (const [, typeDef] of Object.entries(definitions)) {
+        if (typeDef.$ref && !typeDef.type && !typeDef.properties && !typeDef.allOf && !typeDef['x-enum-case-name']) {
+            const targetName = typeNameFromRef(typeDef.$ref);
+
+            Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+            typeDef.type = 'object';
+            typeDef.properties = { _alias: { type: 'string' } };
+            typeDef['x-type-alias'] = true;
+            typeDef['x-alias-target'] = targetName;
+        }
+    }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1545,6 +1580,12 @@ try {
 
     // Post-process: convert single-literal properties to constant fields
     postProcessConstantFields(schema);
+
+    // Post-process: strip @default values (documentation-only, not for codegen)
+    postProcessStripDefaults(schema);
+
+    // Post-process: convert pure $ref definitions (type aliases) to x-type-alias
+    postProcessTypeAliases(schema);
 
     fs.writeFileSync(outputPath, JSON.stringify(schema, null, 2));
 } catch (error) {

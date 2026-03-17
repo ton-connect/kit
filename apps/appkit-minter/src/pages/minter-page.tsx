@@ -37,7 +37,19 @@ export const MinterPage: React.FC = () => {
                         <SignMessageCard />
                         <div className="p-4 bg-gray-100 rounded-lg dark:bg-gray-800">
                             <h3 className="mb-2 text-sm font-medium text-gray-500 uppercase">Swap Demo</h3>
-                            <SwapButton />
+                            <div className="flex flex-col gap-2">
+                                <div>Default provider:</div>
+                                <SwapButton amount="0.101" direction="from" />
+                                <SwapButton amount="0.102" direction="to" />
+
+                                <div>StonFi provider:</div>
+                                <SwapButton amount="0.103" direction="from" providerId="omniston" />
+                                <SwapButton amount="0.104" direction="to" providerId="omniston" />
+
+                                <div>DeDust provider:</div>
+                                <SwapButton amount="0.105" direction="from" providerId="dedust" />
+                                <SwapButton amount="0.106" direction="to" providerId="dedust" />
+                            </div>
                         </div>
                     </div>
                 )}

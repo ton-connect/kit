@@ -9,6 +9,8 @@
 import type { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+import { TEST_PASSWORD } from '../constants';
+
 export function isExtensionWalletSource(source: string): boolean {
     return !source.includes('http');
 }
@@ -26,7 +28,7 @@ export abstract class WalletApp {
     constructor(
         readonly context: BrowserContext,
         readonly source: string,
-        readonly password: string = 'tester@1234',
+        readonly password: string = TEST_PASSWORD,
     ) {
         this.context = context;
         this.source = source;

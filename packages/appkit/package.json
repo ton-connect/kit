@@ -1,6 +1,6 @@
 {
   "name": "@ton/appkit",
-  "version": "0.0.3",
+  "version": "0.0.4-alpha.2",
   "description": "",
   "repository": {
     "type": "git",
@@ -40,6 +40,16 @@
         "types": "./dist/cjs/swap/omniston/index.d.ts",
         "default": "./dist/cjs/swap/omniston/index.js"
       }
+    },
+    "./swap/dedust": {
+      "import": {
+        "types": "./dist/esm/swap/dedust/index.d.ts",
+        "default": "./dist/esm/swap/dedust/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/swap/dedust/index.d.ts",
+        "default": "./dist/cjs/swap/dedust/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -49,6 +59,9 @@
       ],
       "swap/omniston": [
         "./dist/cjs/swap/omniston/index.d.ts"
+      ],
+      "swap/dedust": [
+        "./dist/cjs/swap/dedust/index.d.ts"
       ]
     }
   },

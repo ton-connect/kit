@@ -65,6 +65,23 @@ export interface LogContext {
     [key: string]: any;
 }
 
+function getDefaultLogLevel(): LogLevel {
+    if (typeof process === 'undefined' || typeof process?.env === 'undefined') {
+        return LogLevel.ERROR;
+    }
+    return process?.env?.WALLETKIT_LOG_LEVEL === 'debug'
+        ? LogLevel.DEBUG
+        : process?.env?.WALLETKIT_LOG_LEVEL === 'none'
+          ? LogLevel.NONE
+          : process?.env?.WALLETKIT_LOG_LEVEL === 'info'
+            ? LogLevel.INFO
+            : process?.env?.WALLETKIT_LOG_LEVEL === 'warn'
+              ? LogLevel.WARN
+              : process?.env?.WALLETKIT_LOG_LEVEL === 'off'
+                ? LogLevel.NONE
+                : LogLevel.ERROR;
+}
+
 /**
  * Logger class for TonWalletKit
  * Provides structured logging with configurable levels and context support
@@ -235,7 +252,7 @@ export class Logger {
  * Default logger instance
  */
 export const globalLogger = new Logger({
-    level: LogLevel.DEBUG,
+    level: getDefaultLogLevel(),
     enableStackTrace: true,
 });
 

@@ -6,6 +6,9 @@
  *
  */
 
+// Blockchain models
+export type { MasterchainInfo } from './blockchain/MasterchainInfo';
+
 // Core models
 export type { AddressBook, AddressBookEntry } from './core/AddressBook';
 export { AssetType } from './core/AssetType';
@@ -24,6 +27,7 @@ export type { TokenAnimation } from './core/TokenAnimation';
 export type { TokenImage } from './core/TokenImage';
 export type { TokenInfo } from './core/TokenInfo';
 export type { RawStackItem } from './core/RawStackItem';
+export type { SignatureDomain, SignatureDomainL2, SignatureDomainEmpty } from './core/SignatureDomain';
 
 // Bridge models
 export type { BridgeEvent } from './bridge/BridgeEvent';

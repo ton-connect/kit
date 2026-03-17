@@ -47,7 +47,7 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  *   }
  * );
  *
- * kit.swap.registerProvider('omniston', provider);
+ * kit.swap.registerProvider(provider);
  * ```
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {

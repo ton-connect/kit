@@ -1,5 +1,27 @@
 # @ton/appkit-react
 
+## 0.0.5-alpha.2
+
+### Patch Changes
+
+- 72930db: - Add `getMasterchainInfo` to `ApiClient`, currently implemented in `ApiClientToncenter` and `ApiClientTonApi`.
+    - Add `getBlockNumber` action to `@ton/appkit`.
+    - Add `useBlockNumber` hook to `@ton/appkit-react`.
+- Updated dependencies [72930db]
+    - @ton/appkit@0.0.4-alpha.2
+
+## 0.0.5-alpha.1
+
+### Patch Changes
+
+- @ton/appkit@0.0.4-alpha.1
+
+## 0.0.5-alpha.0
+
+### Patch Changes
+
+- @ton/appkit@0.0.4-alpha.0
+
 ## 0.0.4
 
 ### Patch Changes

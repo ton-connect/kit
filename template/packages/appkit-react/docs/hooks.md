@@ -86,6 +86,18 @@ Hook to get all configured networks.
 
 %%demo/examples/src/appkit/hooks/network#USE_NETWORKS%%
 
+### `useBlockNumber`
+
+Hook to get the current masterchain block number.
+
+%%demo/examples/src/appkit/hooks/network#USE_BLOCK_NUMBER%%
+
+### `useDefaultNetwork`
+
+Hook to get and set the default network for wallet connections. Returns a tuple `[defaultNetwork, setDefaultNetwork]`.
+
+%%demo/examples/src/appkit/hooks/network#USE_DEFAULT_NETWORK%%
+
 ## NFT
 
 ### `useNft`

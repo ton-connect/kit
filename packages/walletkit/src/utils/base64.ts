@@ -43,7 +43,7 @@ export function Base64Normalize(data: string): string {
  */
 export function Base64NormalizeUrl(data: string): string {
     const normalized = Base64Normalize(data);
-    const burl = normalized.replace(/-/g, '+').replace(/\//g, '_').replace(/=/g, '');
+    const burl = normalized.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     return burl;
 }
 

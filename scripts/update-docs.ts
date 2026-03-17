@@ -284,10 +284,6 @@ async function processTemplateFile(templatePath: string): Promise<void> {
 
     const placeholders = parsePlaceholders(templateBody);
 
-    if (placeholders.length === 0) {
-        return;
-    }
-
     const sampleCache = new Map<string, Map<string, string>>();
 
     // Replace placeholders

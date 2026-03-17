@@ -39,10 +39,42 @@ export type { IContactResolver, Contact, TonMcpConfig, NetworkConfig } from './t
 // ===========================================
 
 export { McpWalletService } from './services/McpWalletService.js';
+export { WalletRegistryService } from './services/WalletRegistryService.js';
+export { AgenticSetupSessionManager } from './services/AgenticSetupSessionManager.js';
+export { AgenticOnboardingService } from './services/AgenticOnboardingService.js';
+export type {
+    StartAgenticKeyRotationResult,
+    CompleteAgenticKeyRotationResult,
+} from './services/WalletRegistryService.js';
 export type {
     McpWalletServiceConfig,
     JettonInfoResult,
+    JettonMetadataResult,
+    AddressBalanceResult,
     TransferResult,
+    DeployAgenticSubwalletResult,
     SwapQuoteResult,
     TransactionInfo,
 } from './services/McpWalletService.js';
+export type {
+    TonNetwork,
+    StandardWalletVersion,
+    ConfigNetwork,
+    StoredStandardWallet,
+    StoredAgenticWallet,
+    StoredWallet,
+    PendingAgenticDeployment,
+    PendingAgenticKeyRotation,
+    TonConfig,
+} from './registry/config.js';
+export type {
+    AgenticDeployCallbackPayload,
+    AgenticSetupSession,
+    AgenticSetupStatus,
+} from './services/AgenticSetupSessionManager.js';
+
+// ===========================================
+// Contracts
+// ===========================================
+
+export { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';

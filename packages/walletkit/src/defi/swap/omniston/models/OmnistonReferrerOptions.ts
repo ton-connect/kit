@@ -6,8 +6,6 @@
  *
  */
 
-import type { UserFriendlyAddress } from '../../../../api/models';
-
 /**
  * Options for configuring the referrer in Omniston swap operations
  */
@@ -15,7 +13,7 @@ export interface OmnistonReferrerOptions {
     /**
      * The address of the referrer
      */
-    referrerAddress?: UserFriendlyAddress;
+    referrerAddress?: string;
 
     /**
      * Referrer fee in basis points (1 bp = 0.01%)

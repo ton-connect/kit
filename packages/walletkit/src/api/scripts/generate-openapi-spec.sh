@@ -6,31 +6,24 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration
-TYPESCRIPT_INPUT="$SCRIPT_DIR/../models"
+SRC_ROOT="$SCRIPT_DIR/../.."
 OUTPUT_FILE="$SCRIPT_DIR/generated/walletkit-openapi.json"
 TEMP_SCHEMA="$SCRIPT_DIR/generated/temp-schema.json"
 
-if [ -z "$TYPESCRIPT_INPUT" ]; then
-    echo "❌ Error: TypeScript input path is required"
-fi
+# Input glob: api/models + any models folders under defi
+TYPESCRIPT_INPUT="$SRC_ROOT/{api/models,defi/**/models}/**/*.ts"
 
 echo "🚀 Converting TypeScript to OpenAPI specification..."
 echo "📁 TypeScript input: $TYPESCRIPT_INPUT"
 echo "📄 Output file: $OUTPUT_FILE"
 echo ""
 
-# Step 1: Validate TypeScript input
-if [ ! -d "$TYPESCRIPT_INPUT" ] && [ ! -f "$TYPESCRIPT_INPUT" ]; then
-    echo "❌ Error: TypeScript input not found at '$TYPESCRIPT_INPUT'"
-    exit 1
-fi
-
-# Step 2: Ensure generated directory exists
+# Step 1: Ensure generated directory exists
 mkdir -p "$SCRIPT_DIR/generated"
 
-# Step 3: Generate JSON Schema using custom generator (with x-enum-varnames)
+# Step 2: Generate JSON Schema using custom generator (with x-enum-varnames)
 echo "📝 Step 1: Generating JSON Schema with enum member names..."
-node "$SCRIPT_DIR/generate-json-schema.js" "$TYPESCRIPT_INPUT/**/*.ts" "$TEMP_SCHEMA" || {
+node "$SCRIPT_DIR/generate-json-schema.js" "$TYPESCRIPT_INPUT" "$TEMP_SCHEMA" || {
     echo "❌ Failed to generate JSON Schema"
     exit 1
 }

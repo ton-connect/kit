@@ -66,6 +66,18 @@ jobs:
         VITE_DISABLE_AUTO_POPUP: true
         VITE_BRIDGE_URL: 'http://localhost:8081/bridge'
     
+    - name: Upload results to Allure TestOps
+      if: always()
+      continue-on-error: true
+      run: |
+        curl -fsSL https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -o allurectl
+        chmod +x allurectl
+        ./allurectl upload --endpoint $ALLURE_BASE_URL --token $ALLURE_API_TOKEN --project-id $ALLURE_PROJECT_ID apps/demo-wallet/allure-results
+      env:
+        ALLURE_BASE_URL: ${{ secrets.ALLURE_DEMO_ENDPOINT }}
+        ALLURE_API_TOKEN: ${{ secrets.ALLURE_DEMO_API_TOKEN }}
+        ALLURE_PROJECT_ID: ${{ secrets.ALLURE_DEMO_PROJECT_ID }}
+
     - name: Upload Allure Results
       if: always()
       uses: actions/upload-artifact@v4

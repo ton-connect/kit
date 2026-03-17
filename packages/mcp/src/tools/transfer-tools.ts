@@ -72,6 +72,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 {
                                     success: true,
                                     message: result.message,
+                                    normalizedHash: result.normalizedHash,
                                     details: {
                                         to: args.toAddress,
                                         amount: `${args.amount} TON`,
@@ -161,6 +162,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 {
                                     success: true,
                                     message: result.message,
+                                    normalizedHash: result.normalizedHash,
                                     details: {
                                         to: args.toAddress,
                                         jettonAddress: args.jettonAddress,
@@ -212,6 +214,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 {
                                     success: true,
                                     message: result.message,
+                                    normalizedHash: result.normalizedHash,
                                     details: {
                                         messageCount: args.messages.length,
                                         messages: args.messages.map((m) => ({

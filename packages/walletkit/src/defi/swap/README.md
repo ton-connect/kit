@@ -1,3 +1,9 @@
+<!--
+This file is auto-generated. Do not edit manually.
+Changes will be overwritten when running the docs update script.
+Source template: template/packages/walletkit/src/defi/swap/README.md
+-->
+
 # Swap Manager
 
 SwapManager provides a unified interface for token swaps across multiple DEX protocols on TON blockchain.
@@ -18,9 +24,40 @@ const omnistonProvider = new OmnistonSwapProvider({
     quoteTimeoutMs: 10000,
 });
 
-kit.swap.registerProvider('omniston', omnistonProvider);
+kit.swap.registerProvider(omnistonProvider);
 kit.swap.setDefaultProvider('omniston');
 ```
+
+## Quote Parameters
+
+All providers use the same base parameters for `getQuote`:
+
+```typescript
+interface SwapQuoteParams<TProviderOptions = unknown> {
+    from: SwapToken;
+    to: SwapToken;
+    amount: string;
+    network: Network;
+    slippageBps?: number;
+    providerOptions?: TProviderOptions;
+}
+```
+
+Providers may add provider-specific parameters (e.g. `maxOutgoingMessages`, `isReverseSwap`). See each provider's README for details.
+
+## Referral Fees
+
+Many providers support referral fees. You can configure a global referrer in the provider config or pass options per request via `providerOptions`. Option names vary by provider (e.g. `referrerAddress` vs `referralAddress`).
+
+- [Omniston](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/omniston/README.md#referral-fees) – `referrerAddress`, `referrerFeeBps`
+- [DeDust](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/dedust/README.md#referral-fees) – `referralAddress`, `referralFeeBps`
+
+## Overriding Referral Settings
+
+You can set a global referrer in provider config and override it for specific requests by passing different options in `providerOptions`. See provider docs for examples:
+
+- [Omniston](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/omniston/README.md#overriding-referral-settings)
+- [DeDust](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/dedust/README.md#overriding-referral-settings)
 
 ## Getting a Quote
 
@@ -28,23 +65,19 @@ kit.swap.setDefaultProvider('omniston');
 import type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 
 const quote = await kit.swap.getQuote({
-    fromToken: 'TON',
-    toToken: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', // USDT
-    amount: '1000000000', // 1 TON in nanotons
+    from: { address: 'ton', decimals: 9 },
+    to: { address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs', decimals: 6 },
+    amount: '1000000000',
     network: Network.mainnet(),
-    slippageBps: 100, // 1% slippage
-    
-    // Provider-specific options (optional)
+    slippageBps: 100,
     providerOptions: {
         referrerAddress: 'EQ...',
-        referrerFeeBps: 10, // 0.1%
-        flexibleReferrerFee: true,
+        referrerFeeBps: 10,
     } as OmnistonProviderOptions,
 });
 
 console.log('You will receive:', quote.toAmount);
 console.log('Minimum received:', quote.minReceived);
-console.log('Price impact:', quote.priceImpact);
 ```
 
 ## Executing a Swap
@@ -53,15 +86,9 @@ console.log('Price impact:', quote.priceImpact);
 const transaction = await kit.swap.buildSwapTransaction({
     quote,
     userAddress: 'EQ...',
-    destinationAddress: 'EQ...', // Optional: send swapped tokens to different address
-    
-    // Provider-specific options (optional)
-    providerOptions: {
-        referrerAddress: 'EQ...',
-    } as OmnistonProviderOptions,
+    destinationAddress: 'EQ...',
 });
 
-// Sign and send transaction
 await kit.handleNewTransaction(wallet, transaction);
 ```
 
@@ -74,151 +101,59 @@ import { SwapProvider } from '@ton/walletkit/swap';
 import type { SwapQuoteParams, SwapQuote, SwapParams } from '@ton/walletkit/swap';
 import type { TransactionRequest } from '@ton/walletkit';
 
-// Define provider-specific options
 interface MyProviderOptions {
     customParam?: string;
-    feePercent?: number;
 }
 
 export class MySwapProvider extends SwapProvider<MyProviderOptions> {
-    readonly providerId: string;
-
-    constructor(providerId?: string) {
-        super();
-        this.providerId = providerId ?? 'my-swap-provider';
-    }
+    readonly providerId = 'my-provider';
 
     async getQuote(params: SwapQuoteParams<MyProviderOptions>): Promise<SwapQuote> {
-        const { fromToken, toToken, amount, network, providerOptions } = params;
-        
-        // Use providerOptions if provided
-        const customParam = providerOptions?.customParam;
-        
-        // Implement your quote logic
-        const response = await fetch('https://api.mydex.com/quote', {
-            method: 'POST',
-            body: JSON.stringify({
-                from: fromToken,
-                to: toToken,
-                amount,
-                customParam,
-            }),
-        });
-        
-        const data = await response.json();
-        
-        return {
-            fromToken,
-            toToken,
-            fromAmount: amount,
-            toAmount: data.outputAmount,
-            minReceived: data.minOutput,
-            network,
-            priceImpact: data.priceImpact,
-            provider: 'mydex',
-            expiresAt: Math.floor(Date.now() / 1000) + 30, // 30 seconds
-            metadata: data, // Store provider-specific data
-        };
+        const { from, to, amount, network, providerOptions } = params;
+        // Implement quote logic...
+        return { fromToken: from, toToken: to, fromAmount: amount, toAmount: '0', network, /* ... */ };
     }
-    
+
     async buildSwapTransaction(params: SwapParams<MyProviderOptions>): Promise<TransactionRequest> {
-        const { quote, userAddress, destinationAddress, providerOptions } = params;
-        
-        // Build transaction using your DEX's API or smart contracts
-        const response = await fetch('https://api.mydex.com/build-tx', {
-            method: 'POST',
-            body: JSON.stringify({
-                quote: quote.metadata,
-                user: userAddress,
-                destination: destinationAddress || userAddress,
-            }),
-        });
-        
-        const data = await response.json();
-        
-        return {
-            fromAddress: userAddress,
-            messages: data.messages.map(msg => ({
-                address: msg.to,
-                amount: msg.value,
-                payload: msg.payload,
-                stateInit: msg.stateInit,
-            })),
-            network: quote.network,
-            validUntil: data.validUntil,
-        };
+        // Build transaction...
+        return { fromAddress: params.userAddress, messages: [], network: params.quote.network };
     }
 }
-```
-
-### Register Your Provider
-
-```typescript
-const myProvider = new MySwapProvider();
-kit.swap.registerProvider(myProvider);
-
-// Use it
-const quote = await kit.swap.getQuote(
-    {
-        fromToken: 'TON',
-        toToken: 'USDT',
-        amount: '1000000000',
-        network: Network.mainnet(),
-        providerOptions: {
-            customParam: 'value',
-            feePercent: 0.3,
-        },
-    },
-    'mydex' // Specify provider
-);
 ```
 
 ## Available Providers
 
-- **[Omniston](./omniston/README.md)**: STON.fi aggregator supporting multiple DEXs
-- More providers coming soon...
+- **[Omniston](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/omniston/README.md)**: STON.fi aggregator supporting multiple DEXs
+- **[DeDust](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/dedust/README.md)**: DeDust Router v2 aggregator supporting multiple pools and protocols
 
 ## API Reference
 
 ### SwapManager
 
-#### `getQuote(params, provider?)`
+#### `getQuote(params, providerId?)`
 Get a quote for token swap.
 
 **Parameters:**
-- `params: SwapQuoteParams<TProviderOptions>` - Quote parameters
-  - `fromToken: string` - Source token address or 'TON'
-  - `toToken: string` - Destination token address or 'TON'
-  - `amount: string` - Amount in token's smallest units
-  - `network: Network` - Network to use
-  - `slippageBps?: number` - Slippage tolerance in basis points
-  - `providerOptions?: TProviderOptions` - Provider-specific options
-- `provider?: string` - Provider name (uses default if not specified)
+- `params: SwapQuoteParams<TProviderOptions>` – `from`, `to`, `amount`, `network`, `slippageBps?`, `providerOptions?`
+- `providerId?: string` – Provider name (uses default if not specified)
 
 **Returns:** `Promise<SwapQuote>`
 
-#### `buildSwapTransaction(params, provider?)`
+#### `buildSwapTransaction(params, providerId?)`
 Build transaction for executing swap.
 
 **Parameters:**
-- `params: SwapParams<TProviderOptions>` - Swap parameters
-  - `quote: SwapQuote` - Quote from getQuote
-  - `userAddress: string` - User's wallet address
-  - `destinationAddress?: string` - Optional recipient address
-  - `slippageBps?: number` - Override slippage
-  - `deadline?: number` - Transaction deadline
-  - `providerOptions?: TProviderOptions` - Provider-specific options
-- `provider?: string` - Provider name
+- `params: SwapParams<TProviderOptions>` – `quote`, `userAddress`, `destinationAddress?`, `providerOptions?`
+- `providerId?: string` – Provider name
 
 **Returns:** `Promise<TransactionRequest>`
 
 #### `registerProvider(provider)`
 Register a new swap provider.
-- `provider: SwapProviderInterface` - Provider instance (must have `providerId`)
 
-#### `setDefaultProvider(name)`
+#### `setDefaultProvider(providerId)`
 Set default provider for swap operations.
 
 ## Examples
 
-See the [demo wallet](../../../apps/demo-wallet/src/pages/Swap.tsx) for a complete implementation example.
+See the [demo wallet](https://github.com/ton-connect/kit/blob/main/apps/demo-wallet/src/pages/Swap.tsx) for a complete implementation.

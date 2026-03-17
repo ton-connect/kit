@@ -4,28 +4,34 @@ target: packages/appkit/docs/swap.md
 
 # Swap
 
-AppKit supports swapping assets through the `SwapProvider` interface. The primary provider is `OmnistonSwapProvider`, which integrates with the [STON.fi](https://ston.fi) DEX aggregator via the [Omniston SDK](https://docs.ston.org/docs/developer-section/sdk/omniston-sdk).
+AppKit supports swapping assets through the `SwapProvider` interface. Available providers:
+
+- **OmnistonSwapProvider** – [STON.fi](https://ston.fi) DEX aggregator via [Omniston SDK](https://docs.ston.org/docs/developer-section/sdk/omniston-sdk)
+- **DeDustSwapProvider** – [DeDust](https://dedust.io) Router v2 aggregator (no extra dependencies)
 
 ## Installation
 
-To use `OmnistonSwapProvider`, you need to install `@ston-fi/omniston-sdk`:
+**Omniston** requires the Omniston SDK:
 
 ```bash
 npm install @ston-fi/omniston-sdk
 ```
 
+**DeDust** has no additional dependencies.
+
 ## Setup
 
-You can set up `OmnistonSwapProvider` by passing it to the `AppKit` constructor.
+You can set up swap providers by passing them to the `AppKit` constructor.
 
 %%demo/examples/src/appkit/swap#SWAP_PROVIDER_INIT%%
 
 ### Register Dynamically
 
-Alternatively, you can register the provider dynamically using `registerProvider`:
+Alternatively, you can register providers dynamically using `registerProvider`:
 
 %%demo/examples/src/appkit/swap#SWAP_PROVIDER_REGISTER%%
 
 ## Configuration
 
-For detailed configuration options and usage of `OmnistonSwapProvider`, please refer to the [Omniston SDK documentation](https://docs.ston.org/docs/developer-section/sdk/omniston-sdk) and the [provider documentation](../src/swap/omniston/README.md).
+- **Omniston**: [Omniston SDK documentation](https://docs.ston.org/docs/developer-section/sdk/omniston-sdk) and [provider README](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/omniston/README.md)
+- **DeDust**: [provider README](https://github.com/ton-connect/kit/blob/main/packages/walletkit/src/defi/swap/dedust/README.md)

@@ -29,10 +29,10 @@ export interface NetworkConfig {
  */
 export interface TonMcpConfig {
     /**
-     * Wallet instance to use for operations.
-     * Required.
+     * Optional fixed wallet instance for backward-compatible single-wallet mode.
+     * If omitted, the server can run against the local config registry.
      */
-    wallet: Wallet;
+    wallet?: Wallet;
 
     /**
      * Optional contact resolver for name-to-address resolution.

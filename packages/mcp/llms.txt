@@ -4,7 +4,14 @@
 
 ## Overview
 
-This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, and DNS resolution.
+This MCP server provides tools for managing TON blockchain wallets. It supports wallet info, balance queries, transfers (TON, Jettons, NFTs), token swaps, transaction history, DNS resolution, local multi-wallet registry management, and agentic wallet onboarding.
+
+It has two runtime modes:
+- Registry mode: if `MNEMONIC` and `PRIVATE_KEY` are not set, wallets are loaded from the local TON config registry (`~/.config/ton/config.json` or `TON_CONFIG_PATH`)
+- Single-wallet mode: if `MNEMONIC` or `PRIVATE_KEY` is set, the server runs with one in-memory wallet
+
+In registry mode, wallet-scoped tools can also accept optional `walletSelector`. If omitted, the active wallet is used.
+HTTP mode is multi-session: each MCP client session gets its own server transport instead of sharing a process-wide singleton.
 
 ## Available Tools
 
@@ -12,8 +19,32 @@ This MCP server provides tools for managing TON blockchain wallets. It supports 
 Get current wallet address and network info.
 Returns: address, network (mainnet or testnet)
 
+### list_wallets
+Registry mode only. List wallets stored in the local config registry.
+Returns: sanitized wallet list, count, active wallet id
+
+### get_current_wallet
+Registry mode only. Get the active wallet from the local config registry.
+Returns: sanitized wallet record
+
+### set_active_wallet
+Registry mode only. Switch active wallet.
+Parameters:
+- walletSelector (required): wallet id, name, or address
+
+### remove_wallet
+Registry mode only. Soft-delete a wallet from the local config registry. Removed wallets remain in config but are hidden from MCP lookups and lists.
+Parameters:
+- walletSelector (required): wallet id, name, or address
+
 ### get_balance
 Get TON balance of the wallet.
+Returns: address, balance in TON and nanoTON
+
+### get_balance_by_address
+Get TON balance for any address.
+Parameters:
+- address (required): TON wallet address
 Returns: address, balance in TON and nanoTON
 
 ### get_jetton_balance
@@ -24,6 +55,20 @@ Parameters:
 ### get_jettons
 List all Jettons in the wallet with balances and metadata.
 Returns: array of tokens with address, symbol, name, balance, decimals
+
+### get_jettons_by_address
+List all Jettons for any owner address.
+Parameters:
+- address (required): owner wallet address
+- limit (optional): 1-100, default 20
+- offset (optional): pagination offset
+Returns: array of tokens with address, symbol, name, balance, decimals
+
+### get_jetton_info
+Get Jetton master metadata.
+Parameters:
+- address (required): Jetton master contract address
+Returns: Jetton metadata (address, name, symbol, decimals, description, image, uri)
 
 ### get_transactions
 Get recent transaction history.
@@ -47,6 +92,7 @@ Parameters:
 - toAddress (required): recipient address
 - amount (required): amount in TON (e.g., "1.5")
 - comment (optional): transaction memo
+Returns: top-level normalizedHash plus details
 
 ### send_jetton
 Send Jettons to an address.
@@ -55,6 +101,7 @@ Parameters:
 - jettonAddress (required): token contract address
 - amount (required): human-readable amount
 - comment (optional): transaction memo
+Returns: top-level normalizedHash plus details
 
 ### send_raw_transaction
 Send raw transaction with full control.
@@ -62,6 +109,7 @@ Parameters:
 - messages (required): array of {address, amount (nanoTON), stateInit?, payload?}
 - validUntil (optional): expiry timestamp
 - fromAddress (optional): sender address
+Returns: top-level normalizedHash plus details
 
 ### get_swap_quote
 Get quote for token swap.
@@ -78,6 +126,13 @@ Parameters:
 - limit (optional): 1-100, default 20
 - offset (optional): pagination offset
 
+### get_nfts_by_address
+List NFTs for any owner address.
+Parameters:
+- address (required): owner wallet address
+- limit (optional): 1-100, default 20
+- offset (optional): pagination offset
+
 ### get_nft
 Get NFT details.
 Parameters:
@@ -91,19 +146,95 @@ Parameters:
 - comment (optional): transaction memo
 
 ### resolve_dns
-Resolve .ton domain to wallet address.
+Resolve TON DNS-compatible domain to wallet address.
 Parameters:
-- domain (required): e.g., "foundation.ton"
+- domain (required): e.g., "foundation.ton" or "viqex.t.me"
 
 ### back_resolve_dns
-Find .ton domain for a wallet address.
+Find the associated DNS domain for a wallet address when available.
 Parameters:
 - address (required): TON wallet address
 
+### agentic_validate_wallet
+Registry mode only. Validate an agentic wallet against network/collection and optional owner.
+Parameters:
+- address (required): agentic wallet address
+- network (optional): mainnet or testnet
+- collectionAddress (optional): collection override
+- ownerAddress (optional): expected owner address
+
+### agentic_list_wallets_by_owner
+Registry mode only. Find agentic wallets owned by a main wallet.
+Parameters:
+- ownerAddress (required): owner wallet address
+- network (optional): mainnet or testnet
+
+### agentic_import_wallet
+Registry mode only. Import an existing agentic wallet into the local registry. If no matching pending draft exists, the wallet remains read-only until agentic_rotate_operator_key is completed.
+Parameters:
+- address (required): agentic wallet address
+- network (optional): mainnet or testnet
+- name (optional): wallet display name
+
+### agentic_rotate_operator_key
+Registry mode only. Start agentic operator key rotation, persist a pending draft, and return a dashboard URL for the on-chain change.
+Parameters:
+- walletSelector (optional): wallet id, name, or address. Uses the active wallet when omitted
+
+### agentic_get_pending_operator_key_rotation
+Registry mode only. Read one pending operator key rotation.
+Parameters:
+- rotationId (required): pending rotation identifier
+
+### agentic_complete_rotate_operator_key
+Registry mode only. Complete an agentic operator key rotation after the dashboard transaction lands on chain, then update the stored operator key locally.
+Parameters:
+- rotationId (required): pending rotation identifier
+
+### agentic_cancel_rotate_operator_key
+Registry mode only. Cancel a pending operator key rotation and discard its stored replacement key.
+Parameters:
+- rotationId (required): pending rotation identifier
+
+### agentic_start_root_wallet_setup
+Registry mode only. Start first root-agent setup, generate operator keys, persist a pending draft, and return a dashboard URL.
+Parameters:
+- network (optional): mainnet or testnet
+- name (optional): display name
+- source (optional): source or description
+- collectionAddress (optional): collection override
+- tonDeposit (optional): TON deposit hint
+
+### agentic_list_pending_root_wallet_setups
+Registry mode only. List pending root-agent onboarding drafts.
+
+### agentic_get_root_wallet_setup
+Registry mode only. Read one pending setup.
+Parameters:
+- setupId (required): pending setup identifier
+
+### agentic_complete_root_wallet_setup
+Registry mode only. Complete onboarding from callback state or a manual wallet address, then import the wallet and make it active.
+Parameters:
+- setupId (required): pending setup identifier
+- walletAddress (optional): manual wallet address if no callback was received
+- ownerAddress (optional): owner address hint for validation
+
+### agentic_cancel_root_wallet_setup
+Registry mode only. Cancel a pending setup.
+Parameters:
+- setupId (required): pending setup identifier
+
 ## Usage Patterns
 
+### Working With Multiple Wallets
+1. list_wallets to inspect stored wallets
+2. get_current_wallet to confirm the active wallet
+3. set_active_wallet if the user wants to switch
+4. For one-off calls, pass walletSelector directly to wallet-scoped tools instead of changing the active wallet
+
 ### Sending TON
-1. If recipient is .ton domain: resolve_dns first
+1. If recipient is a DNS name rather than a raw address: resolve_dns first
 2. send_ton with resolved address
 3. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
@@ -119,8 +250,37 @@ Parameters:
 4. send_raw_transaction with quote's transaction params
 5. Default: poll get_transaction_status until completed or failed. User can ask to skip.
 
+### Importing an Existing Agentic Wallet
+1. agentic_validate_wallet if the wallet only exists as an address
+2. agentic_import_wallet to import it into the local registry
+3. If the wallet needs write access and no pending draft was recovered, use agentic_rotate_operator_key and then agentic_complete_rotate_operator_key
+4. Only then use write tools for that wallet
+
+### Rotating an Agentic Operator Key
+1. agentic_rotate_operator_key to create a pending rotation and get the dashboard URL
+2. If local shell/browser tools are available, open the dashboard URL yourself instead of asking the user to copy it manually
+3. Optionally inspect progress with agentic_get_pending_operator_key_rotation or agentic_list_pending_operator_key_rotations
+4. Ask the user only to approve the on-chain change in their wallet; do not require a fixed confirmation phrase
+5. agentic_complete_rotate_operator_key after the on-chain change is confirmed; if it is not yet reflected on-chain, wait briefly and retry
+6. agentic_cancel_rotate_operator_key if the pending rotation should be discarded
+
+### Setting Up the First Agentic Root Wallet
+1. agentic_start_root_wallet_setup
+2. If local shell/browser tools are available, open the returned dashboard URL yourself instead of asking the user to open it manually
+3. Tell the user only to create the wallet from their main wallet and approve the on-chain action
+4. In long-lived stdio/HTTP MCP server sessions, inspect agentic_get_root_wallet_setup or agentic_list_pending_root_wallet_setups and prefer callback status such as `callback_received`
+5. In long-lived stdio/HTTP MCP server sessions, call agentic_complete_root_wallet_setup when callback data is available
+6. In raw one-shot CLI usage, skip callback waiting and fall back to a manually supplied wallet address after deployment; use agentic_validate_wallet if needed
+
 ## Important Notes
 
-- Always confirm transfers/swaps with user before executing
+- When a tool returns `dashboardUrl`, use available local shell/browser tools to open it for the user whenever possible; only paste raw links as a fallback
+- If the host client exposes a structured confirmation or choice tool (approval dialog, option picker, request_user_input-style UI), use it for yes/no approvals and small option sets instead of free-text replies
+- Always confirm transfers/swaps with user before executing; prefer structured confirmation UI when available, otherwise use a short natural-language yes/no confirmation, and never require a fixed phrase
+- Prefer callback/status tools over asking the user to paste data that can be discovered automatically, but only in long-lived stdio/HTTP MCP server sessions, not raw CLI
 - send_ton/send_jetton/get_swap_quote use human-readable amounts
+- Registry mode uses the local TON config file from `~/.config/ton/config.json` or `TON_CONFIG_PATH`
+- Agentic onboarding callback state is persisted in the local config; in stdio mode use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` when you need a stable callback endpoint across restarts
+- Registry management responses are sanitized and do not expose mnemonic, private keys, operator private keys, or Toncenter API keys
+- Read tools can work with imported agentic wallets without `operator_private_key`; write tools cannot
 - **Default flow:** After any send, poll get_transaction_status until completed or failed. User can specify whether to check status.

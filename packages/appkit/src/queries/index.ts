@@ -74,6 +74,14 @@ export {
     type TransferJettonReturnType,
 } from './jettons/transfer-jetton';
 
+// Network
+export {
+    getBlockNumberQueryOptions,
+    type GetBlockNumberData,
+    type GetBlockNumberErrorType,
+    type GetBlockNumberQueryConfig,
+} from './network/get-block-number';
+
 // NFT
 export {
     getNFTsByAddressQueryOptions as getNFTsQueryOptions,
