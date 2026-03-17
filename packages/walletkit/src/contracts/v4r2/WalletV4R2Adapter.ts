@@ -137,8 +137,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        _options: { fakeSignature: boolean },
+        options?: { fakeSignature?: boolean; internal?: boolean },
     ): Promise<Base64String> {
+        if (options?.internal) {
+            throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
+        }
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -274,14 +277,12 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     getSupportedFeatures(): Feature[] | undefined {
         return [
-            {
-                name: 'SendTransaction',
-                maxMessages: 4,
-            },
-            {
-                name: 'SignData',
-                types: ['binary', 'cell', 'text'],
-            },
-        ];
+            { name: 'SendTransaction', maxMessages: 4 },
+            { name: 'SignData', types: ['binary', 'cell', 'text'] },
+            // Intent features — type cast needed until @tonconnect/protocol exports these names
+            { name: 'SendTransactionDraft' },
+            { name: 'SendActionDraft' },
+            // SignMessageDraft (gasless) requires internal opcode — W5R1 only
+        ] as unknown as Feature[];
     }
 }
