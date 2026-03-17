@@ -40,7 +40,6 @@ export function getTonConnectDeviceInfo(): DeviceInfo {
 }
 
 export function getTonConnectFeatures(): Feature[] {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return [
         'SendTransaction',
         {
