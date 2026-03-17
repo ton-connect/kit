@@ -30,6 +30,7 @@ export {
     useNfts,
     useJettons,
     useSwap,
+    useIntents,
 } from './hooks/useWalletStore';
 export { useFormattedTonBalance, useFormattedAmount } from './hooks/useFormattedBalance';
 export { useWalletInitialization } from './hooks/useWalletInitialization';
@@ -42,6 +43,7 @@ export type {
     WalletCoreSlice,
     WalletManagementSlice,
     TonConnectSlice,
+    IntentSlice,
     JettonsSlice,
     NftsSlice,
     SwapSlice,
