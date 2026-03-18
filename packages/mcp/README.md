@@ -106,6 +106,10 @@ npx @ton/mcp@alpha --http 3000
 
 HTTP mode keeps a separate MCP session/transport per client session id, so multiple clients can initialize and reconnect independently.
 
+## Usage Examples
+
+Examples of user requests, approximate corresponding raw CLI commands via `npx @ton/mcp@alpha`, and expected agent responses are collected in [USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md).
+
 ## Environment Variables
 
 | Variable | Default | Description |
