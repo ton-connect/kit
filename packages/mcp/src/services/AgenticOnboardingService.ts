@@ -82,7 +82,7 @@ export class AgenticOnboardingService {
 
     async listRootWalletSetups(): Promise<AgenticRootWalletSetupStatus[]> {
         const pending = await this.registry.listPendingAgenticSetups();
-        return pending.map((deployment) => this.composeStatus(deployment));
+        return await Promise.all(pending.map((deployment) => this.composeStatus(deployment)));
     }
 
     async getRootWalletSetup(setupId: string): Promise<AgenticRootWalletSetupStatus | undefined> {
@@ -90,11 +90,11 @@ export class AgenticOnboardingService {
         if (!pending) {
             return undefined;
         }
-        return this.composeStatus(pending);
+        return await this.composeStatus(pending);
     }
 
-    private composeStatus(pendingDeployment: PendingAgenticDeployment): AgenticRootWalletSetupStatus {
-        const session = this.sessionManager.getSession(pendingDeployment.id);
+    private async composeStatus(pendingDeployment: PendingAgenticDeployment): Promise<AgenticRootWalletSetupStatus> {
+        const session = await this.sessionManager.getSession(pendingDeployment.id);
         return {
             setupId: pendingDeployment.id,
             pendingDeployment,
@@ -113,7 +113,7 @@ export class AgenticOnboardingService {
             throw new Error(`Pending agentic setup "${input.setupId}" was not found.`);
         }
 
-        const session = this.sessionManager.getSession(input.setupId);
+        const session = await this.sessionManager.getSession(input.setupId);
         const payload = session?.payload;
         if (payload && !payloadMatchesNetwork(payload, pending.network)) {
             throw new Error(`Callback network does not match ${pending.network}.`);
@@ -158,7 +158,7 @@ export class AgenticOnboardingService {
             name: payload?.wallet?.name,
             source: payload?.wallet?.source,
         });
-        this.sessionManager.markCompleted(input.setupId);
+        await this.sessionManager.markCompleted(input.setupId);
 
         return {
             wallet,
@@ -169,6 +169,6 @@ export class AgenticOnboardingService {
 
     async cancelRootWalletSetup(setupId: string): Promise<void> {
         await this.registry.removePendingAgenticSetup({ id: setupId });
-        this.sessionManager.cancelSession(setupId);
+        await this.sessionManager.cancelSession(setupId);
     }
 }

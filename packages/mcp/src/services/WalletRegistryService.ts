@@ -30,7 +30,7 @@ import {
     upsertPendingAgenticKeyRotation,
     upsertWallet,
 } from '../registry/config.js';
-import { loadConfigWithMigration, saveConfigTransition } from '../registry/config-persistence.js';
+import { loadConfig as readConfig, saveConfigTransition } from '../registry/config-persistence.js';
 import { omitSecretRefFields, readSecret } from '../registry/private-key-files.js';
 import type {
     ConfigNetwork,
@@ -157,7 +157,7 @@ export class WalletRegistryService {
     }
 
     async loadConfig(): Promise<TonConfig> {
-        return (await loadConfigWithMigration()) ?? createEmptyConfig();
+        return (await readConfig()) ?? createEmptyConfig();
     }
 
     async listWallets(): Promise<StoredWallet[]> {

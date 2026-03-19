@@ -41,7 +41,6 @@ import {
 import {
     deleteConfig,
     loadConfig,
-    loadConfigWithMigration,
     saveConfig,
     saveConfigTransition,
 } from '../registry/config-persistence.js';
@@ -80,7 +79,7 @@ describe('mcp config registry', () => {
         rmSync(tempDir, { recursive: true, force: true });
     });
 
-    it('saves config with strict permissions and reads it back', () => {
+    it('saves config with strict permissions and reads it back', async () => {
         const standard = createStandardWalletRecord({
             name: 'Main wallet',
             network: 'mainnet',
@@ -91,7 +90,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config, walletSecrets(standard.id, { mnemonic: 'a '.repeat(24).trim() }));
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         expect(loaded?.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
@@ -131,7 +130,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        const migrated = await loadConfigWithMigration();
+        const migrated = await loadConfig();
         expect(migrated?.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(migrated?.wallets).toHaveLength(1);
         expect(migrated?.wallets[0]?.name).toBe('Migrated wallet');
@@ -144,7 +143,7 @@ describe('mcp config registry', () => {
         });
     });
 
-    it('reads inline secrets from v2 payloads without writing files on load', () => {
+    it('upgrades inline secrets from v2 payloads on load', async () => {
         rawWriteFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -204,20 +203,20 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         expect(loaded?.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(loaded?.wallets[0]).toMatchObject({
-            mnemonic: 'abandon '.repeat(23) + 'about',
+            secret_file: expect.any(String),
             secret_type: 'mnemonic',
         });
         expect(loaded?.wallets[1]).toMatchObject({
-            private_key: '0x' + '22'.repeat(32),
+            secret_file: expect.any(String),
         });
         expect(loaded?.pending_agentic_deployments?.[0]).toMatchObject({
-            private_key: '0x' + '33'.repeat(32),
+            secret_file: expect.any(String),
         });
         expect(loaded?.pending_agentic_key_rotations?.[0]).toMatchObject({
-            private_key: '0x' + '44'.repeat(32),
+            secret_file: expect.any(String),
         });
         expect(loaded?.wallets[1]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
         expect(loaded?.pending_agentic_deployments?.[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
@@ -225,23 +224,23 @@ describe('mcp config registry', () => {
         expect(loaded?.wallets[1]).not.toHaveProperty('secret_type');
         expect(loaded?.pending_agentic_deployments?.[0]).not.toHaveProperty('secret_type');
         expect(loaded?.pending_agentic_key_rotations?.[0]).not.toHaveProperty('secret_type');
-        expect(loaded?.wallets[0]).not.toHaveProperty('secret_file');
-        expect(loaded?.wallets[1]).not.toHaveProperty('secret_file');
-        expect(loaded?.pending_agentic_deployments?.[0]).not.toHaveProperty('secret_file');
-        expect(loaded?.pending_agentic_key_rotations?.[0]).not.toHaveProperty('secret_file');
 
-        const persisted = JSON.parse(rawReadFileSync(process.env.TON_CONFIG_PATH!, 'utf-8')) as Record<string, unknown>;
-        expect(persisted.version).toBe(2);
+        const persisted = JSON.parse(readFileSync(process.env.TON_CONFIG_PATH!)) as Record<string, unknown>;
+        expect(persisted.version).toBe(CURRENT_TON_CONFIG_VERSION);
         const wallets = persisted.wallets as Array<Record<string, unknown>>;
         const deployments = persisted.pending_agentic_deployments as Array<Record<string, unknown>>;
         const rotations = persisted.pending_agentic_key_rotations as Array<Record<string, unknown>>;
-        expect(wallets[0]).toHaveProperty('mnemonic');
-        expect(wallets[1]).toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
-        expect(deployments[0]).toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
-        expect(rotations[0]).toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
+        expect(wallets[0]).not.toHaveProperty('mnemonic');
+        expect(wallets[0]).toHaveProperty('secret_file');
+        expect(wallets[1]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
+        expect(wallets[1]).toHaveProperty('secret_file');
+        expect(deployments[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
+        expect(deployments[0]).toHaveProperty('secret_file');
+        expect(rotations[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
+        expect(rotations[0]).toHaveProperty('secret_file');
     });
 
-    it('upgrades a v2 config file to the current version on migration load', async () => {
+    it('upgrades a v2 config file to the current version on load', async () => {
         rawWriteFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -265,7 +264,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        const loaded = await loadConfigWithMigration();
+        const loaded = await loadConfig();
         expect(loaded?.version).toBe(CURRENT_TON_CONFIG_VERSION);
 
         const persisted = JSON.parse(readFileSync(process.env.TON_CONFIG_PATH!)) as Record<string, unknown>;
@@ -275,7 +274,7 @@ describe('mcp config registry', () => {
         expect(rawReadFileSync(process.env.TON_CONFIG_PATH!, 'utf-8')).not.toContain('"version":');
     });
 
-    it('materializes inline secrets from loaded v2 configs on explicit save', () => {
+    it('keeps migrated v2 secrets materialized on explicit save', async () => {
         rawWriteFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -334,7 +333,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        const loaded = loadConfig()!;
+        const loaded = (await loadConfig())!;
         const saved = saveConfigTransition(loaded, loaded);
 
         expect(saved.version).toBe(CURRENT_TON_CONFIG_VERSION);
@@ -458,7 +457,7 @@ describe('mcp config registry', () => {
         expect(getAgenticCollectionAddress(createEmptyConfig(), 'testnet')).toBeDefined();
     });
 
-    it('persists pending agentic deployment drafts in config', () => {
+    it('persists pending agentic deployment drafts in config', async () => {
         const draft = createPendingAgenticDeployment({
             name: 'Pending agent',
             network: 'testnet',
@@ -474,7 +473,7 @@ describe('mcp config registry', () => {
             pendingDeploymentSecrets(draft.id, '0x1111'),
         );
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         expect((loaded ?? createEmptyConfig()).pending_agentic_deployments).toEqual([
             expect.objectContaining({
                 id: draft.id,
@@ -505,7 +504,7 @@ describe('mcp config registry', () => {
         ).not.toContain('0x1111');
     });
 
-    it('stores generated secret file paths relative to the config directory', () => {
+    it('stores generated secret file paths relative to the config directory', async () => {
         const standard = createStandardWalletRecord({
             name: 'Primary wallet',
             network: 'mainnet',
@@ -521,7 +520,7 @@ describe('mcp config registry', () => {
             walletSecrets(standard.id, { mnemonic: 'abandon '.repeat(23) + 'about' }),
         );
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         expect((loaded?.wallets[0] as { secret_file: string }).secret_file).toBe(
             `private-keys/wallets/${standard.id}.mnemonic`,
         );
@@ -546,7 +545,7 @@ describe('mcp config registry', () => {
         expect(existsSync(secretPath)).toBe(false);
     });
 
-    it('removes wallet secret files when deleting wallets and config', () => {
+    it('removes wallet secret files when deleting wallets and config', async () => {
         const standard = createStandardWalletRecord({
             name: 'Primary wallet',
             network: 'mainnet',
@@ -562,7 +561,7 @@ describe('mcp config registry', () => {
             walletSecrets(standard.id, { mnemonic: 'abandon '.repeat(23) + 'about' }),
         );
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         const secretPath = resolveSecretPath((loaded?.wallets[0] as { secret_file: string }).secret_file);
         const removed = removeWallet(loaded ?? createEmptyConfig(), standard.id);
         saveConfigTransition(loaded ?? createEmptyConfig(), removed.config);
@@ -586,14 +585,14 @@ describe('mcp config registry', () => {
             }),
         );
 
-        const reloaded = loadConfig();
+        const reloaded = await loadConfig();
         const otherSecretPath = resolveSecretPath((reloaded?.wallets[0] as { secret_file: string }).secret_file);
         expect(deleteConfig()).toBe(true);
         expect(existsSync(process.env.TON_CONFIG_PATH!)).toBe(false);
         expect(existsSync(otherSecretPath)).toBe(false);
     });
 
-    it('does not delete old secret files when config write fails', () => {
+    it('does not delete old secret files when config write fails', async () => {
         const standard = createStandardWalletRecord({
             name: 'Primary wallet',
             network: 'mainnet',
@@ -609,7 +608,7 @@ describe('mcp config registry', () => {
             walletSecrets(standard.id, { mnemonic: 'abandon '.repeat(23) + 'about' }),
         );
 
-        const loaded = loadConfig();
+        const loaded = await loadConfig();
         const secretPath = resolveSecretPath((loaded?.wallets[0] as { secret_file: string }).secret_file);
         chmodSync(process.env.TON_CONFIG_PATH!, 0o400);
 
@@ -627,7 +626,7 @@ describe('mcp config registry', () => {
         }
     });
 
-    it('throws for unsupported config version', () => {
+    it('throws for unsupported config version', async () => {
         rawWriteFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -637,7 +636,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        expect(() => loadConfig()).toThrow(ConfigError);
+        await expect(loadConfig()).rejects.toThrow(ConfigError);
     });
 });
 
@@ -655,7 +654,7 @@ describe('mcp config registry compatibility with real CLI config', () => {
 
     it.skipIf(!existsSync(realConfigPath))('loads the real user config without migration errors', async () => {
         process.env.TON_CONFIG_PATH = realConfigPath;
-        const config = await loadConfigWithMigration();
+        const config = await loadConfig();
         expect(config?.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(config?.wallets.length ?? 0).toBeGreaterThan(0);
     });

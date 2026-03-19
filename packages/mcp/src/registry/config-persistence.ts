@@ -195,9 +195,7 @@ async function prepareLoadedConfig(
 ): Promise<PreparedLoadedConfig> {
     if (isLegacyConfig(raw)) {
         if (!options.allowLegacyMigration) {
-            throw new ConfigError(
-                'Unsupported legacy config. Use loadConfigWithMigration() to migrate the unversioned config into the current format.',
-            );
+            throw new ConfigError('Unsupported legacy config.');
         }
 
         const migrated = await migrateLegacyConfig(raw);
@@ -217,7 +215,7 @@ function prepareVersionedConfig(raw: unknown, options: { persistCurrentVersion: 
         throw new ConfigError('Unsupported config format.');
     }
 
-    const version = (raw as { version?: unknown }).version;
+    const version = raw.version;
     if (!isSupportedConfigVersion(version)) {
         throw new ConfigError(`Unsupported config version ${String(version)}.`);
     }
@@ -236,22 +234,7 @@ function finalizeLoadedConfig(prepared: PreparedLoadedConfig): TonConfig {
         : normalizeConfig(prepared.config);
 }
 
-export function loadConfig(): TonConfig | null {
-    const parsed = parseConfigFile();
-    if (!parsed) {
-        return null;
-    }
-
-    if (isLegacyConfig(parsed.raw)) {
-        throw new ConfigError(
-            `Unsupported legacy config. Re-import wallets into the current format or use CLI setup to migrate it. (${parsed.configPath})`,
-        );
-    }
-
-    return finalizeLoadedConfig(prepareVersionedConfig(parsed.raw, { persistCurrentVersion: false }));
-}
-
-export async function loadConfigWithMigration(): Promise<TonConfig | null> {
+export async function loadConfig(): Promise<TonConfig | null> {
     const parsed = parseConfigFile();
     if (!parsed) {
         return null;

@@ -350,7 +350,7 @@ describe('WalletRegistryService', () => {
             source: 'Started from MCP',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.active_wallet_id).toBe(result.wallet.id);
         expect(stored?.pending_agentic_deployments).toEqual([]);
     });
@@ -371,7 +371,7 @@ describe('WalletRegistryService', () => {
             },
             walletPrivateKey(wallet.id, '0xold-private'),
         );
-        const oldSecretPath = resolveSecretPath((loadConfig()?.wallets[0] as { secret_file: string }).secret_file);
+        const oldSecretPath = resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file);
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
             balanceNano: '42',
@@ -400,11 +400,11 @@ describe('WalletRegistryService', () => {
             operator_public_key: '0xnew-public',
         });
         expect(result.wallet).not.toHaveProperty('secret_file');
-        expect(loadConfig()?.wallets[0]).toMatchObject({
+        expect((await loadConfig())?.wallets[0]).toMatchObject({
             id: wallet.id,
             operator_public_key: '0xnew-public',
         });
-        expect(loadConfig()?.wallets[0]).not.toHaveProperty('secret_file');
+        expect((await loadConfig())?.wallets[0]).not.toHaveProperty('secret_file');
         expect(existsSync(oldSecretPath)).toBe(false);
     });
 
@@ -449,7 +449,7 @@ describe('WalletRegistryService', () => {
             deployed_by_user: true,
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.active_wallet_id).toBe(wallet.id);
         expect(stored?.wallets).toEqual([expect.objectContaining({ id: wallet.id })]);
         expect(stored?.pending_agentic_deployments).toEqual([]);
@@ -485,7 +485,7 @@ describe('WalletRegistryService', () => {
             operator_public_key: '0xgenerated-public',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.wallets[0]).toMatchObject({
             id: wallet.id,
             secret_file: expect.any(String),
@@ -544,9 +544,9 @@ describe('WalletRegistryService', () => {
         const started = await registry.startAgenticKeyRotation({
             walletSelector: wallet.id,
         });
-        const oldSecretPath = resolveSecretPath((loadConfig()?.wallets[0] as { secret_file: string }).secret_file);
+        const oldSecretPath = resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file);
         const pendingSecretPath = resolveSecretPath(
-            (loadConfig()?.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file,
+            ((await loadConfig())?.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file,
         );
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
@@ -568,8 +568,8 @@ describe('WalletRegistryService', () => {
             operator_public_key: '0xgenerated-public',
         });
         expect(completed.dashboardUrl).toBe(`https://dashboard.test/agent/${wallet.address}`);
-        expect(loadConfig()?.pending_agentic_key_rotations).toEqual([]);
-        expect(resolveSecretPath((loadConfig()?.wallets[0] as { secret_file: string }).secret_file)).toBe(
+        expect((await loadConfig())?.pending_agentic_key_rotations).toEqual([]);
+        expect(resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file)).toBe(
             pendingSecretPath,
         );
         expect(existsSync(oldSecretPath)).toBe(false);
@@ -613,7 +613,7 @@ describe('WalletRegistryService', () => {
         await expect(registry.completeAgenticKeyRotation(started.pendingRotation.id)).rejects.toThrow(
             /does not match pending rotation/i,
         );
-        expect(loadConfig()?.pending_agentic_key_rotations).toHaveLength(1);
+        expect((await loadConfig())?.pending_agentic_key_rotations).toHaveLength(1);
     });
 
     it.each([
@@ -713,7 +713,7 @@ describe('WalletRegistryService', () => {
 
         expect(result.removedWalletId).toBe(first.id);
         expect(result.activeWalletId).toBe(second.id);
-        expect(loadConfig()?.wallets).toEqual([
+        expect((await loadConfig())?.wallets).toEqual([
             expect.objectContaining({ id: first.id, removed: true }),
             expect.objectContaining({ id: second.id }),
         ]);
