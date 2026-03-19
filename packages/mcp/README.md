@@ -130,11 +130,11 @@ HTTP mode keeps a separate MCP session/transport per client session id, so multi
 ### Registry mode
 
 - Wallet metadata is stored in `~/.config/ton/config.json` by default, or at `TON_CONFIG_PATH` if provided.
-- Mnemonics and private keys are not kept inline in the registry after persistence. The config stores only a `secret_file` reference.
+- Mnemonics and private keys are not kept inline in the registry after persistence. The config stores only a `sign_method` reference, currently `{ "type": "local_file", "file_path": "..." }`.
 - Secret material is written into separate files under `<config-dir>/private-keys/...`, including wallet secrets, pending agentic deployment secrets, and pending agentic key rotation secrets.
 - The config file and every secret file are written with strict filesystem permissions: files use `0600`, directories use `0700`.
 - Both config and secret files go through the same `protected-file` layer, so the raw bytes on disk do not contain the plaintext mnemonic or private key.
-- Legacy inline secrets from older config formats are still readable on load and are moved to `secret_file` storage on the next save or migration.
+- Legacy inline secrets from older config formats are still readable on load and are moved to `sign_method` storage on the next save or migration.
 - When a wallet, pending deployment, or pending rotation is removed, orphaned secret files are deleted as part of the config transition.
 
 ### Single-wallet mode
@@ -144,7 +144,8 @@ HTTP mode keeps a separate MCP session/transport per client session id, so multi
 
 ### Security note
 
-The built-in `protected-file` wrapper helps avoid writing mnemonics and private keys to disk in readable form, but it is not a replacement for an OS keychain, HSM, or external KMS. If you need stronger host-level secret protection, provide credentials through your own secret-management layer in single-wallet/serverless mode.
+The built-in `protected-file` wrapper helps avoid writing mnemonics and private keys to disk in readable form, but it is not a replacement for an OS keychain, HSM, or external KMS.
+Future versions are expected to support not only local key storage, but also trusted external signing and secret-management services.
 
 ## Available Tools
 

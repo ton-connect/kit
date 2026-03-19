@@ -26,7 +26,7 @@ export function sanitizePrivateKeyBackedValue(
 ) {
     const secret = readSecretMaterial(value);
     return {
-        ...(omitSecretRefFields(omitInlineSecretFields(value)) as Omit<typeof value, 'secret_file' | 'secret_type'>),
+        ...(omitSecretRefFields(omitInlineSecretFields(value)) as Omit<typeof value, 'sign_method' | 'secret_type'>),
         has_private_key: Boolean(secret),
     };
 }
@@ -41,7 +41,7 @@ export function sanitizeStoredWallet(wallet: StoredWallet | null | undefined) {
         return {
             ...(omitSecretRefFields(omitInlineSecretFields(wallet)) as Omit<
                 typeof wallet,
-                'secret_file' | 'secret_type'
+                'sign_method' | 'secret_type'
             >),
             has_mnemonic: secret?.type === 'mnemonic',
             has_private_key: secret?.type === 'private_key',

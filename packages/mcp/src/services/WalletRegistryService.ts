@@ -36,6 +36,7 @@ import type {
     ConfigNetwork,
     PendingAgenticDeployment,
     PendingAgenticKeyRotation,
+    SignMethod,
     StoredAgenticWallet,
     StoredWallet,
     TonConfig,
@@ -94,16 +95,16 @@ export class WalletRegistryService {
         return config?.networks[network]?.toncenter_api_key?.trim() || undefined;
     }
 
-    private async getReusableAgenticSecretFile(
-        value: { secret_file?: string },
+    private async getReusableAgenticSignMethod(
+        value: { sign_method?: SignMethod },
         expectedOperatorPublicKey?: string,
-    ): Promise<string | undefined> {
-        const secretFile = value.secret_file?.trim();
-        if (!secretFile) {
+    ): Promise<SignMethod | undefined> {
+        const signMethod = value.sign_method;
+        if (!signMethod || signMethod.type !== 'local_file' || !signMethod.file_path.trim()) {
             return undefined;
         }
 
-        const secret = readSecret({ secret_file: secretFile });
+        const secret = readSecret({ sign_method: signMethod });
         if (!secret) {
             return undefined;
         }
@@ -116,7 +117,7 @@ export class WalletRegistryService {
             }
         }
 
-        return secretFile;
+        return signMethod;
     }
 
     private assertWalletSupportsSigning(wallet: StoredWallet): void {
@@ -300,7 +301,7 @@ export class WalletRegistryService {
         }
 
         const validatedOperatorPublicKey = validated.operatorPublicKey;
-        let secretFile: string | undefined;
+        let signMethod: SignMethod | undefined;
         const matchedPendingDeployment = validatedOperatorPublicKey
             ? findPendingAgenticDeployment(config, {
                   network,
@@ -309,9 +310,9 @@ export class WalletRegistryService {
             : undefined;
 
         if (matchedPendingDeployment) {
-            secretFile = await this.getReusableAgenticSecretFile(matchedPendingDeployment, validatedOperatorPublicKey);
+            signMethod = await this.getReusableAgenticSignMethod(matchedPendingDeployment, validatedOperatorPublicKey);
         } else if (existingWallet?.type === 'agentic') {
-            secretFile = await this.getReusableAgenticSecretFile(existingWallet, validatedOperatorPublicKey);
+            signMethod = await this.getReusableAgenticSignMethod(existingWallet, validatedOperatorPublicKey);
         }
 
         const record = createAgenticWalletRecord({
@@ -324,7 +325,7 @@ export class WalletRegistryService {
             network,
             address: validated.address,
             ownerAddress: validated.ownerAddress,
-            secretFile,
+            signMethod,
             operatorPublicKey: validatedOperatorPublicKey,
             source: matchedPendingDeployment?.source || 'Manual import',
             collectionAddress: validated.collectionAddress,
@@ -337,7 +338,7 @@ export class WalletRegistryService {
                 ? ({
                       ...omitSecretRefFields(existingWallet),
                       ...record,
-                      secret_file: secretFile,
+                      sign_method: signMethod,
                       id: existingWallet.id,
                       created_at: existingWallet.created_at,
                       updated_at: existingWallet.updated_at,
@@ -450,7 +451,7 @@ export class WalletRegistryService {
 
         const updatedWallet: StoredAgenticWallet = {
             ...(wallet as StoredAgenticWallet),
-            ...(pendingRotation.secret_file ? { secret_file: pendingRotation.secret_file } : {}),
+            ...(pendingRotation.sign_method ? { sign_method: pendingRotation.sign_method } : {}),
             operator_public_key: pendingRotation.operator_public_key,
         };
         const nextConfig = removePendingAgenticKeyRotation(
@@ -556,7 +557,7 @@ export class WalletRegistryService {
             network: pending.network,
             address: input.validatedWallet.address,
             ownerAddress: input.validatedWallet.ownerAddress,
-            secretFile: pending.secret_file,
+            signMethod: pending.sign_method,
             operatorPublicKey: pending.operator_public_key || input.validatedWallet.operatorPublicKey,
             source: input.source?.trim() || pending.source?.trim() || 'Deployed via @ton/mcp',
             collectionAddress: input.validatedWallet.collectionAddress || pending.collection_address,

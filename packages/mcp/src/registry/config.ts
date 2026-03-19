@@ -14,6 +14,11 @@ export type TonNetwork = 'mainnet' | 'testnet';
 export type StandardWalletVersion = 'v5r1' | 'v4r2';
 export type StoredWalletType = 'standard' | 'agentic';
 export type SecretType = 'mnemonic' | 'private_key';
+export interface LocalFileSignMethod {
+    type: 'local_file';
+    file_path: string;
+}
+export type SignMethod = LocalFileSignMethod;
 export type TonConfigVersion = 2 | 3;
 export const CURRENT_TON_CONFIG_VERSION = 3 as const;
 
@@ -37,14 +42,14 @@ export interface StoredWalletBase {
 export interface StoredStandardWallet extends StoredWalletBase {
     type: 'standard';
     wallet_version: StandardWalletVersion;
-    secret_file?: string;
+    sign_method?: SignMethod;
     secret_type?: SecretType;
 }
 
 export interface StoredAgenticWallet extends StoredWalletBase {
     type: 'agentic';
     owner_address: string;
-    secret_file?: string;
+    sign_method?: SignMethod;
     operator_public_key?: string;
     source?: string;
     collection_address?: string;
@@ -57,7 +62,7 @@ export type StoredWallet = StoredStandardWallet | StoredAgenticWallet;
 export interface PendingAgenticDeployment {
     id: string;
     network: TonNetwork;
-    secret_file?: string;
+    sign_method?: SignMethod;
     operator_public_key: string;
     name?: string;
     source?: string;
@@ -73,7 +78,7 @@ export interface PendingAgenticKeyRotation {
     wallet_address: string;
     owner_address: string;
     collection_address?: string;
-    secret_file?: string;
+    sign_method?: SignMethod;
     operator_public_key: string;
     created_at: string;
     updated_at: string;
@@ -143,7 +148,7 @@ function toPublicNetwork(network: ConfigNetwork | undefined, currentNetwork: Ton
 
 function stripLegacySecretFields<
     T extends {
-        secret_file?: string;
+        sign_method?: SignMethod;
         secret_type?: SecretType;
     },
 >(
@@ -162,17 +167,36 @@ function stripLegacySecretFields<
     return rest as T;
 }
 
+function normalizeSignMethod(signMethod: SignMethod | undefined): SignMethod | undefined {
+    if (!signMethod) {
+        return undefined;
+    }
+
+    if (signMethod.type === 'local_file') {
+        const filePath = signMethod.file_path.trim();
+        return filePath
+            ? {
+                  type: 'local_file',
+                  file_path: filePath,
+              }
+            : undefined;
+    }
+
+    return undefined;
+}
+
 function normalizeSecretBackedCollection<
     T extends {
         network: TonNetwork;
         collection_address?: string;
-        secret_file?: string;
+        sign_method?: SignMethod;
         secret_type?: SecretType;
     },
 >(value: T): T {
     const normalized = stripLegacySecretFields(value);
     return {
         ...normalized,
+        ...(normalizeSignMethod(normalized.sign_method) ? { sign_method: normalizeSignMethod(normalized.sign_method) } : {}),
         ...(normalized.collection_address
             ? {
                   collection_address: formatAssetAddress(normalized.collection_address, normalized.network),
@@ -191,13 +215,15 @@ function normalizeStoredWallet(wallet: StoredWallet): StoredWallet {
         const mnemonic = legacy.mnemonic?.trim() || undefined;
         const privateKey = legacy.private_key?.trim() || undefined;
         const secretType = normalized.secret_type ?? (mnemonic ? 'mnemonic' : privateKey ? 'private_key' : undefined);
+        const signMethod = normalizeSignMethod(normalized.sign_method);
         return {
             ...normalized,
             name: normalized.name.trim(),
             address: formatWalletAddress(wallet.address, wallet.network),
+            ...(signMethod ? { sign_method: signMethod } : {}),
             ...(secretType ? { secret_type: secretType } : {}),
-            ...(normalized.secret_file || !mnemonic ? {} : { mnemonic }),
-            ...(normalized.secret_file || mnemonic || !privateKey ? {} : { private_key: privateKey }),
+            ...(signMethod || !mnemonic ? {} : { mnemonic }),
+            ...(signMethod || mnemonic || !privateKey ? {} : { private_key: privateKey }),
         };
     }
 
@@ -210,7 +236,7 @@ function normalizeStoredWallet(wallet: StoredWallet): StoredWallet {
         address: formatWalletAddress(wallet.address, wallet.network),
         owner_address: formatWalletAddress(wallet.owner_address, wallet.network),
         ...(normalized.source ? { source: normalized.source.trim() } : {}),
-        ...(normalized.secret_file || !privateKey ? {} : { private_key: privateKey }),
+        ...(normalized.sign_method || !privateKey ? {} : { private_key: privateKey }),
     };
 }
 
@@ -230,7 +256,7 @@ function normalizePendingRecord(
             ...normalized,
             wallet_address: formatWalletAddress(normalized.wallet_address, normalized.network),
             owner_address: formatWalletAddress(normalized.owner_address, normalized.network),
-            ...(normalized.secret_file || !privateKey ? {} : { private_key: privateKey }),
+            ...(normalized.sign_method || !privateKey ? {} : { private_key: privateKey }),
         };
     }
 
@@ -238,7 +264,7 @@ function normalizePendingRecord(
         ...normalized,
         ...(normalized.name ? { name: normalized.name.trim() } : {}),
         ...(normalized.source ? { source: normalized.source.trim() } : {}),
-        ...(normalized.secret_file || !privateKey ? {} : { private_key: privateKey }),
+        ...(normalized.sign_method || !privateKey ? {} : { private_key: privateKey }),
     };
 }
 
@@ -635,7 +661,7 @@ export function createStandardWalletRecord(input: {
     network: TonNetwork;
     walletVersion: StandardWalletVersion;
     address: string;
-    secretFile?: string;
+    signMethod?: SignMethod;
     secretType?: SecretType;
     idPrefix?: string;
 }): StoredStandardWallet {
@@ -648,7 +674,7 @@ export function createStandardWalletRecord(input: {
         network: input.network,
         wallet_version: input.walletVersion,
         address: formatWalletAddress(input.address, input.network),
-        ...(input.secretFile ? { secret_file: input.secretFile } : {}),
+        ...(normalizeSignMethod(input.signMethod) ? { sign_method: normalizeSignMethod(input.signMethod) } : {}),
         ...(input.secretType ? { secret_type: input.secretType } : {}),
         created_at: now,
         updated_at: now,
@@ -660,7 +686,7 @@ export function createAgenticWalletRecord(input: {
     network: TonNetwork;
     address: string;
     ownerAddress: string;
-    secretFile?: string;
+    signMethod?: SignMethod;
     operatorPublicKey?: string;
     source?: string;
     collectionAddress?: string;
@@ -677,7 +703,7 @@ export function createAgenticWalletRecord(input: {
         network: input.network,
         address: formatWalletAddress(input.address, input.network),
         owner_address: formatWalletAddress(input.ownerAddress, input.network),
-        ...(input.secretFile ? { secret_file: input.secretFile } : {}),
+        ...(normalizeSignMethod(input.signMethod) ? { sign_method: normalizeSignMethod(input.signMethod) } : {}),
         ...(input.operatorPublicKey ? { operator_public_key: input.operatorPublicKey } : {}),
         ...(input.source ? { source: input.source } : {}),
         ...(input.collectionAddress

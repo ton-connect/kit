@@ -56,6 +56,10 @@ describe('mcp config registry', () => {
         return resolve(dirname(process.env.TON_CONFIG_PATH!), filePath);
     }
 
+    function resolveSignMethodPath(signMethod: { type: 'local_file'; file_path: string }): string {
+        return resolveSecretPath(signMethod.file_path);
+    }
+
     function walletSecrets(id: string, secret: { mnemonic?: string; private_key?: string }) {
         return { wallets: { [id]: secret } };
     }
@@ -95,26 +99,34 @@ describe('mcp config registry', () => {
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
         expect(loaded?.wallets[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             secret_type: 'mnemonic',
         });
         expect(
             readFileSync(
-                loaded?.wallets[0]?.type === 'standard' ? resolveSecretPath(loaded.wallets[0].secret_file!) : '',
+                loaded?.wallets[0]?.type === 'standard' && loaded.wallets[0].sign_method
+                    ? resolveSignMethodPath(loaded.wallets[0].sign_method)
+                    : '',
                 'utf-8',
             ).trim(),
         ).toBe('a '.repeat(24).trim());
         expect(
             rawReadFileSync(
-                loaded?.wallets[0]?.type === 'standard' ? resolveSecretPath(loaded.wallets[0].secret_file!) : '',
+                loaded?.wallets[0]?.type === 'standard' && loaded.wallets[0].sign_method
+                    ? resolveSignMethodPath(loaded.wallets[0].sign_method)
+                    : '',
                 'utf-8',
             ),
         ).not.toContain('a '.repeat(24).trim());
 
         const fileMode = statSync(process.env.TON_CONFIG_PATH!).mode & 0o777;
         expect(fileMode).toBe(0o600);
-        const mnemonicFileMode =
-            statSync(resolveSecretPath((loaded?.wallets[0] as { secret_file: string }).secret_file)).mode & 0o777;
+        const mnemonicFileMode = statSync(
+            resolveSignMethodPath((loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method),
+        ).mode & 0o777;
         expect(mnemonicFileMode).toBe(0o600);
     });
 
@@ -138,7 +150,10 @@ describe('mcp config registry', () => {
         expect(migrated?.wallets[0]?.network).toBe('testnet');
         expect(migrated?.networks.testnet?.toncenter_api_key).toBe('legacy-key');
         expect(migrated?.wallets[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             secret_type: 'mnemonic',
         });
     });
@@ -206,17 +221,29 @@ describe('mcp config registry', () => {
         const loaded = await loadConfig();
         expect(loaded?.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(loaded?.wallets[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             secret_type: 'mnemonic',
         });
         expect(loaded?.wallets[1]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(loaded?.pending_agentic_deployments?.[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(loaded?.pending_agentic_key_rotations?.[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(loaded?.wallets[1]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
         expect(loaded?.pending_agentic_deployments?.[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
@@ -231,13 +258,13 @@ describe('mcp config registry', () => {
         const deployments = persisted.pending_agentic_deployments as Array<Record<string, unknown>>;
         const rotations = persisted.pending_agentic_key_rotations as Array<Record<string, unknown>>;
         expect(wallets[0]).not.toHaveProperty('mnemonic');
-        expect(wallets[0]).toHaveProperty('secret_file');
+        expect(wallets[0]).toHaveProperty('sign_method');
         expect(wallets[1]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
-        expect(wallets[1]).toHaveProperty('secret_file');
+        expect(wallets[1]).toHaveProperty('sign_method');
         expect(deployments[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
-        expect(deployments[0]).toHaveProperty('secret_file');
+        expect(deployments[0]).toHaveProperty('sign_method');
         expect(rotations[0]).not.toHaveProperty(LEGACY_AGENTIC_PRIVATE_KEY_FIELD);
-        expect(rotations[0]).toHaveProperty('secret_file');
+        expect(rotations[0]).toHaveProperty('sign_method');
     });
 
     it('upgrades a v2 config file to the current version on load', async () => {
@@ -270,7 +297,7 @@ describe('mcp config registry', () => {
         const persisted = JSON.parse(readFileSync(process.env.TON_CONFIG_PATH!)) as Record<string, unknown>;
         expect(persisted.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect((persisted.wallets as Array<Record<string, unknown>>)[0]).not.toHaveProperty('mnemonic');
-        expect((persisted.wallets as Array<Record<string, unknown>>)[0]).toHaveProperty('secret_file');
+        expect((persisted.wallets as Array<Record<string, unknown>>)[0]).toHaveProperty('sign_method');
         expect(rawReadFileSync(process.env.TON_CONFIG_PATH!, 'utf-8')).not.toContain('"version":');
     });
 
@@ -338,36 +365,70 @@ describe('mcp config registry', () => {
 
         expect(saved.version).toBe(CURRENT_TON_CONFIG_VERSION);
         expect(saved.wallets[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             secret_type: 'mnemonic',
         });
         expect(saved.wallets[1]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(saved.wallets[1]).not.toHaveProperty('secret_type');
         expect(saved.pending_agentic_deployments?.[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(saved.pending_agentic_deployments?.[0]).not.toHaveProperty('secret_type');
         expect(saved.pending_agentic_key_rotations?.[0]).toMatchObject({
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
         });
         expect(saved.pending_agentic_key_rotations?.[0]).not.toHaveProperty('secret_type');
         expect(
-            readFileSync(resolveSecretPath((saved.wallets[0] as { secret_file: string }).secret_file), 'utf-8').trim(),
+            readFileSync(
+                resolveSignMethodPath(
+                    (saved.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+                'utf-8',
+            ).trim(),
         ).toBe('abandon '.repeat(23) + 'about');
         expect(
-            rawReadFileSync(resolveSecretPath((saved.wallets[0] as { secret_file: string }).secret_file), 'utf-8'),
+            rawReadFileSync(
+                resolveSignMethodPath(
+                    (saved.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+                'utf-8',
+            ),
         ).not.toContain('abandon '.repeat(23) + 'about');
         expect(
             readFileSync(
-                resolveSecretPath((saved.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file),
+                resolveSignMethodPath(
+                    (
+                        saved.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
                 'utf-8',
             ).trim(),
         ).toBe('0x' + '44'.repeat(32));
         expect(
             rawReadFileSync(
-                resolveSecretPath((saved.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file),
+                resolveSignMethodPath(
+                    (
+                        saved.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
                 'utf-8',
             ),
         ).not.toContain('0x' + '44'.repeat(32));
@@ -479,25 +540,34 @@ describe('mcp config registry', () => {
                 id: draft.id,
                 name: 'Pending agent',
                 network: 'testnet',
-                secret_file: expect.any(String),
+                sign_method: {
+                    type: 'local_file',
+                    file_path: expect.any(String),
+                },
                 operator_public_key: '0xabcd',
                 source: 'Draft source',
             }),
         ]);
         expect(
             readFileSync(
-                resolveSecretPath(
-                    ((loaded ?? createEmptyConfig()).pending_agentic_deployments[0] as { secret_file: string })
-                        .secret_file,
+                resolveSignMethodPath(
+                    (
+                        (loaded ?? createEmptyConfig()).pending_agentic_deployments[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
                 ),
                 'utf-8',
             ).trim(),
         ).toBe('0x1111');
         expect(
             rawReadFileSync(
-                resolveSecretPath(
-                    ((loaded ?? createEmptyConfig()).pending_agentic_deployments[0] as { secret_file: string })
-                        .secret_file,
+                resolveSignMethodPath(
+                    (
+                        (loaded ?? createEmptyConfig()).pending_agentic_deployments[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
                 ),
                 'utf-8',
             ),
@@ -521,9 +591,12 @@ describe('mcp config registry', () => {
         );
 
         const loaded = await loadConfig();
-        expect((loaded?.wallets[0] as { secret_file: string }).secret_file).toBe(
-            `private-keys/wallets/${standard.id}.mnemonic`,
-        );
+        expect(
+            (loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+        ).toEqual({
+            type: 'local_file',
+            file_path: `private-keys/wallets/${standard.id}.mnemonic`,
+        });
     });
 
     it('removes pending drafts by id', () => {
@@ -536,8 +609,12 @@ describe('mcp config registry', () => {
             upsertPendingAgenticDeployment(createEmptyConfig(), draft),
             pendingDeploymentSecrets(draft.id, '0x2222'),
         );
-        const secretPath = resolveSecretPath(
-            (saved.pending_agentic_deployments?.[0] as { secret_file: string }).secret_file,
+        const secretPath = resolveSignMethodPath(
+            (
+                saved.pending_agentic_deployments?.[0] as {
+                    sign_method: { type: 'local_file'; file_path: string };
+                }
+            ).sign_method,
         );
         const nextConfig = removePendingAgenticDeployment(saved, { id: draft.id });
         saveConfigTransition(saved, nextConfig);
@@ -562,7 +639,9 @@ describe('mcp config registry', () => {
         );
 
         const loaded = await loadConfig();
-        const secretPath = resolveSecretPath((loaded?.wallets[0] as { secret_file: string }).secret_file);
+        const secretPath = resolveSignMethodPath(
+            (loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+        );
         const removed = removeWallet(loaded ?? createEmptyConfig(), standard.id);
         saveConfigTransition(loaded ?? createEmptyConfig(), removed.config);
 
@@ -586,7 +665,9 @@ describe('mcp config registry', () => {
         );
 
         const reloaded = await loadConfig();
-        const otherSecretPath = resolveSecretPath((reloaded?.wallets[0] as { secret_file: string }).secret_file);
+        const otherSecretPath = resolveSignMethodPath(
+            (reloaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+        );
         expect(deleteConfig()).toBe(true);
         expect(existsSync(process.env.TON_CONFIG_PATH!)).toBe(false);
         expect(existsSync(otherSecretPath)).toBe(false);
@@ -609,7 +690,9 @@ describe('mcp config registry', () => {
         );
 
         const loaded = await loadConfig();
-        const secretPath = resolveSecretPath((loaded?.wallets[0] as { secret_file: string }).secret_file);
+        const secretPath = resolveSignMethodPath(
+            (loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+        );
         chmodSync(process.env.TON_CONFIG_PATH!, 0o400);
 
         try {

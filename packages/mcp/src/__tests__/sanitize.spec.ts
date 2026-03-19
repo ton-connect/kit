@@ -92,7 +92,7 @@ describe('sanitize', () => {
         expect(sanitized).toMatchObject(expected);
         expect(sanitized).not.toHaveProperty('mnemonic');
         expect(sanitized).not.toHaveProperty('private_key');
-        expect(sanitized).not.toHaveProperty('secret_file');
+        expect(sanitized).not.toHaveProperty('sign_method');
     });
 
     it('treats unreadable secret files as missing secrets', () => {
@@ -103,7 +103,7 @@ describe('sanitize', () => {
                 walletVersion: 'v5r1',
                 address,
             }),
-            secret_file: 'private-keys/wallets/missing.mnemonic',
+            sign_method: { type: 'local_file' as const, file_path: 'private-keys/wallets/missing.mnemonic' },
             secret_type: 'mnemonic' as const,
         };
         const pendingDeployment = {
@@ -111,7 +111,10 @@ describe('sanitize', () => {
                 network: 'mainnet',
                 operatorPublicKey: '0xcafe',
             }),
-            secret_file: 'private-keys/pending-agentic-deployments/missing.private-key',
+            sign_method: {
+                type: 'local_file' as const,
+                file_path: 'private-keys/pending-agentic-deployments/missing.private-key',
+            },
         };
 
         expect(sanitizeStoredWallet(standardWallet)).toMatchObject({

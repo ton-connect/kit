@@ -17,7 +17,7 @@ describe('AgenticOnboardingService', () => {
     const pendingDeployment: PendingAgenticDeployment = {
         id: 'setup-1',
         network: 'mainnet',
-        secret_file: '/tmp/setup-1.private-key',
+        sign_method: { type: 'local_file', file_path: '/tmp/setup-1.private-key' },
         operator_public_key: '0xfeed',
         name: 'Agent Alpha',
         source: 'MCP flow',
@@ -33,7 +33,7 @@ describe('AgenticOnboardingService', () => {
         network: 'mainnet',
         address: 'UQBynBO23ywHy_CgarY9NK9FTz0yDsG82PtcbSTQgGoXwnZF',
         owner_address: 'UQAcIXCxCd_gAqQ8RK0UA9vvlVA7wWjV41l2URKVxaMVLeM5',
-        secret_file: '/tmp/agent-1.private-key',
+        sign_method: { type: 'local_file', file_path: '/tmp/agent-1.private-key' },
         operator_public_key: '0xfeed',
         source: 'MCP flow',
         collection_address: 'EQByQ19qvWxW7VibSbGEgZiYMqilHY5y1a_eeSL2VaXhfy07',

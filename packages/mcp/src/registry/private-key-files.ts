@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 import type {
+    SignMethod,
     PendingAgenticDeployment,
     PendingAgenticKeyRotation,
     SecretType,
@@ -24,7 +25,7 @@ import type { LegacyPrivateKeyCompatible } from './private-key-field.js';
 import { readFileSync, writeFileSync } from './protected-file.js';
 
 export type SecretReadableValue = {
-    secret_file?: string;
+    sign_method?: SignMethod;
     secret_type?: SecretType;
 } & LegacyPrivateKeyCompatible & {
         mnemonic?: string;
@@ -46,6 +47,14 @@ function trimSecret(value: string | undefined): string | undefined {
 
 function resolvePrivateKeyPath(filePath: string): string {
     return isAbsolute(filePath) ? filePath : resolve(getConfigDir(), filePath);
+}
+
+function getLocalFilePath(signMethod: SignMethod | undefined): string | undefined {
+    if (!signMethod || signMethod.type !== 'local_file') {
+        return undefined;
+    }
+
+    return trimSecret(signMethod.file_path);
 }
 
 function persistSecretFile(
@@ -85,11 +94,11 @@ function readSecretFile(filePath: string | undefined): string | undefined {
     return trimSecret(readFileSync(resolvedPath));
 }
 
-export function omitSecretRefFields<T extends { secret_file?: string; secret_type?: SecretType }>(
+export function omitSecretRefFields<T extends { sign_method?: SignMethod; secret_type?: SecretType }>(
     value: T,
-): Omit<T, 'secret_file' | 'secret_type'> {
-    const { secret_file: _secretFile, secret_type: _secretType, ...rest } = value;
-    return rest;
+): Omit<T, 'sign_method' | 'secret_type'> {
+    const { sign_method: _signMethod, secret_type: _secretType, ...rest } = value;
+    return rest as Omit<T, 'sign_method' | 'secret_type'>;
 }
 
 export function omitInlineSecretFields<T extends object>(
@@ -132,30 +141,38 @@ function persistPrivateKeyRecord(
     const {
         private_key: _privateKey,
         secret_type: _secretType,
-        secret_file: _secretFile,
+        sign_method: _signMethod,
         ...publicValue
     } = value as typeof value & {
-        secret_file?: string;
+        sign_method?: SignMethod;
         secret_type?: SecretType;
     };
-    const secretFile = persistSecretFile(value.secret_file, value.private_key, pathParts);
+    const secretFile = persistSecretFile(getLocalFilePath(value.sign_method), value.private_key, pathParts);
+    const signMethod: SignMethod | undefined = secretFile ? {
+        type: 'local_file',
+        file_path: secretFile
+    } : undefined;
     return {
         ...publicValue,
-        ...(secretFile ? { secret_file: secretFile } : {}),
+        ...(signMethod ? { sign_method: signMethod } : {}),
     };
 }
 
 export function persistStandardSecretRef(wallet: StandardSecretInput): StoredStandardWallet {
-    const { mnemonic: _mnemonic, private_key: _privateKey, secret_file: _secretFile, ...publicWallet } = wallet;
+    const { mnemonic: _mnemonic, private_key: _privateKey, sign_method: _signMethod, ...publicWallet } = wallet;
     const secretType = wallet.mnemonic ? 'mnemonic' : wallet.private_key ? 'private_key' : wallet.secret_type;
     const secretFile = wallet.mnemonic
-        ? persistSecretFile(wallet.secret_file, wallet.mnemonic, ['wallets', `${wallet.id}.mnemonic`])
+        ? persistSecretFile(getLocalFilePath(wallet.sign_method), wallet.mnemonic, ['wallets', `${wallet.id}.mnemonic`])
         : wallet.private_key
-          ? persistSecretFile(wallet.secret_file, wallet.private_key, ['wallets', `${wallet.id}.private-key`])
-          : wallet.secret_file;
+          ? persistSecretFile(getLocalFilePath(wallet.sign_method), wallet.private_key, ['wallets', `${wallet.id}.private-key`])
+          : wallet.sign_method?.file_path;
+    const signMethod: SignMethod | undefined = secretFile ? {
+        type: 'local_file',
+        file_path: secretFile
+    } : undefined;
     return {
         ...publicWallet,
-        ...(secretFile ? { secret_file: secretFile } : {}),
+        ...(signMethod ? { sign_method: signMethod } : {}),
         ...(secretType ? { secret_type: secretType } : {}),
     };
 }
@@ -249,7 +266,7 @@ export function materializeSecrets(config: TonConfig, secretInputs: SecretMateri
 }
 
 export function readSecretMaterial(value: SecretReadableValue): InlineSecretMaterial | undefined {
-    const fileSecret = readSecretFile(value.secret_file);
+    const fileSecret = readSecretFile(getLocalFilePath(value.sign_method));
     if (fileSecret) {
         return {
             type: value.secret_type ?? 'private_key',
@@ -301,7 +318,7 @@ function migrateLegacyPrivateKeyField<T extends LegacyPrivateKeyCompatible>(
     };
 }
 
-function migrateLegacyPrivateKeyCollection<T extends { secret_file?: string } & LegacyPrivateKeyCompatible>(
+function migrateLegacyPrivateKeyCollection<T extends { sign_method?: SignMethod } & LegacyPrivateKeyCompatible>(
     values: T[] | undefined,
 ): {
     values: T[];
@@ -334,13 +351,13 @@ export function migrateFromV2Config(rawConfig: TonConfig): { config: TonConfig; 
             const candidate = wallet as StandardSecretInput;
             const mnemonic = trimSecret(candidate.mnemonic);
             const privateKey = trimSecret(candidate.private_key);
-            if (!candidate.secret_file && (mnemonic || privateKey)) {
+            if (!candidate.sign_method && (mnemonic || privateKey)) {
                 changed = true;
             }
             return {
                 ...(omitInlineSecretFields(wallet) as StoredStandardWallet),
-                ...(candidate.secret_file ? {} : mnemonic ? { mnemonic, secret_type: 'mnemonic' as const } : {}),
-                ...(candidate.secret_file || mnemonic || !privateKey
+                ...(candidate.sign_method ? {} : mnemonic ? { mnemonic, secret_type: 'mnemonic' as const } : {}),
+                ...(candidate.sign_method || mnemonic || !privateKey
                     ? {}
                     : { private_key: privateKey, secret_type: 'private_key' as const }),
             } as StoredWallet;
@@ -383,9 +400,9 @@ export function collectSecretFiles(config: TonConfig | null | undefined): Set<st
 
     return new Set(
         [
-            ...config.wallets.map((wallet) => wallet.secret_file),
-            ...(config.pending_agentic_deployments ?? []).map((deployment) => deployment.secret_file),
-            ...(config.pending_agentic_key_rotations ?? []).map((rotation) => rotation.secret_file),
+            ...config.wallets.map((wallet) => getLocalFilePath(wallet.sign_method)),
+            ...(config.pending_agentic_deployments ?? []).map((deployment) => getLocalFilePath(deployment.sign_method)),
+            ...(config.pending_agentic_key_rotations ?? []).map((rotation) => getLocalFilePath(rotation.sign_method)),
         ].filter((filePath): filePath is string => Boolean(filePath?.trim())),
     );
 }

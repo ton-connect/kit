@@ -71,6 +71,10 @@ describe('WalletRegistryService', () => {
         return resolve(dirname(process.env.TON_CONFIG_PATH!), filePath);
     }
 
+    function resolveSignMethodPath(signMethod: { type: 'local_file'; file_path: string }): string {
+        return resolveSecretPath(signMethod.file_path);
+    }
+
     function walletMnemonic(id: string, mnemonic: string) {
         return { wallets: { [id]: { mnemonic } } };
     }
@@ -283,13 +287,13 @@ describe('WalletRegistryService', () => {
             expectedError: /missing private_key/i,
         },
         {
-            name: 'standard wallets with an unreadable secret_file',
+            name: 'standard wallets with an unreadable sign_method file',
             wallet: createStandardWalletRecord({
                 name: 'Broken standard',
                 network: 'mainnet',
                 walletVersion: 'v5r1',
                 address: agentAddress,
-                secretFile: 'private-keys/missing.private-key',
+                signMethod: { type: 'local_file', file_path: 'private-keys/missing.private-key' },
                 secretType: 'private_key',
             }),
             expectedError: /missing signing credentials/i,
@@ -345,7 +349,10 @@ describe('WalletRegistryService', () => {
         expect(result.wallet).toMatchObject({
             type: 'agentic',
             name: 'Pending root agent',
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xbeef',
             source: 'Started from MCP',
         });
@@ -371,7 +378,10 @@ describe('WalletRegistryService', () => {
             },
             walletPrivateKey(wallet.id, '0xold-private'),
         );
-        const oldSecretPath = resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file);
+        const oldSecretPath = resolveSignMethodPath(
+            ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                .sign_method,
+        );
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
             balanceNano: '42',
@@ -399,12 +409,12 @@ describe('WalletRegistryService', () => {
             id: wallet.id,
             operator_public_key: '0xnew-public',
         });
-        expect(result.wallet).not.toHaveProperty('secret_file');
+        expect(result.wallet).not.toHaveProperty('sign_method');
         expect((await loadConfig())?.wallets[0]).toMatchObject({
             id: wallet.id,
             operator_public_key: '0xnew-public',
         });
-        expect((await loadConfig())?.wallets[0]).not.toHaveProperty('secret_file');
+        expect((await loadConfig())?.wallets[0]).not.toHaveProperty('sign_method');
         expect(existsSync(oldSecretPath)).toBe(false);
     });
 
@@ -444,7 +454,10 @@ describe('WalletRegistryService', () => {
         expect(wallet).toMatchObject({
             type: 'agentic',
             name: 'Imported root agent',
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             source: 'Completed from callback',
             deployed_by_user: true,
         });
@@ -481,42 +494,70 @@ describe('WalletRegistryService', () => {
         expect(result.dashboardUrl).toContain('action=change-public-key');
         expect(result.pendingRotation).toMatchObject({
             wallet_id: wallet.id,
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xgenerated-public',
         });
 
         const stored = await loadConfig();
         expect(stored?.wallets[0]).toMatchObject({
             id: wallet.id,
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xold-public',
         });
         expect(
             readFileSync(
-                resolveSecretPath((stored?.wallets[0] as { secret_file: string }).secret_file),
+                resolveSignMethodPath(
+                    (stored?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
                 'utf-8',
             ).trim(),
         ).toBe('0xold-private');
         expect(
-            rawReadFileSync(resolveSecretPath((stored?.wallets[0] as { secret_file: string }).secret_file), 'utf-8'),
+            rawReadFileSync(
+                resolveSignMethodPath(
+                    (stored?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+                'utf-8',
+            ),
         ).not.toContain('0xold-private');
         expect(stored?.pending_agentic_key_rotations).toEqual([
             expect.objectContaining({
                 id: result.pendingRotation.id,
                 wallet_id: wallet.id,
-                secret_file: expect.any(String),
+                sign_method: {
+                    type: 'local_file',
+                    file_path: expect.any(String),
+                },
                 operator_public_key: '0xgenerated-public',
             }),
         ]);
         expect(
             readFileSync(
-                resolveSecretPath((stored?.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file),
+                resolveSignMethodPath(
+                    (
+                        stored?.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
                 'utf-8',
             ).trim(),
         ).toBe('0xgenerated-private');
         expect(
             rawReadFileSync(
-                resolveSecretPath((stored?.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file),
+                resolveSignMethodPath(
+                    (
+                        stored?.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
                 'utf-8',
             ),
         ).not.toContain('0xgenerated-private');
@@ -544,9 +585,16 @@ describe('WalletRegistryService', () => {
         const started = await registry.startAgenticKeyRotation({
             walletSelector: wallet.id,
         });
-        const oldSecretPath = resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file);
-        const pendingSecretPath = resolveSecretPath(
-            ((await loadConfig())?.pending_agentic_key_rotations?.[0] as { secret_file: string }).secret_file,
+        const oldSecretPath = resolveSignMethodPath(
+            ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                .sign_method,
+        );
+        const pendingSecretPath = resolveSignMethodPath(
+            (
+                (await loadConfig())?.pending_agentic_key_rotations?.[0] as {
+                    sign_method: { type: 'local_file'; file_path: string };
+                }
+            ).sign_method,
         );
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
@@ -564,14 +612,20 @@ describe('WalletRegistryService', () => {
 
         expect(completed.wallet).toMatchObject({
             id: wallet.id,
-            secret_file: expect.any(String),
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xgenerated-public',
         });
         expect(completed.dashboardUrl).toBe(`https://dashboard.test/agent/${wallet.address}`);
         expect((await loadConfig())?.pending_agentic_key_rotations).toEqual([]);
-        expect(resolveSecretPath(((await loadConfig())?.wallets[0] as { secret_file: string }).secret_file)).toBe(
-            pendingSecretPath,
-        );
+        expect(
+            resolveSignMethodPath(
+                ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                    .sign_method,
+            ),
+        ).toBe(pendingSecretPath);
         expect(existsSync(oldSecretPath)).toBe(false);
         expect(existsSync(pendingSecretPath)).toBe(true);
     });
