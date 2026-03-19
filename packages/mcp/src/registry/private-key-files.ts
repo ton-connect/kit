@@ -153,10 +153,12 @@ function persistPrivateKeyRecord(
         secret_type?: SecretType;
     };
     const secretFile = persistSecretFile(getLocalFilePath(value.sign_method), value.private_key, pathParts);
-    const signMethod: SignMethod | undefined = secretFile ? {
-        type: 'local_file',
-        file_path: secretFile
-    } : undefined;
+    const signMethod: SignMethod | undefined = secretFile
+        ? {
+              type: 'local_file',
+              file_path: secretFile,
+          }
+        : undefined;
     return {
         ...publicValue,
         ...(signMethod ? { sign_method: signMethod } : {}),
@@ -169,12 +171,17 @@ export function persistStandardSecretRef(wallet: StandardSecretInput): StoredSta
     const secretFile = wallet.mnemonic
         ? persistSecretFile(getLocalFilePath(wallet.sign_method), wallet.mnemonic, ['wallets', `${wallet.id}.mnemonic`])
         : wallet.private_key
-          ? persistSecretFile(getLocalFilePath(wallet.sign_method), wallet.private_key, ['wallets', `${wallet.id}.private-key`])
+          ? persistSecretFile(getLocalFilePath(wallet.sign_method), wallet.private_key, [
+                'wallets',
+                `${wallet.id}.private-key`,
+            ])
           : wallet.sign_method?.file_path;
-    const signMethod: SignMethod | undefined = secretFile ? {
-        type: 'local_file',
-        file_path: secretFile
-    } : undefined;
+    const signMethod: SignMethod | undefined = secretFile
+        ? {
+              type: 'local_file',
+              file_path: secretFile,
+          }
+        : undefined;
     return {
         ...publicWallet,
         ...(signMethod ? { sign_method: signMethod } : {}),

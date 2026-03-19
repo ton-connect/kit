@@ -566,11 +566,7 @@ export class McpWalletService {
         const normalizedJettonAddress = Address.parse(jettonAddress).toString();
         const normalizedOwnerAddress = Address.parse(ownerAddress).toString();
 
-        return getJettonWalletAddressFromClient(
-            this.client,
-            normalizedJettonAddress,
-            normalizedOwnerAddress,
-        );
+        return getJettonWalletAddressFromClient(this.client, normalizedJettonAddress, normalizedOwnerAddress);
     }
 
     /**
@@ -1103,7 +1099,7 @@ export class McpWalletService {
     /**
      * Close and cleanup
      */
-    async cleanup(): Promise<void> {
+    async close(): Promise<void> {
         this.kitPromise = null;
     }
 }

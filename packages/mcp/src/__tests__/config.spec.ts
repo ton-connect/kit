@@ -38,12 +38,7 @@ import {
     upsertPendingAgenticDeployment,
     upsertWallet,
 } from '../registry/config.js';
-import {
-    deleteConfig,
-    loadConfig,
-    saveConfig,
-    saveConfigTransition,
-} from '../registry/config-persistence.js';
+import { deleteConfig, loadConfig, saveConfig, saveConfigTransition } from '../registry/config-persistence.js';
 import { readFileSync } from '../registry/protected-file.js';
 import { LEGACY_AGENTIC_PRIVATE_KEY_FIELD } from '../registry/private-key-field.js';
 
@@ -124,9 +119,12 @@ describe('mcp config registry', () => {
 
         const fileMode = statSync(process.env.TON_CONFIG_PATH!).mode & 0o777;
         expect(fileMode).toBe(0o600);
-        const mnemonicFileMode = statSync(
-            resolveSignMethodPath((loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method),
-        ).mode & 0o777;
+        const mnemonicFileMode =
+            statSync(
+                resolveSignMethodPath(
+                    (loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+            ).mode & 0o777;
         expect(mnemonicFileMode).toBe(0o600);
     });
 
@@ -591,9 +589,7 @@ describe('mcp config registry', () => {
         );
 
         const loaded = await loadConfig();
-        expect(
-            (loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
-        ).toEqual({
+        expect((loaded?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method).toEqual({
             type: 'local_file',
             file_path: `private-keys/wallets/${standard.id}.mnemonic`,
         });

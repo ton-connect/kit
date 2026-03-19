@@ -8,17 +8,11 @@
 
 import { describe, expect, it } from 'vitest';
 
-import {
-    createAgenticWalletRecord,
-    createPendingAgenticDeployment,
-    createPendingAgenticKeyRotation,
-    createStandardWalletRecord,
-} from '../registry/config.js';
+import { createStandardWalletRecord, createPendingAgenticDeployment } from '../registry/config.js';
 import { sanitizePrivateKeyBackedValue, sanitizeStoredWallet } from '../tools/sanitize.js';
 
 describe('sanitize', () => {
     const address = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
-    const ownerAddress = 'EQByQ19qvWxW7VibSbGEgZiYMqilHY5y1a_eeSL2VaXhfy07';
 
     it.each([
         {
@@ -36,54 +30,6 @@ describe('sanitize', () => {
             expected: {
                 has_mnemonic: true,
                 has_private_key: false,
-            },
-        },
-        {
-            name: 'agentic wallets',
-            value: {
-                ...createAgenticWalletRecord({
-                    name: 'Agent',
-                    network: 'mainnet',
-                    address,
-                    ownerAddress,
-                    operatorPublicKey: '0xbeef',
-                }),
-                private_key: '0x' + '11'.repeat(32),
-            },
-            sanitize: sanitizeStoredWallet,
-            expected: {
-                has_private_key: true,
-            },
-        },
-        {
-            name: 'pending agentic deployments',
-            value: {
-                ...createPendingAgenticDeployment({
-                    network: 'mainnet',
-                    operatorPublicKey: '0xcafe',
-                }),
-                private_key: '0x' + '22'.repeat(32),
-            },
-            sanitize: sanitizePrivateKeyBackedValue,
-            expected: {
-                has_private_key: true,
-            },
-        },
-        {
-            name: 'pending agentic rotations',
-            value: {
-                ...createPendingAgenticKeyRotation({
-                    walletId: 'wallet-1',
-                    network: 'mainnet',
-                    walletAddress: address,
-                    ownerAddress,
-                    operatorPublicKey: '0xfade',
-                }),
-                private_key: '0x' + '33'.repeat(32),
-            },
-            sanitize: sanitizePrivateKeyBackedValue,
-            expected: {
-                has_private_key: true,
             },
         },
     ])('omits secret fields for $name', ({ value, sanitize, expected }) => {

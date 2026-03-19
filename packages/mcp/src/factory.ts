@@ -344,5 +344,5 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 }
 
 export function createShutdownHandler(walletService: McpWalletService): () => Promise<void> {
-    return () => walletService.cleanup();
+    return () => walletService.close();
 }

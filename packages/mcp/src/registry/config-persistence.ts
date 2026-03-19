@@ -8,12 +8,7 @@
 
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 
-import {
-    Network,
-    Signer,
-    WalletV4R2Adapter,
-    WalletV5R1Adapter,
-} from '@ton/walletkit';
+import { Network, Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
 
 import { ConfigError, createStandardWalletRecord, CURRENT_TON_CONFIG_VERSION, normalizeConfig } from './config.js';
 import type { StandardWalletVersion, TonConfig, TonConfigVersion, TonNetwork } from './config.js';

@@ -63,11 +63,15 @@ async function createSharedTonWalletKit(network: SharedWalletNetwork, apiKey?: s
 
 export function getSharedTonWalletKit(network: SharedWalletNetwork, apiKey?: string): Promise<TonWalletKitType> {
     const normalizedApiKey = normalizeApiKey(apiKey);
-    if (sharedTonWalletKit && sharedTonWalletKit.network === network && sharedTonWalletKit.apiKey === normalizedApiKey) {
+    if (
+        sharedTonWalletKit &&
+        sharedTonWalletKit.network === network &&
+        sharedTonWalletKit.apiKey === normalizedApiKey
+    ) {
         return sharedTonWalletKit.kit;
     }
 
-    const kit = createSharedTonWalletKit(network, normalizedApiKey)
+    const kit = createSharedTonWalletKit(network, normalizedApiKey);
 
     sharedTonWalletKit = {
         network,

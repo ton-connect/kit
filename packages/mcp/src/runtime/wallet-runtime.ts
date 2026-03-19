@@ -8,12 +8,7 @@
 
 import { randomBytes } from 'node:crypto';
 
-import {
-    Network,
-    Signer,
-    WalletV4R2Adapter,
-    WalletV5R1Adapter,
-} from '@ton/walletkit';
+import { Network, Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
 import type { TonWalletKit as TonWalletKitType, Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
 
 import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
@@ -106,7 +101,7 @@ async function createWalletServiceWithAdapter(input: {
             service,
             close: async () => {
                 await Promise.allSettled([
-                    service.cleanup(),
+                    service.close(),
                     adapter
                         ? kit.removeWallet(adapter).catch(() => {
                               // Best-effort cleanup for shared kit teardown.
@@ -202,7 +197,7 @@ export async function createMcpWalletServiceFromStoredWallet(input: {
         return {
             service,
             close: async () => {
-                await service.cleanup();
+                await service.close();
             },
         };
     }

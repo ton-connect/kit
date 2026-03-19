@@ -196,7 +196,9 @@ function normalizeSecretBackedCollection<
     const normalized = stripLegacySecretFields(value);
     return {
         ...normalized,
-        ...(normalizeSignMethod(normalized.sign_method) ? { sign_method: normalizeSignMethod(normalized.sign_method) } : {}),
+        ...(normalizeSignMethod(normalized.sign_method)
+            ? { sign_method: normalizeSignMethod(normalized.sign_method) }
+            : {}),
         ...(normalized.collection_address
             ? {
                   collection_address: formatAssetAddress(normalized.collection_address, normalized.network),
