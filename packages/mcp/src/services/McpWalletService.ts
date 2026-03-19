@@ -19,8 +19,6 @@
 import { createHash } from 'node:crypto';
 
 import {
-    TonWalletKit,
-    MemoryStorageAdapter,
     Network,
     wrapWalletInterface,
     getTransactionStatus,
@@ -30,6 +28,7 @@ import {
     getJettonWalletAddressFromClient,
 } from '@ton/walletkit';
 import type {
+    TonWalletKit,
     Wallet,
     SwapQuoteParams,
     SwapParams,
@@ -37,14 +36,13 @@ import type {
     TransactionRequest,
     TransactionStatusResponse,
 } from '@ton/walletkit';
-import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
 
 import type { IContactResolver } from '../types/contacts.js';
 import type { NetworkType } from '../types/config.js';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
-import { createApiClient } from '../utils/ton-client.js';
 import { UINT_256_MAX } from '../utils/math.js';
+import { getSharedTonWalletKit } from '../runtime/shared-ton-wallet-kit.js';
 
 const OP_DEPLOY_WALLET = 0x0609e47b;
 const AGENTIC_DEFAULT_VALID_UNTIL = 600;
@@ -228,7 +226,7 @@ interface AgenticRootWalletState {
 export class McpWalletService {
     private readonly config: McpWalletServiceConfig;
     private readonly wallet: Wallet;
-    private kit: TonWalletKit | null = null;
+    private kitPromise: Promise<TonWalletKit> | null = null;
 
     private constructor(config: McpWalletServiceInternalConfig) {
         this.config = config;
@@ -259,6 +257,10 @@ export class McpWalletService {
         const now = BigInt(Date.now());
         const rand = BigInt(Math.floor(Math.random() * 0xffff));
         return (now << 16n) | rand;
+    }
+
+    private getSharedKitNetwork(): 'mainnet' | 'testnet' {
+        return this.wallet.getNetwork().chainId === Network.mainnet().chainId ? 'mainnet' : 'testnet';
     }
 
     private static onchainMetadataKey(key: string): bigint {
@@ -415,27 +417,11 @@ export class McpWalletService {
      * Initialize TonWalletKit (for swap operations)
      */
     private async getKit(): Promise<TonWalletKit> {
-        if (!this.kit) {
-            this.kit = new TonWalletKit({
-                networks: {
-                    [Network.mainnet().chainId]: {
-                        apiClient: createApiClient('mainnet', this.config.networks?.mainnet?.apiKey),
-                    },
-                    [Network.testnet().chainId]: {
-                        apiClient: createApiClient('testnet', this.config.networks?.testnet?.apiKey),
-                    },
-                },
-                storage: new MemoryStorageAdapter(),
-            });
-            await this.kit.waitForReady();
-
-            // Register Omniston swap provider
-            const omnistonProvider = new OmnistonSwapProvider({
-                defaultSlippageBps: 100,
-            });
-            this.kit.swap.registerProvider(omnistonProvider);
+        if (!this.kitPromise) {
+            const network = this.getSharedKitNetwork();
+            this.kitPromise = getSharedTonWalletKit(network, this.config.networks?.[network]?.apiKey);
         }
-        return this.kit;
+        return this.kitPromise;
     }
 
     /**
@@ -1075,10 +1061,7 @@ export class McpWalletService {
     /**
      * Close and cleanup
      */
-    async close(): Promise<void> {
-        if (this.kit) {
-            await this.kit.close();
-            this.kit = null;
-        }
+    async cleanup(): Promise<void> {
+        this.kitPromise = null;
     }
 }

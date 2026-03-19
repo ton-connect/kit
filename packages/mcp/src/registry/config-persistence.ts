@@ -9,10 +9,8 @@
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 
 import {
-    MemoryStorageAdapter,
     Network,
     Signer,
-    TonWalletKit,
     WalletV4R2Adapter,
     WalletV5R1Adapter,
 } from '@ton/walletkit';
@@ -28,8 +26,8 @@ import {
 import type { SecretMaterializationInput } from './private-key-files.js';
 import { chmodIfExists, getConfigDir, getConfigPath } from './config-path.js';
 import { readFileSync, writeFileSync } from './protected-file.js';
+import { getSharedTonWalletKit } from '../runtime/shared-ton-wallet-kit.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
-import { createApiClient } from '../utils/ton-client.js';
 
 interface LegacyTonConfig {
     mnemonic?: string;
@@ -73,35 +71,23 @@ async function deriveLegacyWalletAddress(config: LegacyTonConfig): Promise<strin
 
     const network = config.network === 'testnet' ? 'testnet' : 'mainnet';
     const walletVersion = config.wallet_version === 'v4r2' ? 'v4r2' : 'v5r1';
-    const kit = new TonWalletKit({
-        networks: {
-            [(network === 'testnet' ? Network.testnet() : Network.mainnet()).chainId]: {
-                apiClient: createApiClient(network, config.toncenter_api_key),
-            },
-        },
-        storage: new MemoryStorageAdapter(),
-    });
-    await kit.waitForReady();
+    const kit = await getSharedTonWalletKit(network, config.toncenter_api_key);
 
-    try {
-        const signer = config.mnemonic
-            ? await Signer.fromMnemonic(config.mnemonic.trim().split(/\s+/), { type: 'ton' })
-            : await Signer.fromPrivateKey(parsePrivateKeyInput(config.private_key!).seed);
-        const networkObject = network === 'testnet' ? Network.testnet() : Network.mainnet();
-        const adapter =
-            walletVersion === 'v4r2'
-                ? await WalletV4R2Adapter.create(signer, {
-                      client: kit.getApiClient(networkObject),
-                      network: networkObject,
-                  })
-                : await WalletV5R1Adapter.create(signer, {
-                      client: kit.getApiClient(networkObject),
-                      network: networkObject,
-                  });
-        return adapter.getAddress();
-    } finally {
-        await kit.close();
-    }
+    const signer = config.mnemonic
+        ? await Signer.fromMnemonic(config.mnemonic.trim().split(/\s+/), { type: 'ton' })
+        : await Signer.fromPrivateKey(parsePrivateKeyInput(config.private_key!).seed);
+    const networkObject = network === 'testnet' ? Network.testnet() : Network.mainnet();
+    const adapter =
+        walletVersion === 'v4r2'
+            ? await WalletV4R2Adapter.create(signer, {
+                  client: kit.getApiClient(networkObject),
+                  network: networkObject,
+              })
+            : await WalletV5R1Adapter.create(signer, {
+                  client: kit.getApiClient(networkObject),
+                  network: networkObject,
+              });
+    return adapter.getAddress();
 }
 
 async function migrateLegacyConfig(legacy: LegacyTonConfig): Promise<{
