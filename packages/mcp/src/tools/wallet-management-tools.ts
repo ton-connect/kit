@@ -53,8 +53,7 @@ const rotateOperatorKeySchema = z.object({
     walletSelector: z
         .string()
         .optional()
-        .describe('Optional wallet id, name, or address. Uses the active wallet when omitted.'),
-    privateKey: z.string().optional().describe('Optional replacement private key'),
+        .describe('Optional wallet id, name, or address. Uses the active wallet when omitted.')
 });
 
 const pendingOperatorKeyRotationSchema = z.object({

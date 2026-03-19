@@ -134,7 +134,7 @@ HTTP mode keeps a separate MCP session/transport per client session id, so multi
 - Secret material is written into separate files under `<config-dir>/private-keys/...`, including wallet secrets, pending agentic deployment secrets, and pending agentic key rotation secrets.
 - The config file and every secret file are written with strict filesystem permissions: files use `0600`, directories use `0700`.
 - Both config and secret files go through the same `protected-file` layer, so the raw bytes on disk do not contain the plaintext mnemonic or private key.
-- Legacy inline secrets from older config formats are still readable on load and are moved to `sign_method` storage on the next save or migration.
+- Legacy inline secrets from older config formats are automatically detected. When the config is read, these secrets are migrated to the `sign_method` storage format.
 - When a wallet, pending deployment, or pending rotation is removed, orphaned secret files are deleted as part of the config transition.
 
 ### Single-wallet mode
