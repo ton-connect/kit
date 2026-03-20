@@ -75,6 +75,13 @@ export interface ITonWalletKit {
     /** List all active sessions */
     listSessions(): Promise<TONConnectSession[]>;
 
+    // === URL Parsing API ===
+
+    /**
+     * Allow to convert url to ConnectionRequestEvent to use inline way
+     */
+    connectionEventFromUrl(url: string): Promise<ConnectionRequestEvent>;
+
     // === URL Processing ===
 
     /** Handle pasted TON Connect URL/link */

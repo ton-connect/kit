@@ -29,6 +29,7 @@ import type { EventRouter } from './EventRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
+import { ConnectHandler } from '../handlers/ConnectHandler';
 import { SwapManager } from '../defi/swap';
 import type {
     RawBridgeEventConnect,
@@ -520,6 +521,40 @@ export class TonWalletKit implements ITonWalletKit {
 
     removeErrorCallback(): void {
         this.eventRouter.removeErrorCallback();
+    }
+
+    // === URL Parsing API ===
+
+    /**
+     * Allow to convert url to ConnectionRequestEvent to use inline way
+     */
+    async connectionEventFromUrl(url: string): Promise<ConnectionRequestEvent> {
+        await this.ensureInitialized();
+
+        try {
+            const parsedUrl = this.parseTonConnectUrl(url);
+            if (!parsedUrl) {
+                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid TON Connect URL format', undefined, {
+                    url,
+                });
+            }
+
+            const bridgeEvent = this.createConnectEventFromUrl(parsedUrl);
+            if (!bridgeEvent) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'Invalid TON Connect URL - unable to create bridge event',
+                    undefined,
+                    { parsedUrl },
+                );
+            }
+
+            const handler = new ConnectHandler(() => {}, this.config, this.analyticsManager);
+            return await handler.handle(bridgeEvent);
+        } catch (error) {
+            log.error('Failed to create connection event from URL', { error, url });
+            throw error;
+        }
     }
 
     // === URL Processing API ===
