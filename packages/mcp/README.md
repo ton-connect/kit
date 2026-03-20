@@ -129,6 +129,30 @@ Examples of user requests, approximate corresponding raw CLI commands via `npx @
 | `AGENTIC_CALLBACK_HOST` | `127.0.0.1` | Host for the local callback server in stdio mode |
 | `AGENTIC_CALLBACK_PORT` | random free port | Port for the local callback server in stdio mode |
 
+## Key Storage
+
+`@ton/mcp` stores secrets differently depending on the runtime mode.
+
+### Registry mode
+
+- Wallet metadata is stored in `~/.config/ton/config.json` by default, or at `TON_CONFIG_PATH` if provided.
+- Mnemonics and private keys are not kept inline in the registry after persistence. The config stores only a `sign_method` reference, currently `{ "type": "local_file", "file_path": "..." }`.
+- Secret material is written into separate files under `<config-dir>/private-keys/...`, including wallet secrets, pending agentic deployment secrets, and pending agentic key rotation secrets.
+- The config file and every secret file are written with strict filesystem permissions: files use `0600`, directories use `0700`.
+- Both config and secret files go through the same `protected-file` layer, so the raw bytes on disk do not contain the plaintext mnemonic or private key.
+- Legacy inline secrets from older config formats are automatically detected. When the config is read, these secrets are migrated to the `sign_method` storage format.
+- When a wallet, pending deployment, or pending rotation is removed, orphaned secret files are deleted as part of the config transition.
+
+### Single-wallet mode
+
+- If you start the server with `MNEMONIC` or `PRIVATE_KEY`, the wallet is created directly from those values.
+- In this mode the secret is not persisted by `@ton/mcp` into the local registry. It is kept in process memory for the lifetime of the MCP server.
+
+### Security note
+
+The built-in `protected-file` wrapper helps avoid writing mnemonics and private keys to disk in readable form, but it is not a replacement for an OS keychain, HSM, or external KMS.
+Future versions are expected to support not only local key storage, but also trusted external signing and secret-management services.
+
 ## Available Tools
 
 In registry mode, wallet-scoped tools below also accept optional `walletSelector`. If omitted, the active wallet is used.
@@ -442,26 +466,25 @@ The package also exports a programmatic API for building custom MCP servers:
 
 ```typescript
 import { createTonWalletMCP } from '@ton/mcp';
-import { Signer, WalletV5R1Adapter, TonWalletKit, MemoryStorageAdapter, Network } from '@ton/walletkit';
+import { Signer } from '@ton/walletkit';
 
-// Initialize TonWalletKit
-const network = Network.mainnet();
-const kit = new TonWalletKit({
-  networks: { [network.chainId]: {} },
-  storage: new MemoryStorageAdapter(),
-});
-await kit.waitForReady();
-
-// Create wallet from mnemonic
+// Create signer from mnemonic
 const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
-const walletAdapter = await WalletV5R1Adapter.create(signer, {
-  client: kit.getApiClient(network),
-  network,
-});
-const wallet = await kit.addWallet(walletAdapter);
 
-// Create MCP server
-const server = await createTonWalletMCP({ wallet });
+// Create MCP server directly from signer
+const server = await createTonWalletMCP({
+  signer,
+  network: 'mainnet',
+  walletVersion: 'v5r1',
+});
+```
+
+If you already have a custom wallet adapter, you can still pass it directly:
+
+```typescript
+import { createTonWalletMCP } from '@ton/mcp';
+
+const server = await createTonWalletMCP({ wallet: walletAdapter });
 ```
 
 The same factory also supports registry mode:

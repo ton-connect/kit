@@ -19,17 +19,18 @@
 import { createHash } from 'node:crypto';
 
 import {
-    TonWalletKit,
-    MemoryStorageAdapter,
     Network,
     wrapWalletInterface,
     getTransactionStatus,
     formatUnits,
+    getJettonBalanceFromClient,
     getJettonsFromClient,
+    getNftFromClient,
     getNftsFromClient,
     getJettonWalletAddressFromClient,
 } from '@ton/walletkit';
 import type {
+    TonWalletKit,
     Wallet,
     SwapQuoteParams,
     SwapParams,
@@ -37,14 +38,13 @@ import type {
     TransactionRequest,
     TransactionStatusResponse,
 } from '@ton/walletkit';
-import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
 
 import type { IContactResolver } from '../types/contacts.js';
 import type { NetworkType } from '../types/config.js';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
-import { createApiClient } from '../utils/ton-client.js';
 import { UINT_256_MAX } from '../utils/math.js';
+import { getSharedTonWalletKit } from '../runtime/shared-ton-wallet-kit.js';
 
 const OP_DEPLOY_WALLET = 0x0609e47b;
 const AGENTIC_DEFAULT_VALID_UNTIL = 600;
@@ -200,7 +200,10 @@ export interface McpWalletServiceConfig {
 }
 
 interface McpWalletServiceInternalConfig {
-    wallet: Wallet;
+    wallet: Wallet | null;
+    address: string;
+    network: Network;
+    client: ReturnType<Wallet['getClient']>;
     contacts?: IContactResolver;
     /** Network-specific configuration */
     networks?: {
@@ -226,13 +229,19 @@ interface AgenticRootWalletState {
  * McpWalletService manages wallet operations for a single wallet.
  */
 export class McpWalletService {
-    private readonly config: McpWalletServiceConfig;
-    private readonly wallet: Wallet;
-    private kit: TonWalletKit | null = null;
+    private readonly config: Pick<McpWalletServiceConfig, 'contacts' | 'networks'>;
+    private readonly wallet: Wallet | null;
+    private readonly address: string;
+    private readonly network: Network;
+    private readonly client: ReturnType<Wallet['getClient']>;
+    private kitPromise: Promise<TonWalletKit> | null = null;
 
     private constructor(config: McpWalletServiceInternalConfig) {
         this.config = config;
         this.wallet = config.wallet;
+        this.address = config.address;
+        this.network = config.network;
+        this.client = config.client;
     }
 
     private static parseUint256(input: string, fieldName: string): bigint {
@@ -259,6 +268,17 @@ export class McpWalletService {
         const now = BigInt(Date.now());
         const rand = BigInt(Math.floor(Math.random() * 0xffff));
         return (now << 16n) | rand;
+    }
+
+    private getSharedKitNetwork(): 'mainnet' | 'testnet' {
+        return this.network.chainId === Network.mainnet().chainId ? 'mainnet' : 'testnet';
+    }
+
+    private requireWritableWallet(): Wallet {
+        if (!this.wallet) {
+            throw new Error('This operation requires signing access and is unavailable in read-only wallet mode.');
+        }
+        return this.wallet;
     }
 
     private static onchainMetadataKey(key: string): bigint {
@@ -335,16 +355,16 @@ export class McpWalletService {
     }
 
     private assertAgenticWalletVersion(): void {
-        const version = (this.wallet as unknown as { version?: string }).version;
+        const version = (this.requireWritableWallet() as { version?: string }).version;
         if (version !== 'agentic') {
             throw new Error('deploy_agentic_subwallet is available only for WALLET_VERSION=agentic');
         }
     }
 
     private async getAgenticRootWalletState(): Promise<AgenticRootWalletState> {
-        const accountState = await this.wallet.getClient().getAccountState(this.wallet.getAddress());
+        const accountState = await this.client.getAccountState(this.address);
         if (!accountState.data) {
-            throw new Error(`Account state data is empty for ${this.wallet.getAddress()}`);
+            throw new Error(`Account state data is empty for ${this.address}`);
         }
 
         let stateCell: Cell;
@@ -352,7 +372,7 @@ export class McpWalletService {
             stateCell = Cell.fromBase64(accountState.data);
         } catch (error) {
             throw new Error(
-                `Failed to decode account state for ${this.wallet.getAddress()}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                `Failed to decode account state for ${this.address}: ${error instanceof Error ? error.message : 'Unknown error'}`,
             );
         }
 
@@ -389,21 +409,43 @@ export class McpWalletService {
 
     static async create(config: McpWalletServiceConfig): Promise<McpWalletService> {
         const wallet = await wrapWalletInterface(config.wallet);
-        return new McpWalletService({ ...config, wallet });
+        return new McpWalletService({
+            ...config,
+            wallet,
+            address: wallet.getAddress(),
+            network: wallet.getNetwork(),
+            client: wallet.getClient(),
+        });
+    }
+
+    static async createReadOnly(config: {
+        address: string;
+        network: Network;
+        client: ReturnType<Wallet['getClient']>;
+        contacts?: IContactResolver;
+        networks?: {
+            mainnet?: NetworkConfig;
+            testnet?: NetworkConfig;
+        };
+    }): Promise<McpWalletService> {
+        return new McpWalletService({
+            ...config,
+            wallet: null,
+        });
     }
 
     /**
      * Get wallet address
      */
     getAddress(): string {
-        return this.wallet.getAddress();
+        return this.address;
     }
 
     /**
      * Get wallet network
      */
     getNetwork(): NetworkType {
-        const network = this.wallet.getNetwork();
+        const network = this.network;
         return network.chainId === Network.mainnet().chainId
             ? 'mainnet'
             : Network.tetra().chainId
@@ -415,34 +457,18 @@ export class McpWalletService {
      * Initialize TonWalletKit (for swap operations)
      */
     private async getKit(): Promise<TonWalletKit> {
-        if (!this.kit) {
-            this.kit = new TonWalletKit({
-                networks: {
-                    [Network.mainnet().chainId]: {
-                        apiClient: createApiClient('mainnet', this.config.networks?.mainnet?.apiKey),
-                    },
-                    [Network.testnet().chainId]: {
-                        apiClient: createApiClient('testnet', this.config.networks?.testnet?.apiKey),
-                    },
-                },
-                storage: new MemoryStorageAdapter(),
-            });
-            await this.kit.waitForReady();
-
-            // Register Omniston swap provider
-            const omnistonProvider = new OmnistonSwapProvider({
-                defaultSlippageBps: 100,
-            });
-            this.kit.swap.registerProvider(omnistonProvider);
+        if (!this.kitPromise) {
+            const network = this.getSharedKitNetwork();
+            this.kitPromise = getSharedTonWalletKit(network, this.config.networks?.[network]?.apiKey);
         }
-        return this.kit;
+        return this.kitPromise;
     }
 
     /**
      * Get TON balance
      */
     async getBalance(): Promise<string> {
-        return this.wallet.getBalance();
+        return this.client.getBalance(this.address);
     }
 
     /**
@@ -450,7 +476,7 @@ export class McpWalletService {
      */
     async getBalanceByAddress(address: string): Promise<AddressBalanceResult> {
         const normalizedAddress = Address.parse(address).toString();
-        const balanceNano = await this.wallet.getClient().getBalance(normalizedAddress);
+        const balanceNano = await this.client.getBalance(normalizedAddress);
 
         return {
             address: normalizedAddress,
@@ -463,7 +489,8 @@ export class McpWalletService {
      * Get Jetton balance
      */
     async getJettonBalance(jettonAddress: string): Promise<string> {
-        return this.wallet.getJettonBalance(jettonAddress);
+        const jettonWalletAddress = await getJettonWalletAddressFromClient(this.client, jettonAddress, this.address);
+        return getJettonBalanceFromClient(this.client, jettonWalletAddress);
     }
 
     /**
@@ -471,7 +498,7 @@ export class McpWalletService {
      */
     async getJettonsByAddress(address: string, limit: number = 20, offset: number = 0): Promise<JettonInfoResult[]> {
         const normalizedAddress = Address.parse(address).toString();
-        const response = await getJettonsFromClient(this.wallet.getClient(), normalizedAddress, {
+        const response = await getJettonsFromClient(this.client, normalizedAddress, {
             pagination: { limit, offset },
         });
 
@@ -489,8 +516,7 @@ export class McpWalletService {
      */
     async getJettonInfo(jettonAddress: string): Promise<JettonMetadataResult | null> {
         const normalizedAddress = Address.parse(jettonAddress).toString();
-        const client = this.wallet.getClient();
-        const response = await client.jettonsByAddress({
+        const response = await this.client.jettonsByAddress({
             address: normalizedAddress,
             offset: 0,
             limit: 1,
@@ -540,18 +566,16 @@ export class McpWalletService {
         const normalizedJettonAddress = Address.parse(jettonAddress).toString();
         const normalizedOwnerAddress = Address.parse(ownerAddress).toString();
 
-        return getJettonWalletAddressFromClient(
-            this.wallet.getClient(),
-            normalizedJettonAddress,
-            normalizedOwnerAddress,
-        );
+        return getJettonWalletAddressFromClient(this.client, normalizedJettonAddress, normalizedOwnerAddress);
     }
 
     /**
      * Get all Jettons
      */
     async getJettons(): Promise<JettonInfoResult[]> {
-        const jettonsResponse = await this.wallet.getJettons({ pagination: { limit: 100, offset: 0 } });
+        const jettonsResponse = await getJettonsFromClient(this.client, this.address, {
+            pagination: { limit: 100, offset: 0 },
+        });
 
         return jettonsResponse.jettons.map((j) => ({
             address: j.address,
@@ -566,12 +590,10 @@ export class McpWalletService {
      * Get transaction history using events API
      */
     async getTransactions(limit: number = 20): Promise<TransactionInfo[]> {
-        const address = this.wallet.getAddress();
-        const client = this.wallet.getClient();
         const safeLimit = Math.max(limit, 10);
 
-        const response = await client.getEvents({
-            account: address,
+        const response = await this.client.getEvents({
+            account: this.address,
             limit: safeLimit,
             offset: 0,
         });
@@ -660,13 +682,14 @@ export class McpWalletService {
      */
     async sendTon(toAddress: string, amountNano: string, comment?: string): Promise<TransferResult> {
         try {
-            const tx = await this.wallet.createTransferTonTransaction({
+            const wallet = this.requireWritableWallet();
+            const tx = await wallet.createTransferTonTransaction({
                 recipientAddress: toAddress,
                 transferAmount: amountNano,
                 comment,
             });
 
-            const response = await this.wallet.sendTransaction(tx);
+            const response = await wallet.sendTransaction(tx);
 
             return {
                 success: true,
@@ -691,14 +714,15 @@ export class McpWalletService {
         comment?: string,
     ): Promise<TransferResult> {
         try {
-            const tx = await this.wallet.createTransferJettonTransaction({
+            const wallet = this.requireWritableWallet();
+            const tx = await wallet.createTransferJettonTransaction({
                 recipientAddress: toAddress,
                 jettonAddress,
                 transferAmount: amountRaw,
                 comment,
             });
 
-            const response = await this.wallet.sendTransaction(tx);
+            const response = await wallet.sendTransaction(tx);
 
             return {
                 success: true,
@@ -728,7 +752,8 @@ export class McpWalletService {
         fromAddress?: string;
     }): Promise<TransferResult> {
         try {
-            const tx = await this.wallet.sendTransaction(request as TransactionRequest);
+            const wallet = this.requireWritableWallet();
+            const tx = await wallet.sendTransaction(request as TransactionRequest);
 
             return {
                 success: true,
@@ -749,6 +774,7 @@ export class McpWalletService {
     async deployAgenticSubwallet(params: DeployAgenticSubwalletParams): Promise<DeployAgenticSubwalletResult> {
         try {
             this.assertAgenticWalletVersion();
+            const wallet = this.requireWritableWallet();
 
             if (!/^\d+$/.test(params.amountNano) || BigInt(params.amountNano) <= 0n) {
                 throw new Error('amountNano must be a positive integer in nanotons');
@@ -799,7 +825,7 @@ export class McpWalletService {
             };
             const childAddress = contractAddress(0, childInit);
             const childAddressFriendly = childAddress.toString();
-            const childState = await this.wallet.getClient().getAccountState(childAddressFriendly);
+            const childState = await this.client.getAccountState(childAddressFriendly);
 
             if (childState.data) {
                 let isInitialized: boolean;
@@ -822,7 +848,7 @@ export class McpWalletService {
 
             const stateInit = beginCell().store(storeStateInit(childInit)).endCell();
 
-            const response = await this.wallet.sendTransaction({
+            const response = await wallet.sendTransaction({
                 validUntil: Math.floor(Date.now() / 1000) + AGENTIC_DEFAULT_VALID_UNTIL,
                 messages: [
                     {
@@ -861,8 +887,7 @@ export class McpWalletService {
      * The transaction is "complete" only when the entire trace finishes.
      */
     async getTransactionStatus(normalizedHash: string): Promise<TransactionStatusResponse> {
-        const client = this.wallet.getClient();
-        return getTransactionStatus(client, { normalizedHash });
+        return getTransactionStatus(this.client, { normalizedHash });
     }
 
     /**
@@ -878,7 +903,7 @@ export class McpWalletService {
         amount: string,
         slippageBps?: number,
     ): Promise<SwapQuoteResult> {
-        const network = this.wallet.getNetwork();
+        const network = this.network;
         const kit = await this.getKit();
 
         // Get decimals for tokens (TON has 9 decimals, jettons need to be fetched)
@@ -905,7 +930,7 @@ export class McpWalletService {
         // Build transaction params
         const swapParams: SwapParams = {
             quote,
-            userAddress: this.wallet.getAddress(),
+            userAddress: this.address,
         };
         const tx = await kit.swap.buildSwapTransaction(swapParams);
 
@@ -933,7 +958,7 @@ export class McpWalletService {
      * Get all NFTs
      */
     async getNfts(limit: number = 20, offset: number = 0): Promise<NftInfoResult[]> {
-        const nftsResponse = await this.wallet.getNfts({ pagination: { limit, offset } });
+        const nftsResponse = await getNftsFromClient(this.client, this.address, { pagination: { limit, offset } });
 
         return nftsResponse.nfts.map((nft) => ({
             address: nft.address,
@@ -962,7 +987,7 @@ export class McpWalletService {
      */
     async getNftsByAddress(address: string, limit: number = 20, offset: number = 0): Promise<NftInfoResult[]> {
         const normalizedAddress = Address.parse(address).toString();
-        const response = await getNftsFromClient(this.wallet.getClient(), normalizedAddress, {
+        const response = await getNftsFromClient(this.client, normalizedAddress, {
             pagination: { limit, offset },
         });
 
@@ -992,7 +1017,7 @@ export class McpWalletService {
      * Get a specific NFT by address
      */
     async getNft(nftAddress: string): Promise<NftInfoResult | null> {
-        const nft = await this.wallet.getNft(nftAddress);
+        const nft = await getNftFromClient(this.client, nftAddress);
 
         if (!nft) {
             return null;
@@ -1025,13 +1050,14 @@ export class McpWalletService {
      */
     async sendNft(nftAddress: string, toAddress: string, comment?: string): Promise<TransferResult> {
         try {
-            const tx = await this.wallet.createTransferNftTransaction({
+            const wallet = this.requireWritableWallet();
+            const tx = await wallet.createTransferNftTransaction({
                 nftAddress,
                 recipientAddress: toAddress,
                 comment,
             });
 
-            const response = await this.wallet.sendTransaction(tx);
+            const response = await wallet.sendTransaction(tx);
 
             return {
                 success: true,
@@ -1060,25 +1086,20 @@ export class McpWalletService {
      * Resolve a TON DNS domain (e.g., "wallet.ton") to a wallet address
      */
     async resolveDns(domain: string): Promise<string | null> {
-        const client = this.wallet.getClient();
-        return client.resolveDnsWallet(domain);
+        return this.client.resolveDnsWallet(domain);
     }
 
     /**
      * Reverse resolve a wallet address to a TON DNS domain
      */
     async backResolveDns(address: string): Promise<string | null> {
-        const client = this.wallet.getClient();
-        return client.backResolveDnsWallet(address);
+        return this.client.backResolveDnsWallet(address);
     }
 
     /**
      * Close and cleanup
      */
     async close(): Promise<void> {
-        if (this.kit) {
-            await this.kit.close();
-            this.kit = null;
-        }
+        this.kitPromise = null;
     }
 }

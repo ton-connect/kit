@@ -282,5 +282,5 @@ Parameters:
 - Registry mode uses the local TON config file from `~/.config/ton/config.json` or `TON_CONFIG_PATH`
 - Agentic onboarding callback state is persisted in the local config; in stdio mode use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` when you need a stable callback endpoint across restarts
 - Registry management responses are sanitized and do not expose mnemonic, private keys, operator private keys, or Toncenter API keys
-- Read tools can work with imported agentic wallets without `operator_private_key`; write tools cannot
+- Read tools can work with imported agentic wallets without `private_key`; write tools cannot
 - **Default flow:** After any send, poll get_transaction_status until completed or failed. User can specify whether to check status.

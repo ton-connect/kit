@@ -9,15 +9,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 
-import {
-    createEmptyConfig,
-    findAgenticSetupSession,
-    listAgenticSetupSessions,
-    loadConfig,
-    removeAgenticSetupSession,
-    saveConfig,
-    upsertAgenticSetupSession,
-} from '../registry/config.js';
+import { createEmptyConfig, removeAgenticSetupSession, upsertAgenticSetupSession } from '../registry/config.js';
+import { loadConfig, saveConfigTransition } from '../registry/config-persistence.js';
 import type { AgenticSetupStatus, StoredAgenticSetupSession } from '../registry/config.js';
 
 export interface AgenticDeployCallbackPayload {
@@ -56,27 +49,27 @@ const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_TTL_MS = 1000 * 60 * 60 * 24;
 
 export interface AgenticSetupSessionStore {
-    listSessions(): StoredAgenticSetupSession[];
-    upsertSession(session: StoredAgenticSetupSession): void;
-    removeSession(setupId: string): void;
+    listSessions(): Promise<StoredAgenticSetupSession[]>;
+    upsertSession(session: StoredAgenticSetupSession): Promise<void>;
+    removeSession(setupId: string): Promise<void>;
 }
 
 export class ConfigBackedAgenticSetupSessionStore implements AgenticSetupSessionStore {
-    listSessions(): StoredAgenticSetupSession[] {
-        return listAgenticSetupSessions(loadConfig() ?? createEmptyConfig());
+    async listSessions(): Promise<StoredAgenticSetupSession[]> {
+        return [...((await loadConfig()) ?? createEmptyConfig()).agentic_setup_sessions];
     }
 
-    upsertSession(session: StoredAgenticSetupSession): void {
-        const config = loadConfig() ?? createEmptyConfig();
-        saveConfig(upsertAgenticSetupSession(config, session));
+    async upsertSession(session: StoredAgenticSetupSession): Promise<void> {
+        const config = (await loadConfig()) ?? createEmptyConfig();
+        saveConfigTransition(config, upsertAgenticSetupSession(config, session));
     }
 
-    removeSession(setupId: string): void {
-        const config = loadConfig() ?? createEmptyConfig();
-        if (!findAgenticSetupSession(config, setupId)) {
+    async removeSession(setupId: string): Promise<void> {
+        const config = (await loadConfig()) ?? createEmptyConfig();
+        if (!config.agentic_setup_sessions.find((session) => session.setup_id === setupId)) {
             return;
         }
-        saveConfig(removeAgenticSetupSession(config, setupId));
+        saveConfigTransition(config, removeAgenticSetupSession(config, setupId));
     }
 }
 
@@ -108,17 +101,15 @@ export class AgenticSetupSessionManager {
         this.publicBaseUrl = options.publicBaseUrl?.replace(/\/+$/, '');
         this.enableInternalHttpServer = options.enableInternalHttpServer ?? true;
         this.store = options.store;
-
-        this.syncFromStore();
     }
 
-    private syncFromStore(): void {
+    private async syncFromStore(): Promise<void> {
         if (!this.store) {
             return;
         }
 
         this.sessions.clear();
-        for (const session of this.store.listSessions()) {
+        for (const session of await this.store.listSessions()) {
             this.sessions.set(session.setup_id, this.fromStoredSession(session));
         }
     }
@@ -147,22 +138,22 @@ export class AgenticSetupSessionManager {
         };
     }
 
-    private persistSession(session: InternalSession): void {
+    private async persistSession(session: InternalSession): Promise<void> {
         this.sessions.set(session.setupId, session);
-        this.store?.upsertSession(this.toStoredSession(session));
+        await this.store?.upsertSession(this.toStoredSession(session));
     }
 
-    private deleteSession(setupId: string): void {
+    private async deleteSession(setupId: string): Promise<void> {
         this.sessions.delete(setupId);
-        this.store?.removeSession(setupId);
+        await this.store?.removeSession(setupId);
     }
 
-    private cleanupExpiredSessions(): void {
-        this.syncFromStore();
+    private async cleanupExpiredSessions(): Promise<void> {
+        await this.syncFromStore();
         const now = Date.now();
         for (const [_setupId, session] of this.sessions.entries()) {
             if (new Date(session.expiresAt).getTime() <= now && session.status === 'pending') {
-                this.persistSession({ ...session, status: 'expired' });
+                await this.persistSession({ ...session, status: 'expired' });
             }
         }
     }
@@ -240,7 +231,7 @@ export class AgenticSetupSessionManager {
             return true;
         }
 
-        this.syncFromStore();
+        await this.syncFromStore();
         const session = this.sessions.get(match[1]!);
         if (!session) {
             this.writeCorsHeaders(res);
@@ -258,7 +249,7 @@ export class AgenticSetupSessionManager {
                 throw new Error(`Unexpected callback event: ${String(payload.event)}`);
             }
 
-            this.persistSession({
+            await this.persistSession({
                 ...session,
                 payload,
                 status: 'callback_received',
@@ -281,7 +272,7 @@ export class AgenticSetupSessionManager {
 
     async createSession(setupId: string): Promise<AgenticSetupSession> {
         await this.ensureServer();
-        this.cleanupExpiredSessions();
+        await this.cleanupExpiredSessions();
         const createdAt = new Date().toISOString();
         const expiresAt = new Date(Date.now() + this.ttlMs).toISOString();
         const callbackPath = `/agentic/callback/${setupId}`;
@@ -293,31 +284,31 @@ export class AgenticSetupSessionManager {
             expiresAt,
             status: 'pending',
         };
-        this.persistSession(session);
+        await this.persistSession(session);
         return { ...session };
     }
 
-    getSession(setupId: string): AgenticSetupSession | null {
-        this.syncFromStore();
-        this.cleanupExpiredSessions();
+    async getSession(setupId: string): Promise<AgenticSetupSession | undefined> {
+        await this.syncFromStore();
+        await this.cleanupExpiredSessions();
         const session = this.sessions.get(setupId);
-        return session ? { ...session } : null;
+        return session ? { ...session } : undefined;
     }
 
-    listSessions(): AgenticSetupSession[] {
-        this.syncFromStore();
-        this.cleanupExpiredSessions();
+    async listSessions(): Promise<AgenticSetupSession[]> {
+        await this.syncFromStore();
+        await this.cleanupExpiredSessions();
         return [...this.sessions.values()].map((session) => ({ ...session }));
     }
 
-    markCompleted(setupId: string): void {
-        this.syncFromStore();
-        this.deleteSession(setupId);
+    async markCompleted(setupId: string): Promise<void> {
+        await this.syncFromStore();
+        await this.deleteSession(setupId);
     }
 
-    cancelSession(setupId: string): void {
-        this.syncFromStore();
-        this.deleteSession(setupId);
+    async cancelSession(setupId: string): Promise<void> {
+        await this.syncFromStore();
+        await this.deleteSession(setupId);
     }
 
     async close(): Promise<void> {

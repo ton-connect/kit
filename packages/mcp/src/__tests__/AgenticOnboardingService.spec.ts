@@ -17,7 +17,7 @@ describe('AgenticOnboardingService', () => {
     const pendingDeployment: PendingAgenticDeployment = {
         id: 'setup-1',
         network: 'mainnet',
-        operator_private_key: '0xpriv',
+        sign_method: { type: 'local_file', file_path: '/tmp/setup-1.private-key' },
         operator_public_key: '0xfeed',
         name: 'Agent Alpha',
         source: 'MCP flow',
@@ -33,7 +33,7 @@ describe('AgenticOnboardingService', () => {
         network: 'mainnet',
         address: 'UQBynBO23ywHy_CgarY9NK9FTz0yDsG82PtcbSTQgGoXwnZF',
         owner_address: 'UQAcIXCxCd_gAqQ8RK0UA9vvlVA7wWjV41l2URKVxaMVLeM5',
-        operator_private_key: '0xpriv',
+        sign_method: { type: 'local_file', file_path: '/tmp/agent-1.private-key' },
         operator_public_key: '0xfeed',
         source: 'MCP flow',
         collection_address: 'EQByQ19qvWxW7VibSbGEgZiYMqilHY5y1a_eeSL2VaXhfy07',
@@ -94,7 +94,7 @@ describe('AgenticOnboardingService', () => {
 
         expect(registry.createPendingAgenticSetup).toHaveBeenCalledWith({
             network: 'mainnet',
-            operatorPrivateKey: expect.stringMatching(/^0x[0-9a-f]+$/i),
+            privateKey: expect.stringMatching(/^0x[0-9a-f]+$/i),
             operatorPublicKey: expect.stringMatching(/^0x[0-9a-f]+$/i),
             name: 'Agent Alpha',
             source: 'MCP flow',
