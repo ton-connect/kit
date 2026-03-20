@@ -122,6 +122,13 @@ HTTP mode keeps a separate MCP session/transport per client session id, so multi
 | `AGENTIC_CALLBACK_BASE_URL` |  | Optional public base URL for agentic onboarding callbacks |
 | `AGENTIC_CALLBACK_HOST` | `127.0.0.1` | Host for the local callback server in stdio mode |
 | `AGENTIC_CALLBACK_PORT` | random free port | Port for the local callback server in stdio mode |
+| `TONCONNECT_STORAGE_PATH` | `~/.config/ton/tonconnect-storage.json` | Persistent TonConnect storage for sessions, durable events, and MCP request queue |
+| `TONCONNECT_BRIDGE_URL` | `https://connect.ton.org/bridge` | TonConnect HTTP bridge URL |
+| `TONCONNECT_APP_NAME` | `TON MCP` | TonConnect device/app name exposed to dApps |
+| `TONCONNECT_MANIFEST_NAME` | `TON MCP` | Optional TonConnect wallet manifest name |
+| `TONCONNECT_MANIFEST_IMAGE_URL` |  | Optional TonConnect wallet manifest image URL |
+| `TONCONNECT_MANIFEST_ABOUT_URL` | `https://github.com/ton-connect/kit/tree/main/packages/mcp` | Optional TonConnect wallet manifest about URL |
+| `TONCONNECT_UNIVERSAL_LINK` |  | Optional TonConnect wallet manifest universal link |
 
 ## Available Tools
 
@@ -234,6 +241,47 @@ Send a raw transaction with full control over messages. Supports multiple messag
   - `payload` (optional): Message payload data (Base64)
 - `validUntil` (optional): Unix timestamp after which the transaction becomes invalid
 - `fromAddress` (optional): Sender wallet address
+
+### TonConnect
+
+#### `tonconnect_handle_url`
+Handle a TonConnect universal link or raw TonConnect URL and enqueue the resulting request in the persistent TonConnect runtime.
+
+**Parameters:**
+- `url` (required): TonConnect universal link or raw TonConnect URL
+
+#### `tonconnect_list_requests`
+List pending and recent TonConnect requests for the selected wallet runtime.
+
+**Parameters:**
+- `status` (optional): Filter by `pending`, `approved`, `rejected`, `expired`, or `failed`
+- `type` (optional): Filter by `connect`, `sendTransaction`, or `signData`
+- `limit` (optional): Maximum number of requests to return (default: all, max: 100)
+
+#### `tonconnect_approve_request`
+Approve a pending TonConnect `connect`, `sendTransaction`, or `signData` request.
+
+**Parameters:**
+- `requestId` (required): TonConnect request identifier
+
+#### `tonconnect_reject_request`
+Reject a pending TonConnect `connect`, `sendTransaction`, or `signData` request.
+
+**Parameters:**
+- `requestId` (required): TonConnect request identifier
+- `reason` (optional): Rejection reason
+
+#### `tonconnect_list_sessions`
+List active TonConnect sessions without exposing session private keys.
+
+#### `tonconnect_disconnect`
+Disconnect one TonConnect session or all sessions for the selected wallet runtime.
+
+**Parameters:**
+- `sessionId` (optional): TonConnect session id. Disconnects all sessions when omitted
+
+#### `tonconnect_get_status`
+Return TonConnect runtime status, storage path, request counts, and active session count.
 
 ### Swaps
 

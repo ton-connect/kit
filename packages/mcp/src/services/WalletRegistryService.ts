@@ -176,6 +176,20 @@ export class WalletRegistryService {
         walletSelector?: string,
         options?: { requiresSigning?: boolean },
     ): Promise<WalletServiceContext & { wallet: StoredWallet }> {
+        const { wallet, toncenterApiKey } = await this.resolveWalletSelection(walletSelector, options);
+        const context = await createMcpWalletServiceFromStoredWallet({
+            wallet,
+            contacts: this.contacts,
+            toncenterApiKey,
+            requiresSigning: options?.requiresSigning,
+        });
+        return { ...context, wallet };
+    }
+
+    async resolveWalletSelection(
+        walletSelector?: string,
+        options?: { requiresSigning?: boolean },
+    ): Promise<{ wallet: StoredWallet; toncenterApiKey?: string }> {
         const config = await this.loadConfig();
         const wallet = walletSelector ? findWallet(config, walletSelector) : getActiveWallet(config);
         if (!wallet) {
@@ -185,17 +199,15 @@ export class WalletRegistryService {
                     : 'No active wallet configured. Import a wallet first or set one active.',
             );
         }
+
         if (options?.requiresSigning) {
             this.assertWalletSupportsSigning(wallet);
         }
-        const toncenterApiKey = this.resolveToncenterApiKey(config, wallet.network);
-        const context = await createMcpWalletServiceFromStoredWallet({
+
+        return {
             wallet,
-            contacts: this.contacts,
-            toncenterApiKey,
-            requiresSigning: options?.requiresSigning,
-        });
-        return { ...context, wallet };
+            toncenterApiKey: this.resolveToncenterApiKey(config, wallet.network),
+        };
     }
 
     async validateAgenticWallet(input: {

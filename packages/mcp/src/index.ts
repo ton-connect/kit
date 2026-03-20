@@ -42,6 +42,8 @@ export { McpWalletService } from './services/McpWalletService.js';
 export { WalletRegistryService } from './services/WalletRegistryService.js';
 export { AgenticSetupSessionManager } from './services/AgenticSetupSessionManager.js';
 export { AgenticOnboardingService } from './services/AgenticOnboardingService.js';
+export { TonConnectRuntimeRegistry } from './services/TonConnectRuntimeRegistry.js';
+export { TonConnectRuntimeService } from './services/TonConnectRuntimeService.js';
 export type {
     StartAgenticKeyRotationResult,
     CompleteAgenticKeyRotationResult,
@@ -72,6 +74,14 @@ export type {
     AgenticSetupSession,
     AgenticSetupStatus,
 } from './services/AgenticSetupSessionManager.js';
+export type {
+    TonConnectRequestType,
+    TonConnectRequestStatus,
+    TonConnectRequestSummary,
+    TonConnectRequestRecord,
+    TonConnectSessionSummary,
+    TonConnectRuntimeStatus,
+} from './types/tonconnect.js';
 
 // ===========================================
 // Contracts

@@ -16,3 +16,4 @@ export { createMcpAgenticTools } from './agentic-tools.js';
 export { createMcpAddressTools } from './address-tools.js';
 export { createMcpWalletManagementTools } from './wallet-management-tools.js';
 export { createMcpAgenticOnboardingTools } from './agentic-onboarding-tools.js';
+export { createMcpTonConnectTools, createDisabledTonConnectTools } from './tonconnect-tools.js';

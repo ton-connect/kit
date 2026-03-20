@@ -78,11 +78,15 @@ describe('createTonWalletMCP registry mode', () => {
             expect(names).toContain('agentic_complete_rotate_operator_key');
             expect(names).not.toContain('reset_wallet_config');
             expect(names).toContain('get_balance');
+            expect(names).toContain('tonconnect_handle_url');
+            expect(names).toContain('tonconnect_list_requests');
 
             const getBalance = tools.tools.find((tool) => tool.name === 'get_balance');
             const listWallets = tools.tools.find((tool) => tool.name === 'list_wallets');
+            const tonConnectHandleUrl = tools.tools.find((tool) => tool.name === 'tonconnect_handle_url');
             expect(getBalance?.inputSchema.properties).toHaveProperty('walletSelector');
             expect(listWallets?.inputSchema.properties ?? {}).not.toHaveProperty('walletSelector');
+            expect(tonConnectHandleUrl?.inputSchema.properties).toHaveProperty('walletSelector');
         } finally {
             await client.close();
             await server.close();

@@ -16,18 +16,14 @@ import {
     WalletV4R2Adapter,
     WalletV5R1Adapter,
 } from '@ton/walletkit';
-import type { TonWalletKit as TonWalletKitType, Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { ApiClient, TonWalletKit as TonWalletKitType, Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
+import type { StorageAdapter } from '@ton/walletkit';
+import type { TonWalletKitOptions } from '@ton/walletkit';
 
 import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
 import type { IContactResolver } from '../types/contacts.js';
 import { McpWalletService } from '../services/McpWalletService.js';
-import type {
-    StandardWalletVersion,
-    StoredAgenticWallet,
-    StoredStandardWallet,
-    StoredWallet,
-    TonNetwork,
-} from '../registry/config.js';
+import type { StandardWalletVersion, StoredWallet, TonNetwork } from '../registry/config.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 import { createApiClient } from '../utils/ton-client.js';
 
@@ -36,21 +32,40 @@ export interface WalletServiceContext {
     close: () => Promise<void>;
 }
 
-function createKit(network: TonNetwork, apiKey?: string): TonWalletKitType {
-    const normalized = network === 'testnet' ? Network.testnet() : Network.mainnet();
+export interface WalletAdapterSource {
+    walletVersion: 'agentic' | 'v4r2' | 'v5r1';
+    mnemonic?: string;
+    privateKey?: string;
+    walletAddress?: string;
+    walletNftIndex?: bigint;
+    collectionAddress?: string;
+}
+
+export function createTonWalletKit(input: {
+    network: TonNetwork;
+    apiKey?: string;
+    storage?: StorageAdapter;
+    walletKitOptions?: Omit<TonWalletKitOptions, 'networks' | 'storage'>;
+}): TonWalletKitType {
+    const normalized = input.network === 'testnet' ? Network.testnet() : Network.mainnet();
     return new TonWalletKit({
         networks: {
-            [normalized.chainId]: { apiClient: createApiClient(network, apiKey) },
+            [normalized.chainId]: { apiClient: createApiClient(input.network, input.apiKey) },
         },
-        storage: new MemoryStorageAdapter(),
+        storage: input.storage ?? new MemoryStorageAdapter(),
+        ...input.walletKitOptions,
     });
+}
+
+function createKit(network: TonNetwork, apiKey?: string): TonWalletKitType {
+    return createTonWalletKit({ network, apiKey });
 }
 
 function getKitNetwork(network: TonNetwork) {
     return network === 'testnet' ? Network.testnet() : Network.mainnet();
 }
 
-async function closeKitSafely(kit: TonWalletKitType): Promise<void> {
+export async function closeKitSafely(kit: TonWalletKitType): Promise<void> {
     try {
         await kit.close();
     } catch {
@@ -69,7 +84,7 @@ async function addWallet(kit: TonWalletKitType, adapter: WalletAdapter): Promise
     return wallet;
 }
 
-async function createSignerFromSecrets(input: { mnemonic?: string; privateKey?: string }): Promise<WalletSigner> {
+export async function createSignerFromSecrets(input: { mnemonic?: string; privateKey?: string }): Promise<WalletSigner> {
     if (input.mnemonic) {
         return Signer.fromMnemonic(input.mnemonic.trim().split(/\s+/), { type: 'ton' });
     }
@@ -101,63 +116,116 @@ export async function createStandardAdapter(input: {
           });
 }
 
-async function createServiceFromStoredStandard(
-    wallet: StoredStandardWallet,
-    contacts: IContactResolver | undefined,
-    toncenterApiKey?: string,
-): Promise<WalletServiceContext> {
-    const signer = await createSignerFromSecrets({
-        mnemonic: wallet.mnemonic,
-        privateKey: wallet.private_key,
-    });
-    const kit = createKit(wallet.network, toncenterApiKey);
-    await kit.waitForReady();
-    try {
-        const adapter = await createStandardAdapter({
-            signer,
-            kit,
-            network: wallet.network,
-            walletVersion: wallet.wallet_version,
+export async function createWalletAdapterFromSigner(input: {
+    signer: WalletSigner;
+    client: ApiClient;
+    network: Network;
+    walletVersion: 'agentic' | 'v4r2' | 'v5r1';
+    agentic?: {
+        walletAddress?: string;
+        walletNftIndex?: bigint;
+        collectionAddress?: string;
+    };
+}): Promise<WalletAdapter> {
+    if (input.walletVersion === 'v4r2') {
+        return WalletV4R2Adapter.create(input.signer, {
+            client: input.client,
+            network: input.network,
         });
-        await addWallet(kit, adapter);
-        const service = await McpWalletService.create({
-            wallet: adapter,
-            contacts,
-            networks: {
-                [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
-            },
-        });
-        return {
-            service,
-            close: async () => {
-                await Promise.allSettled([service.close(), closeKitSafely(kit)]);
-            },
-        };
-    } catch (error) {
-        await closeKitSafely(kit);
-        throw error;
     }
+
+    if (input.walletVersion === 'v5r1') {
+        return WalletV5R1Adapter.create(input.signer, {
+            client: input.client,
+            network: input.network,
+        });
+    }
+
+    return AgenticWalletAdapter.create(input.signer, {
+        client: input.client,
+        network: input.network,
+        walletAddress: input.agentic?.walletAddress,
+        walletNftIndex: input.agentic?.walletNftIndex,
+        collectionAddress: input.agentic?.collectionAddress,
+    });
 }
 
-async function createServiceFromStoredAgentic(
-    wallet: StoredAgenticWallet,
+export async function createWalletAdapterFromSource(input: {
+    source: WalletAdapterSource;
+    requiresSigning?: boolean;
+    client: ApiClient;
+    network: Network;
+}): Promise<WalletAdapter> {
+    const signer =
+        input.source.mnemonic || input.source.privateKey
+            ? await createSignerFromSecrets({
+                  mnemonic: input.source.mnemonic,
+                  privateKey: input.source.privateKey,
+              })
+            : await createPlaceholderSigner();
+
+    if (
+        input.requiresSigning &&
+        !input.source.mnemonic &&
+        !input.source.privateKey
+    ) {
+        throw new Error(`Wallet configuration for ${input.source.walletVersion} is missing signing credentials.`);
+    }
+
+    return createWalletAdapterFromSigner({
+        signer,
+        client: input.client,
+        network: input.network,
+        walletVersion: input.source.walletVersion,
+        agentic:
+            input.source.walletVersion === 'agentic'
+                ? {
+                      walletAddress: input.source.walletAddress,
+                      walletNftIndex: input.source.walletNftIndex,
+                      collectionAddress: input.source.collectionAddress,
+                  }
+                : undefined,
+    });
+}
+
+export async function createWalletAdapterFromStoredWallet(input: {
+    wallet: StoredWallet;
+    requiresSigning?: boolean;
+    kit: TonWalletKitType;
+}): Promise<WalletAdapter> {
+    return createWalletAdapterFromSource({
+        source:
+            input.wallet.type === 'standard'
+                ? {
+                      walletVersion: input.wallet.wallet_version,
+                      mnemonic: input.wallet.mnemonic,
+                      privateKey: input.wallet.private_key,
+                  }
+                : {
+                      walletVersion: 'agentic',
+                      privateKey: input.wallet.operator_private_key,
+                      walletAddress: input.wallet.address,
+                      collectionAddress: input.wallet.collection_address,
+                  },
+        requiresSigning: input.requiresSigning,
+        client: input.kit.getApiClient(getKitNetwork(input.wallet.network)),
+        network: getKitNetwork(input.wallet.network),
+    });
+}
+
+async function createServiceFromStoredWallet(
+    wallet: StoredWallet,
     contacts: IContactResolver | undefined,
     toncenterApiKey?: string,
     requiresSigning?: boolean,
 ): Promise<WalletServiceContext> {
-    if (requiresSigning && !wallet.operator_private_key) {
-        throw new Error(`Agentic wallet "${wallet.name}" is missing operator_private_key.`);
-    }
-    const signer = wallet.operator_private_key
-        ? await createSignerFromSecrets({ privateKey: wallet.operator_private_key })
-        : await createPlaceholderSigner();
     const kit = createKit(wallet.network, toncenterApiKey);
     await kit.waitForReady();
     try {
-        const adapter = await AgenticWalletAdapter.create(signer, {
-            client: kit.getApiClient(getKitNetwork(wallet.network)),
-            network: getKitNetwork(wallet.network),
-            walletAddress: wallet.address,
+        const adapter = await createWalletAdapterFromStoredWallet({
+            wallet,
+            requiresSigning,
+            kit,
         });
         await addWallet(kit, adapter);
         const service = await McpWalletService.create({
@@ -185,9 +253,7 @@ export async function createMcpWalletServiceFromStoredWallet(input: {
     toncenterApiKey?: string;
     requiresSigning?: boolean;
 }): Promise<WalletServiceContext> {
-    return input.wallet.type === 'standard'
-        ? createServiceFromStoredStandard(input.wallet, input.contacts, input.toncenterApiKey)
-        : createServiceFromStoredAgentic(input.wallet, input.contacts, input.toncenterApiKey, input.requiresSigning);
+    return createServiceFromStoredWallet(input.wallet, input.contacts, input.toncenterApiKey, input.requiresSigning);
 }
 
 export async function deriveStandardWalletAddress(input: {

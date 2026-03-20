@@ -23,14 +23,17 @@ import {
     ConfigBackedAgenticSetupSessionStore,
 } from './services/AgenticSetupSessionManager.js';
 import { AgenticOnboardingService } from './services/AgenticOnboardingService.js';
+import { TonConnectRuntimeRegistry } from './services/TonConnectRuntimeRegistry.js';
 import {
     createMcpAddressTools,
     createMcpAgenticOnboardingTools,
     createMcpAgenticTools,
     createMcpBalanceTools,
+    createDisabledTonConnectTools,
     createMcpKnownJettonsTools,
     createMcpNftTools,
     createMcpSwapTools,
+    createMcpTonConnectTools,
     createMcpTransactionTools,
     createMcpTransferTools,
     createMcpWalletManagementTools,
@@ -39,6 +42,15 @@ import { createMcpDnsTools } from './tools/dns-tools.js';
 
 const SERVER_NAME = 'ton-mcp';
 const SERVER_VERSION = '0.1.0';
+const TONCONNECT_TOOL_NAMES = [
+    'tonconnect_handle_url',
+    'tonconnect_list_requests',
+    'tonconnect_approve_request',
+    'tonconnect_reject_request',
+    'tonconnect_list_sessions',
+    'tonconnect_disconnect',
+    'tonconnect_get_status',
+] as const;
 
 export interface TonMcpFactoryConfig {
     /**
@@ -70,6 +82,14 @@ export interface TonMcpFactoryConfig {
      * Optional shared session manager for agentic onboarding callback handling.
      */
     agenticSessionManager?: AgenticSetupSessionManager;
+
+    /**
+     * Optional TonConnect runtime integration.
+     */
+    tonConnect?: {
+        enabled?: boolean;
+        runtimeRegistry?: TonConnectRuntimeRegistry;
+    };
 }
 
 function extendWithWalletSelector<TSchema extends z.ZodTypeAny>(schema: TSchema) {
@@ -99,9 +119,21 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         server.registerTool(name, { description: tool.description, inputSchema: tool.inputSchema }, tool.handler);
     };
 
+    const tonConnectEnabled = config.tonConnect?.enabled !== false;
+    const tonConnectDisabledReason = 'TonConnect is not supported in serverless mode.';
+
     registerTool('get_known_jettons', knownJettonsTools.get_known_jettons);
 
     if (config.wallet) {
+        const ownsTonConnectRuntimeRegistry = tonConnectEnabled && !config.tonConnect?.runtimeRegistry;
+        const tonConnectRuntimeRegistry =
+            tonConnectEnabled
+                ? (config.tonConnect?.runtimeRegistry ??
+                  new TonConnectRuntimeRegistry({
+                      singleWallet: config.wallet,
+                      networks: config.networks,
+                  }))
+                : undefined;
         const walletService = await McpWalletService.create({
             wallet: config.wallet,
             contacts: config.contacts,
@@ -116,6 +148,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         const transactionTools = createMcpTransactionTools(walletService);
         const agenticTools = createMcpAgenticTools(walletService);
         const addressTools = createMcpAddressTools(walletService);
+        const tonConnectTools = tonConnectEnabled && tonConnectRuntimeRegistry
+            ? createMcpTonConnectTools(() => tonConnectRuntimeRegistry.getOrCreate())
+            : createDisabledTonConnectTools(tonConnectDisabledReason);
 
         registerTool('get_wallet', balanceTools.get_wallet);
         registerTool('get_balance', balanceTools.get_balance);
@@ -137,10 +172,24 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         registerTool('send_nft', nftTools.send_nft);
         registerTool('resolve_dns', dnsTools.resolve_dns);
         registerTool('back_resolve_dns', dnsTools.back_resolve_dns);
+        for (const toolName of TONCONNECT_TOOL_NAMES) {
+            registerTool(toolName, tonConnectTools[toolName]);
+        }
 
         if (config.walletVersion === 'agentic') {
             registerTool('agentic_deploy_subwallet', agenticTools.deploy_agentic_subwallet);
         }
+
+        const originalClose = server.close.bind(server);
+        server.close = async () => {
+            await Promise.allSettled([
+                walletService.close(),
+                ...(ownsTonConnectRuntimeRegistry && tonConnectRuntimeRegistry
+                    ? [tonConnectRuntimeRegistry.closeAll()]
+                    : []),
+                originalClose(),
+            ]);
+        };
 
         return server;
     }
@@ -155,6 +204,18 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const agenticToolDefs = createMcpAgenticTools(staticService);
     const addressToolDefs = createMcpAddressTools(staticService);
     const walletManagementTools = createMcpWalletManagementTools(registry);
+    const ownsTonConnectRuntimeRegistry = tonConnectEnabled && !config.tonConnect?.runtimeRegistry;
+    const tonConnectRuntimeRegistry =
+        tonConnectEnabled
+            ? (config.tonConnect?.runtimeRegistry ??
+              new TonConnectRuntimeRegistry({
+                  registry,
+                  networks: config.networks,
+              }))
+            : undefined;
+    const tonConnectTools = tonConnectEnabled && tonConnectRuntimeRegistry
+        ? createMcpTonConnectTools(() => tonConnectRuntimeRegistry.getOrCreate())
+        : createDisabledTonConnectTools(tonConnectDisabledReason);
     const ownsAgenticSessionManager = !config.agenticSessionManager;
     const agenticSessionManager =
         config.agenticSessionManager ??
@@ -164,6 +225,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const originalClose = server.close.bind(server);
     server.close = async () => {
         await Promise.allSettled([
+            ...(ownsTonConnectRuntimeRegistry && tonConnectRuntimeRegistry ? [tonConnectRuntimeRegistry.closeAll()] : []),
             ...(ownsAgenticSessionManager ? [agenticSessionManager.close()] : []),
             originalClose(),
         ]);
@@ -196,6 +258,28 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
                 } finally {
                     await context.close();
                 }
+            },
+        );
+    };
+
+    const registerRegistryTonConnectTool = (
+        name: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tool: { description: string; inputSchema: any; handler: any },
+    ) => {
+        server.registerTool(
+            name,
+            {
+                description: tool.description,
+                inputSchema: extendWithWalletSelector(tool.inputSchema),
+            },
+            async (rawArgs: Record<string, unknown>) => {
+                const { walletSelector, ...toolArgs } = rawArgs;
+                return tool.handler.call(
+                    null,
+                    toolArgs,
+                    typeof walletSelector === 'string' ? walletSelector : undefined,
+                );
             },
         );
     };
@@ -327,6 +411,22 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     registerTool('agentic_get_root_wallet_setup', onboardingTools.get_agentic_root_wallet_setup);
     registerTool('agentic_complete_root_wallet_setup', onboardingTools.complete_agentic_root_wallet_setup);
     registerTool('agentic_cancel_root_wallet_setup', onboardingTools.cancel_agentic_root_wallet_setup);
+    if (tonConnectEnabled && tonConnectRuntimeRegistry) {
+        const getScopedTonConnectTools = (walletSelector?: string) =>
+            createMcpTonConnectTools(() => tonConnectRuntimeRegistry.getOrCreate(walletSelector));
+
+        for (const toolName of TONCONNECT_TOOL_NAMES) {
+            registerRegistryTonConnectTool(toolName, {
+                ...tonConnectTools[toolName],
+                handler: async (toolArgs: Record<string, unknown>, walletSelector?: string) =>
+                    getScopedTonConnectTools(walletSelector)[toolName].handler(toolArgs as never),
+            });
+        }
+    } else {
+        for (const toolName of TONCONNECT_TOOL_NAMES) {
+            registerRegistryTonConnectTool(toolName, tonConnectTools[toolName]);
+        }
+    }
 
     return server;
 }

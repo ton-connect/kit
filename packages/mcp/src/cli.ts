@@ -45,22 +45,22 @@ import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
     TonWalletKit,
-    Signer,
-    WalletV5R1Adapter,
-    WalletV4R2Adapter,
     MemoryStorageAdapter,
     Network,
 } from '@ton/walletkit';
-import type { Wallet, WalletSigner } from '@ton/walletkit';
+import type { Wallet, WalletAdapter } from '@ton/walletkit';
 
 import { createTonWalletMCP } from './factory.js';
 import type { NetworkType } from './types/config.js';
-import { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';
 import { createHttpMcpSessionRouter } from './http-mode.js';
 import {
     AgenticSetupSessionManager,
     ConfigBackedAgenticSetupSessionStore,
 } from './services/AgenticSetupSessionManager.js';
+import { TonConnectRuntimeRegistry } from './services/TonConnectRuntimeRegistry.js';
+import { WalletRegistryService } from './services/WalletRegistryService.js';
+import { createWalletAdapterFromSource } from './runtime/wallet-runtime.js';
+import type { WalletAdapterSource } from './runtime/wallet-runtime.js';
 import { createApiClient } from './utils/ton-client.js';
 import { parseCliArgs } from './utils/cli-args.js';
 import { UINT_256_MAX } from './utils/math.js';
@@ -136,65 +136,40 @@ function parseAgenticWalletNftIndex(input?: string): bigint | undefined {
     return parsed;
 }
 
-async function createMnemonicWallet(kit: TonWalletKit, network: Network, mnemonic: string[]): Promise<Wallet> {
-    const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
-    return createWalletFromSigner(kit, network, signer);
+function getConfiguredWalletSource(): WalletAdapterSource {
+    const mnemonic = MNEMONIC?.trim();
+    if (mnemonic) {
+        const words = mnemonic.split(/\s+/);
+        if (words.length !== 24) {
+            throw new Error(`Invalid mnemonic: expected 24 words, got ${words.length}`);
+        }
+    }
+
+    const walletSource: WalletAdapterSource = {
+        walletVersion: WALLET_VERSION,
+        ...(mnemonic ? { mnemonic } : {}),
+        ...(!mnemonic && PRIVATE_KEY ? { privateKey: PRIVATE_KEY.trim() } : {}),
+    };
+
+    if (WALLET_VERSION !== 'agentic') {
+        return walletSource;
+    }
+
+    return {
+        ...walletSource,
+        ...(AGENTIC_WALLET_ADDRESS ? { walletAddress: AGENTIC_WALLET_ADDRESS } : {}),
+        walletNftIndex: parseAgenticWalletNftIndex(AGENTIC_WALLET_NFT_INDEX),
+        collectionAddress: AGENTIC_COLLECTION_ADDRESS,
+    };
 }
 
-function parsePrivateKeyInput(privateKey: string): Buffer {
-    const privateKeyStripped = privateKey.replace(/^0x/i, '').trim();
-    if (!/^[0-9a-fA-F]+$/.test(privateKeyStripped)) {
-        throw new Error('Invalid PRIVATE_KEY: expected hex-encoded value');
-    }
-
-    if (privateKeyStripped.length !== 64 && privateKeyStripped.length !== 128) {
-        throw new Error(
-            `Invalid PRIVATE_KEY: expected 32-byte (64 hex chars) or 64-byte (128 hex chars) key, got ${privateKeyStripped.length} hex chars`,
-        );
-    }
-
-    const privateKeyBuffer = Buffer.from(privateKeyStripped, 'hex');
-    if (privateKeyBuffer.length === 64) {
-        // Some TON tooling exports secret as private||public (64 bytes). Signer expects only private seed.
-        return privateKeyBuffer.subarray(0, 32);
-    }
-
-    return privateKeyBuffer;
-}
-
-async function createPrivateKeyWallet(kit: TonWalletKit, network: Network, privateKey: string): Promise<Wallet> {
-    const signer = await Signer.fromPrivateKey(parsePrivateKeyInput(privateKey));
-    return createWalletFromSigner(kit, network, signer);
-}
-async function createWalletFromSigner(kit: TonWalletKit, network: Network, signer: WalletSigner): Promise<Wallet> {
-    const walletAdapter =
-        WALLET_VERSION === 'v5r1'
-            ? await WalletV5R1Adapter.create(signer, {
-                  client: kit.getApiClient(network),
-                  network,
-              })
-            : WALLET_VERSION === 'v4r2'
-              ? await WalletV4R2Adapter.create(signer, {
-                    client: kit.getApiClient(network),
-                    network,
-                })
-              : await AgenticWalletAdapter.create(signer, {
-                    client: kit.getApiClient(network),
-                    network,
-                    walletAddress: AGENTIC_WALLET_ADDRESS,
-                    walletNftIndex: parseAgenticWalletNftIndex(AGENTIC_WALLET_NFT_INDEX),
-                    collectionAddress: AGENTIC_COLLECTION_ADDRESS,
-                });
-
-    let wallet = await kit.addWallet(walletAdapter);
-    if (!wallet) {
-        wallet = kit.getWallet(walletAdapter.getWalletId());
-    }
-    if (!wallet) {
-        throw new Error('Failed to create wallet');
-    }
-
-    return wallet;
+async function createTonConnectWalletAdapterFromEnv(): Promise<WalletAdapter> {
+    return createWalletAdapterFromSource({
+        source: getConfiguredWalletSource(),
+        client: createApiClient(NETWORK === 'mainnet' ? 'mainnet' : 'testnet', TONCENTER_API_KEY),
+        network: NETWORK === 'mainnet' ? Network.mainnet() : Network.testnet(),
+        requiresSigning: true,
+    });
 }
 
 /**
@@ -255,7 +230,29 @@ async function createWalletFromSigner(kit: TonWalletKit, network: Network, signe
 //     return wallet;
 // }
 
-async function createWalletAndServer(agenticSessionManager?: AgenticSetupSessionManager): Promise<{
+function createTonConnectRuntimeRegistry(): TonConnectRuntimeRegistry {
+    const networks = {
+        mainnet: TONCENTER_API_KEY && NETWORK === 'mainnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+        testnet: TONCENTER_API_KEY && NETWORK === 'testnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+    };
+
+    if (MNEMONIC || PRIVATE_KEY) {
+        return new TonConnectRuntimeRegistry({
+            singleWalletFactory: createTonConnectWalletAdapterFromEnv,
+            networks,
+        });
+    }
+
+    return new TonConnectRuntimeRegistry({
+        registry: new WalletRegistryService(undefined, networks),
+        networks,
+    });
+}
+
+async function createWalletAndServer(
+    agenticSessionManager?: AgenticSetupSessionManager,
+    tonConnectRuntimeRegistry?: TonConnectRuntimeRegistry,
+): Promise<{
     server: Awaited<ReturnType<typeof createTonWalletMCP>>;
     kit?: TonWalletKit;
     wallet?: Wallet;
@@ -268,6 +265,9 @@ async function createWalletAndServer(agenticSessionManager?: AgenticSetupSession
             networks: {
                 mainnet: TONCENTER_API_KEY && NETWORK === 'mainnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
                 testnet: TONCENTER_API_KEY && NETWORK === 'testnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+            },
+            tonConnect: {
+                runtimeRegistry: tonConnectRuntimeRegistry,
             },
         });
         return { server };
@@ -285,34 +285,25 @@ async function createWalletAndServer(agenticSessionManager?: AgenticSetupSession
     });
     await kit.waitForReady();
 
-    let wallet: Wallet;
-
-    if (MNEMONIC) {
-        // Traditional mnemonic mode
-        const mnemonic = MNEMONIC.trim().split(/\s+/);
-        if (mnemonic.length !== 24) {
-            throw new Error(`Invalid mnemonic: expected 24 words, got ${mnemonic.length}`);
-        }
-        log('Using provided mnemonic');
-        wallet = await createMnemonicWallet(kit, network, mnemonic);
-        log(`Wallet address: ${wallet.getAddress()}`);
-        log(`Network: ${NETWORK}`);
-        log(`Version: ${WALLET_VERSION}`);
-    } else if (PRIVATE_KEY) {
-        // Private key mode
-        log('Using provided private key');
-        wallet = await createPrivateKeyWallet(kit, network, PRIVATE_KEY.trim());
-        log(`Wallet address: ${wallet.getAddress()}`);
-        log(`Network: ${NETWORK}`);
-        log(`Version: ${WALLET_VERSION}`);
-    } else {
-        throw new Error('MNEMONIC or PRIVATE_KEY is required');
-        // Controlled wallet mode
-        // wallet = await createControlledWallet(kit, network);
-        // log(`Controlled wallet address: ${wallet.getAddress()}`);
-        // log(`Network: ${NETWORK}`);
-        // log('Mode: Controlled (MCP keypair)');
+    const walletSource = getConfiguredWalletSource();
+    const walletAdapter = await createWalletAdapterFromSource({
+        source: walletSource,
+        client: kit.getApiClient(network),
+        network,
+        requiresSigning: true,
+    });
+    let wallet = await kit.addWallet(walletAdapter);
+    if (!wallet) {
+        wallet = kit.getWallet(walletAdapter.getWalletId());
     }
+    if (!wallet) {
+        throw new Error('Failed to create wallet');
+    }
+
+    log(MNEMONIC ? 'Using provided mnemonic' : 'Using provided private key');
+    log(`Wallet address: ${wallet.getAddress()}`);
+    log(`Network: ${NETWORK}`);
+    log(`Version: ${WALLET_VERSION}`);
 
     // Create MCP server with the wallet
     const server = await createTonWalletMCP({
@@ -322,6 +313,9 @@ async function createWalletAndServer(agenticSessionManager?: AgenticSetupSession
         networks: {
             mainnet: TONCENTER_API_KEY && NETWORK === 'mainnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
             testnet: TONCENTER_API_KEY && NETWORK === 'testnet' ? { apiKey: TONCENTER_API_KEY } : undefined,
+        },
+        tonConnect: {
+            runtimeRegistry: tonConnectRuntimeRegistry,
         },
     });
 
@@ -356,7 +350,8 @@ function createHttpSessionManager(host: string, port: number): AgenticSetupSessi
 
 async function startCli(toolName: string, rawArgs: string[]) {
     const sessionManager = createStdioSessionManager();
-    const { server, kit } = await createWalletAndServer(sessionManager);
+    const tonConnectRuntimeRegistry = createTonConnectRuntimeRegistry();
+    const { server, kit } = await createWalletAndServer(sessionManager, tonConnectRuntimeRegistry);
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await server.connect(serverTransport);
@@ -384,6 +379,7 @@ async function startCli(toolName: string, rawArgs: string[]) {
     } finally {
         await client.close();
         await sessionManager.close();
+        await tonConnectRuntimeRegistry.closeAll();
         if (kit) {
             await kit.close();
         }
@@ -396,12 +392,14 @@ async function startStdio() {
     log('Starting in stdio mode...');
 
     const sessionManager = createStdioSessionManager();
-    const { server, kit } = await createWalletAndServer(sessionManager);
+    const tonConnectRuntimeRegistry = createTonConnectRuntimeRegistry();
+    const { server, kit } = await createWalletAndServer(sessionManager, tonConnectRuntimeRegistry);
     const transport = new StdioServerTransport();
 
     const shutdown = async () => {
         log('Shutting down...');
         await sessionManager.close();
+        await tonConnectRuntimeRegistry.closeAll();
         if (kit) {
             await kit.close();
         }
@@ -420,12 +418,13 @@ async function startHttp(port: number, host: string) {
     log(`Starting in HTTP mode on ${host}:${port}...`);
 
     const sessionManager = createHttpSessionManager(host, port);
+    const tonConnectRuntimeRegistry = createTonConnectRuntimeRegistry();
     const router = createHttpMcpSessionRouter({
         host,
         port,
         handleExtraRequest: (req, res) => sessionManager.handleCallbackHttpRequest(req, res),
         createServerInstance: async () => {
-            const { server, kit } = await createWalletAndServer(sessionManager);
+            const { server, kit } = await createWalletAndServer(sessionManager, tonConnectRuntimeRegistry);
             return {
                 server,
                 close: async () => {
@@ -444,7 +443,7 @@ async function startHttp(port: number, host: string) {
     const shutdown = async () => {
         log('Shutting down...');
         httpServer.close();
-        await Promise.allSettled([router.close(), sessionManager.close()]);
+        await Promise.allSettled([router.close(), sessionManager.close(), tonConnectRuntimeRegistry.closeAll()]);
         log('Shutdown complete');
         process.exit(0);
     };

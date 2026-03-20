@@ -180,6 +180,9 @@ export function createServerlessHandler() {
                             ? { apiKey: credentials.toncenterKey }
                             : undefined,
                 },
+                tonConnect: {
+                    enabled: false,
+                },
             });
 
             const transport = new StreamableHTTPServerTransport({
