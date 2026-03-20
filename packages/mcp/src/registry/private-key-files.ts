@@ -278,12 +278,19 @@ export function materializeSecrets(config: TonConfig, secretInputs: SecretMateri
 }
 
 export function readSecretMaterial(value: SecretReadableValue): InlineSecretMaterial | undefined {
-    const fileSecret = readSecretFile(getLocalFilePath(value.sign_method));
-    if (fileSecret) {
-        return {
-            type: value.secret_type ?? 'private_key',
-            value: fileSecret,
-        };
+    const filePath = getLocalFilePath(value.sign_method);
+    if (filePath) {
+        const fileSecret = readSecretFile(filePath);
+        if (fileSecret) {
+            return {
+                type: value.secret_type ?? 'private_key',
+                value: fileSecret,
+            };
+        }
+
+        // sign_method references a file that no longer exists — do not silently
+        // fall back to (likely absent) inline fields, surface the problem instead.
+        return undefined;
     }
 
     return readInlineSecret(value);

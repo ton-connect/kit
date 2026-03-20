@@ -8,7 +8,8 @@
 
 import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 
-import { Network, Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
+import { MemoryStorageAdapter, Network, Signer, TonWalletKit, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
+import type { TonWalletKit as TonWalletKitType } from '@ton/walletkit';
 
 import { ConfigError, createStandardWalletRecord, CURRENT_TON_CONFIG_VERSION, normalizeConfig } from './config.js';
 import type { StandardWalletVersion, TonConfig, TonConfigVersion, TonNetwork } from './config.js';
@@ -21,7 +22,7 @@ import {
 import type { SecretMaterializationInput } from './private-key-files.js';
 import { chmodIfExists, getConfigDir, getConfigPath } from './config-path.js';
 import { readFileSync, writeFileSync } from './protected-file.js';
-import { getSharedTonWalletKit } from '../runtime/shared-ton-wallet-kit.js';
+import { createApiClient } from '../utils/ton-client.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 
 interface LegacyTonConfig {
@@ -59,6 +60,24 @@ function isLegacyConfig(raw: unknown): raw is LegacyTonConfig {
     );
 }
 
+function createKit(network: TonNetwork, apiKey?: string): TonWalletKitType {
+    const normalized = network === 'testnet' ? Network.testnet() : Network.mainnet();
+    return new TonWalletKit({
+        networks: {
+            [normalized.chainId]: { apiClient: createApiClient(network, apiKey) },
+        },
+        storage: new MemoryStorageAdapter(),
+    });
+}
+
+async function closeKitSafely(kit: TonWalletKitType): Promise<void> {
+    try {
+        await kit.close();
+    } catch {
+        // Best-effort cleanup for failed initialization.
+    }
+}
+
 async function deriveLegacyWalletAddress(config: LegacyTonConfig): Promise<string> {
     if (!config.mnemonic && !config.private_key) {
         throw new ConfigError('Legacy config does not contain mnemonic or private_key and cannot be migrated.');
@@ -66,23 +85,28 @@ async function deriveLegacyWalletAddress(config: LegacyTonConfig): Promise<strin
 
     const network = config.network === 'testnet' ? 'testnet' : 'mainnet';
     const walletVersion = config.wallet_version === 'v4r2' ? 'v4r2' : 'v5r1';
-    const kit = await getSharedTonWalletKit(network, config.toncenter_api_key);
+    const kit = createKit(network, config.toncenter_api_key);
+    await kit.waitForReady();
 
-    const signer = config.mnemonic
-        ? await Signer.fromMnemonic(config.mnemonic.trim().split(/\s+/), { type: 'ton' })
-        : await Signer.fromPrivateKey(parsePrivateKeyInput(config.private_key!).seed);
-    const networkObject = network === 'testnet' ? Network.testnet() : Network.mainnet();
-    const adapter =
-        walletVersion === 'v4r2'
-            ? await WalletV4R2Adapter.create(signer, {
-                  client: kit.getApiClient(networkObject),
-                  network: networkObject,
-              })
-            : await WalletV5R1Adapter.create(signer, {
-                  client: kit.getApiClient(networkObject),
-                  network: networkObject,
-              });
-    return adapter.getAddress();
+    try {
+        const signer = config.mnemonic
+            ? await Signer.fromMnemonic(config.mnemonic.trim().split(/\s+/), { type: 'ton' })
+            : await Signer.fromPrivateKey(parsePrivateKeyInput(config.private_key!).seed);
+        const networkObject = network === 'testnet' ? Network.testnet() : Network.mainnet();
+        const adapter =
+            walletVersion === 'v4r2'
+                ? await WalletV4R2Adapter.create(signer, {
+                      client: kit.getApiClient(networkObject),
+                      network: networkObject,
+                  })
+                : await WalletV5R1Adapter.create(signer, {
+                      client: kit.getApiClient(networkObject),
+                      network: networkObject,
+                  });
+        return adapter.getAddress();
+    } finally {
+        await closeKitSafely(kit);
+    }
 }
 
 async function migrateLegacyConfig(legacy: LegacyTonConfig): Promise<{

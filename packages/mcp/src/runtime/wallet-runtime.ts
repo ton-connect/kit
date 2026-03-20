@@ -8,7 +8,14 @@
 
 import { randomBytes } from 'node:crypto';
 
-import { Network, Signer, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
+import {
+    MemoryStorageAdapter,
+    Network,
+    Signer,
+    TonWalletKit,
+    WalletV4R2Adapter,
+    WalletV5R1Adapter,
+} from '@ton/walletkit';
 import type { TonWalletKit as TonWalletKitType, Wallet, WalletAdapter, WalletSigner } from '@ton/walletkit';
 
 import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
@@ -24,15 +31,33 @@ import type {
 import { ConfigError } from '../registry/config.js';
 import { readSecret, readSecretMaterial } from '../registry/private-key-files.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
-import { getSharedTonWalletKit } from './shared-ton-wallet-kit.js';
+import { createApiClient } from '../utils/ton-client.js';
 
 export interface WalletServiceContext {
     service: McpWalletService;
     close: () => Promise<void>;
 }
 
+function createKit(network: TonNetwork, apiKey?: string): TonWalletKitType {
+    const normalized = network === 'testnet' ? Network.testnet() : Network.mainnet();
+    return new TonWalletKit({
+        networks: {
+            [normalized.chainId]: { apiClient: createApiClient(network, apiKey) },
+        },
+        storage: new MemoryStorageAdapter(),
+    });
+}
+
 function getKitNetwork(network: TonNetwork) {
     return network === 'testnet' ? Network.testnet() : Network.mainnet();
+}
+
+async function closeKitSafely(kit: TonWalletKitType): Promise<void> {
+    try {
+        await kit.close();
+    } catch {
+        // Best-effort cleanup for failed initialization.
+    }
 }
 
 async function addWallet(kit: TonWalletKitType, adapter: WalletAdapter): Promise<Wallet> {
@@ -78,48 +103,6 @@ export async function createStandardAdapter(input: {
           });
 }
 
-async function createWalletServiceWithAdapter(input: {
-    network: TonNetwork;
-    contacts: IContactResolver | undefined;
-    toncenterApiKey?: string;
-    createAdapter: (kit: TonWalletKitType) => Promise<WalletAdapter>;
-}): Promise<WalletServiceContext> {
-    const kit = await getSharedTonWalletKit(input.network, input.toncenterApiKey);
-
-    let adapter: WalletAdapter | null = null;
-    try {
-        adapter = await input.createAdapter(kit);
-        await addWallet(kit, adapter);
-        const service = await McpWalletService.create({
-            wallet: adapter,
-            contacts: input.contacts,
-            networks: {
-                [input.network]: input.toncenterApiKey ? { apiKey: input.toncenterApiKey } : undefined,
-            },
-        });
-        return {
-            service,
-            close: async () => {
-                await Promise.allSettled([
-                    service.close(),
-                    adapter
-                        ? kit.removeWallet(adapter).catch(() => {
-                              // Best-effort cleanup for shared kit teardown.
-                          })
-                        : Promise.resolve(),
-                ]);
-            },
-        };
-    } catch (error) {
-        if (adapter) {
-            await kit.removeWallet(adapter).catch(() => {
-                // Best-effort cleanup for shared kit teardown.
-            });
-        }
-        throw error;
-    }
-}
-
 async function createServiceFromStoredStandard(
     wallet: StoredStandardWallet,
     contacts: IContactResolver | undefined,
@@ -135,18 +118,33 @@ async function createServiceFromStoredStandard(
         ...(secret.type === 'mnemonic' ? { mnemonic: secret.value } : {}),
         ...(secret.type === 'private_key' ? { privateKey: secret.value } : {}),
     });
-    return createWalletServiceWithAdapter({
-        network: wallet.network,
-        contacts,
-        toncenterApiKey,
-        createAdapter: (kit) =>
-            createStandardAdapter({
-                signer,
-                kit,
-                network: wallet.network,
-                walletVersion: wallet.wallet_version,
-            }),
-    });
+    const kit = createKit(wallet.network, toncenterApiKey);
+    await kit.waitForReady();
+    try {
+        const adapter = await createStandardAdapter({
+            signer,
+            kit,
+            network: wallet.network,
+            walletVersion: wallet.wallet_version,
+        });
+        await addWallet(kit, adapter);
+        const service = await McpWalletService.create({
+            wallet: adapter,
+            contacts,
+            networks: {
+                [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
+            },
+        });
+        return {
+            service,
+            close: async () => {
+                await Promise.allSettled([service.close(), closeKitSafely(kit)]);
+            },
+        };
+    } catch (error) {
+        await closeKitSafely(kit);
+        throw error;
+    }
 }
 
 async function createServiceFromStoredAgentic(
@@ -162,17 +160,32 @@ async function createServiceFromStoredAgentic(
         );
     }
     const signer = privateKey ? await createSignerFromSecrets({ privateKey }) : await createPlaceholderSigner();
-    return createWalletServiceWithAdapter({
-        network: wallet.network,
-        contacts,
-        toncenterApiKey,
-        createAdapter: (kit) =>
-            AgenticWalletAdapter.create(signer, {
-                client: kit.getApiClient(getKitNetwork(wallet.network)),
-                network: getKitNetwork(wallet.network),
-                walletAddress: wallet.address,
-            }),
-    });
+    const kit = createKit(wallet.network, toncenterApiKey);
+    await kit.waitForReady();
+    try {
+        const adapter = await AgenticWalletAdapter.create(signer, {
+            client: kit.getApiClient(getKitNetwork(wallet.network)),
+            network: getKitNetwork(wallet.network),
+            walletAddress: wallet.address,
+        });
+        await addWallet(kit, adapter);
+        const service = await McpWalletService.create({
+            wallet: adapter,
+            contacts,
+            networks: {
+                [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
+            },
+        });
+        return {
+            service,
+            close: async () => {
+                await Promise.allSettled([service.close(), closeKitSafely(kit)]);
+            },
+        };
+    } catch (error) {
+        await closeKitSafely(kit);
+        throw error;
+    }
 }
 
 export async function createMcpWalletServiceFromStoredWallet(input: {
@@ -181,27 +194,6 @@ export async function createMcpWalletServiceFromStoredWallet(input: {
     toncenterApiKey?: string;
     requiresSigning?: boolean;
 }): Promise<WalletServiceContext> {
-    if (!input.requiresSigning) {
-        const network = getKitNetwork(input.wallet.network);
-        const kit = await getSharedTonWalletKit(input.wallet.network, input.toncenterApiKey);
-        const service = await McpWalletService.createReadOnly({
-            address: input.wallet.address,
-            network,
-            client: kit.getApiClient(network),
-            contacts: input.contacts,
-            networks: {
-                [input.wallet.network]: input.toncenterApiKey ? { apiKey: input.toncenterApiKey } : undefined,
-            },
-        });
-
-        return {
-            service,
-            close: async () => {
-                await service.close();
-            },
-        };
-    }
-
     return input.wallet.type === 'standard'
         ? createServiceFromStoredStandard(input.wallet, input.contacts, input.toncenterApiKey)
         : createServiceFromStoredAgentic(input.wallet, input.contacts, input.toncenterApiKey, input.requiresSigning);
@@ -218,13 +210,18 @@ export async function deriveStandardWalletAddress(input: {
         mnemonic: input.mnemonic,
         privateKey: input.privateKey,
     });
-    const kit = await getSharedTonWalletKit(input.network, input.toncenterApiKey);
+    const kit = createKit(input.network, input.toncenterApiKey);
+    await kit.waitForReady();
 
-    const adapter = await createStandardAdapter({
-        signer,
-        kit,
-        network: input.network,
-        walletVersion: input.walletVersion,
-    });
-    return adapter.getAddress();
+    try {
+        const adapter = await createStandardAdapter({
+            signer,
+            kit,
+            network: input.network,
+            walletVersion: input.walletVersion,
+        });
+        return adapter.getAddress();
+    } finally {
+        await closeKitSafely(kit);
+    }
 }

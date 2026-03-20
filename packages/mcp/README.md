@@ -460,25 +460,26 @@ The package also exports a programmatic API for building custom MCP servers:
 
 ```typescript
 import { createTonWalletMCP } from '@ton/mcp';
-import { Signer } from '@ton/walletkit';
+import { Signer, WalletV5R1Adapter, TonWalletKit, MemoryStorageAdapter, Network } from '@ton/walletkit';
 
-// Create signer from mnemonic
-const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
-
-// Create MCP server directly from signer
-const server = await createTonWalletMCP({
-  signer,
-  network: 'mainnet',
-  walletVersion: 'v5r1',
+// Initialize TonWalletKit
+const network = Network.mainnet();
+const kit = new TonWalletKit({
+  networks: { [network.chainId]: {} },
+  storage: new MemoryStorageAdapter(),
 });
-```
+await kit.waitForReady();
 
-If you already have a custom wallet adapter, you can still pass it directly:
+// Create wallet from mnemonic
+const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
+const walletAdapter = await WalletV5R1Adapter.create(signer, {
+  client: kit.getApiClient(network),
+  network,
+});
+const wallet = await kit.addWallet(walletAdapter);
 
-```typescript
-import { createTonWalletMCP } from '@ton/mcp';
-
-const server = await createTonWalletMCP({ wallet: walletAdapter });
+// Create MCP server
+const server = await createTonWalletMCP({ wallet });
 ```
 
 The same factory also supports registry mode:

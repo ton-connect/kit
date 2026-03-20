@@ -11,11 +11,11 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Network, WalletV4R2Adapter, WalletV5R1Adapter } from '@ton/walletkit';
+import type { WalletAdapter } from '@ton/walletkit';
 import { z } from 'zod';
 
-import { AgenticWalletAdapter } from './contracts/agentic_wallet/AgenticWalletAdapter.js';
-import type { TonMcpConfig, SupportedWalletAdapter } from './types/config.js';
+import type { IContactResolver } from './types/contacts.js';
+import type { NetworkConfig } from './services/McpWalletService.js';
 import { McpWalletService } from './services/McpWalletService.js';
 import { WalletRegistryService } from './services/WalletRegistryService.js';
 import {
@@ -36,17 +36,41 @@ import {
     createMcpWalletManagementTools,
 } from './tools/index.js';
 import { createMcpDnsTools } from './tools/dns-tools.js';
-import { createApiClient } from './utils/ton-client.js';
 
 const SERVER_NAME = 'ton-mcp';
 const SERVER_VERSION = '0.1.0';
 
-type TonMcpFactoryConfig = TonMcpConfig & {
+export interface TonMcpFactoryConfig {
+    /**
+     * Optional fixed wallet for backward-compatible single-wallet mode.
+     * If omitted, the server runs in config-backed registry mode.
+     */
+    wallet?: WalletAdapter;
+
+    /**
+     * Optional wallet version.
+     * If omitted, the server uses the wallet version of the wallet.
+     */
+    walletVersion?: 'agentic' | 'v4r2' | 'v5r1';
+
+    /**
+     * Optional contact resolver for name-to-address resolution.
+     */
+    contacts?: IContactResolver;
+
+    /**
+     * Network-specific configuration (API keys).
+     */
+    networks?: {
+        mainnet?: NetworkConfig;
+        testnet?: NetworkConfig;
+    };
+
     /**
      * Optional shared session manager for agentic onboarding callback handling.
      */
     agenticSessionManager?: AgenticSetupSessionManager;
-};
+}
 
 function extendWithWalletSelector<TSchema extends z.ZodTypeAny>(schema: TSchema) {
     if (!(schema instanceof z.ZodObject)) {
@@ -60,50 +84,14 @@ function extendWithWalletSelector<TSchema extends z.ZodTypeAny>(schema: TSchema)
     });
 }
 
-async function createWalletAdapterFromSigner(config: TonMcpConfig): Promise<SupportedWalletAdapter | undefined> {
-    if (!config.signer) {
-        return undefined;
-    }
-
-    const networkKey = config.network ?? 'mainnet';
-    const network = networkKey === 'testnet' ? Network.testnet() : Network.mainnet();
-    const apiClient = createApiClient(networkKey, config.networks?.[networkKey]?.apiKey);
-    const walletVersion = config.walletVersion ?? 'v5r1';
-
-    if (walletVersion === 'agentic') {
-        return AgenticWalletAdapter.create(config.signer, {
-            client: apiClient,
-            network,
-            walletAddress: config.agenticWalletAddress,
-            walletNftIndex: config.agenticWalletNftIndex,
-            collectionAddress: config.agenticCollectionAddress,
-        });
-    }
-
-    return walletVersion === 'v4r2'
-        ? WalletV4R2Adapter.create(config.signer, {
-              client: apiClient,
-              network,
-          })
-        : WalletV5R1Adapter.create(config.signer, {
-              client: apiClient,
-              network,
-          });
-}
-
 export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<McpServer> {
     const server = new McpServer({
         name: SERVER_NAME,
         version: SERVER_VERSION,
     });
 
-    if (config.wallet && config.signer) {
-        throw new Error('Provide either wallet or signer, not both.');
-    }
-
     const registry = new WalletRegistryService(config.contacts, config.networks);
     const knownJettonsTools = createMcpKnownJettonsTools();
-    const singleWallet = config.wallet ?? (await createWalletAdapterFromSigner(config));
 
     // Helper to register tools with type assertion (Zod version mismatch workaround)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,9 +101,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
 
     registerTool('get_known_jettons', knownJettonsTools.get_known_jettons);
 
-    if (singleWallet) {
+    if (config.wallet) {
         const walletService = await McpWalletService.create({
-            wallet: singleWallet,
+            wallet: config.wallet,
             contacts: config.contacts,
             networks: config.networks,
         });
@@ -150,7 +138,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         registerTool('resolve_dns', dnsTools.resolve_dns);
         registerTool('back_resolve_dns', dnsTools.back_resolve_dns);
 
-        if (config.walletVersion === 'agentic' || ('version' in singleWallet && singleWallet.version === 'agentic')) {
+        if (config.walletVersion === 'agentic') {
             registerTool('agentic_deploy_subwallet', agenticTools.deploy_agentic_subwallet);
         }
 

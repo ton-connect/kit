@@ -10,6 +10,18 @@ import { readFileSync as nodeReadFileSync, writeFileSync as nodeWriteFileSync } 
 import type { Mode, PathOrFileDescriptor } from 'node:fs';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
+/**
+ * Protected-file encoding: obfuscates secret material on disk so that it is
+ * not exposed by casual text reads, grep, or accidental log output.
+ *
+ * **Important:** The encryption key is stored alongside the ciphertext in the
+ * same file. This is intentional — the goal is to prevent *accidental*
+ * plaintext leakage, not to guard against an attacker with filesystem read
+ * access. Actual access control relies on POSIX file permissions (0600).
+ *
+ * For stronger guarantees, use an OS keychain, HSM, or external KMS.
+ */
+
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const PROTECTED_FILE_MAGIC = Buffer.from([0x8a, 0x54, 0x4d, 0x01]);
 const ENCRYPTION_KEY_BYTES = 32;

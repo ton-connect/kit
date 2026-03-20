@@ -73,3 +73,25 @@ export function sanitizeAgenticRootWalletSetupStatus(setup: AgenticRootWalletSet
         pendingDeployment: sanitizePrivateKeyBackedValue(setup.pendingDeployment),
     };
 }
+
+export function sanitizeStoredWallets(wallets: StoredWallet[]) {
+    return wallets.map((wallet) => sanitizeStoredWallet(wallet)).filter(Boolean);
+}
+
+export const sanitizeWallet = sanitizeStoredWallet;
+export const sanitizeWallets = sanitizeStoredWallets;
+
+export const sanitizePendingAgenticDeployment = sanitizePrivateKeyBackedValue;
+export function sanitizePendingAgenticDeployments(deployments: PendingAgenticDeployment[]) {
+    return deployments.map((d) => sanitizePrivateKeyBackedValue(d));
+}
+
+export const sanitizePendingAgenticKeyRotation = sanitizePrivateKeyBackedValue;
+export function sanitizePendingAgenticKeyRotations(rotations: PendingAgenticKeyRotation[]) {
+    return rotations.map((r) => sanitizePrivateKeyBackedValue(r));
+}
+
+export const sanitizeRootWalletSetup = sanitizeAgenticRootWalletSetupStatus;
+export function sanitizeRootWalletSetups(setups: AgenticRootWalletSetupStatus[]) {
+    return setups.map((s) => sanitizeAgenticRootWalletSetupStatus(s)).filter(Boolean);
+}

@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { Network, Signer } from '@ton/walletkit';
+import type { WalletAdapter } from '@ton/walletkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -400,37 +401,7 @@ describe('createTonWalletMCP registry mode', () => {
 });
 
 describe('createTonWalletMCP single-wallet mode', () => {
-    it('accepts a WalletKit signer directly', async () => {
-        const signer = await Signer.fromPrivateKey(Buffer.alloc(32, 7));
-        const server = await createTonWalletMCP({
-            signer,
-            network: 'mainnet',
-        });
-        const client = new Client({ name: 'mcp-test', version: '1.0.0' });
-        const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-
-        await server.connect(serverTransport);
-        await client.connect(clientTransport);
-
-        try {
-            const tools = await client.listTools();
-            const names = tools.tools.map((tool) => tool.name);
-            expect(names).toContain('get_wallet');
-            expect(names).not.toContain('list_wallets');
-
-            const wallet = parseToolResult(await client.callTool({ name: 'get_wallet', arguments: {} }));
-            expect(wallet).toMatchObject({
-                success: true,
-                network: 'mainnet',
-            });
-            expect(typeof wallet.address).toBe('string');
-        } finally {
-            await client.close();
-            await server.close();
-        }
-    });
-
-    it('detects agentic wallet version from the adapter when walletVersion is omitted', async () => {
+    it('registers agentic tools when walletVersion is agentic', async () => {
         const signer = await Signer.fromPrivateKey(Buffer.alloc(32, 9));
         const clientApi = createApiClient('mainnet');
         const adapter = await AgenticWalletAdapter.create(signer, {
@@ -438,7 +409,7 @@ describe('createTonWalletMCP single-wallet mode', () => {
             network: Network.mainnet(),
             walletAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         });
-        const server = await createTonWalletMCP({ wallet: adapter });
+        const server = await createTonWalletMCP({ wallet: adapter as unknown as WalletAdapter, walletVersion: 'agentic' });
         const client = new Client({ name: 'mcp-test', version: '1.0.0' });
         const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 

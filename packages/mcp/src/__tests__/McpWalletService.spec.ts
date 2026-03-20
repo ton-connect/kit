@@ -72,15 +72,13 @@ describe('McpWalletService.getTransactions', () => {
         });
 
         const service = Object.create(McpWalletService.prototype) as McpWalletService & {
-            address: string;
-            client: { getEvents: typeof getEvents };
+            wallet: { getAddress: () => string; getClient: () => { getEvents: typeof getEvents } };
         };
-        Object.defineProperty(service, 'address', {
-            value: 'UQTestWallet',
-            configurable: true,
-        });
-        Object.defineProperty(service, 'client', {
-            value: { getEvents },
+        Object.defineProperty(service, 'wallet', {
+            value: {
+                getAddress: () => 'UQTestWallet',
+                getClient: () => ({ getEvents }),
+            },
             configurable: true,
         });
 
@@ -108,15 +106,13 @@ describe('McpWalletService.getTransactions', () => {
         });
 
         const service = Object.create(McpWalletService.prototype) as McpWalletService & {
-            address: string;
-            client: { getEvents: typeof getEvents };
+            wallet: { getAddress: () => string; getClient: () => { getEvents: typeof getEvents } };
         };
-        Object.defineProperty(service, 'address', {
-            value: 'UQTestWallet',
-            configurable: true,
-        });
-        Object.defineProperty(service, 'client', {
-            value: { getEvents },
+        Object.defineProperty(service, 'wallet', {
+            value: {
+                getAddress: () => 'UQTestWallet',
+                getClient: () => ({ getEvents }),
+            },
             configurable: true,
         });
 

@@ -10,8 +10,44 @@ import { z } from 'zod';
 
 import type { WalletRegistryService } from '../services/WalletRegistryService.js';
 import { normalizeNetwork } from '../registry/config.js';
-import { wrapToolHandler } from './responses.js';
-import { sanitizeNetworkConfig, sanitizePrivateKeyBackedValue, sanitizeStoredWallet } from './sanitize.js';
+import {
+    sanitizeNetworkConfig,
+    sanitizePendingAgenticKeyRotation,
+    sanitizePendingAgenticKeyRotations,
+    sanitizeWallet,
+    sanitizeWallets,
+} from './sanitize.js';
+import type { ToolResponse } from './types.js';
+
+function successResponse(data: unknown): ToolResponse {
+    return {
+        content: [
+            {
+                type: 'text',
+                text: JSON.stringify({ success: true, ...((data as object | null) ?? {}) }, null, 2),
+            },
+        ],
+    };
+}
+
+function errorResponse(error: unknown): ToolResponse {
+    return {
+        content: [
+            {
+                type: 'text',
+                text: JSON.stringify(
+                    {
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                    },
+                    null,
+                    2,
+                ),
+            },
+        ],
+        isError: true,
+    };
+}
 
 // const getNetworkConfigSchema = z.object({
 //     network: z.enum(['mainnet', 'testnet']).describe('Network to inspect'),
@@ -54,6 +90,7 @@ const rotateOperatorKeySchema = z.object({
         .string()
         .optional()
         .describe('Optional wallet id, name, or address. Uses the active wallet when omitted.'),
+    operatorPrivateKey: z.string().optional().describe('Optional replacement operator private key'),
 });
 
 const pendingOperatorKeyRotationSchema = z.object({
@@ -65,41 +102,58 @@ export function createMcpWalletManagementTools(registry: WalletRegistryService) 
         list_wallets: {
             description: 'List all wallets stored in the local TON config registry.',
             inputSchema: z.object({}),
-            handler: wrapToolHandler(async () => {
-                const wallets = await registry.listWallets();
-                const current = await registry.getCurrentWallet();
-                return {
-                    wallets: wallets.map((wallet) => sanitizeStoredWallet(wallet)),
-                    count: wallets.length,
-                    activeWalletId: current?.id ?? null,
-                };
-            }),
+            handler: async (): Promise<ToolResponse> => {
+                try {
+                    const wallets = await registry.listWallets();
+                    const current = await registry.getCurrentWallet();
+                    return successResponse({
+                        wallets: sanitizeWallets(wallets),
+                        count: wallets.length,
+                        activeWalletId: current?.id ?? null,
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         get_current_wallet: {
             description: 'Get the currently active wallet from the local TON config registry.',
             inputSchema: z.object({}),
-            handler: wrapToolHandler(async () => {
-                const wallet = await registry.getCurrentWallet();
-                return { wallet: sanitizeStoredWallet(wallet) };
-            }),
+            handler: async (): Promise<ToolResponse> => {
+                try {
+                    const wallet = await registry.getCurrentWallet();
+                    return successResponse({ wallet: sanitizeWallet(wallet) });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         set_active_wallet: {
             description: 'Set the active wallet by id, name, or address.',
             inputSchema: setActiveWalletSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof setActiveWalletSchema>) => {
-                const wallet = await registry.setActiveWallet(args.walletSelector);
-                return { wallet: sanitizeStoredWallet(wallet), activeWalletId: wallet.id };
-            }),
+            handler: async (args: z.infer<typeof setActiveWalletSchema>): Promise<ToolResponse> => {
+                try {
+                    const wallet = await registry.setActiveWallet(args.walletSelector);
+                    return successResponse({ wallet: sanitizeWallet(wallet), activeWalletId: wallet.id });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         remove_wallet: {
             description: 'Soft-delete a stored wallet from the local TON config registry.',
             inputSchema: removeWalletSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof removeWalletSchema>) =>
-                registry.removeWallet(args.walletSelector),
-            ),
+            handler: async (args: z.infer<typeof removeWalletSchema>): Promise<ToolResponse> => {
+                try {
+                    const result = await registry.removeWallet(args.walletSelector);
+                    return successResponse(result);
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         // get_network_config: {
@@ -121,113 +175,150 @@ export function createMcpWalletManagementTools(registry: WalletRegistryService) 
         set_network_config: {
             description: 'Update Toncenter or agentic collection settings for a network.',
             inputSchema: setNetworkConfigSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof setNetworkConfigSchema>) => {
-                const config = await registry.setNetworkConfig(args.network, {
-                    ...(args.toncenterApiKey !== undefined ? { toncenter_api_key: args.toncenterApiKey } : {}),
-                    ...(args.agenticCollectionAddress !== undefined
-                        ? { agentic_collection_address: args.agenticCollectionAddress }
-                        : {}),
-                });
-                return {
-                    network: args.network,
-                    config: sanitizeNetworkConfig(config),
-                };
-            }),
+            handler: async (args: z.infer<typeof setNetworkConfigSchema>): Promise<ToolResponse> => {
+                try {
+                    const config = await registry.setNetworkConfig(args.network, {
+                        ...(args.toncenterApiKey !== undefined ? { toncenter_api_key: args.toncenterApiKey } : {}),
+                        ...(args.agenticCollectionAddress !== undefined
+                            ? { agentic_collection_address: args.agenticCollectionAddress }
+                            : {}),
+                    });
+                    return successResponse({
+                        network: args.network,
+                        config: sanitizeNetworkConfig(config),
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         validate_agentic_wallet: {
             description: 'Validate an existing agentic wallet address against the expected network and collection.',
             inputSchema: validateAgenticWalletSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof validateAgenticWalletSchema>) => ({
-                wallet: await registry.validateAgenticWallet(args),
-            })),
+            handler: async (args: z.infer<typeof validateAgenticWalletSchema>): Promise<ToolResponse> => {
+                try {
+                    const wallet = await registry.validateAgenticWallet(args);
+                    return successResponse({ wallet });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         list_agentic_wallets_by_owner: {
             description: 'List agentic wallets owned by a given main wallet address.',
             inputSchema: listAgenticWalletsByOwnerSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof listAgenticWalletsByOwnerSchema>) => {
-                const wallets = await registry.listAgenticWalletsByOwner(args);
-                return {
-                    ownerAddress: args.ownerAddress,
-                    network: normalizeNetwork(args.network, 'mainnet'),
-                    wallets,
-                    count: wallets.length,
-                };
-            }),
+            handler: async (args: z.infer<typeof listAgenticWalletsByOwnerSchema>): Promise<ToolResponse> => {
+                try {
+                    const wallets = await registry.listAgenticWalletsByOwner(args);
+                    return successResponse({
+                        ownerAddress: args.ownerAddress,
+                        network: normalizeNetwork(args.network, 'mainnet'),
+                        wallets,
+                        count: wallets.length,
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         import_agentic_wallet: {
             description:
                 'Import an existing agentic wallet into the local TON config registry. Recovers a matching pending key draft when available; otherwise import is read-only until agentic_rotate_operator_key is completed.',
             inputSchema: importAgenticWalletSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof importAgenticWalletSchema>) => {
-                const result = await registry.importAgenticWallet(args);
-                return {
-                    ...result,
-                    wallet: sanitizeStoredWallet(result.wallet),
-                };
-            }),
+            handler: async (args: z.infer<typeof importAgenticWalletSchema>): Promise<ToolResponse> => {
+                try {
+                    const result = await registry.importAgenticWallet(args);
+                    return successResponse({
+                        ...result,
+                        wallet: sanitizeWallet(result.wallet),
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         rotate_operator_key: {
             description:
                 'Start agentic operator key rotation: generate or accept a replacement operator key, persist a pending draft, and return a dashboard URL for the on-chain change. Agents with shell/browser access should open the dashboard URL instead of asking the user to copy it manually.',
             inputSchema: rotateOperatorKeySchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof rotateOperatorKeySchema>) => {
-                const result = await registry.startAgenticKeyRotation(args);
-                return {
-                    ...result,
-                    wallet: sanitizeStoredWallet(result.wallet),
-                    pendingRotation: sanitizePrivateKeyBackedValue(result.pendingRotation),
-                };
-            }),
+            handler: async (args: z.infer<typeof rotateOperatorKeySchema>): Promise<ToolResponse> => {
+                try {
+                    const result = await registry.startAgenticKeyRotation(args);
+                    return successResponse({
+                        ...result,
+                        wallet: sanitizeWallet(result.wallet),
+                        pendingRotation: sanitizePendingAgenticKeyRotation(result.pendingRotation),
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         list_pending_operator_key_rotations: {
             description: 'List pending agentic operator key rotations stored in the local TON config registry.',
             inputSchema: z.object({}),
-            handler: wrapToolHandler(async () => {
-                const rotations = await registry.listPendingAgenticKeyRotations();
-                return {
-                    rotations: rotations.map((rotation) => sanitizePrivateKeyBackedValue(rotation)),
-                    count: rotations.length,
-                };
-            }),
+            handler: async (): Promise<ToolResponse> => {
+                try {
+                    const rotations = await registry.listPendingAgenticKeyRotations();
+                    return successResponse({
+                        rotations: sanitizePendingAgenticKeyRotations(rotations),
+                        count: rotations.length,
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         get_pending_operator_key_rotation: {
             description: 'Get one pending agentic operator key rotation by id.',
             inputSchema: pendingOperatorKeyRotationSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof pendingOperatorKeyRotationSchema>) => {
-                const rotation = await registry.getPendingAgenticKeyRotation(args.rotationId);
-                return {
-                    rotation: rotation ? sanitizePrivateKeyBackedValue(rotation) : null,
-                };
-            }),
+            handler: async (args: z.infer<typeof pendingOperatorKeyRotationSchema>): Promise<ToolResponse> => {
+                try {
+                    const rotation = await registry.getPendingAgenticKeyRotation(args.rotationId);
+                    return successResponse({
+                        rotation: rotation ? sanitizePendingAgenticKeyRotation(rotation) : null,
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         complete_rotate_operator_key: {
             description:
                 'Complete an agentic operator key rotation after the dashboard transaction lands on chain, then update the stored operator key locally.',
             inputSchema: pendingOperatorKeyRotationSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof pendingOperatorKeyRotationSchema>) => {
-                const result = await registry.completeAgenticKeyRotation(args.rotationId);
-                return {
-                    ...result,
-                    wallet: sanitizeStoredWallet(result.wallet),
-                    pendingRotation: sanitizePrivateKeyBackedValue(result.pendingRotation),
-                };
-            }),
+            handler: async (args: z.infer<typeof pendingOperatorKeyRotationSchema>): Promise<ToolResponse> => {
+                try {
+                    const result = await registry.completeAgenticKeyRotation(args.rotationId);
+                    return successResponse({
+                        ...result,
+                        wallet: sanitizeWallet(result.wallet),
+                        pendingRotation: sanitizePendingAgenticKeyRotation(result.pendingRotation),
+                    });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
 
         cancel_rotate_operator_key: {
             description: 'Cancel a pending agentic operator key rotation and discard its stored replacement key.',
             inputSchema: pendingOperatorKeyRotationSchema,
-            handler: wrapToolHandler(async (args: z.infer<typeof pendingOperatorKeyRotationSchema>) => {
-                await registry.cancelAgenticKeyRotation(args.rotationId);
-                return { rotationId: args.rotationId, cancelled: true };
-            }),
+            handler: async (args: z.infer<typeof pendingOperatorKeyRotationSchema>): Promise<ToolResponse> => {
+                try {
+                    await registry.cancelAgenticKeyRotation(args.rotationId);
+                    return successResponse({ rotationId: args.rotationId, cancelled: true });
+                } catch (error) {
+                    return errorResponse(error);
+                }
+            },
         },
     };
 }
