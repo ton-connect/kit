@@ -8,6 +8,8 @@
 
 // Event routing and handler coordination
 
+import type { WalletResponseTemplateError } from '@tonconnect/protocol';
+
 import type { RawBridgeEvent, EventHandler, EventCallback, EventType } from '../types/internal';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { TransactionHandler } from '../handlers/TransactionHandler';
@@ -31,6 +33,23 @@ import type {
 import type { TonWalletKitOptions } from '../types/config';
 
 const log = globalLogger.createChild('EventRouter');
+
+export type DispatchBridgeEventSuccess = {
+    ok: true;
+    bridgeEvent: BridgeEvent;
+    notify: () => Promise<void>;
+};
+
+export type DispatchBridgeEventFailure =
+    | { ok: false; reason: 'invalid_event' }
+    | { ok: false; reason: 'no_handler' }
+    | {
+          ok: false;
+          rawEvent: RawBridgeEvent;
+          errorResult: WalletResponseTemplateError & { id: string };
+      };
+
+export type DispatchBridgeEventResult = DispatchBridgeEventSuccess | DispatchBridgeEventFailure;
 
 export class EventRouter {
     private handlers: EventHandler[] = [];
@@ -58,34 +77,65 @@ export class EventRouter {
     }
 
     /**
-     * Route incoming bridge event to appropriate handler
+     * Run validation and handler.handle without notifying listeners or sending bridge responses.
+     * Use {@link routeEvent} for the full path including notify + error responses.
      */
-    async routeEvent(event: RawBridgeEvent): Promise<void> {
-        // Validate event structure
+    async handleBridgeEvent(event: RawBridgeEvent): Promise<DispatchBridgeEventResult> {
         const validation = validateBridgeEvent(event);
         if (!validation.isValid) {
             log.error('Invalid bridge event', { errors: validation.errors });
-            return;
+            return { ok: false, reason: 'invalid_event' };
         }
 
-        try {
-            // Find appropriate handler
-            for (const handler of this.handlers) {
-                if (handler.canHandle(event)) {
-                    const result = await handler.handle(event);
-                    if ('error' in result) {
-                        this.notifyErrorCallback({ id: result.id, data: { ...event }, error: result.error });
-                        try {
-                            await this.bridgeManager.sendResponse(event, result);
-                        } catch (error) {
-                            log.error('Error sending response for error event', { error, event, result });
-                        }
-                        return;
-                    }
-                    await handler.notify(result as BridgeEvent);
-                    break;
+        for (const handler of this.handlers) {
+            if (handler.canHandle(event)) {
+                const result = await handler.handle(event);
+                if ('error' in result) {
+                    return {
+                        ok: false,
+                        rawEvent: event,
+                        errorResult: result as WalletResponseTemplateError & { id: string },
+                    };
                 }
+                const bridgeEvent = result as BridgeEvent;
+                return {
+                    ok: true,
+                    bridgeEvent,
+                    notify: () => handler.notify(bridgeEvent),
+                };
             }
+        }
+
+        return { ok: false, reason: 'no_handler' };
+    }
+
+    /**
+     * Route incoming bridge event to appropriate handler
+     */
+    async routeEvent(event: RawBridgeEvent): Promise<void> {
+        try {
+            const dispatched = await this.handleBridgeEvent(event);
+            if (!dispatched.ok) {
+                if ('reason' in dispatched) {
+                    return;
+                }
+                this.notifyErrorCallback({
+                    id: dispatched.errorResult.id,
+                    data: { ...dispatched.rawEvent },
+                    error: dispatched.errorResult.error,
+                });
+                try {
+                    await this.bridgeManager.sendResponse(dispatched.rawEvent, dispatched.errorResult);
+                } catch (error) {
+                    log.error('Error sending response for error event', {
+                        error,
+                        event: dispatched.rawEvent,
+                        result: dispatched.errorResult,
+                    });
+                }
+                return;
+            }
+            await dispatched.notify();
         } catch (error) {
             log.error('Error routing event', { error });
             throw error;
