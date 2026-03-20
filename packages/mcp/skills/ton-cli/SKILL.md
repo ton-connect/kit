@@ -18,6 +18,8 @@ Run any TON wallet MCP tool directly from the command line. The binary invokes t
 | `npx @ton/mcp@alpha --http [port]` | HTTP MCP server |
 | `npx @ton/mcp@alpha <tool_name> [--arg value ...]` | **Raw CLI: call one tool and exit** |
 
+Use exactly one mode for a given workflow: either MCP server mode (`stdio`/`--http`) or raw CLI. Do not combine them in the same task/session.
+
 ## Raw CLI Usage
 
 ```bash

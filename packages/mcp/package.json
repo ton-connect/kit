@@ -38,6 +38,7 @@
     "dist",
     "skills",
     "llms.txt",
+    "USAGE_EXAMPLES.md",
     "README.md"
   ],
   "scripts": {
