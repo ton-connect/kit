@@ -6,9 +6,15 @@
  *
  */
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import {
+    existsSync,
+    mkdtempSync,
+    readFileSync as rawReadFileSync,
+    rmSync,
+    writeFileSync as rawWriteFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -49,9 +55,9 @@ import {
     createEmptyConfig,
     createPendingAgenticDeployment,
     createStandardWalletRecord,
-    loadConfig,
-    saveConfig,
 } from '../registry/config.js';
+import { loadConfig, saveConfig } from '../registry/config-persistence.js';
+import { readFileSync } from '../registry/protected-file.js';
 import { WalletRegistryService } from '../services/WalletRegistryService.js';
 
 describe('WalletRegistryService', () => {
@@ -60,6 +66,26 @@ describe('WalletRegistryService', () => {
     const ownerAddress = DEFAULT_AGENTIC_COLLECTION_ADDRESS;
     const originalConfigPath = process.env.TON_CONFIG_PATH;
     let tempDir = '';
+
+    function resolveSecretPath(filePath: string): string {
+        return resolve(dirname(process.env.TON_CONFIG_PATH!), filePath);
+    }
+
+    function resolveSignMethodPath(signMethod: { type: 'local_file'; file_path: string }): string {
+        return resolveSecretPath(signMethod.file_path);
+    }
+
+    function walletMnemonic(id: string, mnemonic: string) {
+        return { wallets: { [id]: { mnemonic } } };
+    }
+
+    function walletPrivateKey(id: string, privateKey: string) {
+        return { wallets: { [id]: { private_key: privateKey } } };
+    }
+
+    function pendingDeploymentSecret(id: string, privateKey: string) {
+        return { pendingAgenticDeployments: { [id]: privateKey } };
+    }
 
     beforeEach(() => {
         tempDir = mkdtempSync(join(tmpdir(), 'ton-mcp-wallet-registry-'));
@@ -137,18 +163,20 @@ describe('WalletRegistryService', () => {
             network: 'mainnet',
             walletVersion: 'v5r1',
             address: mainAddress,
-            mnemonic: 'abandon '.repeat(23) + 'about',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: standard.id,
-            wallets: [standard],
-            networks: {
-                mainnet: {
-                    toncenter_api_key: 'main-key',
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: standard.id,
+                wallets: [standard],
+                networks: {
+                    mainnet: {
+                        toncenter_api_key: 'main-key',
+                    },
                 },
             },
-        });
+            walletMnemonic(standard.id, 'abandon '.repeat(23) + 'about'),
+        );
 
         const close = vi.fn();
         mocks.createMcpWalletServiceFromStoredWallet.mockResolvedValue({
@@ -169,19 +197,63 @@ describe('WalletRegistryService', () => {
         });
     });
 
+    it('supports inline v2 secrets before creating a signing service', async () => {
+        rawWriteFileSync(
+            process.env.TON_CONFIG_PATH!,
+            JSON.stringify({
+                version: 2,
+                active_wallet_id: 'wallet-1',
+                networks: {},
+                wallets: [
+                    {
+                        id: 'wallet-1',
+                        type: 'standard',
+                        name: 'Inline standard',
+                        network: 'mainnet',
+                        wallet_version: 'v5r1',
+                        address: mainAddress,
+                        mnemonic: 'abandon '.repeat(23) + 'about',
+                        created_at: '2026-03-16T00:00:00.000Z',
+                        updated_at: '2026-03-16T00:00:00.000Z',
+                    },
+                ],
+            }),
+            'utf-8',
+        );
+        mocks.createMcpWalletServiceFromStoredWallet.mockResolvedValue({
+            service: { getAddress: () => mainAddress },
+            close: vi.fn(),
+        });
+
+        const registry = new WalletRegistryService();
+        await registry.createWalletService(undefined, { requiresSigning: true });
+
+        expect(mocks.createMcpWalletServiceFromStoredWallet).toHaveBeenCalledWith({
+            wallet: expect.objectContaining({
+                id: 'wallet-1',
+                secret_type: 'mnemonic',
+            }),
+            contacts: undefined,
+            toncenterApiKey: undefined,
+            requiresSigning: true,
+        });
+    });
+
     it('uses external network overrides when config does not have a toncenter api key', async () => {
         const standard = createStandardWalletRecord({
             name: 'Primary wallet',
             network: 'mainnet',
             walletVersion: 'v5r1',
             address: mainAddress,
-            mnemonic: 'abandon '.repeat(23) + 'about',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: standard.id,
-            wallets: [standard],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: standard.id,
+                wallets: [standard],
+            },
+            walletMnemonic(standard.id, 'abandon '.repeat(23) + 'about'),
+        );
 
         mocks.createMcpWalletServiceFromStoredWallet.mockResolvedValue({
             service: { getAddress: () => standard.address },
@@ -203,34 +275,77 @@ describe('WalletRegistryService', () => {
         });
     });
 
-    it('rejects write-mode access for agentic wallets without operator key', async () => {
-        const wallet = createAgenticWalletRecord({
-            name: 'Read-only agent',
-            network: 'mainnet',
-            address: agentAddress,
-            ownerAddress,
-        });
+    it.each([
+        {
+            name: 'agentic wallets without operator key',
+            wallet: createAgenticWalletRecord({
+                name: 'Read-only agent',
+                network: 'mainnet',
+                address: agentAddress,
+                ownerAddress,
+            }),
+        },
+        {
+            name: 'standard wallets with an unreadable sign_method file',
+            wallet: createStandardWalletRecord({
+                name: 'Read-only standard',
+                network: 'mainnet',
+                walletVersion: 'v5r1',
+                address: mainAddress,
+                signMethod: { type: 'local_file', file_path: 'private-keys/missing.private-key' },
+                secretType: 'private_key',
+            }),
+        },
+    ])('allows read-only access without loading signing credentials for $name', async ({ wallet }) => {
         saveConfig({
             ...createEmptyConfig(),
             active_wallet_id: wallet.id,
             wallets: [wallet],
         });
 
-        const registry = new WalletRegistryService();
+        const close = vi.fn();
+        mocks.createMcpWalletServiceFromStoredWallet.mockResolvedValue({
+            service: { getAddress: () => wallet.address },
+            close,
+        });
 
-        await expect(registry.createWalletService(undefined, { requiresSigning: true })).rejects.toThrow(
-            /missing operator_private_key/i,
-        );
-        expect(mocks.createMcpWalletServiceFromStoredWallet).not.toHaveBeenCalled();
+        const registry = new WalletRegistryService();
+        const context = await registry.createWalletService();
+
+        expect(context.wallet).toMatchObject({ id: wallet.id, address: wallet.address });
+        expect(context.close).toBe(close);
+        expect(mocks.createMcpWalletServiceFromStoredWallet).toHaveBeenCalledWith({
+            wallet: expect.objectContaining({ id: wallet.id }),
+            contacts: undefined,
+            toncenterApiKey: undefined,
+            requiresSigning: undefined,
+        });
     });
 
-    it('rejects write contexts for agentic wallets without operator key', async () => {
-        const wallet = createAgenticWalletRecord({
-            name: 'Read-only agent',
-            network: 'mainnet',
-            address: agentAddress,
-            ownerAddress,
-        });
+    it.each([
+        {
+            name: 'agentic wallets without operator key',
+            wallet: createAgenticWalletRecord({
+                name: 'Read-only agent',
+                network: 'mainnet',
+                address: agentAddress,
+                ownerAddress,
+            }),
+            expectedError: /missing private_key/i,
+        },
+        {
+            name: 'standard wallets with an unreadable sign_method file',
+            wallet: createStandardWalletRecord({
+                name: 'Broken standard',
+                network: 'mainnet',
+                walletVersion: 'v5r1',
+                address: agentAddress,
+                signMethod: { type: 'local_file', file_path: 'private-keys/missing.private-key' },
+                secretType: 'private_key',
+            }),
+            expectedError: /missing signing credentials/i,
+        },
+    ])('rejects write-mode access for $name', async ({ wallet, expectedError }) => {
         saveConfig({
             ...createEmptyConfig(),
             active_wallet_id: wallet.id,
@@ -239,24 +354,24 @@ describe('WalletRegistryService', () => {
 
         const registry = new WalletRegistryService();
 
-        await expect(registry.createWalletService(undefined, { requiresSigning: true })).rejects.toThrow(
-            /missing operator_private_key/i,
-        );
+        await expect(registry.createWalletService(undefined, { requiresSigning: true })).rejects.toThrow(expectedError);
         expect(mocks.createMcpWalletServiceFromStoredWallet).not.toHaveBeenCalled();
     });
 
     it('validates and imports an agentic wallet while recovering operator key from pending setup', async () => {
         const pending = createPendingAgenticDeployment({
             network: 'mainnet',
-            operatorPrivateKey: '0xpending',
             operatorPublicKey: '0xbeef',
             name: 'Pending root agent',
             source: 'Started from MCP',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            pending_agentic_deployments: [pending],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                pending_agentic_deployments: [pending],
+            },
+            pendingDeploymentSecret(pending.id, '0xpending'),
+        );
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
             balanceNano: '42',
@@ -281,28 +396,89 @@ describe('WalletRegistryService', () => {
         expect(result.wallet).toMatchObject({
             type: 'agentic',
             name: 'Pending root agent',
-            operator_private_key: '0xpending',
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xbeef',
             source: 'Started from MCP',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.active_wallet_id).toBe(result.wallet.id);
-        expect(stored?.pending_agentic_deployments).toBeUndefined();
+        expect(stored?.pending_agentic_deployments).toEqual([]);
+    });
+
+    it('imports an agentic wallet read-only when a reused secret does not match the current on-chain operator key', async () => {
+        const wallet = createAgenticWalletRecord({
+            name: 'Existing agent',
+            network: 'mainnet',
+            address: agentAddress,
+            ownerAddress,
+            operatorPublicKey: '0xold-public',
+        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: wallet.id,
+                wallets: [wallet],
+            },
+            walletPrivateKey(wallet.id, '0xold-private'),
+        );
+        const oldSecretPath = resolveSignMethodPath(
+            ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                .sign_method,
+        );
+        mocks.validateAgenticWalletAddress.mockResolvedValue({
+            address: agentAddress,
+            balanceNano: '42',
+            balanceTon: '0.000000042',
+            ownerAddress,
+            operatorPublicKey: '0xnew-public',
+            originOperatorPublicKey: '0x1234',
+            collectionAddress: ownerAddress,
+            deployedByUser: true,
+            name: 'On-chain agent',
+        });
+        mocks.resolveOperatorCredentials.mockImplementationOnce(async () => {
+            throw new Error('Private key does not match the current agent operator public key.');
+        });
+
+        const registry = new WalletRegistryService();
+        const result = await registry.importAgenticWallet({
+            address: agentAddress,
+            network: 'mainnet',
+        });
+
+        expect(result.recoveredPendingKeyDraft).toBe(false);
+        expect(result.updatedExisting).toBe(true);
+        expect(result.wallet).toMatchObject({
+            id: wallet.id,
+            operator_public_key: '0xnew-public',
+        });
+        expect(result.wallet).not.toHaveProperty('sign_method');
+        expect((await loadConfig())?.wallets[0]).toMatchObject({
+            id: wallet.id,
+            operator_public_key: '0xnew-public',
+        });
+        expect((await loadConfig())?.wallets[0]).not.toHaveProperty('sign_method');
+        expect(existsSync(oldSecretPath)).toBe(false);
     });
 
     it('completes a pending root-agent setup and makes the imported wallet active', async () => {
         const pending = createPendingAgenticDeployment({
             network: 'mainnet',
-            operatorPrivateKey: '0xpending',
             operatorPublicKey: '0xbeef',
             name: 'Pending agent',
             source: 'Pending source',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            pending_agentic_deployments: [pending],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                pending_agentic_deployments: [pending],
+            },
+            pendingDeploymentSecret(pending.id, '0xpending'),
+        );
 
         const registry = new WalletRegistryService();
         const wallet = await registry.completePendingAgenticSetup({
@@ -325,15 +501,18 @@ describe('WalletRegistryService', () => {
         expect(wallet).toMatchObject({
             type: 'agentic',
             name: 'Imported root agent',
-            operator_private_key: '0xpending',
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             source: 'Completed from callback',
             deployed_by_user: true,
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.active_wallet_id).toBe(wallet.id);
         expect(stored?.wallets).toEqual([expect.objectContaining({ id: wallet.id })]);
-        expect(stored?.pending_agentic_deployments).toBeUndefined();
+        expect(stored?.pending_agentic_deployments).toEqual([]);
     });
 
     it('starts an agentic key rotation and stores only a pending draft until completion', async () => {
@@ -342,15 +521,17 @@ describe('WalletRegistryService', () => {
             network: 'mainnet',
             address: agentAddress,
             ownerAddress,
-            operatorPrivateKey: '0xold-private',
             operatorPublicKey: '0xold-public',
             collectionAddress: ownerAddress,
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: wallet.id,
-            wallets: [wallet],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: wallet.id,
+                wallets: [wallet],
+            },
+            walletPrivateKey(wallet.id, '0xold-private'),
+        );
 
         const registry = new WalletRegistryService();
         const result = await registry.startAgenticKeyRotation({});
@@ -360,24 +541,73 @@ describe('WalletRegistryService', () => {
         expect(result.dashboardUrl).toContain('action=change-public-key');
         expect(result.pendingRotation).toMatchObject({
             wallet_id: wallet.id,
-            operator_private_key: '0xgenerated-private',
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xgenerated-public',
         });
 
-        const stored = loadConfig();
+        const stored = await loadConfig();
         expect(stored?.wallets[0]).toMatchObject({
             id: wallet.id,
-            operator_private_key: '0xold-private',
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xold-public',
         });
+        expect(
+            readFileSync(
+                resolveSignMethodPath(
+                    (stored?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+                'utf-8',
+            ).trim(),
+        ).toBe('0xold-private');
+        expect(
+            rawReadFileSync(
+                resolveSignMethodPath(
+                    (stored?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } }).sign_method,
+                ),
+                'utf-8',
+            ),
+        ).not.toContain('0xold-private');
         expect(stored?.pending_agentic_key_rotations).toEqual([
             expect.objectContaining({
                 id: result.pendingRotation.id,
                 wallet_id: wallet.id,
-                operator_private_key: '0xgenerated-private',
+                sign_method: {
+                    type: 'local_file',
+                    file_path: expect.any(String),
+                },
                 operator_public_key: '0xgenerated-public',
             }),
         ]);
+        expect(
+            readFileSync(
+                resolveSignMethodPath(
+                    (
+                        stored?.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
+                'utf-8',
+            ).trim(),
+        ).toBe('0xgenerated-private');
+        expect(
+            rawReadFileSync(
+                resolveSignMethodPath(
+                    (
+                        stored?.pending_agentic_key_rotations?.[0] as {
+                            sign_method: { type: 'local_file'; file_path: string };
+                        }
+                    ).sign_method,
+                ),
+                'utf-8',
+            ),
+        ).not.toContain('0xgenerated-private');
     });
 
     it('completes an agentic key rotation after the on-chain operator public key changes', async () => {
@@ -386,20 +616,33 @@ describe('WalletRegistryService', () => {
             network: 'mainnet',
             address: agentAddress,
             ownerAddress,
-            operatorPrivateKey: '0xold-private',
             operatorPublicKey: '0xold-public',
             collectionAddress: ownerAddress,
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: wallet.id,
-            wallets: [wallet],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: wallet.id,
+                wallets: [wallet],
+            },
+            walletPrivateKey(wallet.id, '0xold-private'),
+        );
 
         const registry = new WalletRegistryService();
         const started = await registry.startAgenticKeyRotation({
             walletSelector: wallet.id,
         });
+        const oldSecretPath = resolveSignMethodPath(
+            ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                .sign_method,
+        );
+        const pendingSecretPath = resolveSignMethodPath(
+            (
+                (await loadConfig())?.pending_agentic_key_rotations?.[0] as {
+                    sign_method: { type: 'local_file'; file_path: string };
+                }
+            ).sign_method,
+        );
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
             balanceNano: '42',
@@ -416,11 +659,22 @@ describe('WalletRegistryService', () => {
 
         expect(completed.wallet).toMatchObject({
             id: wallet.id,
-            operator_private_key: '0xgenerated-private',
+            sign_method: {
+                type: 'local_file',
+                file_path: expect.any(String),
+            },
             operator_public_key: '0xgenerated-public',
         });
         expect(completed.dashboardUrl).toBe(`https://dashboard.test/agent/${wallet.address}`);
-        expect(loadConfig()?.pending_agentic_key_rotations).toBeUndefined();
+        expect((await loadConfig())?.pending_agentic_key_rotations).toEqual([]);
+        expect(
+            resolveSignMethodPath(
+                ((await loadConfig())?.wallets[0] as { sign_method: { type: 'local_file'; file_path: string } })
+                    .sign_method,
+            ),
+        ).toBe(pendingSecretPath);
+        expect(existsSync(oldSecretPath)).toBe(false);
+        expect(existsSync(pendingSecretPath)).toBe(true);
     });
 
     it('rejects agentic key rotation completion when the on-chain operator public key does not match', async () => {
@@ -429,20 +683,22 @@ describe('WalletRegistryService', () => {
             network: 'mainnet',
             address: agentAddress,
             ownerAddress,
-            operatorPrivateKey: '0xold-private',
             operatorPublicKey: '0xold-public',
             collectionAddress: ownerAddress,
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: wallet.id,
-            wallets: [wallet],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: wallet.id,
+                wallets: [wallet],
+            },
+            walletPrivateKey(wallet.id, '0xold-private'),
+        );
 
         const registry = new WalletRegistryService();
         const started = await registry.startAgenticKeyRotation({
             walletSelector: wallet.id,
-            operatorPrivateKey: '0xmanual-private',
+            privateKey: '0xmanual-private',
         });
         mocks.validateAgenticWalletAddress.mockResolvedValue({
             address: agentAddress,
@@ -458,65 +714,54 @@ describe('WalletRegistryService', () => {
         await expect(registry.completeAgenticKeyRotation(started.pendingRotation.id)).rejects.toThrow(
             /does not match pending rotation/i,
         );
-        expect(loadConfig()?.pending_agentic_key_rotations).toHaveLength(1);
+        expect((await loadConfig())?.pending_agentic_key_rotations).toHaveLength(1);
     });
 
-    it('rejects pending root-agent completion when operator public key does not match the pending setup', async () => {
+    it.each([
+        {
+            name: 'without origin operator public key',
+            validatedWallet: {
+                address: agentAddress,
+                balanceNano: '100',
+                balanceTon: '0.0000001',
+                ownerAddress,
+                operatorPublicKey: '0xdead',
+                collectionAddress: ownerAddress,
+                deployedByUser: true,
+            },
+        },
+        {
+            name: 'with origin operator public key',
+            validatedWallet: {
+                address: agentAddress,
+                balanceNano: '100',
+                balanceTon: '0.0000001',
+                ownerAddress,
+                operatorPublicKey: '0xdead',
+                originOperatorPublicKey: '0xfeed',
+                collectionAddress: ownerAddress,
+                deployedByUser: true,
+            },
+        },
+    ])('rejects pending root-agent completion on operator key mismatch $name', async ({ validatedWallet }) => {
         const pending = createPendingAgenticDeployment({
             network: 'mainnet',
-            operatorPrivateKey: '0xpending',
             operatorPublicKey: '0xbeef',
-            name: 'Pending agent',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            pending_agentic_deployments: [pending],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                pending_agentic_deployments: [pending],
+            },
+            pendingDeploymentSecret(pending.id, '0xpending'),
+        );
 
         const registry = new WalletRegistryService();
 
         await expect(
             registry.completePendingAgenticSetup({
                 setupId: pending.id,
-                validatedWallet: {
-                    address: agentAddress,
-                    balanceNano: '100',
-                    balanceTon: '0.0000001',
-                    ownerAddress,
-                    operatorPublicKey: '0xdead',
-                    collectionAddress: ownerAddress,
-                    deployedByUser: true,
-                },
-            }),
-        ).rejects.toThrow(/pending operator key does not match/i);
-    });
-
-    it('rejects completion when the validated wallet operator key does not match the pending setup', async () => {
-        const pending = createPendingAgenticDeployment({
-            network: 'mainnet',
-            operatorPrivateKey: '0xpending',
-            operatorPublicKey: '0xbeef',
-        });
-        saveConfig({
-            ...createEmptyConfig(),
-            pending_agentic_deployments: [pending],
-        });
-
-        const registry = new WalletRegistryService();
-
-        await expect(
-            registry.completePendingAgenticSetup({
-                setupId: pending.id,
-                validatedWallet: {
-                    address: agentAddress,
-                    balanceNano: '100',
-                    balanceTon: '0.0000001',
-                    ownerAddress,
-                    operatorPublicKey: '0xdead',
-                    originOperatorPublicKey: '0xfeed',
-                    collectionAddress: ownerAddress,
-                    deployedByUser: true,
-                },
+                validatedWallet,
             }),
         ).rejects.toThrow(/pending operator key does not match/i);
     });
@@ -569,7 +814,7 @@ describe('WalletRegistryService', () => {
 
         expect(result.removedWalletId).toBe(first.id);
         expect(result.activeWalletId).toBe(second.id);
-        expect(loadConfig()?.wallets).toEqual([
+        expect((await loadConfig())?.wallets).toEqual([
             expect.objectContaining({ id: first.id, removed: true }),
             expect.objectContaining({ id: second.id }),
         ]);

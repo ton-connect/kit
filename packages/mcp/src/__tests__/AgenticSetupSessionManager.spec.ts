@@ -61,7 +61,7 @@ describe('AgenticSetupSessionManager', () => {
         });
 
         expect(response.status).toBe(200);
-        expect(manager.getSession('setup-1')).toMatchObject({
+        await expect(manager.getSession('setup-1')).resolves.toMatchObject({
             status: 'callback_received',
             payload: {
                 event: 'agent_wallet_deployed',
@@ -96,12 +96,12 @@ describe('AgenticSetupSessionManager', () => {
         managers.push(manager);
 
         await manager.createSession('setup-3');
-        manager.markCompleted('setup-3');
-        expect(manager.getSession('setup-3')).toBeNull();
+        await manager.markCompleted('setup-3');
+        await expect(manager.getSession('setup-3')).resolves.toBeUndefined();
 
         await manager.createSession('setup-4');
-        manager.cancelSession('setup-4');
-        expect(manager.getSession('setup-4')).toBeNull();
+        await manager.cancelSession('setup-4');
+        await expect(manager.getSession('setup-4')).resolves.toBeUndefined();
     });
 
     it('restores persisted callback payloads and callback urls from config-backed store', async () => {
@@ -129,7 +129,7 @@ describe('AgenticSetupSessionManager', () => {
         });
         managers.push(reopened);
 
-        expect(reopened.getSession('setup-5')).toMatchObject({
+        await expect(reopened.getSession('setup-5')).resolves.toMatchObject({
             callbackUrl: session.callbackUrl,
             status: 'callback_received',
             payload: {

@@ -12,6 +12,8 @@ import { join } from 'node:path';
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Network, Signer } from '@ton/walletkit';
+import type { WalletAdapter } from '@ton/walletkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -24,8 +26,11 @@ vi.mock('../runtime/wallet-runtime.js', () => ({
     deriveStandardWalletAddress: mocks.deriveStandardWalletAddress,
 }));
 
-import { createStandardWalletRecord, createEmptyConfig, saveConfig } from '../registry/config.js';
+import { createStandardWalletRecord, createEmptyConfig } from '../registry/config.js';
+import { saveConfig } from '../registry/config-persistence.js';
+import { AgenticWalletAdapter } from '../contracts/agentic_wallet/AgenticWalletAdapter.js';
 import { createTonWalletMCP } from '../factory.js';
+import { createApiClient } from '../utils/ton-client.js';
 
 function parseToolResult(result: Awaited<ReturnType<Client['callTool']>>) {
     const first = result.content[0];
@@ -218,9 +223,9 @@ describe('createTonWalletMCP registry mode', () => {
             expect(String(started.dashboardUrl)).toContain('/create?');
             expect(String(started.callbackUrl)).toContain('/agentic/callback/');
             expect(started.pendingDeployment).toMatchObject({
-                has_operator_private_key: true,
+                has_private_key: true,
             });
-            expect(started.pendingDeployment).not.toHaveProperty('operator_private_key');
+            expect(started.pendingDeployment).not.toHaveProperty('private_key');
 
             const pending = parseToolResult(
                 await client.callTool({
@@ -233,9 +238,9 @@ describe('createTonWalletMCP registry mode', () => {
                 count: 1,
             });
             expect(pending.setups[0]?.pendingDeployment).toMatchObject({
-                has_operator_private_key: true,
+                has_private_key: true,
             });
-            expect(pending.setups[0]?.pendingDeployment).not.toHaveProperty('operator_private_key');
+            expect(pending.setups[0]?.pendingDeployment).not.toHaveProperty('private_key');
         } finally {
             await client.close();
             await server.close();
@@ -249,19 +254,20 @@ describe('createTonWalletMCP registry mode', () => {
             network: 'mainnet',
             walletVersion: 'v5r1',
             address: firstAddress,
-            mnemonic: 'abandon '.repeat(23) + 'about',
-            privateKey: '0x' + '11'.repeat(32),
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: wallet.id,
-            wallets: [wallet],
-            networks: {
-                mainnet: {
-                    toncenter_api_key: 'super-secret-key',
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: wallet.id,
+                wallets: [wallet],
+                networks: {
+                    mainnet: {
+                        toncenter_api_key: 'super-secret-key',
+                    },
                 },
             },
-        });
+            { wallets: { [wallet.id]: { mnemonic: 'abandon '.repeat(23) + 'about' } } },
+        );
 
         const client = new Client({ name: 'mcp-test', version: '1.0.0' });
         const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -272,11 +278,14 @@ describe('createTonWalletMCP registry mode', () => {
         try {
             const listed = parseToolResult(await client.callTool({ name: 'list_wallets', arguments: {} }));
             const current = parseToolResult(await client.callTool({ name: 'get_current_wallet', arguments: {} }));
+            // const network = parseToolResult(
+            //     await client.callTool({ name: 'get_network_config', arguments: { network: 'mainnet' } }),
+            // );
 
             expect(listed.wallets[0]).toMatchObject({
                 id: wallet.id,
                 has_mnemonic: true,
-                has_private_key: true,
+                has_private_key: false,
             });
             expect(listed.wallets[0]).not.toHaveProperty('mnemonic');
             expect(listed.wallets[0]).not.toHaveProperty('private_key');
@@ -284,7 +293,7 @@ describe('createTonWalletMCP registry mode', () => {
             expect(current.wallet).toMatchObject({
                 id: wallet.id,
                 has_mnemonic: true,
-                has_private_key: true,
+                has_private_key: false,
             });
             expect(current.wallet).not.toHaveProperty('mnemonic');
             expect(current.wallet).not.toHaveProperty('private_key');
@@ -300,13 +309,15 @@ describe('createTonWalletMCP registry mode', () => {
             network: 'mainnet',
             walletVersion: 'v5r1',
             address: firstAddress,
-            mnemonic: 'abandon '.repeat(23) + 'about',
         });
-        saveConfig({
-            ...createEmptyConfig(),
-            active_wallet_id: first.id,
-            wallets: [first],
-        });
+        saveConfig(
+            {
+                ...createEmptyConfig(),
+                active_wallet_id: first.id,
+                wallets: [first],
+            },
+            { wallets: { [first.id]: { mnemonic: 'abandon '.repeat(23) + 'about' } } },
+        );
 
         const closeContext = vi.fn();
         mocks.createMcpWalletServiceFromStoredWallet.mockImplementation(async ({ wallet }) => ({
@@ -380,8 +391,35 @@ describe('createTonWalletMCP registry mode', () => {
             });
             expect(result.isError).toBe(true);
             const text = result.content[0] && 'text' in result.content[0] ? result.content[0].text : '';
-            expect(text).toContain('operator_private_key');
+            expect(text).toContain('private_key');
             expect(mocks.createMcpWalletServiceFromStoredWallet).not.toHaveBeenCalled();
+        } finally {
+            await client.close();
+            await server.close();
+        }
+    });
+});
+
+describe('createTonWalletMCP single-wallet mode', () => {
+    it('registers agentic tools when walletVersion is agentic', async () => {
+        const signer = await Signer.fromPrivateKey(Buffer.alloc(32, 9));
+        const clientApi = createApiClient('mainnet');
+        const adapter = await AgenticWalletAdapter.create(signer, {
+            client: clientApi,
+            network: Network.mainnet(),
+            walletAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+        });
+        const server = await createTonWalletMCP({ wallet: adapter as unknown as WalletAdapter, walletVersion: 'agentic' });
+        const client = new Client({ name: 'mcp-test', version: '1.0.0' });
+        const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+        await server.connect(serverTransport);
+        await client.connect(clientTransport);
+
+        try {
+            const tools = await client.listTools();
+            const names = tools.tools.map((tool) => tool.name);
+            expect(names).toContain('agentic_deploy_subwallet');
         } finally {
             await client.close();
             await server.close();

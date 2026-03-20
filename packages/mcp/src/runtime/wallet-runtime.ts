@@ -28,6 +28,8 @@ import type {
     StoredWallet,
     TonNetwork,
 } from '../registry/config.js';
+import { ConfigError } from '../registry/config.js';
+import { readSecret, readSecretMaterial } from '../registry/private-key-files.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 import { createApiClient } from '../utils/ton-client.js';
 
@@ -106,9 +108,15 @@ async function createServiceFromStoredStandard(
     contacts: IContactResolver | undefined,
     toncenterApiKey?: string,
 ): Promise<WalletServiceContext> {
+    const secret = readSecretMaterial(wallet);
+    if (!secret) {
+        throw new ConfigError(
+            `Wallet "${wallet.name}" is missing signing credentials. Re-import it with mnemonic or private key before using write tools.`,
+        );
+    }
     const signer = await createSignerFromSecrets({
-        mnemonic: wallet.mnemonic,
-        privateKey: wallet.private_key,
+        ...(secret.type === 'mnemonic' ? { mnemonic: secret.value } : {}),
+        ...(secret.type === 'private_key' ? { privateKey: secret.value } : {}),
     });
     const kit = createKit(wallet.network, toncenterApiKey);
     await kit.waitForReady();
@@ -145,12 +153,13 @@ async function createServiceFromStoredAgentic(
     toncenterApiKey?: string,
     requiresSigning?: boolean,
 ): Promise<WalletServiceContext> {
-    if (requiresSigning && !wallet.operator_private_key) {
-        throw new Error(`Agentic wallet "${wallet.name}" is missing operator_private_key.`);
+    const privateKey = readSecret(wallet);
+    if (requiresSigning && !privateKey) {
+        throw new ConfigError(
+            `Wallet "${wallet.name}" is missing private_key. Rotate the operator key with agentic_rotate_operator_key before using write tools.`,
+        );
     }
-    const signer = wallet.operator_private_key
-        ? await createSignerFromSecrets({ privateKey: wallet.operator_private_key })
-        : await createPlaceholderSigner();
+    const signer = privateKey ? await createSignerFromSecrets({ privateKey }) : await createPlaceholderSigner();
     const kit = createKit(wallet.network, toncenterApiKey);
     await kit.waitForReady();
     try {
