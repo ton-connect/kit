@@ -29,6 +29,7 @@ export interface TonCenterStreamingProviderConfig {
     apiKey?: string;
     network?: Network;
     listener: StreamingProviderListener;
+    getWatchers: () => Map<string, Set<string>>;
 }
 
 /**
@@ -40,8 +41,12 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
     private apiKey?: string;
     private network?: Network;
 
+    private requestId = 0;
+    private lastAddresses: Set<string> = new Set();
+    private syncTimer: ReturnType<typeof setTimeout> | null = null;
+
     constructor(config: TonCenterStreamingProviderConfig) {
-        super(config.listener);
+        super(config.listener, config.getWatchers);
 
         this.network = config.network;
         this.apiKey = config.apiKey;
@@ -68,63 +73,67 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
         return { operation: 'ping', id: `ping-${Date.now()}` };
     }
 
-    protected unsubscribe(addresses: string[], traceHashes: string[]): void {
-        if (!this.isConnected || this.ws?.readyState !== WebSocket.OPEN) {
-            return;
-        }
-
-        if (addresses.length === 0 && traceHashes.length === 0) return;
-
-        this.send({
-            operation: 'unsubscribe',
-            id: `unsub-${Date.now()}`,
-            addresses: addresses.length > 0 ? addresses : undefined,
-            trace_external_hash_norms: traceHashes.length > 0 ? traceHashes : undefined,
-        });
-
-        log.info('Unsubscribed', { addresses, traceHashes });
+    protected onWatch(type: string, id: string): void {
+        log.info('onWatch triggered', { type, id, isConnected: this.isConnected, readyState: this.ws?.readyState });
+        this.requestSync();
     }
 
-    protected updateSubscription(): void {
+    protected onUnwatch(type: string, id: string): void {
+        log.info('onUnwatch triggered', { type, id, isConnected: this.isConnected, readyState: this.ws?.readyState });
+        this.requestSync();
+    }
+
+    protected fullResync(): void {
+        log.info('fullResync triggered', { isConnected: this.isConnected, readyState: this.ws?.readyState });
         if (!this.isConnected || this.ws?.readyState !== WebSocket.OPEN) {
             return;
         }
 
+        const watched = this.getWatchers();
         const addresses = new Set<string>();
-        [this.watchedBalance, this.watchedTransactions, this.watchedJettons, this.watchedTracesAddresses].forEach(
-            (s) => {
-                s.forEach((addr) => addresses.add(addr));
-            },
-        );
+        const types = new Set<StreamingV2EventType>();
 
-        const traceHashes = Array.from(this.watchedTraceHashes);
+        watched.forEach((ids, type) => {
+            const toncenterType = this.mapToToncenterType(type as string);
+            if (!toncenterType) return;
+            types.add(toncenterType);
+            ids.forEach((id) => addresses.add(id));
+        });
 
-        if (addresses.size === 0 && traceHashes.length === 0) return;
-
-        const types: StreamingV2EventType[] = [];
-        if (this.watchedBalance.size > 0) types.push('account_state_change');
-        if (this.watchedTransactions.size > 0) types.push('transactions');
-        if (this.watchedJettons.size > 0) types.push('jettons_change');
-        if (this.watchedTraceHashes.size > 0 || this.watchedTracesAddresses.size > 0) types.push('trace');
+        if (addresses.size === 0) {
+            if (this.lastAddresses.size > 0) {
+                const msgId = `clear-${Date.now()}-${++this.requestId}`;
+                this.send({
+                    operation: 'unsubscribe',
+                    id: msgId,
+                    addresses: Array.from(this.lastAddresses),
+                });
+                this.lastAddresses.clear();
+                log.info('Cleared all subscriptions', { msgId });
+            }
+            return;
+        }
 
         const request: StreamingV2SubscriptionRequest = {
-            addresses: addresses.size > 0 ? Array.from(addresses) : undefined,
-            trace_external_hash_norms: traceHashes.length > 0 ? traceHashes : undefined,
-            types,
+            types: Array.from(types),
+            addresses: Array.from(addresses),
             min_finality: 'pending',
             include_metadata: true,
         };
 
+        const msgId = `sync-${Date.now()}-${++this.requestId}`;
         this.send({
             operation: 'subscribe',
-            id: `sub-${Date.now()}`,
+            id: msgId,
             ...request,
         });
 
-        log.info('Subscription updated', {
-            addresses: Array.from(addresses),
-            traceHashes,
-            types,
+        this.lastAddresses = addresses;
+
+        log.info('Sent monolithic subscription', {
+            msgId,
+            types: Array.from(types),
+            addressCount: addresses.size,
         });
     }
 
@@ -132,7 +141,7 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
         try {
             const msg = JSON.parse(event.data as string) as unknown;
             const m = msg as Record<string, unknown>;
-            log.info('Toncenter WS received message:', m);
+            log.debug('Toncenter WS received message:', m);
             if (m.status === 'subscribed' || m.status === 'pong') {
                 return;
             }
@@ -143,12 +152,13 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
             }
 
             if (isTransactionsNotification(msg)) {
+                const watchedTransactions = this.getWatchers().get('transactions') ?? new Set<string>();
                 const accounts = new Set<string>();
                 msg.transactions.forEach((tx: { account: string }) => accounts.add(tx.account));
 
                 accounts.forEach((account) => {
                     const friendly = asAddressFriendly(account);
-                    if (this.watchedTransactions.has(friendly)) {
+                    if (watchedTransactions.has(friendly)) {
                         const update = mapTransactions(account, msg);
                         this.listener.onTransactions(update);
                     }
@@ -156,22 +166,50 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
             }
 
             if (isJettonsNotification(msg)) {
+                const watchedJettons = this.getWatchers().get('jettons') ?? new Set<string>();
                 const update = mapJettons(msg);
-                log.info('Jetton update', { update });
-                if (this.watchedJettons.has(update.ownerAddress)) {
+                if (watchedJettons.has(update.ownerAddress)) {
                     this.listener.onJettonsUpdate(update);
                 }
             }
 
             if (isTraceNotification(msg) || isTraceInvalidatedNotification(msg)) {
                 if (isTraceInvalidatedNotification(msg)) {
-                    log.info('Trace invalidated', { hash: msg.trace_external_hash_norm });
+                    log.debug('Trace invalidated', { hash: msg.trace_external_hash_norm });
                 }
                 const update = mapTrace(msg);
+
+                // We only emit trace update if it belongs to a watched hash or address
+                // (WebsocketStreamingProvider handles address-based trace subscriptions too)
                 this.listener.onTraceUpdate(update);
             }
         } catch (err) {
             log.warn('Failed to parse WebSocket message', { error: err });
+        }
+    }
+
+    private requestSync(): void {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+        }
+        this.syncTimer = setTimeout(() => {
+            this.syncTimer = null;
+            this.fullResync();
+        }, 50);
+    }
+
+    private mapToToncenterType(type: string): StreamingV2EventType | null {
+        switch (type) {
+            case 'balance':
+                return 'account_state_change';
+            case 'transactions':
+                return 'transactions';
+            case 'jettons':
+                return 'jettons_change';
+            case 'traces':
+                return 'trace';
+            default:
+                return null;
         }
     }
 }

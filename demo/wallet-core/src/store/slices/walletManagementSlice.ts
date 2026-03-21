@@ -6,15 +6,8 @@
  *
  */
 
-import { compareAddress, toEvent, toAddressBook, Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
-import type {
-    ITonWalletKit,
-    ToncenterTransaction,
-    TransactionsUpdate,
-    Wallet,
-    WalletAdapter,
-    ToncenterTraceItem,
-} from '@ton/walletkit';
+import { compareAddress, Base64NormalizeUrl, HexToBase64, Network } from '@ton/walletkit';
+import type { ITonWalletKit, Transaction, TransactionsUpdate, Wallet, WalletAdapter } from '@ton/walletkit';
 import { createLedgerPath } from '@demo/v4ledger-adapter';
 
 import { SimpleEncryption } from '../../utils';
@@ -617,10 +610,12 @@ export const createWalletManagementSlice =
             });
 
             const unwatchTransactions = streaming.watchTransactions(network, address, (update) => {
-                log.info('New transactions received via WebSocket for:', update.address);
+                log.info(
+                    'New transactions received via WebSocket for:',
+                    update.address,
+                    compareAddress(update.address, address),
+                );
                 get().handleStreamingTransactions(update);
-                void get().loadEvents();
-                void get().updateBalance();
             });
 
             activeStreamingUnwatchers.push(unwatchBalance, unwatchJettons, unwatchTransactions);
@@ -663,78 +658,53 @@ export const createWalletManagementSlice =
                 return;
             }
 
-            const txs = update.transactions as ToncenterTransaction[];
+            const txs = update.transactions as Transaction[];
             if (!txs || txs.length === 0) return;
 
-            // Sort by LT to find start/end
-            const txsSorted = [...txs].sort((a, b) => (BigInt(a.lt) < BigInt(b.lt) ? -1 : 1));
-            const transactions_order = txsSorted.map((t) => t.hash);
-            const transactions: Record<string, ToncenterTransaction> = {};
-            txs.forEach((t) => {
-                transactions[t.hash] = t;
-            });
-
+            // Sort by logicalTime ascending to identify the initiating transaction
+            const txsSorted = [...txs].sort((a, b) => (BigInt(a.logicalTime) < BigInt(b.logicalTime) ? -1 : 1));
             const firstTx = txsSorted[0];
-            const lastTx = txsSorted[txsSorted.length - 1];
 
-            // Build a minimal ToncenterTraceItem for the mapper
-            const traceItem = {
-                transactions,
-                transactions_order,
-                trace_id: firstTx.trace_id || firstTx.hash,
-                start_utime: firstTx.now,
-                start_lt: firstTx.lt,
-                end_utime: lastTx.now,
-                end_lt: lastTx.lt,
-                is_incomplete: update.finality === 'pending',
-                external_hash: firstTx.trace_external_hash || '',
-                trace: {
-                    tx_hash: firstTx.hash,
-                    in_msg_hash: firstTx.in_msg?.hash || null,
-                    children: [],
-                },
-                warning: '',
-                trace_info: {
-                    classification_state: 'streaming',
-                    messages: txs.length,
-                    pending_messages: 0,
-                    trace_state: update.finality === 'pending' ? 'pending' : 'complete',
-                    transactions: txs.length,
-                },
-            };
+            // Derive a stable identifier: prefer traceExternalHash, fall back to hash of first tx
+            const externalHash = firstTx.traceExternalHash || undefined;
+            const traceId = firstTx.traceId || firstTx.hash;
 
-            // Use walletkit mappers to get structured Actions
-            const addressBook = toAddressBook({
-                address_book: update.addressBook || {},
-                metadata: update.metadata || {},
-            });
+            // Build preview from the first tx's messages
+            const hasExternalInMessage = firstTx.inMessage && !firstTx.inMessage.source;
+            const outMsg = firstTx.outMessages?.[0];
+            const inMsg = firstTx.inMessage;
 
-            const event = toEvent(traceItem as unknown as ToncenterTraceItem, address, addressBook);
-            if (event.actions.length === 0) return;
+            let previewType: 'send' | 'receive' | 'contract' = 'contract';
+            let previewAmount = '0';
+            let previewAddress = '';
+
+            if (hasExternalInMessage && outMsg?.destination) {
+                // External message with an outgoing transfer — user sent TON
+                previewType = 'send';
+                previewAmount = outMsg.value ?? '0';
+                previewAddress = outMsg.destination;
+            } else if (inMsg?.source && inMsg.value) {
+                // Incoming internal message with value — user received TON
+                previewType = 'receive';
+                previewAmount = inMsg.value;
+                previewAddress = inMsg.source;
+            }
 
             set((s) => {
-                const traceIdNorm = Base64NormalizeUrl(HexToBase64(event.eventId));
-                const extHash = event.traceExternalHash;
-                const traceId = extHash || traceIdNorm;
-
-                // Dedup with existing pending transactions
                 const existingIndex = s.walletManagement.pendingTransactions.findIndex(
-                    (p) =>
-                        (p.externalHash && extHash && p.externalHash === extHash) ||
-                        p.traceId === traceId ||
-                        p.traceId === traceIdNorm,
+                    (p) => (externalHash && p.externalHash && p.externalHash === externalHash) || p.traceId === traceId,
                 );
 
                 const pendingTx = {
                     traceId,
-                    externalHash: extHash,
-                    action: event.actions[0],
-                    finality: update.finality || 'pending',
+                    externalHash,
+                    action: undefined,
+                    finality: update.finality ?? 'pending',
                     preview: {
-                        type: 'contract' as const,
-                        amount: '0',
-                        address: '',
-                        timestamp: event.timestamp,
+                        type: previewType,
+                        amount: previewAmount,
+                        address: previewAddress,
+                        timestamp: firstTx.now,
                     },
                 };
 
@@ -747,6 +717,12 @@ export const createWalletManagementSlice =
                     s.walletManagement.pendingTransactions.unshift(pendingTx);
                 }
             });
+
+            // On confirmed/finalized, refresh events and balance from REST
+            if (update.finality === 'confirmed' || update.finality === 'finalized') {
+                void get().loadEvents();
+                void get().updateBalance();
+            }
         },
 
         loadEvents: async (limit = 10, offset = 0) => {

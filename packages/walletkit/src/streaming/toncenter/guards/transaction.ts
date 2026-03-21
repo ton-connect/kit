@@ -9,6 +9,7 @@
 import type {
     StreamingV2TraceInvalidatedNotification,
     StreamingV2TransactionsNotification,
+    StreamingV2TraceNotification,
 } from '../types/transaction';
 
 export function isTransactionsNotification(msg: unknown): msg is StreamingV2TransactionsNotification {
@@ -32,15 +33,15 @@ export function isTraceInvalidatedNotification(msg: unknown): msg is StreamingV2
     );
 }
 
-export function isTraceNotification(
-    msg: unknown,
-): msg is { type: 'trace'; trace_external_hash_norm: string; trace: unknown } {
+export function isTraceNotification(msg: unknown): msg is StreamingV2TraceNotification {
     const m = msg as Record<string, unknown>;
     return (
         typeof msg === 'object' &&
         msg !== null &&
         m.type === 'trace' &&
         typeof m.trace_external_hash_norm === 'string' &&
-        m.trace !== undefined
+        m.trace !== undefined &&
+        m.finality !== undefined &&
+        m.transactions !== undefined
     );
 }

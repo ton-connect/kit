@@ -7,6 +7,7 @@
  */
 
 import { asAddressFriendly } from '../../../utils';
+import { formatUnits } from '../../../utils/units';
 import type { JettonUpdate } from '../../types';
 import type { StreamingV2JettonsNotification } from '../types/jetton';
 
@@ -19,12 +20,7 @@ export function mapJettons(notification: StreamingV2JettonsNotification): Jetton
 
     let formattedBalance: string | undefined;
     if (decimals !== undefined && balance) {
-        const denom = BigInt(10) ** BigInt(decimals);
-        const valueNum = Number(BigInt(balance)) / Number(denom);
-        formattedBalance =
-            valueNum >= 1
-                ? valueNum.toFixed(3).replace(/\.0+$/, '')
-                : valueNum.toFixed(decimals).replace(/0+$/, '').replace(/\.$/, '');
+        formattedBalance = formatUnits(balance, decimals);
     }
 
     return {

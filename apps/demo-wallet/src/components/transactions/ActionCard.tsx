@@ -17,7 +17,7 @@ interface ActionCardProps {
     action: Action;
     myAddress: string;
     timestamp: number;
-    traceLink: string;
+    traceLink?: string;
     /** When true, renders as pending (spinner icon, "Pending" status) */
     isPending?: boolean;
     /** Finality: pending, confirmed, finalized, or done (default from isPending) */

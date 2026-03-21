@@ -260,7 +260,11 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                                 action={p.action}
                                                 myAddress={address || ''}
                                                 timestamp={preview?.timestamp ?? Math.floor(Date.now() / 1000)}
-                                                traceLink={`/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`}
+                                                traceLink={
+                                                    isPending
+                                                        ? undefined
+                                                        : `/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`
+                                                }
                                                 isPending={isPending}
                                                 finality={finality}
                                                 debugId={`pending-${p.traceId.slice(0, 12)}`}
@@ -316,7 +320,11 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                             action={pendingAction}
                                             myAddress={address || ''}
                                             timestamp={preview?.timestamp ?? Math.floor(Date.now() / 1000)}
-                                            traceLink={`/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`}
+                                            traceLink={
+                                                isPending
+                                                    ? undefined
+                                                    : `/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`
+                                            }
                                             isPending={isPending}
                                             finality={finality}
                                             debugId={`pending-${p.traceId.slice(0, 12)}`}

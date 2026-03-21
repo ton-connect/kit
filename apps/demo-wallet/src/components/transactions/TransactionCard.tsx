@@ -18,7 +18,7 @@ export interface TransactionCardProps {
     value: string;
     valueImage?: string;
     timestamp: number;
-    traceLink: string;
+    traceLink?: string;
     status: 'pending' | 'success' | 'failure';
     /** Finality for status badge: pending, confirmed, finalized, or done (default: pending when status=pending, else done) */
     finality?: TxFinality;
@@ -148,12 +148,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = memo(
                       ? 'text-red-500'
                       : 'text-gray-400';
 
-        return (
-            <Link
-                to={traceLink}
-                className="block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors"
-                {...(debugId && { 'data-debug-id': debugId })}
-            >
+        const inner = (
+            <>
                 {/* Row 1: description + value */}
                 <div className="flex items-center justify-between gap-2 min-w-0">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -190,6 +186,27 @@ export const TransactionCard: React.FC<TransactionCardProps> = memo(
                         </span>
                     )}
                 </div>
+            </>
+        );
+
+        if (!traceLink) {
+            return (
+                <div
+                    className="block py-2 -mx-1 px-1 rounded"
+                    {...(debugId && { 'data-debug-id': debugId })}
+                >
+                    {inner}
+                </div>
+            );
+        }
+
+        return (
+            <Link
+                to={traceLink}
+                className="block py-2 hover:bg-gray-50/50 -mx-1 px-1 rounded transition-colors"
+                {...(debugId && { 'data-debug-id': debugId })}
+            >
+                {inner}
             </Link>
         );
     },

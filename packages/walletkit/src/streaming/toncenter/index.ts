@@ -6,6 +6,5 @@
  *
  */
 
-export * from './TonCenterStreamingProvider';
+export * from './provider';
 export * from './factory';
-export * from './mappers/to-toncenter-transaction';

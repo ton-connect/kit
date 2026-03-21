@@ -6,11 +6,24 @@
  *
  */
 
-import type { UserFriendlyAddress } from '../api/models';
-import type { ToncenterTransaction } from '../types/toncenter/emulation';
-import type { MetadataV3 } from '../types/toncenter/v3/AddressBookRowV3';
+import type { StreamingProvider, StreamingProviderListener } from './StreamingProvider';
+import type { StreamingWatchType } from './StreamingManager';
+import type {
+    UserFriendlyAddress,
+    Network,
+    Transaction,
+    TransactionTrace,
+    TransactionAddressMetadata,
+} from '../api/models';
+import type { AddressBookRowV3 } from '../types/toncenter/v3/AddressBookRowV3';
 
 export type StreamingFinality = 'pending' | 'confirmed' | 'finalized';
+
+export type StreamingProviderFactory = (options: {
+    network: Network;
+    listener: StreamingProviderListener;
+    getWatchers: () => Map<StreamingWatchType, Set<string>>;
+}) => StreamingProvider;
 
 export interface BalanceUpdate {
     /** The account address */
@@ -25,13 +38,13 @@ export interface TransactionsUpdate {
     /** The account address */
     address: UserFriendlyAddress;
     /** The array of transactions */
-    transactions: ToncenterTransaction[];
+    transactions: Transaction[];
     /** The finality of the update */
     finality?: StreamingFinality;
-    /** Address book metadata from streaming v2 notification */
-    addressBook?: MetadataV3['address_book'];
+    /** Address book from streaming v2 notification */
+    addressBook?: Record<string, AddressBookRowV3>;
     /** Metadata from streaming v2 notification */
-    metadata?: MetadataV3['metadata'];
+    metadata?: TransactionAddressMetadata;
 }
 
 export interface JettonUpdate {
@@ -55,5 +68,7 @@ export interface TraceUpdate {
     /** The trace hash */
     hash: string;
     /** The trace object data */
-    trace: unknown;
+    trace?: TransactionTrace;
 }
+
+export type StreamingUpdate = BalanceUpdate | TransactionsUpdate | JettonUpdate | TraceUpdate;

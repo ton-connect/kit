@@ -12,6 +12,7 @@ import type {
     StreamingV2ActionsNotification,
     StreamingV2TraceInvalidatedNotification,
     StreamingV2TransactionsNotification,
+    StreamingV2TraceNotification,
 } from './transaction';
 
 export type StreamingV2Finality = 'pending' | 'confirmed' | 'finalized';
@@ -40,4 +41,5 @@ export type StreamingV2Event =
     | StreamingV2ActionsNotification
     | StreamingV2AccountStateNotification
     | StreamingV2JettonsNotification
+    | StreamingV2TraceNotification
     | StreamingV2TraceInvalidatedNotification;

@@ -16,131 +16,75 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     protected ws: WebSocket | null = null;
     protected isConnected = false;
     protected listener: StreamingProviderListener;
+    protected getWatchers: () => Map<string, Set<string>>;
 
     private reconnectAttempts = 0;
-    private maxReconnectAttempts = 3;
+    private maxReconnectAttempts = 50;
     private reconnectDelay = 300;
     private pingInterval: ReturnType<typeof setInterval> | null = null;
     private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    protected watchedBalance: Set<string> = new Set();
-    protected watchedTransactions: Set<string> = new Set();
-    protected watchedJettons: Set<string> = new Set();
-    protected watchedTracesAddresses: Set<string> = new Set();
-    protected watchedTraceHashes: Set<string> = new Set();
-
-    constructor(listener: StreamingProviderListener) {
+    constructor(listener: StreamingProviderListener, getWatchers: () => Map<string, Set<string>>) {
         this.listener = listener;
+        this.getWatchers = getWatchers;
     }
 
     // Abstract methods to be implemented by children
     protected abstract getUrl(): string;
     protected abstract onMessage(event: MessageEvent): void;
-    protected abstract updateSubscription(): void;
-    protected abstract unsubscribe(addresses: string[], traceHashes: string[]): void;
+    protected abstract fullResync(): void;
+    protected abstract onWatch(type: string, id: string): void;
+    protected abstract onUnwatch(type: string, id: string): void;
+
+    protected hasActiveSubscriptions(): boolean {
+        const watched = this.getWatchers();
+        for (const set of watched.values()) {
+            if (set.size > 0) return true;
+        }
+        return false;
+    }
 
     watchBalance(address: string): void {
-        const friendly = asAddressFriendly(address);
-        if (this.watchedBalance.has(friendly)) return;
-        this.watchedBalance.add(friendly);
+        this.onWatch('balance', address);
         this.ensureConnected();
     }
 
     unwatchBalance(address: string): void {
         const friendly = asAddressFriendly(address);
-        if (!this.watchedBalance.has(friendly)) return;
-        this.watchedBalance.delete(friendly);
-
-        const isStillUsed =
-            this.watchedTransactions.has(friendly) ||
-            this.watchedJettons.has(friendly) ||
-            this.watchedTracesAddresses.has(friendly);
-        if (!isStillUsed) {
-            this.unsubscribe([friendly], []);
-        }
-
+        this.onUnwatch('balance', friendly);
         this.checkClose();
     }
 
     watchTransactions(address: string): void {
-        const friendly = asAddressFriendly(address);
-        if (this.watchedTransactions.has(friendly)) return;
-        this.watchedTransactions.add(friendly);
+        this.onWatch('transactions', address);
         this.ensureConnected();
     }
 
     unwatchTransactions(address: string): void {
         const friendly = asAddressFriendly(address);
-        if (!this.watchedTransactions.has(friendly)) return;
-        this.watchedTransactions.delete(friendly);
-
-        const isStillUsed =
-            this.watchedBalance.has(friendly) ||
-            this.watchedJettons.has(friendly) ||
-            this.watchedTracesAddresses.has(friendly);
-        if (!isStillUsed) {
-            this.unsubscribe([friendly], []);
-        }
-
+        this.onUnwatch('transactions', friendly);
         this.checkClose();
     }
 
     watchJettons(address: string): void {
-        const friendly = asAddressFriendly(address);
-        if (this.watchedJettons.has(friendly)) return;
-        this.watchedJettons.add(friendly);
+        this.onWatch('jettons', address);
         this.ensureConnected();
     }
 
     unwatchJettons(address: string): void {
         const friendly = asAddressFriendly(address);
-        if (!this.watchedJettons.has(friendly)) return;
-        this.watchedJettons.delete(friendly);
-
-        const isStillUsed =
-            this.watchedBalance.has(friendly) ||
-            this.watchedTransactions.has(friendly) ||
-            this.watchedTracesAddresses.has(friendly);
-        if (!isStillUsed) {
-            this.unsubscribe([friendly], []);
-        }
-
+        this.onUnwatch('jettons', friendly);
         this.checkClose();
     }
 
     watchTraces(address: string): void {
-        const friendly = asAddressFriendly(address);
-        if (this.watchedTracesAddresses.has(friendly)) return;
-        this.watchedTracesAddresses.add(friendly);
+        this.onWatch('traces', address);
         this.ensureConnected();
     }
 
     unwatchTraces(address: string): void {
         const friendly = asAddressFriendly(address);
-        if (!this.watchedTracesAddresses.has(friendly)) return;
-        this.watchedTracesAddresses.delete(friendly);
-
-        const isStillUsed =
-            this.watchedBalance.has(friendly) ||
-            this.watchedTransactions.has(friendly) ||
-            this.watchedJettons.has(friendly);
-        if (!isStillUsed) {
-            this.unsubscribe([friendly], []);
-        }
-
-        this.checkClose();
-    }
-
-    watchTrace(hash: string): void {
-        if (this.watchedTraceHashes.has(hash)) return;
-        this.watchedTraceHashes.add(hash);
-        this.ensureConnected();
-    }
-
-    unwatchTrace(hash: string): void {
-        if (!this.watchedTraceHashes.has(hash)) return;
-        this.watchedTraceHashes.delete(hash);
-        this.unsubscribe([], [hash]);
+        this.onUnwatch('traces', friendly);
         this.checkClose();
     }
 
@@ -156,20 +100,13 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     protected checkClose(): void {
-        if (
-            this.watchedBalance.size === 0 &&
-            this.watchedTransactions.size === 0 &&
-            this.watchedJettons.size === 0 &&
-            this.watchedTracesAddresses.size === 0 &&
-            this.watchedTraceHashes.size === 0
-        ) {
+        if (!this.hasActiveSubscriptions()) {
             this.close();
         }
     }
 
     protected ensureConnected(): void {
         if (this.isConnected || this.ws?.readyState === WebSocket.CONNECTING) {
-            this.updateSubscription();
             return;
         }
         this.connect();
@@ -192,7 +129,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
             log.info('WebSocket connected');
             this.isConnected = true;
             this.reconnectAttempts = 0;
-            this.updateSubscription();
+            this.fullResync();
             this.startPing();
         };
 
@@ -204,13 +141,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
             this.stopPing();
             this.ws = null;
 
-            if (
-                this.watchedBalance.size > 0 ||
-                this.watchedTransactions.size > 0 ||
-                this.watchedJettons.size > 0 ||
-                this.watchedTracesAddresses.size > 0 ||
-                this.watchedTraceHashes.size > 0
-            ) {
+            if (this.hasActiveSubscriptions()) {
                 this.scheduleReconnect();
             }
         };
@@ -252,6 +183,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
 
         this.reconnectAttempts++;
         const delayMs = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 5000);
+        log.info(`Scheduling reconnect in ${delayMs}ms (attempt ${this.reconnectAttempts})`);
         this.reconnectTimeout = setTimeout(() => {
             this.reconnectTimeout = null;
             this.connect();

@@ -8,17 +8,24 @@
 
 import type { Network } from '../api/models';
 import type { WalletKitEventEmitter } from '../types/emitter';
-import type { StreamingProvider, StreamingProviderListener } from './StreamingProvider';
-import type { JettonUpdate, BalanceUpdate, TransactionsUpdate, TraceUpdate } from './types';
+import type { StreamingProvider } from './StreamingProvider';
+import type {
+    JettonUpdate,
+    BalanceUpdate,
+    TransactionsUpdate,
+    TraceUpdate,
+    StreamingUpdate,
+    StreamingProviderFactory,
+} from './types';
 import { globalLogger } from '../core/Logger';
 import { asAddressFriendly, compareAddress } from '../utils';
 
 const log = globalLogger.createChild('StreamingManager');
 
-export type StreamingProviderFactory = (options: {
-    network: Network;
-    listener: StreamingProviderListener;
-}) => StreamingProvider;
+/**
+ * Orchestrates streaming providers and synchronizes them with the global EventEmitter.
+ */
+export type StreamingWatchType = 'balance' | 'transactions' | 'jettons' | 'traces';
 
 /**
  * Orchestrates streaming providers and synchronizes them with the global EventEmitter.
@@ -48,7 +55,7 @@ export class StreamingManager {
      */
     watchBalance(network: Network, address: string, onChange: (update: BalanceUpdate) => void): () => void {
         const id = asAddressFriendly(address);
-        const unwatchProvider = this.incrementWatch(network, 'balance', id);
+        const unwatchProvider = this.addWatcher(network, 'balance', id);
         const off = this.eventEmitter.on('balanceUpdate', ({ payload: update }) => {
             if (compareAddress(address, update.address)) {
                 onChange(update);
@@ -66,7 +73,7 @@ export class StreamingManager {
      */
     watchTransactions(network: Network, address: string, onChange: (update: TransactionsUpdate) => void): () => void {
         const id = asAddressFriendly(address);
-        const unwatchProvider = this.incrementWatch(network, 'transactions', id);
+        const unwatchProvider = this.addWatcher(network, 'transactions', id);
         const off = this.eventEmitter.on('transactions', ({ payload: update }) => {
             if (compareAddress(address, update.address)) {
                 onChange(update);
@@ -84,27 +91,10 @@ export class StreamingManager {
      */
     watchJettons(network: Network, address: string, onChange: (jetton: JettonUpdate) => void): () => void {
         const id = asAddressFriendly(address);
-        const unwatchProvider = this.incrementWatch(network, 'jettons', id);
+        const unwatchProvider = this.addWatcher(network, 'jettons', id);
         const off = this.eventEmitter.on('jettonsUpdate', ({ payload: jetton }) => {
             if (compareAddress(address, jetton.ownerAddress)) {
                 onChange(jetton);
-            }
-        });
-
-        return () => {
-            unwatchProvider();
-            off();
-        };
-    }
-
-    /**
-     * Watch a specific trace by hash.
-     */
-    watchTrace(network: Network, hash: string, onChange: (update: TraceUpdate) => void): () => void {
-        const unwatchProvider = this.incrementWatch(network, 'trace', hash);
-        const off = this.eventEmitter.on('trace', ({ payload: update }) => {
-            if (update.hash === hash) {
-                onChange(update);
             }
         });
 
@@ -119,14 +109,24 @@ export class StreamingManager {
      */
     watchTraces(network: Network, address: string, onChange: (update: TraceUpdate) => void): () => void {
         const id = asAddressFriendly(address);
-        const unwatchProvider = this.incrementWatch(network, 'traces', id);
+        const unwatchProvider = this.addWatcher(network, 'traces', id);
         const off = this.eventEmitter.on('trace', ({ payload: update }) => {
-            // We don't have an easy way to verify if this trace belongs to the address here
-            // without parsing the trace, but the provider only received it because we watched the address.
-            // However, multiple addresses might be watched.
-            // For now, we emit and let the listener decide or we could try to filter if possible.
-            // Most often, it's just one address per connection in demo-wallet.
-            onChange(update);
+            // If we have a full trace, we can verify if it belongs to the address
+
+            if (update.trace) {
+                const isRelevant =
+                    Object.values(update.trace.transactions).some((tx) => compareAddress(tx.account, address)) ||
+                    update.trace.actions.some((action) => action.accounts.some((acc) => compareAddress(acc, address)));
+
+                if (isRelevant) {
+                    onChange(update);
+                }
+            } else {
+                // If it's just a hash update (trace_invalidated), we emit it to all trace listeners
+                // or we could try to keep track of which hash belongs to which address, but it's complex.
+                // For now, emit hash updates as they are usually followed by a full trace.
+                onChange(update);
+            }
         });
 
         return () => {
@@ -135,11 +135,34 @@ export class StreamingManager {
         };
     }
 
-    private incrementWatch(
+    /**
+     * Bulk watch multiple types for an address.
+     */
+    watch(
         network: Network,
-        type: 'balance' | 'transactions' | 'jettons' | 'trace' | 'traces',
-        id: string,
+        address: string,
+        types: Exclude<StreamingWatchType, 'trace'>[],
+        onUpdate: (type: StreamingWatchType, update: StreamingUpdate) => void,
     ): () => void {
+        const unwatchers = types.map((type) => {
+            switch (type) {
+                case 'balance':
+                    return this.watchBalance(network, address, (u) => onUpdate('balance', u));
+                case 'transactions':
+                    return this.watchTransactions(network, address, (u) => onUpdate('transactions', u));
+                case 'jettons':
+                    return this.watchJettons(network, address, (u) => onUpdate('jettons', u));
+                case 'traces':
+                    return this.watchTraces(network, address, (u) => onUpdate('traces', u));
+                default:
+                    return () => {};
+            }
+        });
+
+        return () => unwatchers.forEach((unwatch) => unwatch());
+    }
+
+    private addWatcher(network: Network, type: StreamingWatchType, id: string): () => void {
         const networkId = String(network.chainId);
         const resourceKey = `${type}:${id}`;
 
@@ -169,11 +192,7 @@ export class StreamingManager {
         };
     }
 
-    private callProviderWatch(
-        provider: StreamingProvider,
-        type: 'balance' | 'transactions' | 'jettons' | 'trace' | 'traces',
-        id: string,
-    ): void {
+    private callProviderWatch(provider: StreamingProvider, type: StreamingWatchType, id: string): void {
         switch (type) {
             case 'balance':
                 provider.watchBalance(id);
@@ -184,20 +203,13 @@ export class StreamingManager {
             case 'jettons':
                 provider.watchJettons(id);
                 break;
-            case 'trace':
-                provider.watchTrace(id);
-                break;
             case 'traces':
                 provider.watchTraces(id);
                 break;
         }
     }
 
-    private callProviderUnwatch(
-        provider: StreamingProvider,
-        type: 'balance' | 'transactions' | 'jettons' | 'trace' | 'traces',
-        id: string,
-    ): void {
+    private callProviderUnwatch(provider: StreamingProvider, type: StreamingWatchType, id: string): void {
         switch (type) {
             case 'balance':
                 provider.unwatchBalance(id);
@@ -207,9 +219,6 @@ export class StreamingManager {
                 break;
             case 'jettons':
                 provider.unwatchJettons(id);
-                break;
-            case 'trace':
-                provider.unwatchTrace(id);
                 break;
             case 'traces':
                 provider.unwatchTraces(id);
@@ -231,24 +240,39 @@ export class StreamingManager {
 
         provider = factory({
             network,
+            getWatchers: () => this.getWatchers(network),
             listener: {
-                onBalanceUpdate: (update) => {
-                    this.eventEmitter.emit('balanceUpdate', update, 'streaming-manager');
-                },
-                onTransactions: (update) => {
-                    this.eventEmitter.emit('transactions', update, 'streaming-manager');
-                },
-                onJettonsUpdate: (update) => {
-                    this.eventEmitter.emit('jettonsUpdate', update, 'streaming-manager');
-                },
-                onTraceUpdate: (update) => {
-                    this.eventEmitter.emit('trace', update, 'streaming-manager');
-                },
+                onBalanceUpdate: (update) => this.eventEmitter.emit('balanceUpdate', update, 'streaming-manager'),
+                onTransactions: (update) => this.eventEmitter.emit('transactions', update, 'streaming-manager'),
+                onJettonsUpdate: (update) => this.eventEmitter.emit('jettonsUpdate', update, 'streaming-manager'),
+                onTraceUpdate: (update) => this.eventEmitter.emit('trace', update, 'streaming-manager'),
             },
         });
 
         this.providers.set(networkId, provider);
         return provider;
+    }
+
+    private getWatchers(network: Network): Map<StreamingWatchType, Set<string>> {
+        const networkId = String(network.chainId);
+        const networkWatch = this.watchCounts.get(networkId);
+        const result = new Map<StreamingWatchType, Set<string>>();
+
+        if (!networkWatch) return result;
+
+        networkWatch.forEach((count, key) => {
+            if (count > 0) {
+                const [type, id] = key.split(':') as [StreamingWatchType, string];
+                let set = result.get(type);
+                if (!set) {
+                    set = new Set();
+                    result.set(type, set);
+                }
+                set.add(id);
+            }
+        });
+
+        return result;
     }
 
     /**

@@ -41,12 +41,6 @@ export interface StreamingProvider {
     unwatchTraces(address: string): void;
 
     /**
-     * Watch a specific trace by hash.
-     */
-    watchTrace(hash: string): void;
-    unwatchTrace(hash: string): void;
-
-    /**
      * Close the connection.
      */
     close(): void;
