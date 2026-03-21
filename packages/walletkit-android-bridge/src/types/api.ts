@@ -8,6 +8,7 @@
 
 import type {
     BridgeEvent,
+    ConnectionRequestEvent,
     ConnectionRequestEventPreview,
     ConnectEvent,
     ConnectEventError,
@@ -289,6 +290,7 @@ export interface WalletKitBridgeApi {
     getBalance(args: GetBalanceArgs): PromiseOrValue<string | undefined>;
     getRecentTransactions(args: GetRecentTransactionsArgs): PromiseOrValue<Transaction[]>;
     handleTonConnectUrl(args: HandleTonConnectUrlArgs): PromiseOrValue<void>;
+    connectionEventFromUrl(args: string): PromiseOrValue<ConnectionRequestEvent>;
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;

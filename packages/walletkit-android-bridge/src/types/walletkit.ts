@@ -76,6 +76,7 @@ export interface WalletKitInstance {
     addWallet(adapter: WalletAdapter): Promise<Wallet | null>;
     handleNewTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
     handleTonConnectUrl(url: string): Promise<void>;
+    connectionEventFromUrl?(url: string): Promise<ConnectionRequestEvent>;
     listSessions?(): Promise<TONConnectSession[]>;
     disconnect?(sessionId?: string): Promise<void>;
     processInjectedBridgeRequest?(
