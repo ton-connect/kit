@@ -13,7 +13,6 @@ import type {
     JettonUpdate,
     BalanceUpdate,
     TransactionsUpdate,
-    TraceUpdate,
     StreamingUpdate,
     StreamingProviderFactory,
 } from './types';
@@ -25,7 +24,7 @@ const log = globalLogger.createChild('StreamingManager');
 /**
  * Orchestrates streaming providers and synchronizes them with the global EventEmitter.
  */
-export type StreamingWatchType = 'balance' | 'transactions' | 'jettons' | 'traces';
+export type StreamingWatchType = 'balance' | 'transactions' | 'jettons';
 
 /**
  * Orchestrates streaming providers and synchronizes them with the global EventEmitter.
@@ -57,9 +56,7 @@ export class StreamingManager {
         const id = asAddressFriendly(address);
         const unwatchProvider = this.addWatcher(network, 'balance', id);
         const off = this.eventEmitter.on('balanceUpdate', ({ payload: update }) => {
-            if (compareAddress(address, update.address)) {
-                onChange(update);
-            }
+            if (compareAddress(address, update.address)) onChange(update);
         });
 
         return () => {
@@ -75,9 +72,7 @@ export class StreamingManager {
         const id = asAddressFriendly(address);
         const unwatchProvider = this.addWatcher(network, 'transactions', id);
         const off = this.eventEmitter.on('transactions', ({ payload: update }) => {
-            if (compareAddress(address, update.address)) {
-                onChange(update);
-            }
+            if (compareAddress(address, update.address)) onChange(update);
         });
 
         return () => {
@@ -93,40 +88,7 @@ export class StreamingManager {
         const id = asAddressFriendly(address);
         const unwatchProvider = this.addWatcher(network, 'jettons', id);
         const off = this.eventEmitter.on('jettonsUpdate', ({ payload: jetton }) => {
-            if (compareAddress(address, jetton.ownerAddress)) {
-                onChange(jetton);
-            }
-        });
-
-        return () => {
-            unwatchProvider();
-            off();
-        };
-    }
-
-    /**
-     * Watch all traces for an address.
-     */
-    watchTraces(network: Network, address: string, onChange: (update: TraceUpdate) => void): () => void {
-        const id = asAddressFriendly(address);
-        const unwatchProvider = this.addWatcher(network, 'traces', id);
-        const off = this.eventEmitter.on('trace', ({ payload: update }) => {
-            // If we have a full trace, we can verify if it belongs to the address
-
-            if (update.trace) {
-                const isRelevant =
-                    Object.values(update.trace.transactions).some((tx) => compareAddress(tx.account, address)) ||
-                    update.trace.actions.some((action) => action.accounts.some((acc) => compareAddress(acc, address)));
-
-                if (isRelevant) {
-                    onChange(update);
-                }
-            } else {
-                // If it's just a hash update (trace_invalidated), we emit it to all trace listeners
-                // or we could try to keep track of which hash belongs to which address, but it's complex.
-                // For now, emit hash updates as they are usually followed by a full trace.
-                onChange(update);
-            }
+            if (compareAddress(address, jetton.ownerAddress)) onChange(jetton);
         });
 
         return () => {
@@ -152,8 +114,6 @@ export class StreamingManager {
                     return this.watchTransactions(network, address, (u) => onUpdate('transactions', u));
                 case 'jettons':
                     return this.watchJettons(network, address, (u) => onUpdate('jettons', u));
-                case 'traces':
-                    return this.watchTraces(network, address, (u) => onUpdate('traces', u));
                 default:
                     return () => {};
             }
@@ -203,9 +163,6 @@ export class StreamingManager {
             case 'jettons':
                 provider.watchJettons(id);
                 break;
-            case 'traces':
-                provider.watchTraces(id);
-                break;
         }
     }
 
@@ -219,9 +176,6 @@ export class StreamingManager {
                 break;
             case 'jettons':
                 provider.unwatchJettons(id);
-                break;
-            case 'traces':
-                provider.unwatchTraces(id);
                 break;
         }
     }
@@ -245,7 +199,6 @@ export class StreamingManager {
                 onBalanceUpdate: (update) => this.eventEmitter.emit('balanceUpdate', update, 'streaming-manager'),
                 onTransactions: (update) => this.eventEmitter.emit('transactions', update, 'streaming-manager'),
                 onJettonsUpdate: (update) => this.eventEmitter.emit('jettonsUpdate', update, 'streaming-manager'),
-                onTraceUpdate: (update) => this.eventEmitter.emit('trace', update, 'streaming-manager'),
             },
         });
 

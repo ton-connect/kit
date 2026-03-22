@@ -8,13 +8,7 @@
 
 import type { StreamingProvider, StreamingProviderListener } from './StreamingProvider';
 import type { StreamingWatchType } from './StreamingManager';
-import type {
-    UserFriendlyAddress,
-    Network,
-    Transaction,
-    TransactionTrace,
-    TransactionAddressMetadata,
-} from '../api/models';
+import type { UserFriendlyAddress, Network, Transaction, TransactionAddressMetadata } from '../api/models';
 import type { AddressBookRowV3 } from '../types/toncenter/v3/AddressBookRowV3';
 
 export type StreamingFinality = 'pending' | 'confirmed' | 'finalized';
@@ -64,11 +58,4 @@ export interface JettonUpdate {
     finality?: StreamingFinality;
 }
 
-export interface TraceUpdate {
-    /** The trace hash */
-    hash: string;
-    /** The trace object data */
-    trace?: TransactionTrace;
-}
-
-export type StreamingUpdate = BalanceUpdate | TransactionsUpdate | JettonUpdate | TraceUpdate;
+export type StreamingUpdate = BalanceUpdate | TransactionsUpdate | JettonUpdate;

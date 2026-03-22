@@ -33,8 +33,6 @@ interface MockProvider extends StreamingProvider {
     unwatchTransactions: Mock<(address: string) => void>;
     watchJettons: Mock<(address: string) => void>;
     unwatchJettons: Mock<(address: string) => void>;
-    watchTraces: Mock<(address: string) => void>;
-    unwatchTraces: Mock<(address: string) => void>;
     close: Mock<() => void>;
 }
 
@@ -46,8 +44,6 @@ function makeMockProvider(): MockProvider {
         unwatchTransactions: vi.fn<(address: string) => void>(),
         watchJettons: vi.fn<(address: string) => void>(),
         unwatchJettons: vi.fn<(address: string) => void>(),
-        watchTraces: vi.fn<(address: string) => void>(),
-        unwatchTraces: vi.fn<(address: string) => void>(),
         close: vi.fn<() => void>(),
     } as unknown as MockProvider;
 }

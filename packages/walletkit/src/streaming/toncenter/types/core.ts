@@ -8,22 +8,11 @@
 
 import type { StreamingV2AccountStateNotification } from './account';
 import type { StreamingV2JettonsNotification } from './jetton';
-import type {
-    StreamingV2ActionsNotification,
-    StreamingV2TraceInvalidatedNotification,
-    StreamingV2TransactionsNotification,
-    StreamingV2TraceNotification,
-} from './transaction';
+import type { StreamingV2TransactionsNotification } from './transaction';
 
 export type StreamingV2Finality = 'pending' | 'confirmed' | 'finalized';
 
-export type StreamingV2EventType =
-    | 'transactions'
-    | 'actions'
-    | 'trace'
-    | 'account_state_change'
-    | 'jettons_change'
-    | 'trace_invalidated';
+export type StreamingV2EventType = 'transactions' | 'account_state_change' | 'jettons_change';
 
 export interface StreamingV2SubscriptionRequest {
     addresses?: string[];
@@ -32,14 +21,9 @@ export interface StreamingV2SubscriptionRequest {
     min_finality?: StreamingV2Finality;
     include_address_book?: boolean;
     include_metadata?: boolean;
-    action_types?: string[];
-    supported_action_types?: string[];
 }
 
 export type StreamingV2Event =
     | StreamingV2TransactionsNotification
-    | StreamingV2ActionsNotification
     | StreamingV2AccountStateNotification
-    | StreamingV2JettonsNotification
-    | StreamingV2TraceNotification
-    | StreamingV2TraceInvalidatedNotification;
+    | StreamingV2JettonsNotification;

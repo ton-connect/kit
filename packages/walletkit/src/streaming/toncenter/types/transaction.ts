@@ -6,13 +6,7 @@
  *
  */
 
-import type {
-    EmulationBlockRef,
-    EmulationMessage,
-    EmulationActionBase,
-    EmulationActionDetails,
-    EmulationTraceNode,
-} from '../../../types/toncenter/emulation';
+import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncenter/emulation';
 import type { AddressBookRowV3 } from '../../../types/toncenter/v3/AddressBookRowV3';
 import type { TransactionAddressMetadata } from '../../../api/models';
 import type { StreamingV2AccountState } from './account';
@@ -99,35 +93,6 @@ export interface StreamingV2TransactionsNotification {
     finality: StreamingV2Finality;
     trace_external_hash_norm: string;
     transactions: StreamingV2TransactionRaw[];
-    address_book?: Record<string, AddressBookRowV3>;
-    metadata?: TransactionAddressMetadata;
-}
-
-export interface StreamingV2Action extends EmulationActionBase {
-    details: EmulationActionDetails;
-}
-
-export interface StreamingV2ActionsNotification {
-    type: 'actions';
-    finality: StreamingV2Finality;
-    trace_external_hash_norm: string;
-    actions: StreamingV2Action[];
-    address_book?: Record<string, AddressBookRowV3>;
-    metadata?: TransactionAddressMetadata;
-}
-
-export interface StreamingV2TraceInvalidatedNotification {
-    type: 'trace_invalidated';
-    trace_external_hash_norm: string;
-}
-
-export interface StreamingV2TraceNotification {
-    type: 'trace';
-    finality: StreamingV2Finality;
-    trace_external_hash_norm: string;
-    trace: EmulationTraceNode;
-    transactions: Record<string, StreamingV2TransactionRaw>;
-    actions?: StreamingV2Action[];
     address_book?: Record<string, AddressBookRowV3>;
     metadata?: TransactionAddressMetadata;
 }

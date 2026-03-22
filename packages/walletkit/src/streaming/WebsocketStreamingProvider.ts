@@ -77,17 +77,6 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
         this.checkClose();
     }
 
-    watchTraces(address: string): void {
-        this.onWatch('traces', address);
-        this.ensureConnected();
-    }
-
-    unwatchTraces(address: string): void {
-        const friendly = asAddressFriendly(address);
-        this.onUnwatch('traces', friendly);
-        this.checkClose();
-    }
-
     close(): void {
         this.stopReconnect();
         this.stopPing();

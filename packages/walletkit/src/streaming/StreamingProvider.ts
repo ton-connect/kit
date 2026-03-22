@@ -6,13 +6,12 @@
  *
  */
 
-import type { BalanceUpdate, TransactionsUpdate, JettonUpdate, TraceUpdate } from './types';
+import type { BalanceUpdate, TransactionsUpdate, JettonUpdate } from './types';
 
 export interface StreamingProviderListener {
     onBalanceUpdate: (update: BalanceUpdate) => void;
     onTransactions: (update: TransactionsUpdate) => void;
     onJettonsUpdate: (update: JettonUpdate) => void;
-    onTraceUpdate: (update: TraceUpdate) => void;
 }
 
 export interface StreamingProvider {
@@ -33,12 +32,6 @@ export interface StreamingProvider {
      */
     watchJettons(address: string): void;
     unwatchJettons(address: string): void;
-
-    /**
-     * Watch all traces for an address.
-     */
-    watchTraces(address: string): void;
-    unwatchTraces(address: string): void;
 
     /**
      * Close the connection.

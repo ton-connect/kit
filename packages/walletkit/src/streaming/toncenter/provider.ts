@@ -12,12 +12,11 @@ import type { StreamingProviderListener } from '../StreamingProvider';
 import type { StreamingV2SubscriptionRequest, StreamingV2EventType } from './types/core';
 import { isAccountStateNotification } from './guards/account';
 import { isJettonsNotification } from './guards/jetton';
-import { isTransactionsNotification, isTraceNotification, isTraceInvalidatedNotification } from './guards/transaction';
+import { isTransactionsNotification } from './guards/transaction';
 import { asAddressFriendly } from '../../utils';
 import { mapBalance } from './mappers/map-balance';
 import { mapTransactions } from './mappers/map-transactions';
 import { mapJettons } from './mappers/map-jettons';
-import { mapTrace } from './mappers/map-trace';
 import { WebsocketStreamingProvider } from '../WebsocketStreamingProvider';
 
 const log = globalLogger.createChild('TonCenterStreamingProvider');
@@ -172,17 +171,6 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
                     this.listener.onJettonsUpdate(update);
                 }
             }
-
-            if (isTraceNotification(msg) || isTraceInvalidatedNotification(msg)) {
-                if (isTraceInvalidatedNotification(msg)) {
-                    log.debug('Trace invalidated', { hash: msg.trace_external_hash_norm });
-                }
-                const update = mapTrace(msg);
-
-                // We only emit trace update if it belongs to a watched hash or address
-                // (WebsocketStreamingProvider handles address-based trace subscriptions too)
-                this.listener.onTraceUpdate(update);
-            }
         } catch (err) {
             log.warn('Failed to parse WebSocket message', { error: err });
         }
@@ -206,8 +194,6 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
                 return 'transactions';
             case 'jettons':
                 return 'jettons_change';
-            case 'traces':
-                return 'trace';
             default:
                 return null;
         }
