@@ -10,8 +10,7 @@ SRC_ROOT="$SCRIPT_DIR/../.."
 OUTPUT_FILE="$SCRIPT_DIR/generated/walletkit-openapi.json"
 TEMP_SCHEMA="$SCRIPT_DIR/generated/temp-schema.json"
 
-# Input glob: api/models + any models folders under defi
-TYPESCRIPT_INPUT="$SRC_ROOT/{api/models,defi/**/models}/**/*.ts"
+TYPESCRIPT_INPUT="$SRC_ROOT/{api/models,defi/**/models,streaming/**/models}/**/*.ts"
 
 echo "🚀 Converting TypeScript to OpenAPI specification..."
 echo "📁 TypeScript input: $TYPESCRIPT_INPUT"
