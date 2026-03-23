@@ -439,7 +439,7 @@ export async function loadConfigWithMigration(): Promise<TonConfig | null> {
 export function saveConfig(config: TonConfig): void {
     mkdirSync(getConfigDir(), { recursive: true, mode: 0o700 });
     chmodIfExists(getConfigDir(), 0o700);
-    writeEncryptedFile(getConfigPath(), JSON.stringify(normalizeConfig(config), null, 2) + '\n', {
+    writeEncryptedFile(getConfigPath(), JSON.stringify(normalizeConfig(config), null, 2), {
         encoding: 'utf-8',
         mode: 0o600,
     });

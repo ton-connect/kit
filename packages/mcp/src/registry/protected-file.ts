@@ -7,7 +7,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import type { Mode, PathOrFileDescriptor, WriteFileOptions } from 'node:fs';
+import type { PathOrFileDescriptor, WriteFileOptions } from 'node:fs';
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
 const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
@@ -16,11 +16,6 @@ const ENCRYPTION_KEY_BYTES = 32;
 const ENCRYPTION_IV_BYTES = 12;
 const ENCRYPTION_TAG_BYTES = 16;
 const HEADER_LENGTH = PROTECTED_FILE_MAGIC.length + ENCRYPTION_KEY_BYTES + ENCRYPTION_IV_BYTES + ENCRYPTION_TAG_BYTES;
-
-type ProtectedFileWriteOptions = WriteFileOptions & {
-    mode?: Mode;
-    flag?: string;
-};
 
 type ProtectedFileReadResult = { content: string; isProtected: boolean };
 
@@ -69,14 +64,7 @@ export function readMaybeEncryptedFile(path: PathOrFileDescriptor): ProtectedFil
     return decodeProtectedText(raw);
 }
 
-export function writeEncryptedFile(
-    path: PathOrFileDescriptor,
-    data: string,
-    options?: ProtectedFileWriteOptions,
-): void {
+export function writeEncryptedFile(path: PathOrFileDescriptor, data: string, options?: WriteFileOptions): void {
     const protectedData = encodeProtectedText(data);
-    writeFileSync(path, protectedData, {
-        ...(options?.mode !== undefined ? { mode: options.mode } : {}),
-        ...(options?.flag ? { flag: options.flag } : {}),
-    });
+    writeFileSync(path, protectedData, options);
 }
