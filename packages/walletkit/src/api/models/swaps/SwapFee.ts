@@ -6,7 +6,6 @@
  *
  */
 
-import type { TokenAmount } from '../core/TokenAmount';
 import type { SwapToken } from './SwapToken';
 
 /**
@@ -16,7 +15,7 @@ export interface SwapFee {
     /**
      * Amount of the fee
      */
-    amount: TokenAmount;
+    amount: string;
 
     /**
      * Token in which the fee is paid
