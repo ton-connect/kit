@@ -7,4 +7,5 @@
  */
 
 export * from './store';
+export * from './streaming';
 export * from './wallet';

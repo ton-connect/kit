@@ -154,6 +154,7 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                 passwordHash: state.auth.passwordHash,
                                 persistPassword: state.auth.persistPassword,
                                 holdToSign: state.auth.holdToSign,
+                                showFastSend: state.auth.showFastSend,
                                 useWalletInterfaceType: state.auth.useWalletInterfaceType,
                                 ledgerAccountNumber: state.auth.ledgerAccountNumber,
                                 ...(state.auth.persistPassword && {
@@ -196,6 +197,7 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                                     savedWallets: persisted?.walletManagement?.savedWallets || [],
                                     activeWalletId: persisted?.walletManagement?.activeWalletId,
                                     hasWallet: (persisted?.walletManagement?.savedWallets?.length || 0) > 0,
+                                    localSeqnoByAddress: persisted?.walletManagement?.localSeqnoByAddress || {},
                                     transactions: [],
                                 },
                                 tonConnect: {
@@ -230,6 +232,15 @@ export function createWalletStore(options: CreateWalletStoreOptions = {}) {
                             // Call actions after rehydration
                             if (state.clearExpiredRequests) {
                                 state.clearExpiredRequests();
+                            }
+
+                            // Load wallets after rehydration (fixes refresh on /send when loadSavedWalletsIntoKit ran before rehydration)
+                            if (
+                                state.walletCore.walletKit &&
+                                state.auth.currentPassword &&
+                                (state.walletManagement.savedWallets?.length ?? 0) > 0
+                            ) {
+                                void state.loadAllWallets();
                             }
 
                             // Resume processing if there are queued requests

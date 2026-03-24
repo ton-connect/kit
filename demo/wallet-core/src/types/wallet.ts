@@ -49,6 +49,7 @@ export interface AuthState {
         isUnlocked?: boolean;
         persistPassword?: boolean;
         holdToSign?: boolean;
+        showFastSend?: boolean;
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger';
         ledgerAccountNumber?: number;
     };
