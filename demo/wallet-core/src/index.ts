@@ -26,7 +26,6 @@ export {
     useTonConnect,
     useTransactionRequests,
     useSignDataRequests,
-    useSignMessageRequests,
     useDisconnectEvents,
     useNfts,
     useJettons,
