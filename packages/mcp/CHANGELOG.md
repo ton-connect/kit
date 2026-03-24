@@ -1,5 +1,21 @@
 # @ton/mcp
 
+## 0.1.15-alpha.8
+
+### Patch Changes
+
+- 2760b89: Added agentic wallet management APIs
+- 2370f94: Updated skills to improve user flow with prompts and urls
+- 79e00db: Added logs level from env for walletkit, supressed node deprecation warnings for mcp
+- 13af8e2: Add proxy support for envs that needs them(claude ai)
+- Updated dependencies [babd2af]
+- Updated dependencies [29d0d22]
+- Updated dependencies [79e00db]
+- Updated dependencies [7491d5e]
+- Updated dependencies [fa55b70]
+- Updated dependencies [72930db]
+    - @ton/walletkit@0.0.11
+
 ## 0.1.15-alpha.7
 
 ### Patch Changes

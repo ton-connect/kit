@@ -9,19 +9,12 @@
     "@ton/walletkit-examples": "1.0.0",
     "@demo/v4ledger-adapter": "0.1.0",
     "@demo/wallet-core": "0.1.0",
-    "@ton/appkit": "0.0.3",
-    "@ton/appkit-react": "0.0.4",
-    "@ton/mcp": "0.1.14",
-    "@ton/walletkit": "0.0.10",
+    "@ton/appkit": "0.0.4",
+    "@ton/appkit-react": "0.0.5",
+    "@ton/mcp": "0.1.15-alpha.8",
+    "@ton/walletkit": "0.0.11",
     "walletkit-android-bridge": "0.0.1",
     "walletkit-ios-bridge": "0.0.1"
   },
-  "changesets": [
-    "chubby-deer-battle",
-    "dirty-pumas-dig",
-    "famous-walls-write",
-    "five-horses-cough",
-    "funny-snakes-laugh",
-    "solid-birds-joke"
-  ]
+  "changesets": []
 }
