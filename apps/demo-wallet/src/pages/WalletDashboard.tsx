@@ -14,6 +14,7 @@ import {
     useTonConnect,
     useTransactionRequests,
     useSignDataRequests,
+    useSignMessageRequests,
     useIntents,
 } from '@demo/wallet-core';
 
@@ -24,6 +25,7 @@ import {
     ConnectRequestModal,
     TransactionRequestModal,
     SignDataRequestModal,
+    SignMessageRequestModal,
     IntentRequestModal,
     BatchedIntentRequestModal,
     DisconnectNotifications,
@@ -71,6 +73,7 @@ export const WalletDashboard: React.FC = () => {
     const { pendingTransactionRequest, isTransactionModalOpen } = useTransactionRequests();
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
+    const { pendingSignMessageRequest, isSignMessageModalOpen } = useSignMessageRequests();
     const {
         pendingIntentEvent,
         pendingBatchedIntentEvent,
@@ -419,6 +422,15 @@ export const WalletDashboard: React.FC = () => {
                     isOpen={isSignDataModalOpen}
                     onApprove={approveSignDataRequest}
                     onReject={rejectSignDataRequest}
+                />
+            )}
+
+            {/* Sign Message Request Modal */}
+            {pendingSignMessageRequest && (
+                <SignMessageRequestModal
+                    request={pendingSignMessageRequest}
+                    savedWallets={savedWallets}
+                    isOpen={isSignMessageModalOpen}
                 />
             )}
 
