@@ -30,7 +30,12 @@ export const SignMessageRequestModal: React.FC<SignMessageRequestModalProps> = (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
                 <h2 className="mb-4 text-xl font-bold">Sign Message Request</h2>
-                <DAppInfo dAppInfo={request.dAppInfo} />
+                <DAppInfo
+                    iconUrl={request.dAppInfo?.iconUrl}
+                    name={request.dAppInfo?.name}
+                    url={request.dAppInfo?.url}
+                    description={request.dAppInfo?.description}
+                />
                 <Card title="Messages to sign">
                     <p className="text-sm text-gray-600">
                         {request.request.messages.length} message(s) · sign-only (not broadcast)
