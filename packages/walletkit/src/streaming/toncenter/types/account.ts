@@ -9,7 +9,7 @@
 import type { StreamingV2Finality } from './core';
 
 export interface StreamingV2AccountState {
-    hash?: string | null;
+    hash: string;
     balance?: string | null;
     extra_currencies?: Record<string, string> | null;
     account_status?: string | null;

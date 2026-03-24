@@ -21,9 +21,9 @@ import type { KitEvent } from '../core/EventEmitter';
 const ADDR_A = '0:83dfd552e63729b472fcbcc8c44e6cc6691702558b68ecb527e1ba403a0f31a8';
 const ADDR_B = '0:ef4458951c1468a43d5506def6543b009c1fd48392497b45453287efdfa40f05';
 
-function makeMockNetwork(chainId = 1): Network {
+const makeMockNetwork = (chainId = 1): Network => {
     return { chainId } as unknown as Network;
-}
+};
 
 interface MockProvider extends StreamingProvider {
     watchBalance: Mock<(address: string) => void>;
@@ -35,7 +35,7 @@ interface MockProvider extends StreamingProvider {
     close: Mock<() => void>;
 }
 
-function makeMockProvider(): MockProvider {
+const makeMockProvider = (): MockProvider => {
     return {
         watchBalance: vi.fn<(address: string) => void>(),
         unwatchBalance: vi.fn<(address: string) => void>(),
@@ -45,23 +45,23 @@ function makeMockProvider(): MockProvider {
         unwatchJettons: vi.fn<(address: string) => void>(),
         close: vi.fn<() => void>(),
     } as unknown as MockProvider;
-}
+};
 
-function makeMockEventEmitter(): WalletKitEventEmitter {
+const makeMockEventEmitter = (): WalletKitEventEmitter => {
     return {
         on: vi.fn(() => vi.fn()),
         emit: vi.fn(),
         off: vi.fn(),
     } as unknown as WalletKitEventEmitter;
-}
+};
 
-function makeManager(network: Network, provider: MockProvider) {
+const makeManager = (network: Network, provider: MockProvider) => {
     const emitter = makeMockEventEmitter();
     const factory: StreamingProviderFactory = vi.fn(() => provider);
     const manager = new StreamingManager(emitter);
     manager.registerProvider(network, factory);
     return { manager, emitter, factory: factory as unknown as Mock<StreamingProviderFactory> };
-}
+};
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -164,6 +164,7 @@ describe('StreamingManager subscriptions', () => {
                 rawBalance: '100000000000',
                 balance: '100',
                 type: 'balance',
+                status: 'finalized',
             };
             // The emitter.on mock returns a function, but we need to trigger the actual callback.
             expect(emitter.on).toHaveBeenCalledTimes(2);

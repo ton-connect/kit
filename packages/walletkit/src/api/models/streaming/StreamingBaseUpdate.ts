@@ -7,8 +7,11 @@
  */
 
 import type { StreamingWatchType } from './StreamingWatchType';
+import type { StreamingUpdateStatus } from './StreamingUpdateStatus';
 
 export interface StreamingBaseUpdate {
     /** The update type field */
     type: StreamingWatchType;
+    /** The finality of the update */
+    status: StreamingUpdateStatus;
 }

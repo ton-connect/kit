@@ -45,7 +45,7 @@ describe('Toncenter Mappers', () => {
             expect(result.type).toBe('balance');
             expect(result.rawBalance).toBe('123000');
             expect(result.balance).toBe('0.000123');
-            expect(result.finality).toBe('confirmed');
+            expect(result.status).toBe('confirmed');
             expect(result.address).toBe('EQCD39VS5jcptHL8vMjETmzGaRcCVYto7LUn4bpAOg8xqCPE');
         });
 
@@ -168,9 +168,9 @@ describe('Toncenter Mappers', () => {
             const result = mapJettons(notification as unknown as StreamingV2JettonsNotification);
             expect(result.type).toBe('jettons');
             expect(result.ownerAddress).toBe('EQCD39VS5jcptHL8vMjETmzGaRcCVYto7LUn4bpAOg8xqCPE');
-            expect(result.balance).toBe('500000000');
+            expect(result.rawBalance).toBe('500000000');
             expect(result.decimals).toBe(9);
-            expect(result.formattedBalance).toBe('0.5');
+            expect(result.balance).toBe('0.5');
         });
 
         it('should handle missing metadata', () => {
@@ -187,8 +187,8 @@ describe('Toncenter Mappers', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = mapJettons(notification as any);
             expect(result.decimals).toBeUndefined();
-            expect(result.formattedBalance).toBeUndefined();
-            expect(result.balance).toBe('500');
+            expect(result.balance).toBeUndefined();
+            expect(result.rawBalance).toBe('500');
         });
 
         it('should handle malformed decimals', () => {
@@ -215,7 +215,7 @@ describe('Toncenter Mappers', () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = mapJettons(notification as any);
             expect(isNaN(result.decimals as number)).toBe(true);
-            expect(result.formattedBalance).toBeUndefined();
+            expect(result.balance).toBeUndefined();
         });
     });
 });

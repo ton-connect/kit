@@ -101,7 +101,7 @@ export type { GetMethodResult } from './rpc/GetMethodResult';
 
 // Streaming models
 export type { StreamingBaseUpdate } from './streaming/StreamingBaseUpdate';
-export type { StreamingFinality } from './streaming/StreamingFinality';
+export type { StreamingUpdateStatus } from './streaming/StreamingUpdateStatus';
 export type { StreamingWatchType } from './streaming/StreamingWatchType';
 export type { BalanceUpdate } from './streaming/BalanceUpdate';
 export type { TransactionsUpdate } from './streaming/TransactionsUpdate';

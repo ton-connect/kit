@@ -7,7 +7,6 @@
  */
 
 import type { UserFriendlyAddress } from '../core/Primitives';
-import type { StreamingFinality } from './StreamingFinality';
 import type { StreamingBaseUpdate } from './StreamingBaseUpdate';
 import type { TokenAmount } from '../core/TokenAmount';
 
@@ -20,6 +19,4 @@ export interface BalanceUpdate extends StreamingBaseUpdate {
     rawBalance: TokenAmount;
     /** The formatted balance */
     balance: string;
-    /** The finality of the update */
-    finality?: StreamingFinality;
 }

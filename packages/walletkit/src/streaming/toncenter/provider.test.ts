@@ -48,13 +48,13 @@ class MockWebSocket {
 const ADDR_A = '0:83dfd552e63729b472fcbcc8c44e6cc6691702558b68ecb527e1ba403a0f31a8';
 const ADDR_B = '0:ef4458951c1468a43d5506def6543b009c1fd48392497b45453287efdfa40f05';
 
-function makeMockListener(): StreamingProviderListener {
+const makeMockListener = (): StreamingProviderListener => {
     return {
         onBalanceUpdate: vi.fn(),
         onTransactions: vi.fn(),
         onJettonsUpdate: vi.fn(),
     };
-}
+};
 
 describe('TonCenterStreamingProvider', () => {
     let listener: StreamingProviderListener;
@@ -277,8 +277,8 @@ describe('TonCenterStreamingProvider', () => {
             block_ref: { workchain: 0, shard: '-8000000000000000', seqno: 100 },
             in_msg: null,
             out_msgs: [],
-            account_state_before: { balance: '1000' },
-            account_state_after: { balance: '900' },
+            account_state_before: { hash: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', balance: '1000' },
+            account_state_after: { hash: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', balance: '900' },
         });
 
         beforeEach(() => {

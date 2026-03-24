@@ -8,7 +8,7 @@
 
 import type { StreamingV2JettonsNotification } from '../types';
 
-export function isJettonsNotification(msg: unknown): msg is StreamingV2JettonsNotification {
+export const isJettonsNotification = (msg: unknown): msg is StreamingV2JettonsNotification => {
     const m = msg as Record<string, unknown>;
     return (
         typeof msg === 'object' &&
@@ -19,4 +19,4 @@ export function isJettonsNotification(msg: unknown): msg is StreamingV2JettonsNo
         typeof (m.jetton as Record<string, unknown>).address === 'string' &&
         typeof (m.jetton as Record<string, unknown>).owner === 'string'
     );
-}
+};

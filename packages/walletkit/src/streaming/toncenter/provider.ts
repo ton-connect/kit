@@ -15,7 +15,7 @@ import type { StreamingV2SubscriptionRequest, StreamingV2EventType } from './typ
 import { isAccountStateNotification } from './guards/account';
 import { isJettonsNotification } from './guards/jetton';
 import { isTransactionsNotification, isTraceInvalidatedNotification } from './guards/transaction';
-import { asAddressFriendly } from '../../utils';
+import { asAddressFriendly, Base64ToHex } from '../../utils';
 import { mapBalance } from './mappers/map-balance';
 import { mapTransactions } from './mappers/map-transactions';
 import { mapJettons } from './mappers/map-jettons';
@@ -161,7 +161,8 @@ export class TonCenterStreamingProvider extends WebsocketStreamingProvider {
                                 address: friendly,
                                 transactions: [],
                                 invalidated: true,
-                                traceHash: msg.trace_external_hash_norm,
+                                traceHash: Base64ToHex(msg.trace_external_hash_norm),
+                                status: 'finalized',
                             });
                         }
                     });

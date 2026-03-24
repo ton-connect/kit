@@ -20,17 +20,17 @@ import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/addres
 import type { StreamingV2AccountState, StreamingV2TransactionRaw, StreamingV2TransactionDescription } from '../types';
 import type { EmulationBlockRef, EmulationMessage } from '../../../types/toncenter/emulation';
 
-function toAccountStatus(status: string | null | undefined): AccountStatus | undefined {
+const toAccountStatus = (status: string | null | undefined): AccountStatus | undefined => {
     if (!status) return undefined;
     if (status === 'active') return { type: 'active' };
     if (status === 'frozen') return { type: 'frozen' };
     if (status === 'uninit') return { type: 'uninit' };
     return { type: 'unknown', value: status };
-}
+};
 
-function toAccountState(state: StreamingV2AccountState): AccountState {
+const toAccountState = (state: StreamingV2AccountState): AccountState => {
     return {
-        hash: state.hash ? Base64ToHex(state.hash) : undefined,
+        hash: Base64ToHex(state.hash),
         balance: state.balance ?? '0',
         extraCurrencies: state.extra_currencies ?? undefined,
         accountStatus: toAccountStatus(state.account_status),
@@ -38,19 +38,19 @@ function toAccountState(state: StreamingV2AccountState): AccountState {
         dataHash: state.data_hash ? Base64ToHex(state.data_hash) : undefined,
         codeHash: state.code_hash ? Base64ToHex(state.code_hash) : undefined,
     };
-}
+};
 
-function toTransactionBlockRef(ref: EmulationBlockRef): TransactionBlockRef {
+const toTransactionBlockRef = (ref: EmulationBlockRef): TransactionBlockRef => {
     return {
         workchain: ref.workchain,
         shard: ref.shard,
         seqno: ref.seqno,
     };
-}
+};
 
-function toTransactionMessage(msg: EmulationMessage): TransactionMessage {
+const toTransactionMessage = (msg: EmulationMessage): TransactionMessage => {
     return {
-        hash: msg.hash ? Base64ToHex(msg.hash) : ('' as ReturnType<typeof Base64ToHex>),
+        hash: Base64ToHex(msg.hash),
         normalizedHash: msg.hash_norm ? Base64ToHex(msg.hash_norm) : undefined,
         source: asMaybeAddressFriendly(msg.source) ?? undefined,
         destination: asMaybeAddressFriendly(msg.destination) ?? undefined,
@@ -72,9 +72,9 @@ function toTransactionMessage(msg: EmulationMessage): TransactionMessage {
               }
             : undefined,
     };
-}
+};
 
-function toComputePhase(desc: StreamingV2TransactionDescription): TransactionComputePhase {
+const toComputePhase = (desc: StreamingV2TransactionDescription): TransactionComputePhase => {
     const computePh = desc.compute_ph;
     const isSkipped = 'skipped' in computePh && computePh.skipped;
 
@@ -98,9 +98,9 @@ function toComputePhase(desc: StreamingV2TransactionDescription): TransactionCom
         vmInitStateHash: full.vm_init_state_hash ? Base64ToHex(full.vm_init_state_hash) : undefined,
         vmFinalStateHash: full.vm_final_state_hash ? Base64ToHex(full.vm_final_state_hash) : undefined,
     };
-}
+};
 
-function toTransactionDescription(desc: StreamingV2TransactionDescription): TransactionDescription {
+const toTransactionDescription = (desc: StreamingV2TransactionDescription): TransactionDescription => {
     const action = desc.action;
     return {
         type: desc.type,
@@ -135,13 +135,13 @@ function toTransactionDescription(desc: StreamingV2TransactionDescription): Tran
               }
             : undefined,
     };
-}
+};
 
 /**
  * Maps a streaming v2 raw transaction directly to the provider-agnostic Transaction type.
  * `traceExternalHashNorm` comes from the notification envelope (base64url encoded).
  */
-export function toStreamingTransaction(raw: StreamingV2TransactionRaw, traceExternalHashNorm: string): Transaction {
+export const toStreamingTransaction = (raw: StreamingV2TransactionRaw, traceExternalHashNorm: string): Transaction => {
     return {
         account: asAddressFriendly(raw.account),
         hash: Base64ToHex(raw.hash),
@@ -164,4 +164,4 @@ export function toStreamingTransaction(raw: StreamingV2TransactionRaw, traceExte
         description: toTransactionDescription(raw.description),
         isEmulated: raw.emulated ?? false,
     };
-}
+};

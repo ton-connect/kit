@@ -11,7 +11,7 @@ import { formatUnits } from '../../../utils/units';
 import type { JettonUpdate } from '../../../api/models';
 import type { StreamingV2JettonsNotification } from '../types';
 
-export function mapJettons(notification: StreamingV2JettonsNotification): JettonUpdate {
+export const mapJettons = (notification: StreamingV2JettonsNotification): JettonUpdate => {
     const { address, owner, jetton: masterJetton, balance } = notification.jetton;
     const meta = notification.metadata?.[masterJetton];
     const tokenInfo = meta?.token_info?.find((t) => t.type === 'jetton_masters');
@@ -28,9 +28,9 @@ export function mapJettons(notification: StreamingV2JettonsNotification): Jetton
         masterAddress: asAddressFriendly(masterJetton),
         walletAddress: asAddressFriendly(address),
         ownerAddress: asAddressFriendly(owner),
-        balance,
+        rawBalance: balance,
         decimals,
-        formattedBalance,
-        finality: notification.finality,
+        balance: formattedBalance,
+        status: notification.finality,
     };
-}
+};

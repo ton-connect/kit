@@ -8,7 +8,7 @@
 
 import type { StreamingV2AccountStateNotification } from '../types';
 
-export function isAccountStateNotification(msg: unknown): msg is StreamingV2AccountStateNotification {
+export const isAccountStateNotification = (msg: unknown): msg is StreamingV2AccountStateNotification => {
     const m = msg as Record<string, unknown>;
     return (
         typeof msg === 'object' &&
@@ -19,4 +19,4 @@ export function isAccountStateNotification(msg: unknown): msg is StreamingV2Acco
         m.state !== null &&
         typeof (m.state as Record<string, unknown>).balance === 'string'
     );
-}
+};

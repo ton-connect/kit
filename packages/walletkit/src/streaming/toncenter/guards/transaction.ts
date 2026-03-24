@@ -8,7 +8,7 @@
 
 import type { StreamingV2TransactionsNotification, StreamingV2TraceInvalidatedNotification } from '../types';
 
-export function isTransactionsNotification(msg: unknown): msg is StreamingV2TransactionsNotification {
+export const isTransactionsNotification = (msg: unknown): msg is StreamingV2TransactionsNotification => {
     const m = msg as Record<string, unknown>;
     return (
         typeof msg === 'object' &&
@@ -17,9 +17,9 @@ export function isTransactionsNotification(msg: unknown): msg is StreamingV2Tran
         typeof m.trace_external_hash_norm === 'string' &&
         Array.isArray(m.transactions)
     );
-}
+};
 
-export function isTraceInvalidatedNotification(msg: unknown): msg is StreamingV2TraceInvalidatedNotification {
+export const isTraceInvalidatedNotification = (msg: unknown): msg is StreamingV2TraceInvalidatedNotification => {
     const m = msg as Record<string, unknown>;
     return (
         typeof msg === 'object' &&
@@ -27,4 +27,4 @@ export function isTraceInvalidatedNotification(msg: unknown): msg is StreamingV2
         m.type === 'trace_invalidated' &&
         typeof m.trace_external_hash_norm === 'string'
     );
-}
+};
