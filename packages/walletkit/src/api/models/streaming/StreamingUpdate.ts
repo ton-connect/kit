@@ -12,5 +12,6 @@ import type { JettonUpdate } from './JettonUpdate';
 
 /**
  * A union type representing all possible data updates from a streaming provider.
+ * @discriminator type
  */
 export type StreamingUpdate = BalanceUpdate | TransactionsUpdate | JettonUpdate;
