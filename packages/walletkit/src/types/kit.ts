@@ -21,8 +21,10 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     SignDataApprovalResponse,
+    SignMessageApprovalResponse,
     TONConnectSession,
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
@@ -125,6 +127,15 @@ export interface ITonWalletKit {
     /** Reject a sign data request */
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
 
+    /** Approve a sign message (sign-only transaction) request */
+    approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse>;
+
+    /** Reject a sign message request */
+    rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void>;
+
     // === Event Handlers ===
 
     /** Register connect request handler */
@@ -136,6 +147,9 @@ export interface ITonWalletKit {
     /** Register sign data request handler */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
 
+    /** Register sign message request handler */
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void;
+
     /** Register disconnect handler */
     onDisconnect(cb: (event: DisconnectionEvent) => void): void;
 
@@ -146,6 +160,7 @@ export interface ITonWalletKit {
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
     removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
+    removeSignMessageRequestCallback(cb: (event: SignMessageRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
 

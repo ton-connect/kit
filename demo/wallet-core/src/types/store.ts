@@ -17,6 +17,7 @@ import type {
     ConnectionRequestEvent,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     DisconnectionEvent,
     WalletAdapter,
     SwapQuote,
@@ -121,6 +122,8 @@ export interface TonConnectSlice {
         isTransactionModalOpen: boolean;
         pendingSignDataRequestEvent?: SignDataRequestEvent;
         isSignDataModalOpen: boolean;
+        pendingSignMessageRequestEvent?: SignMessageRequestEvent;
+        isSignMessageModalOpen: boolean;
         disconnectedSessions: DisconnectNotification[];
     };
 
@@ -142,6 +145,12 @@ export interface TonConnectSlice {
     approveSignDataRequest: () => Promise<void>;
     rejectSignDataRequest: (reason?: string) => Promise<void>;
     closeSignDataModal: () => void;
+
+    // Sign message request actions
+    showSignMessageRequest: (request: SignMessageRequestEvent) => void;
+    approveSignMessageRequest: () => Promise<void>;
+    rejectSignMessageRequest: (reason?: string) => Promise<void>;
+    closeSignMessageModal: () => void;
 
     // Disconnect event actions
     handleDisconnectEvent: (event: DisconnectionEvent) => void;
