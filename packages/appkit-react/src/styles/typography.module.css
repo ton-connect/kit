@@ -1,60 +1,4 @@
-.heading1 {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-heading1-font-size);
-  font-weight: var(--ta-heading1-font-weight);
-  line-height: var(--ta-heading1-line-height);
-}
-
-.heading2 {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-heading2-font-size);
-  font-weight: var(--ta-heading2-font-weight);
-  line-height: var(--ta-heading2-line-height);
-}
-
-.heading3 {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-heading3-font-size);
-  font-weight: var(--ta-heading3-font-weight);
-  line-height: var(--ta-heading3-line-height);
-}
-
-.heading4 {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-heading4-font-size);
-  font-weight: var(--ta-heading4-font-weight);
-  line-height: var(--ta-heading4-line-height);
-}
-
-.heading5 {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-heading5-font-size);
-  font-weight: var(--ta-heading5-font-weight);
-  line-height: var(--ta-heading5-line-height);
-}
-
 /* Body */
-.bodyLarge {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-body-large-font-size);
-  line-height: var(--ta-body-large-line-height);
-  font-weight: var(--ta-body-large-font-weight);
-}
-
-.bodyLargeMedium {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-body-large-font-size);
-  line-height: var(--ta-body-large-line-height);
-  font-weight: var(--ta-body-large-medium-font-weight);
-}
-
-.body {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-body-font-size);
-  line-height: var(--ta-body-line-height);
-  font-weight: var(--ta-body-font-weight);
-}
-
 .bodyMedium {
   font-family: var(--ta-font-family);
   font-size: var(--ta-body-font-size);
@@ -67,13 +11,6 @@
   font-size: var(--ta-body-font-size);
   line-height: var(--ta-body-line-height);
   font-weight: var(--ta-body-bold-font-weight);
-}
-
-.bodySmall {
-  font-family: var(--ta-font-family);
-  font-size: var(--ta-body-small-font-size);
-  line-height: var(--ta-body-small-line-height);
-  font-weight: var(--ta-body-small-font-weight);
 }
 
 /* Caption */
@@ -89,4 +26,26 @@
   font-size: var(--ta-caption2-font-size);
   line-height: var(--ta-caption2-line-height);
   font-weight: var(--ta-caption2-font-weight);
+}
+
+/* Input Typography */
+.inputS {
+  font-family: var(--ta-font-family);
+  font-size: var(--ta-input-s-font-size);
+  font-weight: var(--ta-input-s-font-weight);
+  line-height: var(--ta-input-s-line-height);
+}
+
+.inputM {
+  font-family: var(--ta-font-family);
+  font-size: var(--ta-input-m-font-size);
+  font-weight: var(--ta-input-m-font-weight);
+  line-height: var(--ta-input-m-line-height);
+}
+
+.inputL {
+  font-family: var(--ta-font-family);
+  font-size: var(--ta-input-l-font-size);
+  font-weight: var(--ta-input-l-font-weight);
+  line-height: var(--ta-input-l-line-height);
 }

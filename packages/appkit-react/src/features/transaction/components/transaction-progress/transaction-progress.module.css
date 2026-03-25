@@ -29,7 +29,7 @@
 }
 
 .message {
-    composes: bodyLargeMedium from "../../../../styles/typography.module.css";
+    composes: bodyMedium from "../../../../styles/typography.module.css";
     text-align: center;
     font-family: var(--ta-font-family-mono);
 }

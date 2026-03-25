@@ -1,0 +1,130 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.title {
+  composes: bodyMedium from "../../styles/typography.module.css";
+  color: var(--ta-color-text-secondary);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ta-color-background-secondary);
+  border: var(--ta-border-width-s) solid transparent;
+  border-radius: var(--ta-border-radius-l);
+  transition: border-color 0.2s, background-color 0.2s;
+  overflow: hidden;
+  position: relative;
+}
+
+.field:focus-within {
+  border-color: var(--ta-color-primary);
+  background: var(--ta-color-background);
+}
+
+/* Sizes */
+.field {
+  padding: 16px; /* Standardize to 1rem (16px) as per request */
+}
+
+/* Variants */
+.variant-unstyled .field {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: unset;
+  border-radius: 0;
+}
+
+.variant-unstyled .field:focus-within {
+  background: none;
+  border: none;
+}
+
+/* States */
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.error .field {
+  border-color: #FF3B30; /* iOS Red */
+}
+
+.loading .field::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.input_s {
+  composes: inputS from "../../styles/typography.module.css";
+}
+
+.input_m {
+  composes: inputM from "../../styles/typography.module.css";
+}
+
+.input_l {
+  composes: inputL from "../../styles/typography.module.css";
+}
+
+.input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--ta-color-text);
+  font-family: inherit;
+  width: 100%;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: var(--ta-color-text-secondary);
+  opacity: 0.6;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.caption {
+  composes: caption1 from "../../styles/typography.module.css";
+  padding: 0 4px;
+  color: var(--ta-color-text-secondary);
+}
+
+.errorText {
+  color: #FF3B30;
+}
