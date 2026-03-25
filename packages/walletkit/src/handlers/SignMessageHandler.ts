@@ -173,7 +173,7 @@ export class SignMessageHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
+            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect, false);
             if (!messagesValidation.isValid) {
                 errors = errors.concat(messagesValidation.errors);
             }
