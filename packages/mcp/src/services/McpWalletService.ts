@@ -37,15 +37,16 @@ import type {
     TransactionRequest,
     TransactionStatusResponse,
 } from '@ton/walletkit';
+import type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
+import { SettlementMethod } from '@ston-fi/omniston-sdk';
 
 import type { IContactResolver } from '../types/contacts.js';
 import type { NetworkType } from '../types/config.js';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
 import { createApiClient } from '../utils/ton-client.js';
 import { UINT_256_MAX } from '../utils/math.js';
-import type { OmnistonSwapOptions } from '../../../walletkit/dist/esm/defi/swap/omniston/models/OmnistonSwapOptions.js';
 
 const OP_DEPLOY_WALLET = 0x0609e47b;
 const AGENTIC_DEFAULT_VALID_UNTIL = 600;
@@ -900,8 +901,8 @@ export class McpWalletService {
             network,
             slippageBps,
             providerOptions: {
-                settlementMethods: ['SETTLEMENT_METHOD_SWAP'],
-            } as OmnistonSwapOptions,
+                settlementMethods: [SettlementMethod.SETTLEMENT_METHOD_SWAP, SettlementMethod.SETTLEMENT_METHOD_ESCROW],
+            } as OmnistonProviderOptions,
         };
 
         const quote = await kit.swap.getQuote(params);
