@@ -1,5 +1,12 @@
 # @ton/mcp
 
+## 0.1.15-alpha.10
+
+### Patch Changes
+
+- 0995b96: Added emulate_transaction tool — dry-run any transaction before broadcasting to verify expected TON and jetton balance changes (uses wallet.getTransactionPreview)
+- 0995b96: Added raw and human readable outputs for amounts in mcp
+
 ## 0.1.15-alpha.9
 
 ### Patch Changes

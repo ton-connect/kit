@@ -17,6 +17,8 @@
     "walletkit-ios-bridge": "0.0.1"
   },
   "changesets": [
+    "bright-poets-jog",
+    "short-kings-flow",
     "tricky-bags-retire"
   ]
 }
