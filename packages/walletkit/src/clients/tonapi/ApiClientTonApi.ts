@@ -6,6 +6,8 @@
  *
  */
 
+import { Address } from '@ton/core';
+
 import type {
     ApiClient,
     GetEventsRequest,
@@ -50,8 +52,14 @@ import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './t
 import type { TonApiMethodExecutionResult } from './types/methods';
 import type { TonApiMasterchainHeadResponse } from './types/masterchain';
 import { mapTonApiGetMethodArgs, mapTonApiTvmStackRecord } from './mappers/map-methods';
+import { Base64Normalize, Base64ToBigInt, Base64ToHex, getNormalizedExtMessageHash, isHex } from '../../utils';
+import type { TonApiTransactionsResponse, TonApiTransaction } from './types/transactions';
+import type { TonApiTrace } from './types/traces';
+import type { TonApiAccountEventsResponse } from './types/events';
+import { mapTonApiTransaction } from './mappers/map-transactions';
+import { mapTonApiTrace, mapTonApiTraceTransaction } from './mappers/map-traces';
+import { mapTonApiEvent } from './mappers/map-events';
 import { mapMasterchainInfo } from './mappers/map-masterchain-info';
-import { Base64ToBigInt, getNormalizedExtMessageHash } from '../../utils';
 
 /**
  * @experimental
@@ -113,7 +121,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async jettonsByOwnerAddress(request: GetJettonsByOwnerRequest): Promise<JettonsResponse> {
         const raw = await this.getJson<TonApiJettonsBalances>(
-            `/v2/accounts/${request.ownerAddress}/jettons?currencies=usd`,
+            `/v2/accounts/${this.normalizeAddress(request.ownerAddress)}/jettons?currencies=usd`,
         );
 
         return mapUserJettons(raw);
@@ -125,7 +133,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         }
 
         try {
-            const raw = await this.getJson<TonApiNftItem>(`/v2/nfts/${request.address}`);
+            const raw = await this.getJson<TonApiNftItem>(`/v2/nfts/${this.normalizeAddress(request.address)}`);
             return mapNftItemsResponse([raw]);
         } catch (e) {
             if (e instanceof TonClientError && e.status === 404) {
@@ -140,7 +148,10 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         if (request.pagination?.limit) query.limit = request.pagination.limit;
         if (request.pagination?.offset) query.offset = request.pagination.offset;
 
-        const raw = await this.getJson<TonApiNftItems>(`/v2/accounts/${request.ownerAddress}/nfts`, query);
+        const raw = await this.getJson<TonApiNftItems>(
+            `/v2/accounts/${this.normalizeAddress(request.ownerAddress)}/nfts`,
+            query,
+        );
         return mapNftItemsResponse(raw.nft_items);
     }
 
@@ -184,24 +195,109 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         };
     }
 
-    async getAccountTransactions(_request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
-        throw new Error('Method not implemented.');
+    async getAccountTransactions(request: TransactionsByAddressRequest): Promise<TransactionsResponse> {
+        const address = request.address?.[0];
+        if (!address) {
+            return { transactions: [], addressBook: {} };
+        }
+
+        const limit = Math.max(1, Math.min(request.limit ?? 10, 100));
+        const offset = Math.max(0, request.offset ?? 0);
+
+        const response = await this.getJson<TonApiTransactionsResponse>(
+            `/v2/blockchain/accounts/${address}/transactions`,
+            {
+                limit,
+                offset,
+                sort_order: 'desc',
+            },
+        );
+
+        const transactions = (response.transactions ?? []).map(mapTonApiTransaction);
+
+        return {
+            transactions,
+            addressBook: {},
+        };
     }
 
-    async getTransactionsByHash(_request: GetTransactionByHashRequest): Promise<TransactionsResponse> {
-        throw new Error('Method not implemented.');
+    async getTransactionsByHash(request: GetTransactionByHashRequest): Promise<TransactionsResponse> {
+        const isMessageHash = 'msgHash' in request;
+        const requestHash = isMessageHash ? request.msgHash : request.bodyHash;
+        const normalizedHash = this.normalizeTonApiId(requestHash);
+
+        const byTransaction = async () =>
+            this.getJson<TonApiTransaction>(`/v2/blockchain/transactions/${normalizedHash}`);
+        const byMessage = async () =>
+            this.getJson<TonApiTransaction>(`/v2/blockchain/messages/${normalizedHash}/transaction`);
+
+        const primaryRequest = isMessageHash ? byMessage : byTransaction;
+        const fallbackRequest = isMessageHash ? byTransaction : byMessage;
+
+        let tx: TonApiTransaction;
+        try {
+            tx = await primaryRequest();
+        } catch (error) {
+            if (!(error instanceof TonClientError) || error.status !== 404) {
+                throw error;
+            }
+            tx = await fallbackRequest();
+        }
+
+        return {
+            transactions: [mapTonApiTransaction(tx)],
+            addressBook: {},
+        };
     }
 
     async getPendingTransactions(_request: GetPendingTransactionsRequest): Promise<TransactionsResponse> {
-        throw new Error('Method not implemented.');
+        // TonAPI doesn't expose Toncenter-like pending transaction list.
+        // Returning an empty list keeps compatibility with existing consumers.
+        return {
+            transactions: [],
+            addressBook: {},
+        };
     }
 
-    async getTrace(_request: GetTraceRequest): Promise<ToncenterTracesResponse> {
-        throw new Error('Method not implemented.');
+    async getTrace(request: GetTraceRequest): Promise<ToncenterTracesResponse> {
+        const candidates = request.traceId && request.traceId.length > 0 ? request.traceId : [];
+        if (request.account) {
+            candidates.push(String(request.account));
+        }
+
+        for (const candidate of candidates) {
+            const traceId = this.normalizeTonApiId(candidate);
+            try {
+                const trace = await this.getJson<TonApiTrace>(`/v2/traces/${traceId}`);
+                return mapTonApiTrace(trace, mapTonApiTraceTransaction);
+            } catch (error) {
+                if (error instanceof TonClientError && error.status === 404) {
+                    continue;
+                }
+                throw error;
+            }
+        }
+
+        throw new Error('Failed to fetch trace');
     }
 
-    async getPendingTrace(_request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
-        throw new Error('Method not implemented.');
+    async getPendingTrace(request: GetPendingTraceRequest): Promise<ToncenterTracesResponse> {
+        for (const messageHash of request.externalMessageHash) {
+            const normalizedHash = this.normalizeTonApiId(messageHash);
+            try {
+                const tx = await this.getJson<TonApiTransaction>(
+                    `/v2/blockchain/messages/${normalizedHash}/transaction`,
+                );
+                return await this.getTrace({ traceId: [tx.hash] });
+            } catch (error) {
+                if (error instanceof TonClientError && error.status === 404) {
+                    continue;
+                }
+                throw error;
+            }
+        }
+
+        throw new Error('Failed to fetch pending trace');
     }
 
     async resolveDnsWallet(domain: string): Promise<string | null> {
@@ -224,8 +320,26 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         }
     }
 
-    async getEvents(_request: GetEventsRequest): Promise<GetEventsResponse> {
-        throw new Error('Method not implemented.');
+    async getEvents(request: GetEventsRequest): Promise<GetEventsResponse> {
+        const account = String(request.account);
+        const limit = Math.max(1, Math.min(request.limit ?? 20, 100));
+        const offset = Math.max(0, request.offset ?? 0);
+
+        const response = await this.getJson<TonApiAccountEventsResponse>(`/v2/accounts/${account}/events`, {
+            limit,
+            offset,
+            sort_order: 'desc',
+            i18n: 'en',
+        });
+
+        const pageEvents = response.events ?? [];
+
+        return {
+            events: pageEvents.map(mapTonApiEvent),
+            offset,
+            limit,
+            hasNext: Number(response.next_from ?? 0) > 0 || pageEvents.length >= limit,
+        };
     }
 
     async getMasterchainInfo(): Promise<MasterchainInfo> {
@@ -236,6 +350,35 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
     protected appendAuthHeaders(headers: Headers): void {
         if (this.apiKey) {
             headers.set('Authorization', `Bearer ${this.apiKey}`);
+        }
+    }
+
+    private normalizeTonApiId(value: string): string {
+        const normalizedValue = value.trim();
+        if (!normalizedValue) {
+            throw new Error('Invalid TonAPI id: value is required');
+        }
+
+        if (isHex(normalizedValue)) {
+            return normalizedValue.toLowerCase();
+        }
+
+        if (/^[0-9a-fA-F]+$/.test(normalizedValue) && normalizedValue.length % 2 === 0) {
+            return `0x${normalizedValue.toLowerCase()}`;
+        }
+
+        const normalizedBase64 = Base64Normalize(normalizedValue);
+        return Base64ToHex(normalizedBase64).toLowerCase();
+    }
+
+    private normalizeAddress(address: string | Address): string {
+        try {
+            if (address instanceof Address) {
+                return address.toString();
+            }
+            return Address.parse(address).toString();
+        } catch {
+            return address.toString();
         }
     }
 }

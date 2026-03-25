@@ -18,6 +18,22 @@ const hexBocToBase64 = (hex: string): string => {
 };
 
 /**
+ * Converts a decimal integer string to TonApi int257 hex format (0x... / -0x...).
+ */
+const decimalToInt257Hex = (value: string): string => {
+    const normalized = value.trim();
+    if (!/^-?\d+$/.test(normalized)) {
+        throw new Error(`Invalid decimal stack number: ${value}`);
+    }
+
+    const parsed = BigInt(normalized);
+    if (parsed < 0n) {
+        return `-0x${(-parsed).toString(16)}`;
+    }
+    return `0x${parsed.toString(16)}`;
+};
+
+/**
  * Maps standard TVM stack items to TonAPI POST execution arguments (`ExecGetMethodArg`).
  *
  * @see {@link https://github.com/tonkeeper/tonapi-js/blob/main/packages/ton-adapter/src/tonapi-adapter.ts#L231}
@@ -34,11 +50,13 @@ export const mapTonApiGetMethodArgs = (stack?: RawStackItem[]): TonApiExecGetMet
                 if (item.value === 'NaN') {
                     return { type: 'nan', value: 'NaN' };
                 }
-                // TonApi int257 expects 0x-prefixed hex, tinyint expects decimal
+                // TonApi int257 expects 0x-prefixed hex.
                 if (item.value.startsWith('0x') || item.value.startsWith('-0x')) {
                     return { type: 'int257', value: item.value };
                 }
-                return { type: 'tinyint', value: item.value };
+                // Decimal numbers can exceed tinyint bounds (e.g. uint256 ids), so we always
+                // serialize them as int257 in hexadecimal form.
+                return { type: 'int257', value: decimalToInt257Hex(item.value) };
             case 'cell':
                 // RawStackItem cell value is base64 BOC
                 return { type: 'cell_boc_base64', value: item.value };

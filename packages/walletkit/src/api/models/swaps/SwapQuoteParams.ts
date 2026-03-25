@@ -7,7 +7,6 @@
  */
 
 import type { Network } from '../core/Network';
-import type { TokenAmount } from '../core/TokenAmount';
 import type { SwapToken } from './SwapToken';
 
 /**
@@ -17,7 +16,7 @@ export interface SwapQuoteParams<TProviderOptions = unknown> {
     /**
      * Amount of tokens to swap (incoming or outgoing depending on isReverseSwap)
      */
-    amount: TokenAmount;
+    amount: string;
 
     /**
      * Token to swap from

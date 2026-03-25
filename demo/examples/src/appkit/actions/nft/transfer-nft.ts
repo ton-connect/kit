@@ -12,7 +12,7 @@ import { transferNft } from '@ton/appkit';
 export const transferNftExample = async (appKit: AppKit) => {
     // SAMPLE_START: TRANSFER_NFT
     const result = await transferNft(appKit, {
-        nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+        nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     });
 

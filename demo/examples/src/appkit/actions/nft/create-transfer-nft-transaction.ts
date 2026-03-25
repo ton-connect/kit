@@ -12,7 +12,7 @@ import { createTransferNftTransaction } from '@ton/appkit';
 export const createTransferNftTransactionExample = async (appKit: AppKit) => {
     // SAMPLE_START: CREATE_TRANSFER_NFT_TRANSACTION
     const tx = await createTransferNftTransaction(appKit, {
-        nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+        nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         comment: 'Gift NFT',
     });

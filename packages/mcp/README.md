@@ -20,6 +20,8 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 - **Agentic Wallets mode**: Server starts from local config registry at `~/.config/ton/config.json` or `TON_CONFIG_PATH`
 - **Single-wallet mode**: if `MNEMONIC` or `PRIVATE_KEY` is set, the server starts with one in-memory wallet
 
+Choose one control path per task: either run `@ton/mcp` as an MCP server (stdio or HTTP) or call tools through raw CLI. Agents must not mix MCP server mode and raw CLI against the same workflow/session, because that creates competing control paths over the same wallet/config state.
+
 ### Agentic Wallets mode
 
 Self-custody wallets for autonomous agents. Your AI agent gets TON wallet capabilities — transfers, swaps, NFTs. User keeps the master key, agent keeps the operator key.
@@ -105,6 +107,10 @@ npx @ton/mcp@alpha --http 3000
 ```
 
 HTTP mode keeps a separate MCP session/transport per client session id, so multiple clients can initialize and reconnect independently.
+
+## Usage Examples
+
+Examples of user requests, approximate corresponding raw CLI commands via `npx @ton/mcp@alpha`, and expected agent responses are collected in [USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md).
 
 ## Environment Variables
 

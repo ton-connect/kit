@@ -29,6 +29,11 @@ export interface TonApiJettonInfo {
     verification: 'whitelist' | 'graylist' | 'blacklist' | 'none';
     holders_count: number;
     preview?: string;
+    code_hash?: string;
+    data_hash?: string;
+    name?: string;
+    interfaces?: string[];
+    last_transaction_lt?: number;
 }
 
 export interface TonApiJettonPreview {
@@ -39,6 +44,7 @@ export interface TonApiJettonPreview {
     image: string;
     verification: 'whitelist' | 'graylist' | 'blacklist' | 'none';
     score: number;
+    description?: string;
 }
 
 export interface TonApiJettonBalance {

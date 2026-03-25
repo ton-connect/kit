@@ -30,9 +30,9 @@ describe('map-methods', () => {
             expect(mapTonApiGetMethodArgs(negativeStack)).toEqual([{ type: 'int257', value: '-0x1A' }]);
         });
 
-        it('should map decimal num to tinyint', () => {
+        it('should map decimal num to int257', () => {
             const stack: RawStackItem[] = [{ type: 'num', value: '123' }];
-            expect(mapTonApiGetMethodArgs(stack)).toEqual([{ type: 'tinyint', value: '123' }]);
+            expect(mapTonApiGetMethodArgs(stack)).toEqual([{ type: 'int257', value: '0x7b' }]);
         });
 
         it('should map cell', () => {

@@ -12,7 +12,7 @@ import { getNft } from '@ton/appkit';
 export const getNftExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_NFT
     const nft = await getNft(appKit, {
-        address: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     });
 
     if (nft) {
