@@ -163,9 +163,13 @@ export class WalletV4R2Adapter implements WalletAdapter {
         try {
             const messages: MessageRelaxed[] = input.messages.map((m) => {
                 let bounce = true;
-                const parsedAddress = Address.parseFriendly(m.address);
-                if (parsedAddress.isBounceable === false) {
-                    bounce = false;
+                try {
+                    const parsedAddress = Address.parseFriendly(m.address);
+                    if (parsedAddress.isBounceable === false) {
+                        bounce = false;
+                    }
+                } catch {
+                    // raw address — no bounceable flag, keep default true
                 }
 
                 return internal({
