@@ -316,9 +316,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             throw new Error('WalletKit not initialized');
         }
         try {
-            await state.walletCore.walletKit.approveSignMessageRequest(
-                state.tonConnect.pendingSignMessageRequestEvent,
-            );
+            await state.walletCore.walletKit.approveSignMessageRequest(state.tonConnect.pendingSignMessageRequestEvent);
             setTimeout(() => {
                 set((state) => {
                     state.tonConnect.pendingSignMessageRequestEvent = undefined;

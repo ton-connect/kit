@@ -192,8 +192,7 @@ export class SignMessageHandler
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<ChainId | undefined> {
+    private validateNetwork(network: unknown, wallet: Wallet): ReturnWithValidationResult<ChainId | undefined> {
         let errors: string[] = [];
         if (typeof network === 'string') {
             const walletNetwork = wallet.getNetwork();
@@ -227,8 +226,7 @@ export class SignMessageHandler
         return { result: from, isValid: errors.length === 0, errors: errors };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateValidUntil(validUntil: any): ReturnWithValidationResult<number> {
+    private validateValidUntil(validUntil: unknown): ReturnWithValidationResult<number> {
         let errors: string[] = [];
         if (typeof validUntil === 'undefined') {
             return { result: 0, isValid: errors.length === 0, errors: errors };
