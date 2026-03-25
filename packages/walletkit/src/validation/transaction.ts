@@ -10,7 +10,7 @@ import { Cell } from '@ton/core';
 
 import type { ValidationResult } from './types';
 import { validateTonAddress } from './address';
-import { isFriendlyTonAddress } from '../utils/address';
+import { isValidAddress } from '../utils/address';
 
 /**
  * Human-readable transaction message
@@ -104,8 +104,8 @@ export function validateMessageObject(message: any): ValidationResult {
     if (!message.address || typeof message.address !== 'string') {
         errors.push('to address is required and must be a string');
     } else {
-        if (!isFriendlyTonAddress(message.address)) {
-            errors.push('to address must be a valid friendly TON address');
+        if (!isValidAddress(message.address)) {
+            errors.push('to address must be a valid TON address');
         }
     }
 
