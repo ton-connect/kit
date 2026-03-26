@@ -588,24 +588,26 @@ export const createWalletManagementSlice =
 
             const unwatchBalance = streaming.watchBalance(network, address, (update) => {
                 set((s) => {
-                    if (s.walletManagement.balance !== update.balance) {
-                        s.walletManagement.balance = update.balance;
-                        log.info('Balance updated via WebSocket:', update.balance);
+                    if (update.status === 'finalized' && s.walletManagement.balance !== update.rawBalance) {
+                        s.walletManagement.balance = update.rawBalance;
+                        log.info('Balance updated via WebSocket:', update.rawBalance);
                     }
                 });
             });
 
             const unwatchJettons = streaming.watchJettons(network, address, (update) => {
-                get().updateJettonBalanceFromStream(update.walletAddress, update.rawBalance, update.decimals);
+                if (update.status === 'finalized') {
+                    get().updateJettonBalanceFromStream(update.walletAddress, update.rawBalance, update.decimals);
 
-                const hasJetton = get().jettons.userJettons.some((j) =>
-                    compareAddress(j.walletAddress, update.walletAddress),
-                );
+                    const hasJetton = get().jettons.userJettons.some((j) =>
+                        compareAddress(j.walletAddress, update.walletAddress),
+                    );
 
-                if (!hasJetton) {
-                    void get()
-                        .refreshJettons()
-                        .catch((err) => log.error('Error refreshing jettons after new jetton:', err));
+                    if (!hasJetton) {
+                        void get()
+                            .refreshJettons()
+                            .catch((err) => log.error('Error refreshing jettons after new jetton:', err));
+                    }
                 }
             });
 
