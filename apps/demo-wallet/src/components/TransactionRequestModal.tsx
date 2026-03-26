@@ -184,10 +184,25 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
-                            <h2 data-testid="request" className="text-xl font-bold text-gray-900">
+                            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                                <svg
+                                    className="w-6 h-6 text-blue-600"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 data-testid="request" className="text-lg font-bold text-gray-900">
                                 Transaction Request
-                            </h2>
-                            <p className="text-gray-600 text-sm mt-1">
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
                                 A dApp wants to send a transaction from your wallet
                             </p>
                         </div>
