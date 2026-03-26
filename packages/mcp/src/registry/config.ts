@@ -360,42 +360,6 @@ export function ensureConfigPermissions(): void {
     chmodIfExists(getConfigPath(), 0o600);
 }
 
-export function loadConfig(): TonConfig | null {
-    const configPath = getConfigPath();
-    if (!existsSync(configPath)) {
-        return null;
-    }
-
-    let raw: unknown;
-    let isProtected: boolean;
-    try {
-        const readResult = readMaybeEncryptedFile(configPath);
-        raw = JSON.parse(readResult.content);
-        isProtected = readResult.isProtected;
-    } catch (error) {
-        throw new ConfigError(
-            `Failed to read config at ${configPath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
-    }
-
-    if (!raw || typeof raw !== 'object' || !('version' in raw)) {
-        throw new ConfigError(
-            `Unsupported legacy config at ${configPath}. Re-import wallets into the v2 format or use CLI setup to migrate it.`,
-        );
-    }
-
-    const version = (raw as { version?: unknown }).version;
-    if (version !== 2) {
-        throw new ConfigError(`Unsupported config version ${String(version)} at ${configPath}.`);
-    }
-
-    const normalized = normalizeConfig(raw as TonConfig);
-    if (!isProtected) {
-        saveConfig(normalized);
-    }
-    return normalized;
-}
-
 export async function loadConfigWithMigration(): Promise<TonConfig | null> {
     const configPath = getConfigPath();
     if (!existsSync(configPath)) {

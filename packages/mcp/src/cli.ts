@@ -376,8 +376,8 @@ function getResolvedHttpCallbackBaseUrl(host: string, port: number): string {
     return `http://${publicHost}:${port}`;
 }
 
-function createStdioSessionManager(): AgenticSetupSessionManager {
-    return new AgenticSetupSessionManager({
+async function createStdioSessionManager(): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
         host: AGENTIC_CALLBACK_HOST,
         listenPort: Number.isFinite(AGENTIC_CALLBACK_PORT) ? AGENTIC_CALLBACK_PORT : 0,
         publicBaseUrl: AGENTIC_CALLBACK_BASE_URL,
@@ -385,8 +385,8 @@ function createStdioSessionManager(): AgenticSetupSessionManager {
     });
 }
 
-function createHttpSessionManager(host: string, port: number): AgenticSetupSessionManager {
-    return new AgenticSetupSessionManager({
+async function createHttpSessionManager(host: string, port: number): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
         publicBaseUrl: getResolvedHttpCallbackBaseUrl(host, port),
         enableInternalHttpServer: false,
         store: new ConfigBackedAgenticSetupSessionStore(),
@@ -394,7 +394,7 @@ function createHttpSessionManager(host: string, port: number): AgenticSetupSessi
 }
 
 async function startCli(toolName: string, rawArgs: string[]) {
-    const sessionManager = createStdioSessionManager();
+    const sessionManager = await createStdioSessionManager();
     const { server, kit } = await createWalletAndServer(sessionManager);
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -434,7 +434,7 @@ async function startCli(toolName: string, rawArgs: string[]) {
 async function startStdio() {
     log('Starting in stdio mode...');
 
-    const sessionManager = createStdioSessionManager();
+    const sessionManager = await createStdioSessionManager();
     const { server, kit } = await createWalletAndServer(sessionManager);
     const transport = new StdioServerTransport();
 
@@ -458,7 +458,7 @@ async function startStdio() {
 async function startHttp(port: number, host: string) {
     log(`Starting in HTTP mode on ${host}:${port}...`);
 
-    const sessionManager = createHttpSessionManager(host, port);
+    const sessionManager = await createHttpSessionManager(host, port);
     const router = createHttpMcpSessionRouter({
         host,
         port,

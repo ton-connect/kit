@@ -159,9 +159,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const ownsAgenticSessionManager = !config.agenticSessionManager;
     const agenticSessionManager =
         config.agenticSessionManager ??
-        new AgenticSetupSessionManager({
+        (await AgenticSetupSessionManager.create({
             store: new ConfigBackedAgenticSetupSessionStore(),
-        });
+        }));
     const originalClose = server.close.bind(server);
     server.close = async () => {
         await Promise.allSettled([
