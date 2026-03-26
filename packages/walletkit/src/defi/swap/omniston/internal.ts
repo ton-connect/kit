@@ -8,10 +8,12 @@
 
 import type { SettlementMethod as StonFiSettlementMethod } from '@ston-fi/omniston-sdk';
 
-export const SETTLEMENT_METHOD_SWAP = 'SETTLEMENT_METHOD_SWAP';
-export const SETTLEMENT_METHOD_ESCROW = 'SETTLEMENT_METHOD_ESCROW';
-export const SETTLEMENT_METHOD_HTLC = 'SETTLEMENT_METHOD_HTLC';
-export const UNRECOGNIZED = 'UNRECOGNIZED';
+import type {
+    SETTLEMENT_METHOD_ESCROW,
+    SETTLEMENT_METHOD_HTLC,
+    SETTLEMENT_METHOD_SWAP,
+    UNRECOGNIZED,
+} from './models/OmnistonSwapOptions';
 
 type SettlementMethodLiteralsBySdkKey = {
     [StonFiSettlementMethod.SETTLEMENT_METHOD_SWAP]: typeof SETTLEMENT_METHOD_SWAP;
