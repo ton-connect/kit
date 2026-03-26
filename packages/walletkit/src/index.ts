@@ -16,6 +16,8 @@ export { TONConnectStoredSessionManager } from './core/TONConnectStoredSessionMa
 export type { TONConnectSessionManager } from './api/interfaces/TONConnectSessionManager';
 export { BridgeManager } from './core/BridgeManager';
 export { EventRouter } from './core/EventRouter';
+export type { TonConnectEventsHandler } from './core/TonConnectEventsHandler';
+export type { TonConnectEventsRouter } from './core/TonConnectEventsRouter';
 export { RequestProcessor } from './core/RequestProcessor';
 export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';

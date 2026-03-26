@@ -26,6 +26,8 @@ import { globalLogger } from './Logger';
 import type { WalletManager } from './WalletManager';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 import type { EventRouter } from './EventRouter';
+import type { TonConnectEventsHandler } from './TonConnectEventsHandler';
+import type { TonConnectEventsRouter } from './TonConnectEventsRouter';
 import type { RequestProcessor } from './RequestProcessor';
 import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
@@ -816,6 +818,13 @@ export class TonWalletKit implements ITonWalletKit {
     }
 
     /**
+     * TON Connect events provider
+     */
+    get tonConnect(): TonConnectEventsRouter {
+        return this.eventRouter;
+    }
+
+    /**
      * Get the event emitter for this kit instance
      * Allows external components to listen to and emit events
      */
@@ -832,8 +841,9 @@ export class TonWalletKit implements ITonWalletKit {
     async processInjectedBridgeRequest(
         messageInfo: BridgeEventMessageInfo,
         request: InjectedToExtensionBridgeRequestPayload,
+        eventsHandler?: TonConnectEventsHandler,
     ): Promise<unknown> {
         await this.ensureInitialized();
-        return this.bridgeManager.queueJsBridgeEvent(messageInfo, request);
+        return this.bridgeManager.queueJsBridgeEvent(messageInfo, request, eventsHandler);
     }
 }

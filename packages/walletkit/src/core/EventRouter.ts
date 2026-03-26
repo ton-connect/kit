@@ -29,12 +29,15 @@ import type {
     ConnectionRequestEvent,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types/config';
+import type { TonConnectEventsHandler } from './TonConnectEventsHandler';
+import type { TonConnectEventsRouter } from './TonConnectEventsRouter';
 
 const log = globalLogger.createChild('EventRouter');
 
-export class EventRouter {
+export class EventRouter implements TonConnectEventsRouter {
     private handlers: EventHandler[] = [];
     private bridgeManager!: BridgeManager;
+    private eventsHandlers: Set<TonConnectEventsHandler> = new Set();
 
     // Event callbacks
     private connectRequestCallback: EventCallback<ConnectionRequestEvent> | undefined = undefined;
@@ -57,10 +60,20 @@ export class EventRouter {
         this.bridgeManager = bridgeManager;
     }
 
+    // TonConnectEventsRouter
+
+    add(eventsHandler: TonConnectEventsHandler): void {
+        this.eventsHandlers.add(eventsHandler);
+    }
+
+    remove(eventsHandler: TonConnectEventsHandler): void {
+        this.eventsHandlers.delete(eventsHandler);
+    }
+
     /**
      * Route incoming bridge event to appropriate handler
      */
-    async routeEvent(event: RawBridgeEvent): Promise<void> {
+    async routeEvent(event: RawBridgeEvent, eventsHandler?: TonConnectEventsHandler): Promise<void> {
         // Validate event structure
         const validation = validateBridgeEvent(event);
         if (!validation.isValid) {
@@ -74,7 +87,12 @@ export class EventRouter {
                 if (handler.canHandle(event)) {
                     const result = await handler.handle(event);
                     if ('error' in result) {
-                        this.notifyErrorCallback({ id: result.id, data: { ...event }, error: result.error });
+                        const errorEvent = { id: result.id, data: { ...event }, error: result.error };
+                        if (eventsHandler) {
+                            eventsHandler.handleRequestError(errorEvent);
+                        } else {
+                            this.notifyErrorCallback(errorEvent);
+                        }
                         try {
                             await this.bridgeManager.sendResponse(event, result);
                         } catch (error) {
@@ -82,13 +100,34 @@ export class EventRouter {
                         }
                         return;
                     }
-                    await handler.notify(result as BridgeEvent);
+                    if (eventsHandler) {
+                        this.dispatchToEventsHandler(eventsHandler, event.method, result as BridgeEvent);
+                    } else {
+                        await handler.notify(result as BridgeEvent);
+                    }
                     break;
                 }
             }
         } catch (error) {
             log.error('Error routing event', { error });
             throw error;
+        }
+    }
+
+    private dispatchToEventsHandler(eventsHandler: TonConnectEventsHandler, method: string, event: BridgeEvent): void {
+        switch (method) {
+            case 'connect':
+                eventsHandler.handleConnectRequest(event as ConnectionRequestEvent);
+                break;
+            case 'sendTransaction':
+                eventsHandler.handleSendTransactionRequest(event as SendTransactionRequestEvent);
+                break;
+            case 'signData':
+                eventsHandler.handleSignDataRequest(event as SignDataRequestEvent);
+                break;
+            case 'disconnect':
+                eventsHandler.handleDisconnection(event as DisconnectionEvent);
+                break;
         }
     }
 
@@ -177,41 +216,45 @@ export class EventRouter {
      * Notify connect request callbacks
      */
     private async notifyConnectRequestCallbacks(event: ConnectionRequestEvent): Promise<void> {
-        return await this.connectRequestCallback?.(event);
+        return await this.handleConnectRequest(event);
     }
 
     /**
      * Notify transaction request callbacks
      */
     private async notifyTransactionRequestCallbacks(event: SendTransactionRequestEvent): Promise<void> {
-        return await this.transactionRequestCallback?.(event);
+        return await this.handleSendTransactionRequest(event);
     }
 
     /**
      * Notify sign data request callbacks
      */
     private async notifySignDataRequestCallbacks(event: SignDataRequestEvent): Promise<void> {
-        return await this.signDataRequestCallback?.(event);
+        return await this.handleSignDataRequest(event);
     }
 
     /**
      * Notify disconnect callbacks
      */
     private async notifyDisconnectCallbacks(event: DisconnectionEvent): Promise<void> {
-        return await this.disconnectCallback?.(event);
+        return await this.handleDisconnection(event);
     }
 
     /**
      * Notify error callbacks
      */
     private async notifyErrorCallback(event: RequestErrorEvent): Promise<void> {
-        return await this.errorCallback?.(event);
+        return await this.handleRequestError(event);
     }
 
     /**
      * Get enabled event types based on registered callbacks
      */
     getEnabledEventTypes(): EventType[] {
+        if (this.eventsHandlers.size > 0) {
+            return ['connect', 'sendTransaction', 'signData', 'disconnect'];
+        }
+
         const enabledTypes: EventType[] = [];
 
         if (this.connectRequestCallback) {
@@ -228,5 +271,40 @@ export class EventRouter {
         }
 
         return enabledTypes;
+    }
+
+    handleConnectRequest(event: ConnectionRequestEvent): void | Promise<void> {
+        this.connectRequestCallback?.(event);
+        for (const handler of this.eventsHandlers) {
+            handler.handleConnectRequest(event);
+        }
+    }
+
+    handleSendTransactionRequest(event: SendTransactionRequestEvent): void | Promise<void> {
+        this.transactionRequestCallback?.(event);
+        for (const handler of this.eventsHandlers) {
+            handler.handleSendTransactionRequest(event);
+        }
+    }
+
+    handleSignDataRequest(event: SignDataRequestEvent): void | Promise<void> {
+        this.signDataRequestCallback?.(event);
+        for (const handler of this.eventsHandlers) {
+            handler.handleSignDataRequest(event);
+        }
+    }
+
+    handleDisconnection(event: DisconnectionEvent): void | Promise<void> {
+        this.disconnectCallback?.(event);
+        for (const handler of this.eventsHandlers) {
+            handler.handleDisconnection(event);
+        }
+    }
+
+    handleRequestError(event: RequestErrorEvent): void | Promise<void> {
+        this.errorCallback?.(event);
+        for (const handler of this.eventsHandlers) {
+            handler.handleRequestError(event);
+        }
     }
 }
