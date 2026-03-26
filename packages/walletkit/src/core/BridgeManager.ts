@@ -28,6 +28,7 @@ import type {
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
+import type { TonConnectEventsHandler } from './TonConnectEventsHandler';
 import type { TonWalletKitOptions } from '../types/config';
 import { TONCONNECT_BRIDGE_RESPONSE } from '../bridge/JSBridgeInjector';
 import type { BridgeEvent, TONConnectSession } from '../api/models';
@@ -48,7 +49,7 @@ export class BridgeManager {
 
     // Event processing queue and concurrency control
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private eventQueue: any[] = [];
+    private eventQueue: Array<{ event: any; eventsHandler?: TonConnectEventsHandler }> = [];
     private isProcessing = false;
 
     // Durable events support
@@ -479,7 +480,7 @@ export class BridgeManager {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private queueBridgeEvent(event: any): void {
         log.debug('Bridge event queued', { eventId: event?.id, event });
-        this.eventQueue.push(event);
+        this.eventQueue.push({ event });
 
         // Trigger processing (don't wait for it to complete)
         this.processBridgeEvents().catch((error) => {
@@ -490,6 +491,7 @@ export class BridgeManager {
     public queueJsBridgeEvent(
         messageInfo: BridgeEventMessageInfo,
         event: InjectedToExtensionBridgeRequestPayload,
+        eventsHandler?: TonConnectEventsHandler,
     ): void {
         log.debug('JS Bridge event queued', { eventId: messageInfo?.messageId });
 
@@ -504,12 +506,15 @@ export class BridgeManager {
 
         if (event.method == 'connect') {
             this.eventQueue.push({
-                ...event,
-                isJsBridge: true,
-                tabId: messageInfo.tabId,
-                domain: messageInfo.domain,
-                messageId: messageInfo.messageId,
-                walletId: messageInfo.walletId,
+                event: {
+                    ...event,
+                    isJsBridge: true,
+                    tabId: messageInfo.tabId,
+                    domain: messageInfo.domain,
+                    messageId: messageInfo.messageId,
+                    walletId: messageInfo.walletId,
+                },
+                eventsHandler,
             });
         } else if (event.method == 'restoreConnection') {
             this.eventEmitter?.emit('restoreConnection', {
@@ -521,14 +526,17 @@ export class BridgeManager {
             });
         } else if (event.method == 'send' && event?.params?.length === 1) {
             this.eventQueue.push({
-                ...event,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...(event as any).params[0],
-                isJsBridge: true,
-                tabId: messageInfo.tabId,
-                domain: messageInfo.domain,
-                messageId: messageInfo.messageId,
-                walletId: messageInfo.walletId,
+                event: {
+                    ...event,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ...(event as any).params[0],
+                    isJsBridge: true,
+                    tabId: messageInfo.tabId,
+                    domain: messageInfo.domain,
+                    messageId: messageInfo.messageId,
+                    walletId: messageInfo.walletId,
+                },
+                eventsHandler,
             });
         }
 
@@ -557,11 +565,11 @@ export class BridgeManager {
         try {
             // Process all events in FIFO order
             while (this.eventQueue.length > 0) {
-                const event = this.eventQueue.shift();
-                if (event) {
+                const item = this.eventQueue.shift();
+                if (item) {
                     // Important: set isLocal to false for all events from bridge
-                    event.isLocal = false;
-                    await this.handleBridgeEvent(event);
+                    item.event.isLocal = false;
+                    await this.handleBridgeEvent(item.event, item.eventsHandler);
                 }
             }
         } catch (error) {
@@ -578,7 +586,7 @@ export class BridgeManager {
      * Handle individual bridge event (original processing logic)
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private async handleBridgeEvent(event: any): Promise<void> {
+    private async handleBridgeEvent(event: any, eventsHandler?: TonConnectEventsHandler): Promise<void> {
         try {
             log.info('Bridge event received', { event });
             // Convert bridge event to our internal format
@@ -655,31 +663,36 @@ export class BridgeManager {
                 }
             }
 
-            // Store event durably if enabled
-            if (!this.eventStore) {
-                throw new WalletKitError(ERROR_CODES.EVENT_STORE_NOT_INITIALIZED, 'Event store is not initialized');
-            }
-            try {
-                await this.eventStore.storeEvent(rawEvent);
-
-                // Notify that bridge storage was updated
-                if (this.eventEmitter) {
-                    this.eventEmitter.emit('bridge-storage-updated');
+            if (eventsHandler) {
+                await this.eventRouter.routeEvent(rawEvent, eventsHandler);
+                log.info('Event routed directly to custom handler', { eventId: rawEvent.id, method: rawEvent.method });
+            } else {
+                // Store event durably if enabled
+                if (!this.eventStore) {
+                    throw new WalletKitError(ERROR_CODES.EVENT_STORE_NOT_INITIALIZED, 'Event store is not initialized');
                 }
+                try {
+                    await this.eventStore.storeEvent(rawEvent);
 
-                log.info('Event stored durably', { eventId: rawEvent.id, method: rawEvent.method });
-            } catch (error) {
-                log.error('Failed to store event durably', {
-                    eventId: rawEvent.id,
-                    error: (error as Error).message,
-                });
+                    // Notify that bridge storage was updated
+                    if (this.eventEmitter) {
+                        this.eventEmitter.emit('bridge-storage-updated');
+                    }
 
-                throw WalletKitError.fromError(
-                    ERROR_CODES.EVENT_STORE_OPERATION_FAILED,
-                    'Failed to store event durably',
-                    error,
-                    { eventId: rawEvent.id, method: rawEvent.method },
-                );
+                    log.info('Event stored durably', { eventId: rawEvent.id, method: rawEvent.method });
+                } catch (error) {
+                    log.error('Failed to store event durably', {
+                        eventId: rawEvent.id,
+                        error: (error as Error).message,
+                    });
+
+                    throw WalletKitError.fromError(
+                        ERROR_CODES.EVENT_STORE_OPERATION_FAILED,
+                        'Failed to store event durably',
+                        error,
+                        { eventId: rawEvent.id, method: rawEvent.method },
+                    );
+                }
             }
 
             log.info('Bridge event processed', { rawEvent });

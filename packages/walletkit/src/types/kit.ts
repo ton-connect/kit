@@ -28,6 +28,7 @@ import type {
     ConnectionApprovalResponse,
 } from '../api/models';
 import type { SwapAPI } from '../api/interfaces';
+import type { TonConnectEventsRouter } from '../core/TonConnectEventsRouter';
 
 /**
  * Main TonWalletKit interface
@@ -155,4 +156,6 @@ export interface ITonWalletKit {
 
     /** Jettons API access */
     swap: SwapAPI;
+
+    tonConnect: TonConnectEventsRouter;
 }
