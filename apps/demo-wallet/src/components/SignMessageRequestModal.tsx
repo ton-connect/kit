@@ -118,9 +118,9 @@ export const SignMessageRequestModal: React.FC<SignMessageRequestModalProps> = (
                                 {request.request.messages.length} message{request.request.messages.length !== 1 ? 's' : ''} to sign
                             </p>
                             {request.request.messages.map((msg, i) => (
-                                <div key={i} className="mt-2 text-xs text-gray-500">
-                                    <span className="font-mono">{msg.address}</span>
-                                    <span className="ml-2">{(BigInt(msg.amount) / 1_000_000_000n).toString()} TON</span>
+                                <div key={i} className="mt-2 text-xs text-gray-500 space-y-0.5">
+                                    <p className="font-mono break-all">{msg.address}</p>
+                                    <p>{(BigInt(msg.amount) / 1_000_000_000n).toString()} TON</p>
                                 </div>
                             ))}
                         </div>
