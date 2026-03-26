@@ -17,6 +17,7 @@ export * from '@ton/appkit';
 export * from './components/block';
 export * from './components/button';
 export * from './components/circle-icon';
+export * from './components/modal';
 export * from './components/ton-icon';
 
 export * from './features/balances';
