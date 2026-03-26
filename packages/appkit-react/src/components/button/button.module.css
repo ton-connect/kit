@@ -34,25 +34,25 @@
 .l {
   composes: bodySemibold from "../../styles/typography.module.css";
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--ta-border-radius-xl);
 }
 
 .m {
   composes: labelSemibold from "../../styles/typography.module.css";
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--ta-border-radius-l);
 }
 
 .s {
   composes: labelSemibold from "../../styles/typography.module.css";
   padding: 9px 12px;
-  border-radius: 20px;
+  border-radius: var(--ta-border-radius-2xl);
 }
 
 /* Variants */
 .fill {
   background-color: var(--ta-color-primary);
-  color: var(--ta-color-background);
+  color: var(--ta-color-primary-foreground);
 }
 
 .bezeled {
@@ -63,6 +63,15 @@
 .gray {
   background-color: var(--ta-color-background-tertiary);
   color: var(--ta-color-text);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--ta-color-text);
+}
+
+.ghost:hover:not(:disabled):not(.loading) {
+  background-color: var(--ta-color-background-tertiary);
 }
 
 .fullWidth {

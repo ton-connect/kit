@@ -1,0 +1,29 @@
+.infoTable {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.infoLabel {
+  composes: bodyMedium from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.infoValue {
+  composes: bodyMedium from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text);
+  font-weight: 500;
+}
+
+.infoIcon {
+  opacity: 0.5;
+}

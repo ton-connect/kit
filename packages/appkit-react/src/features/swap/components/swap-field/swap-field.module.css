@@ -1,0 +1,37 @@
+.container {
+  composes: block from "../../../../components/block/block.module.css";
+
+  border: var(--ta-border-width-m) solid transparent;
+  transition: border-color 0.2s;
+  gap: 8px;
+}
+
+.container .header,
+.container .caption {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.container:focus-within {
+  border-color: var(--ta-color-primary);
+}
+
+.balanceLine {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.maxButton {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--ta-color-primary);
+  font-weight: 600;
+}

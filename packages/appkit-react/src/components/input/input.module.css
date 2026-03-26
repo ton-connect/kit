@@ -13,7 +13,7 @@
 }
 
 .title {
-  composes: footnoteRegular from "../../styles/typography.module.css";
+  composes: bodyMedium from "../../styles/typography.module.css";
   color: var(--ta-color-text-secondary);
 }
 
@@ -22,16 +22,15 @@
   align-items: center;
   gap: 8px;
   background: var(--ta-color-background-secondary);
-  border: var(--ta-border-width-s) solid transparent;
+  border: var(--ta-border-width-m) solid transparent;
   border-radius: var(--ta-border-radius-l);
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: border-color 0.2s;
   overflow: hidden;
   position: relative;
 }
 
 .field:focus-within {
   border-color: var(--ta-color-primary);
-  background: var(--ta-color-background);
 }
 
 /* Sizes */

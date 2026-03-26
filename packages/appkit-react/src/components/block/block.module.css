@@ -4,7 +4,7 @@
   box-sizing: border-box;
   padding: 16px;
   border-radius: var(--ta-border-radius-l);
-  background-color: var(--ta-color-background);
+  background-color: var(--ta-color-background-secondary);
 }
 
 .row {

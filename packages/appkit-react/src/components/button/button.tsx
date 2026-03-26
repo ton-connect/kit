@@ -14,7 +14,7 @@ import styles from './button.module.css';
 
 export interface ButtonProps extends ComponentProps<'button'> {
     size?: 's' | 'm' | 'l';
-    variant?: 'fill' | 'bezeled' | 'gray';
+    variant?: 'fill' | 'bezeled' | 'gray' | 'ghost';
     loading?: boolean;
     fullWidth?: boolean;
     icon?: ReactNode;
