@@ -10,10 +10,16 @@ import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 import { DeDustSwapProvider } from '@ton/walletkit/swap/dedust';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
-import type { SwapProviderInterface, SwapQuote, SwapQuoteParams, SwapParams, TransactionRequest } from '@ton/walletkit';
+import type { SwapAPI, SwapProviderInterface, SwapQuote, SwapQuoteParams, SwapParams, TransactionRequest } from '@ton/walletkit';
 
 import { getKit } from '../utils/bridge';
 import { retainWithId, get } from '../utils/registry';
+
+async function getSwap(): Promise<SwapAPI> {
+    const instance = await getKit();
+    if (!instance.swap) throw new Error('Swap is not configured');
+    return instance.swap;
+}
 
 export async function createOmnistonSwapProvider(args: {
     config?: OmnistonSwapProviderConfig;
@@ -32,16 +38,13 @@ export async function createDeDustSwapProvider(args: {
 }
 
 export async function registerSwapProvider(args: { providerId: string }): Promise<void> {
-    const instance = await getKit();
-    instance.swap!.registerProvider(get<SwapProviderInterface>(args.providerId)!);
+    (await getSwap()).registerProvider(get(args.providerId) as SwapProviderInterface);
 }
 
 export async function getSwapQuote(args: { params: SwapQuoteParams; providerId?: string }): Promise<SwapQuote> {
-    const kit = await getKit();
-    return kit.swap!.getQuote(args.params, args.providerId);
+    return (await getSwap()).getQuote(args.params, args.providerId);
 }
 
 export async function buildSwapTransaction(args: { params: SwapParams }): Promise<TransactionRequest> {
-    const kit = await getKit();
-    return kit.swap!.buildSwapTransaction(args.params);
+    return (await getSwap()).buildSwapTransaction(args.params);
 }
