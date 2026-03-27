@@ -10,7 +10,14 @@ import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 import { DeDustSwapProvider } from '@ton/walletkit/swap/dedust';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
-import type { SwapAPI, SwapProviderInterface, SwapQuote, SwapQuoteParams, SwapParams, TransactionRequest } from '@ton/walletkit';
+import type {
+    SwapAPI,
+    SwapProviderInterface,
+    SwapQuote,
+    SwapQuoteParams,
+    SwapParams,
+    TransactionRequest,
+} from '@ton/walletkit';
 
 import { getKit } from '../utils/bridge';
 import { retainWithId, get } from '../utils/registry';
