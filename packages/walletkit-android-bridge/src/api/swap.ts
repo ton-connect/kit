@@ -13,25 +13,23 @@ import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
 import type { SwapProviderInterface, SwapQuote, SwapQuoteParams, SwapParams, TransactionRequest } from '@ton/walletkit';
 
 import { getKit } from '../utils/bridge';
-
-// Temporary store for created providers before registration
-const providerStore = new Map<string, SwapProviderInterface>();
+import { retainWithId, get } from '../utils/registry';
 
 export async function createOmnistonSwapProvider(args: { config?: OmnistonSwapProviderConfig }): Promise<{ providerId: string }> {
     const provider = new OmnistonSwapProvider(args.config);
-    providerStore.set(provider.providerId, provider);
+    retainWithId(provider.providerId, provider);
     return { providerId: provider.providerId };
 }
 
 export async function createDeDustSwapProvider(args: { config?: DeDustSwapProviderConfig }): Promise<{ providerId: string }> {
     const provider = new DeDustSwapProvider(args.config);
-    providerStore.set(provider.providerId, provider);
+    retainWithId(provider.providerId, provider);
     return { providerId: provider.providerId };
 }
 
 export async function registerSwapProvider(args: { providerId: string }): Promise<{ ok: boolean }> {
     const kit = await getKit();
-    const provider = providerStore.get(args.providerId);
+    const provider = get<SwapProviderInterface>(args.providerId);
     if (!provider) throw new Error(`Swap provider '${args.providerId}' not found`);
     kit.swap!.registerProvider(provider);
     return { ok: true };
