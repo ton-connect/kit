@@ -117,17 +117,9 @@ export function getDeviceInfoForWallet(
     const walletSupportedFeatures = walletAdapter?.getSupportedFeatures();
 
     if (walletSupportedFeatures) {
-        // Only include standard TonConnect protocol feature names in DeviceInfo.
-        // Intent feature names (SendTransactionDraft, SignMessageDraft, SendActionDraft)
-        // are not yet in @tonconnect/protocol spec and would be rejected by compliant dApps.
-        const tcFeatures = walletSupportedFeatures.filter(
-            (f) =>
-                f === 'SendTransaction' ||
-                (typeof f === 'object' && (f.name === 'SendTransaction' || f.name === 'SignData')),
-        );
         const deviceInfo = {
             ...baseDeviceInfo,
-            features: tcFeatures,
+            features: walletSupportedFeatures,
         };
 
         return addLegacySendTransactionFeature(deviceInfo);
