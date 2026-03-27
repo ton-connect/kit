@@ -388,7 +388,16 @@ export class IntentHandler {
         });
 
         if (event.deliveryMode === 'send' && !this.walletKitOptions.dev?.disableNetworkSend) {
-            await CallForSuccess(() => wallet.getClient().sendBoc(signedBoc));
+            await CallForSuccess(
+                () => wallet.getClient().sendBoc(signedBoc),
+                20,
+                100,
+                (error) => {
+                    // Do not retry on HTTP 4xx/5xx — those are definitive rejections
+                    if (error instanceof Error && /HTTP [45]\d\d/.test(error.message)) return false;
+                    return true;
+                },
+            );
         }
 
         return { type: 'transaction', boc: signedBoc as Base64String };
