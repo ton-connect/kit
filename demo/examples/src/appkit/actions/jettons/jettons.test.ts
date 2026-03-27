@@ -62,11 +62,13 @@ describe('Jetton Actions Examples (Integration)', () => {
         mockClient.runGetMethod.mockImplementation((_addr: string, method: string) => {
             if (method === 'get_wallet_address') {
                 return Promise.resolve({
+                    exitCode: 0,
                     stack: mockAddressStack(JETTON_WALLET_ADDRESS),
                 });
             }
             if (method === 'get_wallet_data') {
                 return Promise.resolve({
+                    exitCode: 0,
                     stack: [{ type: 'num', value: '100000000' }],
                 });
             }
