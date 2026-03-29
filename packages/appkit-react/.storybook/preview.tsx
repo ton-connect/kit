@@ -6,8 +6,8 @@
  *
  */
 
-import type { Preview } from '@storybook/react';
-import type { Decorator } from '@storybook/react';
+import type { Preview } from '@storybook/react-vite';
+import type { Decorator } from '@storybook/react-vite';
 import React from 'react';
 
 import { I18nProvider } from '../src/providers/i18n-provider';

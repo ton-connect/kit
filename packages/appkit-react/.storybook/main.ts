@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
 /**
  * Copyright (c) TonTech.
  *
@@ -11,10 +13,10 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 const config: StorybookConfig = {
     stories: ['../src/**/*.stories.@(ts|tsx)'],
-    addons: ['@storybook/addon-docs'],
+    addons: [getAbsolutePath("@storybook/addon-docs")],
     staticDirs: ['./public'],
     framework: {
-        name: '@storybook/react-vite',
+        name: getAbsolutePath("@storybook/react-vite"),
         options: {},
     },
     core: {
@@ -56,3 +58,7 @@ const config: StorybookConfig = {
 };
 
 export default config;
+
+function getAbsolutePath(value: string): any {
+    return dirname(fileURLToPath(import.meta.resolve(`${value}/package.json`)));
+}

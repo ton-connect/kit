@@ -6,7 +6,7 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { I18nProvider } from '../../../../providers/i18n-provider';
 import { TransactionProgressContext } from './transaction-progress-provider';
