@@ -505,6 +505,8 @@ export class IntentParser {
             id: sourceEvent.id,
             origin: sourceEvent.origin,
             clientId: sourceEvent.clientId,
+            from: sourceEvent.from,
+            traceId: sourceEvent.traceId,
         };
 
         switch (action_type) {

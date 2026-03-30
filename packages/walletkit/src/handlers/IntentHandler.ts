@@ -468,16 +468,12 @@ export class IntentHandler {
 
         const wireResponse = this.toWireResponse(event.id, result, event);
 
-        try {
-            // For intents delivered via an existing bridge session, respond using the
-            // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
-            if (event.origin === 'connectedBridge') {
-                await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
-            } else {
-                await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
-            }
-        } catch (error) {
-            log.error('Failed to send intent response', { error, eventId: event.id });
+        // For intents delivered via an existing bridge session, respond using the
+        // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
+        if (event.origin === 'connectedBridge') {
+            await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
+        } else {
+            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
         }
     }
 
