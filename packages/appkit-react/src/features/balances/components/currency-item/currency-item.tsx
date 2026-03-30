@@ -48,12 +48,16 @@ export const CurrencyItem: FC<CurrencyItemProps> = ({
                     )}
                 </div>
 
-                <p className={styles.ticker}>{ticker}</p>
+                <p className={styles.ticker}>
+                    {ticker} • {name}
+                </p>
             </div>
 
-            <div className={styles.balance}>
-                <p>{balance ?? '0'}</p>
-            </div>
+            {balance && (
+                <div className={styles.balance}>
+                    <p>{balance ?? '0'}</p>
+                </div>
+            )}
         </button>
     );
 };

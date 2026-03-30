@@ -46,5 +46,7 @@ export default {
         max: 'MAX',
         continue: 'Continue',
         enterAmount: 'Enter an amount',
+        selectToken: 'Select Token',
+        searchToken: 'Search...',
     },
 } as const;

@@ -6,6 +6,7 @@
  *
  */
 
+import { useState } from 'react';
 import type { FC } from 'react';
 
 import { Button } from '../../../../components/button';
@@ -15,6 +16,7 @@ import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
 import { SwapSettingsButton } from '../swap-settings-button';
+import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import styles from './swap-widget-ui.module.css';
 import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
@@ -24,6 +26,7 @@ export type SwapWidgetRenderProps = SwapContextType;
 export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
     toToken,
+    tokens,
     fromAmount,
     toAmount,
     fromFiatValue,
@@ -38,12 +41,15 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     onFlip,
     onMaxClick,
     setFromAmount,
+    setFromToken,
+    setToToken,
     sendSwapTransaction,
     isSendingTransaction,
 }) => {
     const connectors = useConnectors();
     const { mutate: connect, isPending: isConnecting } = useConnect();
     const { t } = useI18n();
+    const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
 
     const infoRows = getInfoFromQuote({ quote, slippage });
 
@@ -64,6 +70,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     usdValue={fromFiatValue ?? undefined}
                     balance={fromToken?.balance}
                     onMaxClick={onMaxClick}
+                    onTokenSelectorClick={() => setActiveField('from')}
                 />
 
                 <div className={styles.flipButtonWrapper}>
@@ -77,8 +84,19 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     amount={isQuoteLoading ? '...' : toAmount}
                     usdValue={toFiatValue ?? undefined}
                     balance={toToken?.balance}
+                    onTokenSelectorClick={() => setActiveField('to')}
                 />
             </div>
+
+            <SwapTokenSelectModal
+                open={activeField !== null}
+                onClose={() => setActiveField(null)}
+                tokens={tokens}
+                onSelect={(token) => {
+                    if (activeField === 'from') setFromToken(token);
+                    else setToToken(token);
+                }}
+            />
 
             {infoRows.length > 0 && <SwapInfo rows={infoRows} />}
 

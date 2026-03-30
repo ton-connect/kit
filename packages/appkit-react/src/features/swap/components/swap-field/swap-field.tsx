@@ -22,6 +22,7 @@ export interface SwapFieldProps {
     usdValue?: string;
     balance?: string;
     onMaxClick?: () => void;
+    onTokenSelectorClick?: () => void;
 }
 
 export const SwapField: FC<SwapFieldProps> = ({
@@ -33,6 +34,7 @@ export const SwapField: FC<SwapFieldProps> = ({
     usdValue,
     balance,
     onMaxClick,
+    onTokenSelectorClick,
 }) => {
     const { t } = useI18n();
 
@@ -50,7 +52,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     disabled={type === 'receive'}
                 />
                 <Input.Slot side="right">
-                    <TokenSelector symbol={tokenSymbol} icon={tokenIcon} />
+                    <TokenSelector symbol={tokenSymbol} icon={tokenIcon} onClick={onTokenSelectorClick} />
                 </Input.Slot>
             </Input.Field>
 

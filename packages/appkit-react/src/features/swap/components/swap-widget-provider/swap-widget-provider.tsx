@@ -7,7 +7,7 @@
  */
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import type { FC, PropsWithChildren, ReactNode } from 'react';
+import type { FC, PropsWithChildren } from 'react';
 import type { Network } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
@@ -26,8 +26,8 @@ export interface SwapWidgetToken {
     decimals: number;
     /** Jetton contract address (use "native" for TON) */
     address: string;
-    /** Optional token logo — can be a ReactNode (SVG, img) */
-    logo?: ReactNode;
+    /** Optional token logo */
+    logo?: string;
     /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
     rate?: number;
     /** Optional user balance */

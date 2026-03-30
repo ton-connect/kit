@@ -6,21 +6,22 @@
  *
  */
 
-import type { FC, ReactNode } from 'react';
+import type { FC } from 'react';
 
 import styles from './token-selector.module.css';
 import { Button } from '../../../../components/button';
+import { CircleIcon } from '../../../../components/circle-icon';
 
 export interface TokenSelectorProps {
     symbol: string;
-    icon: ReactNode;
+    icon?: string;
     onClick?: () => void;
 }
 
 export const TokenSelector: FC<TokenSelectorProps> = ({ symbol, icon, onClick }) => {
     return (
         <Button className={styles.tokenSelector} onClick={onClick} variant="gray" size="s">
-            <div className={styles.tokenIcon}>{icon}</div>
+            <CircleIcon size={24} src={icon} fallback={symbol[0]} alt={symbol} />
             <span>{symbol}</span>
             <svg width="12" height="8" viewBox="0 0 12 8" fill="none" className={styles.chevron}>
                 <path

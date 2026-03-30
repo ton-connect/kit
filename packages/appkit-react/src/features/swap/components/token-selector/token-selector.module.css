@@ -6,16 +6,6 @@
   opacity: 0.8;
 }
 
-.tokenIcon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
 .chevron {
   opacity: 0.5;
   margin-left: 2px;
