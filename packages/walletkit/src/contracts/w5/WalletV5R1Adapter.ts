@@ -315,9 +315,10 @@ export class WalletV5R1Adapter implements WalletAdapter {
         actionsList: Cell,
         options: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean },
     ) {
+        // Opcodes defined in the WalletV5R1 contract spec, confirmed in @ton/ton WalletContractV5R1.js
         const Opcodes = {
-            auth_signed: 0x7369676e,
-            auth_signed_internal: 0x73696e74,
+            auth_signed: 0x7369676e,          // external auth ("sign")
+            auth_signed_internal: 0x73696e74, // internal auth ("sint") — used for gasless relaying
         };
 
         // Use internal opcode for gasless relaying (signOnly / signMsg intent)
