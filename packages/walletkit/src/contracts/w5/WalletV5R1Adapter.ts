@@ -366,6 +366,8 @@ export class WalletV5R1Adapter implements WalletAdapter {
             { name: 'SignMessageDraft', types: ['ton', 'jetton', 'nft'] },
             { name: 'ActionDraft' },
             { name: 'Intents', types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'] },
+        // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
+        // to include PR #103 feature names (SendTransactionDraft, SignMessageDraft, ActionDraft, Intents, etc.)
         ] as unknown as Feature[];
     }
 }
