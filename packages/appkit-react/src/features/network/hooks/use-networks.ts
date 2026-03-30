@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback, useRef } from 'react';
 import { getNetworks, watchNetworks } from '@ton/appkit';
 import type { GetNetworksReturnType } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseNetworksReturnType = GetNetworksReturnType;
 

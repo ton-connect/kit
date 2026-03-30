@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback } from 'react';
 import { getConnectors, watchConnectors } from '@ton/appkit';
 import type { GetConnectorsReturnType } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseConnectorsReturnType = GetConnectorsReturnType;
 

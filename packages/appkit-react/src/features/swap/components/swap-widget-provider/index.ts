@@ -6,4 +6,4 @@
  *
  */
 
-export * from './swap-provider';
+export * from './swap-widget-provider';

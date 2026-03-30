@@ -11,7 +11,7 @@ import type { FC, ReactNode, ComponentProps } from 'react';
 import type { SendTransactionParameters, SendTransactionReturnType } from '@ton/appkit';
 
 import { TransactionProvider, useTransactionContext } from '../transaction-provider';
-import { useI18n } from '../../../../hooks/use-i18n';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Button } from '../../../../components/button';
 
 export interface TransactionRenderProps {

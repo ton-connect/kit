@@ -1,0 +1,107 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import type { FC } from 'react';
+
+import { Button } from '../../../../components/button';
+import { useI18n } from '../../../settings/hooks/use-i18n';
+import { useConnect, useConnectors } from '../../../wallets';
+import { SwapField } from '../swap-field';
+import { SwapFlipButton } from '../swap-flip-button';
+import { SwapInfo } from '../swap-info';
+import { SwapSettingsButton } from '../swap-settings-button';
+import styles from './swap-widget-ui.module.css';
+import { getInfoFromQuote } from '../../utils/get-info-from-quote';
+import type { SwapContextType } from '../swap-widget-provider';
+
+export type SwapWidgetRenderProps = SwapContextType;
+
+export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
+    fromToken,
+    toToken,
+    fromAmount,
+    toAmount,
+    fromFiatValue,
+    toFiatValue,
+    // fiatSymbol,
+    isFlipped,
+    canSubmit,
+    isWalletConnected,
+    quote,
+    isQuoteLoading,
+    slippage,
+    onFlip,
+    onMaxClick,
+    setFromAmount,
+}) => {
+    const connectors = useConnectors();
+    const { mutate: connect, isPending: isConnecting } = useConnect();
+    const { t } = useI18n();
+
+    const infoRows = getInfoFromQuote({ quote, slippage });
+
+    return (
+        <div className={styles.widget}>
+            <div className={styles.header}>
+                <h2 className={styles.headerTitle}>{t('swap.title')}</h2>
+                <SwapSettingsButton />
+            </div>
+
+            <div className={styles.fieldsContainer}>
+                <SwapField
+                    type="pay"
+                    tokenSymbol={fromToken?.symbol ?? ''}
+                    tokenIcon={fromToken?.logo}
+                    amount={fromAmount}
+                    onAmountChange={setFromAmount}
+                    usdValue={fromFiatValue ?? undefined}
+                    balance={fromToken?.balance}
+                    onMaxClick={onMaxClick}
+                />
+
+                <div className={styles.flipButtonWrapper}>
+                    <SwapFlipButton onClick={onFlip} rotated={isFlipped} />
+                </div>
+
+                <SwapField
+                    type="receive"
+                    tokenSymbol={toToken?.symbol ?? ''}
+                    tokenIcon={toToken?.logo}
+                    amount={isQuoteLoading ? '...' : toAmount}
+                    usdValue={toFiatValue ?? undefined}
+                    balance={toToken?.balance}
+                />
+            </div>
+
+            {infoRows.length > 0 && <SwapInfo rows={infoRows} />}
+
+            {isWalletConnected ? (
+                <Button
+                    variant="fill"
+                    size="l"
+                    fullWidth
+                    style={{ marginTop: '8px' }}
+                    disabled={!canSubmit || isQuoteLoading}
+                >
+                    {canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+                </Button>
+            ) : (
+                <Button
+                    variant="fill"
+                    size="l"
+                    fullWidth
+                    style={{ marginTop: '8px' }}
+                    disabled={isConnecting || connectors.length === 0}
+                    onClick={() => connectors[0] && connect({ connectorId: connectors[0].id })}
+                >
+                    {t('wallet.connectWallet')}
+                </Button>
+            )}
+        </div>
+    );
+};

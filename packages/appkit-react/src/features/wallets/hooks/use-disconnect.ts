@@ -14,7 +14,7 @@ import type { DisconnectData, DisconnectErrorType, DisconnectOptions, Disconnect
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseDisconnectParameters<context = unknown> = DisconnectOptions<context>;
 

@@ -17,7 +17,7 @@ import type {
     BuildSwapTransactionVariables,
 } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
 export type UseBuildSwapTransactionParameters<context = unknown> = BuildSwapTransactionMutationOptions<context>;

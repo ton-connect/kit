@@ -12,7 +12,7 @@ import type { FC, ComponentProps } from 'react';
 import { getFormattedNftInfo } from '@ton/appkit';
 import clsx from 'clsx';
 
-import { useI18n } from '../../../../hooks/use-i18n';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 import styles from './nft-item.module.css';
 
 const PlaceholderIcon: FC = () => (

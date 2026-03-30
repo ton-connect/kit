@@ -8,11 +8,25 @@
 
 import type { Preview } from '@storybook/react-vite';
 import type { Decorator } from '@storybook/react-vite';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
+import { AppKitProvider } from '../src/providers/app-kit-provider';
 import { I18nProvider } from '../src/providers/i18n-provider';
-import '../src/styles/index.css';
+import { appKit } from './app-kit';
 import theme from './theme';
+
+import '../src/styles/index.css';
+
+const queryClient = new QueryClient();
+
+const withAppKit: Decorator = (Story) => (
+    <QueryClientProvider client={queryClient}>
+        <AppKitProvider appKit={appKit}>
+            <Story />
+        </AppKitProvider>
+    </QueryClientProvider>
+);
 
 const withI18n: Decorator = (Story) => (
     <I18nProvider>
@@ -69,7 +83,7 @@ const preview: Preview = {
             },
         },
     },
-    decorators: [withTheme, withI18n],
+    decorators: [withTheme, withI18n, withAppKit],
 };
 
 export default preview;

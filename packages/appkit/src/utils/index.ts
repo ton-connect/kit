@@ -12,6 +12,7 @@ export * from './amount/validate-numeric-string';
 export * from './arrays/key-by';
 export * from './arrays/random-from-array';
 export * from './errors/get-error-message';
+export * from './functions/debounce';
 export * from './functions/noop';
 export * from './jetton/jetton-info';
 export * from './nft/nft-info';

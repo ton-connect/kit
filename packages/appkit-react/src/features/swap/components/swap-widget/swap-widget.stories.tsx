@@ -7,16 +7,17 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Network } from '@ton/appkit';
 
 import { SwapWidget } from './swap-widget';
-import type { SwapToken } from '../swap-provider';
+import type { SwapWidgetToken } from '../swap-widget-provider';
 
-const TOKENS: SwapToken[] = [
+const TOKENS: SwapWidgetToken[] = [
     {
         symbol: 'TON',
         name: 'Toncoin',
         decimals: 9,
-        address: 'native',
+        address: 'ton',
         rate: 1.4474,
         balance: '500',
         logo: (
@@ -40,10 +41,10 @@ const TOKENS: SwapToken[] = [
         ),
     },
     {
-        symbol: 'USDT',
+        symbol: 'USD₮',
         name: 'Tether USD',
         decimals: 6,
-        address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
+        address: 'UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p',
         rate: 1.0,
         balance: '12843',
         logo: (
@@ -80,6 +81,7 @@ type Story = StoryObj<typeof SwapWidget>;
 export const Default: Story = {
     args: {
         tokens: TOKENS,
+        network: Network.mainnet(),
         fiatSymbol: '$',
         defaultFromSymbol: 'TON',
         defaultToSymbol: 'USDT',
@@ -89,13 +91,14 @@ export const Default: Story = {
 export const CustomUI: Story = {
     args: {
         tokens: TOKENS,
+        network: Network.mainnet(),
         fiatSymbol: '$',
         defaultFromSymbol: 'TON',
         defaultToSymbol: 'USDT',
     },
     render: (args) => (
         <SwapWidget {...args}>
-            {({ fromToken, toToken, fromAmount, toAmount, canSubmit, setFromAmount, onFlip }) => (
+            {({ fromToken, toToken, fromAmount, toAmount, isQuoteLoading, canSubmit, setFromAmount, onFlip }) => (
                 <div
                     style={{
                         display: 'flex',
@@ -115,9 +118,9 @@ export const CustomUI: Story = {
                     </button>
                     <div>
                         <label>Receive ({toToken?.symbol})</label>
-                        <input value={toAmount} readOnly />
+                        <input value={isQuoteLoading ? '...' : toAmount} readOnly />
                     </div>
-                    <button disabled={!canSubmit} type="button">
+                    <button disabled={!canSubmit || isQuoteLoading} type="button">
                         {canSubmit ? 'Continue' : 'Enter an amount'}
                     </button>
                 </div>

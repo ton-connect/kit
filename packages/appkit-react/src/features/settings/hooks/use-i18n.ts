@@ -8,7 +8,7 @@
 
 import { useContext } from 'react';
 
-import { I18nContext } from '../providers/i18n-provider';
+import { I18nContext } from '../../../providers/i18n-provider';
 
 export const useI18n = () => {
     const i18n = useContext(I18nContext);

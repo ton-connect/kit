@@ -8,8 +8,14 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren, ReactNode } from 'react';
+import type { Network } from '@ton/appkit';
+import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
-export interface SwapToken {
+import { useSwapQuote } from '../../hooks/use-swap-quote';
+import { useSelectedWallet } from '../../../wallets';
+import { useDebounceValue } from '../../../../hooks/use-debounce-value';
+
+export interface SwapWidgetToken {
     /** Token symbol, e.g. "TON" */
     symbol: string;
     /** Full token name, e.g. "Toncoin" */
@@ -20,7 +26,7 @@ export interface SwapToken {
     address: string;
     /** Optional token logo — can be a ReactNode (SVG, img) */
     logo?: ReactNode;
-    /** Optional exchange rate: 1 token = rate fiat units */
+    /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
     rate?: number;
     /** Optional user balance */
     balance?: string;
@@ -28,14 +34,14 @@ export interface SwapToken {
 
 export interface SwapContextType {
     /** Full list of available tokens */
-    tokens: SwapToken[];
+    tokens: SwapWidgetToken[];
     /** Currently selected "from" token */
-    fromToken: SwapToken | null;
+    fromToken: SwapWidgetToken | null;
     /** Currently selected "to" token */
-    toToken: SwapToken | null;
+    toToken: SwapWidgetToken | null;
     /** Amount the user wants to swap (string to preserve input UX) */
     fromAmount: string;
-    /** Calculated receive amount */
+    /** Calculated receive amount from the quote */
     toAmount: string;
     /** Fiat currency symbol, e.g. "$" */
     fiatSymbol: string;
@@ -47,9 +53,20 @@ export interface SwapContextType {
     isFlipped: boolean;
     /** Whether the user can proceed with the swap */
     canSubmit: boolean;
-    setFromToken: (token: SwapToken) => void;
-    setToToken: (token: SwapToken) => void;
+    /** Whether a wallet is currently connected */
+    isWalletConnected: boolean;
+    /** Raw swap quote from the provider */
+    quote: GetSwapQuoteData | undefined;
+    /** True while the quote is being fetched */
+    isQuoteLoading: boolean;
+    /** Error from the last quote fetch, if any */
+    quoteError: Error | null;
+    /** Slippage tolerance in basis points (100 = 1%) */
+    slippage: number;
+    setFromToken: (token: SwapWidgetToken) => void;
+    setToToken: (token: SwapWidgetToken) => void;
     setFromAmount: (amount: string) => void;
+    setSlippage: (slippage: number) => void;
     onFlip: () => void;
     onMaxClick: () => void;
 }
@@ -65,9 +82,15 @@ export const SwapContext = createContext<SwapContextType>({
     toFiatValue: null,
     isFlipped: false,
     canSubmit: false,
+    isWalletConnected: false,
+    quote: undefined,
+    isQuoteLoading: false,
+    quoteError: null,
+    slippage: 50,
     setFromToken: () => {},
     setToToken: () => {},
     setFromAmount: () => {},
+    setSlippage: () => {},
     onFlip: () => {},
     onMaxClick: () => {},
 });
@@ -78,40 +101,74 @@ export function useSwapContext() {
 
 export interface SwapProviderProps extends PropsWithChildren {
     /** Full list of tokens available for swapping */
-    tokens: SwapToken[];
+    tokens: SwapWidgetToken[];
+    /** Network to use for quote fetching, defaults to mainnet */
+    network: Network;
     /** Fiat currency symbol shown next to amounts, defaults to "$" */
     fiatSymbol?: string;
     /** Symbol of the token pre-selected in the "from" field */
     defaultFromSymbol?: string;
     /** Symbol of the token pre-selected in the "to" field */
     defaultToSymbol?: string;
+    /** Initial slippage in basis points (100 = 1%), defaults to 50 (0.5%) */
+    defaultSlippage?: number;
 }
 
-export const SwapProvider: FC<SwapProviderProps> = ({
+export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     children,
     tokens,
+    network,
     fiatSymbol = '$',
     defaultFromSymbol,
     defaultToSymbol,
+    defaultSlippage = 50,
 }) => {
-    const [fromToken, setFromToken] = useState<SwapToken | null>(
+    const [fromToken, setFromToken] = useState<SwapWidgetToken | null>(
         tokens.find((t) => t.symbol === defaultFromSymbol) ?? tokens[0] ?? null,
     );
-    const [toToken, setToToken] = useState<SwapToken | null>(
+    const [toToken, setToToken] = useState<SwapWidgetToken | null>(
         tokens.find((t) => t.symbol === defaultToSymbol) ?? tokens[1] ?? null,
     );
     const [fromAmount, setFromAmount] = useState('');
     const [isFlipped, setIsFlipped] = useState(false);
+    const [slippage, setSlippage] = useState(defaultSlippage);
 
-    const toAmount = useMemo(() => {
-        const fromNum = parseFloat(fromAmount) || 0;
+    const fromTokenParam = useMemo(
+        () =>
+            fromToken
+                ? {
+                      address: fromToken.address,
+                      decimals: fromToken.decimals,
+                      symbol: fromToken.symbol,
+                      name: fromToken.name,
+                  }
+                : undefined,
+        [fromToken],
+    );
 
-        if (!fromToken?.rate || !toToken?.rate || fromNum <= 0) return '';
+    const toTokenParam = useMemo(
+        () =>
+            toToken
+                ? { address: toToken.address, decimals: toToken.decimals, symbol: toToken.symbol, name: toToken.name }
+                : undefined,
+        [toToken],
+    );
 
-        const result = (fromNum * fromToken.rate) / toToken.rate;
+    const [fromAmountDebounced] = useDebounceValue(fromAmount, 500);
 
-        return result >= 1 ? result.toFixed(2) : result.toFixed(6);
-    }, [fromAmount, fromToken, toToken]);
+    const {
+        data: quote,
+        isFetching: isQuoteLoading,
+        error: quoteError,
+    } = useSwapQuote({
+        from: fromTokenParam,
+        to: toTokenParam,
+        amount: fromAmountDebounced,
+        network,
+        slippageBps: slippage,
+    });
+
+    const toAmount = quote?.toAmount ?? '';
 
     const fromFiatValue = useMemo(() => {
         const fromNum = parseFloat(fromAmount) || 0;
@@ -142,6 +199,9 @@ export const SwapProvider: FC<SwapProviderProps> = ({
         }
     }, [fromToken]);
 
+    const [wallet] = useSelectedWallet();
+    const isWalletConnected = wallet !== null;
+
     const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null;
 
     const value = useMemo(
@@ -156,9 +216,15 @@ export const SwapProvider: FC<SwapProviderProps> = ({
             toFiatValue,
             isFlipped,
             canSubmit,
+            isWalletConnected,
+            quote,
+            isQuoteLoading,
+            quoteError,
+            slippage,
             setFromToken,
             setToToken,
             setFromAmount,
+            setSlippage,
             onFlip: handleFlip,
             onMaxClick: handleMaxClick,
         }),
@@ -173,6 +239,11 @@ export const SwapProvider: FC<SwapProviderProps> = ({
             toFiatValue,
             isFlipped,
             canSubmit,
+            isWalletConnected,
+            quote,
+            isQuoteLoading,
+            quoteError,
+            slippage,
             handleFlip,
             handleMaxClick,
         ],

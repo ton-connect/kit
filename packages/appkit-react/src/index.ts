@@ -7,10 +7,7 @@
  */
 
 export { AppKitProvider } from './providers/app-kit-provider';
-export { useAppKit } from './hooks/use-app-kit';
-export { useAppKitTheme } from './hooks/use-app-kit-theme';
 export { I18nProvider } from './providers/i18n-provider';
-export { useI18n } from './hooks/use-i18n';
 
 export * from '@ton/appkit';
 
@@ -26,5 +23,6 @@ export * from './features/network';
 export * from './features/nft';
 export * from './features/transaction';
 export * from './features/wallets';
+export * from './features/settings';
 export * from './features/swap';
 export * from './features/signing';

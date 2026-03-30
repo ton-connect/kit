@@ -37,4 +37,14 @@ export default {
     nft: {
         onSale: 'On Sale',
     },
+
+    // Swap
+    swap: {
+        title: 'Swap',
+        pay: 'Pay',
+        receive: 'Receive',
+        max: 'MAX',
+        continue: 'Continue',
+        enterAmount: 'Enter an amount',
+    },
 } as const;

@@ -10,7 +10,7 @@ import { useSyncExternalStore, useCallback } from 'react';
 import { getConnectorById, watchConnectorById } from '@ton/appkit';
 import type { Connector } from '@ton/appkit';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export const useConnectorById = (id: string): Connector | undefined => {
     const appKit = useAppKit();

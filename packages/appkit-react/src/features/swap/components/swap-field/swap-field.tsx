@@ -8,6 +8,7 @@
 
 import type { FC, ReactNode } from 'react';
 
+import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
 import { TokenSelector } from '../token-selector/token-selector';
 import styles from './swap-field.module.css';
@@ -17,7 +18,7 @@ export interface SwapFieldProps {
     tokenSymbol: string;
     tokenIcon: ReactNode;
     amount: string;
-    onAmountChange: (value: string) => void;
+    onAmountChange?: (value: string) => void;
     usdValue?: string;
     balance?: string;
     onMaxClick?: () => void;
@@ -33,14 +34,21 @@ export const SwapField: FC<SwapFieldProps> = ({
     balance,
     onMaxClick,
 }) => {
+    const { t } = useI18n();
+
     return (
         <Input.Container size="l" variant="unstyled" className={styles.container}>
             <Input.Header className={styles.header}>
-                <Input.Title>{type === 'pay' ? 'Pay' : 'Receive'}</Input.Title>
+                <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
 
             <Input.Field>
-                <Input.Input placeholder="0" value={amount} onChange={(e) => onAmountChange(e.target.value)} />
+                <Input.Input
+                    placeholder="0"
+                    value={amount}
+                    onChange={onAmountChange && ((e) => onAmountChange(e.target.value))}
+                    disabled={type === 'receive'}
+                />
                 <Input.Slot side="right">
                     <TokenSelector symbol={tokenSymbol} icon={tokenIcon} />
                 </Input.Slot>
@@ -51,7 +59,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     <span>{usdValue ? `$ ${usdValue}` : '$ 0.00'}</span>
                     {type === 'pay' && balance && (
                         <span>
-                            MAX{' '}
+                            {t('swap.max')}{' '}
                             <button className={styles.maxButton} onClick={onMaxClick} type="button">
                                 {balance} {tokenSymbol}
                             </button>

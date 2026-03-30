@@ -8,16 +8,10 @@
 
 import type { FC, ReactNode } from 'react';
 
-import { Button } from '../../../../components/button';
-import { SwapField } from '../swap-field';
-import { SwapFlipButton } from '../swap-flip-button';
-import { SwapInfo } from '../swap-info';
-import { SwapSettingsButton } from '../swap-settings-button';
-import { SwapProvider, useSwapContext } from '../swap-provider';
-import type { SwapContextType, SwapProviderProps } from '../swap-provider';
-import styles from './swap-widget.module.css';
-
-export type SwapWidgetRenderProps = SwapContextType;
+import type { SwapWidgetRenderProps } from '../swap-widget-ui';
+import { SwapWidgetUI } from '../swap-widget-ui';
+import { SwapWidgetProvider, useSwapContext } from '../swap-widget-provider';
+import type { SwapProviderProps } from '../swap-widget-provider';
 
 export interface SwapWidgetProps extends Omit<SwapProviderProps, 'children'> {
     /** Custom render function — when provided, replaces the default widget UI */
@@ -26,94 +20,33 @@ export interface SwapWidgetProps extends Omit<SwapProviderProps, 'children'> {
 
 const SwapWidgetContent: FC<{ children?: (props: SwapWidgetRenderProps) => ReactNode }> = ({ children }) => {
     const ctx = useSwapContext();
-    const {
-        fromToken,
-        toToken,
-        fromAmount,
-        toAmount,
-        fromFiatValue,
-        toFiatValue,
-        fiatSymbol,
-        isFlipped,
-        canSubmit,
-        onFlip,
-        onMaxClick,
-        setFromAmount,
-    } = ctx;
 
     if (children) {
         return <>{children(ctx)}</>;
     }
 
-    return (
-        <div className={styles.widget}>
-            <div className={styles.header}>
-                <h2 className={styles.headerTitle}>Swap</h2>
-                <SwapSettingsButton />
-            </div>
-
-            <div className={styles.fieldsContainer}>
-                <SwapField
-                    type="pay"
-                    tokenSymbol={fromToken?.symbol ?? ''}
-                    tokenIcon={fromToken?.logo}
-                    amount={fromAmount}
-                    onAmountChange={setFromAmount}
-                    usdValue={fromFiatValue ?? undefined}
-                    balance={fromToken?.balance}
-                    onMaxClick={onMaxClick}
-                />
-
-                <div className={styles.flipButtonWrapper}>
-                    <SwapFlipButton onClick={onFlip} rotated={isFlipped} />
-                </div>
-
-                <SwapField
-                    type="receive"
-                    tokenSymbol={toToken?.symbol ?? ''}
-                    tokenIcon={toToken?.logo}
-                    amount={toAmount}
-                    onAmountChange={() => {}}
-                    usdValue={toFiatValue ?? undefined}
-                    balance={toToken?.balance}
-                />
-            </div>
-
-            {canSubmit && fromToken && toToken && (
-                <SwapInfo
-                    rows={[
-                        {
-                            label: 'Price',
-                            value: fromToken.rate
-                                ? `1 ${fromToken.symbol} ≈ ${fiatSymbol}${fromToken.rate.toFixed(4)}`
-                                : '—',
-                        },
-                    ]}
-                />
-            )}
-
-            <Button variant="fill" size="l" fullWidth style={{ marginTop: '8px' }} disabled={!canSubmit}>
-                {canSubmit ? 'Continue' : 'Enter an amount'}
-            </Button>
-        </div>
-    );
+    return <SwapWidgetUI {...ctx} />;
 };
 
 export const SwapWidget: FC<SwapWidgetProps> = ({
     children,
     tokens,
+    network,
     fiatSymbol,
     defaultFromSymbol,
     defaultToSymbol,
+    defaultSlippage,
 }) => {
     return (
-        <SwapProvider
+        <SwapWidgetProvider
             tokens={tokens}
+            network={network}
             fiatSymbol={fiatSymbol}
             defaultFromSymbol={defaultFromSymbol}
             defaultToSymbol={defaultToSymbol}
+            defaultSlippage={defaultSlippage}
         >
             <SwapWidgetContent>{children}</SwapWidgetContent>
-        </SwapProvider>
+        </SwapWidgetProvider>
     );
 };

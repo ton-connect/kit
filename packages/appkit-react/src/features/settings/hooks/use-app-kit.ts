@@ -8,7 +8,7 @@
 
 import { useContext } from 'react';
 
-import { AppKitContext } from '../providers/app-kit-provider';
+import { AppKitContext } from '../../../providers/app-kit-provider';
 
 export function useAppKit() {
     const context = useContext(AppKitContext);
