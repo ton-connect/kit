@@ -669,7 +669,6 @@ export class TonWalletKit implements ITonWalletKit {
         }
     }
 
-
     // === URL Processing API ===
 
     /**
