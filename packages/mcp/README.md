@@ -20,11 +20,15 @@ A Model Context Protocol (MCP) server for TON blockchain wallet operations. Buil
 - **Agentic Wallets mode**: Server starts from local config registry at `~/.config/ton/config.json` or `TON_CONFIG_PATH`
 - **Single-wallet mode**: if `MNEMONIC` or `PRIVATE_KEY` is set, the server starts with one in-memory wallet
 
+Choose one control path per task: either run `@ton/mcp` as an MCP server (stdio or HTTP) or call tools through raw CLI. Agents must not mix MCP server mode and raw CLI against the same workflow/session, because that creates competing control paths over the same wallet/config state.
+
 ### Agentic Wallets mode
 
 Self-custody wallets for autonomous agents. Your AI agent gets TON wallet capabilities — transfers, swaps, NFTs. User keeps the master key, agent keeps the operator key.
 
-**Learn more about [Agentic Wallets](https://agentic-wallets-dashboard.vercel.app/).**
+Key storage in this mode: wallet secrets are persisted inside the local config registry at `TON_CONFIG_PATH` or `~/.config/ton/config.json`. The config directory is created with `0700` permissions and the config file with `0600` permissions. The file is not stored as plain text, but the current protected-file format is only obfuscation-in-file, not real cryptographic protection with an external secret or password.
+
+**Learn more about [Agentic Wallets](https://agents.ton.org/).**
 
 Agentic Wallets mode is the default mode that allows you to manage agentic wallets. To create your first agentic wallet, ask your agent to `create agentic wallet` and follow the instructions.
 
@@ -45,6 +49,8 @@ TON_CONFIG_PATH=/path/to/config.json npx @ton/mcp@alpha
 ### Single-wallet mode
 
 Single-wallet mode is a mode where the server starts with one in-memory wallet. This mode is useful when you want to manage a single wallet or when you want to use the server for a one-off task.
+
+Key storage in this mode: `MNEMONIC` / `PRIVATE_KEY` are read from environment variables and used only in memory for the current process; `@ton/mcp` does not persist them to disk in this mode. The values come in as plain environment variables, so any non-plain-text storage or encryption is the responsibility of the caller or host environment, not `@ton/mcp`.
 
 ```bash
 # Run as stdio MCP server with mnemonic
@@ -105,6 +111,10 @@ npx @ton/mcp@alpha --http 3000
 ```
 
 HTTP mode keeps a separate MCP session/transport per client session id, so multiple clients can initialize and reconnect independently.
+
+## Usage Examples
+
+Examples of user requests, approximate corresponding raw CLI commands via `npx @ton/mcp@alpha`, and expected agent responses are collected in [USAGE_EXAMPLES.md](./USAGE_EXAMPLES.md).
 
 ## Environment Variables
 
@@ -321,7 +331,7 @@ Import an existing agentic wallet into the local TON config registry, recovering
 - `name` (optional): Wallet display name
 
 #### `agentic_start_root_wallet_setup` (registry mode only)
-Start first-root-agent setup: generate operator keys, persist a pending draft, and return a dashboard URL for the user to create the wallet from their main wallet.
+Start first-root-agent setup: generate operator keys, persist a pending draft, and return a dashboard URL for the user to create the wallet from their main wallet. Agents with local shell/browser access should open the dashboard URL for the user. Callback-based completion is for long-lived stdio/HTTP server sessions; raw CLI should use manual completion.
 
 **Parameters:**
 - `network` (optional): Network for the new root wallet

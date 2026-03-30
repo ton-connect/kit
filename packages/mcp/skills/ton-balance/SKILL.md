@@ -15,11 +15,11 @@ Read-only queries for wallet balances, token holdings, and transaction history o
 | ---- | -------- | -------- |
 | `get_wallet` | — | `walletSelector` |
 | `get_balance` | — | `walletSelector` |
-| `get_balance_by_address` | `address` | — |
+| `get_balance_by_address` | `address` | `walletSelector` |
 | `get_jetton_balance` | `jettonAddress` | `walletSelector` |
 | `get_jettons` | — | `walletSelector` |
-| `get_jettons_by_address` | `address` | — |
-| `get_jetton_info` | `address` | — |
+| `get_jettons_by_address` | `address` | `limit`, `offset`, `walletSelector` |
+| `get_jetton_info` | `jettonAddress` | `walletSelector` |
 | `get_known_jettons` | — | — |
 | `get_transactions` | — | `limit`, `walletSelector` |
 | `get_transaction_status` | `normalizedHash` | `walletSelector` |
@@ -45,4 +45,4 @@ Read-only queries for wallet balances, token holdings, and transaction history o
 
 - All tools are read-only — no confirmation needed
 - In registry mode, pass `walletSelector` to query a specific wallet instead of the active one
-- Amounts are returned in human-readable format (e.g., "1.5" = 1.5 TON)
+- All balance responses include both `amountRaw` (raw integer string) and `amount` (human-readable decimal string, e.g. `"1.5"` for 1.5 TON). Use `amount` for display; use `amountRaw` only when a raw integer is required.

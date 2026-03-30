@@ -69,6 +69,7 @@ export const api: WalletKitBridgeApi = {
 
     // TonConnect & sessions
     handleTonConnectUrl: tonconnect.handleTonConnectUrl,
+    connectionEventFromUrl: tonconnect.connectionEventFromUrl,
     listSessions: tonconnect.listSessions,
     disconnectSession: tonconnect.disconnectSession,
     processInternalBrowserRequest: tonconnect.processInternalBrowserRequest,

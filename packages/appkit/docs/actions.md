@@ -274,6 +274,51 @@ const unsubscribe = watchNetworks(appKit, {
 // Later: unsubscribe();
 ```
 
+### `getBlockNumber`
+
+Get the current masterchain block number.
+
+```ts
+const blockNumber = await getBlockNumber(appKit);
+
+console.log('Current block number:', blockNumber);
+```
+
+### `getDefaultNetwork`
+
+Get the currently configured default network.
+
+```ts
+const defaultNetwork = getDefaultNetwork(appKit);
+console.log('Default network:', defaultNetwork);
+```
+
+### `setDefaultNetwork`
+
+Set the default network for wallet connections. If set, connectors (e.g. TonConnect) will enforce this network when connecting a wallet. Pass `undefined` to allow any network.
+
+```ts
+// Enforce testnet for all new wallet connections
+setDefaultNetwork(appKit, { network: Network.testnet() });
+
+// Allow any network (clear default)
+setDefaultNetwork(appKit, { network: undefined });
+```
+
+### `watchDefaultNetwork`
+
+Watch for changes in the default network.
+
+```ts
+const unsubscribe = watchDefaultNetwork(appKit, {
+    onChange: (network) => {
+        console.log('Default network changed:', network);
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ## NFTs
 
 ### `getNfts`

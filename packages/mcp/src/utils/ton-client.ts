@@ -10,6 +10,7 @@ import { ApiClientToncenter, Network } from '@ton/walletkit';
 import type { ApiClient } from '@ton/walletkit';
 
 import type { TonNetwork } from '../registry/config.js';
+import { setupProxySupport } from './proxy.js';
 
 const DEFAULT_TONCENTER_API_KEYS: Record<TonNetwork, string> = {
     mainnet: 'c2de0a8e6e2628fcccf98b1ee23201fd1188c4e0dfd2c0bd2ad2bdb438d2adcd',
@@ -60,6 +61,8 @@ export function createRateLimitedFetch(delayMs: number, fetchImpl: typeof fetch 
 }
 
 export function createApiClient(network: TonNetwork, apiKey?: string): ApiClient {
+    setupProxySupport();
+
     const resolvedNetwork = network === 'mainnet' ? Network.mainnet() : Network.testnet();
     const resolvedApiKey = resolveToncenterApiKey(network, apiKey);
 

@@ -44,7 +44,7 @@ export interface TonApiNftItem {
     dns?: string;
     approved_by?: string[];
     include_cnft?: boolean;
-    trust: 'whitelist' | 'blacklist' | 'none';
+    trust: 'whitelist' | 'graylist' | 'blacklist' | 'none';
 }
 
 export interface TonApiNftItems {

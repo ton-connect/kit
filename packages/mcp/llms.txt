@@ -258,20 +258,26 @@ Parameters:
 
 ### Rotating an Agentic Operator Key
 1. agentic_rotate_operator_key to create a pending rotation and get the dashboard URL
-2. Optionally inspect progress with agentic_get_pending_operator_key_rotation or agentic_list_pending_operator_key_rotations
-3. agentic_complete_rotate_operator_key after the on-chain change is confirmed
-4. agentic_cancel_rotate_operator_key if the pending rotation should be discarded
+2. If local shell/browser tools are available, open the dashboard URL yourself instead of asking the user to copy it manually
+3. Optionally inspect progress with agentic_get_pending_operator_key_rotation or agentic_list_pending_operator_key_rotations
+4. Ask the user only to approve the on-chain change in their wallet; do not require a fixed confirmation phrase
+5. agentic_complete_rotate_operator_key after the on-chain change is confirmed; if it is not yet reflected on-chain, wait briefly and retry
+6. agentic_cancel_rotate_operator_key if the pending rotation should be discarded
 
 ### Setting Up the First Agentic Root Wallet
 1. agentic_start_root_wallet_setup
-2. Tell the user to open the returned dashboard URL and create the wallet from their main wallet
-3. Inspect agentic_get_root_wallet_setup or agentic_list_pending_root_wallet_setups
-4. If completion is manual, use agentic_validate_wallet
-5. agentic_complete_root_wallet_setup when callback data is available or when the user provides the created wallet address
+2. If local shell/browser tools are available, open the returned dashboard URL yourself instead of asking the user to open it manually
+3. Tell the user only to create the wallet from their main wallet and approve the on-chain action
+4. In long-lived stdio/HTTP MCP server sessions, inspect agentic_get_root_wallet_setup or agentic_list_pending_root_wallet_setups and prefer callback status such as `callback_received`
+5. In long-lived stdio/HTTP MCP server sessions, call agentic_complete_root_wallet_setup when callback data is available
+6. In raw one-shot CLI usage, skip callback waiting and fall back to a manually supplied wallet address after deployment; use agentic_validate_wallet if needed
 
 ## Important Notes
 
-- Always confirm transfers/swaps with user before executing
+- When a tool returns `dashboardUrl`, use available local shell/browser tools to open it for the user whenever possible; only paste raw links as a fallback
+- If the host client exposes a structured confirmation or choice tool (approval dialog, option picker, request_user_input-style UI), use it for yes/no approvals and small option sets instead of free-text replies
+- Always confirm transfers/swaps with user before executing; prefer structured confirmation UI when available, otherwise use a short natural-language yes/no confirmation, and never require a fixed phrase
+- Prefer callback/status tools over asking the user to paste data that can be discovered automatically, but only in long-lived stdio/HTTP MCP server sessions, not raw CLI
 - send_ton/send_jetton/get_swap_quote use human-readable amounts
 - Registry mode uses the local TON config file from `~/.config/ton/config.json` or `TON_CONFIG_PATH`
 - Agentic onboarding callback state is persisted in the local config; in stdio mode use `AGENTIC_CALLBACK_BASE_URL` and/or `AGENTIC_CALLBACK_PORT` when you need a stable callback endpoint across restarts

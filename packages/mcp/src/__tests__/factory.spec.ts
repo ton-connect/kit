@@ -272,9 +272,6 @@ describe('createTonWalletMCP registry mode', () => {
         try {
             const listed = parseToolResult(await client.callTool({ name: 'list_wallets', arguments: {} }));
             const current = parseToolResult(await client.callTool({ name: 'get_current_wallet', arguments: {} }));
-            const network = parseToolResult(
-                await client.callTool({ name: 'get_network_config', arguments: { network: 'mainnet' } }),
-            );
 
             expect(listed.wallets[0]).toMatchObject({
                 id: wallet.id,
@@ -291,11 +288,6 @@ describe('createTonWalletMCP registry mode', () => {
             });
             expect(current.wallet).not.toHaveProperty('mnemonic');
             expect(current.wallet).not.toHaveProperty('private_key');
-
-            expect(network.config).toMatchObject({
-                has_toncenter_api_key: true,
-            });
-            expect(network.config).not.toHaveProperty('toncenter_api_key');
         } finally {
             await client.close();
             await server.close();

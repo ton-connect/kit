@@ -6,7 +6,7 @@
  *
  */
 
-import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync as rawReadFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -70,6 +70,8 @@ describe('mcp config registry', () => {
         expect(loaded?.version).toBe(2);
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
+        expect(rawReadFileSync(process.env.TON_CONFIG_PATH!, 'utf-8')).not.toContain('"version": 2');
+        expect(rawReadFileSync(process.env.TON_CONFIG_PATH!, 'utf-8')).not.toContain(standard.mnemonic ?? '');
 
         const fileMode = statSync(process.env.TON_CONFIG_PATH!).mode & 0o777;
         expect(fileMode).toBe(0o600);

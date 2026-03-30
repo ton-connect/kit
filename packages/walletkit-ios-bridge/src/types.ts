@@ -24,7 +24,11 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SwapProviderInterface,
+    SwapAPI,
 } from '@ton/walletkit';
+import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
+import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
 
 import type { ConnectionRequestEvent } from '../../walletkit/dist/cjs';
 
@@ -122,4 +126,10 @@ export interface SwiftWalletKit {
     disconnect(sessionId: string): Promise<void>;
 
     sendTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
+
+    createOmnistonSwapProvider(config?: OmnistonSwapProviderConfig): SwapProviderInterface;
+
+    createDeDustSwapProvider(config?: DeDustSwapProviderConfig): SwapProviderInterface;
+
+    swap(): SwapAPI;
 }

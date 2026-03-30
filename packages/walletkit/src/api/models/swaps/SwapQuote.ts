@@ -38,12 +38,12 @@ export interface SwapQuote {
     /**
      * Amount of tokens to sell
      */
-    fromAmount: TokenAmount;
+    fromAmount: string;
 
     /**
      * Amount of tokens to buy
      */
-    toAmount: TokenAmount;
+    toAmount: string;
 
     /**
      * Minimum amount of tokens to receive (after slippage)
@@ -53,7 +53,7 @@ export interface SwapQuote {
     /**
      * Minimum amount of tokens to receive (after slippage)
      */
-    minReceived: TokenAmount;
+    minReceived: string;
 
     /**
      * Network on which the swap will be executed

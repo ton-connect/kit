@@ -1,5 +1,50 @@
 # @ton/walletkit
 
+## 0.0.12-alpha.1
+
+### Patch Changes
+
+- Fixed `getJettonBalanceFromClient` to return `'0'` when the jetton wallet contract returns a non-zero exit code instead of throwing
+
+## 0.0.12-alpha.0
+
+### Patch Changes
+
+- 494250e: Added option to pass settlement options to Omniston provider. Added escrow settlement for mcp
+
+## 0.0.11
+
+### Patch Changes
+
+- babd2af: Implemented and improved multiple methods in `ApiClientTonApi`: `jettonsByOwnerAddress`, `nftItemsByAddress`, `nftItemsByOwner`, `runGetMethod`, `getAccountTransactions`, `getTransactionsByHash`, `getTrace`, `getPendingTrace`, `getEvents`, and `getMasterchainInfo`.
+- 29d0d22: Updated `SwapQuote` and `SwapQuoteParams` types: changed `amount`, `fromAmount`, `toAmount`, and `minReceived` from `TokenAmount` to `string`. This change was made because these fields now contain values already formatted into a human-readable format, whereas `TokenAmount` is intended for nano amounts.
+- 79e00db: Added logs level from env for walletkit, supressed node deprecation warnings for mcp
+- 7491d5e: Use public version of @tonconnect/bridge-sdk
+- fa55b70: Added connectionEventFromUrl for cases when you want to handle connect event in the same place, where you've received url
+- 72930db: - Add `getMasterchainInfo` to `ApiClient`, currently implemented in `ApiClientToncenter` and `ApiClientTonApi`.
+    - Add `getBlockNumber` action to `@ton/appkit`.
+    - Add `useBlockNumber` hook to `@ton/appkit-react`.
+
+## 0.0.11-alpha.2
+
+### Patch Changes
+
+- 72930db: - Add `getMasterchainInfo` to `ApiClient`, currently implemented in `ApiClientToncenter` and `ApiClientTonApi`.
+    - Add `getBlockNumber` action to `@ton/appkit`.
+    - Add `useBlockNumber` hook to `@ton/appkit-react`.
+
+## 0.0.11-alpha.1
+
+### Patch Changes
+
+- Added logs level from env for walletkit, supressed node deprecation warnings for mcp
+
+## 0.0.11-alpha.0
+
+### Patch Changes
+
+- Use public version of @tonconnect/bridge-sdk
+
 ## 0.0.10
 
 ### Patch Changes

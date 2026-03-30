@@ -14,6 +14,7 @@ import type {
     Base64String,
     UserFriendlyAddress,
     Feature,
+    SignatureDomain,
 } from '@ton/walletkit';
 import type { WalletId } from '@ton/walletkit';
 import type { TransactionRequest } from '@ton/walletkit';
@@ -131,16 +132,20 @@ export async function getBalance(args: { walletId: string }) {
     return wallet(args.walletId, 'getBalance');
 }
 
-export async function createSignerFromMnemonic(args: { mnemonic: string[]; mnemonicType?: string }) {
+export async function createSignerFromMnemonic(args: {
+    mnemonic: string[];
+    mnemonicType?: string;
+    domain?: SignatureDomain;
+}) {
     if (!Signer) throw new Error('Signer module not loaded');
-    const signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' });
+    const signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' }, args.domain);
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
 
-export async function createSignerFromPrivateKey(args: { secretKey: string }) {
+export async function createSignerFromPrivateKey(args: { secretKey: string; domain?: SignatureDomain }) {
     if (!Signer) throw new Error('Signer module not loaded');
-    const signer = await Signer.fromPrivateKey(args.secretKey);
+    const signer = await Signer.fromPrivateKey(args.secretKey, args.domain);
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }

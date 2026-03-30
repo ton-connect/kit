@@ -8,7 +8,8 @@
 
 import type { AccountStatus } from '@ton/core';
 
-import type { FullAccountState } from '../../../types/toncenter/api';
+import type { Hex } from '../../../api/models';
+import type { FullAccountState, TransactionId } from '../../../types/toncenter/api';
 import type { TonApiBlockchainAccount } from '../types/accounts';
 
 export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState {
@@ -37,14 +38,13 @@ export function mapAccountState(raw: TonApiBlockchainAccount): FullAccountState 
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let lastTransaction: { lt: string; hash: any } | null = null;
+    let lastTransaction: TransactionId | null = null;
     if (raw.last_transaction_lt && raw.last_transaction_hash) {
         lastTransaction = {
             lt: raw.last_transaction_lt.toString(),
-            hash: raw.last_transaction_hash.startsWith('0x')
+            hash: (raw.last_transaction_hash.startsWith('0x')
                 ? raw.last_transaction_hash
-                : `0x${raw.last_transaction_hash}`,
+                : `0x${raw.last_transaction_hash}`) as Hex,
         };
     }
 

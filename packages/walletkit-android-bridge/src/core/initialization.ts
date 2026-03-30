@@ -10,7 +10,7 @@
  * WalletKit initialization helpers used by the bridge entry point.
  */
 import type { BridgeResponse, BridgeEvent } from '@ton/walletkit';
-import { TONCONNECT_BRIDGE_EVENT } from '@ton/walletkit';
+import { TONCONNECT_BRIDGE_EVENT, ApiClientTonApi, ApiClientToncenter } from '@ton/walletkit';
 import { TONCONNECT_BRIDGE_RESPONSE } from '@ton/walletkit/bridge';
 
 import type {
@@ -52,14 +52,34 @@ export async function initTonWalletKit(
 
     await ensureWalletKitLoaded();
 
-    // Build networks config from networkConfigurations (like iOS bridge does)
-    const networksConfig: Record<string, { apiClient?: { url?: string; key?: string } | AndroidAPIClientAdapter }> = {};
+    type NetworkApiClient =
+        | ApiClientTonApi
+        | ApiClientToncenter
+        | AndroidAPIClientAdapter
+        | { url?: string; key?: string };
+    const networksConfig: Record<string, { apiClient?: NetworkApiClient }> = {};
 
     if (config?.networkConfigurations && Array.isArray(config.networkConfigurations)) {
         for (const netConfig of config.networkConfigurations) {
-            networksConfig[netConfig.network.chainId] = {
-                apiClient: netConfig.apiClientConfiguration,
-            };
+            const type = netConfig.apiClientType;
+            let apiClient: NetworkApiClient | undefined;
+
+            if (type === 'tonapi') {
+                apiClient = new ApiClientTonApi({
+                    endpoint: netConfig.apiClientConfiguration?.url,
+                    apiKey: netConfig.apiClientConfiguration?.key,
+                    network: netConfig.network,
+                });
+            } else if (type === 'toncenter') {
+                apiClient = new ApiClientToncenter({
+                    endpoint: netConfig.apiClientConfiguration?.url,
+                    apiKey: netConfig.apiClientConfiguration?.key,
+                });
+            } else {
+                apiClient = netConfig.apiClientConfiguration;
+            }
+
+            networksConfig[netConfig.network.chainId] = { apiClient };
         }
     }
 
