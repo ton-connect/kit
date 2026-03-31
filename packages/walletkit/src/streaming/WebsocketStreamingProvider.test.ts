@@ -98,6 +98,16 @@ describe('WebsocketStreamingProvider', () => {
         expect(MockWebSocket.lastInstance).not.toBeNull();
     });
 
+    it('does not open a new connection while already connecting', () => {
+        const provider = new TestProvider(makeContext());
+        provider.watchBalance(ADDR);
+        const ws1 = MockWebSocket.lastInstance!;
+        expect(ws1.readyState).toBe(MockWebSocket.CONNECTING);
+
+        provider.watchBalance(ADDR); // ensureConnected should return early
+        expect(MockWebSocket.lastInstance).toBe(ws1);
+    });
+
     it('should not reconnect if no active subscriptions', async () => {
         const provider = new TestProvider(makeContext());
         const unsub = provider.watchBalance(ADDR);
@@ -119,6 +129,41 @@ describe('WebsocketStreamingProvider', () => {
 
         vi.advanceTimersByTime(30000);
         expect(MockWebSocket.lastInstance?.send).toHaveBeenCalledWith(JSON.stringify({ type: 'ping' }));
+    });
+
+    it('close() cancels a pending reconnect', async () => {
+        const provider = new TestProvider(makeContext());
+        provider.watchBalance(ADDR);
+        await vi.runOnlyPendingTimersAsync();
+        const ws = MockWebSocket.lastInstance!;
+
+        provider.triggerClose(); // schedules reconnect at 300ms
+        provider.close(); // should cancel it
+
+        vi.advanceTimersByTime(500);
+        expect(MockWebSocket.lastInstance).toBe(ws); // no new connection
+    });
+
+    it('uses exponential backoff for reconnect delays', async () => {
+        const provider = new TestProvider(makeContext());
+        provider.watchBalance(ADDR);
+        await vi.runOnlyPendingTimersAsync();
+        const ws1 = MockWebSocket.lastInstance!;
+
+        // First disconnect → attempt 1: 300ms
+        provider.triggerClose();
+        vi.advanceTimersByTime(299);
+        expect(MockWebSocket.lastInstance).toBe(ws1);
+        vi.advanceTimersByTime(1);
+        const ws2 = MockWebSocket.lastInstance!;
+        expect(ws2).not.toBe(ws1);
+
+        // ws2 fails before connecting → attempt 2: 600ms
+        ws2.onclose?.();
+        vi.advanceTimersByTime(599);
+        expect(MockWebSocket.lastInstance).toBe(ws2);
+        vi.advanceTimersByTime(1);
+        expect(MockWebSocket.lastInstance).not.toBe(ws2);
     });
 
     describe('ref counting', () => {

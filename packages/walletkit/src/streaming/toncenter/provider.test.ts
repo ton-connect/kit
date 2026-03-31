@@ -74,14 +74,59 @@ describe('TonCenterStreamingProvider', () => {
         vi.useRealTimers();
     });
 
-    it('connects to the correct URL', () => {
+    it('connects to testnet URL by default', () => {
+        const provider = new TonCenterStreamingProvider(makeContext(listener));
+        provider.watchBalance(ADDR_A);
+        expect(MockWebSocket.lastInstance?.url).toContain('testnet.toncenter.com');
+    });
+
+    it('connects to mainnet URL when network is mainnet', () => {
+        const provider = new TonCenterStreamingProvider({ network: Network.mainnet(), listener });
+        provider.watchBalance(ADDR_A);
+        expect(MockWebSocket.lastInstance?.url).toContain('toncenter.com');
+        expect(MockWebSocket.lastInstance?.url).not.toContain('testnet');
+    });
+
+    it('appends api_key to URL when provided', () => {
         const provider = new TonCenterStreamingProvider(makeContext(listener), {
             apiKey: 'test-api-key',
         });
-
         provider.watchBalance(ADDR_A);
         expect(MockWebSocket.lastInstance?.url).toContain('toncenter.com/api/streaming/v2/ws');
         expect(MockWebSocket.lastInstance?.url).toContain('api_key=test-api-key');
+    });
+
+    it('sends ping in TonCenter protocol format', async () => {
+        const provider = new TonCenterStreamingProvider(makeContext(listener));
+        provider.watchBalance(ADDR_A);
+        vi.advanceTimersByTime(20); // connect
+
+        const ws = MockWebSocket.lastInstance!;
+        vi.advanceTimersByTime(15000); // ping interval
+
+        const pings = ws.send.mock.calls
+            .map((call) => JSON.parse(call[0]) as Record<string, unknown>)
+            .filter((m) => m.operation === 'ping');
+
+        expect(pings).toHaveLength(1);
+        expect(pings[0].id).toMatch(/^ping-/);
+    });
+
+    it('ignores pong and subscribed status messages without errors', () => {
+        const provider = new TonCenterStreamingProvider(makeContext(listener));
+        provider.watchBalance(ADDR_A);
+        vi.advanceTimersByTime(20);
+
+        const ws = MockWebSocket.lastInstance!;
+
+        expect(() => {
+            ws.onmessage!({ data: JSON.stringify({ status: 'pong' }) } as MessageEvent);
+            ws.onmessage!({ data: JSON.stringify({ status: 'subscribed' }) } as MessageEvent);
+        }).not.toThrow();
+
+        expect(listener.onBalanceUpdate).not.toHaveBeenCalled();
+        expect(listener.onTransactions).not.toHaveBeenCalled();
+        expect(listener.onJettonsUpdate).not.toHaveBeenCalled();
     });
 
     it('debounces multiple watch calls and sends monolithic subscriptions', async () => {
@@ -172,6 +217,175 @@ describe('TonCenterStreamingProvider', () => {
         vi.advanceTimersByTime(100);
 
         expect(MockWebSocket.lastInstance?.close).toHaveBeenCalled();
+    });
+
+    describe('WebSocket subscription protocol', () => {
+        const FRIENDLY_A = asAddressFriendly(ADDR_A);
+        const FRIENDLY_B = asAddressFriendly(ADDR_B);
+
+        const connect = () => vi.advanceTimersByTime(20);
+        const flushDebounce = () => vi.advanceTimersByTime(100);
+
+        const getSubscribeMsgs = (ws: MockWebSocket) =>
+            ws.send.mock.calls
+                .map((call) => JSON.parse(call[0]) as Record<string, unknown>)
+                .filter((m) => m.operation === 'subscribe');
+
+        const getLastSubscribe = (ws: MockWebSocket) => {
+            const msgs = getSubscribeMsgs(ws);
+            return msgs[msgs.length - 1];
+        };
+
+        it('maps balance to account_state_change type', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            connect();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.types).toContain('account_state_change');
+            expect(msg.types).not.toContain('balance');
+        });
+
+        it('maps transactions to transactions type', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchTransactions(ADDR_A);
+            connect();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.types).toContain('transactions');
+        });
+
+        it('maps jettons to jettons_change type', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchJettons(ADDR_A);
+            connect();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.types).toContain('jettons_change');
+            expect(msg.types).not.toContain('jettons');
+        });
+
+        it('includes min_finality and include_metadata in subscribe message', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            connect();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.min_finality).toBe('pending');
+            expect(msg.include_metadata).toBe(true);
+        });
+
+        it('sends a single subscribe message for multiple types on the same address', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            provider.watchTransactions(ADDR_A);
+            provider.watchJettons(ADDR_A);
+            connect();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.addresses).toEqual([FRIENDLY_A]);
+            expect((msg.types as string[]).sort()).toEqual(
+                ['account_state_change', 'jettons_change', 'transactions'].sort(),
+            );
+        });
+
+        it('deduplicates addresses when same address is watched for multiple types', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            provider.watchTransactions(ADDR_A);
+            connect();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.addresses).toEqual([FRIENDLY_A]);
+        });
+
+        it('collects all addresses across types into a single list', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            provider.watchTransactions(ADDR_B);
+            connect();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.addresses).toContain(FRIENDLY_A);
+            expect(msg.addresses).toContain(FRIENDLY_B);
+        });
+
+        it('removes address from subscribe message after unwatch', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            const unwatchA = provider.watchBalance(ADDR_A);
+            provider.watchBalance(ADDR_B);
+            connect();
+            flushDebounce();
+
+            unwatchA();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.addresses).not.toContain(FRIENDLY_A);
+            expect(msg.addresses).toContain(FRIENDLY_B);
+        });
+
+        it('removes type from subscribe message when last address of that type is removed', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            const unwatchBal = provider.watchBalance(ADDR_A);
+            provider.watchTransactions(ADDR_B);
+            connect();
+            flushDebounce();
+
+            unwatchBal();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.types).not.toContain('account_state_change');
+            expect(msg.types).toContain('transactions');
+            expect(msg.addresses).not.toContain(FRIENDLY_A);
+            expect(msg.addresses).toContain(FRIENDLY_B);
+        });
+
+        it('keeps type in subscribe message when other addresses still watch it', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            const unwatchA = provider.watchBalance(ADDR_A);
+            provider.watchBalance(ADDR_B);
+            connect();
+            flushDebounce();
+
+            unwatchA();
+            flushDebounce();
+
+            const msg = getLastSubscribe(MockWebSocket.lastInstance!);
+            expect(msg.types).toContain('account_state_change');
+        });
+
+        it('restores subscriptions after reconnect', () => {
+            const provider = new TonCenterStreamingProvider(makeContext(listener));
+            provider.watchBalance(ADDR_A);
+            provider.watchTransactions(ADDR_B);
+            connect();
+
+            const firstWs = MockWebSocket.lastInstance!;
+            const firstSubscribe = getLastSubscribe(firstWs);
+            expect(firstSubscribe.addresses).toContain(FRIENDLY_A);
+            expect(firstSubscribe.addresses).toContain(FRIENDLY_B);
+
+            // Simulate disconnect
+            firstWs.readyState = MockWebSocket.CLOSED;
+            firstWs.onclose?.();
+
+            // Advance past reconnect delay (300ms) + connection time (10ms)
+            vi.advanceTimersByTime(400);
+
+            const secondWs = MockWebSocket.lastInstance!;
+            expect(secondWs).not.toBe(firstWs);
+
+            const secondSubscribe = getLastSubscribe(secondWs);
+            expect(secondSubscribe.addresses).toContain(FRIENDLY_A);
+            expect(secondSubscribe.addresses).toContain(FRIENDLY_B);
+            expect(secondSubscribe.types).toContain('account_state_change');
+            expect(secondSubscribe.types).toContain('transactions');
+        });
     });
 
     it('handles incoming account state notifications', async () => {

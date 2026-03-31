@@ -76,7 +76,26 @@ describe('StreamingManager subscriptions', () => {
         provider = makeMockProvider();
     });
 
-    describe('watchBalance', () => {
+    describe('hasProvider', () => {
+        it('returns false before registration', () => {
+            const manager = new StreamingManager(makeMockEventEmitter());
+            expect(manager.hasProvider(network)).toBe(false);
+        });
+
+        it('returns true after registration', () => {
+            const { manager } = makeManager(network, provider);
+            expect(manager.hasProvider(network)).toBe(true);
+        });
+    });
+
+    describe('error handling', () => {
+        it('throws when watching without a registered provider', () => {
+            const manager = new StreamingManager(makeMockEventEmitter());
+            expect(() => manager.watchBalance(network, ADDR_A, vi.fn())).toThrow();
+        });
+    });
+
+    describe('watch methods', () => {
         it('calls provider.watchBalance', () => {
             const { manager } = makeManager(network, provider);
             manager.watchBalance(network, ADDR_A, vi.fn());
@@ -95,6 +114,18 @@ describe('StreamingManager subscriptions', () => {
             manager.watchBalance(network, ADDR_A, vi.fn());
             manager.watchBalance(network, ADDR_B, vi.fn());
             expect(provider.watchBalance).toHaveBeenCalledTimes(2);
+        });
+
+        it('calls provider.watchTransactions', () => {
+            const { manager } = makeManager(network, provider);
+            manager.watchTransactions(network, ADDR_A, vi.fn());
+            expect(provider.watchTransactions).toHaveBeenCalledTimes(1);
+        });
+
+        it('calls provider.watchJettons', () => {
+            const { manager } = makeManager(network, provider);
+            manager.watchJettons(network, ADDR_A, vi.fn());
+            expect(provider.watchJettons).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -126,6 +157,41 @@ describe('StreamingManager subscriptions', () => {
             unwatchBal();
             expect(provider._unsubBalance).toHaveBeenCalledTimes(1);
             expect(provider._unsubTransactions).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('address filtering', () => {
+        it('fires balance callback only for the matching address', () => {
+            const { manager, emitter } = makeManager(network, provider);
+            const cbA = vi.fn();
+            const cbB = vi.fn();
+
+            manager.watchBalance(network, ADDR_A, cbA);
+            manager.watchBalance(network, ADDR_B, cbB);
+
+            const calls = vi.mocked(emitter.on).mock.calls;
+            const handlerA = calls[0][1] as (event: KitEvent<BalanceUpdate>) => void;
+            const handlerB = calls[1][1] as (event: KitEvent<BalanceUpdate>) => void;
+
+            const updateForA: BalanceUpdate = {
+                address: ADDR_A,
+                rawBalance: '500',
+                balance: '0.5',
+                type: 'balance',
+                status: 'finalized',
+            };
+            const event: KitEvent<BalanceUpdate> = {
+                payload: updateForA,
+                type: 'streaming:balance-update',
+                timestamp: Date.now(),
+            };
+
+            // Both handlers receive the same event (as the real emitter would broadcast)
+            handlerA(event);
+            handlerB(event); // should NOT call cbB — event is for ADDR_A
+
+            expect(cbA).toHaveBeenCalledWith(updateForA);
+            expect(cbB).not.toHaveBeenCalled();
         });
     });
 
