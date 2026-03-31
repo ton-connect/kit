@@ -39,6 +39,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     isWalletConnected,
     quote,
     isQuoteLoading,
+    error,
     slippage,
     onFlip,
     onMaxClick,
@@ -111,7 +112,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
                     onClick={sendSwapTransaction}
                 >
-                    {canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+                    {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
                 </Button>
             ) : (
                 <Button

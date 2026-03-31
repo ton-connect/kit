@@ -9,6 +9,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { Network } from '@ton/appkit';
+import { validateNumericString } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
@@ -19,6 +20,12 @@ import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useBalance } from '../../../balances/hooks/use-balance';
 import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
+
+function truncateDecimals(value: string, maxDecimals: number): string {
+    const dotIndex = value.indexOf('.');
+    if (dotIndex === -1) return value;
+    return value.slice(0, dotIndex + 1 + maxDecimals);
+}
 
 export interface SwapWidgetToken {
     /** Token symbol, e.g. "TON" */
@@ -34,6 +41,8 @@ export interface SwapWidgetToken {
     /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
     rate?: number;
 }
+
+export type SwapError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
 export interface SwapContextType {
     /** Full list of available tokens */
@@ -66,8 +75,8 @@ export interface SwapContextType {
     quote: GetSwapQuoteData | undefined;
     /** True while the quote is being fetched */
     isQuoteLoading: boolean;
-    /** Error from the last quote fetch, if any */
-    quoteError: Error | null;
+    /** Current validation/fetch error, null when everything is ok */
+    error: SwapError;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
     setFromToken: (token: SwapWidgetToken) => void;
@@ -96,7 +105,7 @@ export const SwapContext = createContext<SwapContextType>({
     isWalletConnected: false,
     quote: undefined,
     isQuoteLoading: false,
-    quoteError: null,
+    error: null,
     slippage: 50,
     setFromToken: () => {},
     setToToken: () => {},
@@ -144,7 +153,15 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const [toToken, setToToken] = useState<SwapWidgetToken | null>(
         mappedTokens.find((t) => t.symbol === defaultToSymbol) ?? mappedTokens[1] ?? null,
     );
-    const [fromAmount, setFromAmount] = useState('');
+    const [fromAmount, setFromAmountRaw] = useState('');
+    const handleSetFromAmount = useCallback(
+        (value: string) => {
+            if (value === '' || validateNumericString(value, fromToken?.decimals)) {
+                setFromAmountRaw(value);
+            }
+        },
+        [fromToken?.decimals],
+    );
     const [isFlipped, setIsFlipped] = useState(false);
     const [slippage, setSlippage] = useState(defaultSlippage);
 
@@ -207,6 +224,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
                 setToToken(fromToken);
             }
             setFromToken(token);
+            setFromAmountRaw((prev) => truncateDecimals(prev, token.decimals));
         },
         [fromToken, toToken],
     );
@@ -225,8 +243,10 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         setIsFlipped((prev) => !prev);
         setFromToken(toToken);
         setToToken(fromToken);
-        setFromAmount(toAmount);
-    }, [fromToken, toToken, toAmount]);
+        if (toToken) {
+            setFromAmountRaw((prev) => truncateDecimals(prev, toToken.decimals));
+        }
+    }, [fromToken, toToken]);
 
     const [wallet] = useSelectedWallet();
     const isWalletConnected = wallet !== null;
@@ -256,7 +276,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const handleMaxClick = useCallback(() => {
         if (fromBalance) {
-            setFromAmount(fromBalance.replace(/\s/g, ''));
+            setFromAmountRaw(fromBalance.replace(/\s/g, ''));
         }
     }, [fromBalance]);
 
@@ -271,7 +291,27 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         await sendTransaction(transactionParams);
     }, [quote, address, buildTransaction, sendTransaction]);
 
-    const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null;
+    const error: SwapError = useMemo(() => {
+        const amount = parseFloat(fromAmount) || 0;
+        if (amount <= 0) return null;
+
+        const fraction = fromAmount.split('.')[1];
+        if (fraction && fromToken && fraction.length > fromToken.decimals) {
+            return 'tooManyDecimals';
+        }
+
+        if (fromBalance !== undefined && amount > parseFloat(fromBalance)) {
+            return 'insufficientBalance';
+        }
+
+        if (quoteError && fromAmountDebounced) {
+            return 'quoteError';
+        }
+
+        return null;
+    }, [fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);
+
+    const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null && error === null;
 
     const value = useMemo(
         () => ({
@@ -290,11 +330,11 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isWalletConnected,
             quote,
             isQuoteLoading,
-            quoteError,
+            error,
             slippage,
             setFromToken: handleSetFromToken,
             setToToken: handleSetToToken,
-            setFromAmount,
+            setFromAmount: handleSetFromAmount,
             setSlippage,
             onFlip: handleFlip,
             onMaxClick: handleMaxClick,
@@ -317,10 +357,11 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isWalletConnected,
             quote,
             isQuoteLoading,
-            quoteError,
+            error,
             slippage,
             handleSetFromToken,
             handleSetToToken,
+            handleSetFromAmount,
             handleFlip,
             handleMaxClick,
             sendSwapTransaction,

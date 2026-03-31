@@ -6,7 +6,7 @@
  *
  */
 
-import type { FC, ReactNode } from 'react';
+import type { FC } from 'react';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
@@ -16,13 +16,13 @@ import styles from './swap-field.module.css';
 export interface SwapFieldProps {
     type: 'pay' | 'receive';
     tokenSymbol: string;
-    tokenIcon: ReactNode;
     amount: string;
     onAmountChange?: (value: string) => void;
     usdValue?: string;
     balance?: string;
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
+    tokenIcon?: string;
 }
 
 export const SwapField: FC<SwapFieldProps> = ({
