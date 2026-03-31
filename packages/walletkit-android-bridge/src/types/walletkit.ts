@@ -20,6 +20,7 @@ import type {
     SendTransactionRequestEvent,
     SignDataApprovalResponse,
     SignDataRequestEvent,
+    SwapAPI,
     TONConnectSession,
     TransactionRequest,
     Wallet,
@@ -116,4 +117,5 @@ export interface WalletKitInstance {
         event: SignDataRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
+    swap?: SwapAPI;
 }

@@ -19,6 +19,7 @@ import * as tonconnect from './tonconnect';
 import * as nft from './nft';
 import * as jettons from './jettons';
 import * as browser from './browser';
+import * as swap from './swap';
 import { eventListeners } from './eventListeners';
 
 export { eventListeners };
@@ -90,4 +91,14 @@ export const api: WalletKitBridgeApi = {
     emitBrowserPageFinished: browser.emitBrowserPageFinished,
     emitBrowserError: browser.emitBrowserError,
     emitBrowserBridgeRequest: browser.emitBrowserBridgeRequest,
+
+    // Swap
+    createOmnistonSwapProvider: swap.createOmnistonSwapProvider,
+    createDeDustSwapProvider: swap.createDeDustSwapProvider,
+    registerSwapProvider: swap.registerSwapProvider,
+    setDefaultSwapProvider: swap.setDefaultSwapProvider,
+    getRegisteredSwapProviders: swap.getRegisteredSwapProviders,
+    hasSwapProvider: swap.hasSwapProvider,
+    getSwapQuote: swap.getSwapQuote,
+    buildSwapTransaction: swap.buildSwapTransaction,
 } as unknown as WalletKitBridgeApi;

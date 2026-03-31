@@ -265,6 +265,35 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
+export interface CreateOmnistonSwapProviderArgs {
+    config?: Record<string, unknown>;
+}
+
+export interface CreateDeDustSwapProviderArgs {
+    config?: Record<string, unknown>;
+}
+
+export interface RegisterSwapProviderArgs {
+    providerId: string;
+}
+
+export interface GetSwapQuoteArgs {
+    params: Record<string, unknown>;
+    providerId?: string;
+}
+
+export interface SetDefaultSwapProviderArgs {
+    providerId: string;
+}
+
+export interface HasSwapProviderArgs {
+    providerId: string;
+}
+
+export interface BuildSwapTransactionArgs {
+    params: Record<string, unknown>;
+}
+
 export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<{ ok: true }>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
@@ -317,4 +346,14 @@ export interface WalletKitBridgeApi {
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserBridgeRequest(args: EmitBrowserBridgeRequestArgs): PromiseOrValue<{ success: boolean }>;
+
+    // Swap
+    createOmnistonSwapProvider(args: CreateOmnistonSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
+    createDeDustSwapProvider(args: CreateDeDustSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
+    registerSwapProvider(args: RegisterSwapProviderArgs): PromiseOrValue<void>;
+    setDefaultSwapProvider(args: SetDefaultSwapProviderArgs): PromiseOrValue<void>;
+    getRegisteredSwapProviders(): PromiseOrValue<{ providerIds: string[] }>;
+    hasSwapProvider(args: HasSwapProviderArgs): PromiseOrValue<{ result: boolean }>;
+    getSwapQuote(args: GetSwapQuoteArgs): PromiseOrValue<unknown>;
+    buildSwapTransaction(args: BuildSwapTransactionArgs): PromiseOrValue<unknown>;
 }
