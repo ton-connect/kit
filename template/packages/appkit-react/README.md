@@ -124,6 +124,18 @@ Use `useSwapQuote` to get a quote and `useBuildSwapTransaction` to build the tra
 
 See [Swap Hooks](./docs/hooks.md#swap) for usage examples.
 
+## Staking
+
+AppKit supports staking through various providers (e.g., Tonstakers). The staking functionality is integrated into the core action and hook system.
+
+### Hooks
+
+Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` or `useBuildUnstakeTransaction` to build the transaction.
+
+[Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+
 ## Migration from TonConnect UI
 
 `AppKitProvider` automatically bridges TonConnect if a `TonConnectConnector` is configured, so `@tonconnect/ui-react` hooks (like `useTonAddress`, `useTonWallet`, etc.) work out of the box inside `AppKitProvider`.

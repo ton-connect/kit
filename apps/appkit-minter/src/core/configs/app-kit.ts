@@ -6,32 +6,33 @@
  *
  */
 
-import { AppKit, Network, createTonConnectConnector, ApiClientTonApi } from '@ton/appkit';
+import { AppKit, Network, createTonConnectConnector, ApiClientTonApi, ApiClientToncenter } from '@ton/appkit';
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
+import { TonStakersStakingProvider } from '@ton/appkit/staking/tonstakers';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
 
+const mainnetApiClient = new ApiClientToncenter({
+    network: Network.mainnet(),
+    apiKey: ENV_TON_API_KEY_MAINNET,
+});
+
+const testnetApiClient = new ApiClientToncenter({
+    network: Network.testnet(),
+    apiKey: ENV_TON_API_KEY_TESTNET,
+});
+
+const tetraApiClient = new ApiClientTonApi({
+    network: Network.tetra(),
+    endpoint: 'https://tetra.tonapi.io',
+});
+
 export const appKit = new AppKit({
     networks: {
-        [Network.mainnet().chainId]: {
-            apiClient: {
-                url: 'https://toncenter.com',
-                key: ENV_TON_API_KEY_MAINNET,
-            },
-        },
-        [Network.testnet().chainId]: {
-            apiClient: {
-                url: 'https://testnet.toncenter.com',
-                key: ENV_TON_API_KEY_TESTNET,
-            },
-        },
-        [Network.tetra().chainId]: {
-            apiClient: new ApiClientTonApi({
-                network: Network.tetra(),
-                endpoint: 'https://tetra.tonapi.io',
-            }),
-        },
+        [Network.mainnet().chainId]: { apiClient: mainnetApiClient },
+        [Network.testnet().chainId]: { apiClient: testnetApiClient },
+        [Network.tetra().chainId]: { apiClient: tetraApiClient },
     },
     connectors: [
         createTonConnectConnector({
@@ -40,5 +41,12 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider()],
+    providers: [
+        new DeDustSwapProvider(),
+        new OmnistonSwapProvider(),
+        new TonStakersStakingProvider({
+            [Network.mainnet().chainId]: { apiClient: mainnetApiClient },
+            [Network.testnet().chainId]: { apiClient: testnetApiClient },
+        }),
+    ],
 });

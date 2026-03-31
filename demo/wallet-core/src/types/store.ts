@@ -21,6 +21,13 @@ import type {
     WalletAdapter,
     SwapQuote,
     SwapToken,
+    StakingQuote,
+    StakingQuoteParams,
+    StakingBalance,
+    StakingProviderInfo,
+    StakeParams,
+    UnstakeParams,
+    UnstakeMode,
 } from '@ton/walletkit';
 
 import type {
@@ -217,17 +224,45 @@ export interface SwapState {
     isReverseSwap: boolean;
 }
 
+// Staking slice interface
+export interface StakingState {
+    amount: string;
+    providerId: string;
+    currentQuote: StakingQuote | null;
+    isLoadingQuote: boolean;
+    isStaking: boolean;
+    isUnstaking: boolean;
+    error: string | null;
+    unstakeMode: UnstakeMode;
+    stakedBalance: StakingBalance | null;
+    providerInfo: StakingProviderInfo | null;
+}
+
+export interface StakingSlice {
+    staking: StakingState;
+
+    setStakingAmount: (amount: string) => void;
+    setStakingProviderId: (providerId: string) => void;
+    setUnstakeMode: (mode: UnstakeMode) => void;
+    getStakingQuote: (params: Omit<StakingQuoteParams, 'network'>) => Promise<void>;
+    stake: (params: Omit<StakeParams, 'userAddress'>) => Promise<void>;
+    unstake: (params: Omit<UnstakeParams, 'userAddress'>) => Promise<void>;
+    loadStakingData: (userAddress: string) => Promise<void>;
+    clearStaking: () => void;
+    validateStakingInputs: () => string | null;
+}
+
 export interface SwapSlice {
     swap: SwapState;
 
     setFromToken: (token: SwapToken) => void;
     setToToken: (token: SwapToken) => void;
-    setAmount: (amount: string) => void;
+    setSwapAmount: (amount: string) => void;
     setDestinationAddress: (address: string) => void;
     setIsReverseSwap: (isReverseSwap: boolean) => void;
     setSlippageBps: (slippage: number) => void;
     swapTokens: () => void;
-    getQuote: () => Promise<void>;
+    getSwapQuote: () => Promise<void>;
     executeSwap: () => Promise<void>;
     clearSwap: () => void;
     validateSwapInputs: () => string | null;
@@ -235,13 +270,15 @@ export interface SwapSlice {
 
 // Combined app state
 export interface AppState
-    extends AuthSlice,
+    extends
+        AuthSlice,
         WalletCoreSlice,
         WalletManagementSlice,
         TonConnectSlice,
         JettonsSlice,
         NftsSlice,
-        SwapSlice {
+        SwapSlice,
+        StakingSlice {
     isHydrated: boolean;
 }
 
@@ -264,6 +301,8 @@ export type JettonsSliceCreator = StateCreator<AppState, [], [], JettonsSlice>;
 export type NftsSliceCreator = StateCreator<AppState, [], [], NftsSlice>;
 
 export type SwapSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], SwapSlice>;
+
+export type StakingSliceCreator = StateCreator<AppState, [['zustand/immer', never]], [], StakingSlice>;
 
 // Migration types
 export interface MigrationState {

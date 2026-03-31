@@ -51,7 +51,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    setAmount: (amount: string) => {
+    setSwapAmount: (amount: string) => {
         set((state) => {
             // Allow empty string or valid number input
             if (amount === '' || /^\d*\.?\d*$/.test(amount)) {
@@ -155,7 +155,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         return null;
     },
 
-    getQuote: async () => {
+    getSwapQuote: async () => {
         const state = get();
         const { fromToken, toToken, amount, isReverseSwap, slippageBps } = state.swap;
 

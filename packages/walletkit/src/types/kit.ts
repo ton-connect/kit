@@ -27,7 +27,7 @@ import type {
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
 } from '../api/models';
-import type { SwapAPI } from '../api/interfaces';
+import type { SwapAPI, StakingAPI } from '../api/interfaces';
 
 /**
  * Main TonWalletKit interface
@@ -155,4 +155,7 @@ export interface ITonWalletKit {
 
     /** Jettons API access */
     swap: SwapAPI;
+
+    /** Staking API access */
+    staking: StakingAPI;
 }

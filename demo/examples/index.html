@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WalletKit Staking Demo</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: #f5f5f5;
+                padding: 20px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            .screen {
+                display: none;
+                background: white;
+                border-radius: 8px;
+                padding: 24px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .screen.active {
+                display: block;
+            }
+
+            h1 {
+                margin-bottom: 24px;
+                color: #333;
+            }
+
+            h2 {
+                margin-bottom: 16px;
+                color: #333;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #555;
+            }
+
+            input[type="text"],
+            textarea {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+                font-family: monospace;
+            }
+
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+
+            button {
+                background: #0088cc;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                margin-right: 8px;
+                margin-bottom: 8px;
+            }
+
+            button:hover {
+                background: #0077b3;
+            }
+
+            button:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+            button.danger {
+                background: #dc3545;
+            }
+
+            button.danger:hover {
+                background: #c82333;
+            }
+
+            .network-selector {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            .network-card {
+                background: #f8f9fa;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .network-card:hover {
+                border-color: #0088cc;
+                background: #e9f7ff;
+            }
+
+            .network-card h3 {
+                margin: 0 0 8px 0;
+                color: #333;
+                font-size: 16px;
+            }
+
+            .network-card .address {
+                font-family: monospace;
+                font-size: 12px;
+                color: #666;
+                word-break: break-all;
+            }
+
+            .network-card.mainnet h3::before {
+                content: '🟢 ';
+            }
+
+            .network-card.testnet h3::before {
+                content: '🟡 ';
+            }
+
+            .info-display {
+                background: #f8f9fa;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 16px;
+                font-family: monospace;
+                font-size: 12px;
+                word-break: break-all;
+            }
+
+            .balance-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+
+            .balance-card {
+                background: #f8f9fa;
+                padding: 16px;
+                border-radius: 4px;
+            }
+
+            .balance-card h3 {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 8px;
+            }
+
+            .balance-card .value {
+                font-size: 24px;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .operations {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+
+            .withdrawals-list {
+                margin-top: 16px;
+            }
+
+            .tx-status {
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 24px;
+                background: #f8f9fa;
+                border: 2px solid #ddd;
+            }
+
+            .tx-status.pending {
+                background: #fff3cd;
+                border-color: #ffc107;
+            }
+
+            .tx-status.success {
+                background: #d4edda;
+                border-color: #28a745;
+            }
+
+            .tx-status.error {
+                background: #f8d7da;
+                border-color: #dc3545;
+            }
+
+            .tx-status-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            .tx-status-header span:first-child {
+                font-size: 20px;
+            }
+
+            .tx-details {
+                font-size: 12px;
+                color: #666;
+                font-family: monospace;
+                word-break: break-all;
+            }
+
+            button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .withdrawal-item {
+                background: #f8f9fa;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 12px;
+            }
+
+            .error {
+                color: #dc3545;
+                background: #f8d7da;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 16px;
+            }
+
+            .success {
+                color: #155724;
+                background: #d4edda;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 16px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- Screen 1: Seed Phrase Input -->
+        <div id="screen-seed" class="screen active">
+            <h1>WalletKit Staking Demo</h1>
+            <h2>Restore Wallet</h2>
+            <div id="seed-error" class="error" style="display: none;"></div>
+            <div class="form-group">
+                <label for="seed-input">Enter seed phrase (12 or 24 words):</label>
+                <textarea id="seed-input" placeholder="word1 word2 word3 ..."></textarea>
+            </div>
+            <button id="restore-wallet-btn">Restore Wallet</button>
+        </div>
+
+        <!-- Screen 2: Network Selection -->
+        <div id="screen-network" class="screen">
+            <h1>Select Network</h1>
+            <div id="network-error" class="error" style="display: none;"></div>
+            <p style="margin-bottom: 16px; color: #666;">Click on a wallet address to select network and continue:</p>
+            <div class="network-selector">
+                <div id="network-mainnet" class="network-card mainnet">
+                    <h3>Mainnet</h3>
+                    <div id="wallet-address-mainnet" class="address">-</div>
+                </div>
+                <div id="network-testnet" class="network-card testnet">
+                    <h3>Testnet</h3>
+                    <div id="wallet-address-testnet" class="address">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Staking Demo -->
+        <div id="screen-staking" class="screen">
+            <h1>Staking Demo</h1>
+            <div id="staking-error" class="error" style="display: none;"></div>
+            <div id="staking-success" class="success" style="display: none;"></div>
+
+            <div class="wallet-info" style="background: linear-gradient(135deg, #0088cc, #00aaff); color: white; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px;">Wallet (<span id="current-network-label">Mainnet</span>)</div>
+                        <div id="current-wallet-address" style="font-family: monospace; font-size: 14px; word-break: break-all;">-</div>
+                    </div>
+                    <button id="btn-change-network" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 4px; cursor: pointer;">Change</button>
+                </div>
+            </div>
+
+            <h2>Balances</h2>
+            <div class="balance-grid">
+                <div class="balance-card">
+                    <h3>TON Balance</h3>
+                    <div id="balance-ton" class="value">-</div>
+                </div>
+                <div class="balance-card">
+                    <h3>Available for Staking</h3>
+                    <div id="balance-available" class="value">-</div>
+                </div>
+                <div class="balance-card">
+                    <h3>Staked (tsTON)</h3>
+                    <div id="balance-staked" class="value">-</div>
+                </div>
+            </div>
+
+            <h2>Pool Information</h2>
+            <div class="balance-grid">
+                <div class="balance-card">
+                    <h3>APY</h3>
+                    <div id="pool-apy" class="value">-</div>
+                </div>
+                <div class="balance-card">
+                    <h3>TVL TON</h3>
+                    <div id="pool-tvl" class="value">-</div>
+                </div>
+                <div class="balance-card">
+                    <h3>Stakers</h3>
+                    <div id="pool-stakers" class="value">-</div>
+                </div>
+            </div>
+
+            <h2>Operations</h2>
+            <div class="operations">
+                <button id="btn-stake">Stake 1 TON</button>
+                <button id="btn-stake-max">Stake MAX</button>
+                <button id="btn-unstake">Unstake 1 tsTON</button>
+                <button id="btn-unstake-instant">Unstake Instant</button>
+                <button id="btn-unstake-best-rate">Unstake Best Rate</button>
+                <button id="btn-refresh">Refresh Balances</button>
+                <button id="btn-get-rounds">Rounds Info</button>
+                <button id="btn-get-withdrawals">Withdrawals List</button>
+            </div>
+
+            <h2>Transaction Status</h2>
+            <div id="tx-status" class="tx-status" style="display: none;">
+                <div class="tx-status-header">
+                    <span id="tx-status-icon">⏳</span>
+                    <span id="tx-status-text">Processing...</span>
+                </div>
+                <div id="tx-status-details" class="tx-details"></div>
+            </div>
+
+            <h2>Settings</h2>
+            <div class="operations">
+                <button id="delete-data-btn" class="danger">Delete Wallet Data</button>
+            </div>
+
+            <h2>Active Withdrawals</h2>
+            <div id="withdrawals-list" class="withdrawals-list">
+                <p>No active withdrawals</p>
+            </div>
+
+            <h2>Rounds Information</h2>
+            <div id="rounds-info" class="info-display">-</div>
+        </div>
+
+        <script type="module" src="/staking.ts"></script>
+    </body>
+</html>

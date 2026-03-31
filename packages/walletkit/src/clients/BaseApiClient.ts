@@ -37,24 +37,7 @@ export abstract class BaseApiClient {
 
     protected abstract appendAuthHeaders(headers: Headers): void;
 
-    private async doRequest(url: URL, init: globalThis.RequestInit = {}): Promise<globalThis.Response> {
-        const fetchFn = this.fetchApi;
-
-        if (!this.timeout || this.timeout <= 0) {
-            return fetchFn(url, init);
-        }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-        try {
-            return await fetchFn(url, { ...init, signal: controller.signal });
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    }
-
-    protected async fetch<T>(url: URL, props: globalThis.RequestInit = {}): Promise<T> {
+    async fetch<T>(url: URL, props: globalThis.RequestInit = {}): Promise<T> {
         const headers = new Headers(props.headers);
         headers.set('accept', 'application/json');
         this.appendAuthHeaders(headers);
@@ -72,11 +55,11 @@ export abstract class BaseApiClient {
         return json as Promise<T>;
     }
 
-    protected async getJson<T>(path: string, query?: Record<string, unknown>): Promise<T> {
+    async getJson<T>(path: string, query?: Record<string, unknown>): Promise<T> {
         return this.fetch(this.buildUrl(path, query), { method: 'GET' });
     }
 
-    protected async postJson<T>(path: string, props: unknown): Promise<T> {
+    async postJson<T>(path: string, props: unknown): Promise<T> {
         return this.fetch(this.buildUrl(path), {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
@@ -112,5 +95,22 @@ export abstract class BaseApiClient {
             /* empty */
         }
         return new TonClientError(`HTTP ${response.status}: ${message}`, code, detail);
+    }
+
+    private async doRequest(url: URL, init: globalThis.RequestInit = {}): Promise<globalThis.Response> {
+        const fetchFn = this.fetchApi;
+
+        if (!this.timeout || this.timeout <= 0) {
+            return fetchFn(url, init);
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        try {
+            return await fetchFn(url, { ...init, signal: controller.signal });
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 }

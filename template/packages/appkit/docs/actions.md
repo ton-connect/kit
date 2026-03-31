@@ -122,6 +122,12 @@ Get all configured networks.
 
 %%demo/examples/src/appkit/actions/network#GET_NETWORKS%%
 
+### `getApiClient`
+
+Get the API client for a specific network.
+
+%%demo/examples/src/appkit/actions/network#GET_API_CLIENT%%
+
 ### `watchNetworks`
 
 Watch configured networks.
@@ -231,6 +237,38 @@ Get a swap quote from registered providers.
 Build (assemble) a swap transaction based on a quote. After the transaction is built, you can use `sendTransaction` to execute it on the blockchain.
 
 %%demo/examples/src/appkit/actions/swap#BUILD_SWAP_TRANSACTION%%
+
+## Staking
+
+### `getStakingProviders`
+
+Get all available staking provider IDs.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDERS%%
+
+### `getStakingProviderInfo`
+
+Get information about a specific staking provider.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO%%
+
+### `getStakingQuote`
+
+Get a staking or unstaking quote.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_QUOTE%%
+
+### `buildStakeTransaction`
+
+Build a stake transaction based on a quote.
+
+%%demo/examples/src/appkit/actions/staking#BUILD_STAKE_TRANSACTION%%
+
+### `getStakedBalance`
+
+Get the user's staked balance.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKED_BALANCE%%
 
 ## Transaction
 
