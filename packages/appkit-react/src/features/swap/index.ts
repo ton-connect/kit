@@ -11,3 +11,4 @@ export * from './components/swap-widget-provider';
 
 export * from './hooks/use-swap-quote';
 export * from './hooks/use-build-swap-transaction';
+export * from './hooks/use-swap-provider';

@@ -220,6 +220,18 @@ Get the `SwapManager` instance to interact with swap providers directly.
 
 %%demo/examples/src/appkit/actions/swap#GET_SWAP_MANAGER%%
 
+### `getSwapProvider`
+
+Get a specific swap provider by its ID.
+
+%%demo/examples/src/appkit/actions/swap#GET_SWAP_PROVIDER%%
+
+### `watchSwapProviders`
+
+Watch for new swap providers registration.
+
+%%demo/examples/src/appkit/actions/swap#WATCH_SWAP_PROVIDERS%%
+
 ### `getSwapQuote`
 
 Get a swap quote from registered providers.

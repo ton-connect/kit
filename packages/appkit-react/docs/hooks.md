@@ -622,6 +622,15 @@ return (
 );
 ```
 
+### `useSwapProvider`
+
+Hook to get a specific swap provider. Returns the provider instance directly or `null` if not found.
+
+```tsx
+const provider = useSwapProvider({ id: 'stonfi' });
+return <div>Result: {provider ? provider.providerId : 'null'}</div>;
+```
+
 ## Transaction
 
 ### `useSendTransaction`

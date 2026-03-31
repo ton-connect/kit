@@ -50,7 +50,7 @@ const TOKENS: SwapWidgetToken[] = [
         name: 'Ethena USDe',
         decimals: 6,
         address: 'UQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzKOa',
-        rate: 1.00,
+        rate: 1.0,
         logo: 'https://asset.ston.fi/img/EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f/dbcc67993cd4aad4845a97a4a9722c6cb618123997c8112c29d4932b2739c4cd',
     },
     {

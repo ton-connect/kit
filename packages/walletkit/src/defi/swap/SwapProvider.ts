@@ -6,7 +6,13 @@
  *
  */
 
-import type { TransactionRequest, SwapQuoteParams, SwapQuote, SwapParams } from '../../api/models';
+import type {
+    TransactionRequest,
+    SwapQuoteParams,
+    SwapQuote,
+    SwapParams,
+    SwapProviderMetadata,
+} from '../../api/models';
 import type { SwapProviderInterface } from '../../api/interfaces';
 
 /**
@@ -47,4 +53,9 @@ export abstract class SwapProvider<TQuoteOptions = undefined, TSwapOptions = und
      * @returns Promise resolving to transaction request ready to be signed
      */
     abstract buildSwapTransaction(params: SwapParams<TSwapOptions>): Promise<TransactionRequest>;
+
+    /**
+     * Get provider metadata
+     */
+    abstract getMetadata(): SwapProviderMetadata;
 }

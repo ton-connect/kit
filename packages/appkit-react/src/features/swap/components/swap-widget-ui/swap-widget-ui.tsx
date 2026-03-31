@@ -20,6 +20,7 @@ import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import styles from './swap-widget-ui.module.css';
 import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
+import { useSwapProvider } from '../../hooks/use-swap-provider';
 
 export type SwapWidgetRenderProps = SwapContextType;
 
@@ -53,8 +54,8 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const { mutate: connect, isPending: isConnecting } = useConnect();
     const { t } = useI18n();
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
-
-    const infoRows = getInfoFromQuote({ quote, slippage });
+    const provider = useSwapProvider({ id: quote?.providerId });
+    const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken, fromToken });
 
     return (
         <div className={styles.widget}>

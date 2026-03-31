@@ -33,6 +33,6 @@ export const NETWORKS_EVENTS = {
 /**
  * Plugin events
  */
-export const PLUGIN_EVENTS = {
+export const PROVIDER_EVENTS = {
     REGISTERED: 'plugin:registered',
 } as const;

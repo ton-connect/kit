@@ -12,7 +12,7 @@ import { Address } from '@ton/core';
 
 import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
-import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee } from '../../../api/models';
+import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee, SwapProviderMetadata } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
@@ -58,6 +58,10 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
     private readonly referrerFeeBps?: number;
     private readonly flexibleReferrerFee: boolean;
     private omniston$?: Omniston;
+    private metadata: SwapProviderMetadata = {
+        name: 'Omniston',
+        url: 'https://ston.fi/omniston',
+    };
 
     readonly providerId: string;
 
@@ -73,10 +77,21 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         this.referrerFeeBps = config?.referrerFeeBps;
         this.flexibleReferrerFee = config?.flexibleReferrerFee ?? false;
 
+        if (config?.metadata) {
+            this.metadata = {
+                ...this.metadata,
+                ...config.metadata,
+            };
+        }
+
         log.info('OmnistonSwapProvider initialized', {
             defaultSlippageBps: this.defaultSlippageBps,
             hasReferrer: !!this.referrerAddress,
         });
+    }
+
+    getMetadata(): SwapProviderMetadata {
+        return this.metadata;
     }
 
     private get omniston(): Omniston {

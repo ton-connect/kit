@@ -352,7 +352,7 @@ Get information about a specific NFT by its address.
 
 ```ts
 const nft = await getNft(appKit, {
-    address: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
 if (nft) {
@@ -367,7 +367,7 @@ Create a transaction for transferring a NFT without sending it.
 
 ```ts
 const tx = await createTransferNftTransaction(appKit, {
-    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     comment: 'Gift NFT',
 });
@@ -381,7 +381,7 @@ Transfer a NFT to a recipient address.
 
 ```ts
 const result = await transferNft(appKit, {
-    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
@@ -450,6 +450,25 @@ Get the `SwapManager` instance to interact with swap providers directly.
 
 ```ts
 const swapManager = getSwapManager(appKit);
+```
+
+### `getSwapProvider`
+
+Get a specific swap provider by its ID.
+
+```ts
+const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+```
+
+### `watchSwapProviders`
+
+Watch for new swap providers registration.
+
+```ts
+const unsubscribe = watchSwapProviders(appKit, {
+    onChange: () => console.log('Swap providers updated'),
+});
+unsubscribe();
 ```
 
 ### `getSwapQuote`

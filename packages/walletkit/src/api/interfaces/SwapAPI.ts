@@ -6,7 +6,7 @@
  *
  */
 
-import type { SwapParams, SwapQuote, SwapQuoteParams, TransactionRequest } from '../models';
+import type { SwapParams, SwapQuote, SwapQuoteParams, TransactionRequest, SwapProviderMetadata } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
 
@@ -41,6 +41,12 @@ export interface SwapProviderInterface<TQuoteOptions = unknown, TSwapOptions = u
      * Unique identifier for the provider
      */
     readonly providerId: string;
+
+    /**
+     * Provider metadata
+     * @returns Metadata of the provider
+     */
+    getMetadata(): SwapProviderMetadata;
 
     /**
      * Get a quote for swapping tokens

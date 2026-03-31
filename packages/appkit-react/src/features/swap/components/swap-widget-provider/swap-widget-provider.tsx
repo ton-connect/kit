@@ -42,7 +42,7 @@ export interface SwapWidgetToken {
     rate?: number;
 }
 
-export type SwapError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
+export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
 export interface SwapContextType {
     /** Full list of available tokens */
@@ -76,7 +76,7 @@ export interface SwapContextType {
     /** True while the quote is being fetched */
     isQuoteLoading: boolean;
     /** Current validation/fetch error, null when everything is ok */
-    error: SwapError;
+    error: SwapWidgetError;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
     setFromToken: (token: SwapWidgetToken) => void;
@@ -291,7 +291,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         await sendTransaction(transactionParams);
     }, [quote, address, buildTransaction, sendTransaction]);
 
-    const error: SwapError = useMemo(() => {
+    const error: SwapWidgetError = useMemo(() => {
         const amount = parseFloat(fromAmount) || 0;
         if (amount <= 0) return null;
 
