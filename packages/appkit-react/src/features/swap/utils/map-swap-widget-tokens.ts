@@ -11,7 +11,13 @@ import { toNonBounceableAddress } from '@ton/appkit';
 import type { SwapWidgetToken } from '../components/swap-widget-provider';
 
 export const mapSwapWidgetTokens = (tokens: SwapWidgetToken[]): SwapWidgetToken[] => {
-    return tokens.reduce((acc, token) => {
+    const mapped = tokens.reduce((acc, token) => {
+        if (token.address === 'ton') {
+            acc.push({ ...token, address: 'ton' });
+
+            return acc;
+        }
+
         const friendlyAddress = toNonBounceableAddress(token.address);
 
         if (!friendlyAddress) return acc;
@@ -25,4 +31,6 @@ export const mapSwapWidgetTokens = (tokens: SwapWidgetToken[]): SwapWidgetToken[
 
         return acc;
     }, [] as SwapWidgetToken[]);
+
+    return mapped;
 };

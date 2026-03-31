@@ -34,7 +34,7 @@ export interface SwapWidgetToken {
     name: string;
     /** Number of decimals for the token */
     decimals: number;
-    /** Jetton contract address (use "native" for TON) */
+    /** Jetton contract address (use "ton" for TON) */
     address: string;
     /** Optional token logo */
     logo?: string;
@@ -252,8 +252,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const isWalletConnected = wallet !== null;
     const address = useAddress();
 
-    const isFromNative = fromToken?.address === 'native';
-    const isToNative = toToken?.address === 'native';
+    const isFromNative = fromToken?.address === 'ton';
+    const isToNative = toToken?.address === 'ton';
 
     const { data: tonBalance } = useBalance();
 
