@@ -195,6 +195,150 @@ class EnumNodeParserWithNames {
 }
 
 // ============================================================================
+// Const-Object Enum Parser
+// ============================================================================
+
+/**
+ * Parser for const-object enum patterns:
+ *   export const X = { A: 'A', B: 'B' } as const;
+ *   export type XValue = (typeof X)[keyof typeof X];
+ *
+ * Detects the indexed access type pattern and extracts enum members
+ * from the referenced const object declaration.
+ */
+class ConstEnumNodeParser {
+    constructor(typeChecker) {
+        this.typeChecker = typeChecker;
+    }
+
+    /**
+     * Unwrap ParenthesizedType to get the inner type node.
+     */
+    unwrapParens(typeNode) {
+        while (typeNode.kind === ts.SyntaxKind.ParenthesizedType) {
+            typeNode = typeNode.type;
+        }
+        return typeNode;
+    }
+
+    supportsNode(node) {
+        // Match: type X = (typeof Y)[keyof typeof Y]
+        if (node.kind !== ts.SyntaxKind.TypeAliasDeclaration) return false;
+
+        const typeNode = node.type;
+        if (!typeNode || typeNode.kind !== ts.SyntaxKind.IndexedAccessType) return false;
+
+        // objectType must be TypeQuery (typeof Y), possibly wrapped in parens
+        const objectType = this.unwrapParens(typeNode.objectType);
+        if (objectType.kind !== ts.SyntaxKind.TypeQuery) return false;
+
+        // indexType must be TypeOperator with keyof
+        if (typeNode.indexType.kind !== ts.SyntaxKind.TypeOperator) return false;
+        if (typeNode.indexType.operator !== ts.SyntaxKind.KeyOfKeyword) return false;
+
+        // Verify the const object can be found
+        const constName = objectType.exprName.getText();
+        const sourceFile = node.getSourceFile();
+        return this.findConstObjectDeclaration(sourceFile, constName) !== null;
+    }
+
+    createType(node) {
+        const typeAliasName = node.name.getText();
+        const objectType = this.unwrapParens(node.type.objectType);
+        const constName = objectType.exprName.getText();
+        const sourceFile = node.getSourceFile();
+        const constDecl = this.findConstObjectDeclaration(sourceFile, constName);
+
+        const { values, memberNames } = this.extractMembers(constDecl, constName);
+
+        // Use x-definition-name to rename the definition to the const object name in post-processing
+        const annotations = typeAliasName !== constName ? { 'x-definition-name': constName } : {};
+
+        const id = `const-enum-${sourceFile.fileName}-${node.pos}`;
+        const enumType = new EnumTypeWithNames(id, values, memberNames, annotations);
+
+        return new tsj.DefinitionType(typeAliasName, enumType);
+    }
+
+    extractMembers(constDecl, constName) {
+        // Derive prefix from const name: SettlementMethod → SETTLEMENT_METHOD_
+        const prefix = this.toScreamingSnake(constName) + '_';
+
+        const values = [];
+        const memberNames = [];
+        const objLiteral = constDecl.initializer;
+
+        for (const prop of objLiteral.properties) {
+            if (prop.kind !== ts.SyntaxKind.PropertyAssignment) continue;
+
+            const key = prop.name.getText();
+            const value = this.resolveValue(prop);
+            values.push(value);
+
+            // Strip prefix from key for the varname, then camelCase
+            const stripped = key.startsWith(prefix) ? key.slice(prefix.length) : key;
+            memberNames.push(this.toCamelCase(stripped));
+        }
+
+        return { values, memberNames };
+    }
+
+    resolveValue(prop) {
+        const init = prop.initializer;
+        if (init.kind === ts.SyntaxKind.StringLiteral) return init.text;
+        if (init.kind === ts.SyntaxKind.NumericLiteral) return Number(init.text);
+        // Identifier reference — resolve via type checker
+        if (init.kind === ts.SyntaxKind.Identifier) {
+            const symbol = this.typeChecker.getSymbolAtLocation(init);
+            const decl = symbol?.valueDeclaration;
+            if (decl?.initializer?.kind === ts.SyntaxKind.StringLiteral) {
+                return decl.initializer.text;
+            }
+            if (decl?.initializer?.kind === ts.SyntaxKind.NumericLiteral) {
+                return Number(decl.initializer.text);
+            }
+        }
+        return init.getText();
+    }
+
+    /**
+     * Find a const variable declaration with an object literal initializer.
+     */
+    findConstObjectDeclaration(sourceFile, name) {
+        for (const stmt of sourceFile.statements) {
+            if (stmt.kind !== ts.SyntaxKind.VariableStatement) continue;
+            for (const decl of stmt.declarationList.declarations) {
+                if (decl.name.getText() !== name) continue;
+                // Accept ObjectLiteralExpression or AsExpression wrapping one
+                let init = decl.initializer;
+                if (init?.kind === ts.SyntaxKind.AsExpression) {
+                    init = init.expression;
+                }
+                if (init?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+                    return { ...decl, initializer: init };
+                }
+            }
+        }
+        return null;
+    }
+
+    toScreamingSnake(str) {
+        return str
+            .replace(/([A-Z])/g, '_$1')
+            .toUpperCase()
+            .replace(/^_/, '');
+    }
+
+    toCamelCase(str) {
+        if (str.includes('_')) {
+            return str.toLowerCase().replace(/_([a-z])/g, (_, l) => l.toUpperCase());
+        }
+        if (str === str.toUpperCase()) return str.toLowerCase();
+        return str.charAt(0).toLowerCase() + str.slice(1);
+    }
+}
+
+// ============================================================================
 // Custom EnumTypeFormatter with x-enum-varnames
 // ============================================================================
 
@@ -603,6 +747,12 @@ class DiscriminatedUnionTypeFormatter {
             return true;
         }
         if (!(type instanceof tsj.UnionType) || type.getTypes().length < 2) {
+            return false;
+        }
+        // If the union has a discriminator set (from @discriminator annotation),
+        // let the default UnionTypeFormatter handle it — it produces allOf/if/then
+        // which postProcessDiscriminatedUnions() transforms into x-interface-union.
+        if (type.getDiscriminator?.()) {
             return false;
         }
         const isDiscriminated = type.getTypes().every((variant) => this.getDiscriminatorValue(variant) !== null);
@@ -1108,10 +1258,15 @@ class AllTypesSchemaGenerator extends tsj.SchemaGenerator {
     }
 
     createSchemaFromNodes(rootNodes) {
-        const roots = rootNodes.map((rootNode) => {
-            const rootType = this.nodeParser.createType(rootNode, new tsj.Context());
-            return { rootNode, rootType };
-        });
+        const roots = [];
+        for (const rootNode of rootNodes) {
+            try {
+                const rootType = this.nodeParser.createType(rootNode, new tsj.Context());
+                roots.push({ rootNode, rootType });
+            } catch {
+                // Skip nodes that can't be parsed (e.g., const objects with identifier references)
+            }
+        }
 
         const definitions = {};
 
@@ -1529,6 +1684,48 @@ function postProcessTypeAliases(schema) {
     }
 }
 
+/**
+ * Rename definitions that have x-definition-name and update all $refs.
+ */
+function postProcessDefinitionNames(schema) {
+    const definitions = schema.definitions || {};
+    const renames = {};
+
+    // Collect renames
+    for (const [name, def] of Object.entries(definitions)) {
+        if (def['x-definition-name']) {
+            renames[name] = def['x-definition-name'];
+            delete def['x-definition-name'];
+        }
+    }
+
+    if (Object.keys(renames).length === 0) return;
+
+    // Apply renames to definitions
+    for (const [oldName, newName] of Object.entries(renames)) {
+        definitions[newName] = definitions[oldName];
+        delete definitions[oldName];
+    }
+
+    // Update all $refs in the schema
+    const oldToNewRef = {};
+    for (const [oldName, newName] of Object.entries(renames)) {
+        oldToNewRef[`#/definitions/${oldName}`] = `#/definitions/${newName}`;
+        oldToNewRef[`#/components/schemas/${oldName}`] = `#/components/schemas/${newName}`;
+    }
+    updateRefs(definitions, oldToNewRef);
+}
+
+function updateRefs(obj, refMap) {
+    if (obj === null || typeof obj !== 'object') return;
+    if (obj.$ref && refMap[obj.$ref]) {
+        obj.$ref = refMap[obj.$ref];
+    }
+    for (const value of Object.values(obj)) {
+        updateRefs(value, refMap);
+    }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -1556,6 +1753,7 @@ try {
     const typeChecker = program.getTypeChecker();
 
     const parser = tsj.createParser(program, config, (prs) => {
+        prs.addNodeParser(new ConstEnumNodeParser(typeChecker));
         prs.addNodeParser(new EnumNodeParserWithNames(typeChecker));
         prs.addNodeParser(new DiscriminatedUnionNodeParser(typeChecker, prs));
         prs.addNodeParser(new GenericInterfaceNodeParser(typeChecker, prs));
@@ -1574,6 +1772,9 @@ try {
 
     const generator = new AllTypesSchemaGenerator(program, parser, formatter, config);
     const schema = generator.createSchema(config.type);
+
+    // Post-process: rename definitions with x-definition-name
+    postProcessDefinitionNames(schema);
 
     // Post-process: transform @discriminator annotated unions into discriminated union schemas
     postProcessDiscriminatedUnions(schema);

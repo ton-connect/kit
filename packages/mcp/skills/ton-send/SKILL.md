@@ -15,6 +15,7 @@ Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` a
 | ---- | -------- | -------- |
 | `send_ton` | `toAddress`, `amount` | `comment`, `walletSelector` |
 | `send_jetton` | `toAddress`, `jettonAddress`, `amount` | `comment`, `walletSelector` |
+| `emulate_transaction` | `messages` | `validUntil` |
 | `resolve_dns` | `domain` | — |
 | `back_resolve_dns` | `address` | — |
 
@@ -36,6 +37,7 @@ Transfer TON or jettons to any address. Supports TON DNS resolution for `.ton` a
 ## Notes
 
 - Amounts are human-readable (e.g., `"1.5"` = 1.5 TON, `"100"` = 100 tokens)
+- Use `emulate_transaction` to dry-run any transaction before sending — it returns expected balance changes (TON and jetton), fees, and high-level actions so you can verify the outcome
 - Always confirm with the user before executing a transfer; prefer the host client's structured confirmation UI when available, otherwise accept natural-language yes/no and do not require a fixed confirmation phrase
 - After sending, poll `get_transaction_status` by default. User can specify whether to check status.
 - If no wallet is configured, use the `ton-create-wallet` skill first

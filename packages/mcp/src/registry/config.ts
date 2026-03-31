@@ -6,7 +6,7 @@
  *
  */
 
-import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -22,6 +22,7 @@ import {
 import { formatAssetAddress, formatWalletAddress, normalizeAddressForComparison } from '../utils/address.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 import { createApiClient } from '../utils/ton-client.js';
+import { readMaybeEncryptedFile, writeEncryptedFile } from './protected-file.js';
 
 export type TonNetwork = 'mainnet' | 'testnet';
 export type StandardWalletVersion = 'v5r1' | 'v4r2';
@@ -359,35 +360,6 @@ export function ensureConfigPermissions(): void {
     chmodIfExists(getConfigPath(), 0o600);
 }
 
-export function loadConfig(): TonConfig | null {
-    const configPath = getConfigPath();
-    if (!existsSync(configPath)) {
-        return null;
-    }
-
-    let raw: unknown;
-    try {
-        raw = JSON.parse(readFileSync(configPath, 'utf-8'));
-    } catch (error) {
-        throw new ConfigError(
-            `Failed to read config at ${configPath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        );
-    }
-
-    if (!raw || typeof raw !== 'object' || !('version' in raw)) {
-        throw new ConfigError(
-            `Unsupported legacy config at ${configPath}. Re-import wallets into the v2 format or use CLI setup to migrate it.`,
-        );
-    }
-
-    const version = (raw as { version?: unknown }).version;
-    if (version !== 2) {
-        throw new ConfigError(`Unsupported config version ${String(version)} at ${configPath}.`);
-    }
-
-    return normalizeConfig(raw as TonConfig);
-}
-
 export async function loadConfigWithMigration(): Promise<TonConfig | null> {
     const configPath = getConfigPath();
     if (!existsSync(configPath)) {
@@ -395,8 +367,11 @@ export async function loadConfigWithMigration(): Promise<TonConfig | null> {
     }
 
     let raw: unknown;
+    let isProtected: boolean;
     try {
-        raw = JSON.parse(readFileSync(configPath, 'utf-8'));
+        const readResult = readMaybeEncryptedFile(configPath);
+        raw = JSON.parse(readResult.content);
+        isProtected = readResult.isProtected;
     } catch (error) {
         throw new ConfigError(
             `Failed to read config at ${configPath}: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -418,13 +393,17 @@ export async function loadConfigWithMigration(): Promise<TonConfig | null> {
         throw new ConfigError(`Unsupported config version ${String(version)} at ${configPath}.`);
     }
 
-    return normalizeConfig(raw as TonConfig);
+    const normalized = normalizeConfig(raw as TonConfig);
+    if (!isProtected) {
+        saveConfig(normalized);
+    }
+    return normalized;
 }
 
 export function saveConfig(config: TonConfig): void {
     mkdirSync(getConfigDir(), { recursive: true, mode: 0o700 });
     chmodIfExists(getConfigDir(), 0o700);
-    writeFileSync(getConfigPath(), JSON.stringify(normalizeConfig(config), null, 2) + '\n', {
+    writeEncryptedFile(getConfigPath(), JSON.stringify(normalizeConfig(config), null, 2), {
         encoding: 'utf-8',
         mode: 0o600,
     });

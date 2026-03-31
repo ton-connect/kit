@@ -42,7 +42,7 @@ Deploy an on-chain agentic wallet on TON. The agent generates operator keys, ope
 - The agent keeps the **operator private key** — it can sign transactions autonomously
 - The user keeps the **owner key** — they can withdraw funds or revoke access at any time
 - The wallet is an on-chain smart contract (NFT-based), not a custodial service
-- The dashboard is at `agentic-wallets-dashboard.vercel.app`
+- The dashboard is at `agents.ton.org`
 
 ## Environment Variables
 

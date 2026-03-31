@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { formatUnits } from '@ton/walletkit';
 
 import type { McpWalletService } from '../services/McpWalletService.js';
 import type { ToolResponse } from './types.js';
@@ -33,7 +34,7 @@ export const getNftsByAddressSchema = z.object({
 });
 
 export const getJettonInfoSchema = z.object({
-    address: z.string().min(1).describe('Jetton master contract address'),
+    jettonAddress: z.string().min(1).describe('Jetton master contract address'),
 });
 
 export const getJettonWalletAddressSchema = z.object({
@@ -59,8 +60,8 @@ export function createMcpAddressTools(service: McpWalletService) {
                                     {
                                         success: true,
                                         address: result.address,
-                                        balance: `${result.balanceTon} TON`,
-                                        balanceNano: result.balanceNano,
+                                        amountRaw: result.balanceNano,
+                                        amount: result.balanceTon,
                                     },
                                     null,
                                     2,
@@ -102,7 +103,14 @@ export function createMcpAddressTools(service: McpWalletService) {
                                     {
                                         success: true,
                                         address: args.address,
-                                        jettons,
+                                        jettons: jettons.map((j) => ({
+                                            address: j.address,
+                                            name: j.name,
+                                            symbol: j.symbol,
+                                            decimals: j.decimals,
+                                            amountRaw: j.balance,
+                                            amount: formatUnits(j.balance, j.decimals ?? 9),
+                                        })),
                                         count: jettons.length,
                                         limit,
                                         offset,
@@ -189,7 +197,7 @@ export function createMcpAddressTools(service: McpWalletService) {
             inputSchema: getJettonInfoSchema,
             handler: async (args: z.infer<typeof getJettonInfoSchema>): Promise<ToolResponse> => {
                 try {
-                    const jettonInfo = await service.getJettonInfo(args.address);
+                    const jettonInfo = await service.getJettonInfo(args.jettonAddress);
 
                     if (!jettonInfo) {
                         return {

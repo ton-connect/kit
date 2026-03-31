@@ -16,7 +16,7 @@ import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet
 import type { TonNetwork } from '../registry/config.js';
 import { parsePrivateKeyInput } from './private-key.js';
 
-const AGENTIC_DASHBOARD_BASE_URL = 'https://agentic-wallets-dashboard.vercel.app/';
+const AGENTIC_DASHBOARD_BASE_URL = 'https://agents.ton.org/';
 
 const AGENTIC_LOOKUP_RETRY_ATTEMPTS = 5;
 const AGENTIC_LOOKUP_RETRY_DELAY_MS = 1500;

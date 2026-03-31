@@ -1,5 +1,17 @@
 # @ton/walletkit
 
+## 0.0.12-alpha.1
+
+### Patch Changes
+
+- Fixed `getJettonBalanceFromClient` to return `'0'` when the jetton wallet contract returns a non-zero exit code instead of throwing
+
+## 0.0.12-alpha.0
+
+### Patch Changes
+
+- 494250e: Added option to pass settlement options to Omniston provider. Added escrow settlement for mcp
+
 ## 0.0.11
 
 ### Patch Changes

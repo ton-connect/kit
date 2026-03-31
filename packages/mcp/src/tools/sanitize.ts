@@ -47,19 +47,43 @@ export function sanitizeStoredWallet(wallet: StoredWallet | null): PublicStoredW
     }
 
     if (wallet.type === 'standard') {
-        const { mnemonic: _mnemonic, private_key: _privateKey, ...publicWallet } = wallet;
-        return {
-            ...publicWallet,
+        const result: PublicStandardWallet = {
+            id: wallet.id,
+            name: wallet.name,
+            type: wallet.type,
+            network: wallet.network,
+            address: wallet.address,
+            wallet_version: wallet.wallet_version,
+            created_at: wallet.created_at,
+            updated_at: wallet.updated_at,
             has_mnemonic: Boolean(wallet.mnemonic),
             has_private_key: Boolean(wallet.private_key),
         };
+        if (wallet.removed != null) result.removed = wallet.removed;
+        if (wallet.removed_at != null) result.removed_at = wallet.removed_at;
+        return result;
     }
 
-    const { operator_private_key: _operatorPrivateKey, ...publicWallet } = wallet;
-    return {
-        ...publicWallet,
+    const result: PublicAgenticWallet = {
+        id: wallet.id,
+        name: wallet.name,
+        type: wallet.type,
+        network: wallet.network,
+        address: wallet.address,
+        owner_address: wallet.owner_address,
+        created_at: wallet.created_at,
+        updated_at: wallet.updated_at,
         has_operator_private_key: Boolean(wallet.operator_private_key),
     };
+    if (wallet.operator_public_key != null) result.operator_public_key = wallet.operator_public_key;
+    if (wallet.source != null) result.source = wallet.source;
+    if (wallet.collection_address != null) result.collection_address = wallet.collection_address;
+    if (wallet.origin_operator_public_key != null)
+        result.origin_operator_public_key = wallet.origin_operator_public_key;
+    if (wallet.deployed_by_user != null) result.deployed_by_user = wallet.deployed_by_user;
+    if (wallet.removed != null) result.removed = wallet.removed;
+    if (wallet.removed_at != null) result.removed_at = wallet.removed_at;
+    return result;
 }
 
 export function sanitizeStoredWallets(wallets: StoredWallet[]): PublicStoredWallet[] {
@@ -79,11 +103,18 @@ export function sanitizeNetworkConfig(config: ConfigNetwork): PublicNetworkConfi
 }
 
 export function sanitizePendingAgenticDeployment(deployment: PendingAgenticDeployment): PublicPendingAgenticDeployment {
-    const { operator_private_key: _operatorPrivateKey, ...publicDeployment } = deployment;
-    return {
-        ...publicDeployment,
+    const result: PublicPendingAgenticDeployment = {
+        id: deployment.id,
+        network: deployment.network,
+        operator_public_key: deployment.operator_public_key,
+        created_at: deployment.created_at,
+        updated_at: deployment.updated_at,
         has_operator_private_key: Boolean(deployment.operator_private_key),
     };
+    if (deployment.name != null) result.name = deployment.name;
+    if (deployment.source != null) result.source = deployment.source;
+    if (deployment.collection_address != null) result.collection_address = deployment.collection_address;
+    return result;
 }
 
 export function sanitizePendingAgenticDeployments(
@@ -95,11 +126,19 @@ export function sanitizePendingAgenticDeployments(
 export function sanitizePendingAgenticKeyRotation(
     rotation: PendingAgenticKeyRotation,
 ): PublicPendingAgenticKeyRotation {
-    const { operator_private_key: _operatorPrivateKey, ...publicRotation } = rotation;
-    return {
-        ...publicRotation,
+    const result: PublicPendingAgenticKeyRotation = {
+        id: rotation.id,
+        wallet_id: rotation.wallet_id,
+        network: rotation.network,
+        wallet_address: rotation.wallet_address,
+        owner_address: rotation.owner_address,
+        operator_public_key: rotation.operator_public_key,
+        created_at: rotation.created_at,
+        updated_at: rotation.updated_at,
         has_operator_private_key: Boolean(rotation.operator_private_key),
     };
+    if (rotation.collection_address != null) result.collection_address = rotation.collection_address;
+    return result;
 }
 
 export function sanitizePendingAgenticKeyRotations(
@@ -116,8 +155,11 @@ export function sanitizeAgenticRootWalletSetupStatus(
     }
 
     return {
-        ...setup,
+        setupId: setup.setupId,
         pendingDeployment: sanitizePendingAgenticDeployment(setup.pendingDeployment),
+        session: setup.session,
+        status: setup.status,
+        ...(setup.dashboardUrl != null ? { dashboardUrl: setup.dashboardUrl } : {}),
     };
 }
 

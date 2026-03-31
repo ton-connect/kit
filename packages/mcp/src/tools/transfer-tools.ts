@@ -38,6 +38,11 @@ export const sendRawTransactionSchema = z.object({
     fromAddress: z.string().optional().describe('Sender wallet address'),
 });
 
+export const emulateTransactionSchema = z.object({
+    messages: z.array(transactionMessageSchema).min(1).describe('Array of messages to include in the transaction'),
+    validUntil: z.number().optional().describe('Unix timestamp after which the transaction becomes invalid'),
+});
+
 export function createMcpTransferTools(service: McpWalletService) {
     return {
         send_ton: {
@@ -230,6 +235,77 @@ export function createMcpTransferTools(service: McpWalletService) {
                         },
                     ],
                 };
+            },
+        },
+        emulate_transaction: {
+            description:
+                'Emulate a transaction without broadcasting it. Dry-run that returns the expected money flow (TON and jetton balance changes) so you can verify a transaction before sending. Accepts the same messages format as send_raw_transaction.',
+            inputSchema: emulateTransactionSchema,
+            handler: async (args: z.infer<typeof emulateTransactionSchema>): Promise<ToolResponse> => {
+                try {
+                    const preview = await service.emulateTransaction({
+                        messages: args.messages,
+                        validUntil: args.validUntil,
+                    });
+
+                    const trace = preview?.trace;
+
+                    // Sum total fees across all emulated transactions
+                    let totalFees = 0n;
+                    if (trace?.transactions) {
+                        for (const tx of Object.values(trace?.transactions)) {
+                            if (tx?.totalFees) {
+                                totalFees += BigInt(tx.totalFees);
+                            }
+                        }
+                    }
+
+                    return {
+                        content: [
+                            {
+                                type: 'text' as const,
+                                text: JSON.stringify(
+                                    {
+                                        success: preview?.result === 'success',
+                                        totalFees: totalFees?.toString(),
+                                        isIncomplete: trace?.isIncomplete ?? false,
+                                        moneyFlow: preview?.moneyFlow
+                                            ? {
+                                                  tonOutputs: preview?.moneyFlow?.outputs,
+                                                  tonInputs: preview?.moneyFlow?.inputs,
+                                                  ourAddress: preview?.moneyFlow?.ourAddress,
+                                                  ourTransfers: preview?.moneyFlow?.ourTransfers,
+                                                  allJettonTransfers: preview?.moneyFlow.allJettonTransfers,
+                                              }
+                                            : null,
+                                        actions: trace?.actions.map((a) => ({
+                                            type: a?.details?.type,
+                                            isSuccess: a?.isSuccess,
+                                            accounts: a?.accounts,
+                                            details: a?.details?.value,
+                                        })),
+                                        addressBook: trace?.addressBook ?? null,
+                                    },
+                                    null,
+                                    2,
+                                ),
+                            },
+                        ],
+                    };
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: 'text' as const,
+                                text: JSON.stringify({
+                                    success: false,
+                                    error: error instanceof Error ? error.message : 'Unknown error',
+                                }),
+                            },
+                        ],
+                        isError: true,
+                    };
+                }
             },
         },
     };

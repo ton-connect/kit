@@ -33,8 +33,14 @@ export const addressToToken = (address: string, decimals: number = 9): SwapToken
 };
 
 export const toOmnistonAddress = (address: string, network: Network): OmnistonAddress => {
+    let formattedAddress: string;
+    try {
+        formattedAddress = Address.parse(address).toString({ bounceable: true });
+    } catch {
+        formattedAddress = address;
+    }
     return {
-        address,
+        address: formattedAddress,
         blockchain: mapNetworkToBlockchainId(network),
     };
 };

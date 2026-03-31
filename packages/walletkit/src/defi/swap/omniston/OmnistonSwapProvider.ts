@@ -113,7 +113,9 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             const quoteRequest: QuoteRequest = {
                 amount,
-                settlementMethods: [SettlementMethod.SETTLEMENT_METHOD_SWAP],
+                settlementMethods: params.providerOptions?.settlementMethods ?? [
+                    SettlementMethod.SETTLEMENT_METHOD_SWAP,
+                ],
                 bidAssetAddress: toOmnistonAddress(bidAssetAddress, params.network),
                 askAssetAddress: toOmnistonAddress(askAssetAddress, params.network),
                 referrerAddress: referrerAddress

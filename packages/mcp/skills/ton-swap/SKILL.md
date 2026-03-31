@@ -14,6 +14,7 @@ Swap tokens on TON via DEX aggregator. Two-step flow: get a quote, confirm with 
 | Tool | Required | Optional |
 | ---- | -------- | -------- |
 | `get_swap_quote` | `fromToken`, `toToken`, `amount` | `walletSelector` |
+| `emulate_transaction` | `messages` | `validUntil` |
 | `send_raw_transaction` | `messages` | `walletSelector` |
 | `get_known_jettons` | — | — |
 
@@ -23,9 +24,10 @@ Swap tokens on TON via DEX aggregator. Two-step flow: get a quote, confirm with 
 2. Call `get_swap_quote` with `fromToken`, `toToken`, and `amount`
    - Use `"TON"` for native TON, or the jetton master contract address for tokens
    - Amount is human-readable (e.g., `"1.5"` = 1.5 TON)
-3. Show the quote details to the user and ask one short yes/no confirmation
-4. Call `send_raw_transaction` with the transaction params returned by the quote
-5. Poll `get_transaction_status` with the returned `normalizedHash` until status is `completed` or `failed` (see `ton-balance` skill). User can ask to skip polling.
+3. Call `emulate_transaction` with the quote's `transaction.messages` to dry-run the swap — verify the expected money flow (TON/jetton balance changes) before sending
+4. Show the quote details and emulation results to the user and ask one short yes/no confirmation
+5. Call `send_raw_transaction` with the transaction params returned by the quote
+6. Poll `get_transaction_status` with the returned `normalizedHash` until status is `completed` or `failed` (see `ton-balance` skill). User can ask to skip polling.
 
 ## Notes
 

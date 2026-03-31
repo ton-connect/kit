@@ -90,8 +90,47 @@ function log(message: string) {
     console.error(`[${SERVER_NAME}] ${message}`);
 }
 
+function printHelp() {
+    const help = `
+@ton/mcp – TON wallet MCP server & CLI
+
+Usage:
+  npx @ton/mcp@alpha                              stdio MCP server (default)
+  npx @ton/mcp@alpha --http [port]                HTTP MCP server (default: 0.0.0.0:3000)
+  npx @ton/mcp@alpha --http --host 127.0.0.1      HTTP server on custom host
+  npx @ton/mcp@alpha <tool_name> [--arg value]    call one tool and exit
+
+Options:
+  --help, -h      Show this help message
+  --http [port]   Start HTTP server instead of stdio
+  --host <addr>   Bind HTTP server to address (default: 0.0.0.0)
+
+Examples:
+  npx @ton/mcp@alpha get_balance
+  npx @ton/mcp@alpha get_jetton_balance --jettonAddress EQAbc...
+  npx @ton/mcp@alpha get_swap_quote --fromToken TON --toToken EQAbc... --amount 1
+  npx @ton/mcp@alpha send_ton --toAddress UQA... --amount 0.5
+
+Environment variables:
+  NETWORK              mainnet (default) or testnet
+  MNEMONIC             24-word mnemonic phrase
+  PRIVATE_KEY          Hex-encoded private key (alternative to MNEMONIC)
+  WALLET_VERSION       v5r1 (default), v4r2, or agentic
+  TONCENTER_API_KEY    Optional Toncenter API key
+  TON_CONFIG_PATH      Config file path (default: ~/.config/ton/config.json)
+`.trimStart();
+
+    process.stdout.write(help);
+}
+
 function parseArgs() {
     const args = process.argv.slice(2);
+
+    if (args.includes('--help') || args.includes('-h')) {
+        printHelp();
+        process.exit(0);
+    }
+
     const httpIndex = args.indexOf('--http');
 
     if (httpIndex !== -1) {
@@ -337,8 +376,8 @@ function getResolvedHttpCallbackBaseUrl(host: string, port: number): string {
     return `http://${publicHost}:${port}`;
 }
 
-function createStdioSessionManager(): AgenticSetupSessionManager {
-    return new AgenticSetupSessionManager({
+async function createStdioSessionManager(): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
         host: AGENTIC_CALLBACK_HOST,
         listenPort: Number.isFinite(AGENTIC_CALLBACK_PORT) ? AGENTIC_CALLBACK_PORT : 0,
         publicBaseUrl: AGENTIC_CALLBACK_BASE_URL,
@@ -346,8 +385,8 @@ function createStdioSessionManager(): AgenticSetupSessionManager {
     });
 }
 
-function createHttpSessionManager(host: string, port: number): AgenticSetupSessionManager {
-    return new AgenticSetupSessionManager({
+async function createHttpSessionManager(host: string, port: number): Promise<AgenticSetupSessionManager> {
+    return AgenticSetupSessionManager.create({
         publicBaseUrl: getResolvedHttpCallbackBaseUrl(host, port),
         enableInternalHttpServer: false,
         store: new ConfigBackedAgenticSetupSessionStore(),
@@ -355,7 +394,7 @@ function createHttpSessionManager(host: string, port: number): AgenticSetupSessi
 }
 
 async function startCli(toolName: string, rawArgs: string[]) {
-    const sessionManager = createStdioSessionManager();
+    const sessionManager = await createStdioSessionManager();
     const { server, kit } = await createWalletAndServer(sessionManager);
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -395,7 +434,7 @@ async function startCli(toolName: string, rawArgs: string[]) {
 async function startStdio() {
     log('Starting in stdio mode...');
 
-    const sessionManager = createStdioSessionManager();
+    const sessionManager = await createStdioSessionManager();
     const { server, kit } = await createWalletAndServer(sessionManager);
     const transport = new StdioServerTransport();
 
@@ -419,7 +458,7 @@ async function startStdio() {
 async function startHttp(port: number, host: string) {
     log(`Starting in HTTP mode on ${host}:${port}...`);
 
-    const sessionManager = createHttpSessionManager(host, port);
+    const sessionManager = await createHttpSessionManager(host, port);
     const router = createHttpMcpSessionRouter({
         host,
         port,

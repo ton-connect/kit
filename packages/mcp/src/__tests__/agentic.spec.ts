@@ -23,7 +23,7 @@ describe('mcp agentic helpers', () => {
             }),
         );
 
-        expect(url.origin + '/').toBe('https://agentic-wallets-dashboard.vercel.app/');
+        expect(url.origin + '/').toBe('https://agents.ton.org/');
         expect(url.pathname).toBe('/create');
         expect(url.searchParams.has('operatorPublicKey')).toBe(false);
         expect(url.searchParams.has('callbackUrl')).toBe(false);
@@ -43,7 +43,7 @@ describe('mcp agentic helpers', () => {
 
     it('builds dashboard links', () => {
         const url = new URL(buildAgenticDashboardLink('kQAgent'));
-        expect(url.origin + '/').toBe('https://agentic-wallets-dashboard.vercel.app/');
+        expect(url.origin + '/').toBe('https://agents.ton.org/');
         expect(url.pathname).toBe('/agent/kQAgent');
     });
 });

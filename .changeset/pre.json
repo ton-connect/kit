@@ -16,5 +16,13 @@
     "walletkit-android-bridge": "0.0.1",
     "walletkit-ios-bridge": "0.0.1"
   },
-  "changesets": []
+  "changesets": [
+    "bright-poets-jog",
+    "cli-help-flag",
+    "fix-jetton-balance-exit-code",
+    "fix-jetton-param-naming",
+    "short-kings-flow",
+    "tricky-bags-retire",
+    "update-agentic-dashboard-url"
+  ]
 }

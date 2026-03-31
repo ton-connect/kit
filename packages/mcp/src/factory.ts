@@ -129,6 +129,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         registerTool('send_ton', transferTools.send_ton);
         registerTool('send_jetton', transferTools.send_jetton);
         registerTool('send_raw_transaction', transferTools.send_raw_transaction);
+        registerTool('emulate_transaction', transferTools.emulate_transaction);
         registerTool('get_transaction_status', transactionTools.get_transaction_status);
         registerTool('get_swap_quote', swapTools.get_swap_quote);
         registerTool('get_nfts', nftTools.get_nfts);
@@ -158,9 +159,9 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     const ownsAgenticSessionManager = !config.agenticSessionManager;
     const agenticSessionManager =
         config.agenticSessionManager ??
-        new AgenticSetupSessionManager({
+        (await AgenticSetupSessionManager.create({
             store: new ConfigBackedAgenticSetupSessionStore(),
-        });
+        }));
     const originalClose = server.close.bind(server);
     server.close = async () => {
         await Promise.allSettled([
@@ -262,6 +263,11 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         transferToolDefs.send_raw_transaction,
         (service) => createMcpTransferTools(service).send_raw_transaction,
         { requiresSigning: true },
+    );
+    registerRegistryWalletTool(
+        'emulate_transaction',
+        transferToolDefs.emulate_transaction,
+        (service) => createMcpTransferTools(service).emulate_transaction,
     );
     registerRegistryWalletTool(
         'agentic_deploy_subwallet',

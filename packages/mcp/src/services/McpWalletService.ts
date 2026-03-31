@@ -37,8 +37,10 @@ import type {
     TransactionRequest,
     TransactionStatusResponse,
 } from '@ton/walletkit';
+import type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
+import { SettlementMethod } from '@ston-fi/omniston-sdk';
 
 import type { IContactResolver } from '../types/contacts.js';
 import type { NetworkType } from '../types/config.js';
@@ -898,6 +900,9 @@ export class McpWalletService {
             amount: amount,
             network,
             slippageBps,
+            providerOptions: {
+                settlementMethods: [SettlementMethod.SETTLEMENT_METHOD_SWAP, SettlementMethod.SETTLEMENT_METHOD_ESCROW],
+            } as OmnistonProviderOptions,
         };
 
         const quote = await kit.swap.getQuote(params);
@@ -927,6 +932,26 @@ export class McpWalletService {
                 validUntil: tx.validUntil,
             },
         };
+    }
+
+    /**
+     * Emulate a transaction without broadcasting it.
+     * Returns the emulated preview with money flow analysis.
+     */
+    async emulateTransaction(params: {
+        messages: Array<{
+            address: string;
+            amount: string;
+            stateInit?: string;
+            payload?: string;
+        }>;
+        validUntil?: number;
+    }) {
+        const preview = await this.wallet.getTransactionPreview({
+            messages: params.messages as TransactionRequest['messages'],
+            validUntil: params.validUntil,
+        });
+        return preview;
     }
 
     /**

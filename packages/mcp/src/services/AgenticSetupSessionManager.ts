@@ -13,7 +13,7 @@ import {
     createEmptyConfig,
     findAgenticSetupSession,
     listAgenticSetupSessions,
-    loadConfig,
+    loadConfigWithMigration,
     removeAgenticSetupSession,
     saveConfig,
     upsertAgenticSetupSession,
@@ -56,23 +56,23 @@ const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_TTL_MS = 1000 * 60 * 60 * 24;
 
 export interface AgenticSetupSessionStore {
-    listSessions(): StoredAgenticSetupSession[];
-    upsertSession(session: StoredAgenticSetupSession): void;
-    removeSession(setupId: string): void;
+    listSessions(): Promise<StoredAgenticSetupSession[]>;
+    upsertSession(session: StoredAgenticSetupSession): Promise<void>;
+    removeSession(setupId: string): Promise<void>;
 }
 
 export class ConfigBackedAgenticSetupSessionStore implements AgenticSetupSessionStore {
-    listSessions(): StoredAgenticSetupSession[] {
-        return listAgenticSetupSessions(loadConfig() ?? createEmptyConfig());
+    async listSessions(): Promise<StoredAgenticSetupSession[]> {
+        return listAgenticSetupSessions((await loadConfigWithMigration()) ?? createEmptyConfig());
     }
 
-    upsertSession(session: StoredAgenticSetupSession): void {
-        const config = loadConfig() ?? createEmptyConfig();
+    async upsertSession(session: StoredAgenticSetupSession): Promise<void> {
+        const config = (await loadConfigWithMigration()) ?? createEmptyConfig();
         saveConfig(upsertAgenticSetupSession(config, session));
     }
 
-    removeSession(setupId: string): void {
-        const config = loadConfig() ?? createEmptyConfig();
+    async removeSession(setupId: string): Promise<void> {
+        const config = (await loadConfigWithMigration()) ?? createEmptyConfig();
         if (!findAgenticSetupSession(config, setupId)) {
             return;
         }
@@ -101,24 +101,28 @@ export class AgenticSetupSessionManager {
     private readonly enableInternalHttpServer: boolean;
     private readonly store?: AgenticSetupSessionStore;
 
-    constructor(options: AgenticSetupSessionManagerOptions = {}) {
+    private constructor(options: AgenticSetupSessionManagerOptions = {}) {
         this.host = options.host ?? DEFAULT_HOST;
         this.ttlMs = options.ttlMs ?? DEFAULT_TTL_MS;
         this.listenPort = options.listenPort ?? 0;
         this.publicBaseUrl = options.publicBaseUrl?.replace(/\/+$/, '');
         this.enableInternalHttpServer = options.enableInternalHttpServer ?? true;
         this.store = options.store;
-
-        this.syncFromStore();
     }
 
-    private syncFromStore(): void {
+    static async create(options: AgenticSetupSessionManagerOptions = {}): Promise<AgenticSetupSessionManager> {
+        const manager = new AgenticSetupSessionManager(options);
+        await manager.syncFromStore();
+        return manager;
+    }
+
+    private async syncFromStore(): Promise<void> {
         if (!this.store) {
             return;
         }
 
         this.sessions.clear();
-        for (const session of this.store.listSessions()) {
+        for (const session of await this.store.listSessions()) {
             this.sessions.set(session.setup_id, this.fromStoredSession(session));
         }
     }
