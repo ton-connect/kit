@@ -16,6 +16,9 @@ import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction'
 import { useSelectedWallet, useAddress } from '../../../wallets';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
+import { useBalance } from '../../../balances/hooks/use-balance';
+import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
+import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
 
 export interface SwapWidgetToken {
     /** Token symbol, e.g. "TON" */
@@ -49,6 +52,10 @@ export interface SwapContextType {
     fromFiatValue: string | null;
     /** Fiat value of toAmount, null when rate is unavailable */
     toFiatValue: string | null;
+    /** Balance of the "from" token for the connected wallet */
+    fromBalance: string | undefined;
+    /** Balance of the "to" token for the connected wallet */
+    toBalance: string | undefined;
     /** True while the flip animation should be active */
     isFlipped: boolean;
     /** Whether the user can proceed with the swap */
@@ -82,6 +89,8 @@ export const SwapContext = createContext<SwapContextType>({
     fiatSymbol: '$',
     fromFiatValue: null,
     toFiatValue: null,
+    fromBalance: undefined,
+    toBalance: undefined,
     isFlipped: false,
     canSubmit: false,
     isWalletConnected: false,
@@ -127,11 +136,13 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     defaultToSymbol,
     defaultSlippage = 50,
 }) => {
+    const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
+
     const [fromToken, setFromToken] = useState<SwapWidgetToken | null>(
-        tokens.find((t) => t.symbol === defaultFromSymbol) ?? tokens[0] ?? null,
+        mappedTokens.find((t) => t.symbol === defaultFromSymbol) ?? mappedTokens[0] ?? null,
     );
     const [toToken, setToToken] = useState<SwapWidgetToken | null>(
-        tokens.find((t) => t.symbol === defaultToSymbol) ?? tokens[1] ?? null,
+        mappedTokens.find((t) => t.symbol === defaultToSymbol) ?? mappedTokens[1] ?? null,
     );
     const [fromAmount, setFromAmount] = useState('');
     const [isFlipped, setIsFlipped] = useState(false);
@@ -190,6 +201,26 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         return (toNum * toToken.rate).toFixed(2);
     }, [toAmount, toToken]);
 
+    const handleSetFromToken = useCallback(
+        (token: SwapWidgetToken) => {
+            if (toToken && token.address === toToken.address) {
+                setToToken(fromToken);
+            }
+            setFromToken(token);
+        },
+        [fromToken, toToken],
+    );
+
+    const handleSetToToken = useCallback(
+        (token: SwapWidgetToken) => {
+            if (fromToken && token.address === fromToken.address) {
+                setFromToken(toToken);
+            }
+            setToToken(token);
+        },
+        [fromToken, toToken],
+    );
+
     const handleFlip = useCallback(() => {
         setIsFlipped((prev) => !prev);
         setFromToken(toToken);
@@ -197,15 +228,37 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         setFromAmount(toAmount);
     }, [fromToken, toToken, toAmount]);
 
-    const handleMaxClick = useCallback(() => {
-        if (fromToken?.balance) {
-            setFromAmount(fromToken.balance.replace(/\s/g, ''));
-        }
-    }, [fromToken]);
-
     const [wallet] = useSelectedWallet();
     const isWalletConnected = wallet !== null;
     const address = useAddress();
+
+    const isFromNative = fromToken?.address === 'native';
+    const isToNative = toToken?.address === 'native';
+
+    const { data: tonBalance } = useBalance();
+
+    const { data: fromJettonBalance } = useJettonBalanceByAddress({
+        jettonAddress: fromToken?.address,
+        ownerAddress: address ?? undefined,
+        jettonDecimals: fromToken?.decimals,
+        query: { enabled: !isFromNative && !!fromToken },
+    });
+
+    const { data: toJettonBalance } = useJettonBalanceByAddress({
+        jettonAddress: toToken?.address,
+        ownerAddress: address ?? undefined,
+        jettonDecimals: toToken?.decimals,
+        query: { enabled: !isToNative && !!toToken },
+    });
+
+    const fromBalance = isFromNative ? tonBalance : fromJettonBalance;
+    const toBalance = isToNative ? tonBalance : toJettonBalance;
+
+    const handleMaxClick = useCallback(() => {
+        if (fromBalance) {
+            setFromAmount(fromBalance.replace(/\s/g, ''));
+        }
+    }, [fromBalance]);
 
     const { mutateAsync: buildTransaction } = useBuildSwapTransaction();
     const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
@@ -222,7 +275,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const value = useMemo(
         () => ({
-            tokens,
+            tokens: mappedTokens,
             fromToken,
             toToken,
             fromAmount,
@@ -230,6 +283,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fiatSymbol,
             fromFiatValue,
             toFiatValue,
+            fromBalance,
+            toBalance,
             isFlipped,
             canSubmit,
             isWalletConnected,
@@ -237,8 +292,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isQuoteLoading,
             quoteError,
             slippage,
-            setFromToken,
-            setToToken,
+            setFromToken: handleSetFromToken,
+            setToToken: handleSetToToken,
             setFromAmount,
             setSlippage,
             onFlip: handleFlip,
@@ -247,7 +302,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isSendingTransaction,
         }),
         [
-            tokens,
+            mappedTokens,
             fromToken,
             toToken,
             fromAmount,
@@ -255,6 +310,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fiatSymbol,
             fromFiatValue,
             toFiatValue,
+            fromBalance,
+            toBalance,
             isFlipped,
             canSubmit,
             isWalletConnected,
@@ -262,6 +319,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isQuoteLoading,
             quoteError,
             slippage,
+            handleSetFromToken,
+            handleSetToToken,
             handleFlip,
             handleMaxClick,
             sendSwapTransaction,
