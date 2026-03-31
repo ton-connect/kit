@@ -6,8 +6,7 @@
  *
  */
 
-import { AppKit, Network } from '@ton/appkit';
-import { TonConnectConnector, ApiClientTonApi } from '@ton/appkit';
+import { AppKit, Network, createTonConnectConnector, ApiClientTonApi } from '@ton/appkit';
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 
@@ -35,7 +34,7 @@ export const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },

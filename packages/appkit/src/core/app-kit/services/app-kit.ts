@@ -10,7 +10,7 @@ import { SwapManager } from '@ton/walletkit';
 import type { Provider } from 'src/types/provider';
 
 import type { AppKitConfig } from '../types/config';
-import type { Connector } from '../../../types/connector';
+import type { Connector, CreateConnectorFn } from '../../../types/connector';
 import { Emitter } from '../../emitter';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
@@ -64,7 +64,12 @@ export class AppKit {
     /**
      * Add a wallet connector
      */
-    addConnector(connector: Connector): () => void {
+    addConnector(createConnectorFn: CreateConnectorFn): () => void {
+        const connector = createConnectorFn({
+            emitter: this.emitter,
+            networkManager: this.networkManager,
+            ssr: this.config.ssr,
+        });
         const id = connector.id;
         const oldConnector = this.connectors.find((c) => c.id === id);
 
@@ -73,7 +78,6 @@ export class AppKit {
         }
 
         this.connectors.push(connector);
-        connector.initialize(this.emitter, this.networkManager);
 
         return () => {
             this.removeConnector(connector);

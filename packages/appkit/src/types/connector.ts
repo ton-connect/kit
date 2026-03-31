@@ -18,13 +18,10 @@ export interface Connector {
     /** Provider unique identifier */
     readonly id: string;
 
-    /** Protocol type (e.g. 'tonconnect', 'ledger', 'mnemonic') */
+    /** Protocol type (e.g. 'tonconnect') */
     readonly type: string;
 
     readonly metadata: ConnectorMetadata;
-
-    /** Initialize connector (restore connections, setup event listeners) */
-    initialize(emitter: AppKitEmitter, networkManager: AppKitNetworkManager): Promise<void>;
 
     /** Cleanup connector resources */
     destroy(): void;
@@ -42,4 +39,14 @@ export interface Connector {
 export interface ConnectorMetadata {
     name: string;
     iconUrl?: string;
+}
+
+export type CreateConnectorFn = (config: {
+    emitter: AppKitEmitter;
+    networkManager: AppKitNetworkManager;
+    ssr?: boolean;
+}) => Connector;
+
+export function createConnector(createConnectorFn: CreateConnectorFn): CreateConnectorFn {
+    return createConnectorFn;
 }

@@ -7,7 +7,7 @@
  */
 
 import { AppKit, Network } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit';
+import { createTonConnectConnector } from '@ton/appkit';
 import { TonConnectUI } from '@tonconnect/ui';
 
 export const tonConnectConnectorExample = async () => {
@@ -27,7 +27,7 @@ export const tonConnectConnectorExample = async () => {
                 },
             },
         },
-        connectors: [new TonConnectConnector({ tonConnectUI })],
+        connectors: [createTonConnectConnector({ tonConnectUI })],
     });
     // SAMPLE_END: TON_CONNECT_CONNECTOR
 
@@ -46,7 +46,7 @@ export const tonConnectOptionsExample = async () => {
             },
         },
         connectors: [
-            new TonConnectConnector({
+            createTonConnectConnector({
                 tonConnectOptions: {
                     manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
                 },
@@ -72,8 +72,8 @@ export const addConnectorExample = async () => {
         },
     });
 
-    // 2. Initialize TonConnect connector
-    const connector = new TonConnectConnector({
+    // 2. Initialize TonConnect connector function
+    const connector = createTonConnectConnector({
         tonConnectOptions: {
             manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
         },
