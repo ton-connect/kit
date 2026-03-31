@@ -12,7 +12,7 @@ import type { Provider } from 'src/types/provider';
 import type { AppKitConfig } from '../types/config';
 import type { Connector } from '../../../types/connector';
 import { Emitter } from '../../emitter';
-import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import { CONNECTOR_EVENTS, PROVIDER_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../types/wallet';
 import { WalletsManager } from '../../wallets-manager';
@@ -100,6 +100,11 @@ export class AppKit {
         switch (provider.type) {
             case 'swap':
                 this.swapManager.registerProvider(provider);
+                this.emitter.emit(
+                    PROVIDER_EVENTS.REGISTERED,
+                    { providerId: provider.providerId, providerType: provider.type },
+                    'appkit',
+                );
                 break;
             default:
                 throw new Error('Unknown provider type');

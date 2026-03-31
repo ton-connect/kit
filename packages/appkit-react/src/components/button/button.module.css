@@ -55,6 +55,11 @@
   color: var(--ta-color-primary-foreground);
 }
 
+.secondary {
+  background-color: var(--ta-color-background-secondary);
+  color: var(--ta-color-text);
+}
+
 .bezeled {
   background-color: var(--ta-color-background-bezeled);
   color: var(--ta-color-primary);

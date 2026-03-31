@@ -31,8 +31,8 @@ export const NETWORKS_EVENTS = {
 } as const;
 
 /**
- * Plugin events
+ * Providers events
  */
 export const PROVIDER_EVENTS = {
-    REGISTERED: 'plugin:registered',
+    REGISTERED: 'providers:registered',
 } as const;

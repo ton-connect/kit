@@ -143,7 +143,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     fiatSymbol = '$',
     defaultFromSymbol,
     defaultToSymbol,
-    defaultSlippage = 50,
+    defaultSlippage = 100,
 }) => {
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 

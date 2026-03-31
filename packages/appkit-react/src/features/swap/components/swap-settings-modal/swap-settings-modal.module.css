@@ -1,0 +1,32 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+.label {
+  margin: 0 0 8px;
+  padding: 0 4px;
+  color: var(--ta-color-text-secondary);
+  font-size: 14px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.presetBtn {
+  flex: 1;
+}
+
+.warning {
+  margin: 8px 0 0;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 1.4;
+}

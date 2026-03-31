@@ -16,6 +16,7 @@ import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
 import { SwapSettingsButton } from '../swap-settings-button';
+import { SwapSettingsModal } from '../swap-settings-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import styles from './swap-widget-ui.module.css';
 import { getInfoFromQuote } from '../../utils/get-info-from-quote';
@@ -47,6 +48,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     setFromAmount,
     setFromToken,
     setToToken,
+    setSlippage,
     sendSwapTransaction,
     isSendingTransaction,
 }) => {
@@ -54,6 +56,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const { mutate: connect, isPending: isConnecting } = useConnect();
     const { t } = useI18n();
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const provider = useSwapProvider({ id: quote?.providerId });
     const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken, fromToken });
 
@@ -61,7 +64,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
         <div className={styles.widget}>
             <div className={styles.header}>
                 <h2 className={styles.headerTitle}>{t('swap.title')}</h2>
-                <SwapSettingsButton />
+                <SwapSettingsButton onClick={() => setIsSettingsOpen(true)} />
             </div>
 
             <div className={styles.fieldsContainer}>
@@ -101,6 +104,13 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     if (activeField === 'from') setFromToken(token);
                     else setToToken(token);
                 }}
+            />
+
+            <SwapSettingsModal
+                open={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                slippage={slippage}
+                onSlippageChange={setSlippage}
             />
 
             {infoRows.length > 0 && <SwapInfo rows={infoRows} />}
