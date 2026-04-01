@@ -626,13 +626,15 @@ export class TonWalletKit implements ITonWalletKit {
     ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
         await this.ensureInitialized();
 
+        const result = await this.intentHandler.approveBatchedIntent(batch, walletId);
+
         for (const item of batch.intents) {
             if (item.type === 'connect') {
                 await this.requestProcessor.approveConnectRequest({ ...item, walletId }, proof ? { proof } : undefined);
             }
         }
 
-        return this.intentHandler.approveBatchedIntent(batch, walletId);
+        return result;
     }
 
     async rejectIntent(
