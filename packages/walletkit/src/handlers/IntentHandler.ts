@@ -492,11 +492,7 @@ export class IntentHandler {
 
         const wireResponse = this.toWireResponse(batch.id, result, undefined, deliveryMode);
 
-        try {
-            await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
-        } catch (error) {
-            log.error('Failed to send batched intent response', { error, batchId: batch.id });
-        }
+        await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
     }
 
     /**
