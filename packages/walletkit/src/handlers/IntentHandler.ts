@@ -139,7 +139,9 @@ export class IntentHandler {
     // -- Public: Callbacks ----------------------------------------------------
 
     onIntentRequest(callback: IntentCallback): void {
-        this.callbacks.push(callback);
+        if (!this.callbacks.includes(callback)) {
+            this.callbacks.push(callback);
+        }
     }
 
     removeIntentRequestCallback(callback: IntentCallback): void {
@@ -327,34 +329,33 @@ export class IntentHandler {
     ): Promise<void> {
         const wallet = this.getWallet(walletId);
 
-        const perItemEvents: IntentRequestEvent[] = [];
+        const itemEvents: TransactionIntentRequestEvent[] = event.items.map((item, i) => ({
+            type: 'transaction',
+            id: `${event.id}_${i}`,
+            origin: event.origin,
+            clientId: event.clientId,
+            traceId: event.traceId,
+            returnStrategy: event.returnStrategy,
+            deliveryMode: event.deliveryMode,
+            network: event.network,
+            validUntil: event.validUntil,
+            items: [item],
+        }));
 
-        for (let i = 0; i < event.items.length; i++) {
-            const item = event.items[i];
-            const itemEvent: TransactionIntentRequestEvent = {
-                type: 'transaction',
-                id: `${event.id}_${i}`,
-                origin: event.origin,
-                clientId: event.clientId,
-                traceId: event.traceId,
-                returnStrategy: event.returnStrategy,
-                deliveryMode: event.deliveryMode,
-                network: event.network,
-                validUntil: event.validUntil,
-                items: [item],
-            };
+        await Promise.all(
+            itemEvents.map(async (itemEvent, i) => {
+                try {
+                    const resolved = await this.resolveTransaction(itemEvent, wallet);
+                    itemEvent.resolvedTransaction = resolved;
+                    const preview = await wallet.getTransactionPreview(resolved);
+                    itemEvent.preview = preview;
+                } catch (error) {
+                    log.warn('Failed to resolve/emulate batched item', { error, index: i });
+                }
+            }),
+        );
 
-            try {
-                const resolved = await this.resolveTransaction(itemEvent, wallet);
-                itemEvent.resolvedTransaction = resolved;
-                const preview = await wallet.getTransactionPreview(resolved);
-                itemEvent.preview = preview;
-            } catch (error) {
-                log.warn('Failed to resolve/emulate batched item', { error, index: i });
-            }
-
-            perItemEvents.push(itemEvent);
-        }
+        const perItemEvents: IntentRequestEvent[] = itemEvents;
 
         const intents: IntentRequestEvent[] = [];
         if (connectItem) intents.push(connectItem);
