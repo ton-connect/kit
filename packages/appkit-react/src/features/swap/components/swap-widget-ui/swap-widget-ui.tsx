@@ -112,7 +112,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onSlippageChange={setSlippage}
             />
 
-            {infoRows.length > 0 && <SwapInfo rows={infoRows} />}
+            {fromAmount && <SwapInfo rows={infoRows} isLoading={isQuoteLoading || !quote || infoRows.length === 0} />}
 
             {isWalletConnected ? (
                 <Button

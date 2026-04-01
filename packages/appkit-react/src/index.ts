@@ -12,6 +12,7 @@ export { I18nProvider } from './providers/i18n-provider';
 export * from '@ton/appkit';
 
 export * from './components/block';
+export * from './components/info-block';
 export * from './components/button';
 export * from './components/circle-icon';
 export * from './components/modal';

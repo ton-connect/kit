@@ -8,33 +8,34 @@
 
 import type { FC } from 'react';
 
-import styles from './swap-info.module.css';
-import { Block } from '../../../../components/block';
+import { InfoBlock } from '../../../../components/info-block';
 
 export interface SwapInfoRowProps {
     label: string;
     value: string;
 }
 
-export const SwapInfoRow: FC<SwapInfoRowProps> = ({ label, value }) => {
-    return (
-        <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>{label}</span>
-            <span className={styles.infoValue}>{value}</span>
-        </div>
-    );
-};
-
 export interface SwapInfoProps {
-    rows: Array<{ label: string; value: string }>;
+    rows: SwapInfoRowProps[];
+    isLoading?: boolean;
 }
 
-export const SwapInfo: FC<SwapInfoProps> = ({ rows }) => {
+export const SwapInfo: FC<SwapInfoProps> = ({ rows, isLoading }) => {
     return (
-        <Block className={styles.infoTable}>
-            {rows.map((row, idx) => (
-                <SwapInfoRow key={idx} {...row} />
-            ))}
-        </Block>
+        <InfoBlock.Container>
+            {isLoading
+                ? Array.from({ length: 3 }).map((_, idx) => (
+                      <InfoBlock.Row key={idx}>
+                          <InfoBlock.LabelSkeleton />
+                          <InfoBlock.ValueSkeleton />
+                      </InfoBlock.Row>
+                  ))
+                : rows.map((row, idx) => (
+                      <InfoBlock.Row key={idx}>
+                          <InfoBlock.Label>{row.label}</InfoBlock.Label>
+                          <InfoBlock.Value>{row.value}</InfoBlock.Value>
+                      </InfoBlock.Row>
+                  ))}
+        </InfoBlock.Container>
     );
 };

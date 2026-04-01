@@ -20,10 +20,12 @@ interface UseSwapTokenStateOptions {
 
 export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) {
     const [fromToken, setFromToken] = useState<SwapWidgetToken | null>(
-        mappedTokens.find((t) => t.symbol === defaultFromSymbol) ?? mappedTokens[0] ?? null,
+        mappedTokens.find((t) => t.symbol.toLowerCase() === defaultFromSymbol?.toLowerCase()) ??
+            mappedTokens[0] ??
+            null,
     );
     const [toToken, setToToken] = useState<SwapWidgetToken | null>(
-        mappedTokens.find((t) => t.symbol === defaultToSymbol) ?? mappedTokens[1] ?? null,
+        mappedTokens.find((t) => t.symbol.toLowerCase() === defaultToSymbol?.toLowerCase()) ?? mappedTokens[1] ?? null,
     );
     const [fromAmount, setFromAmountRaw] = useState('');
 
