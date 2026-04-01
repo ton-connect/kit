@@ -49,12 +49,7 @@ export class IntentResolver {
         network?: Network,
         validUntil?: number,
     ): Promise<TransactionRequest> {
-        const messages: TransactionRequestMessage[] = [];
-
-        for (const item of items) {
-            const message = await this.resolveItem(item, wallet);
-            messages.push(message);
-        }
+        const messages = await Promise.all(items.map((item) => this.resolveItem(item, wallet)));
 
         return {
             messages,
