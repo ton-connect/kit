@@ -68,7 +68,7 @@ export class IntentResolver {
 
         log.info('Fetching action URL', { url });
 
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
         if (!response.ok) {
             throw new WalletKitError(
                 ERROR_CODES.NETWORK_ERROR,

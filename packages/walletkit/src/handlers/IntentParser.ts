@@ -486,6 +486,15 @@ export class IntentParser {
         if (!params?.url) {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent missing url');
         }
+        try {
+            const parsed = new URL(params.url);
+            if (parsed.protocol !== 'https:') {
+                throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action URL must use HTTPS');
+            }
+        } catch (error) {
+            if (error instanceof WalletKitError) throw error;
+            throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Action intent url is not a valid URL');
+        }
     }
 
     /**
