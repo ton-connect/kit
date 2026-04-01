@@ -26,6 +26,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { HoldToSignButton } from './HoldToSignButton';
 import { WalletPreview } from './WalletPreview';
+import { JettonFlow } from './TransactionRequestModal';
 import { createComponentLogger } from '../utils/logger';
 
 const log = createComponentLogger('IntentRequestModal');
@@ -147,23 +148,37 @@ const IntentEventDetails: React.FC<{ event: IntentRequestEvent }> = ({ event }) 
     switch (event.type) {
         case 'transaction': {
             const tx = event as TransactionIntentRequestEvent;
+            if (tx.deliveryMode === 'send') {
+                return (
+                    <div className="space-y-3">
+                        {tx.validUntil && (
+                            <p className="text-xs text-gray-500">
+                                Valid until: {new Date(tx.validUntil * 1000).toLocaleString()}
+                            </p>
+                        )}
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">Money Flow:</p>
+                            <JettonFlow transfers={tx.preview?.moneyFlow?.ourTransfers ?? []} />
+                        </div>
+                        <p className="text-xs text-red-600 bg-red-50 rounded p-2">
+                            Warning: This transaction will be irreversible. Only approve if you trust the requesting
+                            dApp and understand the transaction details.
+                        </p>
+                    </div>
+                );
+            }
+            // signOnly
             return (
                 <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
-                            Transaction
-                        </span>
-                        <span className="text-xs text-gray-500">
-                            delivery: <span className="font-medium">{tx.deliveryMode}</span>
-                        </span>
-                        {tx.network && <span className="text-xs text-gray-500">network: {tx.network.chainId}</span>}
-                    </div>
                     {tx.validUntil && (
                         <p className="text-xs text-gray-500">
                             Valid until: {new Date(tx.validUntil * 1000).toLocaleString()}
                         </p>
                     )}
-                    <div className="space-y-2">
+                    <div className="border rounded-lg p-3 bg-gray-50">
+                        <p className="text-sm font-medium text-gray-700 mb-2">
+                            {tx.items.length} message{tx.items.length !== 1 ? 's' : ''} to sign
+                        </p>
                         {tx.items.map((item, i) => (
                             <ActionItemCard key={i} item={item} index={i} />
                         ))}
@@ -207,6 +222,61 @@ const IntentEventDetails: React.FC<{ event: IntentRequestEvent }> = ({ event }) 
         default:
             return <p className="text-sm text-gray-500">Unknown intent type</p>;
     }
+};
+
+// ==================== Header ====================
+
+const IntentRequestHeader: React.FC<{ event: IntentRequestEvent }> = ({ event }) => {
+    if (event.type === 'transaction') {
+        const tx = event as TransactionIntentRequestEvent;
+        if (tx.deliveryMode === 'signOnly') {
+            return (
+                <div className="text-center">
+                    <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                        <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">Sign Message Request</h3>
+                    <p className="text-sm text-gray-500 mt-1">Sign only — not broadcast to the network</p>
+                </div>
+            );
+        }
+        return (
+            <div className="text-center">
+                <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                    </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Transaction Request</h3>
+                <p className="text-sm text-gray-500 mt-1">A dApp wants to send a transaction from your wallet</p>
+            </div>
+        );
+    }
+    return (
+        <div className="text-center">
+            <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Intent Request</h3>
+            <p className="text-sm text-gray-500 mt-1">
+                Type: <span className="font-medium">{event.type}</span>
+            </p>
+        </div>
+    );
 };
 
 // ==================== Single Intent Modal ====================
@@ -298,27 +368,7 @@ export const IntentRequestModal: React.FC<IntentRequestModalProps> = ({
                 <Card>
                     <div className="space-y-6">
                         {/* Header */}
-                        <div className="text-center">
-                            <div className="mx-auto w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
-                                <svg
-                                    className="w-6 h-6 text-indigo-600"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                                    />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900">Intent Request</h3>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Type: <span className="font-medium">{event.type}</span>
-                            </p>
-                        </div>
+                        <IntentRequestHeader event={event} />
 
                         {/* Wallet Info */}
                         {currentWallet && <WalletPreview wallet={currentWallet} isCompact />}
@@ -343,7 +393,15 @@ export const IntentRequestModal: React.FC<IntentRequestModalProps> = ({
                                 />
                             ) : (
                                 <Button onClick={handleApprove} className="flex-1" disabled={isLoading}>
-                                    {isLoading ? 'Approving...' : 'Approve'}
+                                    {isLoading
+                                        ? event.type === 'transaction' &&
+                                          (event as TransactionIntentRequestEvent).deliveryMode === 'signOnly'
+                                            ? 'Signing...'
+                                            : 'Approving...'
+                                        : event.type === 'transaction' &&
+                                            (event as TransactionIntentRequestEvent).deliveryMode === 'signOnly'
+                                          ? 'Sign'
+                                          : 'Approve'}
                                 </Button>
                             )}
                         </div>
