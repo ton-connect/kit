@@ -15,7 +15,7 @@ import type { Wallet } from '../api/interfaces';
 import type { TonWalletKitOptions } from '../types';
 import type {
     IntentRequestEvent,
-    TransactionDraftRequestEvent,
+    TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     SignDataPayload,
     BatchedIntentEvent,
@@ -75,7 +75,7 @@ describe('IntentHandler', () => {
 
     describe('approveTransactionDraft', () => {
         /** Helper to build an event with resolvedTransaction so IntentResolver is bypassed. */
-        function txEvent(overrides: Partial<TransactionDraftRequestEvent> = {}): TransactionDraftRequestEvent {
+        function txEvent(overrides: Partial<TransactionIntentRequestEvent> = {}): TransactionIntentRequestEvent {
             return {
                 type: 'transaction',
                 id: 'tx-1',
@@ -272,11 +272,11 @@ describe('IntentHandler', () => {
             // Each inner event is a transaction with one item
             expect(batch.intents[0].type).toBe('transaction');
             expect(batch.intents[0].id).toBe('tx-batch_0');
-            expect((batch.intents[0] as TransactionDraftRequestEvent).items).toHaveLength(1);
+            expect((batch.intents[0] as TransactionIntentRequestEvent).items).toHaveLength(1);
 
             expect(batch.intents[1].type).toBe('transaction');
             expect(batch.intents[1].id).toBe('tx-batch_1');
-            expect((batch.intents[1] as TransactionDraftRequestEvent).items).toHaveLength(1);
+            expect((batch.intents[1] as TransactionIntentRequestEvent).items).toHaveLength(1);
         });
 
         it('emits regular IntentRequestEvent for single-item txDraft', async () => {
@@ -376,7 +376,7 @@ describe('IntentHandler', () => {
 
         it('uses signOnly when any inner event has signOnly delivery', async () => {
             const batch = makeBatch();
-            (batch.intents[1] as TransactionDraftRequestEvent).deliveryMode = 'signOnly';
+            (batch.intents[1] as TransactionIntentRequestEvent).deliveryMode = 'signOnly';
 
             await handler.approveBatchedIntent(batch, 'wallet-1');
 
@@ -499,7 +499,7 @@ describe('IntentHandler', () => {
             } as unknown as WalletManager;
             const h = new IntentHandler(defaultOptions, bridgeManager, noWalletManager);
 
-            const event: TransactionDraftRequestEvent = {
+            const event: TransactionIntentRequestEvent = {
                 type: 'transaction',
                 id: 'tx-nw',
                 origin: 'deepLink',
