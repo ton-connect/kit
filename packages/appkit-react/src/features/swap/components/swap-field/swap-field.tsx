@@ -13,14 +13,14 @@ import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
 import { Skeleton } from '../../../../components/skeleton';
 import { TokenSelector } from '../token-selector/token-selector';
-import type { SwapWidgetToken } from '../swap-widget-provider/swap-widget-provider';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { useSwapContext } from '../swap-widget-provider/swap-widget-provider';
 import styles from './swap-field.module.css';
 
 export interface SwapFieldProps {
     type: 'pay' | 'receive';
     amount: string;
-    token?: SwapWidgetToken;
+    token?: AppkitUIToken;
     onAmountChange?: (value: string) => void;
     balance?: string;
     loading?: boolean;

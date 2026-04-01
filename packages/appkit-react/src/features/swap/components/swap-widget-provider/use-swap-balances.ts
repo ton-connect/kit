@@ -8,11 +8,11 @@
 
 import { useBalance } from '../../../balances/hooks/use-balance';
 import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
-import type { SwapWidgetToken } from './swap-widget-provider';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 
 interface UseSwapBalancesOptions {
-    fromToken: SwapWidgetToken | null;
-    toToken: SwapWidgetToken | null;
+    fromToken: AppkitUIToken | null;
+    toToken: AppkitUIToken | null;
     ownerAddress: string | undefined;
 }
 

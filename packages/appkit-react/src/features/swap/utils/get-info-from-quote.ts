@@ -10,11 +10,11 @@ import type { SwapQuote, SwapProvider } from '@ton/appkit';
 import { formatLargeValue } from '@ton/appkit';
 
 import type { SwapInfoRowProps } from '../components/swap-info';
-import type { SwapWidgetToken } from '../components/swap-widget-provider';
+import type { AppkitUIToken } from '../../../types/appkit-ui-token';
 
 interface GetInfoFromQuoteArgs {
     slippage: number;
-    toToken: SwapWidgetToken | null;
+    toToken: AppkitUIToken | null;
     quote?: SwapQuote;
     provider?: SwapProvider;
 }

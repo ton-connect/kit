@@ -16,35 +16,23 @@ import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction'
 import { useSelectedWallet, useAddress } from '../../../wallets';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
 import { useSwapValidation } from './use-swap-validation';
 
-export interface SwapWidgetToken {
-    /** Token symbol, e.g. "TON" */
-    symbol: string;
-    /** Full token name, e.g. "Toncoin" */
-    name: string;
-    /** Number of decimals for the token */
-    decimals: number;
-    /** Jetton contract address (use "ton" for TON) */
-    address: string;
-    /** Optional token logo */
-    logo?: string;
-    /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
-    rate?: number;
-}
+export type { AppkitUIToken };
 
 export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
 export interface SwapContextType {
     /** Full list of available tokens */
-    tokens: SwapWidgetToken[];
+    tokens: AppkitUIToken[];
     /** Currently selected "from" token */
-    fromToken: SwapWidgetToken | null;
+    fromToken: AppkitUIToken | null;
     /** Currently selected "to" token */
-    toToken: SwapWidgetToken | null;
+    toToken: AppkitUIToken | null;
     /** Amount the user wants to swap (string to preserve input UX) */
     fromAmount: string;
     /** Calculated receive amount from the quote */
@@ -67,8 +55,8 @@ export interface SwapContextType {
     error: SwapWidgetError;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
-    setFromToken: (token: SwapWidgetToken) => void;
-    setToToken: (token: SwapWidgetToken) => void;
+    setFromToken: (token: AppkitUIToken) => void;
+    setToToken: (token: AppkitUIToken) => void;
     setFromAmount: (amount: string) => void;
     setSlippage: (slippage: number) => void;
     onFlip: () => void;
@@ -108,7 +96,7 @@ export function useSwapContext() {
 
 export interface SwapProviderProps extends PropsWithChildren {
     /** Full list of tokens available for swapping */
-    tokens: SwapWidgetToken[];
+    tokens: AppkitUIToken[];
     /** Network to use for quote fetching, defaults to mainnet */
     network: Network;
     /** Fiat currency symbol shown next to amounts, defaults to "$" */

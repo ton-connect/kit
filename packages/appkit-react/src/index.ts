@@ -18,6 +18,7 @@ export * from './components/circle-icon';
 export * from './components/modal';
 export * from './components/skeleton';
 export * from './components/ton-icon';
+export * from './components/token-select-modal';
 
 export * from './features/balances';
 export * from './features/jettons';
@@ -28,3 +29,5 @@ export * from './features/wallets';
 export * from './features/settings';
 export * from './features/swap';
 export * from './features/signing';
+
+export * from './types/appkit-ui-token';

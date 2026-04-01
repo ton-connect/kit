@@ -9,22 +9,22 @@
 import { useCallback, useState } from 'react';
 import { validateNumericString } from '@ton/appkit';
 
-import type { SwapWidgetToken } from './swap-widget-provider';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { truncateDecimals } from '../../utils/truncate-decimals';
 
 interface UseSwapTokenStateOptions {
-    mappedTokens: SwapWidgetToken[];
+    mappedTokens: AppkitUIToken[];
     defaultFromSymbol?: string;
     defaultToSymbol?: string;
 }
 
 export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) {
-    const [fromToken, setFromToken] = useState<SwapWidgetToken | null>(
+    const [fromToken, setFromToken] = useState<AppkitUIToken | null>(
         mappedTokens.find((t) => t.symbol.toLowerCase() === defaultFromSymbol?.toLowerCase()) ??
             mappedTokens[0] ??
             null,
     );
-    const [toToken, setToToken] = useState<SwapWidgetToken | null>(
+    const [toToken, setToToken] = useState<AppkitUIToken | null>(
         mappedTokens.find((t) => t.symbol.toLowerCase() === defaultToSymbol?.toLowerCase()) ?? mappedTokens[1] ?? null,
     );
     const [fromAmount, setFromAmountRaw] = useState('');
@@ -39,7 +39,7 @@ export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSy
     );
 
     const handleSetFromToken = useCallback(
-        (token: SwapWidgetToken) => {
+        (token: AppkitUIToken) => {
             if (toToken && token.address === toToken.address) {
                 setToToken(fromToken);
             }
@@ -50,7 +50,7 @@ export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSy
     );
 
     const handleSetToToken = useCallback(
-        (token: SwapWidgetToken) => {
+        (token: AppkitUIToken) => {
             if (fromToken && token.address === fromToken.address) {
                 setFromToken(toToken);
             }

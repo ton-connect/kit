@@ -8,13 +8,14 @@
 
 import { useMemo } from 'react';
 
-import type { SwapWidgetError, SwapWidgetToken } from './swap-widget-provider';
+import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import type { SwapWidgetError } from './swap-widget-provider';
 
 interface UseSwapValidationOptions {
     fromAmount: string;
     fromAmountDebounced: string;
-    fromToken: SwapWidgetToken | null;
-    toToken: SwapWidgetToken | null;
+    fromToken: AppkitUIToken | null;
+    toToken: AppkitUIToken | null;
     fromBalance: string | undefined;
     quoteError: Error | null;
 }
