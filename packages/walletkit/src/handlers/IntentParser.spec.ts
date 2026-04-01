@@ -6,10 +6,10 @@
  *
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import nacl from 'tweetnacl';
 
-import { IntentParser } from './IntentParser';
+import { IntentParser, isIntentUrl } from './IntentParser';
 
 /**
  * Helper: Build a tc://?m=intent URL from a spec-format request object.
@@ -29,6 +29,33 @@ function buildInlineUrl(
     return url;
 }
 
+/**
+ * Helper: Build a tc://?m=intent_remote URL for object-storage intent tests.
+ */
+function buildObjectStorageUrl(clientId: string, privateKeyHex: string, getUrl: string): string {
+    return `tc://?m=intent_remote&id=${clientId}&pk=${privateKeyHex}&get_url=${encodeURIComponent(getUrl)}`;
+}
+
+/** Convert a Uint8Array to a lowercase hex string. */
+const toHex = (b: Uint8Array) =>
+    Array.from(b)
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('');
+
+/**
+ * Encrypt a payload using the SDK self-encryption scheme:
+ *   nacl.box(payload, nonce, ownPublicKey, ownSecretKey)
+ * The result is nonce (24 bytes) || ciphertext, matching what decryptPayload expects.
+ */
+function encryptForSelf(payload: Record<string, unknown>, kp: { publicKey: Uint8Array; secretKey: Uint8Array }): Uint8Array {
+    const nonce = nacl.randomBytes(24);
+    const ciphertext = nacl.box(new TextEncoder().encode(JSON.stringify(payload)), nonce, kp.publicKey, kp.secretKey);
+    const encrypted = new Uint8Array(nonce.length + ciphertext.length);
+    encrypted.set(nonce);
+    encrypted.set(ciphertext, nonce.length);
+    return encrypted;
+}
+
 describe('IntentParser', () => {
     let parser: IntentParser;
 
@@ -40,27 +67,27 @@ describe('IntentParser', () => {
 
     describe('isIntentUrl', () => {
         it('returns true for m=intent URLs', () => {
-            expect(parser.isIntentUrl('tc://?m=intent&id=abc&mp=data')).toBe(true);
+            expect(isIntentUrl('tc://?m=intent&id=abc&mp=data')).toBe(true);
         });
 
         it('returns true for m=intent_remote URLs', () => {
-            expect(parser.isIntentUrl('tc://?m=intent_remote&id=abc&pk=key&get_url=http://example.com')).toBe(true);
+            expect(isIntentUrl('tc://?m=intent_remote&id=abc&pk=key&get_url=http://example.com')).toBe(true);
         });
 
         it('is case-insensitive', () => {
-            expect(parser.isIntentUrl('TC://?M=INTENT&id=abc')).toBe(true);
-            expect(parser.isIntentUrl('  TC://?M=INTENT_REMOTE&id=abc  ')).toBe(true);
+            expect(isIntentUrl('TC://?M=INTENT&id=abc')).toBe(true);
+            expect(isIntentUrl('  TC://?M=INTENT_REMOTE&id=abc  ')).toBe(true);
         });
 
         it('accepts https universal link scheme with m=intent', () => {
             const url = 'https://wallet.example.com/ton-connect?v=2&id=abc&m=intent&mp=data';
-            expect(parser.isIntentUrl(url)).toBe(true);
+            expect(isIntentUrl(url)).toBe(true);
         });
 
         it('returns false for non-intent URLs', () => {
-            expect(parser.isIntentUrl('https://example.com')).toBe(false);
-            expect(parser.isIntentUrl('tc://?m=connect&id=abc')).toBe(false);
-            expect(parser.isIntentUrl('')).toBe(false);
+            expect(isIntentUrl('https://example.com')).toBe(false);
+            expect(isIntentUrl('tc://?m=connect&id=abc')).toBe(false);
+            expect(isIntentUrl('')).toBe(false);
         });
     });
 
@@ -478,6 +505,123 @@ describe('IntentParser', () => {
                 params: [JSON.stringify({ type: 'unsupported' })],
             });
             await expect(parser.parse(url)).rejects.toThrow('Unsupported sign data type');
+        });
+    });
+
+    // ── parse – object storage (intent_remote) ───────────────────────────────
+
+    describe('parse – object storage (intent_remote)', () => {
+        afterEach(() => {
+            vi.unstubAllGlobals();
+        });
+
+        it('parses raw-bytes (non-text) response from object storage', async () => {
+            const kp = nacl.box.keyPair();
+            const payload = { id: 'os-raw', method: 'txDraft', params: { i: [{ t: 'ton', a: 'EQAddr', am: '100' }] } };
+            const encrypted = encryptForSelf(payload, kp);
+
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    headers: { get: () => 'application/octet-stream' },
+                    arrayBuffer: async () => encrypted.buffer,
+                }),
+            );
+
+            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/payload');
+            const { event } = await parser.parse(url);
+            expect(event.type).toBe('transaction');
+        });
+
+        it('throws on HTTP error from object storage', async () => {
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: false,
+                    status: 404,
+                    statusText: 'Not Found',
+                }),
+            );
+
+            const kp = nacl.box.keyPair();
+            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/missing');
+            await expect(parser.parse(url)).rejects.toThrow('Object storage fetch failed');
+        });
+
+        it('throws on network error fetching object storage', async () => {
+            vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+
+            const kp = nacl.box.keyPair();
+            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/payload');
+            await expect(parser.parse(url)).rejects.toThrow('Failed to fetch intent payload');
+        });
+
+        it('throws when payload is too short (≤24 bytes) to contain nonce', async () => {
+            const shortData = new Uint8Array(10);
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    headers: { get: () => 'application/octet-stream' },
+                    arrayBuffer: async () => shortData.buffer,
+                }),
+            );
+
+            const kp = nacl.box.keyPair();
+            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/short');
+            await expect(parser.parse(url)).rejects.toThrow('Encrypted payload too short');
+        });
+
+        it('throws on invalid private key length in pk param', async () => {
+            const kp = nacl.box.keyPair();
+            const payload = { id: 'x', method: 'txDraft', params: { i: [{ t: 'ton', a: 'A', am: '1' }] } };
+            const encrypted = encryptForSelf(payload, kp);
+
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    headers: { get: () => 'application/octet-stream' },
+                    arrayBuffer: async () => encrypted.buffer,
+                }),
+            );
+
+            // 'aabbccdd' decodes to 4 bytes — not a valid 32-byte NaCl secret key
+            const url = buildObjectStorageUrl(toHex(kp.publicKey), 'aabbccdd', 'https://storage.example.com/payload');
+            await expect(parser.parse(url)).rejects.toThrow('Invalid wallet private key length');
+        });
+
+        it('throws when decryption fails due to wrong key', async () => {
+            const encryptKp = nacl.box.keyPair();
+            const wrongKp = nacl.box.keyPair();
+            const payload = { id: 'x', method: 'txDraft', params: { i: [{ t: 'ton', a: 'A', am: '1' }] } };
+            const encrypted = encryptForSelf(payload, encryptKp);
+
+            vi.stubGlobal(
+                'fetch',
+                vi.fn().mockResolvedValue({
+                    ok: true,
+                    headers: { get: () => 'application/octet-stream' },
+                    arrayBuffer: async () => encrypted.buffer,
+                }),
+            );
+
+            // Pass the wrong secret key — decryption will fail
+            const url = buildObjectStorageUrl(toHex(encryptKp.publicKey), toHex(wrongKp.secretKey), 'https://storage.example.com/payload');
+            await expect(parser.parse(url)).rejects.toThrow('Failed to decrypt intent payload');
+        });
+
+        it('throws on missing pk param in intent_remote URL', async () => {
+            const kp = nacl.box.keyPair();
+            const url = `tc://?m=intent_remote&id=${toHex(kp.publicKey)}&get_url=https%3A%2F%2Fexample.com%2Fpayload`;
+            await expect(parser.parse(url)).rejects.toThrow('Missing wallet private key');
+        });
+
+        it('throws on missing get_url param in intent_remote URL', async () => {
+            const kp = nacl.box.keyPair();
+            const url = `tc://?m=intent_remote&id=${toHex(kp.publicKey)}&pk=${toHex(kp.secretKey)}`;
+            await expect(parser.parse(url)).rejects.toThrow('Missing get_url');
         });
     });
 

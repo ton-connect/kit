@@ -117,7 +117,7 @@ export type IntentErrorCode = (typeof INTENT_ERROR_CODES)[keyof typeof INTENT_ER
 
 export function isIntentUrl(url: string): boolean {
     try {
-        const parsedUrl = new URL(url);
+        const parsedUrl = new URL(url.trim());
         const method = parsedUrl.searchParams.get('m') || parsedUrl.searchParams.get('M');
         return method?.toLowerCase() === 'intent' || method?.toLowerCase() === 'intent_remote';
     } catch {
