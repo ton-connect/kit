@@ -6,10 +6,11 @@
  *
  */
 
-import type { Provider } from '../../types/provider';
+import type { ProviderInput } from '@ton/walletkit';
+
 import type { AppKit } from '../../core/app-kit';
 
-export type RegisterProviderOptions = Provider;
+export type RegisterProviderOptions = ProviderInput;
 
 /**
  * Register provider

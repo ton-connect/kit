@@ -31,6 +31,7 @@ import { JettonsManager } from './JettonsManager';
 import type { JettonsAPI } from '../types/jettons';
 import { ConnectHandler } from '../handlers/ConnectHandler';
 import { SwapManager } from '../defi/swap';
+import { StakingManager } from '../defi/staking';
 import type {
     RawBridgeEventConnect,
     RawBridgeEventRestoreConnection,
@@ -67,6 +68,7 @@ import type {
     ConnectionApprovalResponse,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
+import type { ProviderFactoryContext } from '../types/factory';
 
 const log = globalLogger.createChild('TonWalletKit');
 
@@ -92,6 +94,7 @@ export class TonWalletKit implements ITonWalletKit {
     private jettonsManager!: JettonsManager;
     private swapManager: SwapManager;
     private streamingManager: StreamingManager<WalletKitEvents>;
+    private stakingManager: StakingManager;
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
@@ -134,7 +137,9 @@ export class TonWalletKit implements ITonWalletKit {
         this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.networkManager);
 
         // Initialize SwapManager
-        this.swapManager = new SwapManager();
+        this.swapManager = new SwapManager(() => this.createFactoryContext());
+        // Initialize StakingManager
+        this.stakingManager = new StakingManager(() => this.createFactoryContext());
 
         this.eventEmitter.on('restoreConnection', async ({ payload: event }) => {
             if (!event.domain) {
@@ -198,6 +203,13 @@ export class TonWalletKit implements ITonWalletKit {
                 tonConnectEvent,
             );
         });
+    }
+
+    createFactoryContext(): ProviderFactoryContext {
+        return {
+            networkManager: this.networkManager,
+            ssr: false,
+        };
     }
 
     private async sendErrorConnectResponse(event: RawBridgeEventRestoreConnection): Promise<void> {
@@ -735,12 +747,6 @@ export class TonWalletKit implements ITonWalletKit {
      * @throws WalletKitError if no client is configured for the network
      */
     getApiClient(network: Network): ApiClient {
-        if (!this.isInitialized) {
-            throw new WalletKitError(
-                ERROR_CODES.INITIALIZATION_ERROR,
-                'TonWalletKit not yet initialized - call initialize() first',
-            );
-        }
         return this.networkManager.getClient(network);
     }
 
@@ -824,6 +830,13 @@ export class TonWalletKit implements ITonWalletKit {
      */
     get streaming(): StreamingAPI {
         return this.streamingManager;
+    }
+
+    /**
+     * Staking API access
+     */
+    get staking(): StakingManager {
+        return this.stakingManager;
     }
 
     /**

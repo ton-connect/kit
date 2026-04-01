@@ -162,6 +162,42 @@ export {
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
 
+// Staking
+export {
+    getStakingProvidersQueryOptions,
+    type GetStakingProvidersData,
+    type GetStakingProvidersErrorType,
+    type GetStakingProvidersQueryConfig,
+} from './staking/get-staking-providers';
+export {
+    getStakingQuoteQueryOptions,
+    type GetStakingQuoteQueryConfig,
+    type GetStakingQuoteQueryOptions,
+    type GetStakingQuoteData,
+    type GetStakingQuoteErrorType,
+    type GetStakingQuoteQueryFnData,
+    type GetStakingQuoteQueryKey,
+} from './staking/get-staking-quote';
+export {
+    getStakedBalanceQueryOptions,
+    type GetStakedBalanceQueryConfig,
+    type GetStakedBalanceData,
+    type GetStakedBalanceErrorType,
+} from './staking/get-staked-balance';
+export {
+    getStakingProviderInfoQueryOptions,
+    type GetStakingProviderInfoQueryConfig,
+    type GetStakingProviderInfoData,
+    type GetStakingProviderInfoErrorType,
+} from './staking/get-staking-provider-info';
+export {
+    buildStakeTransactionMutationOptions,
+    type BuildStakeTransactionData,
+    type BuildStakeTransactionErrorType,
+    type BuildStakeTransactionMutationOptions,
+    type BuildStakeTransactionVariables,
+} from './staking/build-stake-transaction';
+
 // Transaction
 export {
     transferTonMutationOptions,

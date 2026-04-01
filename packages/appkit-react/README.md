@@ -41,7 +41,7 @@ Initialize `QueryClient` and `AppKit`, then wrap your application in `QueryClien
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppKit, Network, TonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, createTonConnectConnector } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
 import type { FC } from 'react';
 
@@ -75,7 +75,7 @@ const appKit = new AppKit({
         // },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },
@@ -198,6 +198,34 @@ const appKit = new AppKit({
 Use `useSwapQuote` to get a quote and `useBuildSwapTransaction` to build the transaction.
 
 See [Swap Hooks](./docs/hooks.md#swap) for usage examples.
+
+## Staking
+
+AppKit supports staking through various providers (e.g., Tonstakers). The staking functionality is integrated into the core action and hook system.
+
+### Hooks
+
+Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` or `useBuildUnstakeTransaction` to build the transaction.
+
+[Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
+
+```tsx
+const { data: quote } = useStakingQuote({
+    amount: '1000000000',
+    direction: 'stake',
+});
+
+const { data: balance } = useStakedBalance({
+    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+});
+
+return (
+    <div>
+        <div>Staking Quote: {quote?.amountOut}</div>
+        <div>Staked Balance: {balance?.stakedBalance}</div>
+    </div>
+);
+```
 
 ## Migration from TonConnect UI
 

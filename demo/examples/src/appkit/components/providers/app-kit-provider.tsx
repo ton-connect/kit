@@ -8,7 +8,7 @@
 
 import { AppKit, Network } from '@ton/appkit';
 import { AppKitProvider } from '@ton/appkit-react';
-import { TonConnectConnector } from '@ton/appkit';
+import { createTonConnectConnector } from '@ton/appkit';
 import type { FC } from 'react';
 
 // Initialize AppKit (outside component)
@@ -19,7 +19,7 @@ const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: { manifestUrl: 'https://your-app.com/tonconnect-manifest.json' },
         }),
     ],

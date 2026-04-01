@@ -26,5 +26,5 @@ export const useConnectorById = (id: string): Connector | undefined => {
         return getConnectorById(appKit, { id });
     }, [appKit, id]);
 
-    return useSyncExternalStore(subscribe, getSnapshot, () => undefined);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

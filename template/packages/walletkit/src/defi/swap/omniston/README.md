@@ -16,6 +16,7 @@ For detailed information about Omniston features and capabilities, see the [offi
 
 ```typescript
 interface OmnistonSwapProviderConfig {
+    providerId?: string;          // Default: 'omniston'
     apiUrl?: string;              // Default: 'wss://omni-ws.ston.fi'
     defaultSlippageBps?: number;  // Default: 100 (1%)
     quoteTimeoutMs?: number;      // Default: 10000ms

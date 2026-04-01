@@ -32,20 +32,13 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  * ```typescript
  * // Import from separate entry point to avoid bundling Omniston SDK
  * import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
- * import { Omniston } from '@ston-fi/omniston-sdk';
  *
- * const omniston = new Omniston({
- *   apiUrl: 'wss://omni-ws.ston.fi'
- * });
- *
- * const provider = new OmnistonSwapProvider(
- *   {
- *     omnistonInstance: omniston,
+ * const provider = new OmnistonSwapProvider({
+ *     apiUrl: 'wss://omni-ws.ston.fi',
  *     defaultSlippageBps: 100, // 1%
  *     referrerAddress: 'EQ...',
- *     referrerFeeBps: 10 // 0.1%
- *   }
- * );
+ *     referrerFeeBps: 10, // 0.1%
+ * });
  *
  * kit.swap.registerProvider(provider);
  * ```

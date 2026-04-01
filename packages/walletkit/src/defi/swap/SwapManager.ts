@@ -12,6 +12,7 @@ import type { SwapQuoteParams, SwapQuote, SwapParams } from '../../api/models';
 import { SwapError } from './errors';
 import { globalLogger } from '../../core/Logger';
 import { DefiManager } from '../DefiManager';
+import type { ProviderFactoryContext } from '../../types/factory';
 
 const log = globalLogger.createChild('SwapManager');
 
@@ -22,6 +23,10 @@ const log = globalLogger.createChild('SwapManager');
  * for swap operations. Providers can be switched dynamically.
  */
 export class SwapManager extends DefiManager<SwapProviderInterface> implements SwapAPI {
+    constructor(createFactoryContext: () => ProviderFactoryContext) {
+        super(createFactoryContext);
+    }
+
     /**
      * Get a quote for swapping tokens
      * @param params - Quote parameters

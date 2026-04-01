@@ -6,11 +6,11 @@
  *
  */
 
-import { SwapManager } from '@ton/walletkit';
-import type { Provider } from 'src/types/provider';
+import type { SwapProviderInterface, ProviderInput, StakingProviderInterface } from '@ton/walletkit';
+import { SwapManager, StakingManager } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
-import type { Connector } from '../../../types/connector';
+import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
 import { Emitter } from '../../emitter';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
@@ -28,6 +28,7 @@ export class AppKit {
     readonly connectors: Connector[] = [];
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
+    readonly stakingManager: StakingManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly config: AppKitConfig;
@@ -46,25 +47,30 @@ export class AppKit {
 
         this.networkManager = new AppKitNetworkManager({ networks }, this.emitter);
         this.walletsManager = new WalletsManager(this.emitter);
-        this.swapManager = new SwapManager();
+        this.swapManager = new SwapManager(() => this.createFactoryContext());
+        this.stakingManager = new StakingManager(() => this.createFactoryContext());
 
         if (config.connectors) {
-            config.connectors.forEach((connector) => {
-                this.addConnector(connector);
+            config.connectors.forEach((input) => {
+                this.addConnector(input);
             });
         }
 
         if (config.providers) {
-            config.providers.forEach((provider) => {
-                this.registerProvider(provider);
+            config.providers.forEach((input) => {
+                this.registerProvider(input);
             });
         }
     }
 
+    createFactoryContext(): ConnectorFactoryContext {
+        return { emitter: this?.emitter, networkManager: this?.networkManager, ssr: this?.config?.ssr };
+    }
     /**
      * Add a wallet connector
      */
-    addConnector(connector: Connector): () => void {
+    addConnector(input: ConnectorInput): () => void {
+        const connector = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         const id = connector.id;
         const oldConnector = this.connectors.find((c) => c.id === id);
 
@@ -73,7 +79,6 @@ export class AppKit {
         }
 
         this.connectors.push(connector);
-        connector.initialize(this.emitter, this.networkManager);
 
         return () => {
             this.removeConnector(connector);
@@ -96,10 +101,14 @@ export class AppKit {
     /**
      * Add a provider
      */
-    registerProvider(provider: Provider): void {
+    registerProvider(input: ProviderInput): void {
+        const provider = typeof input === 'function' ? input(this.createFactoryContext()) : input;
         switch (provider.type) {
             case 'swap':
-                this.swapManager.registerProvider(provider);
+                this.swapManager.registerProvider(provider as SwapProviderInterface);
+                break;
+            case 'staking':
+                this.stakingManager.registerProvider(provider as StakingProviderInterface);
                 break;
             default:
                 throw new Error('Unknown provider type');

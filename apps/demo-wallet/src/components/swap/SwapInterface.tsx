@@ -44,12 +44,12 @@ export const SwapInterface: FC<SwapInterfaceProps> = ({ className }) => {
         slippageBps,
         setFromToken,
         setToToken,
-        setAmount,
+        setSwapAmount: setAmount,
         setIsReverseSwap,
         setDestinationAddress,
         setSlippageBps,
         swapTokens,
-        getQuote,
+        getSwapQuote: getQuote,
         executeSwap,
     } = useSwap();
 

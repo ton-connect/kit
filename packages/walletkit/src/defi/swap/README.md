@@ -11,14 +11,17 @@ SwapManager provides a unified interface for token swaps across multiple DEX pro
 ## Quick Start
 
 ```typescript
-import { WalletKit } from '@ton/walletkit';
+import { TonWalletKit, Network } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
 
-const kit = new WalletKit({
-    network: Network.mainnet(),
+const kit = new TonWalletKit({
+    networks: {
+        [Network.mainnet().chainId]: {
+            apiClient: { url: 'https://toncenter.com', key: 'optional-api-key' },
+        },
+    },
 });
 
-// Register Omniston provider
 const omnistonProvider = new OmnistonSwapProvider({
     defaultSlippageBps: 100, // 1%
     quoteTimeoutMs: 10000,
@@ -39,11 +42,13 @@ interface SwapQuoteParams<TProviderOptions = unknown> {
     amount: string;
     network: Network;
     slippageBps?: number;
+    maxOutgoingMessages?: number;
+    isReverseSwap?: boolean;
     providerOptions?: TProviderOptions;
 }
 ```
 
-Providers may add provider-specific parameters (e.g. `maxOutgoingMessages`, `isReverseSwap`). See each provider's README for details.
+Providers may document extra behavior via `providerOptions`. See each provider's README for details.
 
 ## Referral Fees
 
@@ -62,6 +67,7 @@ You can set a global referrer in provider config and override it for specific re
 ## Getting a Quote
 
 ```typescript
+import { Network } from '@ton/walletkit';
 import type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 
 const quote = await kit.swap.getQuote({
@@ -94,12 +100,16 @@ await kit.handleNewTransaction(wallet, transaction);
 
 ## Creating a Custom Swap Provider
 
-To create your own swap provider, extend the `SwapProvider` base class:
+To create your own swap provider, extend the `SwapProvider` base class (exported from the main package entry):
 
 ```typescript
-import { SwapProvider } from '@ton/walletkit/swap';
-import type { SwapQuoteParams, SwapQuote, SwapParams } from '@ton/walletkit/swap';
-import type { TransactionRequest } from '@ton/walletkit';
+import {
+    SwapProvider,
+    type SwapQuoteParams,
+    type SwapQuote,
+    type SwapParams,
+    type TransactionRequest,
+} from '@ton/walletkit';
 
 interface MyProviderOptions {
     customParam?: string;
@@ -139,12 +149,11 @@ Get a quote for token swap.
 
 **Returns:** `Promise<SwapQuote>`
 
-#### `buildSwapTransaction(params, providerId?)`
-Build transaction for executing swap.
+#### `buildSwapTransaction(params)`
+Build transaction for executing swap. The provider is resolved from `params.quote.providerId`, or the manager default if that field is missing.
 
 **Parameters:**
 - `params: SwapParams<TProviderOptions>` – `quote`, `userAddress`, `destinationAddress?`, `providerOptions?`
-- `providerId?: string` – Provider name
 
 **Returns:** `Promise<TransactionRequest>`
 

@@ -32,9 +32,7 @@ describe('Provider Actions Examples', () => {
             registerProviderExample(appKit);
 
             expect(spy).toHaveBeenCalled();
-            // It registers OmnistonSwapProvider
-            const registeredProvider = spy.mock.calls[0][0];
-            expect(registeredProvider.providerId).toBe('omniston');
+            expect(appKit.swapManager.hasProvider('omniston')).toBe(true);
         });
     });
 });

@@ -18,13 +18,10 @@ export interface Connector {
     /** Provider unique identifier */
     readonly id: string;
 
-    /** Protocol type (e.g. 'tonconnect', 'ledger', 'mnemonic') */
+    /** Protocol type (e.g. 'tonconnect') */
     readonly type: string;
 
     readonly metadata: ConnectorMetadata;
-
-    /** Initialize connector (restore connections, setup event listeners) */
-    initialize(emitter: AppKitEmitter, networkManager: AppKitNetworkManager): Promise<void>;
 
     /** Cleanup connector resources */
     destroy(): void;
@@ -42,4 +39,24 @@ export interface Connector {
 export interface ConnectorMetadata {
     name: string;
     iconUrl?: string;
+}
+
+/**
+ * Context passed to connector factory functions.
+ */
+export interface ConnectorFactoryContext {
+    networkManager: AppKitNetworkManager;
+    emitter: AppKitEmitter;
+    ssr?: boolean;
+}
+
+/** Factory function that creates a connector from context */
+export type ConnectorFactory = (ctx: ConnectorFactoryContext) => Connector;
+
+/** A connector instance or a factory that creates one */
+export type ConnectorInput = Connector | ConnectorFactory;
+
+/** Helper for creating typed connector factories */
+export function createConnector(factory: ConnectorFactory): ConnectorFactory {
+    return factory;
 }
