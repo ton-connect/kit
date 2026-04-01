@@ -197,13 +197,6 @@ export {
     type BuildStakeTransactionMutationOptions,
     type BuildStakeTransactionVariables,
 } from './staking/build-stake-transaction';
-export {
-    buildUnstakeTransactionMutationOptions,
-    type BuildUnstakeTransactionData,
-    type BuildUnstakeTransactionErrorType,
-    type BuildUnstakeTransactionMutationOptions,
-    type BuildUnstakeTransactionVariables,
-} from './staking/build-unstake-transaction';
 
 // Transaction
 export {

@@ -9,7 +9,7 @@
 import type { UserFriendlyAddress } from '../core/Primitives';
 import type { Network } from '../core/Network';
 import type { StakingQuoteDirection } from './StakingQuoteDirection';
-import type { UnstakeMode } from './UnstakeMode';
+import type { UnstakeModes } from './UnstakeMode';
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
@@ -39,7 +39,7 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     /**
      * Requested mode of unstaking
      */
-    unstakeMode?: UnstakeMode;
+    unstakeMode?: UnstakeModes;
 
     /**
      * Provider-specific options

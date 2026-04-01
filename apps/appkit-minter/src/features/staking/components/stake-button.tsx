@@ -8,14 +8,7 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import {
-    Transaction,
-    useStakingQuote,
-    useNetwork,
-    useAddress,
-    useBuildStakeTransaction,
-    useBuildUnstakeTransaction,
-} from '@ton/appkit-react';
+import { Transaction, useStakingQuote, useNetwork, useAddress, useBuildStakeTransaction } from '@ton/appkit-react';
 
 interface StakeButtonProps {
     amount: string;
@@ -39,21 +32,13 @@ export const StakeButton: FC<StakeButtonProps> = ({ amount, direction, providerI
     });
 
     const { mutateAsync: buildStakeTransaction } = useBuildStakeTransaction();
-    const { mutateAsync: buildUnstakeTransaction } = useBuildUnstakeTransaction();
 
     const handleTransaction = () => {
         if (!quote || !address) {
             return Promise.reject(new Error('Missing quote or address'));
         }
 
-        if (direction === 'stake') {
-            return buildStakeTransaction({
-                quote,
-                userAddress: address,
-            });
-        }
-
-        return buildUnstakeTransaction({
+        return buildStakeTransaction({
             quote,
             userAddress: address,
         });

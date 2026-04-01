@@ -10,6 +10,7 @@ import type { FC, ChangeEvent } from 'react';
 import { useState } from 'react';
 import { useStaking } from '@demo/wallet-core';
 import { useNavigate } from 'react-router-dom';
+import { UnstakeMode } from '@ton/walletkit';
 
 import { Card } from '../Card';
 import { Button } from '../Button';
@@ -122,7 +123,7 @@ export const StakingInterface: FC = () => {
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Unstake Method</label>
                         <div className="grid grid-cols-3 gap-2">
-                            {(['delayed', 'instant', 'bestRate'] as const).map((mode) => (
+                            {[UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END].map((mode) => (
                                 <button
                                     key={mode}
                                     type="button"
@@ -134,15 +135,16 @@ export const StakingInterface: FC = () => {
                                             : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600',
                                     )}
                                 >
-                                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                                    {mode === UnstakeMode.INSTANT && 'Instant'}
+                                    {mode === UnstakeMode.WHEN_AVAILABLE && 'When available'}
+                                    {mode === UnstakeMode.ROUND_END && 'Round end'}
                                 </button>
                             ))}
                         </div>
                         <p className="text-[10px] text-gray-500 italic">
-                            {unstakeMode === 'delayed' &&
-                                'Standard withdrawal. Immediate if liquid, or up to ~18h queue'}
-                            {unstakeMode === 'instant' && 'Receive TON immediately'}
-                            {unstakeMode === 'bestRate' && 'Wait for cycle end (~18h) for best rate'}
+                            {unstakeMode === UnstakeMode.INSTANT && 'Receive TON immediately'}
+                            {unstakeMode === UnstakeMode.WHEN_AVAILABLE && 'Immediate if liquid, or up to ~18h queue'}
+                            {unstakeMode === UnstakeMode.ROUND_END && 'Wait for cycle end (~18h) for best rate'}
                         </p>
                     </div>
                 )}

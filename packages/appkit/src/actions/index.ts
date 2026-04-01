@@ -123,11 +123,6 @@ export {
     type BuildStakeTransactionReturnType,
 } from './staking/build-stake-transaction';
 export {
-    buildUnstakeTransaction,
-    type BuildUnstakeTransactionOptions,
-    type BuildUnstakeTransactionReturnType,
-} from './staking/build-unstake-transaction';
-export {
     getStakedBalance,
     type GetStakedBalanceOptions,
     type GetStakedBalanceReturnType,

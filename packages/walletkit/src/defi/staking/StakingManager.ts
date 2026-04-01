@@ -9,18 +9,17 @@
 import type { TransactionRequest, UserFriendlyAddress, Network } from '../../api/models';
 import type {
     StakeParams,
-    UnstakeParams,
     StakingBalance,
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
-    UnstakeMode,
 } from '../../api/models';
 import type { StakingAPI, StakingProviderInterface } from '../../api/interfaces';
 import { StakingError, StakingErrorCode } from './errors';
 import { globalLogger } from '../../core/Logger';
 import { DefiManager } from '../DefiManager';
 import type { ProviderFactoryContext } from '../../types/factory';
+import type { UnstakeModes } from '../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('StakingManager');
 
@@ -62,23 +61,6 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
             return await this.getProvider(providerId).buildStakeTransaction(params);
         } catch (error) {
             throw this.createError('Failed to build staking transaction', StakingErrorCode.InvalidParams, {
-                error,
-                params,
-            });
-        }
-    }
-
-    /**
-     * Unstake TON using a provider
-     * @param params - Unstaking parameters
-     * @param providerId - Optional provider id to use
-     */
-    async buildUnstakeTransaction(params: UnstakeParams, providerId?: string): Promise<TransactionRequest> {
-        log.debug('Building unstaking transaction', params);
-        try {
-            return await this.getProvider(providerId).buildUnstakeTransaction(params);
-        } catch (error) {
-            throw this.createError('Failed to build unstaking transaction', StakingErrorCode.InvalidParams, {
                 error,
                 params,
             });
@@ -136,7 +118,7 @@ export class StakingManager extends DefiManager<StakingProviderInterface> implem
      * @param providerId Provider identifier (optional, uses default if not specified)
      * @returns An array of supported unstake modes
      */
-    getSupportedUnstakeModes(providerId?: string): UnstakeMode[] {
+    getSupportedUnstakeModes(providerId?: string): UnstakeModes[] {
         return this.getProvider(providerId).getSupportedUnstakeModes();
     }
 

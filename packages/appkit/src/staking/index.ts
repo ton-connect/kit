@@ -19,5 +19,4 @@ export type {
     StakingProviderInterface,
     StakingQuoteDirection,
     UnstakeMode,
-    UnstakeParams,
 } from '@ton/walletkit';

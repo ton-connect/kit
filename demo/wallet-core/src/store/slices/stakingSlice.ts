@@ -6,7 +6,8 @@
  *
  */
 
-import type { StakeParams, StakingQuoteParams, UnstakeParams, UnstakeMode } from '@ton/walletkit';
+import { UnstakeMode } from '@ton/walletkit';
+import type { StakeParams, StakingQuoteParams, UnstakeModes } from '@ton/walletkit';
 
 import { createComponentLogger } from '../../utils/logger';
 import type { SetState, StakingSliceCreator } from '../../types/store';
@@ -22,7 +23,7 @@ export const createStakingSlice: StakingSliceCreator = (set: SetState, get) => (
         isStaking: false,
         isUnstaking: false,
         error: null,
-        unstakeMode: 'delayed',
+        unstakeMode: UnstakeMode.INSTANT,
         stakedBalance: null,
         providerInfo: null,
     },
@@ -44,7 +45,7 @@ export const createStakingSlice: StakingSliceCreator = (set: SetState, get) => (
             state.staking.error = null;
         });
     },
-    setUnstakeMode: (unstakeMode: UnstakeMode) => {
+    setUnstakeMode: (unstakeMode: UnstakeModes) => {
         set((state) => {
             state.staking.unstakeMode = unstakeMode;
             state.staking.currentQuote = null;
@@ -168,7 +169,7 @@ export const createStakingSlice: StakingSliceCreator = (set: SetState, get) => (
         }
     },
 
-    unstake: async (params: Omit<UnstakeParams, 'userAddress'>) => {
+    unstake: async (params: Omit<StakeParams, 'userAddress'>) => {
         const state = get();
         const { providerId } = state.staking;
         const userAddress = state.walletManagement.address;
@@ -186,7 +187,7 @@ export const createStakingSlice: StakingSliceCreator = (set: SetState, get) => (
         });
 
         try {
-            const transaction = await state.walletCore.walletKit.staking.buildUnstakeTransaction(
+            const transaction = await state.walletCore.walletKit.staking.buildStakeTransaction(
                 {
                     ...params,
                     userAddress,

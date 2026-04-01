@@ -86,8 +86,8 @@ export type { StakingProviderInfo } from './staking/StakingProviderInfo';
 export type { StakingQuote } from './staking/StakingQuote';
 export type { StakingQuoteDirection } from './staking/StakingQuoteDirection';
 export type { StakingQuoteParams } from './staking/StakingQuoteParams';
-export type { UnstakeMode } from './staking/UnstakeMode';
-export type { UnstakeParams } from './staking/UnstakeParams';
+export type { UnstakeModes } from './staking/UnstakeMode';
+export { UnstakeMode } from './staking/UnstakeMode';
 
 // Transaction models
 export * from './transactions/Transaction';

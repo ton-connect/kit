@@ -132,9 +132,9 @@ export class TonWalletKit implements ITonWalletKit {
         this.jettonsManager = new JettonsManager(10000, this.eventEmitter, this.networkManager);
 
         // Initialize SwapManager
-        this.swapManager = new SwapManager(this.createFactoryContext);
+        this.swapManager = new SwapManager(() => this.createFactoryContext());
         // Initialize StakingManager
-        this.stakingManager = new StakingManager(this.createFactoryContext);
+        this.stakingManager = new StakingManager(() => this.createFactoryContext());
 
         this.eventEmitter.on('restoreConnection', async (event: RawBridgeEventRestoreConnection) => {
             if (!event.domain) {

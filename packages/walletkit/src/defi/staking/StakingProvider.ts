@@ -9,14 +9,13 @@
 import type { Network, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 import type {
     StakeParams,
-    UnstakeParams,
     StakingBalance,
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
-    UnstakeMode,
 } from '../../api/models';
 import type { StakingProviderInterface } from '../../api/interfaces';
+import type { UnstakeModes } from '../../api/models/staking/UnstakeMode';
 
 /**
  * Abstract base class for staking providers
@@ -46,13 +45,6 @@ export abstract class StakingProvider implements StakingProviderInterface {
     abstract buildStakeTransaction(params: StakeParams): Promise<TransactionRequest>;
 
     /**
-     * Build a transaction for unstaking
-     * @param params - Unstaking parameters including amount and user address
-     * @returns Promise resolving to transaction request ready to be signed
-     */
-    abstract buildUnstakeTransaction(params: UnstakeParams): Promise<TransactionRequest>;
-
-    /**
      * Get staked balance for a user
      * @param userAddress - User address to fetch balance for
      * @param network - Optional network to use for balance query
@@ -69,5 +61,5 @@ export abstract class StakingProvider implements StakingProviderInterface {
      * Get supported unstake modes
      * @returns An array of supported unstake modes
      */
-    abstract getSupportedUnstakeModes(): UnstakeMode[];
+    abstract getSupportedUnstakeModes(): UnstakeModes[];
 }

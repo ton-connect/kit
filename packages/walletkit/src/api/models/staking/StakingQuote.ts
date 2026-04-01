@@ -9,7 +9,7 @@
 import type { Network } from '../core/Network';
 import type { TokenAmount } from '../core/TokenAmount';
 import type { StakingQuoteDirection } from './StakingQuoteDirection';
-import type { UnstakeMode } from './UnstakeMode';
+import type { UnstakeModes } from './UnstakeMode';
 
 /**
  * Staking quote response with pricing information
@@ -49,7 +49,7 @@ export interface StakingQuote {
     /**
      * Mode of unstaking (if applicable)
      */
-    unstakeMode?: UnstakeMode;
+    unstakeMode?: UnstakeModes;
 
     /**
      * Estimated delay in hours for unstaking

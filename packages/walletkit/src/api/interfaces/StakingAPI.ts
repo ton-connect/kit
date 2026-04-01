@@ -15,10 +15,9 @@ import type {
     StakingProviderInfo,
     StakingQuote,
     StakingQuoteParams,
-    UnstakeParams,
     TransactionRequest,
     UserFriendlyAddress,
-    UnstakeMode,
+    UnstakeModes,
 } from '../models';
 
 /**
@@ -42,14 +41,6 @@ export interface StakingAPI extends DefiManagerAPI<StakingProviderInterface> {
     buildStakeTransaction(params: StakeParams, providerId?: string): Promise<TransactionRequest>;
 
     /**
-     * Build a transaction for unstaking
-     * @param params Unstaking parameters (quote, user address, etc.)
-     * @param providerId Provider identifier (optional, uses default if not specified)
-     * @returns A promise that resolves to a TransactionRequest
-     */
-    buildUnstakeTransaction(params: UnstakeParams, providerId?: string): Promise<TransactionRequest>;
-
-    /**
      * Get user's staked balance
      * @param userAddress User address
      * @param network Network to query (optional)
@@ -71,7 +62,7 @@ export interface StakingAPI extends DefiManagerAPI<StakingProviderInterface> {
      * @param providerId Provider identifier (optional, uses default if not specified)
      * @returns An array of supported unstake modes
      */
-    getSupportedUnstakeModes(providerId?: string): UnstakeMode[];
+    getSupportedUnstakeModes(providerId?: string): UnstakeModes[];
 }
 
 /**
@@ -100,13 +91,6 @@ export interface StakingProviderInterface extends DefiProvider {
     buildStakeTransaction(params: StakeParams): Promise<TransactionRequest>;
 
     /**
-     * Build a transaction for unstaking
-     * @param params Unstaking parameters including provider-specific options
-     * @returns A promise that resolves to a TransactionRequest
-     */
-    buildUnstakeTransaction(params: UnstakeParams): Promise<TransactionRequest>;
-
-    /**
      * Get user's staked balance
      * @param userAddress User address
      * @param network Network to query (optional)
@@ -125,5 +109,5 @@ export interface StakingProviderInterface extends DefiProvider {
      * Get supported unstake modes
      * @returns An array of supported unstake modes
      */
-    getSupportedUnstakeModes(): UnstakeMode[];
+    getSupportedUnstakeModes(): UnstakeModes[];
 }

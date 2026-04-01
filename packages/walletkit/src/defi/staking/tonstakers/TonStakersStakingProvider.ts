@@ -6,19 +6,18 @@
  *
  */
 
-import type { TransactionRequest, UserFriendlyAddress } from '../../../api/models';
-import { Network } from '../../../api/models';
-import { globalLogger } from '../../../core/Logger';
-import { StakingProvider } from '../StakingProvider';
+import { Network, UnstakeMode } from '../../../api/models';
 import type {
+    TransactionRequest,
+    UserFriendlyAddress,
     StakeParams,
-    UnstakeParams,
     StakingBalance,
     StakingProviderInfo,
     StakingQuoteParams,
     StakingQuote,
-    UnstakeMode,
 } from '../../../api/models';
+import { globalLogger } from '../../../core/Logger';
+import { StakingProvider } from '../StakingProvider';
 import { StakingError, StakingErrorCode } from '../errors';
 import type { TonStakersChainConfig, TonStakersProviderConfig } from './models/TonStakersProviderConfig';
 import type { ProviderFactoryContext } from '../../../types/factory';
@@ -29,6 +28,7 @@ import { StakingCache } from './StakingCache';
 import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
 import { formatUnits, parseUnits } from '../../../utils/units';
 import type { ApiClient } from '../../../types/toncenter/ApiClient';
+import type { UnstakeModes } from '../../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');
 
@@ -43,7 +43,11 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
  *   - BestRate: Wait for best exchange rate at round end
  */
 export class TonStakersStakingProvider extends StakingProvider {
-    readonly supportedUnstakeModes: UnstakeMode[] = ['delayed', 'instant', 'bestRate'];
+    readonly supportedUnstakeModes: UnstakeModes[] = [
+        UnstakeMode.INSTANT,
+        UnstakeMode.WHEN_AVAILABLE,
+        UnstakeMode.ROUND_END,
+    ];
 
     private readonly networkManager: NetworkManager;
     private readonly chainConfig: Record<string, TonStakersChainConfig>;
@@ -118,7 +122,7 @@ export class TonStakersStakingProvider extends StakingProvider {
             const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
             const amountOut = amountOutTokens.toFixed(9);
 
-            return {
+            const quote: StakingQuote = {
                 direction: 'stake',
                 amountIn: params.amount,
                 amountOut,
@@ -126,23 +130,25 @@ export class TonStakersStakingProvider extends StakingProvider {
                 providerId: 'tonstakers',
                 apy: stakingInfo.apy,
             };
+            return quote;
         } else {
             // User burns tsTON, receives TON: TON = tsTON * rate
             const amountInTokens = Number(params.amount);
             const amountOutTokens =
-                params.unstakeMode === 'instant'
+                params.unstakeMode === UnstakeMode.INSTANT
                     ? amountInTokens * rates.tsTONTON
                     : amountInTokens * rates.tsTONTONProjected;
             const amountOut = amountOutTokens.toFixed(9);
 
-            return {
+            const quote: StakingQuote = {
                 direction: 'unstake',
                 amountIn: params.amount,
                 amountOut,
                 network: params.network || Network.mainnet(),
                 providerId: 'tonstakers',
-                unstakeMode: params.unstakeMode || 'delayed',
+                unstakeMode: params.unstakeMode || UnstakeMode.INSTANT,
             };
+            return quote;
         }
     }
 
@@ -157,7 +163,20 @@ export class TonStakersStakingProvider extends StakingProvider {
      * @returns Transaction request ready to be signed and sent
      */
     async buildStakeTransaction(params: StakeParams): Promise<TransactionRequest> {
+        if (params.quote.direction === 'stake') {
+            return this.buildStakeTonTransaction(params);
+        } else {
+            return this.buildUnstakeTonTransaction(params);
+        }
+    }
+
+    private async buildStakeTonTransaction(params: StakeParams): Promise<TransactionRequest> {
         log.debug('TonStakers stake requested', { params });
+        if (params.quote.direction !== 'stake') {
+            throw new StakingError('Invalid quote direction', StakingErrorCode.InvalidParams, {
+                quote: params.quote,
+            });
+        }
 
         const network = params.quote.network;
         const contractAddress = this.getStakingContractAddress(network);
@@ -191,8 +210,13 @@ export class TonStakersStakingProvider extends StakingProvider {
      * @param params - Unstake parameters including quote and user address
      * @returns Transaction request ready to be signed and sent
      */
-    async buildUnstakeTransaction(params: UnstakeParams): Promise<TransactionRequest> {
+    private async buildUnstakeTonTransaction(params: StakeParams): Promise<TransactionRequest> {
         log.debug('TonStakers unstake requested', { amount: params.quote.amountIn, userAddress: params.userAddress });
+        if (params.quote.direction !== 'unstake') {
+            throw new StakingError('Invalid quote direction', StakingErrorCode.InvalidParams, {
+                quote: params.quote,
+            });
+        }
 
         const network = params.quote.network;
         const amount = parseUnits(params.quote.amountIn, 9);
@@ -201,16 +225,17 @@ export class TonStakersStakingProvider extends StakingProvider {
         let waitTillRoundEnd = false;
         let fillOrKill = false;
 
+        // Todo Tim verify modes
         switch (unstakeMode) {
-            case 'instant':
+            case UnstakeMode.INSTANT:
                 waitTillRoundEnd = false;
                 fillOrKill = true;
                 break;
-            case 'bestRate':
+            case UnstakeMode.ROUND_END:
                 waitTillRoundEnd = true;
                 fillOrKill = false;
                 break;
-            case 'delayed':
+            case UnstakeMode.WHEN_AVAILABLE:
             default:
                 waitTillRoundEnd = false;
                 fillOrKill = false;
@@ -313,8 +338,8 @@ export class TonStakersStakingProvider extends StakingProvider {
      * Get supported unstake modes
      * @returns An array of supported unstake modes
      */
-    getSupportedUnstakeModes(): UnstakeMode[] {
-        return ['delayed', 'instant', 'bestRate'];
+    getSupportedUnstakeModes(): UnstakeModes[] {
+        return [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END];
     }
 
     /**
