@@ -13,14 +13,10 @@ import type {
     TransactionIntentRequestEvent,
     SignDataIntentRequestEvent,
     ActionIntentRequestEvent,
-    IntentActionItem,
-    SendTonAction,
-    SendJettonAction,
-    SendNftAction,
+    TransactionRequestMessage,
 } from '@ton/walletkit';
 import { useAuth } from '@demo/wallet-core';
 import type { SavedWallet } from '@demo/wallet-core';
-import { Address } from '@ton/core';
 
 import { Button } from './Button';
 import { Card } from './Card';
@@ -31,118 +27,6 @@ import { createComponentLogger } from '../utils/logger';
 
 const log = createComponentLogger('IntentRequestModal');
 
-// ==================== Shared Renderers ====================
-
-function truncateAddress(address: string): string {
-    try {
-        const addr = Address.parse(address);
-        const friendly = addr.toString();
-        return `${friendly.slice(0, 6)}...${friendly.slice(-4)}`;
-    } catch {
-        if (address.length > 16) {
-            return `${address.slice(0, 8)}...${address.slice(-4)}`;
-        }
-        return address;
-    }
-}
-
-function formatNano(amount: string): string {
-    const n = BigInt(amount);
-    const whole = n / 1_000_000_000n;
-    const frac = n % 1_000_000_000n;
-    if (frac === 0n) return `${whole}`;
-    const fracStr = frac.toString().padStart(9, '0').replace(/0+$/, '');
-    return `${whole}.${fracStr}`;
-}
-
-const ActionItemCard: React.FC<{ item: IntentActionItem; index: number }> = ({ item, index }) => {
-    switch (item.type) {
-        case 'sendTon': {
-            const action = item as SendTonAction;
-            return (
-                <div className="border rounded-lg p-3 bg-blue-50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold bg-blue-200 text-blue-800 px-2 py-0.5 rounded">
-                            #{index + 1} Send TON
-                        </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                        <p>
-                            <span className="font-medium">To:</span>{' '}
-                            <span className="font-mono text-xs">{truncateAddress(action.address)}</span>
-                        </p>
-                        <p>
-                            <span className="font-medium">Amount:</span> {formatNano(action.amount)} TON
-                        </p>
-                        {action.payload && (
-                            <p className="text-xs text-gray-500 truncate">
-                                <span className="font-medium">Payload:</span> {action.payload}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-        case 'sendJetton': {
-            const action = item as SendJettonAction;
-            return (
-                <div className="border rounded-lg p-3 bg-purple-50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold bg-purple-200 text-purple-800 px-2 py-0.5 rounded">
-                            #{index + 1} Send Jetton
-                        </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                        <p>
-                            <span className="font-medium">Master:</span>{' '}
-                            <span className="font-mono text-xs">{truncateAddress(action.jettonMasterAddress)}</span>
-                        </p>
-                        <p>
-                            <span className="font-medium">Amount:</span> {action.jettonAmount}
-                        </p>
-                        <p>
-                            <span className="font-medium">To:</span>{' '}
-                            <span className="font-mono text-xs">{truncateAddress(action.destination)}</span>
-                        </p>
-                        {action.forwardTonAmount && (
-                            <p>
-                                <span className="font-medium">Forward TON:</span> {formatNano(action.forwardTonAmount)}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            );
-        }
-        case 'sendNft': {
-            const action = item as SendNftAction;
-            return (
-                <div className="border rounded-lg p-3 bg-amber-50">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs font-semibold bg-amber-200 text-amber-800 px-2 py-0.5 rounded">
-                            #{index + 1} Send NFT
-                        </span>
-                    </div>
-                    <div className="space-y-1 text-sm">
-                        <p>
-                            <span className="font-medium">NFT:</span>{' '}
-                            <span className="font-mono text-xs">{truncateAddress(action.nftAddress)}</span>
-                        </p>
-                        <p>
-                            <span className="font-medium">New Owner:</span>{' '}
-                            <span className="font-mono text-xs">{truncateAddress(action.newOwnerAddress)}</span>
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-        default:
-            return (
-                <div className="border rounded-lg p-3 bg-gray-50">
-                    <p className="text-sm text-gray-600">Unknown action type</p>
-                </div>
-            );
-    }
-};
 
 const IntentEventDetails: React.FC<{ event: IntentRequestEvent }> = ({ event }) => {
     switch (event.type) {
@@ -167,22 +51,19 @@ const IntentEventDetails: React.FC<{ event: IntentRequestEvent }> = ({ event }) 
                     </div>
                 );
             }
-            // signOnly
+            // signOnly — render like SignMessageRequestModal using resolvedTransaction.messages
+            const messages = tx.resolvedTransaction?.messages ?? [];
             return (
-                <div className="space-y-3">
-                    {tx.validUntil && (
-                        <p className="text-xs text-gray-500">
-                            Valid until: {new Date(tx.validUntil * 1000).toLocaleString()}
-                        </p>
-                    )}
-                    <div className="border rounded-lg p-3 bg-gray-50">
-                        <p className="text-sm font-medium text-gray-700 mb-2">
-                            {tx.items.length} message{tx.items.length !== 1 ? 's' : ''} to sign
-                        </p>
-                        {tx.items.map((item, i) => (
-                            <ActionItemCard key={i} item={item} index={i} />
-                        ))}
-                    </div>
+                <div className="border rounded-lg p-3 bg-gray-50">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                        {messages.length} message{messages.length !== 1 ? 's' : ''} to sign
+                    </p>
+                    {messages.map((msg: TransactionRequestMessage, i: number) => (
+                        <div key={i} className="mt-2 text-xs text-gray-500 space-y-0.5">
+                            <p className="font-mono break-all">{msg.address}</p>
+                            <p>{(BigInt(msg.amount) / 1_000_000_000n).toString()} TON</p>
+                        </div>
+                    ))}
                 </div>
             );
         }
