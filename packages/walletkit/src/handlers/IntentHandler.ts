@@ -468,7 +468,13 @@ export class IntentHandler {
 
         const wireResponse = this.toWireResponse(event.id, result, event);
 
-        await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
+        // For intents delivered via an existing bridge session, respond using the
+        // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
+        if (event.origin === 'connectedBridge') {
+            await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
+        } else {
+            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
+        }
     }
 
     private async sendBatchResponse(
@@ -484,7 +490,7 @@ export class IntentHandler {
         const wireResponse = this.toWireResponse(batch.id, result, undefined, deliveryMode);
 
         try {
-            await this.bridgeManager.sendResponse(batch as BridgeEvent, wireResponse);
+            await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
         } catch (error) {
             log.error('Failed to send batched intent response', { error, batchId: batch.id });
         }
