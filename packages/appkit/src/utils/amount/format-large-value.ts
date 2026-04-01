@@ -33,7 +33,10 @@ export const formatLargeValue = (amount: string, decimals: number = 2): string =
         return '0';
     }
 
-    return value.toLocaleString('en-US', {
+    const factor = Math.pow(10, decimals);
+    const truncated = Math.floor(value * factor) / factor;
+
+    return truncated.toLocaleString('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: decimals,
     });

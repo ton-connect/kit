@@ -6,13 +6,13 @@
  *
  */
 
-import { createContext, useContext, useMemo, useRef, useState, useLayoutEffect } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { FC, ReactNode, ComponentProps, ChangeEvent } from 'react';
 import clsx from 'clsx';
 
 import { Skeleton } from '../skeleton';
-import { SIZE_ORDER } from './input-resize';
-import type { InputSize } from './input-resize';
+import { useInputResize } from './use-input-resize';
+import type { InputSize } from './use-input-resize';
 import styles from './input.module.css';
 
 type InputVariant = 'default' | 'unstyled';
@@ -123,64 +123,17 @@ const InputControl: FC<InputControlProps> = ({ className, disabled: propsDisable
     const { size: contextSize, disabled: contextDisabled, loading, resizable } = useInputContext();
     const disabled = propsDisabled || contextDisabled;
 
-    const inputRef = useRef<HTMLInputElement>(null);
-    const measureRefs = {
-        l: useRef<HTMLSpanElement>(null),
-        m: useRef<HTMLSpanElement>(null),
-        s: useRef<HTMLSpanElement>(null),
-    };
-    const [effectiveSize, setEffectiveSize] = useState<InputSize>(contextSize);
-
-    const adjustSize = () => {
-        if (!resizable || !inputRef.current) return;
-        const availableWidth = inputRef.current.clientWidth;
-        if (availableWidth === 0) return;
-
-        const startIndex = SIZE_ORDER.indexOf(contextSize);
-        for (let i = startIndex; i < SIZE_ORDER.length; i++) {
-            const size = SIZE_ORDER[i] as InputSize;
-            const textWidth = measureRefs[size].current?.offsetWidth ?? Infinity;
-            if (textWidth <= availableWidth) {
-                setEffectiveSize(size);
-                return;
-            }
-        }
-        setEffectiveSize(SIZE_ORDER[SIZE_ORDER.length - 1] as InputSize);
-    };
-
-    // Re-measure when controlled value or context size changes
-    useLayoutEffect(adjustSize, [resizable, contextSize, props.value]);
-
-    // Re-measure on container resize (observe parent, not the input itself,
-    // to avoid feedback loop when font-size change triggers ResizeObserver)
-    useLayoutEffect(() => {
-        const parent = inputRef.current?.parentElement;
-        if (!resizable || !parent) return;
-        const observer = new ResizeObserver(adjustSize);
-        observer.observe(parent);
-        return () => observer.disconnect();
-    }, [resizable, contextSize]);
+    const { inputRef, measureMaxRef, measureMinRef, resizeStyle, adjustSize } = useInputResize({
+        resizable,
+        contextSize,
+        value: props.value,
+    });
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange?.(e);
-        if (!resizable || !inputRef.current) return;
-        const availableWidth = inputRef.current.clientWidth;
-        if (availableWidth === 0) return;
-
-        const startIndex = SIZE_ORDER.indexOf(contextSize);
-        for (let i = startIndex; i < SIZE_ORDER.length; i++) {
-            const size = SIZE_ORDER[i] as InputSize;
-            const textWidth = measureRefs[size].current?.offsetWidth ?? Infinity;
-            if (textWidth <= availableWidth) {
-                setEffectiveSize(size);
-                return;
-            }
-        }
-        setEffectiveSize(SIZE_ORDER[SIZE_ORDER.length - 1] as InputSize);
+        adjustSize();
     };
 
-    const activeSize = resizable ? effectiveSize : contextSize;
-    const typographyClass = styles[`input_${activeSize}`];
     const text = String(props.value ?? props.defaultValue ?? '');
 
     if (loading) {
@@ -197,19 +150,21 @@ const InputControl: FC<InputControlProps> = ({ className, disabled: propsDisable
         <>
             {resizable && (
                 <>
-                    <span ref={measureRefs.l} className={clsx(styles.inputMeasure, styles.input_l)} aria-hidden>
+                    {/* Measures actual text width at max (contextSize) font — source of truth for scaling */}
+                    <span
+                        ref={measureMaxRef}
+                        className={clsx(styles.inputMeasure, styles[`input_${contextSize}`])}
+                        aria-hidden
+                    >
                         {text}
                     </span>
-                    <span ref={measureRefs.m} className={clsx(styles.inputMeasure, styles.input_m)} aria-hidden>
-                        {text}
-                    </span>
-                    <span ref={measureRefs.s} className={clsx(styles.inputMeasure, styles.input_s)} aria-hidden>
-                        {text}
-                    </span>
+                    {/* Empty span — only used to read minFontSize from CSS variable via computed style */}
+                    <span ref={measureMinRef} className={clsx(styles.inputMeasure, styles.input_s)} aria-hidden />
                 </>
             )}
             <input
-                className={clsx(styles.input, typographyClass, className)}
+                className={clsx(styles.input, styles[`input_${contextSize}`], className)}
+                style={resizeStyle}
                 disabled={disabled}
                 {...props}
                 ref={inputRef}

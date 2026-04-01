@@ -39,6 +39,6 @@ describe('formatLargeValue', () => {
 
     it('should respect decimals for small values', () => {
         expect(formatLargeValue('1234.5678', 4)).toBe('1,234.5678');
-        expect(formatLargeValue('1234.5678', 2)).toBe('1,234.57');
+        expect(formatLargeValue('1234.5678', 2)).toBe('1,234.56');
     });
 });
