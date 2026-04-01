@@ -9,6 +9,7 @@
 import type { ConnectRequest } from '@tonconnect/protocol';
 import nacl from 'tweetnacl';
 
+import { globalLogger } from '../core/Logger';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { RawBridgeEvent } from '../types/internal';
 import type {
@@ -26,6 +27,7 @@ import type {
 } from '../api/models';
 
 const VALID_METHODS = ['txDraft', 'signMsgDraft', 'signData', 'actionDraft'] as const;
+const log = globalLogger.createChild('IntentParser');
 
 /**
  * Wire-format intent item types.
@@ -201,15 +203,8 @@ export class IntentParser {
         }
         const traceId = parsedUrl.searchParams.get('trace_id') || undefined;
 
-        let connectRequest: ConnectRequest | undefined;
         const rParam = parsedUrl.searchParams.get('r');
-        if (rParam) {
-            try {
-                connectRequest = JSON.parse(rParam) as ConnectRequest;
-            } catch {
-                /* optional */
-            }
-        }
+        const connectRequest = this.parseOptionalConnectRequest(rParam, 'inline');
 
         const json = this.decodePayload(encoded);
         let request: SpecIntentRequest;
@@ -240,15 +235,8 @@ export class IntentParser {
             throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Missing get_url in intent URL');
         }
 
-        let connectRequest: ConnectRequest | undefined;
         const rParam = parsedUrl.searchParams.get('r');
-        if (rParam) {
-            try {
-                connectRequest = JSON.parse(rParam) as ConnectRequest;
-            } catch {
-                /* optional */
-            }
-        }
+        const connectRequest = this.parseOptionalConnectRequest(rParam, 'objectStorage');
 
         const encryptedPayload = await this.fetchObjectStoragePayload(getUrl);
         const json = this.decryptPayload(encryptedPayload, walletPrivateKey);
@@ -266,6 +254,25 @@ export class IntentParser {
 
         this.validateRequest(request);
         return { clientId, request, connectRequest, origin: 'objectStorage', traceId };
+    }
+
+    private parseOptionalConnectRequest(
+        rawValue: string | null,
+        source: 'inline' | 'objectStorage',
+    ): ConnectRequest | undefined {
+        if (!rawValue) {
+            return undefined;
+        }
+
+        try {
+            return JSON.parse(rawValue) as ConnectRequest;
+        } catch (error) {
+            log.warn('Failed to parse optional connect request from intent URL', {
+                source,
+                error,
+            });
+            return undefined;
+        }
     }
 
     /**
