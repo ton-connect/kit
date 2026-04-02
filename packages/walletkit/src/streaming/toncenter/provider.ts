@@ -16,6 +16,8 @@ import type { TonCenterStreamingProviderConfig } from './models';
  * Manages a single WebSocket connection and reports account updates.
  */
 export class TonCenterStreamingProvider extends TonStreamingV2BaseProvider {
+    public readonly network: Network;
+
     constructor(_ctx: ProviderFactoryContext, config: TonCenterStreamingProviderConfig) {
         const base =
             config.endpoint ??
@@ -31,5 +33,7 @@ export class TonCenterStreamingProvider extends TonStreamingV2BaseProvider {
             authQueryParam: 'api_key',
             authSecret: config.apiKey,
         });
+
+        this.network = config.network;
     }
 }

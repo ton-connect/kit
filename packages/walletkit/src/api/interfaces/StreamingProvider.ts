@@ -11,6 +11,7 @@ import type { ProviderFactoryContext } from '../../types/factory';
 
 export interface StreamingProvider extends BaseProvider {
     readonly type: 'streaming';
+    readonly network: Network;
 
     /**
      * Watch account balance changes. Returns an unsubscribe function.
@@ -43,4 +44,4 @@ export interface StreamingProvider extends BaseProvider {
     onConnectionChange(callback: (connected: boolean) => void): () => void;
 }
 
-export type StreamingProviderFactory = (ctx: ProviderFactoryContext, network: Network) => StreamingProvider;
+export type StreamingProviderFactory = (ctx: ProviderFactoryContext) => StreamingProvider;

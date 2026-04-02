@@ -28,7 +28,6 @@ const log = globalLogger.createChild('StreamingManager');
 export class StreamingManager<E extends StreamingEvents = StreamingEvents> implements StreamingAPI {
     private createFactoryContext: () => ProviderFactoryContext<E>;
     private providers: Map<string, StreamingProvider> = new Map();
-    private providerFactories: Map<string, StreamingProviderFactory> = new Map();
     private connectionChangeCallbacks: Map<string, Set<(connected: boolean) => void>> = new Map();
     private providerConnectionUnsubs: Map<string, () => void> = new Map();
 
@@ -37,23 +36,30 @@ export class StreamingManager<E extends StreamingEvents = StreamingEvents> imple
     }
 
     /**
-     * Register a provider factory for a specific network.
+     * Register a provider factory. The network is determined from the provider's network property.
      */
-    registerProvider(network: Network, factory: StreamingProviderFactory): void {
-        const networkId = String(network.chainId);
+    registerProvider(factory: StreamingProviderFactory): void {
+        const provider = factory(this.createFactoryContext());
+        const networkId = String(provider.network.chainId);
 
-        if (this.providerFactories.has(networkId)) {
-            log.warn(`Provider factory for network ${networkId} is already registered. Overriding.`);
+        if (this.providers.has(networkId)) {
+            log.warn(`Provider for network ${networkId} is already registered. Overriding.`);
+            this.providerConnectionUnsubs.get(networkId)?.();
         }
 
-        this.providerFactories.set(networkId, factory);
+        this.providers.set(networkId, provider);
+
+        const unsub = provider.onConnectionChange((connected) => {
+            this.emitConnectionChange(networkId, connected);
+        });
+        this.providerConnectionUnsubs.set(networkId, unsub);
     }
 
     /**
-     * Check if a provider factory is registered for a specific network.
+     * Check if a provider is registered for a specific network.
      */
     hasProvider(network: Network): boolean {
-        return this.providerFactories.has(String(network.chainId));
+        return this.providers.has(String(network.chainId));
     }
 
     /**
@@ -104,24 +110,10 @@ export class StreamingManager<E extends StreamingEvents = StreamingEvents> imple
 
     private getProvider(network: Network): StreamingProvider {
         const networkId = String(network.chainId);
-        let provider = this.providers.get(networkId);
-        if (provider) return provider;
-
-        const factory = this.providerFactories.get(networkId);
-        if (!factory) {
+        const provider = this.providers.get(networkId);
+        if (!provider) {
             throw new Error(`No streaming provider registered for network ${networkId}`);
         }
-
-        log.info('Creating new streaming provider', { networkId });
-
-        provider = factory(this.createFactoryContext(), network);
-        this.providers.set(networkId, provider);
-
-        const unsub = provider.onConnectionChange((connected) => {
-            this.emitConnectionChange(networkId, connected);
-        });
-        this.providerConnectionUnsubs.set(networkId, unsub);
-
         return provider;
     }
 

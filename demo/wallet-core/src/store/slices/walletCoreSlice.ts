@@ -83,12 +83,10 @@ function createWalletKitInstance(walletKitConfig?: WalletKitConfig): ITonWalletK
     walletKit.swap.registerProvider(new OmnistonSwapProvider());
 
     walletKit.streaming.registerProvider(
-        Network.mainnet(),
-        createTonCenterStreamingProvider({ apiKey: walletKitConfig?.tonApiKeyMainnet }),
+        createTonCenterStreamingProvider({ network: Network.mainnet(), apiKey: walletKitConfig?.tonApiKeyMainnet }),
     );
     walletKit.streaming.registerProvider(
-        Network.testnet(),
-        createTonCenterStreamingProvider({ apiKey: walletKitConfig?.tonApiKeyTestnet }),
+        createTonCenterStreamingProvider({ network: Network.testnet(), apiKey: walletKitConfig?.tonApiKeyTestnet }),
     );
     walletKit.staking.registerProvider(createTonstakersProvider());
 

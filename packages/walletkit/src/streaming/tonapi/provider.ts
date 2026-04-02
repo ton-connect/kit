@@ -28,6 +28,8 @@ function defaultTonApiWsOrigin(network: Network): string {
  * TonAPI implementation of StreamingProvider using the same v2 WebSocket protocol as Toncenter.
  */
 export class TonApiStreamingProvider extends TonStreamingV2BaseProvider {
+    public readonly network: Network;
+
     constructor(_ctx: ProviderFactoryContext, config: TonApiStreamingProviderConfig) {
         const normalized = (url: string) => url.replace(/\/$/, '').replace(/^https?/, 'wss');
         const baseUrl = config.endpoint
@@ -40,5 +42,7 @@ export class TonApiStreamingProvider extends TonStreamingV2BaseProvider {
             authQueryParam: 'token',
             authSecret: config.apiKey,
         });
+
+        this.network = config.network;
     }
 }

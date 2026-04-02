@@ -23,9 +23,9 @@ export interface StreamingAPI {
     hasProvider(network: Network): boolean;
 
     /**
-     * Register a provider factory for a specific network.
+     * Register a provider factory. The network is determined from the factory's provider.
      */
-    registerProvider(network: Network, factory: StreamingProviderFactory): void;
+    registerProvider(factory: StreamingProviderFactory): void;
 
     /**
      * Watch account balance changes.
