@@ -10,7 +10,7 @@ import { Cell } from '@ton/core';
 
 import type { ValidationResult } from './types';
 import { validateTonAddress } from './address';
-import { isFriendlyTonAddress } from '../utils/address';
+import { isFriendlyTonAddress, isValidAddress } from '../utils/address';
 
 /**
  * Human-readable transaction message
@@ -37,7 +37,7 @@ export interface HumanReadableTx {
  * Validate transaction messages array
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true): ValidationResult {
+export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true, requireFriendlyAddress: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     if (!Array.isArray(messages)) {
@@ -52,7 +52,7 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
 
     // Validate each message
     messages.forEach((msg, index) => {
-        const msgErrors = validateTransactionMessage(msg, isTonConnect).errors;
+        const msgErrors = validateTransactionMessage(msg, isTonConnect, requireFriendlyAddress).errors;
         msgErrors.forEach((error) => {
             errors.push(`message[${index}]: ${error}`);
         });
@@ -68,7 +68,7 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
  * Validate individual transaction message
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessage(message: any, isTonConnect: boolean = true): ValidationResult {
+export function validateTransactionMessage(message: any, isTonConnect: boolean = true, requireFriendlyAddress: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     if (typeof message !== 'object') {
@@ -84,7 +84,7 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
     }
 
     // Object format - validate required fields
-    const objErrors = validateMessageObject(message).errors;
+    const objErrors = validateMessageObject(message, requireFriendlyAddress).errors;
     errors.push(...objErrors);
 
     return {
@@ -97,15 +97,15 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
  * Validate message object structure
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateMessageObject(message: any): ValidationResult {
+export function validateMessageObject(message: any, requireFriendlyAddress: boolean = true): ValidationResult {
     const errors: string[] = [];
 
     // Required fields
     if (!message.address || typeof message.address !== 'string') {
         errors.push('to address is required and must be a string');
     } else {
-        if (!isFriendlyTonAddress(message.address)) {
-            errors.push('to address must be a valid friendly TON address');
+        if (requireFriendlyAddress ? !isFriendlyTonAddress(message.address) : !isValidAddress(message.address)) {
+            errors.push(requireFriendlyAddress ? 'to address must be a valid friendly TON address' : 'to address must be a valid TON address');
         }
     }
 

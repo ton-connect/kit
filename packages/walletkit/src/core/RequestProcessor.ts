@@ -42,14 +42,17 @@ import type {
     SignDataPayload,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     SendTransactionApprovalResponse,
     SignDataApprovalResponse,
+    SignMessageApprovalResponse,
     Base64String,
     ConnectionApprovalResponse,
     ConnectionApprovalProof,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
+import { validateBOC } from '../validation/transaction';
 import type { Wallet } from '../api/interfaces';
 import type { Analytics, AnalyticsManager } from '../analytics';
 
@@ -356,6 +359,72 @@ export class RequestProcessor {
             return;
         } catch (error) {
             log.error('Failed to reject transaction request', { error });
+            throw error;
+        }
+    }
+
+    /**
+     * Process sign-message (sign-only transaction) request approval.
+     * Signs using the internal opcode and returns the BoC without broadcasting.
+     */
+    async approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse> {
+        try {
+            if (response) {
+                const bocValidation = validateBOC(response.internalBoc);
+                if (!bocValidation.isValid) {
+                    throw new WalletKitError(
+                        ERROR_CODES.VALIDATION_ERROR,
+                        `Invalid internalBoc: ${bocValidation.errors.join(', ')}`,
+                    );
+                }
+                const tonConnectResponse = {
+                    result: { internal_boc: response.internalBoc },
+                    id: event.id || '',
+                };
+                await this.bridgeManager.sendResponse(event, tonConnectResponse);
+                return response;
+            } else {
+                const wallet = this.getWalletFromEvent(event);
+                if (!wallet) {
+                    throw new WalletKitError(
+                        ERROR_CODES.WALLET_NOT_FOUND,
+                        'Wallet not found for sign message signing',
+                        undefined,
+                        { eventId: event.id },
+                    );
+                }
+                const internalBoc = await wallet.getSignedSendTransaction(event.request, { internal: true });
+                const tonConnectResponse = {
+                    result: { internal_boc: internalBoc },
+                    id: event.id || '',
+                };
+                await this.bridgeManager.sendResponse(event, tonConnectResponse);
+                return { internalBoc };
+            }
+        } catch (error) {
+            log.error('Failed to approve sign message request', { error });
+            throw error;
+        }
+    }
+
+    /**
+     * Process sign-message request rejection
+     */
+    async rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void> {
+        try {
+            const response = {
+                error: {
+                    code: SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR,
+                    message: reason || 'User rejected sign message request',
+                },
+                id: event.id,
+            };
+            await this.bridgeManager.sendResponse(event, response);
+        } catch (error) {
+            log.error('Failed to reject sign message request', { error });
             throw error;
         }
     }

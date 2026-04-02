@@ -137,8 +137,11 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        _options: { fakeSignature: boolean },
+        options?: { fakeSignature?: boolean; internal?: boolean },
     ): Promise<Base64String> {
+        if (options?.internal) {
+            throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
+        }
         if (input.messages.length === 0) {
             throw new Error('Ledger does not support empty messages');
         }
@@ -160,9 +163,13 @@ export class WalletV4R2Adapter implements WalletAdapter {
         try {
             const messages: MessageRelaxed[] = input.messages.map((m) => {
                 let bounce = true;
-                const parsedAddress = Address.parseFriendly(m.address);
-                if (parsedAddress.isBounceable === false) {
-                    bounce = false;
+                try {
+                    const parsedAddress = Address.parseFriendly(m.address);
+                    if (parsedAddress.isBounceable === false) {
+                        bounce = false;
+                    }
+                } catch {
+                    // raw address — no bounceable flag, keep default true
                 }
 
                 return internal({
@@ -274,14 +281,15 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     getSupportedFeatures(): Feature[] | undefined {
         return [
-            {
-                name: 'SendTransaction',
-                maxMessages: 4,
-            },
-            {
-                name: 'SignData',
-                types: ['binary', 'cell', 'text'],
-            },
-        ];
+            'SendTransaction',
+            { name: 'SendTransaction', maxMessages: 4, extraCurrencySupported: true },
+            { name: 'SignData', types: ['text', 'binary', 'cell'] },
+            { name: 'SendTransactionDraft', types: ['ton', 'jetton', 'nft'] },
+            { name: 'ActionDraft' },
+            { name: 'Intents', types: ['txDraft', 'actionDraft', 'signData'] },
+            // SignMessage and SignMessageDraft require W5R1 internal opcodes
+            // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
+            // to include PR #103 feature names (SendTransactionDraft, ActionDraft, Intents, etc.)
+        ] as unknown as Feature[];
     }
 }

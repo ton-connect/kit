@@ -153,14 +153,18 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        options: { fakeSignature: boolean },
+        options?: { fakeSignature?: boolean; internal?: boolean },
     ): Promise<Base64String> {
         const actions = packActionsList(
             input.messages.map((m) => {
                 let bounce = true;
-                const parsedAddress = Address.parseFriendly(m.address);
-                if (parsedAddress.isBounceable === false) {
-                    bounce = false;
+                try {
+                    const parsedAddress = Address.parseFriendly(m.address);
+                    if (parsedAddress.isBounceable === false) {
+                        bounce = false;
+                    }
+                } catch {
+                    // raw address — no bounceable flag, keep default true
                 }
 
                 const msg = internal({
@@ -201,7 +205,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             }),
         );
 
-        const createBodyOptions: { validUntil: number | undefined; fakeSignature: boolean } = {
+        const createBodyOptions: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean } = {
             ...options,
             validUntil: undefined,
         };
@@ -309,15 +313,24 @@ export class WalletV5R1Adapter implements WalletAdapter {
         seqno: number,
         walletId: bigint,
         actionsList: Cell,
-        options: { validUntil: number | undefined; fakeSignature: boolean },
+        options: { validUntil: number | undefined; fakeSignature?: boolean; internal?: boolean },
     ) {
+        // Opcodes defined in the WalletV5R1 contract spec, confirmed in @ton/ton WalletContractV5R1.js
         const Opcodes = {
-            auth_signed: 0x7369676e,
+            auth_signed: 0x7369676e,          // external auth ("sign")
+            auth_signed_internal: 0x73696e74, // internal auth ("sint") — used for gasless relaying
         };
+
+        // Use internal opcode for gasless relaying (signOnly / signMsg intent)
+        const opcode = options.internal ? Opcodes.auth_signed_internal : Opcodes.auth_signed;
+        log.debug('createBodyV5 signing with opcode', {
+            internal: options.internal,
+            opcode: `0x${opcode.toString(16)}`,
+        });
 
         const expireAt = options.validUntil ?? Math.floor(Date.now() / 1000) + 300;
         const payload = beginCell()
-            .storeUint(Opcodes.auth_signed, 32)
+            .storeUint(opcode, 32)
             .storeUint(walletId, 32)
             .storeUint(expireAt, 32)
             .storeUint(seqno, 32) // seqno
@@ -346,14 +359,16 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
     getSupportedFeatures(): Feature[] | undefined {
         return [
-            {
-                name: 'SendTransaction',
-                maxMessages: 255,
-            },
-            {
-                name: 'SignData',
-                types: ['binary', 'cell', 'text'],
-            },
-        ];
+            'SendTransaction',
+            { name: 'SendTransaction', maxMessages: 255, extraCurrencySupported: true },
+            { name: 'SignData', types: ['text', 'binary', 'cell'] },
+            { name: 'SignMessage', maxMessages: 255, extraCurrencySupported: true },
+            { name: 'SendTransactionDraft', types: ['ton', 'jetton', 'nft'] },
+            { name: 'SignMessageDraft', types: ['ton', 'jetton', 'nft'] },
+            { name: 'ActionDraft' },
+            { name: 'Intents', types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'] },
+        // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
+        // to include PR #103 feature names (SendTransactionDraft, SignMessageDraft, ActionDraft, Intents, etc.)
+        ] as unknown as Feature[];
     }
 }

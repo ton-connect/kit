@@ -53,6 +53,8 @@ import type { NetworkManager } from './NetworkManager';
 import { KitNetworkManager } from './NetworkManager';
 import type { WalletId } from '../utils/walletId';
 import type { StreamingAPI, Wallet, WalletAdapter } from '../api/interfaces';
+import { IntentHandler } from '../handlers/IntentHandler';
+import { isIntentUrl } from '../handlers/IntentParser';
 import type {
     Network,
     TransactionRequest,
@@ -61,11 +63,23 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     SendTransactionApprovalResponse,
     SignDataApprovalResponse,
+    SignMessageApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
+    IntentRequestEvent,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentActionItem,
+    BatchedIntentEvent,
+    ConnectionApprovalProof,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
 import type { ProviderFactoryContext } from '../types/factory';
@@ -98,6 +112,7 @@ export class TonWalletKit implements ITonWalletKit {
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
+    private intentHandler!: IntentHandler;
 
     private config: TonWalletKitOptions;
 
@@ -140,6 +155,18 @@ export class TonWalletKit implements ITonWalletKit {
         this.swapManager = new SwapManager(() => this.createFactoryContext());
         // Initialize StakingManager
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
+
+        this.eventEmitter.on('bridge-draft-intent', async ({ payload: event }) => {
+            const walletId = event.walletId;
+            if (!walletId) {
+                log.error('bridge-draft-intent received without walletId', { eventId: event.id });
+                return;
+            }
+            await this.ensureInitialized();
+            if (this.intentHandler) {
+                await this.intentHandler.handleBridgeDraftEvent(event, walletId);
+            }
+        });
 
         this.eventEmitter.on('restoreConnection', async ({ payload: event }) => {
             if (!event.domain) {
@@ -268,6 +295,12 @@ export class TonWalletKit implements ITonWalletKit {
         this.requestProcessor = components.requestProcessor;
         this.eventProcessor = components.eventProcessor;
         this.bridgeManager = components.bridgeManager;
+        this.intentHandler = new IntentHandler(
+            this.config,
+            this.bridgeManager,
+            this.walletManager,
+            this.analyticsManager,
+        );
     }
 
     /**
@@ -522,6 +555,20 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventRouter.removeSignDataRequestCallback();
     }
 
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void {
+        if (this.eventRouter) {
+            this.eventRouter.onSignMessageRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.eventRouter.onSignMessageRequest(cb);
+            });
+        }
+    }
+
+    removeSignMessageRequestCallback(): void {
+        this.eventRouter.removeSignMessageRequestCallback();
+    }
+
     removeDisconnectCallback(): void {
         this.eventRouter.removeDisconnectCallback();
     }
@@ -538,6 +585,86 @@ export class TonWalletKit implements ITonWalletKit {
 
     removeErrorCallback(): void {
         this.eventRouter.removeErrorCallback();
+    }
+
+    // === Intent API ===
+
+    isIntentUrl(url: string): boolean {
+        return isIntentUrl(url);
+    }
+
+    async handleIntentUrl(url: string, walletId: string): Promise<void> {
+        await this.ensureInitialized();
+        return this.intentHandler.handleIntentUrl(url, walletId);
+    }
+
+    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        if (this.intentHandler) {
+            this.intentHandler.onIntentRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => this.intentHandler.onIntentRequest(cb));
+        }
+    }
+
+    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {
+        if (this.intentHandler) {
+            this.intentHandler.removeIntentRequestCallback(cb);
+        } else {
+            this.ensureInitialized().then(() => this.intentHandler.removeIntentRequestCallback(cb));
+        }
+    }
+
+    async approveTransactionDraft(
+        event: TransactionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveTransactionDraft(event, walletId);
+    }
+
+    async approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveSignDataIntent(event, walletId);
+    }
+
+    async approveActionDraft(
+        event: ActionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.approveActionDraft(event, walletId);
+    }
+
+    async approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+        proof?: ConnectionApprovalProof,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse> {
+        await this.ensureInitialized();
+
+        const result = await this.intentHandler.approveBatchedIntent(batch, walletId);
+
+        for (const item of batch.intents) {
+            if (item.type === 'connect') {
+                await this.requestProcessor.approveConnectRequest({ ...item, walletId }, proof ? { proof } : undefined);
+            }
+        }
+
+        return result;
+    }
+
+    async rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse> {
+        await this.ensureInitialized();
+        return this.intentHandler.rejectIntent(event, reason, errorCode);
+    }
+
+    async intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest> {
+        await this.ensureInitialized();
+        return this.intentHandler.intentItemsToTransactionRequest(items, walletId);
     }
 
     // === URL Parsing API ===
@@ -568,6 +695,16 @@ export class TonWalletKit implements ITonWalletKit {
         await this.ensureInitialized();
 
         try {
+            // Reject intent URLs — they must go through handleIntentUrl(url, walletId)
+            if (this.isIntentUrl(url)) {
+                throw new WalletKitError(
+                    ERROR_CODES.VALIDATION_ERROR,
+                    'This is an intent URL. Use handleIntentUrl(url, walletId) instead of handleTonConnectUrl(url).',
+                    undefined,
+                    { url },
+                );
+            }
+
             const bridgeEvent = this.parseBridgeConnectEventFromUrl(url);
             await this.eventRouter.routeEvent(bridgeEvent);
         } catch (error) {
@@ -737,6 +874,19 @@ export class TonWalletKit implements ITonWalletKit {
     async rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectSignDataRequest(event, reason);
+    }
+
+    async approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse> {
+        await this.ensureInitialized();
+        return this.requestProcessor.approveSignMessageRequest(event, response);
+    }
+
+    async rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void> {
+        await this.ensureInitialized();
+        return this.requestProcessor.rejectSignMessageRequest(event, reason);
     }
 
     // === TON Client Access ===

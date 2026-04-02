@@ -7,7 +7,7 @@
  */
 
 import type { TransactionEmulatedTrace } from '../api/models';
-import type { RawBridgeEventRestoreConnection, RawBridgeEventTransaction } from './internal';
+import type { RawBridgeEvent, RawBridgeEventRestoreConnection } from './internal';
 import type { EventEmitter } from '../core/EventEmitter';
 import type { StreamingEvents } from '../api/models';
 
@@ -21,9 +21,10 @@ export type SharedKitEvents = StreamingEvents;
  */
 export type WalletKitEvents = {
     restoreConnection: RawBridgeEventRestoreConnection;
-    eventError: RawBridgeEventTransaction;
+    eventError: RawBridgeEvent;
     emulationResult: TransactionEmulatedTrace;
     bridgeStorageUpdated: object;
+    'bridge-draft-intent': RawBridgeEvent;
 } & SharedKitEvents;
 
 export type WalletKitEventEmitter = EventEmitter<WalletKitEvents>;

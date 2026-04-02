@@ -22,11 +22,23 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     SignDataApprovalResponse,
+    SignMessageApprovalResponse,
     TONConnectSession,
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
+    IntentRequestEvent,
+    TransactionIntentRequestEvent,
+    SignDataIntentRequestEvent,
+    ActionIntentRequestEvent,
+    IntentTransactionResponse,
+    IntentSignDataResponse,
+    IntentErrorResponse,
+    IntentActionItem,
+    BatchedIntentEvent,
+    ConnectionApprovalProof,
 } from '../api/models';
 import type { SwapAPI, StakingAPI } from '../api/interfaces';
 import type { NetworkManager } from '../core/NetworkManager';
@@ -131,6 +143,15 @@ export interface ITonWalletKit {
     /** Reject a sign data request */
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
 
+    /** Approve a sign message (sign-only transaction) request */
+    approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse>;
+
+    /** Reject a sign message request */
+    rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void>;
+
     // === Event Handlers ===
 
     /** Register connect request handler */
@@ -142,6 +163,9 @@ export interface ITonWalletKit {
     /** Register sign data request handler */
     onSignDataRequest(cb: (event: SignDataRequestEvent) => void): void;
 
+    /** Register sign message request handler */
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void;
+
     /** Register disconnect handler */
     onDisconnect(cb: (event: DisconnectionEvent) => void): void;
 
@@ -152,8 +176,54 @@ export interface ITonWalletKit {
     removeConnectRequestCallback(cb: (event: ConnectionRequestEvent) => void): void;
     removeTransactionRequestCallback(cb: (event: SendTransactionRequestEvent) => void): void;
     removeSignDataRequestCallback(cb: (event: SignDataRequestEvent) => void): void;
+    removeSignMessageRequestCallback(cb: (event: SignMessageRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
+
+    // === Intent API ===
+
+    /** Check if a URL is a TonConnect intent deep link */
+    isIntentUrl(url: string): boolean;
+
+    /** Handle a TonConnect intent URL for the given wallet */
+    handleIntentUrl(url: string, walletId: string): Promise<void>;
+
+    /** Register intent request handler */
+    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
+
+    /** Remove intent request handler */
+    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
+
+    /** Approve a transaction draft intent */
+    approveTransactionDraft(event: TransactionIntentRequestEvent, walletId: string): Promise<IntentTransactionResponse>;
+
+    /** Approve a sign data intent */
+    approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse>;
+
+    /** Approve an action draft intent */
+    approveActionDraft(
+        event: ActionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
+
+    /** Approve a batched intent (connect + transaction/signData/action) */
+    approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+        proof?: ConnectionApprovalProof,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
+
+    /** Reject any intent request */
+    rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse>;
+
+    /** Convert intent action items to a TransactionRequest for preview */
+    intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest>;
+
+    // === Jettons API ===
 
     /** Jettons API access */
     jettons: JettonsAPI;

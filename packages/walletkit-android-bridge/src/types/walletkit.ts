@@ -8,19 +8,28 @@
 
 import type {
     ApiClient,
+    BatchedIntentEvent,
     BridgeEventMessageInfo,
     ConnectionApprovalResponse,
     ConnectionRequestEvent,
     DeviceInfo,
     DisconnectionEvent,
     InjectedToExtensionBridgeRequestPayload,
+    IntentActionItem,
+    IntentErrorResponse,
+    IntentRequestEvent,
+    IntentSignDataResponse,
+    IntentTransactionResponse,
+    ActionIntentRequestEvent,
     Network,
     RequestErrorEvent,
     SendTransactionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataApprovalResponse,
+    SignDataIntentRequestEvent,
     SignDataRequestEvent,
     TONConnectSession,
+    TransactionIntentRequestEvent,
     TransactionRequest,
     Wallet,
     WalletAdapter,
@@ -116,4 +125,25 @@ export interface WalletKitInstance {
         event: SignDataRequestEvent,
         reason?: string | SendTransactionRpcResponseError['error'],
     ): Promise<void>;
+    // Intent API
+    isIntentUrl(url: string): boolean;
+    handleIntentUrl(url: string, walletId: string): Promise<void>;
+    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
+    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
+    approveTransactionDraft(event: TransactionIntentRequestEvent, walletId: string): Promise<IntentTransactionResponse>;
+    approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse>;
+    approveActionDraft(
+        event: ActionIntentRequestEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
+    approveBatchedIntent(
+        batch: BatchedIntentEvent,
+        walletId: string,
+    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
+    rejectIntent(
+        event: IntentRequestEvent | BatchedIntentEvent,
+        reason?: string,
+        errorCode?: number,
+    ): Promise<IntentErrorResponse>;
+    intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest>;
 }

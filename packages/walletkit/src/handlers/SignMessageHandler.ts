@@ -6,7 +6,7 @@
  *
  */
 
-import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
+import type { WalletResponseTemplateError } from '@tonconnect/protocol';
 import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
@@ -14,37 +14,41 @@ import { toTransactionRequest, parseConnectTransactionParamContent } from '../ty
 import type {
     RawBridgeEvent,
     EventHandler,
-    RawBridgeEventTransaction,
+    RawBridgeEventSignMessage,
     RawConnectTransactionParamContent,
 } from '../types/internal';
 import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
-import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
 import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
-import { CallForSuccess } from '../utils/retry';
-import type { WalletKitEventEmitter } from '../types/emitter';
+import type { EventEmitter } from '../core/EventEmitter';
+import type { WalletKitEvents } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
-import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
-import { Result } from '../api/models';
+import type { TransactionRequest, SignMessageRequestEvent } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
 
-const log = globalLogger.createChild('TransactionHandler');
+const log = globalLogger.createChild('SignMessageHandler');
 
-export class TransactionHandler
-    extends BasicHandler<SendTransactionRequestEvent>
-    implements EventHandler<SendTransactionRequestEvent, RawBridgeEventTransaction>
+// Error response shape (mirrors SendTransactionRpcResponseError but for signMessage)
+interface SignMessageRpcResponseError {
+    error: { code: number; message: string };
+    id: string;
+}
+
+export class SignMessageHandler
+    extends BasicHandler<SignMessageRequestEvent>
+    implements EventHandler<SignMessageRequestEvent, RawBridgeEventSignMessage>
 {
-    private eventEmitter: WalletKitEventEmitter;
+    private eventEmitter: EventEmitter<WalletKitEvents>;
     private analytics?: Analytics;
 
     constructor(
-        notify: (event: SendTransactionRequestEvent) => void,
-        private readonly config: TonWalletKitOptions,
-        eventEmitter: WalletKitEventEmitter,
+        notify: (event: SignMessageRequestEvent) => void,
+        _config: TonWalletKitOptions,
+        eventEmitter: EventEmitter<WalletKitEvents>,
         private readonly walletManager: WalletManager,
         private readonly sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
@@ -54,12 +58,12 @@ export class TransactionHandler
         this.sessionManager = sessionManager;
         this.analytics = analyticsManager?.scoped();
     }
-    canHandle(event: RawBridgeEvent): event is RawBridgeEventTransaction {
-        return event.method === 'sendTransaction';
+
+    canHandle(event: RawBridgeEvent): event is RawBridgeEventSignMessage {
+        return event.method === 'signMessage';
     }
 
-    async handle(event: RawBridgeEventTransaction): Promise<SendTransactionRequestEvent | WalletResponseTemplateError> {
-        // Support both walletId (new) and walletAddress (legacy)
+    async handle(event: RawBridgeEventSignMessage): Promise<SignMessageRequestEvent | WalletResponseTemplateError> {
         const walletId = event.walletId;
         const walletAddress = event.walletAddress;
 
@@ -71,10 +75,9 @@ export class TransactionHandler
                     message: 'Wallet ID not found',
                 },
                 id: event.id,
-            } as SendTransactionRpcResponseError;
+            } as SignMessageRpcResponseError;
         }
 
-        // Try to get wallet by walletId first, fall back to address search
         const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
         if (!wallet) {
             log.error('Wallet not found', { event, walletId, walletAddress });
@@ -84,54 +87,26 @@ export class TransactionHandler
                     message: 'Wallet not found',
                 },
                 id: event.id,
-            } as SendTransactionRpcResponseError;
+            } as SignMessageRpcResponseError;
         }
 
         const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
-            log.error('Failed to parse transaction request', { event, requestValidation });
-            this.eventEmitter.emit('eventError', event, 'transaction-handler');
-
+            log.error('Failed to parse sign message request', { event, requestValidation });
+            this.eventEmitter.emit('eventError', event, 'sign-message-handler');
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
-                    message: 'Failed to parse transaction request',
+                    message: 'Failed to parse sign message request',
                 },
                 id: event.id,
-            } as SendTransactionRpcResponseError;
+            } as SignMessageRpcResponseError;
         }
         const request = requestValidation.result;
 
-        let preview: TransactionEmulatedPreview | undefined;
-        if (!this.config.eventProcessor?.disableTransactionEmulation) {
-            try {
-                preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
-                // Emit emulation result event for jetton caching and other components
-                if (preview.result === Result.success && preview.trace) {
-                    try {
-                        this.eventEmitter.emit('emulationResult', preview.trace, 'transaction-handler');
-                    } catch (error) {
-                        log.warn('Error emitting emulation result event', { error });
-                    }
-                }
-            } catch (error) {
-                log.error('Failed to create transaction preview', { error });
-                preview = {
-                    error: {
-                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                        message: 'Unknown emulation error',
-                    },
-                    result: Result.failure,
-                };
-            }
-        }
-
-        const txEvent: SendTransactionRequestEvent = {
+        const signMessageEvent: SignMessageRequestEvent = {
             ...event,
             request,
-            preview: {
-                data: preview,
-            },
             dAppInfo: event.dAppInfo ?? {},
             walletId: walletId ?? this.walletManager.getWalletId(wallet),
             walletAddress: walletAddress ?? wallet.getAddress(),
@@ -139,28 +114,21 @@ export class TransactionHandler
 
         if (this.analytics) {
             const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
-
             this.analytics?.emitWalletTransactionRequestReceived({
                 trace_id: event.traceId,
                 client_id: event.from,
                 wallet_id: sessionData?.publicKey,
-
                 dapp_name: event.dAppInfo?.name,
                 network_id: wallet.getNetwork().chainId,
-                // manifest_json_url: event.dAppInfo?.url, // todo
                 origin_url: event.dAppInfo?.url,
             });
         }
 
-        return txEvent;
+        return signMessageEvent;
     }
 
-    /**
-     * Parse raw transaction request from bridge event
-     */
-
     private parseTonConnectTransactionRequest(
-        event: RawBridgeEventTransaction,
+        event: RawBridgeEventSignMessage,
         wallet: Wallet,
     ): {
         result: TransactionRequest | undefined;
@@ -171,7 +139,7 @@ export class TransactionHandler
             if (event.params.length !== 1) {
                 throw new WalletKitError(
                     ERROR_CODES.INVALID_REQUEST_EVENT,
-                    'Invalid transaction request - expected exactly 1 parameter',
+                    'Invalid sign message request - expected exactly 1 parameter',
                     undefined,
                     { paramCount: event.params.length, eventId: event.id },
                 );
@@ -201,7 +169,7 @@ export class TransactionHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
+            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect, false);
             if (!messagesValidation.isValid) {
                 errors = errors.concat(messagesValidation.errors);
             }
@@ -211,8 +179,8 @@ export class TransactionHandler
                 validation: { isValid: errors.length === 0, errors: errors },
             };
         } catch (error) {
-            log.error('Failed to parse transaction request', { error });
-            errors.push('Failed to parse transaction request');
+            log.error('Failed to parse sign message request', { error });
+            errors.push('Failed to parse sign message request');
             return {
                 result: undefined,
                 validation: { isValid: errors.length === 0, errors: errors },
