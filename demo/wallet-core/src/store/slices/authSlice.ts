@@ -21,6 +21,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
         passwordHash: undefined,
         persistPassword: false,
         holdToSign: true, // Default to true for better security
+        showFastSend: false,
         useWalletInterfaceType: 'mnemonic',
         ledgerAccountNumber: 0,
     },
@@ -103,6 +104,7 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
             state.auth.currentPassword = undefined;
             state.auth.passwordHash = undefined;
             state.auth.persistPassword = false;
+            state.auth.showFastSend = false;
             state.auth.useWalletInterfaceType = 'mnemonic';
             state.auth.ledgerAccountNumber = 0;
 
@@ -147,6 +149,12 @@ export const createAuthSlice: AuthSliceCreator = (set: SetState, get) => ({
     setHoldToSign: (enabled: boolean) => {
         set((state) => {
             state.auth.holdToSign = enabled;
+        });
+    },
+
+    setShowFastSend: (enabled: boolean) => {
+        set((state) => {
+            state.auth.showFastSend = enabled;
         });
     },
 

@@ -10,6 +10,6 @@
  * Events Feature
  * Provides Emitter implementation
  */
-export { Emitter } from './services/emitter';
+export { EventEmitter } from '@ton/walletkit';
 
-export type { EventPayload, AppKitEvent, EventListener } from './types/events';
+export type { EventPayload, KitEvent, EventListener, SharedKitEvents } from '@ton/walletkit';

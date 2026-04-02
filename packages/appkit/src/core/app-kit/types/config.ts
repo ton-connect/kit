@@ -6,10 +6,9 @@
  *
  */
 
-import type { NetworkAdapters } from '@ton/walletkit';
+import type { NetworkAdapters, ProviderInput } from '@ton/walletkit';
 
-import type { Connector } from '../../../types/connector';
-import type { Provider } from '../../../types/provider';
+import type { ConnectorInput } from '../../../types/connector';
 import type { Network } from '../../../types/network';
 
 /**
@@ -26,12 +25,21 @@ export interface AppKitConfig {
     networks?: NetworkAdapters;
 
     /**
+     * Wallet connectors
+     */
+    connectors?: ConnectorInput[];
+
+    /**
      * Default network for wallet connections.
      * If set, connectors (e.g. TonConnect) will enforce this network when connecting.
      * Set to `undefined` to allow any network.
      */
     defaultNetwork?: Network;
 
-    connectors?: Connector[];
-    providers?: Provider[];
+    providers?: ProviderInput[];
+
+    /**
+     * Enable server-side rendering support
+     */
+    ssr?: boolean;
 }

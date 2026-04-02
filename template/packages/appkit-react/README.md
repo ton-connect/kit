@@ -11,6 +11,7 @@ React components and hooks for AppKit.
 - [Initialization](#initialization)
 - [Basic Usage](#basic-usage)
 - [Swap](#swap)
+- [Staking](#staking)
 - [Creating a Swap Provider](./docs/creating-swap-provider.md): Implement your own swap provider for any DEX or protocol.
 - [Hooks](./docs/hooks.md): React hooks for wallet connection, state, and data fetching.
 - [Components](./docs/components.md): UI components for AppKit.
@@ -100,6 +101,14 @@ export const Balance = () => {
 
 > See [Hooks Documentation](./docs/hooks.md) for all available hooks and [Components Documentation](./docs/components.md) for UI components.
 
+## Send Transaction
+
+Use the `Send` component to trigger a transaction from a button. It handles the entire send flow.
+
+%%demo/examples/src/appkit/components/transaction#TRANSACTION%%
+
+For a custom UI, use `SendProvider` with `useSendContext` — see [Components Documentation](./docs/components.md#sendprovider).
+
 ## Swap
 
 AppKit uses a provider-based architecture for swaps. Any DEX or protocol can implement a swap provider by extending the `SwapProvider` class — AppKit handles routing, hooks, and transaction building through a unified interface.
@@ -123,6 +132,18 @@ Initialize `AppKit` with `OmnistonSwapProvider`:
 Use `useSwapQuote` to get a quote and `useBuildSwapTransaction` to build the transaction.
 
 See [Swap Hooks](./docs/hooks.md#swap) for usage examples.
+
+## Staking
+
+AppKit supports staking through various providers (e.g., Tonstakers). The staking functionality is integrated into the core action and hook system.
+
+### Hooks
+
+Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` or `useBuildUnstakeTransaction` to build the transaction.
+
+[Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
 
 ## Migration from TonConnect UI
 

@@ -34,6 +34,18 @@ Hook to fetch the TON balance of a specific address.
 
 %%demo/examples/src/appkit/hooks/balances#USE_BALANCE_BY_ADDRESS%%
 
+### `useWatchBalance`
+
+Hook to enable real-time balance updates for the currently selected wallet. It automatically updates the TanStack Query cache.
+
+%%demo/examples/src/appkit/hooks/balances#USE_WATCH_BALANCE%%
+
+### `useWatchBalanceByAddress`
+
+Hook to enable real-time balance updates for a specific address.
+
+%%demo/examples/src/appkit/hooks/balances#USE_WATCH_BALANCE_BY_ADDRESS%%
+
 ## Jettons
 
 ### `useJettons`
@@ -71,6 +83,18 @@ Hook to get the jetton wallet address for a specific jetton and owner address.
 Hook to transfer jettons to a recipient address.
 
 %%demo/examples/src/appkit/hooks/jettons#USE_TRANSFER_JETTON%%
+
+### `useWatchJettons`
+
+Hook to enable real-time jetton updates for the currently selected wallet.
+
+%%demo/examples/src/appkit/hooks/jettons#USE_WATCH_JETTONS%%
+
+### `useWatchJettonsByAddress`
+
+Hook to enable real-time jetton updates for a specific address.
+
+%%demo/examples/src/appkit/hooks/jettons#USE_WATCH_JETTONS_BY_ADDRESS%%
 
 ## Network
 
@@ -171,6 +195,18 @@ Hook to send a transaction to the blockchain.
 Hook to simplify transferring TON to another address.
 
 %%demo/examples/src/appkit/hooks/transaction#USE_TRANSFER_TON%%
+
+### `useWatchTransactions`
+
+Hook to watch for new transactions for the currently selected wallet in real-time.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_WATCH_TRANSACTIONS%%
+
+### `useWatchTransactionsByAddress`
+
+Hook to watch for new transactions for a specific address in real-time.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_WATCH_TRANSACTIONS_BY_ADDRESS%%
 
 ## Wallets
 

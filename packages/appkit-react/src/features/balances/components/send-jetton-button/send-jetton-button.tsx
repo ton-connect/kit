@@ -12,10 +12,10 @@ import { createTransferJettonTransaction, formatUnits, parseUnits } from '@ton/a
 
 import { useI18n } from '../../../../hooks/use-i18n';
 import { useAppKit } from '../../../../hooks/use-app-kit';
-import type { TransactionProps } from '../../../transaction';
-import { Transaction } from '../../../transaction';
+import type { SendProps } from '../../../transaction';
+import { Send } from '../../../transaction';
 
-export interface SendJettonButtonProps extends Omit<TransactionProps, 'request'> {
+export interface SendJettonButtonProps extends Omit<SendProps, 'request'> {
     recipientAddress: string;
     amount: string;
     jetton: {
@@ -66,7 +66,7 @@ export const SendJettonButton: FC<SendJettonButtonProps> = ({
     }, [t, amount, jetton]);
 
     return (
-        <Transaction
+        <Send
             request={createTransferTransaction}
             text={text}
             disabled={!recipientAddress || !amount || !jetton.address || !jetton.decimals}

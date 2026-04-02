@@ -19,7 +19,7 @@ import { BridgeManager } from './BridgeManager';
 import { EventRouter } from './EventRouter';
 import { RequestProcessor } from './RequestProcessor';
 import { globalLogger } from './Logger';
-import type { EventEmitter } from './EventEmitter';
+import type { WalletKitEventEmitter } from '../types/emitter';
 import { StorageEventStore } from './EventStore';
 import { StorageEventProcessor } from './EventProcessor';
 import { WalletTonClass } from './wallet/extensions/ton';
@@ -50,10 +50,10 @@ export interface InitializationResult {
 export class Initializer {
     private config: TonWalletKitOptions;
     private networkManager!: NetworkManager;
-    private eventEmitter: EventEmitter;
+    private eventEmitter: WalletKitEventEmitter;
     private analyticsManager?: AnalyticsManager;
 
-    constructor(config: TonWalletKitOptions, eventEmitter: EventEmitter, analyticsManager?: AnalyticsManager) {
+    constructor(config: TonWalletKitOptions, eventEmitter: WalletKitEventEmitter, analyticsManager?: AnalyticsManager) {
         this.config = config;
         this.eventEmitter = eventEmitter;
         this.analyticsManager = analyticsManager;

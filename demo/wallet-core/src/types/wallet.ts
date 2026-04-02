@@ -50,6 +50,7 @@ export interface AuthState {
         isUnlocked?: boolean;
         persistPassword?: boolean;
         holdToSign?: boolean;
+        showFastSend?: boolean;
         useWalletInterfaceType?: 'signer' | 'mnemonic' | 'ledger';
         ledgerAccountNumber?: number;
     };
@@ -130,6 +131,7 @@ export interface WalletKitConfig {
     disableNetworkSend?: boolean;
     disableManifestDomainCheck?: boolean;
     bridgeUrl?: string;
+    tonApiProvider?: 'tonapi' | 'toncenter';
     tonApiKeyMainnet?: string;
     tonApiKeyTestnet?: string;
     tonApiKeyTetra?: string;

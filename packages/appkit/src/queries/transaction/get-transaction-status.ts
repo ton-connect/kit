@@ -15,6 +15,7 @@ import type {
 import type { AppKit } from '../../core/app-kit';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute } from '../../types/utils';
+import { resolveNetwork } from '../../utils';
 
 export type { GetTransactionStatusErrorType, GetTransactionStatusParameters, GetTransactionStatusReturnType };
 
@@ -38,8 +39,11 @@ export type GetTransactionStatusQueryOptions<selectData = GetTransactionStatusDa
 
 export const getTransactionStatusQueryOptions = <selectData = GetTransactionStatusData>(
     appKit: AppKit,
-    options: GetTransactionStatusParameters & GetTransactionStatusQueryConfig<selectData>,
+    initialOptions: GetTransactionStatusParameters & GetTransactionStatusQueryConfig<selectData>,
 ): GetTransactionStatusQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         queryFn: () => {

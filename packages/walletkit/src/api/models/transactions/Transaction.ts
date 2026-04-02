@@ -132,7 +132,7 @@ export interface AccountState {
     /**
      * The state hash of the account
      */
-    hash: string;
+    hash?: string;
 
     /**
      * The account's balance in nanotons

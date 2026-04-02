@@ -9,7 +9,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import type { NFT } from '@ton/appkit';
 import { getFormattedNftInfo, createTransferNftTransaction, getErrorMessage } from '@ton/appkit';
-import { Transaction, useAppKit } from '@ton/appkit-react';
+import { Send, useAppKit } from '@ton/appkit-react';
 import { toast } from 'sonner';
 import { X, Image as ImageIcon } from 'lucide-react';
 
@@ -109,13 +109,13 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
                     </div>
 
                     <div className="flex mt-6 gap-3">
-                        <Transaction
+                        <Send
                             request={createTransferTransaction}
                             onSuccess={() => {
                                 handleClose();
                                 toast.success('NFT transferred successfully');
                             }}
-                            onError={(error) => {
+                            onError={(error: Error) => {
                                 setTransferError(getErrorMessage(error));
                             }}
                             disabled={!recipientAddress}
@@ -125,7 +125,7 @@ export const NftTransferModal: React.FC<NftTransferModalProps> = ({ nft, isOpen,
                                     {text}
                                 </Button>
                             )}
-                        </Transaction>
+                        </Send>
 
                         <Button variant="secondary" onClick={handleClose} className="flex-1">
                             Cancel

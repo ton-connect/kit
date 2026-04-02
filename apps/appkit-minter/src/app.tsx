@@ -7,11 +7,10 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
 import { AppKitProvider } from '@ton/appkit-react';
 
 import { appKit } from '@/core/configs/app-kit';
-import { AppRouter, ThemeProvider } from '@/core/components';
+import { AppRouter, ThemeProvider, ToasterProvider } from '@/core/components';
 
 import './core/styles/app.css';
 import '@ton/appkit-react/styles.css';
@@ -24,7 +23,7 @@ export const App = () => {
             <QueryClientProvider client={queryClient}>
                 <AppKitProvider appKit={appKit}>
                     <AppRouter />
-                    <Toaster position="top-right" richColors />
+                    <ToasterProvider />
                 </AppKitProvider>
             </QueryClientProvider>
         </ThemeProvider>

@@ -7,13 +7,13 @@
  */
 
 import type { SendTransactionRequestEvent } from '@ton/walletkit';
+import { getNormalizedExtMessageHash } from '@ton/walletkit';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
-import { useWallet } from '@demo/wallet-core';
-import { useWalletKit } from '@demo/wallet-core';
+import { useWallet, useWalletStore, useWalletKit, getTransactionExplorerUrls } from '@demo/wallet-core';
 
 import { DAppInfo } from '../dapp-info';
 import { JettonFlowItem } from '../jetton-flow-item';
@@ -33,7 +33,7 @@ import { useAppToasts } from '@/features/toasts';
 interface TransactionRequestModalProps {
     request: SendTransactionRequestEvent;
     isOpen: boolean;
-    onApprove: () => void;
+    onApprove: () => Promise<{ signedBoc: string } | undefined>;
     onReject: (reason?: string) => void;
 }
 
@@ -41,6 +41,9 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
     const { savedWallets } = useWallet();
     const walletKit = useWalletKit();
     const { theme } = useUnistyles();
+    const savedWalletsList = useWalletStore((state) => state.walletManagement.savedWallets);
+    const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
+    const network = savedWalletsList.find((w) => w.id === activeWalletId)?.network ?? 'testnet';
 
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -91,7 +94,17 @@ export const TransactionRequestModal: FC<TransactionRequestModalProps> = ({ requ
         setError(null);
 
         try {
-            await onApprove();
+            const result = await onApprove();
+            if (result?.signedBoc) {
+                const { hash } = getNormalizedExtMessageHash(result.signedBoc);
+                const { tonScan } = getTransactionExplorerUrls(hash, network);
+                toast({
+                    title: 'Transaction is sent to the network',
+                    subtitle: 'Tap to view on TonScan',
+                    type: 'success',
+                    onPress: () => Linking.openURL(tonScan),
+                });
+            }
             setIsLoading(false);
             setShowSuccess(true);
         } catch (err) {

@@ -15,7 +15,7 @@ import type {
     EmulationTokenInfoWallets,
 } from './emulation';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../utils/address';
-import { Base64ToHex } from '../../utils/base64';
+import { Base64NormalizeUrl, Base64ToHex } from '../../utils/base64';
 import { computeStatus, parseIncomingTonTransfers, parseOutgoingTonTransfers } from './parsers/TonTransfer';
 import { parseContractActions } from './parsers/Contract';
 import { parseJettonActions } from './parsers/Jetton';
@@ -117,6 +117,8 @@ export function toAddressBook(data: MetadataV3): AddressBook {
 
 export interface Event {
     eventId: Hex;
+    /** Normalized trace external hash (base64url) for deduplication with WebSocket pending */
+    traceExternalHash?: string;
     account: Account;
     timestamp: number;
     actions: Action[];
@@ -224,8 +226,22 @@ export type Action =
  * Helper: Build Event structure from parsed data
  */
 function buildEvent(data: ToncenterTraceItem, account: string, actions: Action[], addressBook: AddressBook): Event {
+    // Prefer hash_norm (TEP-467 normalized) to match WebSocket trace_external_hash_norm; fallback to raw hash
+    const extHash = (() => {
+        const firstTxHash = data.transactions_order?.[0];
+        const firstTx = firstTxHash ? data.transactions[firstTxHash] : undefined;
+        const inMsg = firstTx?.in_msg as { hash_norm?: string; hash?: string } | undefined;
+        return (
+            inMsg?.hash_norm ??
+            inMsg?.hash ??
+            data.external_hash ??
+            (data.trace?.in_msg_hash as string | undefined) ??
+            ''
+        );
+    })();
     return {
         eventId: Base64ToHex(data.trace_id),
+        traceExternalHash: extHash ? Base64NormalizeUrl(extHash) : undefined,
         account: toAccount(account, addressBook),
         timestamp: data.start_utime,
         actions,

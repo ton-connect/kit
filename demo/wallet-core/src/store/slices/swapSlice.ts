@@ -51,7 +51,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         });
     },
 
-    setAmount: (amount: string) => {
+    setSwapAmount: (amount: string) => {
         set((state) => {
             // Allow empty string or valid number input
             if (amount === '' || /^\d*\.?\d*$/.test(amount)) {
@@ -155,7 +155,7 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         return null;
     },
 
-    getQuote: async () => {
+    getSwapQuote: async () => {
         const state = get();
         const { fromToken, toToken, amount, isReverseSwap, slippageBps } = state.swap;
 
@@ -305,14 +305,11 @@ export const createSwapSlice: SwapSliceCreator = (set: SetState, get) => ({
         try {
             log.info('Executing swap', { quote: currentQuote });
 
-            const transaction = await state.walletCore.walletKit.swap.buildSwapTransaction(
-                {
-                    quote: currentQuote,
-                    userAddress: state.walletManagement.address,
-                    destinationAddress: state.swap.destinationAddress || undefined,
-                },
-                'omniston',
-            );
+            const transaction = await state.walletCore.walletKit.swap.buildSwapTransaction({
+                quote: currentQuote,
+                userAddress: state.walletManagement.address,
+                destinationAddress: state.swap.destinationAddress || undefined,
+            });
 
             if (state.walletCore.walletKit) {
                 await state.walletCore.walletKit.handleNewTransaction(

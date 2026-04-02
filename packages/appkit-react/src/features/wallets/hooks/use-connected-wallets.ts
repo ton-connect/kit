@@ -28,5 +28,5 @@ export const useConnectedWallets = (): UseConnectedWalletsReturnType => {
         return getConnectedWallets(appKit);
     }, [appKit]);
 
-    return useSyncExternalStore(subscribe, getSnapshot, () => []);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

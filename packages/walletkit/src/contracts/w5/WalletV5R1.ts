@@ -6,14 +6,17 @@
  *
  */
 
-import type { Address, Cell, Contract, Sender, ContractProvider, AccountStatus } from '@ton/core';
-import { beginCell, contractAddress, Dictionary, SendMode } from '@ton/core';
+import type { Address, Contract, Sender, ContractProvider, AccountStatus } from '@ton/core';
+import { beginCell, Cell, contractAddress, Dictionary, SendMode } from '@ton/core';
 
 import type { ApiClient } from '../../types/toncenter/ApiClient';
 import type { WalletOptions } from '../Wallet';
 import { defaultWalletIdV5R1 } from './WalletV5R1Adapter';
 import { ParseStack } from '../../utils/tvmStack';
 import { asAddressFriendly } from '../../utils';
+import { globalLogger } from '../../core/Logger';
+
+const log = globalLogger.createChild('WalletV5R1');
 
 export type WalletV5Config = {
     signatureAllowed: boolean;
@@ -162,15 +165,18 @@ export class WalletV5 implements Contract {
     }
 
     get seqno() {
-        return this.client.runGetMethod(asAddressFriendly(this.address), 'seqno').then((data) => {
-            if (data.exitCode === 0) {
-                const parsedStack = ParseStack(data.stack);
-                if (parsedStack[0]?.type === 'int') {
-                    return Number(parsedStack[0].value);
-                } else {
-                    throw new Error('Stack is not an int');
+        return this.client.getAccountState(asAddressFriendly(this.address)).then((state) => {
+            if (state.status === 'non-existing' || state.status === 'uninitialized' || !state.data) {
+                return 0;
+            }
+            try {
+                const dataCell = Cell.fromBase64(state.data);
+                if (dataCell.bits.length < 33) {
+                    return 0;
                 }
-            } else {
+                return dataCell.asSlice().skip(1).loadUint(32);
+            } catch (error) {
+                log.error('Failed to get seqno', { error });
                 return 0;
             }
         });

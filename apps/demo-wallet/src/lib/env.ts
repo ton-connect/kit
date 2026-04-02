@@ -7,6 +7,7 @@
  */
 
 export const ENV_BRIDGE_URL = import.meta.env.VITE_BRIDGE_URL ?? 'https://walletbot.me/tonconnect-bridge/bridge';
+export const ENV_TON_API_PROVIDER = import.meta.env?.VITE_TON_API_PROVIDER === 'tonapi' ? 'tonapi' : 'toncenter';
 export const ENV_TON_API_KEY_MAINNET =
     import.meta.env.VITE_TON_API_KEY ?? '25a9b2326a34b39a5fa4b264fb78fb4709e1bd576fc5e6b176639f5b71e94b0d';
 export const ENV_TON_API_KEY_TESTNET =

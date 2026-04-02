@@ -6,17 +6,19 @@
  *
  */
 
+import { Dictionary } from '@ton/core';
+
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
-import type { FullAccountState, GetMethodResult } from '../../types/toncenter/api';
+import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
 import type { WalletV5R1Id } from './WalletV5R1';
+import { walletV5ConfigToCell } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';
 import type { ToncenterResponseJettonMasters, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
 import { Signer } from '../../utils/Signer';
-import { Uint8ArrayToHex } from '../../utils/base64';
 import { Network } from '../../api/models';
 
 export const mnemonic = [
@@ -62,25 +64,29 @@ export const addressV5r1 = {
 export const addressV5r1Test = {
     bounceableNot: '0QDSLOFVamNZzdy4LulclcCBEFkRReZ7WscBCLAw3Pg53qZr',
 };
+
+const walletDataCell = walletV5ConfigToCell({
+    signatureAllowed: true,
+    seqno: 5,
+    walletId: 2147483409,
+    publicKey: BigInt('0x' + Buffer.from(publicKey).toString('hex')),
+    extensions: Dictionary.empty(),
+});
+const walletDataBase64 = walletDataCell.toBoc().toString('base64');
+
 export function createMockApiClient(): ApiClient {
     return {
         nftItemsByAddress: mockFn().mockResolvedValue({} as NftItemsResponse),
         nftItemsByOwner: mockFn().mockResolvedValue({} as NftItemsResponse),
         fetchEmulation: mockFn().mockResolvedValue({} as ToncenterEmulationResponse),
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
-        runGetMethod: mockFn().mockResolvedValue({} as GetMethodResult),
+        runGetMethod: mockFn().mockResolvedValue({}),
         getAccountState: mockFn().mockResolvedValue({
             status: 'active',
             balance: '1000000000',
-            last: {
-                lt: '123',
-                hash: Uint8ArrayToHex(new Uint8Array(32).fill(1)),
-            },
-            frozen: null,
-            state: { type: 'active', code: 'mock-code', data: 'mock-data' },
-            extraCurrencies: [],
+            extraCurrencies: {},
             code: 'mock-code',
-            data: 'mock-data',
+            data: walletDataBase64,
             lastTransaction: null,
         } as unknown as FullAccountState),
         getBalance: mockFn().mockResolvedValue('1000000000'),

@@ -17,7 +17,7 @@ import {
     Network,
     Signer,
 } from '@ton/walletkit';
-import type { ITonWalletKit, ToncenterTransaction } from '@ton/walletkit';
+import type { ITonWalletKit, Transaction } from '@ton/walletkit';
 import { createWalletInitConfigLedger, createLedgerPath, createWalletV4R2Ledger } from '@demo/v4ledger-adapter';
 
 import type { CreateLedgerTransportFunction, LedgerConfig, PreviewTransaction, SavedWallet } from '../types/wallet';
@@ -173,45 +173,45 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 }
 
 /**
- * Transforms a Toncenter transaction to our PreviewTransaction type
+ * Transforms a streaming Transaction to our PreviewTransaction type
  */
-export function transformToncenterTransaction(tx: ToncenterTransaction): PreviewTransaction {
+export function transformTransaction(tx: Transaction): PreviewTransaction {
     let type: 'send' | 'receive' = 'receive';
     let amount = '0';
     let address = '';
 
-    if (tx.in_msg && tx.in_msg.value) {
-        amount = tx.in_msg.value;
-        address = tx.in_msg.source || '';
+    if (tx.inMessage && tx.inMessage.value) {
+        amount = tx.inMessage.value;
+        address = tx.inMessage.source || '';
         type = 'receive';
     }
 
-    if (tx.out_msgs && tx.out_msgs.length > 0) {
-        const mainOutMsg = tx.out_msgs[0];
+    if (tx.outMessages && tx.outMessages.length > 0) {
+        const mainOutMsg = tx.outMessages[0];
         if (mainOutMsg.value) {
             amount = mainOutMsg.value;
-            address = mainOutMsg.destination;
+            address = mainOutMsg.destination || '';
             type = 'send';
         }
     }
 
     let status: 'pending' | 'confirmed' | 'failed' = 'confirmed';
-    if (tx.description.aborted) {
+    if (tx.description?.isAborted) {
         status = 'failed';
-    } else if (!tx.description.compute_ph.success) {
+    } else if (!tx.description?.computePhase?.isSuccess) {
         status = 'failed';
     }
 
     return {
         id: tx.hash,
-        traceId: tx.trace_id || undefined,
-        messageHash: tx.in_msg?.hash || '',
+        traceId: tx.traceId || undefined,
+        messageHash: tx.inMessage?.hash || '',
         type,
         amount,
         address,
         timestamp: tx.now * 1000,
         status,
-        externalMessageHash: tx.trace_external_hash || undefined,
+        externalMessageHash: tx.traceExternalHash || undefined,
     };
 }
 

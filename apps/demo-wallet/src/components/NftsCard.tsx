@@ -78,7 +78,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
 
     if (error) {
         return (
-            <Card title="NFTs" className={className}>
+            <Card title="NFTs" className={className} compact>
                 <div className="text-center py-4">
                     <div className="text-red-400 mb-2">
                         <svg className="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -99,7 +99,7 @@ export const NftsCard: React.FC<NftsCardProps> = ({ className = '' }) => {
     }
 
     return (
-        <Card title="NFTs" className={className}>
+        <Card title="NFTs" className={className} compact>
             {isLoadingNfts ? (
                 <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>

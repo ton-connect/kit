@@ -18,6 +18,7 @@ import { getBlockNumberExample } from './get-block-number';
 import { getDefaultNetworkExample } from './get-default-network';
 import { setDefaultNetworkExample } from './set-default-network';
 import { watchDefaultNetworkExample } from './watch-default-network';
+import { hasStreamingProviderExample } from './has-streaming-provider';
 
 describe('Network Actions Examples', () => {
     let appKit: AppKit;
@@ -150,6 +151,18 @@ describe('Network Actions Examples', () => {
             expect(typeof unsubscribe).toBe('function');
 
             unsubscribe();
+        });
+    });
+
+    describe('hasStreamingProviderExample', () => {
+        it('should log streaming support status', () => {
+            vi.spyOn(appKit.streamingManager, 'hasProvider').mockReturnValue(true);
+            hasStreamingProviderExample(appKit);
+            expect(consoleSpy).toHaveBeenCalledWith('Mainnet streaming support:', true);
+
+            vi.spyOn(appKit.streamingManager, 'hasProvider').mockReturnValue(false);
+            hasStreamingProviderExample(appKit);
+            expect(consoleSpy).toHaveBeenCalledWith('Mainnet streaming support:', false);
         });
     });
 });

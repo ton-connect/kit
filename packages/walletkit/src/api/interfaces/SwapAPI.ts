@@ -23,12 +23,11 @@ export interface SwapAPI extends DefiManagerAPI<SwapProviderInterface> {
     getQuote(params: SwapQuoteParams, providerId?: string): Promise<SwapQuote>;
 
     /**
-     * Build a transaction for a swap
+     * Build a transaction for a swap. Provider is taken from `params.quote.providerId`, or the manager default.
      * @param params Swap parameters (quote, user address, etc.)
-     * @param providerId Provider identifier (optional, uses default if not specified)
      * @returns A promise that resolves to a TransactionRequest
      */
-    buildSwapTransaction(params: SwapParams, providerId?: string): Promise<TransactionRequest>;
+    buildSwapTransaction(params: SwapParams): Promise<TransactionRequest>;
 }
 
 /**

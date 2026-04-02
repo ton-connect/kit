@@ -28,4 +28,5 @@ dist-ssr
 styled-system
 styled-system-studio
 
+# Typescript
 tsconfig.tsbuildinfo

@@ -12,10 +12,10 @@ import { createTransferTonTransaction } from '@ton/appkit';
 
 import { useI18n } from '../../../../hooks/use-i18n';
 import { useAppKit } from '../../../../hooks/use-app-kit';
-import type { TransactionProps } from '../../../transaction';
-import { Transaction } from '../../../transaction';
+import type { SendProps } from '../../../transaction';
+import { Send } from '../../../transaction';
 
-export interface SendTonButtonProps extends Omit<TransactionProps, 'request'> {
+export interface SendTonButtonProps extends Omit<SendProps, 'request'> {
     recipientAddress: string;
     amount: string;
     comment?: string;
@@ -34,7 +34,7 @@ export const SendTonButton: FC<SendTonButtonProps> = ({ recipientAddress, amount
     }, [appKit, recipientAddress, amount, comment]);
 
     return (
-        <Transaction
+        <Send
             request={createTransferTransaction}
             disabled={!recipientAddress || !amount}
             text={t('balances.sendTon', { amount })}

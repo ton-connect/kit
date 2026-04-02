@@ -13,3 +13,5 @@ export * from './components/send-jetton-button';
 
 export * from './hooks/use-balance';
 export * from './hooks/use-balance-by-address';
+export * from './hooks/use-watch-balance';
+export * from './hooks/use-watch-balance-by-address';

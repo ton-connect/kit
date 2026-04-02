@@ -6,8 +6,8 @@
  *
  */
 
-import type { Base64String } from '@ton/appkit';
-import { Transaction } from '@ton/appkit-react';
+import type { Base64String, SendTransactionReturnType } from '@ton/appkit';
+import { Send } from '@ton/appkit-react';
 import { beginCell } from '@ton/core';
 
 /* eslint-disable no-console */
@@ -15,7 +15,7 @@ import { beginCell } from '@ton/core';
 export const TransactionExample = () => {
     // SAMPLE_START: TRANSACTION
     return (
-        <Transaction
+        <Send
             request={{
                 messages: [
                     {
@@ -31,10 +31,10 @@ export const TransactionExample = () => {
                 ],
             }}
             text="Send Transaction"
-            onSuccess={(result) => {
+            onSuccess={(result: SendTransactionReturnType) => {
                 console.log('Transaction sent:', result);
             }}
-            onError={(error) => {
+            onError={(error: Error) => {
                 console.error('Transaction failed:', error);
             }}
         />

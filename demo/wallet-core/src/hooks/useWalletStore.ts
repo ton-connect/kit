@@ -41,6 +41,7 @@ export const useAuth = () => {
             isUnlocked: state.auth.isUnlocked,
             persistPassword: state.auth.persistPassword,
             holdToSign: state.auth.holdToSign,
+            showFastSend: state.auth.showFastSend,
             useWalletInterfaceType: state.auth.useWalletInterfaceType,
             ledgerAccountNumber: state.auth.ledgerAccountNumber,
             setPassword: state.setPassword,
@@ -49,6 +50,7 @@ export const useAuth = () => {
             reset: state.reset,
             setPersistPassword: state.setPersistPassword,
             setHoldToSign: state.setHoldToSign,
+            setShowFastSend: state.setShowFastSend,
             setUseWalletInterfaceType: state.setUseWalletInterfaceType,
             setLedgerAccountNumber: state.setLedgerAccountNumber,
             createLedgerWallet: state.createLedgerWallet,
@@ -65,9 +67,11 @@ export const useWallet = () => {
             isAuthenticated: state.walletManagement.isAuthenticated,
             hasWallet: state.walletManagement.hasWallet,
             address: state.walletManagement.address,
+            isStreamingConnected: state.walletManagement.isStreamingConnected,
             balance: state.walletManagement.balance,
             publicKey: state.walletManagement.publicKey,
             events: state.walletManagement.events,
+            pendingTransactions: state.walletManagement.pendingTransactions,
             currentWallet: state.walletManagement.currentWallet,
             savedWallets: state.walletManagement.savedWallets,
             activeWalletId: state.walletManagement.activeWalletId,
@@ -233,12 +237,12 @@ export const useSwap = () => {
             isReverseSwap: state.swap.isReverseSwap,
             setFromToken: state.setFromToken,
             setToToken: state.setToToken,
-            setAmount: state.setAmount,
+            setSwapAmount: state.setSwapAmount,
             setDestinationAddress: state.setDestinationAddress,
             setSlippageBps: state.setSlippageBps,
             setIsReverseSwap: state.setIsReverseSwap,
             swapTokens: state.swapTokens,
-            getQuote: state.getQuote,
+            getSwapQuote: state.getSwapQuote,
             executeSwap: state.executeSwap,
             clearSwap: state.clearSwap,
             validateSwapInputs: state.validateSwapInputs,
@@ -266,6 +270,35 @@ export const useIntents = () => {
             rejectBatchedIntent: state.rejectBatchedIntent,
             closeIntentModal: state.closeIntentModal,
             closeBatchedIntentModal: state.closeBatchedIntentModal,
+        })),
+    );
+};
+
+/**
+ * Hook for Staking
+ */
+export const useStaking = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            amount: state.staking.amount,
+            providerId: state.staking.providerId,
+            currentQuote: state.staking.currentQuote,
+            isLoadingQuote: state.staking.isLoadingQuote,
+            isStaking: state.staking.isStaking,
+            isUnstaking: state.staking.isUnstaking,
+            error: state.staking.error,
+            stakedBalance: state.staking.stakedBalance,
+            providerInfo: state.staking.providerInfo,
+            unstakeMode: state.staking.unstakeMode,
+            setStakingAmount: state.setStakingAmount,
+            setStakingProviderId: state.setStakingProviderId,
+            setUnstakeMode: state.setUnstakeMode,
+            getStakingQuote: state.getStakingQuote,
+            stake: state.stake,
+            unstake: state.unstake,
+            loadStakingData: state.loadStakingData,
+            clearStaking: state.clearStaking,
+            validateStakingInputs: state.validateStakingInputs,
         })),
     );
 };

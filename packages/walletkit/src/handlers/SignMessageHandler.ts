@@ -22,6 +22,7 @@ import { globalLogger } from '../core/Logger';
 import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
 import type { EventEmitter } from '../core/EventEmitter';
+import type { WalletKitEvents } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
@@ -41,13 +42,13 @@ export class SignMessageHandler
     extends BasicHandler<SignMessageRequestEvent>
     implements EventHandler<SignMessageRequestEvent, RawBridgeEventSignMessage>
 {
-    private eventEmitter: EventEmitter;
+    private eventEmitter: EventEmitter<WalletKitEvents>;
     private analytics?: Analytics;
 
     constructor(
         notify: (event: SignMessageRequestEvent) => void,
         _config: TonWalletKitOptions,
-        eventEmitter: EventEmitter,
+        eventEmitter: EventEmitter<WalletKitEvents>,
         private readonly walletManager: WalletManager,
         private readonly sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
@@ -92,7 +93,7 @@ export class SignMessageHandler
         const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
             log.error('Failed to parse sign message request', { event, requestValidation });
-            this.eventEmitter.emit('event:error', event);
+            this.eventEmitter.emit('eventError', event, 'sign-message-handler');
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,

@@ -11,7 +11,7 @@ import { getBlockNumber } from '../../actions/network/get-block-number';
 import type { GetBlockNumberOptions } from '../../actions/network/get-block-number';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 import type { GetBlockNumberReturnType } from '../../actions/network/get-block-number';
 
 export type GetBlockNumberErrorType = Error;
@@ -23,8 +23,11 @@ export type GetBlockNumberQueryConfig<selectData = GetBlockNumberData> = Compute
 
 export const getBlockNumberQueryOptions = <selectData = GetBlockNumberData>(
     appKit: AppKit,
-    options: GetBlockNumberQueryConfig<selectData> = {},
+    initialOptions: GetBlockNumberQueryConfig<selectData> = {},
 ): GetBlockNumberQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         gcTime: 0,

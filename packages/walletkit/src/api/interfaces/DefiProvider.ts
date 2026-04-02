@@ -6,19 +6,16 @@
  *
  */
 
+import type { BaseProvider } from '../models';
+
 /**
  * Type of provider
  */
-export type DefiProviderType = 'swap';
+export type DefiProviderType = 'swap' | 'staking';
 
 /**
- * Base interface for all providers
+ * Base interface for all DeFi providers
  */
-export interface DefiProvider {
+export interface DefiProvider extends BaseProvider {
     readonly type: DefiProviderType;
-
-    /**
-     * Unique identifier for the provider
-     */
-    readonly providerId: string;
 }

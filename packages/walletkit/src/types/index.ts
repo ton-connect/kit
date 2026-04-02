@@ -15,6 +15,10 @@ export type { ValidationResult } from '../validation/types';
 // Configuration types
 export type { TonWalletKitOptions, NetworkConfig, NetworkAdapters, ApiClientConfig } from './config';
 
+// Factory types
+export type { ProviderInput } from './factory';
+export { createProvider, resolveProvider } from './factory';
+
 // Main kit interface
 export type { ITonWalletKit } from './kit';
 
@@ -78,7 +82,7 @@ export type {
 export type { NftItem } from './toncenter/NftItem';
 
 export type { NftItems } from './toncenter/NftItems';
-export { emulationEvent } from './toncenter/AccountEvent';
+export { emulationEvent, toEvent, toAddressBook } from './toncenter/AccountEvent';
 
 // Account Event types
 export type {

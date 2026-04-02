@@ -9,6 +9,8 @@
 export * from './hooks/use-send-transaction';
 export * from './hooks/use-transfer-ton';
 export * from './hooks/use-transaction-status';
+export * from './hooks/use-watch-transactions-by-address';
+export * from './hooks/use-watch-transactions';
 
 export * from './components/transaction';
 export * from './components/transaction-progress';

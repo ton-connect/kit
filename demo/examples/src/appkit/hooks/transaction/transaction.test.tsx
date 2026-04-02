@@ -15,6 +15,8 @@ import { Network } from '@ton/walletkit';
 import { createWrapper } from '../../../__tests__/test-utils';
 import { UseSendTransactionExample } from './use-send-transaction';
 import { UseTransferTonExample } from './use-transfer-ton';
+import { UseWatchTransactionsByAddressExample } from './use-watch-transactions-by-address';
+import { UseWatchTransactionsExample } from './use-watch-transactions';
 
 describe('Transaction Hooks Examples', () => {
     let mockAppKit: any;
@@ -24,7 +26,7 @@ describe('Transaction Hooks Examples', () => {
     const mockNetwork = Network.mainnet();
 
     const mockWallet = {
-        getAddress: () => 'EQaddress1',
+        getAddress: () => 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         getNetwork: () => mockNetwork,
         sendTransaction: vi.fn(),
     };
@@ -41,6 +43,11 @@ describe('Transaction Hooks Examples', () => {
             connectors: [],
             walletsManager: {
                 selectedWallet: mockWallet,
+            },
+            streamingManager: {
+                hasProvider: vi.fn().mockReturnValue(true),
+                watchTransactions: vi.fn().mockReturnValue(() => {}),
+                watchTransactionsByAddress: vi.fn().mockReturnValue(() => {}),
             },
             emitter: {
                 on: vi.fn().mockReturnValue(() => {}),
@@ -135,7 +142,7 @@ describe('Transaction Hooks Examples', () => {
                                 payload: expect.any(String),
                             }),
                         ]),
-                        fromAddress: 'EQaddress1',
+                        fromAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
                     }),
                 );
             });
@@ -152,6 +159,20 @@ describe('Transaction Hooks Examples', () => {
             await waitFor(() => {
                 expect(screen.getByText(`BOC: ${mockBoc}`)).toBeDefined();
             });
+        });
+    });
+
+    describe('UseWatchTransactionsExample', () => {
+        it('should render initial state and call watch', async () => {
+            render(<UseWatchTransactionsExample />, { wrapper: createWrapper(mockAppKit) });
+            expect(screen.getByText('Waiting for transactions...')).toBeDefined();
+        });
+    });
+
+    describe('UseWatchTransactionsByAddressExample', () => {
+        it('should render initial state and call watch by address', async () => {
+            render(<UseWatchTransactionsByAddressExample />, { wrapper: createWrapper(mockAppKit) });
+            expect(screen.getByText('Waiting for transactions...')).toBeDefined();
         });
     });
 });

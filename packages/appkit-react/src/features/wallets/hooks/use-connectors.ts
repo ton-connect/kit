@@ -28,5 +28,5 @@ export const useConnectors = (): UseConnectorsReturnType => {
         return getConnectors(appKit);
     }, [appKit]);
 
-    return useSyncExternalStore(subscribe, getSnapshot, () => []);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

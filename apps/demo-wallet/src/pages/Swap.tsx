@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSwap } from '@demo/wallet-core';
 
-import { Layout, Button } from '../components';
+import { Layout } from '../components';
 import { SwapInterface } from '../components/swap/SwapInterface';
 
 import { USDT_ADDRESS } from '@/constants/swap';
@@ -28,13 +28,7 @@ export const Swap: FC = () => {
     }, []);
 
     return (
-        <Layout title="Swap TON ↔ USDT">
-            <div className="flex items-center space-x-4 mb-6">
-                <Button variant="secondary" size="sm" onClick={() => navigate('/wallet')}>
-                    ← Back
-                </Button>
-            </div>
-
+        <Layout title="Swap TON ↔ USDT" onBack={() => navigate('/wallet')}>
             <SwapInterface />
 
             {/* Warning */}

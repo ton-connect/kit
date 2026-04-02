@@ -6,8 +6,8 @@
  *
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import * as AppKitReact from '@ton/appkit-react';
 
 import { UseJettonInfoExample } from './use-jetton-info';
@@ -16,6 +16,8 @@ import { UseJettonWalletAddressExample } from './use-jetton-wallet-address';
 import { UseJettonsByAddressExample } from './use-jettons-by-address';
 import { UseJettonsExample } from './use-jettons';
 import { UseTransferJettonExample } from './use-transfer-jetton';
+import { UseWatchJettonsByAddressExample } from './use-watch-jettons-by-address';
+import { UseWatchJettonsExample } from './use-watch-jettons';
 
 // Mock the whole module
 vi.mock('@ton/appkit-react', async () => {
@@ -28,12 +30,18 @@ vi.mock('@ton/appkit-react', async () => {
         useJettonsByAddress: vi.fn(),
         useJettons: vi.fn(),
         useTransferJetton: vi.fn(),
+        useWatchJettons: vi.fn(),
+        useWatchJettonsByAddress: vi.fn(),
     };
 });
 
 describe('Jetton Hooks Examples', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        cleanup();
     });
 
     describe('UseJettonInfoExample', () => {
@@ -177,6 +185,42 @@ describe('Jetton Hooks Examples', () => {
             render(<UseTransferJettonExample />);
             const button = screen.getByText('Transferring...');
             expect(button.closest('button')?.disabled).toBe(true);
+        });
+    });
+
+    describe('UseWatchJettonsExample', () => {
+        it('should render jetton list', () => {
+            // @ts-expect-error - mock
+            vi.mocked(AppKitReact.useJettons).mockReturnValue({
+                isLoading: false,
+                data: {
+                    jettons: [{ walletAddress: 'addr1', info: { name: 'My Jetton' }, balance: '100' }],
+                },
+                error: null,
+            });
+
+            render(<UseWatchJettonsExample />);
+            expect(screen.getByText('My Jetton: 100')).toBeDefined();
+            expect(AppKitReact.useWatchJettons).toHaveBeenCalled();
+        });
+    });
+
+    describe('UseWatchJettonsByAddressExample', () => {
+        it('should render jetton list for address', () => {
+            // @ts-expect-error - mock
+            vi.mocked(AppKitReact.useJettonsByAddress).mockReturnValue({
+                isLoading: false,
+                data: {
+                    jettons: [{ walletAddress: 'addr2', info: { name: 'Other Jetton' }, balance: '50' }],
+                },
+                error: null,
+            });
+
+            render(<UseWatchJettonsByAddressExample />);
+            expect(screen.getByText('Other Jetton: 50')).toBeDefined();
+            expect(AppKitReact.useWatchJettonsByAddress).toHaveBeenCalledWith({
+                address: 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ',
+            });
         });
     });
 });

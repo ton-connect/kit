@@ -23,7 +23,7 @@ import { createTransactionPreview as createTransactionPreviewHelper } from '../u
 import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
-import type { EventEmitter } from '../core/EventEmitter';
+import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
@@ -38,13 +38,13 @@ export class TransactionHandler
     extends BasicHandler<SendTransactionRequestEvent>
     implements EventHandler<SendTransactionRequestEvent, RawBridgeEventTransaction>
 {
-    private eventEmitter: EventEmitter;
+    private eventEmitter: WalletKitEventEmitter;
     private analytics?: Analytics;
 
     constructor(
         notify: (event: SendTransactionRequestEvent) => void,
         private readonly config: TonWalletKitOptions,
-        eventEmitter: EventEmitter,
+        eventEmitter: WalletKitEventEmitter,
         private readonly walletManager: WalletManager,
         private readonly sessionManager: TONConnectSessionManager,
         analyticsManager?: AnalyticsManager,
@@ -90,7 +90,7 @@ export class TransactionHandler
         const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
         if (!requestValidation.result || !requestValidation?.validation?.isValid) {
             log.error('Failed to parse transaction request', { event, requestValidation });
-            this.eventEmitter.emit('event:error', event);
+            this.eventEmitter.emit('eventError', event, 'transaction-handler');
 
             return {
                 error: {
@@ -109,7 +109,7 @@ export class TransactionHandler
                 // Emit emulation result event for jetton caching and other components
                 if (preview.result === Result.success && preview.trace) {
                     try {
-                        this.eventEmitter.emit('emulation:result', preview.trace);
+                        this.eventEmitter.emit('emulationResult', preview.trace, 'transaction-handler');
                     } catch (error) {
                         log.warn('Error emitting emulation result event', { error });
                     }

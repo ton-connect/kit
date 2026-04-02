@@ -64,13 +64,13 @@ return (
 
 ## Transactions
 
-### `Transaction`
+### `Send`
 
 A drop-in component that handles the entire transaction flow.
 
 ```tsx
 return (
-    <Transaction
+    <Send
         request={{
             messages: [
                 {
@@ -86,10 +86,10 @@ return (
             ],
         }}
         text="Send Transaction"
-        onSuccess={(result) => {
+        onSuccess={(result: SendTransactionReturnType) => {
             console.log('Transaction sent:', result);
         }}
-        onError={(error) => {
+        onError={(error: Error) => {
             console.error('Transaction failed:', error);
         }}
     />

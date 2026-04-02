@@ -32,6 +32,35 @@ const balanceByAddress = await getBalanceByAddress(appKit, {
 console.log('Balance by address:', balanceByAddress.toString());
 ```
 
+### `watchBalance`
+
+Watch the TON balance of the currently selected wallet in real-time.
+
+```ts
+const unsubscribe = watchBalance(appKit, {
+    onChange: (update) => {
+        console.log('Balance updated:', update.balance);
+    },
+});
+
+// Later: unsubscribe();
+```
+
+### `watchBalanceByAddress`
+
+Watch the TON balance of a specific address in real-time.
+
+```ts
+const unsubscribe = watchBalanceByAddress(appKit, {
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+    onChange: (update) => {
+        console.log('Balance by address updated:', update.balance);
+    },
+});
+
+// Later: unsubscribe();
+```
+
 ## Connectors
 
 ### `connect`
@@ -51,7 +80,7 @@ Add a wallet connector to AppKit (e.g., TonConnect).
 ```ts
 const stopWatching = addConnector(
     appKit,
-    new TonConnectConnector({
+    createTonConnectConnector({
         tonConnectOptions: {
             manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
         },
@@ -260,6 +289,18 @@ const networks = getNetworks(appKit);
 console.log('Configured networks:', networks);
 ```
 
+### `getApiClient`
+
+Get the API client for a specific network.
+
+```ts
+const apiClient = getApiClient(appKit, {
+    network: Network.mainnet(),
+});
+
+console.log('API Client:', apiClient);
+```
+
 ### `watchNetworks`
 
 Watch configured networks.
@@ -272,6 +313,15 @@ const unsubscribe = watchNetworks(appKit, {
 });
 
 // Later: unsubscribe();
+```
+
+### `hasStreamingProvider`
+
+Check if a real-time streaming provider is registered for a specific network.
+
+```ts
+const isSupported = hasStreamingProvider(appKit, Network.mainnet());
+console.log('Mainnet streaming support:', isSupported);
 ```
 
 ### `getBlockNumber`
@@ -352,7 +402,7 @@ Get information about a specific NFT by its address.
 
 ```ts
 const nft = await getNft(appKit, {
-    address: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
 if (nft) {
@@ -367,7 +417,7 @@ Create a transaction for transferring a NFT without sending it.
 
 ```ts
 const tx = await createTransferNftTransaction(appKit, {
-    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     comment: 'Gift NFT',
 });
@@ -381,7 +431,7 @@ Transfer a NFT to a recipient address.
 
 ```ts
 const result = await transferNft(appKit, {
-    nftAddress: 'EQCA14o1-VWhS29szfbpmbu_m7A_9S4m_Ba6sAyALH_mU68j',
+    nftAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     recipientAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
@@ -392,7 +442,7 @@ console.log('NFT Transfer Result:', result);
 
 ### `registerProvider`
 
-Register a custom token swap provider in AppKit (e.g., Omniston).
+Register a custom provider in AppKit (e.g., Swap or Streaming).
 
 ```ts
 const omnistonProvider = new OmnistonSwapProvider({
@@ -481,6 +531,63 @@ const transactionRequest = await buildSwapTransaction(appKit, {
 });
 const transactionResponse = await sendTransaction(appKit, transactionRequest);
 console.log('Swap Transaction:', transactionResponse);
+```
+
+## Staking
+
+### `getStakingProviders`
+
+Get all available staking provider IDs.
+
+```ts
+const providers = await getStakingProviders(appKit);
+console.log('Available Staking Providers:', providers);
+```
+
+### `getStakingProviderInfo`
+
+Get information about a specific staking provider.
+
+```ts
+const providerInfo = await getStakingProviderInfo(appKit, {
+    providerId: 'tonstakers',
+});
+console.log('Provider Info:', providerInfo);
+```
+
+### `getStakingQuote`
+
+Get a staking or unstaking quote.
+
+```ts
+const quote = await getStakingQuote(appKit, {
+    amount: '1000000000',
+    direction: 'stake',
+});
+console.log('Staking Quote:', quote);
+```
+
+### `buildStakeTransaction`
+
+Build a stake transaction based on a quote.
+
+```ts
+const txRequest = await buildStakeTransaction(appKit, {
+    quote,
+    userAddress,
+});
+console.log('Stake Transaction:', txRequest);
+```
+
+### `getStakedBalance`
+
+Get the user's staked balance.
+
+```ts
+const balance = await getStakedBalance(appKit, {
+    userAddress,
+});
+console.log('Staked Balance:', balance);
 ```
 
 ## Transaction

@@ -7,6 +7,7 @@
  */
 
 export * from './crypto';
+export * from './explorer-urls';
 export * from './formatters';
 export * from './network';
 export * from './units';

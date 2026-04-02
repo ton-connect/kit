@@ -29,9 +29,11 @@
 export * from './core/app-kit';
 export * from './core/emitter';
 export * from './core/network';
+export * from './core/streaming';
 export * from './connectors/tonconnect';
 
 export * from './swap';
+export * from './staking';
 
 // Actions
 export * from './actions';

@@ -20,6 +20,18 @@ Fetch the TON balance of a specific address.
 
 %%demo/examples/src/appkit/actions/balances#GET_BALANCE_BY_ADDRESS%%
 
+### `watchBalance`
+
+Watch the TON balance of the currently selected wallet in real-time.
+
+%%demo/examples/src/appkit/actions/balances#WATCH_BALANCE%%
+
+### `watchBalanceByAddress`
+
+Watch the TON balance of a specific address in real-time.
+
+%%demo/examples/src/appkit/actions/balances#WATCH_BALANCE_BY_ADDRESS%%
+
 ## Connectors
 
 ### `connect`
@@ -122,11 +134,23 @@ Get all configured networks.
 
 %%demo/examples/src/appkit/actions/network#GET_NETWORKS%%
 
+### `getApiClient`
+
+Get the API client for a specific network.
+
+%%demo/examples/src/appkit/actions/network#GET_API_CLIENT%%
+
 ### `watchNetworks`
 
 Watch configured networks.
 
 %%demo/examples/src/appkit/actions/network#WATCH_NETWORKS%%
+
+### `hasStreamingProvider`
+
+Check if a real-time streaming provider is registered for a specific network.
+
+%%demo/examples/src/appkit/actions/network#HAS_STREAMING_PROVIDER%%
 
 ### `getBlockNumber`
 
@@ -188,7 +212,7 @@ Transfer a NFT to a recipient address.
 
 ### `registerProvider`
 
-Register a custom token swap provider in AppKit (e.g., Omniston).
+Register a custom provider in AppKit (e.g., Swap or Streaming).
 
 %%demo/examples/src/appkit/actions/providers#REGISTER_PROVIDER%%
 
@@ -231,6 +255,38 @@ Get a swap quote from registered providers.
 Build (assemble) a swap transaction based on a quote. After the transaction is built, you can use `sendTransaction` to execute it on the blockchain.
 
 %%demo/examples/src/appkit/actions/swap#BUILD_SWAP_TRANSACTION%%
+
+## Staking
+
+### `getStakingProviders`
+
+Get all available staking provider IDs.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDERS%%
+
+### `getStakingProviderInfo`
+
+Get information about a specific staking provider.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO%%
+
+### `getStakingQuote`
+
+Get a staking or unstaking quote.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_QUOTE%%
+
+### `buildStakeTransaction`
+
+Build a stake transaction based on a quote.
+
+%%demo/examples/src/appkit/actions/staking#BUILD_STAKE_TRANSACTION%%
+
+### `getStakedBalance`
+
+Get the user's staked balance.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKED_BALANCE%%
 
 ## Transaction
 

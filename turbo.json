@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "lib/**", "docs/**", "!.next/cache/**"]
+      "outputs": ["dist/**", "lib/**", "docs/**", "!.next/cache/**"],
+      "env": ["VITE_TON_API_KEY", "VITE_TON_API_TESTNET_KEY", "VITE_TON_API_PROVIDER"]
     },
     "build:bridge": {
       "cache": false

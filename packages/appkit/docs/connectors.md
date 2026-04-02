@@ -41,7 +41,7 @@ const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
             },
@@ -68,7 +68,7 @@ const appKit = new AppKit({
             },
         },
     },
-    connectors: [new TonConnectConnector({ tonConnectUI })],
+    connectors: [createTonConnectConnector({ tonConnectUI })],
 });
 ```
 
@@ -89,8 +89,8 @@ const appKit = new AppKit({
     },
 });
 
-// 2. Initialize TonConnect connector
-const connector = new TonConnectConnector({
+// 2. Initialize TonConnect connector function
+const connector = createTonConnectConnector({
     tonConnectOptions: {
         manifestUrl: 'https://my-app.com/tonconnect-manifest.json',
     },

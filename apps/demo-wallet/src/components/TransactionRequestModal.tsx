@@ -13,8 +13,16 @@ import type {
     SendTransactionRequestEvent,
     TransactionTraceMoneyFlowItem,
 } from '@ton/walletkit';
+import { getNormalizedExtMessageHash } from '@ton/walletkit';
 import { Address } from '@ton/core';
-import { useWalletKit, useAuth, useWalletStore, useTransactionRequests, getChainNetwork } from '@demo/wallet-core';
+import {
+    useWalletKit,
+    useAuth,
+    useWalletStore,
+    useTransactionRequests,
+    getChainNetwork,
+    getTransactionExplorerUrls,
+} from '@demo/wallet-core';
 import type { SavedWallet, NetworkType } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
@@ -38,6 +46,7 @@ interface TransactionRequestModalProps {
 export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = ({ request, savedWallets, isOpen }) => {
     const walletKit = useWalletKit();
     const isAuthenticated = useWalletStore((state) => state.walletManagement.isAuthenticated);
+    const network = useActiveWalletNetwork();
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isExpired, setIsExpired] = useState(false);
@@ -101,15 +110,37 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
     const handleApprove = async () => {
         setIsLoading(true);
         try {
-            // First, perform the actual signing operation
-            await approveTransactionRequest();
+            const result = await approveTransactionRequest();
 
-            // If successful, show success animation
+            if (result?.signedBoc) {
+                const { hash } = getNormalizedExtMessageHash(result.signedBoc);
+                const { tonScan, tonViewer } = getTransactionExplorerUrls(hash, network);
+                toast.success('Transaction is sent to the network', {
+                    description: (
+                        <span className="flex gap-3 mt-1">
+                            <a
+                                href={tonScan}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline"
+                            >
+                                TonScan
+                            </a>
+                            <a
+                                href={tonViewer}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline"
+                            >
+                                TonViewer
+                            </a>
+                        </span>
+                    ),
+                });
+            }
+
             setIsLoading(false);
             setShowSuccess(true);
-
-            // The parent will handle closing the modal after it sees the request is completed
-            // But we keep showing the success state for visual feedback
         } catch (error) {
             log.error('Failed to approve transaction:', error);
             toast.error('Failed to approve transaction', {

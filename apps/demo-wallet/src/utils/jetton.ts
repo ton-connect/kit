@@ -29,12 +29,13 @@ export const getJettonsImage = (jetton: Jetton): string | undefined => {
         return;
     }
 
+    const img = jetton.info.image;
     return (
-        jetton.info.image.url ||
-        (jetton.info.image.data ? atob(jetton.info.image.data) : undefined) ||
-        jetton.info.image.mediumUrl ||
-        jetton.info.image.largeUrl ||
-        jetton.info.image.smallUrl ||
+        img.url ||
+        (img.data ? `data:image/png;base64,${img.data}` : undefined) ||
+        img.mediumUrl ||
+        img.largeUrl ||
+        img.smallUrl ||
         ''
     );
 };

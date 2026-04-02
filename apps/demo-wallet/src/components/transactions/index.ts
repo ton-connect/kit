@@ -8,4 +8,5 @@
 
 export * from './TransactionStates';
 export * from './TonTransferCard';
+export * from './TransactionCard';
 export * from './ActionCard';

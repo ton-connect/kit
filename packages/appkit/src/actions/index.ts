@@ -12,7 +12,13 @@ export {
     type GetBalanceByAddressOptions,
     type GetBalanceByAddressReturnType,
 } from './balances/get-balance-by-address';
+export {
+    watchBalanceByAddress,
+    type WatchBalanceByAddressOptions,
+    type WatchBalanceByAddressReturnType,
+} from './balances/watch-balance-by-address';
 export { getBalance, type GetBalanceOptions, type GetBalanceReturnType } from './balances/get-balance';
+export { watchBalance, type WatchBalanceOptions, type WatchBalanceReturnType } from './balances/watch-balance';
 
 // Connectors
 export { addConnector, type AddConnectorParameters, type AddConnectorReturnType } from './connectors/add-connector';
@@ -52,7 +58,13 @@ export {
     type GetJettonsByAddressOptions,
     type GetJettonsByAddressReturnType,
 } from './jettons/get-jettons-by-address';
+export {
+    watchJettonsByAddress,
+    type WatchJettonsByAddressOptions,
+    type WatchJettonsByAddressReturnType,
+} from './jettons/watch-jettons-by-address';
 export { getJettons, type GetJettonsOptions, type GetJettonsReturnType } from './jettons/get-jettons';
+export { watchJettons, type WatchJettonsOptions, type WatchJettonsReturnType } from './jettons/watch-jettons';
 export {
     createTransferJettonTransaction,
     type CreateTransferJettonTransactionParameters,
@@ -67,6 +79,7 @@ export {
 // Network
 export { getNetworks, type GetNetworksReturnType } from './network/get-networks';
 export { getNetwork, type GetNetworkReturnType } from './network/get-network';
+export { getApiClient, type GetApiClientOptions, type GetApiClientReturnType } from './network/get-api-client';
 export { watchNetworks, type WatchNetworksParameters, type WatchNetworksReturnType } from './network/watch-networks';
 export { getBlockNumber, type GetBlockNumberOptions, type GetBlockNumberReturnType } from './network/get-block-number';
 export { getDefaultNetwork, type GetDefaultNetworkReturnType } from './network/get-default-network';
@@ -80,6 +93,7 @@ export {
     type WatchDefaultNetworkParameters,
     type WatchDefaultNetworkReturnType,
 } from './network/watch-default-network';
+export { hasStreamingProvider, type HasStreamingProviderReturnType } from './network/has-streaming-provider';
 
 // NFT
 export {
@@ -108,6 +122,30 @@ export {
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
 
+// Staking
+export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
+export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
+export {
+    getStakingQuote,
+    type GetStakingQuoteOptions,
+    type GetStakingQuoteReturnType,
+} from './staking/get-staking-quote';
+export {
+    buildStakeTransaction,
+    type BuildStakeTransactionOptions,
+    type BuildStakeTransactionReturnType,
+} from './staking/build-stake-transaction';
+export {
+    getStakedBalance,
+    type GetStakedBalanceOptions,
+    type GetStakedBalanceReturnType,
+} from './staking/get-staked-balance';
+export {
+    getStakingProviderInfo,
+    type GetStakingProviderInfoOptions,
+    type GetStakingProviderInfoReturnType,
+} from './staking/get-staking-provider-info';
+
 // Transactions
 export {
     sendTransaction,
@@ -121,6 +159,16 @@ export {
     type GetTransactionStatusReturnType,
     type GetTransactionStatusErrorType,
 } from './transaction/get-transaction-status';
+export {
+    watchTransactionsByAddress,
+    type WatchTransactionsByAddressOptions,
+    type WatchTransactionsByAddressReturnType,
+} from './transaction/watch-transactions-by-address';
+export {
+    watchTransactions,
+    type WatchTransactionsOptions,
+    type WatchTransactionsReturnType,
+} from './transaction/watch-transactions';
 export {
     createTransferNftTransaction,
     type CreateTransferNftTransactionParameters,

@@ -13,7 +13,7 @@ import { getJettonWalletAddress } from '../../actions/jettons/get-jetton-wallet-
 import type { GetJettonWalletAddressOptions as GetJettonWalletAddressParameters } from '../../actions/jettons/get-jetton-wallet-address';
 import type { QueryOptions, QueryParameter } from '../../types/query';
 import type { Compute, ExactPartial } from '../../types/utils';
-import { filterQueryOptions } from '../../utils';
+import { filterQueryOptions, resolveNetwork } from '../../utils';
 
 export type GetJettonWalletAddressErrorType = Error;
 
@@ -29,8 +29,11 @@ export type GetJettonWalletAddressQueryConfig<selectData = GetJettonWalletAddres
 
 export const getJettonWalletAddressQueryOptions = <selectData = GetJettonWalletAddressData>(
     appKit: AppKit,
-    options: GetJettonWalletAddressQueryConfig<selectData> = {},
+    initialOptions: GetJettonWalletAddressQueryConfig<selectData> = {},
 ): GetJettonWalletAddressQueryOptions<selectData> => {
+    const network = resolveNetwork(appKit, initialOptions.network);
+    const options = { ...initialOptions, network };
+
     return {
         ...options.query,
         enabled: Boolean(options.jettonAddress && options.ownerAddress && (options.query?.enabled ?? true)),

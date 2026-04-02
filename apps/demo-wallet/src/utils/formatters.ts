@@ -6,6 +6,20 @@
  *
  */
 
+import { Address } from '@ton/core';
+
+/**
+ * Compare two TON addresses for equality (handles different formats: 0:xxx, EQxxx, UQxxx)
+ */
+export function sameAddress(a: string, b: string): boolean {
+    if (!a || !b) return a === b;
+    try {
+        return Address.parse(a).equals(Address.parse(b));
+    } catch {
+        return a === b;
+    }
+}
+
 /**
  * Formats a Unix timestamp (in seconds) to a localized date/time string
  * @param timestampSeconds - Unix timestamp in seconds
@@ -13,6 +27,23 @@
  */
 export const formatTimestamp = (timestampSeconds: number): string => {
     return new Date(timestampSeconds * 1000).toLocaleString();
+};
+
+/**
+ * Formats TON amount for consistent display (4 decimals).
+ * Accepts amount in nanoton (string) or formatted value like "0.001 TON".
+ * TODO - make better function for formatting amounts
+ */
+export const formatTonForDisplay = (amountOrValue: string): string => {
+    const num =
+        amountOrValue.includes('TON') || amountOrValue.includes('.')
+            ? parseFloat(
+                  String(amountOrValue)
+                      .replace(/\s*TON\s*$/i, '')
+                      .trim(),
+              ) || 0
+            : parseFloat(amountOrValue || '0') / 1e9;
+    return num.toFixed(4);
 };
 
 /**

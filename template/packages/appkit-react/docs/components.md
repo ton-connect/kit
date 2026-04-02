@@ -30,7 +30,7 @@ A specialized button for sending Jettons. Handles jetton-specific logic.
 
 ## Transactions
 
-### `Transaction`
+### `Send`
 
 A drop-in component that handles the entire transaction flow.
 
