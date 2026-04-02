@@ -26,8 +26,7 @@ const log = globalLogger.createChild('StreamingManager');
  * Orchestrates streaming providers and routes watch calls to the correct provider by network.
  */
 export class StreamingManager<E extends StreamingEvents = StreamingEvents> implements StreamingAPI {
-    public createFactoryContext: () => ProviderFactoryContext<E>;
-
+    private createFactoryContext: () => ProviderFactoryContext<E>;
     private providers: Map<string, StreamingProvider> = new Map();
     private providerFactories: Map<string, StreamingProviderFactory> = new Map();
 
@@ -119,7 +118,22 @@ export class StreamingManager<E extends StreamingEvents = StreamingEvents> imple
     }
 
     /**
-     * Close all active streaming connections.
+     * Open (or reopen) connections for all providers that have been instantiated.
+     */
+    connect(): void {
+        this.providers.forEach((provider) => provider.connect());
+    }
+
+    /**
+     * Close all active streaming connections without dropping subscriptions.
+     * Call connect() to resume.
+     */
+    disconnect(): void {
+        this.providers.forEach((provider) => provider.close());
+    }
+
+    /**
+     * Close all active streaming connections and remove all providers.
      */
     shutdown(): void {
         this.providers.forEach((provider) => provider.close());

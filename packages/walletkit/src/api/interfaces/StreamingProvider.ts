@@ -28,9 +28,14 @@ export interface StreamingProvider extends BaseProvider {
     watchJettons(address: string, onChange: (update: JettonUpdate) => void): () => void;
 
     /**
-     * Close the connection.
+     * Close the connection without dropping subscriptions.
      */
     close(): void;
+
+    /**
+     * Connect (or reconnect) and resume all active subscriptions.
+     */
+    connect(): void;
 }
 
 export type StreamingProviderFactory = (ctx: ProviderFactoryContext, network: Network) => StreamingProvider;

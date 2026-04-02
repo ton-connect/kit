@@ -28,6 +28,7 @@ interface MockProvider extends StreamingProvider {
     watchTransactions: Mock;
     watchJettons: Mock;
     close: Mock<() => void>;
+    connect: Mock<() => void>;
     _unsubBalance: Mock<() => void>;
     _unsubTransactions: Mock<() => void>;
     _unsubJettons: Mock<() => void>;
@@ -44,6 +45,7 @@ const makeMockProvider = (): MockProvider => {
         watchTransactions: vi.fn(() => _unsubTransactions),
         watchJettons: vi.fn(() => _unsubJettons),
         close: vi.fn<() => void>(),
+        connect: vi.fn<() => void>(),
         _unsubBalance,
         _unsubTransactions,
         _unsubJettons,
@@ -177,12 +179,67 @@ describe('StreamingManager subscriptions', () => {
         });
     });
 
+    describe('disconnect', () => {
+        it('calls close() on all active providers', () => {
+            const { manager } = makeManager(network, provider);
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            manager.disconnect();
+            expect(provider.close).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not remove providers — same instance is reused after disconnect', () => {
+            const { manager, factory } = makeManager(network, provider);
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            manager.disconnect();
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            expect(factory).toHaveBeenCalledTimes(1);
+        });
+
+        it('does nothing when no providers have been instantiated', () => {
+            const { manager } = makeManager(network, provider);
+            expect(() => manager.disconnect()).not.toThrow();
+            expect(provider.close).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('connect', () => {
+        it('calls connect() on all active providers', () => {
+            const { manager } = makeManager(network, provider);
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            manager.connect();
+            expect(provider.connect).toHaveBeenCalledTimes(1);
+        });
+
+        it('does nothing when no providers have been instantiated', () => {
+            const { manager } = makeManager(network, provider);
+            expect(() => manager.connect()).not.toThrow();
+            expect(provider.connect).not.toHaveBeenCalled();
+        });
+
+        it('reconnects after disconnect', () => {
+            const { manager } = makeManager(network, provider);
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            manager.disconnect();
+            manager.connect();
+            expect(provider.close).toHaveBeenCalledTimes(1);
+            expect(provider.connect).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('shutdown', () => {
         it('closes the provider', () => {
             const { manager } = makeManager(network, provider);
             manager.watchBalance(network, ADDR_A, vi.fn());
             manager.shutdown();
             expect(provider.close).toHaveBeenCalledTimes(1);
+        });
+
+        it('removes providers — factory is called again after shutdown', () => {
+            const { manager, factory } = makeManager(network, provider);
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            manager.shutdown();
+            manager.watchBalance(network, ADDR_A, vi.fn());
+            expect(factory).toHaveBeenCalledTimes(2);
         });
     });
 

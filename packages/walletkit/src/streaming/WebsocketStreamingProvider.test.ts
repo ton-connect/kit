@@ -34,6 +34,8 @@ class MockWebSocket {
 global.WebSocket = MockWebSocket;
 
 import { WebsocketStreamingProvider } from './WebsocketStreamingProvider';
+import type { BalanceUpdate } from '../api/models';
+import { asAddressFriendly } from '../utils/address';
 
 const ADDR = '0:83dfd552e63729b472fcbcc8c44e6cc6691702558b68ecb527e1ba403a0f31a8';
 
@@ -56,6 +58,10 @@ class TestProvider extends WebsocketStreamingProvider {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (this.ws as any).onclose?.();
         }
+    }
+
+    public triggerBalanceUpdate(address: string, update: BalanceUpdate) {
+        this.emitBalance(asAddressFriendly(address), update);
     }
 }
 
@@ -209,6 +215,87 @@ describe('WebsocketStreamingProvider', () => {
             watchers = provider.getActiveWatchers();
             expect(watchers.has('balance')).toBe(false);
             expect(watchers.get('transactions')?.size).toBe(1);
+        });
+    });
+
+    describe('disconnect / connect', () => {
+        it('connect() opens a new WebSocket after close()', async () => {
+            const provider = new TestProvider();
+            provider.watchBalance(ADDR, vi.fn());
+            await vi.runOnlyPendingTimersAsync();
+            const ws1 = MockWebSocket.lastInstance!;
+
+            provider.close();
+            expect(ws1.close).toHaveBeenCalled();
+
+            provider.connect();
+            await vi.runOnlyPendingTimersAsync();
+            expect(MockWebSocket.lastInstance).not.toBe(ws1);
+            expect(MockWebSocket.lastInstance?.readyState).toBe(MockWebSocket.OPEN);
+        });
+
+        it('callbacks are still invoked after close() + connect()', async () => {
+            const provider = new TestProvider();
+            const cb = vi.fn();
+            provider.watchBalance(ADDR, cb);
+            await vi.runOnlyPendingTimersAsync();
+
+            provider.close();
+            provider.connect();
+            await vi.runOnlyPendingTimersAsync();
+
+            const update = { address: ADDR, balance: '100' } as BalanceUpdate;
+            provider.triggerBalanceUpdate(ADDR, update);
+
+            expect(cb).toHaveBeenCalledWith(update);
+        });
+
+        it('multiple callbacks all fire after reconnect', async () => {
+            const provider = new TestProvider();
+            const cb1 = vi.fn();
+            const cb2 = vi.fn();
+            provider.watchBalance(ADDR, cb1);
+            provider.watchBalance(ADDR, cb2);
+            await vi.runOnlyPendingTimersAsync();
+
+            provider.close();
+            provider.connect();
+            await vi.runOnlyPendingTimersAsync();
+
+            const update = { address: ADDR, balance: '200' } as BalanceUpdate;
+            provider.triggerBalanceUpdate(ADDR, update);
+
+            expect(cb1).toHaveBeenCalledWith(update);
+            expect(cb2).toHaveBeenCalledWith(update);
+        });
+
+        it('unsubscribed callback does not fire after reconnect', async () => {
+            const provider = new TestProvider();
+            const cb1 = vi.fn();
+            const cb2 = vi.fn();
+            provider.watchBalance(ADDR, cb1);
+            const unsub2 = provider.watchBalance(ADDR, cb2);
+            await vi.runOnlyPendingTimersAsync();
+
+            unsub2();
+            provider.close();
+            provider.connect();
+            await vi.runOnlyPendingTimersAsync();
+
+            provider.triggerBalanceUpdate(ADDR, { address: ADDR, balance: '50' } as BalanceUpdate);
+
+            expect(cb1).toHaveBeenCalledTimes(1);
+            expect(cb2).not.toHaveBeenCalled();
+        });
+
+        it('connect() is a no-op when already connected', async () => {
+            const provider = new TestProvider();
+            provider.watchBalance(ADDR, vi.fn());
+            await vi.runOnlyPendingTimersAsync();
+            const ws1 = MockWebSocket.lastInstance!;
+
+            provider.connect();
+            expect(MockWebSocket.lastInstance).toBe(ws1);
         });
     });
 });

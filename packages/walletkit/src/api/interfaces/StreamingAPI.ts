@@ -53,7 +53,17 @@ export interface StreamingAPI {
     ): () => void;
 
     /**
-     * Close all active streaming connections.
+     * Open (or reopen) connections for all registered providers.
+     */
+    connect(): void;
+
+    /**
+     * Close all active streaming connections without dropping subscriptions.
+     */
+    disconnect(): void;
+
+    /**
+     * Close all active streaming connections and remove all providers.
      */
     shutdown(): void;
 }

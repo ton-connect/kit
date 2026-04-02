@@ -118,14 +118,18 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
         }
     }
 
+    connect(): void {
+        this.ensureConnected();
+    }
+
     protected ensureConnected(): void {
         if (this.isConnected || this.ws?.readyState === WebSocket.CONNECTING) {
             return;
         }
-        this.connect();
+        this.openConnection();
     }
 
-    private connect(): void {
+    private openConnection(): void {
         this.stopReconnect();
         const url = this.getUrl();
         log.info('Connecting to WebSocket', { url: url.replace(/api_key=[^&]+/, 'api_key=***') });
@@ -203,7 +207,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
         log.info(`Scheduling reconnect in ${delayMs}ms (attempt ${this.reconnectAttempts})`);
         this.reconnectTimeout = setTimeout(() => {
             this.reconnectTimeout = null;
-            this.connect();
+            this.openConnection();
         }, delayMs);
     }
 
