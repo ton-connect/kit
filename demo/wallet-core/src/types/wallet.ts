@@ -12,6 +12,7 @@ import type {
     StorageAdapter as KitStorageAdapter,
     SignDataRequestEvent,
     SendTransactionRequestEvent,
+    SignMessageRequestEvent,
     AnalyticsManagerOptions,
 } from '@ton/walletkit';
 import type Transport from '@ledgerhq/hw-transport';
@@ -94,7 +95,16 @@ export interface QueuedRequestSignData {
     request: SignDataRequestEvent;
 }
 
-export type QueuedRequestData = QueuedRequestConnect | QueuedRequestTransaction | QueuedRequestSignData;
+export interface QueuedRequestSignMessage {
+    type: 'signMessage';
+    request: SignMessageRequestEvent;
+}
+
+export type QueuedRequestData =
+    | QueuedRequestConnect
+    | QueuedRequestTransaction
+    | QueuedRequestSignData
+    | QueuedRequestSignMessage;
 
 export type QueuedRequest = QueueRequestBase & QueuedRequestData;
 

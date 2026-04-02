@@ -142,6 +142,22 @@ export const useSignDataRequests = () => {
 };
 
 /**
+ * Hook for sign message requests
+ */
+export const useSignMessageRequests = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            pendingSignMessageRequest: state.tonConnect.pendingSignMessageRequestEvent,
+            isSignMessageModalOpen: state.tonConnect.isSignMessageModalOpen,
+            showSignMessageRequest: state.showSignMessageRequest,
+            approveSignMessageRequest: state.approveSignMessageRequest,
+            rejectSignMessageRequest: state.rejectSignMessageRequest,
+            closeSignMessageModal: state.closeSignMessageModal,
+        })),
+    );
+};
+
+/**
  * Hook for disconnect events
  */
 export const useDisconnectEvents = () => {
@@ -233,6 +249,31 @@ export const useSwap = () => {
         })),
     );
 };
+
+/**
+ * Hook for Intent state and actions
+ */
+export const useIntents = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            pendingIntentEvent: state.intent.pendingIntentEvent,
+            pendingBatchedIntentEvent: state.intent.pendingBatchedIntentEvent,
+            isIntentModalOpen: state.intent.isIntentModalOpen,
+            isBatchedIntentModalOpen: state.intent.isBatchedIntentModalOpen,
+            intentResult: state.intent.intentResult,
+            intentError: state.intent.intentError,
+            handleIntentUrl: state.handleIntentUrl,
+            isIntentUrl: state.isIntentUrl,
+            approveIntent: state.approveIntent,
+            rejectIntent: state.rejectIntent,
+            approveBatchedIntent: state.approveBatchedIntent,
+            rejectBatchedIntent: state.rejectBatchedIntent,
+            closeIntentModal: state.closeIntentModal,
+            closeBatchedIntentModal: state.closeBatchedIntentModal,
+        })),
+    );
+};
+
 /**
  * Hook for Staking
  */

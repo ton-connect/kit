@@ -26,10 +26,12 @@ export {
     useTonConnect,
     useTransactionRequests,
     useSignDataRequests,
+    useSignMessageRequests,
     useDisconnectEvents,
     useNfts,
     useJettons,
     useSwap,
+    useIntents,
     useStaking,
 } from './hooks/useWalletStore';
 export { useFormattedTonBalance, useFormattedAmount } from './hooks/useFormattedBalance';
@@ -43,6 +45,7 @@ export type {
     WalletCoreSlice,
     WalletManagementSlice,
     TonConnectSlice,
+    IntentSlice,
     JettonsSlice,
     NftsSlice,
     SwapSlice,
