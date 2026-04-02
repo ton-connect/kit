@@ -28,8 +28,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     private connectionChangeCallbacks: Set<(connected: boolean) => void> = new Set();
 
     private reconnectAttempts = 0;
-    private maxReconnectAttempts = 50;
-    private reconnectDelay = 300;
+    private static readonly RECONNECT_DELAYS = [500, 1000, 2000, 4000, 8000];
     private pingInterval: ReturnType<typeof setInterval> | null = null;
     private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -216,14 +215,9 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     protected scheduleReconnect(): void {
         if (this.reconnectTimeout) return;
 
-        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            log.error('Max reconnect attempts reached, stopping reconnects');
-            this.disconnect();
-            return;
-        }
-
         this.reconnectAttempts++;
-        const delayMs = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), 5000);
+        const delays = WebsocketStreamingProvider.RECONNECT_DELAYS;
+        const delayMs = delays[Math.min(this.reconnectAttempts - 1, delays.length - 1)];
         log.info(`Scheduling reconnect in ${delayMs}ms (attempt ${this.reconnectAttempts})`);
         this.reconnectTimeout = setTimeout(() => {
             this.reconnectTimeout = null;
