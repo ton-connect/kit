@@ -32,6 +32,9 @@ import type {
     SignatureDomain,
     SwapProviderInterface,
     SwapAPI,
+    StreamingProvider,
+    TonCenterStreamingProviderConfig,
+    TonApiStreamingProviderConfig,
 } from '@ton/walletkit';
 import {
     MemoryStorageAdapter,
@@ -41,6 +44,8 @@ import {
     TonWalletKit,
     ApiClientToncenter,
     ApiClientTonApi,
+    TonCenterStreamingProvider,
+    TonApiStreamingProvider,
 } from '@ton/walletkit';
 import type { WalletAdapter } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
@@ -525,6 +530,16 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         createDeDustSwapProvider(config?: DeDustSwapProviderConfig): SwapProviderInterface {
             console.log('➕ Bridge: Creating DeDust swap provider', config);
             return new DeDustSwapProvider(config);
+        },
+
+        // Streaming providers
+        createTonCenterStreamingProvider(config: TonCenterStreamingProviderConfig): StreamingProvider {
+            return new TonCenterStreamingProvider(walletKit.createFactoryContext(), config);
+        },
+
+        // Streaming providers
+        createTonApiStreamingProvider(config: TonApiStreamingProviderConfig): StreamingProvider {
+            return new TonApiStreamingProvider(walletKit.createFactoryContext(), config);
         },
 
         swap(): SwapAPI {
