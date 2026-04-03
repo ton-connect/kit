@@ -12,10 +12,11 @@ import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
 import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-react';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@ton/appkit-react';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
-import { Card, Button } from '@/core/components';
+import { Card } from '@/core/components';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
@@ -55,7 +56,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
 
                     <p className="text-sm text-destructive mb-3">Failed to load balances</p>
 
-                    <Button size="sm" variant="secondary" onClick={() => onRefresh()}>
+                    <Button size="s" variant="secondary" onClick={() => onRefresh()}>
                         Try Again
                     </Button>
                 </div>
@@ -78,22 +79,23 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                             <p className="text-sm font-semibold text-foreground">
                                 {totalTokens} {totalTokens === 1 ? 'Asset' : 'Assets'}
                             </p>
-                            <Button size="sm" variant="primary" onClick={() => onRefresh()}>
+                            <Button size="m" variant="bezeled" onClick={() => onRefresh()}>
                                 Refresh
                             </Button>
                         </div>
 
                         {/* Token List */}
                         <div className="space-y-2">
-                            <CurrencyItem
-                                className="!bg-muted"
-                                ticker="TON"
-                                name="Toncoin"
-                                balance={balance || '0'}
-                                onClick={() => setSelectedToken({ type: 'TON' })}
-                                icon="./ton.png"
-                                isVerified
-                            />
+                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                                <CurrencyItem
+                                    ticker="TON"
+                                    name="Toncoin"
+                                    balance={balance || '0'}
+                                    onClick={() => setSelectedToken({ type: 'TON' })}
+                                    icon="./ton.png"
+                                    isVerified
+                                />
+                            </div>
 
                             {/* Jettons */}
                             {jettons.map((jetton) => {
@@ -104,16 +106,17 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                                 }
 
                                 return (
-                                    <CurrencyItem
-                                        key={jetton.address}
-                                        className="!bg-muted"
-                                        ticker={info.symbol}
-                                        name={info.name}
-                                        balance={jetton.balance}
-                                        icon={info.image}
-                                        isVerified={jetton.isVerified}
-                                        onClick={() => setSelectedToken({ type: 'JETTON', jetton })}
-                                    />
+                                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                                        <CurrencyItem
+                                            key={jetton.address}
+                                            ticker={info.symbol}
+                                            name={info.name}
+                                            balance={jetton.balance}
+                                            icon={info.image}
+                                            isVerified={jetton.isVerified}
+                                            onClick={() => setSelectedToken({ type: 'JETTON', jetton })}
+                                        />
+                                    </div>
                                 );
                             })}
                         </div>

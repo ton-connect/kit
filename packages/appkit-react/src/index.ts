@@ -18,6 +18,7 @@ export * from './components/logo';
 export * from './components/modal';
 export * from './components/skeleton';
 export * from './components/ton-icon';
+export * from './components/input';
 export * from './components/token-select-modal';
 
 export * from './features/balances';

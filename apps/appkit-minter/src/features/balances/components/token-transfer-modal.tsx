@@ -9,10 +9,9 @@
 import React, { useMemo, useState } from 'react';
 import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo, getErrorMessage } from '@ton/appkit';
-import { SendTonButton, SendJettonButton } from '@ton/appkit-react';
-import { Gem, X } from 'lucide-react';
+import { SendTonButton, SendJettonButton, Button, Input, Modal } from '@ton/appkit-react';
+import { Gem } from 'lucide-react';
 
-import { Button } from '@/core/components';
 import { TransactionStatus } from '@/features/transaction';
 
 interface TokenTransferModalProps {
@@ -73,155 +72,143 @@ export const TokenTransferModal: React.FC<TokenTransferModalProps> = ({
         onClose();
     };
 
-    if (!isOpen || !tokenInfo.decimals) return null;
+    if (!tokenInfo.decimals) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-card rounded-lg max-w-md w-full">
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
-                                {tokenInfo.image ? (
-                                    <img
-                                        src={tokenInfo.image}
-                                        alt={tokenInfo.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : tokenType === 'TON' ? (
-                                    <Gem className="w-6 h-6 text-primary" />
-                                ) : (
-                                    <span className="text-sm font-bold text-muted-foreground">
-                                        {tokenInfo.symbol?.slice(0, 2)}
-                                    </span>
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-medium text-card-foreground">Transfer {tokenInfo.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Balance: {tokenInfo.balance} {tokenInfo.symbol}
-                                </p>
-                            </div>
-                        </div>
-                        <button onClick={handleClose} className="text-muted-foreground hover:text-foreground">
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-
-                    {txBoc ? (
-                        <div className="space-y-6">
-                            <TransactionStatus boc={txBoc} />
-                            <Button className="w-full" onClick={handleClose}>
-                                Close
-                            </Button>
-                        </div>
+        <Modal title={`Transfer ${tokenInfo.name}`} open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+            <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center overflow-hidden">
+                    {tokenInfo.image ? (
+                        <img src={tokenInfo.image} alt={tokenInfo.name} className="w-full h-full object-cover" />
+                    ) : tokenType === 'TON' ? (
+                        <Gem className="w-6 h-6 text-primary" />
                     ) : (
-                        <>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                                        Recipient Address
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={recipientAddress}
-                                        onChange={(e) => setRecipientAddress(e.target.value)}
-                                        placeholder="Enter TON address"
-                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                                        Amount
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        step="any"
-                                        min="0"
-                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                                        Comment (optional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={comment}
-                                        onChange={(e) => setComment(e.target.value)}
-                                        placeholder="Add a comment"
-                                        className="w-full px-3 py-2 bg-input border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm text-foreground placeholder:text-muted-foreground"
-                                    />
-                                </div>
-
-                                {transferError && (
-                                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                                        <p className="text-sm text-destructive">{transferError}</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex mt-6 gap-3">
-                                {tokenType === 'TON' && (
-                                    <SendTonButton
-                                        recipientAddress={recipientAddress}
-                                        amount={amount}
-                                        comment={comment}
-                                        onError={(error) => setTransferError(getErrorMessage(error))}
-                                        onSuccess={(data) => setTxBoc(data.boc)}
-                                    >
-                                        {({ isLoading, onSubmit, disabled, text }) => (
-                                            <Button
-                                                isLoading={isLoading}
-                                                onClick={onSubmit}
-                                                disabled={disabled}
-                                                className="flex-1"
-                                            >
-                                                {text}
-                                            </Button>
-                                        )}
-                                    </SendTonButton>
-                                )}
-
-                                {tokenType === 'JETTON' && jetton?.address && (
-                                    <SendJettonButton
-                                        jetton={{
-                                            address: jetton.address,
-                                            symbol: jetton.info?.symbol || 'Jetton',
-                                            decimals: tokenInfo.decimals,
-                                        }}
-                                        recipientAddress={recipientAddress}
-                                        amount={amount}
-                                        comment={comment}
-                                        onError={(error) => setTransferError(getErrorMessage(error))}
-                                        onSuccess={(data) => setTxBoc(data.boc)}
-                                    >
-                                        {({ isLoading, onSubmit, disabled, text }) => (
-                                            <Button
-                                                isLoading={isLoading}
-                                                onClick={onSubmit}
-                                                disabled={disabled}
-                                                className="flex-1"
-                                            >
-                                                {text}
-                                            </Button>
-                                        )}
-                                    </SendJettonButton>
-                                )}
-
-                                <Button variant="secondary" onClick={handleClose} className="flex-1">
-                                    Cancel
-                                </Button>
-                            </div>
-                        </>
+                        <span className="text-sm font-bold text-muted-foreground">{tokenInfo.symbol?.slice(0, 2)}</span>
                     )}
                 </div>
+                <div>
+                    <p className="text-sm font-medium text-foreground">Available Balance</p>
+                    <p className="text-xs text-muted-foreground">
+                        {tokenInfo.balance} {tokenInfo.symbol}
+                    </p>
+                </div>
             </div>
-        </div>
+
+            {txBoc ? (
+                <div className="space-y-6">
+                    <TransactionStatus boc={txBoc} />
+                    <Button fullWidth onClick={handleClose}>
+                        Close
+                    </Button>
+                </div>
+            ) : (
+                <>
+                    <div className="space-y-4">
+                        <Input size="s">
+                            <Input.Header>
+                                <Input.Title>Recipient Address</Input.Title>
+                            </Input.Header>
+                            <Input.Field>
+                                <Input.Input
+                                    type="text"
+                                    value={recipientAddress}
+                                    onChange={(e) => setRecipientAddress(e.target.value)}
+                                    placeholder="Enter TON address"
+                                />
+                            </Input.Field>
+                        </Input>
+
+                        <Input size="s">
+                            <Input.Header>
+                                <Input.Title>Amount</Input.Title>
+                            </Input.Header>
+                            <Input.Field>
+                                <Input.Input
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    placeholder="0.00"
+                                    step="any"
+                                    min="0"
+                                />
+                            </Input.Field>
+                        </Input>
+
+                        <Input size="s">
+                            <Input.Header>
+                                <Input.Title>Comment (optional)</Input.Title>
+                            </Input.Header>
+                            <Input.Field>
+                                <Input.Input
+                                    type="text"
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Add a comment"
+                                />
+                            </Input.Field>
+                        </Input>
+
+                        {transferError && (
+                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
+                                <p className="text-sm text-destructive">{transferError}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex mt-6 gap-3">
+                        {tokenType === 'TON' && (
+                            <SendTonButton
+                                recipientAddress={recipientAddress}
+                                amount={amount}
+                                comment={comment}
+                                onError={(error) => setTransferError(getErrorMessage(error))}
+                                onSuccess={(data) => setTxBoc(data.boc)}
+                            >
+                                {({ isLoading, onSubmit, disabled, text }) => (
+                                    <Button
+                                        loading={isLoading}
+                                        onClick={onSubmit}
+                                        disabled={disabled}
+                                        className="flex-1"
+                                    >
+                                        {text}
+                                    </Button>
+                                )}
+                            </SendTonButton>
+                        )}
+
+                        {tokenType === 'JETTON' && jetton?.address && (
+                            <SendJettonButton
+                                jetton={{
+                                    address: jetton.address,
+                                    symbol: jetton.info?.symbol || 'Jetton',
+                                    decimals: tokenInfo.decimals,
+                                }}
+                                recipientAddress={recipientAddress}
+                                amount={amount}
+                                comment={comment}
+                                onError={(error) => setTransferError(getErrorMessage(error))}
+                                onSuccess={(data) => setTxBoc(data.boc)}
+                            >
+                                {({ isLoading, onSubmit, disabled, text }) => (
+                                    <Button
+                                        loading={isLoading}
+                                        onClick={onSubmit}
+                                        disabled={disabled}
+                                        className="flex-1"
+                                    >
+                                        {text}
+                                    </Button>
+                                )}
+                            </SendJettonButton>
+                        )}
+
+                        <Button variant="secondary" onClick={handleClose} className="flex-1">
+                            Cancel
+                        </Button>
+                    </div>
+                </>
+            )}
+        </Modal>
     );
 };

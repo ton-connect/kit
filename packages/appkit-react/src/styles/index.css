@@ -1,4 +1,4 @@
-:root {
+:where(:root) {
   /* Font */
   --ta-font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, Tahoma, Verdana, sans-serif;
   --ta-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -102,7 +102,7 @@
   --ta-border-width-m: 2px;
 }
 
-[data-ta-theme='dark'] {
+:where([data-ta-theme='dark']) {
   --ta-color-primary: #007AFF;
   --ta-color-primary-foreground: #FFFFFF;
   --ta-color-error: #FF3B30;

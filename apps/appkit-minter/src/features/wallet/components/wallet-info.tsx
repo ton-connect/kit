@@ -8,7 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import type { ComponentProps, FC } from 'react';
-import { useSelectedWallet, Network } from '@ton/appkit-react';
+import { useSelectedWallet, Network, Button } from '@ton/appkit-react';
 import { Wallet, Check, Copy } from 'lucide-react';
 
 import { Card } from '@/core/components';
@@ -67,12 +67,7 @@ export const WalletInfo: FC<ComponentProps<'div'>> = (props) => {
                 </div>
 
                 {wallet && (
-                    <button
-                        type="button"
-                        onClick={handleCopy}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-border bg-muted hover:bg-muted/80 text-foreground transition-colors flex-shrink-0"
-                        title="Copy address"
-                    >
+                    <Button type="button" onClick={handleCopy} size="s" variant="bezeled" title="Copy address">
                         {copied ? (
                             <>
                                 <Check className="w-3.5 h-3.5 text-green-500" />
@@ -84,7 +79,7 @@ export const WalletInfo: FC<ComponentProps<'div'>> = (props) => {
                                 Copy Address
                             </>
                         )}
-                    </button>
+                    </Button>
                 )}
             </div>
         </Card>
