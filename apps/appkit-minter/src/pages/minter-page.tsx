@@ -22,7 +22,7 @@ export const MinterPage: React.FC = () => {
     const isConnected = !!wallet;
 
     return (
-        <Layout title="NFT Minter">
+        <Layout>
             <div className="space-y-4">
                 <WalletInfo />
 

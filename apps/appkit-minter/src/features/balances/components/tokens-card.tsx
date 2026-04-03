@@ -13,6 +13,7 @@ import { getFormattedJettonInfo } from '@ton/appkit';
 import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-react';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@ton/appkit-react';
+import { Link } from 'react-router-dom';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
@@ -75,13 +76,18 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                 ) : (
                     <div className="space-y-3">
                         {/* Summary */}
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
-                            <p className="text-sm font-semibold text-foreground">
+                        <div className="flex items-center p-3 bg-muted rounded-lg border border-border">
+                            <p className="text-sm font-semibold text-foreground mr-auto">
                                 {totalTokens} {totalTokens === 1 ? 'Asset' : 'Assets'}
                             </p>
-                            <Button size="m" variant="bezeled" onClick={() => onRefresh()}>
+                            <Button size="m" className="mr-2" variant="bezeled" onClick={() => onRefresh()}>
                                 Refresh
                             </Button>
+                            <Link to="/swap">
+                                <Button size="m" variant="fill">
+                                    Swap
+                                </Button>
+                            </Link>
                         </div>
 
                         {/* Token List */}
