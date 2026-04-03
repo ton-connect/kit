@@ -11,7 +11,6 @@ import {
     WalletV5R1Adapter,
     WalletV4R2Adapter,
     DefaultSignature,
-    DefaultDomainSignature,
     MnemonicToKeyPair,
     Uint8ArrayToHex,
     Network,
@@ -78,9 +77,6 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
             const customSigner: WalletSigner = {
                 sign: async (bytes: Iterable<number>) => {
                     if (confirm('Are you sure you want to sign?')) {
-                        if (domain) {
-                            return DefaultDomainSignature(bytes, keyPair.secretKey, domain);
-                        }
                         return DefaultSignature(bytes, keyPair.secretKey);
                     }
                     throw new Error('User did not confirm');
@@ -105,17 +101,19 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                 throw new Error('Mnemonic required for mnemonic wallet type');
             }
 
-            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' }, domain);
+            const signer = await Signer.fromMnemonic(mnemonic, { type: 'ton' });
 
             if (version === 'v5r1') {
                 return await WalletV5R1Adapter.create(signer, {
                     client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
+                    domain: domain,
                 });
             } else {
                 return await WalletV4R2Adapter.create(signer, {
                     client: walletKit.getApiClient(chainNetwork),
                     network: chainNetwork,
+                    domain: domain,
                 });
             }
         }
