@@ -79,6 +79,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     balance={fromBalance}
                     onMaxClick={onMaxClick}
                     onTokenSelectorClick={() => setActiveField('from')}
+                    isWalletConnected={isWalletConnected}
                 />
 
                 <div className={styles.flipButtonWrapper}>
@@ -92,6 +93,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     balance={toBalance}
                     onTokenSelectorClick={() => setActiveField('to')}
                     loading={isQuoteLoading}
+                    isWalletConnected={isWalletConnected}
                 />
             </div>
 

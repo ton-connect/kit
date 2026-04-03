@@ -26,6 +26,7 @@ export interface SwapFieldProps {
     loading?: boolean;
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
+    isWalletConnected?: boolean;
 }
 
 export const SwapField: FC<SwapFieldProps> = ({
@@ -37,6 +38,7 @@ export const SwapField: FC<SwapFieldProps> = ({
     loading,
     onMaxClick,
     onTokenSelectorClick,
+    isWalletConnected,
 }) => {
     const { t } = useI18n();
     const { fiatSymbol } = useSwapContext();
@@ -70,11 +72,11 @@ export const SwapField: FC<SwapFieldProps> = ({
                     </span>
                     {type === 'pay' && (
                         <span className={styles.balanceWrapper}>
-                            {balance ? (
+                            {balance || !isWalletConnected ? (
                                 <>
                                     {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
-                                        {formatLargeValue(balance, displayDecimals)} {tokenSymbol}
+                                        {formatLargeValue(balance || '0', displayDecimals)} {tokenSymbol}
                                     </button>
                                 </>
                             ) : (
@@ -85,8 +87,8 @@ export const SwapField: FC<SwapFieldProps> = ({
 
                     {type === 'receive' && (
                         <span className={styles.balanceWrapper}>
-                            {balance ? (
-                                `${formatLargeValue(balance, displayDecimals)} ${tokenSymbol}`
+                            {balance || !isWalletConnected ? (
+                                `${formatLargeValue(balance || '0', displayDecimals)} ${tokenSymbol}`
                             ) : (
                                 <Skeleton className={styles.skeletonText} />
                             )}

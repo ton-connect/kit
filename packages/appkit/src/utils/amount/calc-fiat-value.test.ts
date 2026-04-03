@@ -16,30 +16,30 @@ describe('calcFiatValue', () => {
     });
 
     it('should return 0 when rate is 0', () => {
-        expect(calcFiatValue('100', 0)).toBe('0');
+        expect(calcFiatValue('100', '0')).toBe('0');
     });
 
     it('should return 0 when amount is 0', () => {
-        expect(calcFiatValue('0', 1.5)).toBe('0');
+        expect(calcFiatValue('0', '1.5')).toBe('0');
     });
 
     it('should return 0 when amount is negative', () => {
-        expect(calcFiatValue('-10', 1.5)).toBe('0');
+        expect(calcFiatValue('-10', '1.5')).toBe('0');
     });
 
     it('should return 0 when amount is not a valid number', () => {
-        expect(calcFiatValue('abc', 1.5)).toBe('0');
-        expect(calcFiatValue('', 1.5)).toBe('0');
+        expect(calcFiatValue('abc', '1.5')).toBe('0');
+        expect(calcFiatValue('', '1.5')).toBe('0');
     });
 
     it('should calculate fiat value with 2 decimal places', () => {
-        expect(calcFiatValue('100', 1.5)).toBe('150.00');
-        expect(calcFiatValue('1', 0.001)).toBe('0.00');
-        expect(calcFiatValue('3', 1.005)).toBe('3.01');
+        expect(calcFiatValue('100', '1.5')).toBe('150');
+        expect(calcFiatValue('1', '0.001')).toBe('0');
+        expect(calcFiatValue('3', '1.005')).toBe('3.01');
     });
 
     it('should handle decimal amounts', () => {
-        expect(calcFiatValue('0.5', 2)).toBe('1.00');
-        expect(calcFiatValue('1.23456', 100)).toBe('123.46');
+        expect(calcFiatValue('0.5', '2')).toBe('1');
+        expect(calcFiatValue('1.23456', '100')).toBe('123.46');
     });
 });

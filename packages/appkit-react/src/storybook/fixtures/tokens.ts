@@ -21,7 +21,7 @@ export const STORY_TOKENS: AppkitUIToken[] = [
         name: 'Tether USD',
         decimals: 6,
         address: 'UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p',
-        rate: 1,
+        rate: '1',
         logo: 'https://asset.ston.fi/img/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs/1a87edfee9a28b05578853952e5effb8cc30af1e0fb90043aa2ce19dce490849',
     },
     {
@@ -43,7 +43,7 @@ export const STORY_TOKENS: AppkitUIToken[] = [
         name: 'Ethena USDe',
         decimals: 6,
         address: 'UQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzKOa',
-        rate: 1,
+        rate: '1',
         logo: 'https://asset.ston.fi/img/EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f/dbcc67993cd4aad4845a97a4a9722c6cb618123997c8112c29d4932b2739c4cd',
     },
     {

@@ -19,6 +19,7 @@ const TOKENS: AppkitUIToken[] = [
         name: 'Toncoin',
         decimals: 9,
         address: 'ton',
+        rate: '1.24',
         logo: 'https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/c8d21a3d93f9b574381e0a8d8f16d48b325dd8f54ce172f599c1e9d6c62f03f7',
     },
     {
@@ -26,7 +27,7 @@ const TOKENS: AppkitUIToken[] = [
         name: 'Tether USD',
         decimals: 6,
         address: 'UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p',
-        rate: 1.0,
+        rate: '1.0',
         logo: 'https://asset.ston.fi/img/EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs/1a87edfee9a28b05578853952e5effb8cc30af1e0fb90043aa2ce19dce490849',
     },
     {
@@ -34,6 +35,7 @@ const TOKENS: AppkitUIToken[] = [
         name: 'STON',
         decimals: 9,
         address: 'UQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T_sL',
+        rate: '0.33',
         logo: 'https://asset.ston.fi/img/EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO/7c9798ce1e64707fb4cb8f025d4060f66b386ed381b50498e3b88731cedeffe8',
     },
     {
@@ -41,6 +43,7 @@ const TOKENS: AppkitUIToken[] = [
         name: 'Tether Gold',
         decimals: 6,
         address: 'UQA1R_LuQCLHlMgOo1S4G7Y7W1cd0FrAkbA10Zq7rddKxnKh',
+        rate: '4461.32',
         logo: 'https://asset.ston.fi/img/EQA1R_LuQCLHlMgOo1S4G7Y7W1cd0FrAkbA10Zq7rddKxi9k/4aaaa7c30d7811bced81ded6bc116dcc82a78c6aea53d6012fd586a5826963ad',
     },
     {
@@ -48,7 +51,7 @@ const TOKENS: AppkitUIToken[] = [
         name: 'Ethena USDe',
         decimals: 6,
         address: 'UQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzKOa',
-        rate: 1.0,
+        rate: '1.0',
         logo: 'https://asset.ston.fi/img/EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f/dbcc67993cd4aad4845a97a4a9722c6cb618123997c8112c29d4932b2739c4cd',
     },
     {

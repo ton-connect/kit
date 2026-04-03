@@ -18,5 +18,5 @@ export interface AppkitUIToken {
     /** Optional token logo */
     logo?: string;
     /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
-    rate?: number;
+    rate?: string;
 }
