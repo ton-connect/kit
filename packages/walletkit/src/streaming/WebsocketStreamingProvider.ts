@@ -32,6 +32,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     private static readonly RECONNECT_DELAYS = [500, 1000, 2000, 4000, 8000];
     private pingTimeout: ReturnType<typeof setTimeout> | null = null;
     private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    private closeCheckTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Abstract methods to be implemented by children
     protected abstract getUrl(): string;
@@ -104,6 +105,10 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     disconnect(): void {
+        if (this.closeCheckTimeout) {
+            clearTimeout(this.closeCheckTimeout);
+            this.closeCheckTimeout = null;
+        }
         this.stopReconnect();
         this.stopPing();
         const wasConnected = this.isConnected;
@@ -120,9 +125,15 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     protected checkClose(): void {
-        if (!this.hasActiveSubscriptions()) {
-            this.disconnect();
+        if (this.closeCheckTimeout) {
+            clearTimeout(this.closeCheckTimeout);
         }
+        this.closeCheckTimeout = setTimeout(() => {
+            this.closeCheckTimeout = null;
+            if (!this.hasActiveSubscriptions()) {
+                this.disconnect();
+            }
+        }, 500);
     }
 
     connect(): void {
@@ -196,18 +207,18 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
 
     protected startPing(): void {
         this.stopPing();
-        const doPing = () => {
-            if (this.ws?.readyState === WebSocket.OPEN) {
-                const message = this.getPingMessage();
-                if (message) {
-                    this.send(message);
+        const schedulePing = () => {
+            this.pingTimeout = setTimeout(() => {
+                if (this.ws?.readyState === WebSocket.OPEN) {
+                    const message = this.getPingMessage();
+                    if (message) {
+                        this.send(message);
+                    }
                 }
-            }
+                schedulePing();
+            }, 10000);
         };
-        this.pingTimeout = setTimeout(() => {
-            doPing();
-            this.pingTimeout = setTimeout(doPing, 15000);
-        }, 15000);
+        schedulePing();
     }
 
     protected stopPing(): void {

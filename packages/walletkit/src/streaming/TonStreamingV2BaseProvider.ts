@@ -82,6 +82,10 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
     }
 
     protected fullResync(): void {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+            this.syncTimer = null;
+        }
         log.info('fullResync triggered', { isConnected: this.isConnected, readyState: this.ws?.readyState });
         if (!this.isConnected || this.ws?.readyState !== WebSocket.OPEN) {
             return;

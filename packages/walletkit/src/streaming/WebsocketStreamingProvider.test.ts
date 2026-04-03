@@ -175,7 +175,7 @@ describe('WebsocketStreamingProvider', () => {
             expect(ws.close).not.toHaveBeenCalled();
         });
 
-        it('closes when last watcher unsubscribes', async () => {
+        it('closes when last watcher unsubscribes (after debounce)', async () => {
             const provider = new TestProvider();
             const unsub1 = provider.watchBalance(ADDR, vi.fn());
             const unsub2 = provider.watchBalance(ADDR, vi.fn());
@@ -185,6 +185,8 @@ describe('WebsocketStreamingProvider', () => {
 
             unsub1();
             unsub2();
+            expect(ws.close).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(500);
             expect(ws.close).toHaveBeenCalled();
         });
 

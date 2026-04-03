@@ -166,7 +166,8 @@ describe('TonCenterStreamingProvider', () => {
         expect(ws.close).not.toHaveBeenCalled();
 
         unsub();
-
+        expect(ws.close).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(500);
         expect(ws.close).toHaveBeenCalled();
     });
 
@@ -179,17 +180,17 @@ describe('TonCenterStreamingProvider', () => {
 
         // Advance for connection
         vi.advanceTimersByTime(20);
-        // Initial sync happens on onopen
+        // Initial sync happens on onopen; fullResync cancels the pending requestSync timer
         expect(MockWebSocket.lastInstance?.send).toHaveBeenCalledTimes(1);
 
-        // Advance debounce
+        // Advance past debounce — no duplicate subscribe
         vi.advanceTimersByTime(100);
 
         const sentMessages = MockWebSocket.lastInstance?.send.mock.calls.map((call) => JSON.parse(call[0]));
         const subscribeMsgs = sentMessages?.filter((m) => m.operation === 'subscribe');
 
-        expect(subscribeMsgs!.length).toBe(2);
-        expect(subscribeMsgs![1].addresses).toContain(asAddressFriendly(ADDR_A));
+        expect(subscribeMsgs!.length).toBe(1);
+        expect(subscribeMsgs![0].addresses).toContain(asAddressFriendly(ADDR_A));
 
         // Unwatch one — still 2 left, address stays subscribed
         unsub1();
@@ -199,10 +200,10 @@ describe('TonCenterStreamingProvider', () => {
         expect(lastMsg.operation).toBe('subscribe');
         expect(lastMsg.addresses).toContain(asAddressFriendly(ADDR_A));
 
-        // Unwatch remaining two — connection should close
+        // Unwatch remaining two — connection should close after debounce
         unsub2();
         unsub3();
-        vi.advanceTimersByTime(100);
+        vi.advanceTimersByTime(500);
 
         expect(MockWebSocket.lastInstance?.close).toHaveBeenCalled();
     });
