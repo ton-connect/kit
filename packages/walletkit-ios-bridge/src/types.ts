@@ -29,6 +29,7 @@ import type {
     TonCenterStreamingProviderConfig,
     TonApiStreamingProviderConfig,
     StreamingProvider,
+    StreamingAPI,
 } from '@ton/walletkit';
 import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
@@ -139,4 +140,6 @@ export interface SwiftWalletKit {
     createTonApiStreamingProvider(config: TonApiStreamingProviderConfig): StreamingProvider;
 
     swap(): SwapAPI;
+
+    streaming(): StreamingAPI;
 }

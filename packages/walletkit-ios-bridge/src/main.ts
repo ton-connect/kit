@@ -35,6 +35,7 @@ import type {
     StreamingProvider,
     TonCenterStreamingProviderConfig,
     TonApiStreamingProviderConfig,
+    StreamingAPI,
 } from '@ton/walletkit';
 import {
     MemoryStorageAdapter,
@@ -544,6 +545,10 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
 
         swap(): SwapAPI {
             return walletKit.swap;
+        },
+
+        streaming(): StreamingAPI {
+            return walletKit.streaming;
         },
     };
 };
