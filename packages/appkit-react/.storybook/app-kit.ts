@@ -7,7 +7,7 @@
  */
 
 import { AppKit, Network } from '@ton/appkit';
-import { TonConnectConnector } from '@ton/appkit';
+import { createTonConnectConnector } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 
 export const appKit = new AppKit({
@@ -26,7 +26,7 @@ export const appKit = new AppKit({
         },
     },
     connectors: [
-        new TonConnectConnector({
+        createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl:
                     'https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json',
