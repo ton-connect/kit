@@ -9,7 +9,7 @@
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
-import { CircleIcon } from '../../../../components/circle-icon';
+import { Logo } from '../../../../components/logo';
 import styles from './currency-item.module.css';
 
 export interface CurrencyItemProps extends ComponentProps<'button'> {
@@ -31,7 +31,7 @@ export const CurrencyItem: FC<CurrencyItemProps> = ({
 }) => {
     return (
         <button className={clsx(styles.currencyItem, className)} {...props}>
-            <CircleIcon className={styles.icon} size={40} src={icon} fallback={ticker[0]} alt={ticker} />
+            <Logo className={styles.icon} size={40} src={icon} fallback={ticker[0]} alt={ticker} />
 
             <div className={styles.info}>
                 <div className={styles.header}>
@@ -48,12 +48,16 @@ export const CurrencyItem: FC<CurrencyItemProps> = ({
                     )}
                 </div>
 
-                <p className={styles.ticker}>{ticker}</p>
+                <p className={styles.ticker}>
+                    {ticker} • {name}
+                </p>
             </div>
 
-            <div className={styles.balance}>
-                <p>{balance ?? '0'}</p>
-            </div>
+            {balance && (
+                <div className={styles.balance}>
+                    <p>{balance ?? '0'}</p>
+                </div>
+            )}
         </button>
     );
 };

@@ -6,7 +6,7 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Button } from './button';
 
@@ -15,7 +15,21 @@ const meta: Meta<typeof Button> = {
     component: Button,
     tags: ['autodocs'],
     argTypes: {
+        size: {
+            control: 'select',
+            options: ['s', 'm', 'l'],
+        },
+        variant: {
+            control: 'select',
+            options: ['fill', 'bezeled', 'gray'],
+        },
         disabled: {
+            control: 'boolean',
+        },
+        loading: {
+            control: 'boolean',
+        },
+        fullWidth: {
             control: 'boolean',
         },
     },
@@ -25,34 +39,71 @@ export default meta;
 
 type Story = StoryObj<typeof Button>;
 
-export const Default: Story = {
+export const Fill: Story = {
     args: {
-        children: 'Click me',
+        children: 'Action',
+        variant: 'fill',
+        size: 'l',
     },
 };
 
-export const Disabled: Story = {
+export const Bezeled: Story = {
     args: {
-        children: 'Disabled Button',
-        disabled: true,
+        children: 'Action',
+        variant: 'bezeled',
+        size: 'l',
     },
 };
 
-export const WithIcon: Story = {
+export const Gray: Story = {
     args: {
-        children: (
-            <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 5V19M5 12H19"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
-                Add Item
-            </>
-        ),
+        children: 'Action',
+        variant: 'gray',
+        size: 'l',
+    },
+};
+
+export const Sizes: Story = {
+    render: (args) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Button {...args} size="l">
+                Large Button
+            </Button>
+            <Button {...args} size="m">
+                Medium Button
+            </Button>
+            <Button {...args} size="s">
+                Small Button
+            </Button>
+        </div>
+    ),
+    args: {
+        variant: 'fill',
+    },
+};
+
+export const Variants: Story = {
+    render: (args) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Button {...args} variant="fill">
+                Fill Button
+            </Button>
+            <Button {...args} variant="bezeled">
+                Bezeled Button
+            </Button>
+            <Button {...args} variant="gray">
+                Gray Button
+            </Button>
+        </div>
+    ),
+    args: {
+        size: 'l',
+    },
+};
+
+export const Loading: Story = {
+    args: {
+        children: 'Loading Button',
+        loading: true,
     },
 };

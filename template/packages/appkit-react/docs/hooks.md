@@ -182,6 +182,12 @@ Hook to build a transaction for a swap operation based on a quote.
 
 %%demo/examples/src/appkit/hooks/swap#USE_BUILD_SWAP_TRANSACTION%%
 
+### `useSwapProvider`
+
+Hook to get a specific swap provider. Returns the provider instance directly or `null` if not found.
+
+%%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
+
 ## Transaction
 
 ### `useSendTransaction`

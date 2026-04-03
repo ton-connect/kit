@@ -1,38 +1,109 @@
 .button {
-  composes: bodyMedium from "../../styles/typography.module.css";
   appearance: none;
   border: none;
   outline: none;
   cursor: pointer;
   box-sizing: border-box;
-  padding: 8px 16px;
-  border-radius: 20px;
-
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  background-color: var(--ta-color-primary); 
-  color: var(--ta-color-primary-foreground);
-  transition: transform 0.125s ease-in-out, background-color 0.2s ease;
-  will-change: transform;
+  transition: opacity 0.15s ease-in-out;
+  text-decoration: none;
+  width: fit-content;
 }
 
-.button:hover {
-  transform: scale(1.02);
+.button:hover:not(:disabled):not(.loading) {
+  opacity: 0.85;
 }
 
-.button:active {
-  transform: scale(0.98);
+.button:active:not(:disabled):not(.loading) {
+  opacity: 0.65;
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
-.button:disabled:hover,
-.button:disabled:active {
-  transform: none;
+.loading {
+  cursor: wait;
+}
+
+/* Sizes */
+.l {
+  composes: bodySemibold from "../../styles/typography.module.css";
+  padding: 12px 16px;
+  border-radius: var(--ta-border-radius-xl);
+}
+
+.m {
+  composes: labelSemibold from "../../styles/typography.module.css";
+  padding: 12px 16px;
+  border-radius: var(--ta-border-radius-l);
+}
+
+.s {
+  composes: labelSemibold from "../../styles/typography.module.css";
+  padding: 9px 12px;
+  border-radius: var(--ta-border-radius-2xl);
+}
+
+/* Variants */
+.fill {
+  background-color: var(--ta-color-primary);
+  color: var(--ta-color-primary-foreground);
+}
+
+.secondary {
+  background-color: var(--ta-color-background-secondary);
+  color: var(--ta-color-text);
+}
+
+.bezeled {
+  background-color: var(--ta-color-background-bezeled);
+  color: var(--ta-color-primary);
+}
+
+.gray {
+  background-color: var(--ta-color-background-tertiary);
+  color: var(--ta-color-text);
+}
+
+.ghost {
+  background-color: transparent;
+  color: var(--ta-color-text);
+}
+
+.ghost:hover:not(:disabled):not(.loading) {
+  background-color: var(--ta-color-background-tertiary);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: button-spin 0.6s linear infinite;
+}
+
+@keyframes button-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -502,6 +502,25 @@ Get the `SwapManager` instance to interact with swap providers directly.
 const swapManager = getSwapManager(appKit);
 ```
 
+### `getSwapProvider`
+
+Get a specific swap provider by its ID.
+
+```ts
+const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+```
+
+### `watchSwapProviders`
+
+Watch for new swap providers registration.
+
+```ts
+const unsubscribe = watchSwapProviders(appKit, {
+    onChange: () => console.log('Swap providers updated'),
+});
+unsubscribe();
+```
+
 ### `getSwapQuote`
 
 Get a swap quote from registered providers.

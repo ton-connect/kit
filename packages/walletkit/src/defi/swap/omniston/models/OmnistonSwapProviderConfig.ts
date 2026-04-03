@@ -6,6 +6,7 @@
  *
  */
 
+import type { SwapProviderMetadata } from '../../../../api/models';
 import type { OmnistonReferrerOptions } from './OmnistonReferrerOptions';
 
 /**
@@ -34,4 +35,9 @@ export interface OmnistonSwapProviderConfig extends OmnistonReferrerOptions {
      * Identifier for the provider
      */
     providerId?: string;
+
+    /**
+     * Custom metadata for the provider
+     */
+    metadata?: Partial<SwapProviderMetadata>;
 }

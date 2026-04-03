@@ -1,64 +1,88 @@
-:root {
+:where(:root) {
   /* Font */
   --ta-font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, Tahoma, Verdana, sans-serif;
   --ta-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   
   /* Typography */
-  /* Headings */
-  --ta-heading1-font-size: 32px;
-  --ta-heading1-font-weight: 700;
-  --ta-heading1-line-height: normal;
+  /* display */
+  --ta-display-large-size: 64px;
+  --ta-display-large-weight: 800;
+  --ta-display-large-line-height: 70px;
 
-  --ta-heading2-font-size: 28px;
-  --ta-heading2-font-weight: 700;
-  --ta-heading2-line-height: normal;
+  --ta-display-size: 40px;
+  --ta-display-weight: 800;
+  --ta-display-line-height: 44px;
 
-  --ta-heading3-font-size: 24px;
-  --ta-heading3-font-weight: 700;
-  --ta-heading3-line-height: normal;
+  /* headline */
+  --ta-headline-size: 28px;
+  --ta-headline-weight: 700;
+  --ta-headline-line-height: 32px;
 
-  --ta-heading4-font-size: 20px;
-  --ta-heading4-font-weight: 700;
-  --ta-heading4-line-height: normal;
+  /* title */
+  --ta-title-size: 20px;
+  --ta-title-weight: 700;
+  --ta-title-line-height: 24px;
 
-  --ta-heading5-font-size: 18px;
-  --ta-heading5-font-weight: 700;
-  --ta-heading5-line-height: normal;
+  /* body */
+  --ta-body-size: 16px;
+  --ta-body-medium-weight: 500;
+  --ta-body-regular-weight: 400;
+  --ta-body-semibold-weight: 600;
+  --ta-body-medium-line-height: 20px;
+  --ta-body-regular-line-height: 24px;
 
-  /* Body */
-  --ta-body-large-font-size: 16px;
-  --ta-body-large-line-height: 24px;
-  --ta-body-large-font-weight: 400;
-  --ta-body-large-medium-font-weight: 500;
-  
-  --ta-body-font-size: 14px;
-  --ta-body-line-height: 20px;
-  --ta-body-font-weight: 400;
-  --ta-body-medium-font-weight: 500;
-  --ta-body-bold-font-weight: 700;
+  /* label */
+  --ta-label-size: 14px;
+  --ta-label-regular-weight: 400;
+  --ta-label-semibold-weight: 600;
+  --ta-label-medium-weight: 500;
+  --ta-label-line-height: 18px;
 
-  --ta-body-small-font-size: 12px;
-  --ta-body-small-line-height: 16px;
-  --ta-body-small-font-weight: 400;
+  /* footnote */
+  --ta-footnote-size: 12px;
+  --ta-footnote-regular-weight: 400;
+  --ta-footnote-caps-weight: 600;
+  --ta-footnote-line-height: 16px;
 
-  /* Caption */
-  --ta-caption1-font-size: 12px;
-  --ta-caption1-line-height: 16px;
-  --ta-caption1-font-weight: 400;
+  /* caption */
+  --ta-caption-size: 11px;
+  --ta-caption-weight: 600;
+  --ta-caption-line-height: 12px;
 
-  --ta-caption2-font-size: 10px;
-  --ta-caption2-line-height: 12px;
-  --ta-caption2-font-weight: 400;
+  /* input */
+  --ta-input-s-size: 16px;
+  --ta-input-s-weight: 400;
+  --ta-input-s-line-height: 24px;
+
+  --ta-input-m-size: 24px;
+  --ta-input-m-weight: 600;
+  --ta-input-m-line-height: 30px;
+
+  --ta-input-l-size: 32px;
+  --ta-input-l-weight: 700;
+  --ta-input-l-line-height: 40px;
 
   /* Colors */
-  --ta-color-primary: #0098EB;
-  --ta-color-primary-foreground: #ffffff;
-  --ta-color-text: #000000;
-  --ta-color-text-secondary: #8e8e93;
-  --ta-color-background: #ffffff;
-  --ta-color-background-secondary: #f2f2f7;
-  --ta-color-block: #ffffff;
-  --ta-color-block-foreground: #000000;
+  --ta-color-primary: #007AFF;
+  --ta-color-primary-foreground: #FFFFFF;
+  --ta-color-error: #FF3B30;
+  --ta-color-success: #34C759;
+  --ta-color-text: #141416;
+  --ta-color-text-secondary: #787881;
+  --ta-color-text-tertiary: #93939D;
+  --ta-color-background: #FFFFFF;
+  --ta-color-background-secondary: #F7F8FA;
+  --ta-color-background-tertiary: #E5E8ED;
+  --ta-color-background-bezeled: rgba(0, 122, 255, 0.10);
+  --ta-color-block: var(--ta-color-background);
+  --ta-color-block-foreground: var(--ta-color-text);
+  --ta-color-skeleton-shimmer: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 20%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
 
   /* Static Colors */
   --ta-color-white: #ffffff;
@@ -70,6 +94,7 @@
   --ta-border-radius-m: 8px;
   --ta-border-radius-l: 12px;
   --ta-border-radius-xl: 16px;
+  --ta-border-radius-2xl: 20px;
   --ta-border-radius-full: 9999px;
 
   /* Border Width */
@@ -77,13 +102,25 @@
   --ta-border-width-m: 2px;
 }
 
-[data-ta-theme='dark'] {
-  --ta-color-primary: #0098EB;
-  --ta-color-primary-foreground: #ffffff;
-  --ta-color-text: #ffffff;
-  --ta-color-text-secondary: #8e8e93;
-  --ta-color-background: #000000;
-  --ta-color-background-secondary: #1c1c1e;
-  --ta-color-block: #121214;
-  --ta-color-block-foreground: #ffffff;
+:where([data-ta-theme='dark']) {
+  --ta-color-primary: #007AFF;
+  --ta-color-primary-foreground: #FFFFFF;
+  --ta-color-error: #FF3B30;
+  --ta-color-success: #30D158;
+  --ta-color-text: #FFFFFF;
+  --ta-color-text-secondary: #93939D;
+  --ta-color-text-tertiary: #787881;
+  --ta-color-background: #141416;
+  --ta-color-background-secondary: #1E1E1E;
+  --ta-color-background-tertiary: #2C2C2C;
+  --ta-color-background-bezeled: rgba(0, 122, 255, 0.10);
+  --ta-color-block: var(--ta-color-background);
+  --ta-color-block-foreground: var(--ta-color-text);
+  --ta-color-skeleton-shimmer: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }

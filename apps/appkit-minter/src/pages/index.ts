@@ -7,3 +7,4 @@
  */
 
 export { MinterPage } from './minter-page';
+export { SwapPage } from './swap-page';

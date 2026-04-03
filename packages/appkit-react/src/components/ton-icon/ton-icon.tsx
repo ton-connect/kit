@@ -29,16 +29,16 @@ export const TonIconCircle: FC<TonIconProps> = ({ size = 16, ...props }) => {
             <g clipPath="url(#clip0_2906_144)">
                 <path
                     d="M28 56C43.5 56 56 43.5 56 28C56 12.5 43.5 0 28 0C12.5 0 0 12.5 0 28C0 43.5 12.5 56 28 56Z"
-                    fill="#0098EA"
+                    fill="var(--ta-color-ton)"
                 />
                 <path
                     d="M37.5996 15.6H18.3996C14.8996 15.6 12.6996 19.4 14.3996 22.5L26.1996 43C26.9996 44.3 28.8996 44.3 29.6996 43L41.4996 22.5C43.2996 19.4 41.0996 15.6 37.5996 15.6ZM26.2996 36.8L23.6996 31.8L17.4996 20.7C17.0996 20 17.5996 19.1 18.4996 19.1H26.2996V36.8ZM38.4996 20.7L32.2996 31.8L29.6996 36.8V19.1H37.4996C38.3996 19.1 38.8996 20 38.4996 20.7Z"
-                    fill="white"
+                    fill="var(--ta-color-white)"
                 />
             </g>
             <defs>
                 <clipPath id="clip0_2906_144">
-                    <rect width="56" height="56" fill="white" />
+                    <rect width="56" height="56" fill="var(--ta-color-white)" />
                 </clipPath>
             </defs>
         </svg>

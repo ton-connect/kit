@@ -1,0 +1,44 @@
+.widget {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.headerTitle {
+  composes: title from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text);
+  margin: 0;
+}
+
+.card {
+  position: relative;
+  border-radius: var(--ta-border-radius-xl);
+}
+
+.fieldsContainer {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  gap: 8px;
+}
+
+/* Flip Button positioning */
+.flipButtonWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}

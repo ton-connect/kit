@@ -11,10 +11,11 @@ import type { FC, ComponentProps } from 'react';
 import type { NFT } from '@ton/appkit';
 import { NftItem, useNfts } from '@ton/appkit-react';
 import { AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@ton/appkit-react';
 
 import { NftTransferModal } from './nft-transfer-modal';
 
-import { Card, Button } from '@/core/components';
+import { Card } from '@/core/components';
 
 export const NftsCard: FC<ComponentProps<'div'>> = (props) => {
     const [selectedNft, setSelectedNft] = useState<NFT | null>(null);
@@ -38,7 +39,7 @@ export const NftsCard: FC<ComponentProps<'div'>> = (props) => {
 
                     <p className="text-sm text-destructive mb-3">Failed to load NFTs</p>
 
-                    <Button size="sm" variant="secondary" onClick={() => onRefresh()}>
+                    <Button size="s" variant="secondary" onClick={() => onRefresh()}>
                         Try Again
                     </Button>
                 </div>
@@ -69,7 +70,7 @@ export const NftsCard: FC<ComponentProps<'div'>> = (props) => {
                             <p className="text-sm font-semibold text-foreground">
                                 {nfts.length} {nfts.length === 1 ? 'NFT' : 'NFTs'}
                             </p>
-                            <Button size="sm" variant="primary" onClick={() => onRefresh()}>
+                            <Button size="m" variant="bezeled" onClick={() => onRefresh()}>
                                 Refresh
                             </Button>
                         </div>

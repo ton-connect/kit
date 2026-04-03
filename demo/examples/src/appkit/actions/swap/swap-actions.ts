@@ -8,12 +8,30 @@
 
 import type { AppKit } from '@ton/appkit';
 import { Network } from '@ton/appkit';
-import { getSwapManager, getSwapQuote, buildSwapTransaction, sendTransaction } from '@ton/appkit';
+import {
+    getSwapManager,
+    getSwapProvider,
+    watchSwapProviders,
+    getSwapQuote,
+    buildSwapTransaction,
+    sendTransaction,
+} from '@ton/appkit';
 
 export const swapExample = async (appKit: AppKit) => {
     // SAMPLE_START: GET_SWAP_MANAGER
     const swapManager = getSwapManager(appKit);
     // SAMPLE_END: GET_SWAP_MANAGER
+
+    // SAMPLE_START: GET_SWAP_PROVIDER
+    const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
+    // SAMPLE_END: GET_SWAP_PROVIDER
+
+    // SAMPLE_START: WATCH_SWAP_PROVIDERS
+    const unsubscribe = watchSwapProviders(appKit, {
+        onChange: () => console.log('Swap providers updated'),
+    });
+    unsubscribe();
+    // SAMPLE_END: WATCH_SWAP_PROVIDERS
 
     // SAMPLE_START: GET_SWAP_QUOTE
     const quote = await getSwapQuote(appKit, {
@@ -35,5 +53,5 @@ export const swapExample = async (appKit: AppKit) => {
     console.log('Swap Transaction:', transactionResponse);
     // SAMPLE_END: BUILD_SWAP_TRANSACTION
 
-    return { swapManager, quote, transactionRequest };
+    return { swapManager, swapProvider, quote, transactionRequest };
 };

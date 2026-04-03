@@ -12,7 +12,7 @@ import { watchBalanceByAddress, hasStreamingProvider, resolveNetwork } from '@to
 import type { WatchBalanceByAddressOptions } from '@ton/appkit';
 import { handleBalanceUpdate } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseWatchBalanceByAddressParameters = Partial<WatchBalanceByAddressOptions>;
 

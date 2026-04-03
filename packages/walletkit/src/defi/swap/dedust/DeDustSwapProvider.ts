@@ -16,7 +16,7 @@ import type {
 } from './models';
 import type { DeDustSwapResponse } from './DeDustPrivateTypes';
 import { SwapProvider } from '../SwapProvider';
-import type { SwapQuoteParams, SwapQuote, SwapParams } from '../../../api/models';
+import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToMinter, validateNetwork, isDeDustQuoteMetadata } from './utils';
@@ -76,6 +76,11 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
 
     readonly providerId: string;
 
+    readonly metadata: SwapProviderMetadata = {
+        name: 'DeDust',
+        url: 'https://dedust.io',
+    };
+
     constructor(config?: DeDustSwapProviderConfig) {
         super();
         this.providerId = config?.providerId ?? 'dedust';
@@ -88,11 +93,22 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
         this.maxLength = config?.maxLength ?? 3;
         this.minPoolUsdTvl = config?.minPoolUsdTvl ?? '5000';
 
+        if (config?.metadata) {
+            this.metadata = {
+                ...this.metadata,
+                ...config.metadata,
+            };
+        }
+
         log.info('DeDustSwapProvider initialized', {
             apiUrl: this.apiUrl,
             defaultSlippageBps: this.defaultSlippageBps,
             hasReferral: !!this.referralAddress,
         });
+    }
+
+    getMetadata(): SwapProviderMetadata {
+        return this.metadata;
     }
 
     async getQuote(params: SwapQuoteParams<DeDustProviderOptions>): Promise<SwapQuote> {

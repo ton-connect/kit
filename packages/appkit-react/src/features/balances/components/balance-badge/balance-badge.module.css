@@ -1,5 +1,5 @@
 .balance {
-  composes: bodyMedium from "../../../../styles/typography.module.css";
+  composes: labelMedium from "../../../../styles/typography.module.css";
 
   width: fit-content;
   gap: 12px;
@@ -15,7 +15,7 @@
 }
 
 .ticker {
-  composes: bodyBold from "../../../../styles/typography.module.css";
+  composes: labelSemibold from "../../../../styles/typography.module.css";
   color: var(--ta-color-text);
   line-height: 1;
 }

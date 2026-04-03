@@ -16,7 +16,7 @@ import { getTransactionStatusQueryOptions } from '@ton/appkit/queries';
 
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseTransactionStatusParameters<selectData = GetTransactionStatusData> = GetTransactionStatusParameters &
     GetTransactionStatusQueryConfig<selectData>;

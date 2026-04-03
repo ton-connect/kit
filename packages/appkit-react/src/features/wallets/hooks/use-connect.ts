@@ -12,7 +12,7 @@ import type { ConnectData, ConnectErrorType, ConnectOptions, ConnectVariables } 
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseConnectParameters<context = unknown> = ConnectOptions<context>;
 

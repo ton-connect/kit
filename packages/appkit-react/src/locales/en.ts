@@ -37,4 +37,24 @@ export default {
     nft: {
         onSale: 'On Sale',
     },
+
+    // Swap
+    swap: {
+        title: 'Swap',
+        pay: 'Pay',
+        receive: 'Receive',
+        max: 'MAX',
+        continue: 'Continue',
+        enterAmount: 'Enter an amount',
+        insufficientBalance: 'Insufficient balance',
+        tooManyDecimals: 'Too many decimal places',
+        quoteError: 'Unable to get a quote',
+        selectToken: 'Select Token',
+        searchToken: 'Search...',
+        settings: 'Settings',
+        slippage: 'Slippage',
+        slippageError: 'The maximum slippage tolerance cannot be more than 50%. The recommended range is 1%',
+        slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
+        provider: 'Provider',
+    },
 } as const;

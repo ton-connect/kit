@@ -12,6 +12,7 @@ import * as AppKitReact from '@ton/appkit-react';
 
 import { UseSwapQuoteExample } from './use-swap-quote';
 import { UseBuildSwapTransactionExample } from './use-build-swap-transaction';
+import { UseSwapProviderExample } from './use-swap-provider';
 
 // Mock the whole module
 vi.mock('@ton/appkit-react', async () => {
@@ -21,6 +22,7 @@ vi.mock('@ton/appkit-react', async () => {
         useSwapQuote: vi.fn(),
         useBuildSwapTransaction: vi.fn(),
         useSendTransaction: vi.fn(),
+        useSwapProvider: vi.fn(),
     };
 });
 
@@ -68,6 +70,17 @@ describe('Swap Hooks Examples', () => {
             render(<UseSwapQuoteExample />);
             expect(screen.getByText('Expected Output: 0.99')).toBeDefined();
             expect(screen.getByText('Price Impact: 0.01')).toBeDefined();
+        });
+    });
+
+    describe('UseSwapProviderExample', () => {
+        it('should render swap provider', () => {
+            vi.mocked(AppKitReact.useSwapProvider).mockReturnValue({
+                providerId: 'stonfi',
+            } as unknown as AppKitReact.UseSwapProviderReturnType);
+
+            render(<UseSwapProviderExample />);
+            expect(screen.getByText('Result: stonfi')).toBeDefined();
         });
     });
 

@@ -14,7 +14,7 @@ import type {
     BuildStakeTransactionVariables,
 } from '@ton/appkit/queries';
 
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 import { useMutation } from '../../../libs/query';
 
 export type UseBuildStakeTransactionReturnType<context = unknown> = UseMutationResult<

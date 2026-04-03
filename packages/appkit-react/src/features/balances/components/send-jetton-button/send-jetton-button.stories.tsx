@@ -6,7 +6,7 @@
  *
  */
 
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { Button } from '../../../../components/button';
 
@@ -26,9 +26,6 @@ const meta: Meta<typeof SendJettonButtonPreview> = {
     title: 'Public/Features/Balances/SendJettonButton',
     component: SendJettonButtonPreview,
     tags: ['autodocs'],
-    parameters: {
-        layout: 'centered',
-    },
 };
 
 export default meta;

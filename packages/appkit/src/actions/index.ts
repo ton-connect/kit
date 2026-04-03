@@ -115,7 +115,13 @@ export { signCell, type SignCellParameters, type SignCellReturnType } from './si
 
 // Swap
 export { getSwapManager, type GetSwapManagerReturnType } from './swap/get-swap-manager';
+export { getSwapProvider, type GetSwapProviderOptions, type GetSwapProviderReturnType } from './swap/get-swap-provider';
 export { getSwapQuote, type GetSwapQuoteOptions, type GetSwapQuoteReturnType } from './swap/get-swap-quote';
+export {
+    watchSwapProviders,
+    type WatchSwapProvidersParameters,
+    type WatchSwapProvidersReturnType,
+} from './swap/watch-swap-providers';
 export {
     buildSwapTransaction,
     type BuildSwapTransactionOptions,

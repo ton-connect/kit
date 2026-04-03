@@ -19,7 +19,7 @@ import { transferTonMutationOptions } from '@ton/appkit/queries';
 
 import { useMutation } from '../../../libs/query';
 import type { UseMutationReturnType } from '../../../libs/query';
-import { useAppKit } from '../../../hooks/use-app-kit';
+import { useAppKit } from '../../settings';
 
 export type UseTransferTonParameters<context = unknown> = TransferTonOptions<context>;
 
