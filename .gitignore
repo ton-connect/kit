@@ -13,6 +13,7 @@ reports
 *-results
 *-report
 generated
+.local/
 
 apps/TONWalletApp/Packages/TONWalletKit/.swiftpm/xcode/xcuserdata/
 apps/TONWalletApp/Packages/TONWalletKit/Sources/TONWalletKit/Resources/JS/walletkit-ios-bridge.mjs
@@ -33,5 +34,3 @@ packages/walletkit-android-bridge/*.sh
 
 release-artifacts
 *.tgz
-
-.claude

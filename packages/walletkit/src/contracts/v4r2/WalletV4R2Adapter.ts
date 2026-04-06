@@ -8,7 +8,7 @@
 
 // WalletV4R2 Ledger adapter that implements WalletInterface
 
-import type { StateInit, MessageRelaxed } from '@ton/core';
+import type { StateInit, MessageRelaxed, SignatureDomain } from '@ton/core';
 import {
     Address,
     beginCell,
@@ -19,6 +19,7 @@ import {
     storeStateInit,
     external,
     internal,
+    signatureDomainPrefix,
 } from '@ton/core';
 
 import type { Feature } from '../../types/jsBridge';
@@ -54,6 +55,7 @@ const log = globalLogger.createChild('WalletV4R2Adapter');
 export class WalletV4R2Adapter implements WalletAdapter {
     private signer: WalletSigner;
     private config: WalletV4R2AdapterConfig;
+    private domain?: SignatureDomain;
 
     readonly walletContract: WalletV4R2;
     readonly client: ApiClient;
@@ -72,6 +74,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
             network: Network;
             walletId?: number | bigint;
             workchain?: number;
+            domain?: SignatureDomain;
         },
     ): Promise<WalletV4R2Adapter> {
         return new WalletV4R2Adapter({
@@ -81,6 +84,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
             network: options.network,
             walletId: typeof options.walletId === 'bigint' ? Number(options.walletId) : options.walletId,
             workchain: options.workchain,
+            domain: options.domain,
         });
     }
 
@@ -88,6 +92,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
         this.config = config;
         this.client = config.tonClient;
         this.signer = config.signer;
+        this.domain = config.domain;
 
         this.publicKey = this.config.publicKey;
 
@@ -190,7 +195,9 @@ export class WalletV4R2Adapter implements WalletAdapter {
                 timeout: timeout,
             });
 
-            const signature = await this.sign(Uint8Array.from(data.hash()));
+            const domainPrefix = this.domain ? signatureDomainPrefix(this.domain) : null;
+            const signingData = domainPrefix ? Buffer.concat([domainPrefix, data.hash()]) : data.hash();
+            const signature = await this.sign(Uint8Array.from(signingData));
             const signedCell = beginCell()
                 .storeBuffer(Buffer.from(HexToUint8Array(signature)))
                 .storeSlice(data.asSlice())

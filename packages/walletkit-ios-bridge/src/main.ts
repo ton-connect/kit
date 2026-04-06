@@ -224,33 +224,33 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             console.log('🗑️ All event listeners removed');
         },
 
-        async createSignerFromMnemonic(mnemonic: string, domain?: SignatureDomain): Promise<WalletSigner> {
+        async createSignerFromMnemonic(mnemonic: string): Promise<WalletSigner> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
-            console.log('➕ Bridge: Creating signer from mnemonic and domain - ', domain);
+            console.log('➕ Bridge: Creating signer from mnemonic');
 
             if (!mnemonic) {
                 throw new Error('Mnemonic is required to create signer');
             }
 
-            return await Signer.fromMnemonic(mnemonic, { type: 'ton' }, domain);
+            return await Signer.fromMnemonic(mnemonic, { type: 'ton' });
         },
 
-        async createSignerFromPrivateKey(privateKey: string, domain?: SignatureDomain): Promise<WalletSigner> {
+        async createSignerFromPrivateKey(privateKey: string): Promise<WalletSigner> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
-            console.log('➕ Bridge: Creating signer from private key and domain - ', domain);
+            console.log('➕ Bridge: Creating signer from private key');
 
             if (!privateKey) {
                 throw new Error('Private key is required to create signer');
             }
 
-            return await Signer.fromPrivateKey(privateKey, domain);
+            return await Signer.fromPrivateKey(privateKey);
         },
 
         async createV4R2WalletAdapter(
             signer: WalletSigner | SwiftWalletSigner,
-            parameters: { network: Network },
+            parameters: { network: Network; domain?: SignatureDomain },
         ): Promise<WalletAdapter> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
@@ -266,12 +266,13 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             return await WalletV4R2Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(network),
                 network: network,
+                domain: parameters.domain,
             });
         },
 
         async createV5R1WalletAdapter(
             signer: WalletSigner | SwiftWalletSigner,
-            parameters: { network: Network },
+            parameters: { network: Network; domain?: SignatureDomain },
         ): Promise<WalletAdapter> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
 
@@ -287,6 +288,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
             return await WalletV5R1Adapter.create(this.jsSigner(signer), {
                 client: walletKit.getApiClient(network),
                 network: network,
+                domain: parameters.domain,
             });
         },
 

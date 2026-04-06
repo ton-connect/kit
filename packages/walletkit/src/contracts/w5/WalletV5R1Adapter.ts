@@ -8,8 +8,19 @@
 
 // WalletV5R1 adapter that implements WalletInterface
 
-import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeMessageRelaxed, storeStateInit } from '@ton/core';
+import type { SignatureDomain, StateInit } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Dictionary,
+    loadStateInit,
+    SendMode,
+    signatureDomainPrefix,
+    storeMessage,
+    storeMessageRelaxed,
+    storeStateInit,
+} from '@ton/core';
 import { external, internal } from '@ton/core';
 
 import { WalletV5, WalletV5R1Id } from './WalletV5R1';
@@ -57,6 +68,8 @@ export interface WalletV5R1AdapterConfig {
     network: Network;
     /** Workchain */
     workchain?: number;
+    /** Signature domain */
+    domain?: SignatureDomain;
 }
 
 /**
@@ -66,6 +79,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
     // private keyPair: { publicKey: Uint8Array; secretKey: Uint8Array };
     private signer: WalletSigner;
     private config: WalletV5R1AdapterConfig;
+    private domain?: SignatureDomain;
 
     readonly walletContract: WalletV5;
     readonly client: ApiClient;
@@ -84,6 +98,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             network: Network;
             walletId?: number | bigint;
             workchain?: number;
+            domain?: SignatureDomain;
         },
     ): Promise<WalletV5R1Adapter> {
         return new WalletV5R1Adapter({
@@ -93,6 +108,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
             network: options.network,
             walletId: options.walletId,
             workchain: options.workchain,
+            domain: options.domain,
         });
     }
 
@@ -100,6 +116,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
         this.config = config;
         this.client = config.tonClient;
         this.signer = config.signer;
+        this.domain = config.domain;
 
         this.publicKey = this.config.publicKey;
         this.walletContract = WalletV5.createFromConfig(
@@ -329,7 +346,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
     ) {
         // Opcodes defined in the WalletV5R1 contract spec, confirmed in @ton/ton WalletContractV5R1.js
         const Opcodes = {
-            auth_signed: 0x7369676e,          // external auth ("sign")
+            auth_signed: 0x7369676e, // external auth ("sign")
             auth_signed_internal: 0x73696e74, // internal auth ("sint") — used for gasless relaying
         };
 
@@ -349,7 +366,8 @@ export class WalletV5R1Adapter implements WalletAdapter {
             .storeSlice(actionsList.beginParse())
             .endCell();
 
-        const signingData = payload.hash();
+        const domainPrefix = this.domain ? signatureDomainPrefix(this.domain) : null;
+        const signingData = domainPrefix ? Buffer.concat([domainPrefix, payload.hash()]) : payload.hash();
         const signature = options.fakeSignature ? FakeSignature(signingData) : await this.sign(signingData);
         return beginCell()
             .storeSlice(payload.beginParse())
@@ -379,8 +397,8 @@ export class WalletV5R1Adapter implements WalletAdapter {
             { name: 'SignMessageDraft', types: ['ton', 'jetton', 'nft'] },
             { name: 'ActionDraft' },
             { name: 'Intents', types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'] },
-        // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
-        // to include PR #103 feature names (SendTransactionDraft, SignMessageDraft, ActionDraft, Intents, etc.)
+            // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
+            // to include PR #103 feature names (SendTransactionDraft, SignMessageDraft, ActionDraft, Intents, etc.)
         ] as unknown as Feature[];
     }
 }
