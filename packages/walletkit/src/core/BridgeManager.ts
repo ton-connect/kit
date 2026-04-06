@@ -562,27 +562,14 @@ export class BridgeManager {
                 walletId: messageInfo.walletId,
             });
         } else if (event.method === 'connectWithIntent') {
-            const params = event.params as {
-                payload?: string;
-                connectRequest?: ConnectRequest;
-                protocolVersion?: number;
-            };
-            if (!params.payload) {
-                log.warn('connectWithIntent received without payload, ignoring');
-                return;
-            }
-            this.eventEmitter?.emit(
-                'bridge-connect-with-intent',
-                {
-                    intentUrl: params.payload,
-                    connectRequest: params.connectRequest,
-                    tabId: messageInfo.tabId,
-                    messageId: messageInfo.messageId,
-                    walletId: messageInfo.walletId,
-                },
-                'bridge-manager',
-            );
-            return;
+            this.eventQueue.push({
+                ...event,
+                isJsBridge: true,
+                tabId: messageInfo.tabId,
+                domain: messageInfo.domain,
+                messageId: messageInfo.messageId,
+                walletId: messageInfo.walletId,
+            });
         }
 
         // Trigger processing (don't wait for it to complete)
@@ -706,21 +693,6 @@ export class BridgeManager {
                         rawEvent.from = session.sessionId;
                     }
                 }
-            }
-
-            // Draft events from an already-connected session are ephemeral RPC calls.
-            // Route them directly via the event emitter so IntentHandler can respond
-            // using the existing session crypto (not the durable event pipeline).
-            const DRAFT_METHODS = ['txDraft', 'signMsgDraft', 'actionDraft'];
-            if (DRAFT_METHODS.includes(rawEvent.method)) {
-                log.info('Bridge draft event received, routing directly', {
-                    eventId: rawEvent.id,
-                    method: rawEvent.method,
-                });
-                if (this.eventEmitter) {
-                    this.eventEmitter.emit('bridge-draft-intent', rawEvent, 'bridge-manager');
-                }
-                return;
             }
 
             // Store event durably if enabled
