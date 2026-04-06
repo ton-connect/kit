@@ -130,7 +130,7 @@ onMessage(JS_BRIDGE_MESSAGE_TO_BACKGROUND, async (e) => {
             await handleBridgeRequest(messageId, payload, e.sender.tabId);
 
             if (!DISABLE_AUTO_POPUP) {
-                if (payload.method === 'connect' || payload.method === 'send') {
+                if (payload.method === 'connect' || payload.method === 'send' || payload.method === 'connectWithIntent') {
                     if (payload.params && Array.isArray(payload.params)) {
                         const item = payload.params[0];
                         if (item && typeof item === 'object' && 'method' in item) {
