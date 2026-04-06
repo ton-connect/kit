@@ -611,9 +611,13 @@ export class TonWalletKit implements ITonWalletKit {
         return isIntentUrl(url);
     }
 
-    async handleIntentUrl(url: string, walletId: string): Promise<void> {
+    async handleIntentUrl(
+        url: string,
+        walletId: string,
+        jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string },
+    ): Promise<void> {
         await this.ensureInitialized();
-        return this.intentHandler.handleIntentUrl(url, walletId);
+        return this.intentHandler.handleIntentUrl(url, walletId, jsBridgeContext);
     }
 
     onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {

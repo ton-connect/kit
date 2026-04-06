@@ -186,7 +186,11 @@ export interface ITonWalletKit {
     isIntentUrl(url: string): boolean;
 
     /** Handle a TonConnect intent URL for the given wallet */
-    handleIntentUrl(url: string, walletId: string): Promise<void>;
+    handleIntentUrl(
+        url: string,
+        walletId: string,
+        jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string },
+    ): Promise<void>;
 
     /** Register intent request handler */
     onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
