@@ -11,6 +11,7 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 import { BridgeProvider } from '@tonconnect/bridge-sdk';
+import type { ConnectRequest } from '@tonconnect/protocol';
 
 import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
 import type { Storage } from '../storage';
@@ -25,7 +26,6 @@ import type {
     JSBridgeTransportFunction,
     WalletInfo,
 } from '../types/jsBridge';
-import type { ConnectRequest } from '@tonconnect/protocol';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';

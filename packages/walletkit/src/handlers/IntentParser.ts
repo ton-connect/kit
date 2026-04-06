@@ -638,7 +638,11 @@ export class IntentParser {
                 try {
                     raw = JSON.parse(params[0]) as Record<string, unknown>;
                 } catch (error) {
-                    throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Invalid JSON in sign data payload', error as Error);
+                    throw new WalletKitError(
+                        ERROR_CODES.VALIDATION_ERROR,
+                        'Invalid JSON in sign data payload',
+                        error as Error,
+                    );
                 }
                 event = {
                     type: 'signData' as const,
@@ -689,9 +693,11 @@ export class IntentParser {
                     extraCurrency: item.ec,
                 };
             case 'jetton':
-                if (!item.ma) throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Jetton item missing master address (ma)');
+                if (!item.ma)
+                    throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Jetton item missing master address (ma)');
                 if (!item.ja) throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Jetton item missing amount (ja)');
-                if (!item.d) throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Jetton item missing destination (d)');
+                if (!item.d)
+                    throw new WalletKitError(ERROR_CODES.VALIDATION_ERROR, 'Jetton item missing destination (d)');
                 return {
                     type: 'sendJetton' as const,
                     jettonMasterAddress: item.ma,

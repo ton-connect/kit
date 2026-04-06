@@ -47,7 +47,10 @@ const toHex = (b: Uint8Array) =>
  *   nacl.box(payload, nonce, ownPublicKey, ownSecretKey)
  * The result is nonce (24 bytes) || ciphertext, matching what decryptPayload expects.
  */
-function encryptForSelf(payload: Record<string, unknown>, kp: { publicKey: Uint8Array; secretKey: Uint8Array }): Uint8Array {
+function encryptForSelf(
+    payload: Record<string, unknown>,
+    kp: { publicKey: Uint8Array; secretKey: Uint8Array },
+): Uint8Array {
     const nonce = nacl.randomBytes(24);
     const ciphertext = nacl.box(new TextEncoder().encode(JSON.stringify(payload)), nonce, kp.publicKey, kp.secretKey);
     const encrypted = new Uint8Array(nonce.length + ciphertext.length);
@@ -529,7 +532,11 @@ describe('IntentParser', () => {
                 }),
             );
 
-            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/payload');
+            const url = buildObjectStorageUrl(
+                toHex(kp.publicKey),
+                toHex(kp.secretKey),
+                'https://storage.example.com/payload',
+            );
             const { event } = await parser.parse(url);
             expect(event.type).toBe('transaction');
         });
@@ -545,7 +552,11 @@ describe('IntentParser', () => {
             );
 
             const kp = nacl.box.keyPair();
-            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/missing');
+            const url = buildObjectStorageUrl(
+                toHex(kp.publicKey),
+                toHex(kp.secretKey),
+                'https://storage.example.com/missing',
+            );
             await expect(parser.parse(url)).rejects.toThrow('Object storage fetch failed');
         });
 
@@ -553,7 +564,11 @@ describe('IntentParser', () => {
             vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 
             const kp = nacl.box.keyPair();
-            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/payload');
+            const url = buildObjectStorageUrl(
+                toHex(kp.publicKey),
+                toHex(kp.secretKey),
+                'https://storage.example.com/payload',
+            );
             await expect(parser.parse(url)).rejects.toThrow('Failed to fetch intent payload');
         });
 
@@ -569,7 +584,11 @@ describe('IntentParser', () => {
             );
 
             const kp = nacl.box.keyPair();
-            const url = buildObjectStorageUrl(toHex(kp.publicKey), toHex(kp.secretKey), 'https://storage.example.com/short');
+            const url = buildObjectStorageUrl(
+                toHex(kp.publicKey),
+                toHex(kp.secretKey),
+                'https://storage.example.com/short',
+            );
             await expect(parser.parse(url)).rejects.toThrow('Encrypted payload too short');
         });
 
@@ -608,7 +627,11 @@ describe('IntentParser', () => {
             );
 
             // Pass the wrong secret key — decryption will fail
-            const url = buildObjectStorageUrl(toHex(encryptKp.publicKey), toHex(wrongKp.secretKey), 'https://storage.example.com/payload');
+            const url = buildObjectStorageUrl(
+                toHex(encryptKp.publicKey),
+                toHex(wrongKp.secretKey),
+                'https://storage.example.com/payload',
+            );
             await expect(parser.parse(url)).rejects.toThrow('Failed to decrypt intent payload');
         });
 

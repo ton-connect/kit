@@ -36,8 +36,12 @@ export interface HumanReadableTx {
 /**
  * Validate transaction messages array
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessages(messages: any[], isTonConnect: boolean = true, requireFriendlyAddress: boolean = true): ValidationResult {
+
+export function validateTransactionMessages(
+    messages: unknown[],
+    isTonConnect: boolean = true,
+    requireFriendlyAddress: boolean = true,
+): ValidationResult {
     const errors: string[] = [];
 
     if (!Array.isArray(messages)) {
@@ -67,8 +71,12 @@ export function validateTransactionMessages(messages: any[], isTonConnect: boole
 /**
  * Validate individual transaction message
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function validateTransactionMessage(message: any, isTonConnect: boolean = true, requireFriendlyAddress: boolean = true): ValidationResult {
+
+export function validateTransactionMessage(
+    message: unknown,
+    isTonConnect: boolean = true,
+    requireFriendlyAddress: boolean = true,
+): ValidationResult {
     const errors: string[] = [];
 
     if (typeof message !== 'object') {
@@ -79,7 +87,7 @@ export function validateTransactionMessage(message: any, isTonConnect: boolean =
         return { isValid: false, errors: ['Invalid message'] };
     }
 
-    if (isTonConnect && typeof message.mode !== 'undefined') {
+    if (isTonConnect && 'mode' in message && typeof message.mode !== 'undefined') {
         errors.push('mode must be undefined for tonconnect!');
     }
 
@@ -105,7 +113,11 @@ export function validateMessageObject(message: any, requireFriendlyAddress: bool
         errors.push('to address is required and must be a string');
     } else {
         if (requireFriendlyAddress ? !isFriendlyTonAddress(message.address) : !isValidAddress(message.address)) {
-            errors.push(requireFriendlyAddress ? 'to address must be a valid friendly TON address' : 'to address must be a valid TON address');
+            errors.push(
+                requireFriendlyAddress
+                    ? 'to address must be a valid friendly TON address'
+                    : 'to address must be a valid TON address',
+            );
         }
     }
 

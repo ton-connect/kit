@@ -219,5 +219,4 @@ export class TransactionHandler
             };
         }
     }
-
 }

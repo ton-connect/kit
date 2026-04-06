@@ -170,8 +170,7 @@ export class TonWalletKit implements ITonWalletKit {
 
         this.eventEmitter.on('bridge-connect-with-intent', async ({ payload: data }) => {
             await this.ensureInitialized();
-            const walletId =
-                data.walletId ?? this.walletManager.getWallets()[0]?.getWalletId();
+            const walletId = data.walletId ?? this.walletManager.getWallets()[0]?.getWalletId();
             if (!walletId) {
                 log.error('bridge-connect-with-intent received without walletId');
                 return;
@@ -617,7 +616,11 @@ export class TonWalletKit implements ITonWalletKit {
         jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string; connectRequest?: unknown },
     ): Promise<void> {
         await this.ensureInitialized();
-        return this.intentHandler.handleIntentUrl(url, walletId, jsBridgeContext as Parameters<typeof this.intentHandler.handleIntentUrl>[2]);
+        return this.intentHandler.handleIntentUrl(
+            url,
+            walletId,
+            jsBridgeContext as Parameters<typeof this.intentHandler.handleIntentUrl>[2],
+        );
     }
 
     onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void {

@@ -237,8 +237,7 @@ export class IntentHandler {
         const actionIntent = batch.intents.find((i) => i.type === 'action');
         if (actionIntent?.type === 'action') {
             const { result, resolvedEvent } = await this.resolveAndApproveAction(actionIntent, wallet);
-            const actionDeliveryMode =
-                resolvedEvent.type === 'transaction' ? resolvedEvent.deliveryMode : undefined;
+            const actionDeliveryMode = resolvedEvent.type === 'transaction' ? resolvedEvent.deliveryMode : undefined;
             await this.sendBatchResponse(batch, result, actionDeliveryMode);
             return result;
         }
@@ -464,7 +463,9 @@ export class IntentHandler {
         wallet: Wallet,
     ): Promise<{
         result: IntentTransactionResponse | IntentSignDataResponse;
-        resolvedEvent: Extract<IntentRequestEvent, { type: 'transaction' }> | Extract<IntentRequestEvent, { type: 'signData' }>;
+        resolvedEvent:
+            | Extract<IntentRequestEvent, { type: 'transaction' }>
+            | Extract<IntentRequestEvent, { type: 'signData' }>;
     }> {
         const actionResponse = await this.resolver.fetchActionUrl(event.actionUrl, wallet.getAddress());
         const resolvedEvent = this.parser.parseActionResponse(actionResponse, event);
@@ -503,7 +504,11 @@ export class IntentHandler {
             try {
                 await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
             } catch (error) {
-                if (!event.isJsBridge && error instanceof WalletKitError && error.code === ERROR_CODES.SESSION_NOT_FOUND) {
+                if (
+                    !event.isJsBridge &&
+                    error instanceof WalletKitError &&
+                    error.code === ERROR_CODES.SESSION_NOT_FOUND
+                ) {
                     // Session was deleted (e.g. wallet disconnected before reject) — nothing to notify.
                     log.debug('Session gone before intent response could be sent, ignoring', { eventId: event.id });
                 } else {

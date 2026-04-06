@@ -6,11 +6,12 @@
  *
  */
 
+import type { ConnectRequest } from '@tonconnect/protocol';
+
 import type { TransactionEmulatedTrace } from '../api/models';
 import type { RawBridgeEvent, RawBridgeEventRestoreConnection } from './internal';
 import type { EventEmitter } from '../core/EventEmitter';
 import type { StreamingEvents } from '../api/models';
-import type { ConnectRequest } from '@tonconnect/protocol';
 
 /**
  * Events shared between all walletkit and appkit.
