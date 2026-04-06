@@ -32,6 +32,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     private static readonly RECONNECT_DELAYS = [500, 1000, 2000, 4000, 8000];
     private pingTimeout: ReturnType<typeof setTimeout> | null = null;
     private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    private closeCheckTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Abstract methods to be implemented by children
     protected abstract getUrl(): string;
@@ -50,6 +51,19 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
 
     protected hasActiveSubscriptions(): boolean {
         return this.balanceCallbacks.size > 0 || this.transactionCallbacks.size > 0 || this.jettonCallbacks.size > 0;
+    }
+
+    protected isWatching(type: StreamingWatchType, address: string): boolean {
+        switch (type) {
+            case 'balance':
+                return this.balanceCallbacks.has(address);
+            case 'transactions':
+                return this.transactionCallbacks.has(address);
+            case 'jettons':
+                return this.jettonCallbacks.has(address);
+            default:
+                return false;
+        }
     }
 
     protected emitBalance(address: string, update: BalanceUpdate): void {
@@ -104,8 +118,13 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     disconnect(): void {
+        if (this.closeCheckTimeout) {
+            clearTimeout(this.closeCheckTimeout);
+            this.closeCheckTimeout = null;
+        }
         this.stopReconnect();
         this.stopPing();
+        this.reconnectAttempts = 0;
         const wasConnected = this.isConnected;
         if (this.ws) {
             this.ws.onclose = null;
@@ -120,9 +139,15 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     protected checkClose(): void {
-        if (!this.hasActiveSubscriptions()) {
-            this.disconnect();
+        if (this.closeCheckTimeout) {
+            clearTimeout(this.closeCheckTimeout);
         }
+        this.closeCheckTimeout = setTimeout(() => {
+            this.closeCheckTimeout = null;
+            if (!this.hasActiveSubscriptions()) {
+                this.disconnect();
+            }
+        }, 500);
     }
 
     connect(): void {
@@ -172,7 +197,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
         this.ws.onmessage = this.onMessage.bind(this);
 
         this.ws.onerror = (error) => {
-            log.error('WebSocket error', { error });
+            log.error('WebSocket error', { readyState: this.ws?.readyState, error });
         };
 
         this.ws.onclose = () => {
@@ -196,18 +221,18 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
 
     protected startPing(): void {
         this.stopPing();
-        const doPing = () => {
-            if (this.ws?.readyState === WebSocket.OPEN) {
-                const message = this.getPingMessage();
-                if (message) {
-                    this.send(message);
+        const schedulePing = () => {
+            this.pingTimeout = setTimeout(() => {
+                if (this.ws?.readyState === WebSocket.OPEN) {
+                    const message = this.getPingMessage();
+                    if (message) {
+                        this.send(message);
+                    }
                 }
-            }
+                schedulePing();
+            }, 10000);
         };
-        this.pingTimeout = setTimeout(() => {
-            doPing();
-            this.pingTimeout = setTimeout(doPing, 15000);
-        }, 15000);
+        schedulePing();
     }
 
     protected stopPing(): void {
@@ -238,7 +263,7 @@ export abstract class WebsocketStreamingProvider implements StreamingProvider {
     }
 
     /**
-     * Override to determine the ping payload sent every 15s.
+     * Override to determine the ping payload sent every 10s.
      * If returns null, no ping is sent.
      */
     protected getPingMessage(): unknown | null {

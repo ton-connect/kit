@@ -168,6 +168,24 @@ export class TonWalletKit implements ITonWalletKit {
             }
         });
 
+        this.eventEmitter.on('bridge-connect-with-intent', async ({ payload: data }) => {
+            await this.ensureInitialized();
+            const walletId =
+                data.walletId ?? this.walletManager.getWallets()[0]?.getWalletId();
+            if (!walletId) {
+                log.error('bridge-connect-with-intent received without walletId');
+                return;
+            }
+            if (this.intentHandler) {
+                await this.intentHandler.handleIntentUrl(data.intentUrl, walletId, {
+                    isJsBridge: true,
+                    tabId: data.tabId,
+                    messageId: data.messageId,
+                    connectRequest: data.connectRequest,
+                });
+            }
+        });
+
         this.eventEmitter.on('restoreConnection', async ({ payload: event }) => {
             if (!event.domain) {
                 log.error('Domain is required for restore connection');

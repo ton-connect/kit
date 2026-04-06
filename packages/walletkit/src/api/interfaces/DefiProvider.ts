@@ -6,7 +6,7 @@
  *
  */
 
-import type { BaseProvider } from '../models';
+import type { BaseProvider } from './BaseProvider';
 
 /**
  * Type of provider

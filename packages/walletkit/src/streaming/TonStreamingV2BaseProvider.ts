@@ -58,6 +58,16 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
         this.authQueryParam = options.authQueryParam;
     }
 
+    disconnect(): void {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+            this.syncTimer = null;
+        }
+        this.traceCache.clear();
+        this.lastAddresses.clear();
+        super.disconnect();
+    }
+
     protected getUrl(): string {
         let url = this.baseUrl;
         if (this.authSecret) {
@@ -82,6 +92,10 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
     }
 
     protected fullResync(): void {
+        if (this.syncTimer) {
+            clearTimeout(this.syncTimer);
+            this.syncTimer = null;
+        }
         log.info('fullResync triggered', { isConnected: this.isConnected, readyState: this.ws?.readyState });
         if (!this.isConnected || this.ws?.readyState !== WebSocket.OPEN) {
             return;
@@ -146,8 +160,7 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
 
             if (isAccountStateNotification(msg)) {
                 const update = mapBalance(msg);
-                const watchedBalance = this.getActiveWatchers().get('balance') ?? new Set<string>();
-                if (watchedBalance.has(update.address)) {
+                if (this.isWatching('balance', update.address)) {
                     this.emitBalance(update.address, update);
                 }
                 return;
@@ -157,10 +170,9 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
                 log.debug('Trace invalidated', { hash: msg.trace_external_hash_norm });
                 const entry = this.traceCache.get(msg.trace_external_hash_norm);
                 if (entry) {
-                    const watchedTransactions = this.getActiveWatchers().get('transactions') ?? new Set<string>();
                     entry.accounts.forEach((account) => {
                         const friendly = asAddressFriendly(account);
-                        if (watchedTransactions.has(friendly)) {
+                        if (this.isWatching('transactions', friendly)) {
                             this.emitTransactions(friendly, {
                                 type: 'transactions',
                                 address: friendly,
@@ -194,7 +206,6 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
                     this.traceCache.set(msg.trace_external_hash_norm, traceEntry);
                 }
 
-                const watchedTransactions = this.getActiveWatchers().get('transactions') ?? new Set<string>();
                 const uniqueAccounts = new Set<string>();
 
                 msg.transactions.forEach((tx: { account: string }) => {
@@ -203,7 +214,7 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
                     traceEntry.accounts.add(tx.account);
 
                     const friendly = asAddressFriendly(tx.account);
-                    if (watchedTransactions.has(friendly)) {
+                    if (this.isWatching('transactions', friendly)) {
                         this.emitTransactions(friendly, mapTransactions(tx.account, msg));
                     }
                 });
@@ -211,9 +222,8 @@ export abstract class TonStreamingV2BaseProvider extends WebsocketStreamingProvi
             }
 
             if (isJettonsNotification(msg)) {
-                const watchedJettons = this.getActiveWatchers().get('jettons') ?? new Set<string>();
                 const update = mapJettons(msg);
-                if (watchedJettons.has(update.ownerAddress)) {
+                if (this.isWatching('jettons', update.ownerAddress)) {
                     this.emitJettons(update.ownerAddress, update);
                 }
                 return;

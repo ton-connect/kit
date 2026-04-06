@@ -7,7 +7,7 @@
  */
 
 import type { Network } from '../api/models';
-import type { StreamingProvider, StreamingProviderFactory, StreamingAPI } from '../api/interfaces';
+import type { StreamingProvider, StreamingAPI } from '../api/interfaces';
 import type {
     JettonUpdate,
     BalanceUpdate,
@@ -18,7 +18,8 @@ import type {
 } from '../api/models';
 import { globalLogger } from '../core/Logger';
 import { asAddressFriendly } from '../utils';
-import type { ProviderFactoryContext } from '../types/factory';
+import { resolveProvider } from '../types/factory';
+import type { ProviderFactoryContext, ProviderInput } from '../types/factory';
 
 const log = globalLogger.createChild('StreamingManager');
 
@@ -38,13 +39,14 @@ export class StreamingManager<E extends StreamingEvents = StreamingEvents> imple
     /**
      * Register a provider factory. The network is determined from the provider's network property.
      */
-    registerProvider(factory: StreamingProviderFactory): void {
-        const provider = factory(this.createFactoryContext());
+    registerProvider(input: ProviderInput<StreamingProvider>): void {
+        const provider = resolveProvider(input, this.createFactoryContext());
         const networkId = String(provider.network.chainId);
 
         if (this.providers.has(networkId)) {
             log.warn(`Provider for network ${networkId} is already registered. Overriding.`);
             this.providerConnectionUnsubs.get(networkId)?.();
+            this.providers.get(networkId)?.disconnect();
         }
 
         this.providers.set(networkId, provider);

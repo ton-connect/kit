@@ -127,6 +127,42 @@ describe('WebsocketStreamingProvider', () => {
         expect(MockWebSocket.lastInstance?.send).toHaveBeenCalledWith(JSON.stringify({ type: 'ping' }));
     });
 
+    it('pings fire continuously, not just once or twice', async () => {
+        const provider = new TestProvider();
+        provider.watchBalance(ADDR, vi.fn());
+        await vi.runOnlyPendingTimersAsync();
+
+        const ws = MockWebSocket.lastInstance!;
+        const pingPayload = JSON.stringify({ type: 'ping' });
+
+        // Advance 50 seconds — should fire at 10s, 20s, 30s, 40s, 50s = 5 pings
+        vi.advanceTimersByTime(50000);
+
+        const pingCount = ws.send.mock.calls.filter((call) => call[0] === pingPayload).length;
+        expect(pingCount).toBe(5);
+    });
+
+    it('does not disconnect when resubscribing within checkClose debounce window', async () => {
+        const provider = new TestProvider();
+        const unsub = provider.watchBalance(ADDR, vi.fn());
+        await vi.runOnlyPendingTimersAsync();
+        const ws = MockWebSocket.lastInstance!;
+
+        // Unsubscribe all — starts 500ms debounce
+        unsub();
+        expect(ws.close).not.toHaveBeenCalled();
+
+        // Resubscribe within the debounce window
+        vi.advanceTimersByTime(200);
+        provider.watchBalance(ADDR, vi.fn());
+
+        // Let the debounce expire
+        vi.advanceTimersByTime(500);
+
+        // WS should still be alive — resubscription cancelled the close
+        expect(ws.close).not.toHaveBeenCalled();
+    });
+
     it('close() cancels a pending reconnect', async () => {
         const provider = new TestProvider();
         provider.watchBalance(ADDR, vi.fn());
@@ -175,7 +211,7 @@ describe('WebsocketStreamingProvider', () => {
             expect(ws.close).not.toHaveBeenCalled();
         });
 
-        it('closes when last watcher unsubscribes', async () => {
+        it('closes when last watcher unsubscribes (after debounce)', async () => {
             const provider = new TestProvider();
             const unsub1 = provider.watchBalance(ADDR, vi.fn());
             const unsub2 = provider.watchBalance(ADDR, vi.fn());
@@ -185,6 +221,8 @@ describe('WebsocketStreamingProvider', () => {
 
             unsub1();
             unsub2();
+            expect(ws.close).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(500);
             expect(ws.close).toHaveBeenCalled();
         });
 

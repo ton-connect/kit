@@ -25,6 +25,7 @@ import type {
     JSBridgeTransportFunction,
     WalletInfo,
 } from '../types/jsBridge';
+import type { ConnectRequest } from '@tonconnect/protocol';
 import { uuidv7 } from '../utils/uuid';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
@@ -560,6 +561,28 @@ export class BridgeManager {
                 messageId: messageInfo.messageId,
                 walletId: messageInfo.walletId,
             });
+        } else if (event.method === 'connectWithIntent') {
+            const params = event.params as {
+                payload?: string;
+                connectRequest?: ConnectRequest;
+                protocolVersion?: number;
+            };
+            if (!params.payload) {
+                log.warn('connectWithIntent received without payload, ignoring');
+                return;
+            }
+            this.eventEmitter?.emit(
+                'bridge-connect-with-intent',
+                {
+                    intentUrl: params.payload,
+                    connectRequest: params.connectRequest,
+                    tabId: messageInfo.tabId,
+                    messageId: messageInfo.messageId,
+                    walletId: messageInfo.walletId,
+                },
+                'bridge-manager',
+            );
+            return;
         }
 
         // Trigger processing (don't wait for it to complete)

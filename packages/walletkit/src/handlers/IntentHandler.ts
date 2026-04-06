@@ -77,11 +77,31 @@ export class IntentHandler {
      * {@link BatchedIntentEvent} with the connect as the first item.
      * Multi-item transaction intents are also batched (one item per action).
      */
-    async handleIntentUrl(url: string, walletId: string): Promise<void> {
-        const { event, connectRequest } = await this.parser.parse(url);
+    async handleIntentUrl(
+        url: string,
+        walletId: string,
+        jsBridgeContext?: {
+            isJsBridge: boolean;
+            tabId?: string;
+            messageId?: string;
+            connectRequest?: ConnectRequest;
+        },
+    ): Promise<void> {
+        const { event, connectRequest: urlConnectRequest } = await this.parser.parse(url);
 
         // parser.parse() never returns connect events
         if (event.type === 'connect') return;
+
+        // JS Bridge context overrides parsed origin and attaches routing fields
+        if (jsBridgeContext) {
+            event.isJsBridge = true;
+            event.tabId = jsBridgeContext.tabId;
+            event.messageId = jsBridgeContext.messageId;
+            event.origin = 'jsBridge';
+        }
+
+        // JS bridge connectRequest overrides the one embedded in the URL (if any)
+        const connectRequest = jsBridgeContext?.connectRequest ?? urlConnectRequest;
 
         // Resolve connect request into a ConnectIntentRequestEvent if present
         let connectItem: IntentRequestEvent | undefined;
@@ -107,6 +127,9 @@ export class IntentHandler {
                     clientId: event.clientId,
                     traceId: event.traceId,
                     returnStrategy: event.returnStrategy,
+                    isJsBridge: event.isJsBridge,
+                    tabId: event.tabId,
+                    messageId: event.messageId,
                     intents: [connectItem, event],
                 };
                 this.emit(batch);
@@ -370,6 +393,9 @@ export class IntentHandler {
             clientId: event.clientId,
             traceId: event.traceId,
             returnStrategy: event.returnStrategy,
+            isJsBridge: event.isJsBridge,
+            tabId: event.tabId,
+            messageId: event.messageId,
             intents,
         };
 
@@ -464,20 +490,20 @@ export class IntentHandler {
     // -- Private: Response sending --------------------------------------------
 
     private async sendResponse(event: IntentRequestBase, result: IntentResponseResult): Promise<void> {
-        if (!event.clientId) {
+        if (!event.clientId && !event.isJsBridge) {
             log.debug('No clientId on intent event, skipping response send');
             return;
         }
 
         const wireResponse = this.toWireResponse(event.id, result, event);
 
-        // For intents delivered via an existing bridge session, respond using the
-        // existing session crypto (sendResponse) so the SDK's pendingRequests resolves.
-        if (event.origin === 'connectedBridge') {
+        // For intents from an existing bridge session or JS Bridge, route via sendResponse
+        // (which handles JS bridge and session-encrypted responses).
+        if (event.origin === 'connectedBridge' || event.isJsBridge) {
             try {
                 await this.bridgeManager.sendResponse(event as BridgeEvent, wireResponse);
             } catch (error) {
-                if (error instanceof WalletKitError && error.code === ERROR_CODES.SESSION_NOT_FOUND) {
+                if (!event.isJsBridge && error instanceof WalletKitError && error.code === ERROR_CODES.SESSION_NOT_FOUND) {
                     // Session was deleted (e.g. wallet disconnected before reject) — nothing to notify.
                     log.debug('Session gone before intent response could be sent, ignoring', { eventId: event.id });
                 } else {
@@ -485,7 +511,7 @@ export class IntentHandler {
                 }
             }
         } else {
-            await this.bridgeManager.sendIntentResponse(event.clientId, wireResponse, event.traceId);
+            await this.bridgeManager.sendIntentResponse(event.clientId!, wireResponse, event.traceId);
         }
     }
 
@@ -494,14 +520,18 @@ export class IntentHandler {
         result: IntentResponseResult,
         deliveryMode?: 'send' | 'signOnly',
     ): Promise<void> {
-        if (!batch.clientId) {
+        if (!batch.clientId && !batch.isJsBridge) {
             log.debug('No clientId on batched intent, skipping response send');
             return;
         }
 
         const wireResponse = this.toWireResponse(batch.id, result, undefined, deliveryMode);
 
-        await this.bridgeManager.sendIntentResponse(batch.clientId, wireResponse, batch.traceId);
+        if (batch.isJsBridge) {
+            await this.bridgeManager.sendResponse(batch, wireResponse);
+        } else {
+            await this.bridgeManager.sendIntentResponse(batch.clientId!, wireResponse, batch.traceId);
+        }
     }
 
     /**
