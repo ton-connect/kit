@@ -189,7 +189,7 @@ export interface ITonWalletKit {
     handleIntentUrl(
         url: string,
         walletId: string,
-        jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string },
+        jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string; connectRequest?: unknown },
     ): Promise<void>;
 
     /** Register intent request handler */
