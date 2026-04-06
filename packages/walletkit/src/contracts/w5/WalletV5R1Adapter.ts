@@ -9,7 +9,7 @@
 // WalletV5R1 adapter that implements WalletInterface
 
 import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeStateInit } from '@ton/core';
+import { Address, beginCell, Cell, Dictionary, loadStateInit, SendMode, storeMessage, storeMessageRelaxed, storeStateInit } from '@ton/core';
 import { external, internal } from '@ton/core';
 
 import { WalletV5, WalletV5R1Id } from './WalletV5R1';
@@ -239,6 +239,18 @@ export class WalletV5R1Adapter implements WalletAdapter {
         }
 
         const transfer = await this.createBodyV5(seqno, walletId, actions, createBodyOptions);
+
+        if (options?.internal) {
+            // For gasless relaying, the signed body (auth_signed_internal opcode) must be
+            // delivered to the wallet via an internal message from a relayer contract.
+            const msg = internal({
+                to: this.walletContract.address,
+                value: 0n,
+                body: transfer,
+                bounce: false,
+            });
+            return beginCell().store(storeMessageRelaxed(msg)).endCell().toBoc().toString('base64') as Base64String;
+        }
 
         const ext = external({
             to: this.walletContract.address,
