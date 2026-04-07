@@ -4,7 +4,6 @@
     align-items: center;
     position: relative;
     cursor: text;
-    padding: 16px 0;
     width: 100%;
     overflow: hidden;
 }
@@ -12,7 +11,6 @@
 .row {
     display: flex;
     align-items: baseline;
-    gap: 8px;
     max-width: 100%;
 }
 
@@ -30,20 +28,21 @@
 }
 
 .input::placeholder {
-    color: var(--ta-color-text-secondary);
+    color: var(--ta-color-text-tertiary);
     opacity: 1;
 }
 
 .ticker {
     composes: inputXlSymbol from "../../../../styles/typography.module.css";
-    color: var(--ta-color-text-secondary);
+    color: var(--ta-color-text-tertiary);
     white-space: nowrap;
     user-select: none;
+    margin-left: 8px;
 }
 
 .symbol {
     composes: inputXl from "../../../../styles/typography.module.css";
-    color: var(--ta-color-text-secondary);
+    color: var(--ta-color-text-tertiary);
     white-space: nowrap;
     user-select: none;
 }

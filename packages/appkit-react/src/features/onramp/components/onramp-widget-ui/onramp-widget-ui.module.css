@@ -1,23 +1,23 @@
 .widget {
     box-sizing: border-box;
     width: 100%;
-    max-width: 340px;
+    max-width: 370px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
 }
 
-.tabsRow {
-    display: flex;
-    justify-content: center;
+.selectors {
+    margin-bottom: 64px;
 }
 
-.convertedLine {
-    composes: bodyRegular from "../../../../styles/typography.module.css";
-    color: var(--ta-color-text-secondary);
-    text-align: center;
+.input {
+    margin-bottom: 16px;
 }
 
-.error {
-    color: var(--ta-color-negative);
+.converted {
+    margin-bottom: 64px;
+}
+
+.presets {
+    margin-bottom: 16px;
 }

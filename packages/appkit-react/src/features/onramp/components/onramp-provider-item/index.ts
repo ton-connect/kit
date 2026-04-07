@@ -6,5 +6,5 @@
  *
  */
 
-export { OnrampCheckout } from './onramp-checkout';
-export type { OnrampCheckoutProps } from './onramp-checkout';
+export { OnrampProviderItem } from './onramp-provider-item';
+export type { OnrampProviderItemProps } from './onramp-provider-item';

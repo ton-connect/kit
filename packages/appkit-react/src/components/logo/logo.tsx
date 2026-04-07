@@ -95,7 +95,11 @@ export interface LogoProps extends ComponentPropsWithoutRef<'span'> {
 
 export const Logo = forwardRef<ComponentRef<'span'>, LogoProps>(({ size = 30, src, alt, fallback, ...props }, ref) => {
     return (
-        <LogoRoot ref={ref} style={{ width: size, height: size }} {...props}>
+        <LogoRoot
+            ref={ref}
+            style={{ width: size, height: size, minWidth: size, minHeight: size, maxWidth: size, maxHeight: size }}
+            {...props}
+        >
             <LogoImage src={src} alt={alt} />
 
             {(fallback || alt) && <LogoFallback delayMs={600}>{fallback ? fallback : alt?.[0]}</LogoFallback>}

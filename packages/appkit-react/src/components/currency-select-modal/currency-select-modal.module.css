@@ -2,6 +2,10 @@
   margin-bottom: 16px;
 }
 
+.body {
+  overflow-y: hidden;
+}
+
 .list {
   list-style: none;
   margin: 0;

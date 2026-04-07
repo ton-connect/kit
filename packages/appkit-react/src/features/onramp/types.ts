@@ -9,8 +9,8 @@
 export interface OnrampCurrency {
     code: string;
     name: string;
-    symbol: string;
-    flag?: string;
+    symbol?: string;
+    logo?: string;
 }
 
 export interface OnrampProvider {
@@ -21,3 +21,8 @@ export interface OnrampProvider {
 }
 
 export type AmountInputMode = 'token' | 'currency';
+
+export interface OnrampAmountPreset {
+    amount: string;
+    label: string;
+}

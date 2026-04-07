@@ -31,6 +31,7 @@ export const OnrampTokenSelectors: FC<OnrampTokenSelectorsProps> = ({
         <div className={clsx(styles.container, className)} {...props}>
             <TokenSelector
                 size="m"
+                variant="secondary"
                 className={styles.tokenSelector}
                 title={`Buy ${from.title}`}
                 icon={from.logoSrc}
@@ -39,6 +40,7 @@ export const OnrampTokenSelectors: FC<OnrampTokenSelectorsProps> = ({
 
             <TokenSelector
                 size="m"
+                variant="secondary"
                 className={styles.tokenSelector}
                 title={`for ${to.title}`}
                 icon={to.logoSrc}

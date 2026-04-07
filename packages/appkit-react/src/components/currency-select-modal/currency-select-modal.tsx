@@ -11,6 +11,7 @@ import clsx from 'clsx';
 
 import type { InputContainerProps } from '../input';
 import { Input } from '../input';
+import type { ModalProps } from '../modal';
 import { Modal } from '../modal';
 import { SearchIcon } from '../search-icon';
 import styles from './currency-select-modal.module.css';
@@ -70,8 +71,12 @@ export const CurrencySelectListContainer: FC<CurrencySelectListContainerProps> =
     );
 };
 
+export const CurrencySelectModal: FC<ModalProps> = ({ className, ...props }) => {
+    return <Modal className={clsx(styles.body, className)} {...props} />;
+};
+
 export const CurrencySelect = {
-    Modal,
+    Modal: CurrencySelectModal,
     Search: CurrencySelectSearch,
     ListContainer: CurrencySelectListContainer,
 };

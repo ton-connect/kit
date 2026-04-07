@@ -15,10 +15,10 @@ export interface OnrampCurrencyItemProps extends ComponentProps<typeof CurrencyI
     currency: OnrampCurrency;
 }
 
-export const OnrampCurrencyItem: FC<OnrampCurrencyItemProps> = ({ currency }) => {
+export const OnrampCurrencyItem: FC<OnrampCurrencyItemProps> = ({ currency, ...props }) => {
     return (
-        <CurrencyItem.Container>
-            <CurrencyItem.Logo src={currency.flag} fallback={currency.code[0]} alt={currency.code} />
+        <CurrencyItem.Container {...props}>
+            <CurrencyItem.Logo src={currency.logo} fallback={currency.code[0]} alt={currency.code} />
             <CurrencyItem.Info>
                 <CurrencyItem.Header>
                     <CurrencyItem.Name>{currency.name}</CurrencyItem.Name>

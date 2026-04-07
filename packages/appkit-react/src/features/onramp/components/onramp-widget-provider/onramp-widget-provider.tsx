@@ -10,15 +10,20 @@ import { createContext, useCallback, useContext, useMemo, useState } from 'react
 import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import type { OnrampCurrency, OnrampProvider, AmountInputMode } from '../../types';
+import type { OnrampCurrency, OnrampProvider, AmountInputMode, OnrampAmountPreset } from '../../types';
 import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
 import { ONRAMP_PROVIDERS } from '../../mock-data/providers';
 
 export type { AppkitUIToken };
 
 const MOCK_RATE = 0.82;
-const ERROR_THRESHOLD = 10000;
-const DEFAULT_PRESETS = [100, 250, 500, 1000];
+const ERROR_THRESHOLD = 10000000;
+const DEFAULT_PRESETS: OnrampAmountPreset[] = [
+    { amount: '100', label: '100' },
+    { amount: '250', label: '250' },
+    { amount: '500', label: '500' },
+    { amount: '1000', label: '1000' },
+];
 
 export interface OnrampContextType {
     /** Full list of available tokens to buy */
@@ -46,25 +51,15 @@ export interface OnrampContextType {
     /** Mocked converted amount in the opposite denomination */
     convertedAmount: string;
     /** Preset amount values */
-    presetAmounts: number[];
-    /** Set amount from a preset value */
-    setPresetAmount: (value: number) => void;
+    presetAmounts: OnrampAmountPreset[];
 
     /** Available payment providers */
     providers: OnrampProvider[];
-    /** Currently selected provider */
-    selectedProvider: OnrampProvider | null;
-    /** Select a payment provider */
-    setSelectedProvider: (provider: OnrampProvider) => void;
 
     /** Whether amount is valid and user can proceed */
     canContinue: boolean;
     /** Current error, e.g. 'noQuotesFound' */
-    error: string | null;
-    /** Whether a purchase is in progress (mocked) */
-    isPurchasing: boolean;
-    /** Start the purchase (mocked) */
-    onPurchase: () => void;
+    error?: string;
     /** Reset widget to initial state */
     onReset: () => void;
 }
@@ -78,18 +73,13 @@ const defaultContext: OnrampContextType = {
     setSelectedCurrency: () => {},
     amount: '',
     setAmount: () => {},
-    amountInputMode: 'token',
+    amountInputMode: 'currency',
     setAmountInputMode: () => {},
     convertedAmount: '',
     presetAmounts: DEFAULT_PRESETS,
-    setPresetAmount: () => {},
     providers: [],
-    selectedProvider: null,
-    setSelectedProvider: () => {},
     canContinue: false,
-    error: null,
-    isPurchasing: false,
-    onPurchase: () => {},
+    error: undefined,
     onReset: () => {},
 };
 
@@ -123,13 +113,9 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     );
 
     const [amount, setAmount] = useState('');
-    const [amountInputMode, setAmountInputMode] = useState<AmountInputMode>('token');
+    const [amountInputMode, setAmountInputMode] = useState<AmountInputMode>('currency');
     const [selectedProvider, setSelectedProvider] = useState<OnrampProvider | null>(null);
     const [isPurchasing, setIsPurchasing] = useState(false);
-
-    const setPresetAmount = useCallback((value: number) => {
-        setAmount(String(value));
-    }, []);
 
     const convertedAmount = useMemo(() => {
         const num = parseFloat(amount);
@@ -141,8 +127,8 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     }, [amount, amountInputMode]);
 
     const numericAmount = parseFloat(amount);
-    const error = !isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD ? 'noQuotesFound' : null;
-    const canContinue = amount !== '' && !isNaN(numericAmount) && numericAmount > 0 && error === null;
+    const error = !isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD ? 'noQuotesFound' : undefined;
+    const canContinue = amount !== '' && !isNaN(numericAmount) && numericAmount > 0 && !error;
 
     const onPurchase = useCallback(() => {
         setIsPurchasing(true);
@@ -172,7 +158,6 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             setAmountInputMode,
             convertedAmount,
             presetAmounts: DEFAULT_PRESETS,
-            setPresetAmount,
             providers: ONRAMP_PROVIDERS,
             selectedProvider,
             setSelectedProvider,
@@ -189,7 +174,6 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             amount,
             amountInputMode,
             convertedAmount,
-            setPresetAmount,
             selectedProvider,
             canContinue,
             error,

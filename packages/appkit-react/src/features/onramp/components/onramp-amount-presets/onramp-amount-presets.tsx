@@ -6,30 +6,38 @@
  *
  */
 
-import type { FC } from 'react';
+import type { ComponentProps, FC } from 'react';
+import clsx from 'clsx';
 
 import { Button } from '../../../../components/button';
 import styles from './onramp-amount-presets.module.css';
+import type { OnrampAmountPreset } from '../../types';
 
-export interface OnrampAmountPresetsProps {
-    presets: number[];
-    currencySymbol: string;
-    onSelect: (value: number) => void;
+export interface OnrampAmountPresetsProps extends ComponentProps<'div'> {
+    presets: OnrampAmountPreset[];
+    currencySymbol?: string;
+    onPresetSelect: (value: string) => void;
 }
 
-export const OnrampAmountPresets: FC<OnrampAmountPresetsProps> = ({ presets, currencySymbol, onSelect }) => {
+export const OnrampAmountPresets: FC<OnrampAmountPresetsProps> = ({
+    presets,
+    currencySymbol,
+    onPresetSelect,
+    className,
+    ...props
+}) => {
     return (
-        <div className={styles.container}>
-            {presets.map((value) => (
+        <div className={clsx(styles.container, className)} {...props}>
+            {presets.map((preset) => (
                 <Button
-                    key={value}
+                    key={preset.label}
                     size="s"
                     variant="secondary"
                     className={styles.preset}
-                    onClick={() => onSelect(value)}
+                    onClick={() => onPresetSelect(preset.amount)}
                 >
                     {currencySymbol}
-                    {value}
+                    {preset.amount}
                 </Button>
             ))}
         </div>

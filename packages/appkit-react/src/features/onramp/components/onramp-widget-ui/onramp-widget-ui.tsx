@@ -17,8 +17,9 @@ import { OnrampAmountPresets } from '../onramp-amount-presets';
 import { OnrampTokenSelectModal } from '../onramp-token-select-modal';
 import { OnrampCurrencySelectModal } from '../onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../onramp-provider-select';
-import { OnrampCheckout } from '../onramp-checkout';
 import styles from './onramp-widget-ui.module.css';
+import { OnrampAmountReversed } from '../onramp-amount-reversed';
+import type { OnrampProvider } from '../../types';
 
 export type OnrampWidgetRenderProps = OnrampContextType;
 
@@ -32,79 +33,62 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     amount,
     setAmount,
     amountInputMode,
-    // setAmountInputMode,
+    setAmountInputMode,
     convertedAmount,
     presetAmounts,
-    setPresetAmount,
     providers,
-    selectedProvider,
-    setSelectedProvider,
     canContinue,
     error,
-    isPurchasing,
-    onPurchase,
+    onReset,
 }) => {
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
     const [isCurrencySelectOpen, setIsCurrencySelectOpen] = useState(false);
     const [isProviderSelectOpen, setIsProviderSelectOpen] = useState(false);
-    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-
-    const convertedSymbol = amountInputMode === 'token' ? selectedCurrency.symbol : (selectedToken?.symbol ?? '');
 
     const handleContinue = useCallback(() => {
-        if (selectedProvider) {
-            setIsCheckoutOpen(true);
-        } else {
-            setIsProviderSelectOpen(true);
-        }
-    }, [selectedProvider]);
+        setIsProviderSelectOpen(true);
+    }, []);
 
-    const handleProviderSelected = useCallback(
-        (provider: typeof selectedProvider) => {
-            if (provider) {
-                setSelectedProvider(provider);
-                setIsCheckoutOpen(true);
-            }
-        },
-        [setSelectedProvider],
-    );
-
-    const fiatAmount = amountInputMode === 'token' ? convertedAmount : amount;
+    const handleProviderSelected = useCallback((_provider: OnrampProvider) => {
+        onReset();
+    }, []);
 
     return (
         <div className={styles.widget}>
-            <div className={styles.tabsRow}>
-                <OnrampTokenSelectors
-                    from={{ title: selectedToken?.symbol ?? '', logoSrc: selectedToken?.logo }}
-                    to={{ title: selectedCurrency.code, logoSrc: selectedCurrency.flag }}
-                    onFromClick={() => setIsTokenSelectOpen(true)}
-                    onToClick={() => setIsCurrencySelectOpen(true)}
-                />
-            </div>
+            <OnrampTokenSelectors
+                className={styles.selectors}
+                from={{ title: selectedToken?.symbol ?? '', logoSrc: selectedToken?.logo }}
+                to={{ title: selectedCurrency.code, logoSrc: selectedCurrency.logo }}
+                onFromClick={() => setIsTokenSelectOpen(true)}
+                onToClick={() => setIsCurrencySelectOpen(true)}
+            />
 
             <OnrampAmountInput
+                className={styles.input}
                 value={amount}
-                onChange={setAmount}
+                onValueChange={setAmount}
                 ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
                 symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
             />
 
-            <div className={styles.convertedLine}>
-                {error === 'noQuotesFound' ? (
-                    <span className={styles.error}>No quotes found</span>
-                ) : (
-                    convertedAmount && `${convertedSymbol} ${convertedAmount}`
-                )}
-            </div>
-
-            <OnrampAmountPresets
-                presets={presetAmounts}
-                currencySymbol={selectedCurrency.symbol}
-                onSelect={setPresetAmount}
+            <OnrampAmountReversed
+                className={styles.converted}
+                value={convertedAmount}
+                onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
+                ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
+                symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
+                errorMessage={error}
             />
 
-            <Button variant="fill" size="l" fullWidth disabled={!canContinue} onClick={handleContinue}>
-                {error ? 'No quotes found' : canContinue ? 'Continue' : 'Enter an amount'}
+            <OnrampAmountPresets
+                className={styles.presets}
+                presets={presetAmounts}
+                currencySymbol={selectedCurrency.symbol}
+                onPresetSelect={setAmount}
+            />
+
+            <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
+                Continue
             </Button>
 
             <OnrampTokenSelectModal
@@ -126,18 +110,6 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onClose={() => setIsProviderSelectOpen(false)}
                 providers={providers}
                 onSelect={handleProviderSelected}
-            />
-
-            <OnrampCheckout
-                open={isCheckoutOpen}
-                onClose={() => setIsCheckoutOpen(false)}
-                token={selectedToken}
-                amount={amountInputMode === 'token' ? amount : convertedAmount}
-                fiatAmount={fiatAmount}
-                fiatSymbol={selectedCurrency.symbol}
-                provider={selectedProvider}
-                isPurchasing={isPurchasing}
-                onConfirm={onPurchase}
             />
         </div>
     );

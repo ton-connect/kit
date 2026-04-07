@@ -7,13 +7,14 @@
  */
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { FC } from 'react';
+import type { FC, ComponentProps } from 'react';
+import clsx from 'clsx';
 
 import styles from './onramp-amount-input.module.css';
 
-export interface OnrampAmountInputProps {
+export interface OnrampAmountInputProps extends ComponentProps<'div'> {
     value: string;
-    onChange: (value: string) => void;
+    onValueChange: (value: string) => void;
     ticker?: string;
     symbol?: string;
     placeholder?: string;
@@ -21,10 +22,12 @@ export interface OnrampAmountInputProps {
 
 export const OnrampAmountInput: FC<OnrampAmountInputProps> = ({
     value,
-    onChange,
+    onValueChange,
     ticker,
     symbol,
     placeholder = '0',
+    className,
+    ...props
 }) => {
     const mirrorRef = useRef<HTMLSpanElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +40,7 @@ export const OnrampAmountInput: FC<OnrampAmountInputProps> = ({
     }, [value, placeholder]);
 
     return (
-        <div className={styles.wrapper} onClick={() => inputRef.current?.focus()}>
+        <div className={clsx(styles.wrapper, className)} onClick={() => inputRef.current?.focus()} {...props}>
             <div className={styles.row}>
                 {symbol && <span className={styles.symbol}>{symbol}</span>}
                 <input
@@ -47,7 +50,7 @@ export const OnrampAmountInput: FC<OnrampAmountInputProps> = ({
                     inputMode="decimal"
                     placeholder={placeholder}
                     value={value}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(e) => onValueChange(e.target.value)}
                     style={{ width: inputWidth ? `${inputWidth}px` : undefined }}
                 />
                 {ticker && <span className={styles.ticker}>{ticker}</span>}
