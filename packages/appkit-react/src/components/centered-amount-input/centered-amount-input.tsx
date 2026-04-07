@@ -10,11 +10,11 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
-import styles from './onramp-amount-input.module.css';
+import styles from './centered-amount-input.module.css';
 
 const MIN_FONT_SCALE = 0.5;
 
-export interface OnrampAmountInputProps extends ComponentProps<'div'> {
+export interface CenteredAmountInputProps extends ComponentProps<'div'> {
     value: string;
     onValueChange: (value: string) => void;
     ticker?: string;
@@ -22,7 +22,7 @@ export interface OnrampAmountInputProps extends ComponentProps<'div'> {
     placeholder?: string;
 }
 
-export const OnrampAmountInput: FC<OnrampAmountInputProps> = ({
+export const CenteredAmountInput: FC<CenteredAmountInputProps> = ({
     value,
     onValueChange,
     ticker,

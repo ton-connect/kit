@@ -6,5 +6,5 @@
  *
  */
 
-export { OnrampAmountInput } from './onramp-amount-input';
-export type { OnrampAmountInputProps } from './onramp-amount-input';
+export { CenteredAmountInput } from './centered-amount-input';
+export type { CenteredAmountInputProps } from './centered-amount-input';

@@ -15,7 +15,7 @@
 }
 
 .input {
-    composes: inputXl from "../../../../styles/typography.module.css";
+    composes: inputXl from "../../styles/typography.module.css";
     color: var(--ta-color-text);
     border: none;
     outline: none;
@@ -33,7 +33,7 @@
 }
 
 .ticker {
-    composes: inputXlSymbol from "../../../../styles/typography.module.css";
+    composes: inputXlSymbol from "../../styles/typography.module.css";
     color: var(--ta-color-text-tertiary);
     white-space: nowrap;
     user-select: none;
@@ -41,14 +41,14 @@
 }
 
 .symbol {
-    composes: inputXl from "../../../../styles/typography.module.css";
+    composes: inputXl from "../../styles/typography.module.css";
     color: var(--ta-color-text-tertiary);
     white-space: nowrap;
     user-select: none;
 }
 
 .mirror {
-    composes: inputXl from "../../../../styles/typography.module.css";
+    composes: inputXl from "../../styles/typography.module.css";
     position: absolute;
     visibility: hidden;
     white-space: nowrap;
@@ -65,5 +65,5 @@
 }
 
 .measureText {
-    composes: inputXl from "../../../../styles/typography.module.css";
+    composes: inputXl from "../../styles/typography.module.css";
 }

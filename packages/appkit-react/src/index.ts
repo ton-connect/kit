@@ -21,6 +21,7 @@ export * from './components/ton-icon';
 export * from './components/input';
 export * from './components/token-select-modal';
 export * from './components/currency-item';
+export * from './components/centered-amount-input';
 
 export * from './features/balances';
 export * from './features/jettons';

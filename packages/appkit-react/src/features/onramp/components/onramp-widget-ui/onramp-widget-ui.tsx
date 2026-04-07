@@ -12,7 +12,7 @@ import type { FC } from 'react';
 import { Button } from '../../../../components/button';
 import type { OnrampContextType } from '../onramp-widget-provider';
 import { OnrampTokenSelectors } from '../onramp-token-selectors';
-import { OnrampAmountInput } from '../onramp-amount-input';
+import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { OnrampAmountPresets } from '../onramp-amount-presets';
 import { OnrampTokenSelectModal } from '../onramp-token-select-modal';
 import { OnrampCurrencySelectModal } from '../onramp-currency-select-modal';
@@ -63,7 +63,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onToClick={() => setIsCurrencySelectOpen(true)}
             />
 
-            <OnrampAmountInput
+            <CenteredAmountInput
                 className={styles.input}
                 value={amount}
                 onValueChange={setAmount}
