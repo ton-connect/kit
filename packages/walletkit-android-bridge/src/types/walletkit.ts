@@ -6,13 +6,7 @@
  *
  */
 
-import type {
-    DeviceInfo,
-    TonWalletKit,
-    WalletAdapter,
-    WalletInfo,
-    WalletSigner,
-} from '@ton/walletkit';
+import type { DeviceInfo, TonWalletKit, WalletAdapter, WalletInfo, WalletSigner } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.

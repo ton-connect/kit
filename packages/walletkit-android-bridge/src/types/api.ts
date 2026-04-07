@@ -387,7 +387,15 @@ export interface WalletKitBridgeApi {
     setDefaultStakingProvider(args: SetDefaultStakingProviderArgs): PromiseOrValue<void>;
     getStakingQuote(args: GetStakingQuoteArgs): PromiseOrValue<StakingQuoteResponse>;
     buildStakeTransaction(args: BuildStakeTransactionArgs): PromiseOrValue<unknown>;
-    getStakedBalance(args: GetStakedBalanceArgs): PromiseOrValue<{ stakedBalance: string; instantUnstakeAvailable: string; providerId: string }>;
-    getStakingProviderInfo(args: GetStakingProviderInfoArgs): PromiseOrValue<{ apy: number; instantUnstakeAvailable?: string; providerId: string }>;
+    getStakedBalance(args: GetStakedBalanceArgs): PromiseOrValue<{
+        stakedBalance: string;
+        instantUnstakeAvailable: string;
+        providerId: string;
+    }>;
+    getStakingProviderInfo(args: GetStakingProviderInfoArgs): PromiseOrValue<{
+        apy: number;
+        instantUnstakeAvailable?: string;
+        providerId: string;
+    }>;
     getSupportedUnstakeModes(args: GetSupportedUnstakeModesArgs): PromiseOrValue<string[]>;
 }

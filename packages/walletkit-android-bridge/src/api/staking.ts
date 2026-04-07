@@ -9,6 +9,7 @@
 import type { StakingProviderInterface, StakingQuoteParams, StakeParams } from '@ton/walletkit';
 import { TonStakersStakingProvider } from '@ton/walletkit/staking/tonstakers';
 import type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers';
+
 import { getKit } from '../utils/bridge';
 import { retain, get } from '../utils/registry';
 
@@ -52,10 +53,7 @@ export async function getStakedBalance(args: {
     return instance.staking.getStakedBalance(args.userAddress, args.network, args.providerId);
 }
 
-export async function getStakingProviderInfo(args: {
-    network?: { chainId: string };
-    providerId?: string;
-}) {
+export async function getStakingProviderInfo(args: { network?: { chainId: string }; providerId?: string }) {
     const instance = await getKit();
     return instance.staking.getStakingProviderInfo(args.network, args.providerId);
 }
