@@ -15,12 +15,22 @@ export interface StakingBalance {
     /**
      * Amount currently staked
      */
-    stakedBalance: TokenAmount;
+    rawStakedBalance: TokenAmount;
+
+    /**
+     * Amount currently staked
+     */
+    stakedBalance: string;
 
     /**
      * Amount available for instant unstake
      */
-    instantUnstakeAvailable: TokenAmount;
+    rawInstantUnstakeAvailable: TokenAmount;
+
+    /**
+     * Amount available for instant unstake
+     */
+    instantUnstakeAvailable: string;
 
     /**
      * Identifier of the staking provider

@@ -10,7 +10,6 @@ import type { UserFriendlyAddress } from '../core/Primitives';
 import type { Network } from '../core/Network';
 import type { StakingQuoteDirection } from './StakingQuoteDirection';
 import type { UnstakeModes } from './UnstakeMode';
-import type { TokenAmount } from '../core/TokenAmount';
 
 /**
  * Parameters for getting a staking quote
@@ -24,7 +23,7 @@ export interface StakingQuoteParams<TProviderOptions = unknown> {
     /**
      * Amount of tokens to stake or unstake
      */
-    amount: TokenAmount;
+    amount: string;
 
     /**
      * Address of the user
