@@ -14,7 +14,6 @@ import type { TokenAmount } from '../core/TokenAmount';
 export interface StakingProviderInfo {
     /**
      * Annual Percentage Yield in basis points (100 = 1%)
-     * @format int
      */
     apy: number;
 
