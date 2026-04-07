@@ -7,7 +7,6 @@
  */
 
 import type { FC } from 'react';
-import clsx from 'clsx';
 
 import { Modal } from '../../../../components/modal/modal';
 import { useI18n } from '../../../settings/hooks/use-i18n';
@@ -43,7 +42,7 @@ export const SwapSettingsModal: FC<SwapSettingsModalProps> = ({ open, onClose, s
                         key={preset}
                         size="s"
                         variant={slippage === preset ? 'fill' : 'secondary'}
-                        className={clsx(styles.presetBtn, slippage === preset && styles.presetBtnActive)}
+                        className={styles.presetBtn}
                         onClick={() => onSlippageChange(preset)}
                     >
                         {formatSlippage(preset)}
