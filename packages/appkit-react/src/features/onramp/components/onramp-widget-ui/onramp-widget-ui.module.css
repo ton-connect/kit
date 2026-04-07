@@ -1,0 +1,23 @@
+.widget {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tabsRow {
+    display: flex;
+    justify-content: center;
+}
+
+.convertedLine {
+    composes: bodyRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+    text-align: center;
+}
+
+.error {
+    color: var(--ta-color-negative);
+}

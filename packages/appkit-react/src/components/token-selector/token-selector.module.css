@@ -6,7 +6,11 @@
   opacity: 0.8;
 }
 
+.symbol {
+  margin-right: 2px;
+}
+
 .chevron {
   opacity: 0.5;
-  margin-left: 2px;
+  margin-left: auto;
 }

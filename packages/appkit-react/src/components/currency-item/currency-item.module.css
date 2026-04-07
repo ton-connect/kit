@@ -1,4 +1,4 @@
-.currencyItem {
+.container {
     box-sizing: border-box;
     width: 100%;
     display: flex;
@@ -39,7 +39,7 @@
 }
 
 .name {
-    composes: bodySemibold from "../../../../styles/typography.module.css";
+    composes: bodySemibold from "../../styles/typography.module.css";
 
     color: var(--ta-color-text);
     white-space: nowrap;
@@ -56,19 +56,26 @@
 }
 
 .ticker {
-    composes: labelMedium from "../../../../styles/typography.module.css";
+    composes: labelMedium from "../../styles/typography.module.css";
 
     color: var(--ta-color-text-secondary);
     margin: 0;
 }
 
-.details {
+.rightSide {
     text-align: right;
 }
 
-.balance {
-    composes: bodyMedium from "../../../../styles/typography.module.css";
+.mainBalance {
+    composes: bodyMedium from "../../styles/typography.module.css";
 
     color: var(--ta-color-text);
+    margin: 0;
+}
+
+.underBalance {
+    composes: labelMedium from "../../styles/typography.module.css";
+
+    color: var(--ta-color-text-secondary);
     margin: 0;
 }

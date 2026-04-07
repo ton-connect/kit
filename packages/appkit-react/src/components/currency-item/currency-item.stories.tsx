@@ -12,7 +12,7 @@ import { fn } from 'storybook/test';
 import { CurrencyItem } from './currency-item';
 
 const meta: Meta<typeof CurrencyItem> = {
-    title: 'Public/Features/Balances/CurrencyItem',
+    title: 'Public/Components/CurrencyItem',
     component: CurrencyItem,
     tags: ['autodocs'],
     args: {
@@ -66,6 +66,17 @@ export const NoBalance: Story = {
     args: {
         ticker: 'TON',
         name: 'Toncoin',
+        icon: 'https://ton.org/download/ton_symbol.png',
+        isVerified: true,
+    },
+};
+
+export const WithUnderBalance: Story = {
+    args: {
+        ticker: 'TON',
+        name: 'Toncoin',
+        balance: '55',
+        underBalance: '$385.00',
         icon: 'https://ton.org/download/ton_symbol.png',
         isVerified: true,
     },

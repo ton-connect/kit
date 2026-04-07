@@ -1,0 +1,25 @@
+.container {
+    width: fit-content;
+    display: grid;
+    gap: 8px;
+    justify-content: center;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin: 0 auto;
+}
+
+.preset {
+    width: 100%;
+    padding: 6px 16px;
+    /* border: 1px solid var(--ta-color-border); */
+    /* background: none; */
+    cursor: pointer;
+    /* border-radius: var(--ta-border-radius-m); */
+    /* color: var(--ta-color-text); */
+    /* transition: background 0.15s, border-color 0.15s; */
+    white-space: nowrap;
+}
+
+.preset:hover {
+    background: var(--ta-color-bg-secondary);
+    border-color: var(--ta-color-text-secondary);
+}

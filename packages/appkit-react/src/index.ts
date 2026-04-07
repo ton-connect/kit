@@ -20,6 +20,7 @@ export * from './components/skeleton';
 export * from './components/ton-icon';
 export * from './components/input';
 export * from './components/token-select-modal';
+export * from './components/currency-item';
 
 export * from './features/balances';
 export * from './features/jettons';
@@ -31,5 +32,6 @@ export * from './features/settings';
 export * from './features/swap';
 export * from './features/signing';
 export * from './features/staking';
+export * from './features/onramp';
 
 export * from './types/appkit-ui-token';

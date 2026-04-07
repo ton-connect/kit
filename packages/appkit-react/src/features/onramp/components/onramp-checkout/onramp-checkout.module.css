@@ -1,0 +1,41 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.amountSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 24px 0;
+}
+
+.tokenAmount {
+    composes: display from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text);
+}
+
+.fiatAmount {
+    composes: bodyRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+}
+
+.providerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--ta-color-border);
+}
+
+.providerLabel {
+    composes: bodyRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+}
+
+.providerName {
+    composes: bodyMedium from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text);
+}

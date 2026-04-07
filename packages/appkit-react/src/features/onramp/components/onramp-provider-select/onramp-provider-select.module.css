@@ -1,0 +1,54 @@
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: var(--ta-border-radius-m);
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.item:hover {
+    background: var(--ta-color-bg-secondary);
+}
+
+.logo {
+    composes: labelSemibold from "../../../../styles/typography.module.css";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ta-color-bg-secondary);
+    color: var(--ta-color-text);
+    flex-shrink: 0;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.name {
+    composes: bodyMedium from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text);
+}
+
+.description {
+    composes: labelRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+}

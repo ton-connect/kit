@@ -10,12 +10,9 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { compareAddress } from '@ton/appkit';
 
-import { Input } from '../input/input';
-import { Modal } from '../modal/modal';
-import { SearchIcon } from '../search-icon';
-import { CurrencyItem } from '../../features/balances';
+import { CurrencySelect } from '../currency-select-modal';
+import { CurrencyItem } from '../currency-item';
 import type { AppkitUIToken } from '../../types/appkit-ui-token';
-import styles from './token-select-modal.module.css';
 
 export interface TokenSelectModalProps {
     open: boolean;
@@ -57,41 +54,19 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     };
 
     return (
-        <Modal open={open} onOpenChange={handleOpenChange} title={title}>
-            <Input.Container className={styles.searchWrapper} size="s">
-                <Input.Field>
-                    <Input.Slot>
-                        <SearchIcon size={24} />
-                    </Input.Slot>
-                    <Input.Input
-                        placeholder={searchPlaceholder}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        autoFocus
+        <CurrencySelect.Modal open={open} onOpenChange={handleOpenChange} title={title}>
+            <CurrencySelect.Search searchValue={search} onSearchChange={setSearch} placeholder={searchPlaceholder} />
+            <CurrencySelect.ListContainer isEmpty={filtered.length === 0}>
+                {filtered.map((token) => (
+                    <CurrencyItem
+                        key={token.address}
+                        icon={token.logo}
+                        name={token.name}
+                        ticker={token.symbol}
+                        onClick={handleSelect(token)}
                     />
-                </Input.Field>
-            </Input.Container>
-
-            <div className={styles.list}>
-                {filtered.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p className={styles.emptyText}>We didn&#x27;t find any tokens.</p>
-                        <p className={styles.emptyText}>Try searching by address.</p>
-                    </div>
-                ) : (
-                    <ul className={styles.list}>
-                        {filtered.map((token) => (
-                            <CurrencyItem
-                                key={token.address}
-                                icon={token.logo}
-                                name={token.name}
-                                ticker={token.symbol}
-                                onClick={handleSelect(token)}
-                            />
-                        ))}
-                    </ul>
-                )}
-            </div>
-        </Modal>
+                ))}
+            </CurrencySelect.ListContainer>
+        </CurrencySelect.Modal>
     );
 };
