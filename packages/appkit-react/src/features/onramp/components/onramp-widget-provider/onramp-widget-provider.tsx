@@ -6,7 +6,7 @@
  *
  */
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
@@ -114,8 +114,6 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
 
     const [amount, setAmount] = useState('');
     const [amountInputMode, setAmountInputMode] = useState<AmountInputMode>('currency');
-    const [selectedProvider, setSelectedProvider] = useState<OnrampProvider | null>(null);
-    const [isPurchasing, setIsPurchasing] = useState(false);
 
     const convertedAmount = useMemo(() => {
         const num = parseFloat(amount);
@@ -130,19 +128,10 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     const error = !isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD ? 'noQuotesFound' : undefined;
     const canContinue = amount !== '' && !isNaN(numericAmount) && numericAmount > 0 && !error;
 
-    const onPurchase = useCallback(() => {
-        setIsPurchasing(true);
-        setTimeout(() => {
-            setIsPurchasing(false);
-        }, 1500);
-    }, []);
-
-    const onReset = useCallback(() => {
+    const onReset = () => {
         setAmount('');
-        setSelectedProvider(null);
-        setAmountInputMode('token');
-        setIsPurchasing(false);
-    }, []);
+        setAmountInputMode('currency');
+    };
 
     const value = useMemo(
         () => ({
@@ -159,12 +148,8 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             convertedAmount,
             presetAmounts: DEFAULT_PRESETS,
             providers: ONRAMP_PROVIDERS,
-            selectedProvider,
-            setSelectedProvider,
             canContinue,
             error,
-            isPurchasing,
-            onPurchase,
             onReset,
         }),
         [
@@ -174,11 +159,8 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
             amount,
             amountInputMode,
             convertedAmount,
-            selectedProvider,
             canContinue,
             error,
-            isPurchasing,
-            onPurchase,
             onReset,
         ],
     );

@@ -49,9 +49,12 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
         setIsProviderSelectOpen(true);
     }, []);
 
-    const handleProviderSelected = useCallback((_provider: OnrampProvider) => {
-        onReset();
-    }, []);
+    const handleProviderSelected = useCallback(
+        (_provider: OnrampProvider) => {
+            onReset();
+        },
+        [onReset],
+    );
 
     return (
         <div className={styles.widget}>

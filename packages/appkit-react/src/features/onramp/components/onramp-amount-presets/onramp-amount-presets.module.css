@@ -10,12 +10,7 @@
 .preset {
     width: 100%;
     padding: 6px 16px;
-    /* border: 1px solid var(--ta-color-border); */
-    /* background: none; */
     cursor: pointer;
-    /* border-radius: var(--ta-border-radius-m); */
-    /* color: var(--ta-color-text); */
-    /* transition: background 0.15s, border-color 0.15s; */
     white-space: nowrap;
 }
 

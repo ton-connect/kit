@@ -37,7 +37,7 @@ export const OnrampAmountPresets: FC<OnrampAmountPresetsProps> = ({
                     onClick={() => onPresetSelect(preset.amount)}
                 >
                     {currencySymbol}
-                    {preset.amount}
+                    {preset.label}
                 </Button>
             ))}
         </div>
