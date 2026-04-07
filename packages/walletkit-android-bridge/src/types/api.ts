@@ -265,6 +265,71 @@ export interface HandleTonConnectUrlArgs {
     url: string;
 }
 
+export interface TonStakersChainConfig {
+    contractAddress?: string;
+    tonApiToken?: string;
+}
+
+export interface CreateTonStakersStakingProviderArgs {
+    config?: {
+        mainnet?: TonStakersChainConfig;
+        testnet?: TonStakersChainConfig;
+    };
+}
+
+export interface RegisterStakingProviderArgs {
+    providerId: string;
+}
+
+export interface SetDefaultStakingProviderArgs {
+    providerId: string;
+}
+
+export interface GetStakingQuoteArgs {
+    direction: 'stake' | 'unstake';
+    amount: string;
+    userAddress?: string;
+    network?: { chainId: string };
+    unstakeMode?: string;
+    providerOptions?: unknown;
+    providerId?: string;
+}
+
+export interface BuildStakeTransactionArgs {
+    quote: StakingQuoteResponse;
+    userAddress: string;
+    providerOptions?: unknown;
+    providerId?: string;
+}
+
+export interface StakingQuoteResponse {
+    direction: 'stake' | 'unstake';
+    amountIn: string;
+    amountOut: string;
+    network: { chainId: string };
+    providerId: string;
+    apy?: number;
+    unstakeMode?: string;
+    estimatedUnstakeDelayHours?: number;
+    instantUnstakeAvailable?: string;
+    metadata?: unknown;
+}
+
+export interface GetStakedBalanceArgs {
+    userAddress: string;
+    network?: { chainId: string };
+    providerId?: string;
+}
+
+export interface GetStakingProviderInfoArgs {
+    network?: { chainId: string };
+    providerId?: string;
+}
+
+export interface GetSupportedUnstakeModesArgs {
+    providerId?: string;
+}
+
 export interface WalletKitBridgeApi {
     init(config?: WalletKitBridgeInitConfig): PromiseOrValue<{ ok: true }>;
     setEventsListeners(args?: SetEventsListenersArgs): PromiseOrValue<{ ok: true }>;
@@ -317,4 +382,12 @@ export interface WalletKitBridgeApi {
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserBridgeRequest(args: EmitBrowserBridgeRequestArgs): PromiseOrValue<{ success: boolean }>;
+    createTonStakersStakingProvider(args?: CreateTonStakersStakingProviderArgs): PromiseOrValue<{ providerId: string }>;
+    registerStakingProvider(args: RegisterStakingProviderArgs): PromiseOrValue<{ ok: boolean }>;
+    setDefaultStakingProvider(args: SetDefaultStakingProviderArgs): PromiseOrValue<{ ok: boolean }>;
+    getStakingQuote(args: GetStakingQuoteArgs): PromiseOrValue<StakingQuoteResponse>;
+    buildStakeTransaction(args: BuildStakeTransactionArgs): PromiseOrValue<unknown>;
+    getStakedBalance(args: GetStakedBalanceArgs): PromiseOrValue<{ stakedBalance: string; instantUnstakeAvailable: string; providerId: string }>;
+    getStakingProviderInfo(args: GetStakingProviderInfoArgs): PromiseOrValue<{ apy: number; instantUnstakeAvailable?: string; providerId: string }>;
+    getSupportedUnstakeModes(args: GetSupportedUnstakeModesArgs): PromiseOrValue<string[]>;
 }
