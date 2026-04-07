@@ -78,7 +78,9 @@ describe('TonStakersStakingProvider', () => {
             });
 
             expect(quote.direction).toBe('stake');
+            expect(quote.rawAmountIn).toBe('1000000000');
             expect(quote.amountIn).toBe(amount);
+            expect(quote.rawAmountOut).toBe('909090909');
             // amountOut = 1 / 1.1 = 0.909090909
             expect(quote.amountOut).toBe('0.909090909');
             expect(quote.providerId).toBe('tonstakers');
@@ -97,8 +99,10 @@ describe('TonStakersStakingProvider', () => {
             });
 
             expect(quote.direction).toBe('unstake');
+            expect(quote.rawAmountIn).toBe('1000000000');
             expect(quote.amountIn).toBe(amount);
-            expect(quote.amountOut).toBe('1.050000000');
+            expect(quote.rawAmountOut).toBe('1050000000');
+            expect(quote.amountOut).toBe('1.05');
             expect(quote.providerId).toBe('tonstakers');
             expect(quote.unstakeMode).toBe(UnstakeMode.INSTANT);
         });
@@ -276,6 +280,7 @@ describe('TonStakersStakingProvider', () => {
             const info = await provider.getStakingProviderInfo(Network.mainnet());
 
             expect(info.apy).toBe(0.05);
+            expect(info.rawInstantUnstakeAvailable).toBe('500000000000');
             expect(info.instantUnstakeAvailable).toBe('500');
             expect(info.providerId).toBe('tonstakers');
             // Ensure exchange rates are NOT in the response
@@ -291,7 +296,9 @@ describe('TonStakersStakingProvider', () => {
 
             const balance = await provider.getStakedBalance(testUserAddress, Network.mainnet());
 
+            expect(balance.rawStakedBalance).toBe('1000000000');
             expect(balance.stakedBalance).toBe('1');
+            expect(balance.rawInstantUnstakeAvailable).toBe('500000000000');
             expect(balance.instantUnstakeAvailable).toBe('500');
             expect(balance.providerId).toBe('tonstakers');
         });

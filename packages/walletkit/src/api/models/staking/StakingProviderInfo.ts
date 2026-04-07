@@ -21,7 +21,12 @@ export interface StakingProviderInfo {
     /**
      * Amount available for instant unstake
      */
-    instantUnstakeAvailable?: TokenAmount;
+    rawInstantUnstakeAvailable?: TokenAmount;
+
+    /**
+     * Amount available for instant unstake
+     */
+    instantUnstakeAvailable?: string;
 
     /**
      * Identifier of the staking provider
