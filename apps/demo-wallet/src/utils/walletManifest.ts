@@ -41,7 +41,6 @@ export function getTonConnectDeviceInfo(): DeviceInfo {
 
 export function getTonConnectFeatures(): Feature[] {
     return [
-        'SendTransaction',
         {
             name: 'SendTransaction',
             maxMessages: 4,
@@ -50,24 +49,5 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
-        // Intent features (new in protocol — cast until @tonconnect/protocol types are updated)
-        {
-            name: 'SignMessage',
-        },
-        {
-            name: 'SendTransactionDraft',
-            types: ['ton', 'jetton', 'nft'],
-        },
-        {
-            name: 'SignMessageDraft',
-            types: ['ton', 'jetton', 'nft'],
-        },
-        {
-            name: 'ActionDraft',
-        },
-        {
-            name: 'Intents',
-            types: ['txDraft', 'signMsgDraft', 'actionDraft', 'signData'],
-        },
-    ] as unknown as Feature[];
+    ];
 }

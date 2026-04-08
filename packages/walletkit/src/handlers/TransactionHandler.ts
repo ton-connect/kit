@@ -17,12 +17,16 @@ import type {
     RawBridgeEventTransaction,
     RawConnectTransactionParamContent,
 } from '../types/internal';
-import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
+import {
+    validateTransactionMessages as validateTonConnectTransactionMessages,
+    validateStructuredItems,
+} from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
 import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
+import { resolveItemsToMessages } from '../utils/itemsResolver';
 import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
@@ -101,6 +105,12 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
         const request = requestValidation.result;
+
+        // Resolve structured items into messages so downstream code only sees messages
+        if (request.items && request.items.length > 0) {
+            request.messages = await resolveItemsToMessages(request.items, wallet);
+            request.items = undefined;
+        }
 
         let preview: TransactionEmulatedPreview | undefined;
         if (!this.config.eventProcessor?.disableTransactionEmulation) {
@@ -201,9 +211,16 @@ export class TransactionHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
-            if (!messagesValidation.isValid) {
-                errors = errors.concat(messagesValidation.errors);
+            if (params.items && params.items.length > 0) {
+                const itemsValidation = validateStructuredItems(params.items);
+                if (!itemsValidation.isValid) {
+                    errors = errors.concat(itemsValidation.errors);
+                }
+            } else {
+                const messagesValidation = validateTonConnectTransactionMessages(params.messages ?? [], isTonConnect);
+                if (!messagesValidation.isValid) {
+                    errors = errors.concat(messagesValidation.errors);
+                }
             }
 
             return {

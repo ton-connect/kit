@@ -11,8 +11,8 @@ import type {
     JSBridgeTransportFunction,
     StorageAdapter as KitStorageAdapter,
     SignDataRequestEvent,
-    SendTransactionRequestEvent,
     SignMessageRequestEvent,
+    SendTransactionRequestEvent,
     AnalyticsManagerOptions,
 } from '@ton/walletkit';
 import type Transport from '@ledgerhq/hw-transport';

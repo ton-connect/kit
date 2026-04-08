@@ -25,6 +25,8 @@ import type {
     BridgeEvent,
     Base64String,
 } from '../api/models';
+import type { RawStructuredItem, StructuredItem } from '../api/models/transactions/StructuredItem';
+import { parseRawStructuredItem, toRawStructuredItem } from '../api/models/transactions/StructuredItem';
 import { SendModeFromValue } from '../utils/sendMode';
 import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
@@ -109,17 +111,20 @@ export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefine
 }
 
 /**
- * Raw transaction params as received from TON Connect protocol
+ * Raw transaction params as received from TON Connect protocol.
+ * Contains either `messages` (raw format) or `items` (structured format), never both.
  */
 export interface RawConnectTransactionParamContent {
-    messages: ConnectTransactionParamMessage[];
+    messages?: ConnectTransactionParamMessage[];
+    items?: RawStructuredItem[];
     network?: ChainId;
     valid_until?: number;
     from?: string;
 }
 
 export interface ConnectTransactionParamContent {
-    messages: ConnectTransactionParamMessage[];
+    messages?: ConnectTransactionParamMessage[];
+    items?: StructuredItem[];
     network?: ChainId;
     validUntil?: number;
     from?: string;
@@ -133,6 +138,7 @@ export function parseConnectTransactionParamContent(
 ): ConnectTransactionParamContent {
     return {
         messages: raw.messages,
+        items: raw.items?.map(parseRawStructuredItem),
         network: raw.network,
         validUntil: raw.valid_until,
         from: raw.from,
@@ -169,7 +175,8 @@ export function toConnectTransactionParamMessage(message: TransactionRequestMess
  */
 export function toTransactionRequest(params: ConnectTransactionParamContent): TransactionRequest {
     return {
-        messages: params.messages.map(toTransactionRequestMessage),
+        messages: params.messages?.map(toTransactionRequestMessage) ?? [],
+        items: params.items,
         network: params.network ? { chainId: params.network } : undefined,
         validUntil: params.validUntil,
         fromAddress: params.from,
@@ -182,6 +189,7 @@ export function toTransactionRequest(params: ConnectTransactionParamContent): Tr
 export function toConnectTransactionParamContent(request: TransactionRequest): RawConnectTransactionParamContent {
     return {
         messages: request.messages.map(toConnectTransactionParamMessage),
+        items: request.items?.map(toRawStructuredItem),
         network: request.network?.chainId,
         valid_until: request.validUntil,
         from: request.fromAddress,

@@ -96,6 +96,13 @@ export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
 export type { TransactionTraceMoneyFlow as TransactionMoneyFlow } from './transactions/TransactionTraceMoneyFlow';
 export type { TransactionRequest, TransactionRequestMessage } from './transactions/TransactionRequest';
+export type {
+    StructuredItem,
+    StructuredItemType,
+    TonTransferItem,
+    JettonTransferItem,
+    NftTransferItem,
+} from './transactions/StructuredItem';
 export * from './transactions/TransactionTrace';
 export type { TransactionEmulatedPreview } from './transactions/emulation/TransactionEmulatedPreview';
 export type { TransactionEmulatedTrace } from './transactions/emulation/TransactionEmulatedTrace';
@@ -107,27 +114,6 @@ export type {
     TransactionTraceMoneyFlow,
     TransactionTraceMoneyFlowItem,
 } from './transactions/TransactionTraceMoneyFlow';
-
-// Intent models
-export type { SendTonAction, SendJettonAction, SendNftAction, IntentActionItem } from './intents/IntentActionItem';
-export type {
-    IntentOrigin,
-    IntentDeliveryMode,
-    IntentRequestBase,
-    TransactionIntentRequestEvent,
-    SignDataIntentRequestEvent,
-    ActionIntentRequestEvent,
-    ConnectIntentRequestEvent,
-    IntentRequestEvent,
-} from './intents/IntentRequestEvent';
-export type {
-    IntentTransactionResponse,
-    IntentSignDataResponse,
-    IntentErrorResponse,
-    IntentError,
-    IntentResponseResult,
-} from './intents/IntentResponse';
-export type { BatchedIntentEvent } from './intents/BatchedIntentEvent';
 
 // RPC models
 export type { GetMethodResult } from './rpc/GetMethodResult';

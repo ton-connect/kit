@@ -289,14 +289,13 @@ export class WalletV4R2Adapter implements WalletAdapter {
     getSupportedFeatures(): Feature[] | undefined {
         return [
             'SendTransaction',
-            { name: 'SendTransaction', maxMessages: 4, extraCurrencySupported: true },
+            {
+                name: 'SendTransaction',
+                maxMessages: 4,
+                extraCurrencySupported: true,
+                itemTypes: ['ton', 'jetton', 'nft'],
+            },
             { name: 'SignData', types: ['text', 'binary', 'cell'] },
-            { name: 'SendTransactionDraft', types: ['ton', 'jetton', 'nft'] },
-            { name: 'ActionDraft' },
-            { name: 'Intents', types: ['txDraft', 'actionDraft', 'signData'] },
-            // SignMessage and SignMessageDraft require W5R1 internal opcodes
-            // TODO: remove `as unknown as Feature[]` cast once @tonconnect/protocol is updated
-            // to include PR #103 feature names (SendTransactionDraft, ActionDraft, Intents, etc.)
-        ] as unknown as Feature[];
+        ] as Feature[];
     }
 }

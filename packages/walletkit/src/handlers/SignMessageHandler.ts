@@ -17,7 +17,10 @@ import type {
     RawBridgeEventSignMessage,
     RawConnectTransactionParamContent,
 } from '../types/internal';
-import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
+import {
+    validateTransactionMessages as validateTonConnectTransactionMessages,
+    validateStructuredItems,
+} from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
 import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
@@ -25,6 +28,7 @@ import type { EventEmitter } from '../core/EventEmitter';
 import type { WalletKitEvents } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
+import { resolveItemsToMessages } from '../utils/itemsResolver';
 import type { Wallet } from '../api/interfaces';
 import type { TransactionRequest, SignMessageRequestEvent } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
@@ -104,6 +108,12 @@ export class SignMessageHandler
         }
         const request = requestValidation.result;
 
+        // Resolve structured items into messages so downstream code only sees messages
+        if (request.items && request.items.length > 0) {
+            request.messages = await resolveItemsToMessages(request.items, wallet);
+            request.items = undefined;
+        }
+
         const signMessageEvent: SignMessageRequestEvent = {
             ...event,
             request,
@@ -169,9 +179,20 @@ export class SignMessageHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect, false);
-            if (!messagesValidation.isValid) {
-                errors = errors.concat(messagesValidation.errors);
+            if (params.items && params.items.length > 0) {
+                const itemsValidation = validateStructuredItems(params.items);
+                if (!itemsValidation.isValid) {
+                    errors = errors.concat(itemsValidation.errors);
+                }
+            } else {
+                const messagesValidation = validateTonConnectTransactionMessages(
+                    params.messages ?? [],
+                    isTonConnect,
+                    false,
+                );
+                if (!messagesValidation.isValid) {
+                    errors = errors.concat(messagesValidation.errors);
+                }
             }
 
             return {

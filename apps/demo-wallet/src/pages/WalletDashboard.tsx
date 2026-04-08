@@ -6,7 +6,7 @@
  *
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     useWallet,
@@ -15,7 +15,6 @@ import {
     useTransactionRequests,
     useSignDataRequests,
     useSignMessageRequests,
-    useIntents,
 } from '@demo/wallet-core';
 
 import {
@@ -27,8 +26,6 @@ import {
     TransactionRequestModal,
     SignDataRequestModal,
     SignMessageRequestModal,
-    IntentRequestModal,
-    BatchedIntentRequestModal,
     DisconnectNotifications,
     NftsCard,
     RecentTransactions,
@@ -38,7 +35,6 @@ import {
 import { useTonWallet } from '../hooks';
 import { createComponentLogger } from '../utils/logger';
 import { usePasteHandler } from '../hooks/usePasteHandler';
-import { isExtension } from '@/utils/isExtension';
 
 // Create logger for wallet dashboard
 const log = createComponentLogger('WalletDashboard');
@@ -77,65 +73,10 @@ export const WalletDashboard: React.FC = () => {
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
     const { pendingSignMessageRequest, isSignMessageModalOpen } = useSignMessageRequests();
-    const {
-        pendingIntentEvent,
-        pendingBatchedIntentEvent,
-        isIntentModalOpen,
-        isBatchedIntentModalOpen,
-        handleIntentUrl,
-        isIntentUrl,
-        approveIntent,
-        rejectIntent,
-        approveBatchedIntent,
-        rejectBatchedIntent,
-    } = useIntents();
     const { error } = useTonWallet();
 
-    // Use the paste handler hook — route intent URLs to handleIntentUrl
-    const handlePastedUrl = useCallback(
-        async (url: string) => {
-            if (isIntentUrl(url)) {
-                log.info('Detected pasted intent URL, routing to intent handler');
-                await handleIntentUrl(url);
-            } else {
-                await handleTonConnectUrl(url);
-            }
-        },
-        [isIntentUrl, handleIntentUrl, handleTonConnectUrl],
-    );
-    usePasteHandler(handlePastedUrl);
-
-    // In extension: check session storage for a pending connectWithIntent from the JS bridge.
-    // The background can't handle it (no wallets loaded there) so it saves it here for the popup.
-    useEffect(() => {
-        if (!isExtension() || !walletKit || !activeWallet?.kitWalletId) return;
-
-        const kitWalletId = activeWallet.kitWalletId;
-
-        const checkPending = async () => {
-            try {
-                const browser = (await import('webextension-polyfill')).default;
-                const result = (await browser.storage.session.get('pendingJsBridgeIntent')) as Record<string, unknown>;
-                const pending = result?.pendingJsBridgeIntent as
-                    | { intentUrl: string; messageId?: string; tabId?: string; connectRequest?: unknown }
-                    | undefined;
-                if (!pending?.intentUrl) return;
-
-                await browser.storage.session.remove('pendingJsBridgeIntent');
-
-                await walletKit.handleIntentUrl(pending.intentUrl, kitWalletId, {
-                    isJsBridge: true,
-                    tabId: pending.tabId,
-                    messageId: pending.messageId,
-                    connectRequest: pending.connectRequest ?? undefined,
-                });
-            } catch (err) {
-                log.error('Failed to process pending JS bridge intent:', err);
-            }
-        };
-
-        void checkPending();
-    }, [walletKit, activeWallet?.kitWalletId]);
+    // Use the paste handler hook
+    usePasteHandler(handleTonConnectUrl);
 
     const handleRefreshBalance = useCallback(async () => {
         setIsRefreshing(true);
@@ -163,22 +104,17 @@ export const WalletDashboard: React.FC = () => {
     const handleConnectDApp = useCallback(async () => {
         if (!tonConnectUrl.trim()) return;
 
-        const url = tonConnectUrl.trim();
         setIsConnecting(true);
         try {
-            if (isIntentUrl(url)) {
-                log.info('Detected intent URL, routing to intent handler');
-                await handleIntentUrl(url);
-            } else {
-                await handleTonConnectUrl(url);
-            }
+            await handleTonConnectUrl(tonConnectUrl.trim());
             setTonConnectUrl('');
         } catch (err) {
-            log.error('Failed to process URL:', err);
+            log.error('Failed to connect to dApp:', err);
+            // TODO: Show error message to user
         } finally {
             setIsConnecting(false);
         }
-    }, [tonConnectUrl, handleTonConnectUrl, isIntentUrl, handleIntentUrl]);
+    }, [tonConnectUrl, handleTonConnectUrl]);
 
     const handleTestDisconnectAll = useCallback(async () => {
         if (!walletKit) return;
@@ -359,19 +295,19 @@ export const WalletDashboard: React.FC = () => {
                 {/* NFTs */}
                 <NftsCard />
 
-                {/* TON Connect URL Input */}
-                <Card title="Connect to dApp / Handle Intent">
-                    <div className="space-y-4">
+                {/* Connect to dApp */}
+                <Card title="Connect to dApp" compact>
+                    <div className="space-y-3">
                         <div>
                             <label htmlFor="tonconnect-url" className="block text-sm font-medium text-gray-700 mb-2">
-                                Paste TON Connect or Intent Link
+                                Paste TON Connect Link
                             </label>
                             <textarea
                                 data-testid="tonconnect-url"
                                 id="tonconnect-url"
                                 rows={2}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none text-black"
-                                placeholder="tc://... or ton://... or https://... or intent URL"
+                                placeholder="tc://... or ton://... or https://..."
                                 value={tonConnectUrl}
                                 onChange={(e) => setTonConnectUrl(e.target.value)}
                             />
@@ -383,9 +319,7 @@ export const WalletDashboard: React.FC = () => {
                             disabled={!tonConnectUrl.trim() || isConnecting}
                             className="w-full"
                         >
-                            {tonConnectUrl.trim() && isIntentUrl(tonConnectUrl.trim())
-                                ? 'Process Intent'
-                                : 'Connect to dApp'}
+                            Connect to dApp
                         </Button>
                     </div>
                 </Card>
@@ -462,30 +396,6 @@ export const WalletDashboard: React.FC = () => {
                     request={pendingSignMessageRequest}
                     savedWallets={savedWallets}
                     isOpen={isSignMessageModalOpen}
-                />
-            )}
-
-            {/* Intent Request Modal */}
-            {pendingIntentEvent && (
-                <IntentRequestModal
-                    event={pendingIntentEvent}
-                    savedWallets={savedWallets}
-                    activeWalletId={activeWallet?.kitWalletId}
-                    isOpen={isIntentModalOpen}
-                    onApprove={approveIntent}
-                    onReject={rejectIntent}
-                />
-            )}
-
-            {/* Batched Intent Request Modal */}
-            {pendingBatchedIntentEvent && (
-                <BatchedIntentRequestModal
-                    batch={pendingBatchedIntentEvent}
-                    savedWallets={savedWallets}
-                    activeWalletId={activeWallet?.kitWalletId}
-                    isOpen={isBatchedIntentModalOpen}
-                    onApprove={approveBatchedIntent}
-                    onReject={rejectBatchedIntent}
                 />
             )}
         </Layout>

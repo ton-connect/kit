@@ -49,8 +49,5 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
-        { name: 'SendTransactionDraft' },
-        { name: 'SignMessageDraft' },
-        { name: 'SendActionDraft' },
-    ] as Feature[];
+    ];
 }

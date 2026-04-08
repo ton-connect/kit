@@ -96,41 +96,10 @@ onMessage(JS_BRIDGE_MESSAGE_TO_BACKGROUND, async (e) => {
         };
 
         try {
-            // connectWithIntent must be handled by the popup (background has no wallets).
-            // Save the intent to session storage and open the popup to pick it up.
-            if (payload.method === 'connectWithIntent') {
-                const rawParams = payload.params;
-                const paramsObj = Array.isArray(rawParams) ? null : (rawParams as Record<string, unknown> | null);
-                const intentUrl = paramsObj?.payload as string | undefined;
-
-                if (intentUrl) {
-                    await browser.storage.session.set({
-                        pendingJsBridgeIntent: {
-                            intentUrl,
-                            messageId,
-                            tabId: e.sender.tabId?.toString(),
-                            connectRequest: paramsObj?.connectRequest ?? null,
-                        },
-                    });
-                }
-
-                if (!DISABLE_AUTO_POPUP) {
-                    const views = await browser.runtime.getContexts({ contextTypes: ['POPUP'] });
-                    if (views.length === 0) {
-                        await browser.action.openPopup().catch((err) => {
-                            // eslint-disable-next-line no-console
-                            console.error('popup not opened', err);
-                        });
-                    }
-                }
-
-                return;
-            }
-
             await handleBridgeRequest(messageId, payload, e.sender.tabId);
 
             if (!DISABLE_AUTO_POPUP) {
-                if (payload.method === 'connect' || payload.method === 'send' || payload.method === 'connectWithIntent') {
+                if (payload.method === 'connect' || payload.method === 'send') {
                     if (payload.params && Array.isArray(payload.params)) {
                         const item = payload.params[0];
                         if (item && typeof item === 'object' && 'method' in item) {

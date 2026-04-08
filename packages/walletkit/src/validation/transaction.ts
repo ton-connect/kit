@@ -225,6 +225,74 @@ export function validateBOC(bocString: string): ValidationResult {
 }
 
 /**
+ * Validate structured items array (ton/jetton/nft)
+ */
+export function validateStructuredItems(items: unknown[]): ValidationResult {
+    const errors: string[] = [];
+
+    if (!Array.isArray(items)) {
+        errors.push('items must be an array');
+        return { isValid: false, errors };
+    }
+
+    if (items.length === 0) {
+        errors.push('items array cannot be empty');
+        return { isValid: false, errors };
+    }
+
+    items.forEach((item, index) => {
+        if (!item || typeof item !== 'object') {
+            errors.push(`item[${index}]: must be an object`);
+            return;
+        }
+
+        const obj = item as Record<string, unknown>;
+
+        if (!obj.type || typeof obj.type !== 'string') {
+            errors.push(`item[${index}]: type is required`);
+            return;
+        }
+
+        switch (obj.type) {
+            case 'ton':
+                if (!obj.address || typeof obj.address !== 'string') {
+                    errors.push(`item[${index}]: ton item requires address`);
+                }
+                if (!obj.amount || typeof obj.amount !== 'string') {
+                    errors.push(`item[${index}]: ton item requires amount`);
+                }
+                break;
+            case 'jetton':
+                if (!obj.master || typeof obj.master !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires master`);
+                }
+                if (!obj.destination || typeof obj.destination !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires destination`);
+                }
+                if (!obj.amount || typeof obj.amount !== 'string') {
+                    errors.push(`item[${index}]: jetton item requires amount`);
+                }
+                break;
+            case 'nft':
+                if (!obj.nftAddress || typeof obj.nftAddress !== 'string') {
+                    errors.push(`item[${index}]: nft item requires nftAddress`);
+                }
+                if (!obj.newOwner || typeof obj.newOwner !== 'string') {
+                    errors.push(`item[${index}]: nft item requires newOwner`);
+                }
+                break;
+            default:
+                errors.push(`item[${index}]: unknown item type '${obj.type}'`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+    };
+}
+
+/**
  * Check if value is a valid nanonton amount
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
