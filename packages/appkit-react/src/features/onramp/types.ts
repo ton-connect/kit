@@ -21,6 +21,11 @@ export interface OnrampProvider {
     logo?: string;
 }
 
+export interface CurrencySectionConfig {
+    title: string;
+    ids: string[];
+}
+
 export type AmountInputMode = 'token' | 'currency';
 
 export interface OnrampAmountPreset {

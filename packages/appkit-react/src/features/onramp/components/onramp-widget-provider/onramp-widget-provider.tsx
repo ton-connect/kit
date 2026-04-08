@@ -11,7 +11,13 @@ import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import type { TokenSectionConfig } from '../../../../components/token-select-modal';
-import type { OnrampCurrency, OnrampProvider, AmountInputMode, OnrampAmountPreset } from '../../types';
+import type {
+    OnrampCurrency,
+    OnrampProvider,
+    AmountInputMode,
+    OnrampAmountPreset,
+    CurrencySectionConfig,
+} from '../../types';
 import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
 import { ONRAMP_PROVIDERS } from '../../mock-data/providers';
 
@@ -31,6 +37,8 @@ export interface OnrampContextType {
     tokens: AppkitUIToken[];
     /** Optional section configs for grouping tokens in the selector */
     tokenSections?: TokenSectionConfig[];
+    /** Optional section configs for grouping currencies in the selector */
+    currencySections?: CurrencySectionConfig[];
     /** Currently selected token to buy */
     selectedToken: AppkitUIToken | null;
     /** Select a token to buy */
@@ -70,6 +78,7 @@ export interface OnrampContextType {
 const defaultContext: OnrampContextType = {
     tokens: [],
     tokenSections: undefined,
+    currencySections: undefined,
     selectedToken: null,
     setSelectedToken: () => {},
     currencies: [],
@@ -98,6 +107,8 @@ export interface OnrampProviderProps extends PropsWithChildren {
     tokens: AppkitUIToken[];
     /** Optional section configs for grouping tokens in the selector */
     tokenSections?: TokenSectionConfig[];
+    /** Optional section configs for grouping currencies in the selector */
+    currencySections?: CurrencySectionConfig[];
     /** Id of the token pre-selected for purchase */
     defaultTokenId?: string;
     /** Id of the fiat currency pre-selected */
@@ -108,6 +119,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     children,
     tokens,
     tokenSections,
+    currencySections,
     defaultTokenId,
     defaultCurrencyId,
 }) => {
@@ -144,6 +156,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
         () => ({
             tokens,
             tokenSections,
+            currencySections,
             selectedToken,
             setSelectedToken,
             currencies: ONRAMP_CURRENCIES,
@@ -163,6 +176,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
         [
             tokens,
             tokenSections,
+            currencySections,
             selectedToken,
             selectedCurrency,
             amount,

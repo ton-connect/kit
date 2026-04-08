@@ -32,6 +32,7 @@ export const OnrampWidget: FC<OnrampWidgetProps> = ({
     children,
     tokens,
     tokenSections,
+    currencySections,
     defaultTokenId,
     defaultCurrencyId,
 }) => {
@@ -39,6 +40,7 @@ export const OnrampWidget: FC<OnrampWidgetProps> = ({
         <OnrampWidgetProvider
             tokens={tokens}
             tokenSections={tokenSections}
+            currencySections={currencySections}
             defaultTokenId={defaultTokenId}
             defaultCurrencyId={defaultCurrencyId}
         >

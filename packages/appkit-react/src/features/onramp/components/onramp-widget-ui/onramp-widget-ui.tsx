@@ -30,6 +30,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     selectedToken,
     setSelectedToken,
     currencies,
+    currencySections,
     selectedCurrency,
     setSelectedCurrency,
     amount,
@@ -110,6 +111,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 open={isCurrencySelectOpen}
                 onClose={() => setIsCurrencySelectOpen(false)}
                 currencies={currencies}
+                currencySections={currencySections}
                 onSelect={setSelectedCurrency}
             />
 

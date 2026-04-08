@@ -6,18 +6,21 @@
  *
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
 
 import { CurrencySelect } from '../../../../components/currency-select-modal';
-import type { OnrampCurrency } from '../../types';
+import type { OnrampCurrency, CurrencySectionConfig } from '../../types';
 import { OnrampCurrencyItem } from '../onramp-currency-item';
 import { useI18n } from '../../../settings/hooks/use-i18n';
+import { filterCurrencies, groupCurrencySections } from './utils';
+import type { CurrencySection } from './utils';
 
 export interface OnrampCurrencySelectModalProps {
     open: boolean;
     onClose: () => void;
     currencies: OnrampCurrency[];
+    currencySections?: CurrencySectionConfig[];
     onSelect: (currency: OnrampCurrency) => void;
 }
 
@@ -25,15 +28,23 @@ export const OnrampCurrencySelectModal: FC<OnrampCurrencySelectModalProps> = ({
     open,
     onClose,
     currencies,
+    currencySections,
     onSelect,
 }) => {
     const { t } = useI18n();
     const [search, setSearch] = useState('');
 
-    const filtered = currencies.filter(
-        (c) =>
-            c.name.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase()),
-    );
+    const displaySections = useMemo((): CurrencySection[] => {
+        if (search) {
+            return [{ title: '', currencies: filterCurrencies(currencies, search) }];
+        }
+        if (currencySections) {
+            return groupCurrencySections(currencies, currencySections, t('tokenSelect.otherCurrencies'));
+        }
+        return [{ title: '', currencies }];
+    }, [currencies, currencySections, search, t]);
+
+    const isEmpty = displaySections.every((s) => s.currencies.length === 0);
 
     const handleSelect = (currency: OnrampCurrency) => () => {
         onSelect(currency);
@@ -56,9 +67,18 @@ export const OnrampCurrencySelectModal: FC<OnrampCurrencySelectModalProps> = ({
                 placeholder={t('onramp.searchCurrency')}
             />
 
-            <CurrencySelect.ListContainer isEmpty={filtered.length === 0}>
-                {filtered.map((currency) => (
-                    <OnrampCurrencyItem key={currency.code} currency={currency} onClick={handleSelect(currency)} />
+            <CurrencySelect.ListContainer isEmpty={isEmpty}>
+                {displaySections.map((section) => (
+                    <CurrencySelect.Section key={section.title}>
+                        {section.title && <CurrencySelect.SectionHeader>{section.title}</CurrencySelect.SectionHeader>}
+                        {section.currencies.map((currency) => (
+                            <OnrampCurrencyItem
+                                key={currency.code}
+                                currency={currency}
+                                onClick={handleSelect(currency)}
+                            />
+                        ))}
+                    </CurrencySelect.Section>
                 ))}
             </CurrencySelect.ListContainer>
         </CurrencySelect.Modal>

@@ -61,6 +61,7 @@ export default {
     // Token select
     tokenSelect: {
         otherTokens: 'Other Tokens',
+        otherCurrencies: 'Other Currencies',
     },
 
     // Onramp

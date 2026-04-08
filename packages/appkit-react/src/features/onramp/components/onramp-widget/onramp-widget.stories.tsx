@@ -26,6 +26,7 @@ export const Default: Story = {
         defaultTokenId: 'usdt',
         defaultCurrencyId: 'eur',
         tokenSections: [{ title: 'Popular', ids: ['ton', 'usdt'] }],
+        currencySections: [{ title: 'Popular', ids: ['usd', 'eur'] }],
     },
 };
 
