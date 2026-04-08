@@ -29,16 +29,6 @@ import type {
     TONConnectSession,
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
-    IntentRequestEvent,
-    TransactionIntentRequestEvent,
-    SignDataIntentRequestEvent,
-    ActionIntentRequestEvent,
-    IntentTransactionResponse,
-    IntentSignDataResponse,
-    IntentErrorResponse,
-    IntentActionItem,
-    BatchedIntentEvent,
-    ConnectionApprovalProof,
 } from '../api/models';
 import type { SwapAPI, StakingAPI } from '../api/interfaces';
 import type { NetworkManager } from '../core/NetworkManager';
@@ -179,53 +169,6 @@ export interface ITonWalletKit {
     removeSignMessageRequestCallback(cb: (event: SignMessageRequestEvent) => void): void;
     removeDisconnectCallback(cb: (event: DisconnectionEvent) => void): void;
     removeErrorCallback(cb: (event: RequestErrorEvent) => void): void;
-
-    // === Intent API ===
-
-    /** Check if a URL is a TonConnect intent deep link */
-    isIntentUrl(url: string): boolean;
-
-    /** Handle a TonConnect intent URL for the given wallet */
-    handleIntentUrl(
-        url: string,
-        walletId: string,
-        jsBridgeContext?: { isJsBridge: boolean; tabId?: string; messageId?: string; connectRequest?: unknown },
-    ): Promise<void>;
-
-    /** Register intent request handler */
-    onIntentRequest(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
-
-    /** Remove intent request handler */
-    removeIntentRequestCallback(cb: (event: IntentRequestEvent | BatchedIntentEvent) => void): void;
-
-    /** Approve a transaction draft intent */
-    approveTransactionDraft(event: TransactionIntentRequestEvent, walletId: string): Promise<IntentTransactionResponse>;
-
-    /** Approve a sign data intent */
-    approveSignDataIntent(event: SignDataIntentRequestEvent, walletId: string): Promise<IntentSignDataResponse>;
-
-    /** Approve an action draft intent */
-    approveActionDraft(
-        event: ActionIntentRequestEvent,
-        walletId: string,
-    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
-
-    /** Approve a batched intent (connect + transaction/signData/action) */
-    approveBatchedIntent(
-        batch: BatchedIntentEvent,
-        walletId: string,
-        proof?: ConnectionApprovalProof,
-    ): Promise<IntentTransactionResponse | IntentSignDataResponse>;
-
-    /** Reject any intent request */
-    rejectIntent(
-        event: IntentRequestEvent | BatchedIntentEvent,
-        reason?: string,
-        errorCode?: number,
-    ): Promise<IntentErrorResponse>;
-
-    /** Convert intent action items to a TransactionRequest for preview */
-    intentItemsToTransactionRequest(items: IntentActionItem[], walletId: string): Promise<TransactionRequest>;
 
     // === Jettons API ===
 

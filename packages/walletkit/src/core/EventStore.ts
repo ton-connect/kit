@@ -404,14 +404,6 @@ export class StorageEventStore implements EventStore {
                 return 'disconnect';
             case 'restoreConnection':
                 return 'restoreConnection';
-            case 'txDraft':
-                return 'txDraft';
-            case 'signMsgDraft':
-                return 'signMsgDraft';
-            case 'actionDraft':
-                return 'actionDraft';
-            case 'connectWithIntent':
-                return 'connectWithIntent';
             default:
                 throw new Error(`Unknown event method: ${method}`);
         }

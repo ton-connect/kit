@@ -11,7 +11,6 @@
 import { SessionCrypto } from '@tonconnect/protocol';
 import type { ClientConnection, WalletConsumer } from '@tonconnect/bridge-sdk';
 import { BridgeProvider } from '@tonconnect/bridge-sdk';
-import type { ConnectRequest } from '@tonconnect/protocol';
 
 import type { BridgeConfig, RawBridgeEvent } from '../types/internal';
 import type { Storage } from '../storage';
@@ -256,31 +255,6 @@ export class BridgeManager {
                 'Failed to send response through bridge',
                 error,
                 { sessionId, requestId: event.id },
-            );
-        }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async sendIntentResponse(clientId: string, response: any, traceId?: string): Promise<void> {
-        if (!this.bridgeProvider) {
-            throw new WalletKitError(
-                ERROR_CODES.BRIDGE_NOT_INITIALIZED,
-                'Bridge not initialized for sending intent response',
-            );
-        }
-
-        const sessionCrypto = new SessionCrypto();
-
-        try {
-            await this.bridgeProvider.send(response, sessionCrypto, clientId, { traceId });
-            log.debug('Intent response sent', { clientId, traceId });
-        } catch (error) {
-            log.error('Failed to send intent response', { clientId, error });
-            throw WalletKitError.fromError(
-                ERROR_CODES.BRIDGE_RESPONSE_SEND_FAILED,
-                'Failed to send intent response through bridge',
-                error,
-                { clientId },
             );
         }
     }
@@ -555,15 +529,6 @@ export class BridgeManager {
                 ...event,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ...(event as any).params[0],
-                isJsBridge: true,
-                tabId: messageInfo.tabId,
-                domain: messageInfo.domain,
-                messageId: messageInfo.messageId,
-                walletId: messageInfo.walletId,
-            });
-        } else if (event.method === 'connectWithIntent') {
-            this.eventQueue.push({
-                ...event,
                 isJsBridge: true,
                 tabId: messageInfo.tabId,
                 domain: messageInfo.domain,

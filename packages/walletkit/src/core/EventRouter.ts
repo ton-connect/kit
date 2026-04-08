@@ -31,7 +31,6 @@ import type {
     ConnectionRequestEvent,
 } from '../api/models';
 import type { TonWalletKitOptions } from '../types/config';
-import type { ConnectRequest } from '@tonconnect/protocol';
 
 const log = globalLogger.createChild('EventRouter');
 
@@ -65,35 +64,6 @@ export class EventRouter {
      * Route incoming bridge event to appropriate handler
      */
     async routeEvent(event: RawBridgeEvent): Promise<void> {
-        // Intent draft events and connectWithIntent are forwarded directly to the eventEmitter.
-        // They are handled by IntentHandler/TonWalletKit listeners, not by the standard handlers.
-        const INTENT_METHODS = ['txDraft', 'signMsgDraft', 'actionDraft', 'connectWithIntent'];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const raw = event as any;
-        if (INTENT_METHODS.includes(raw.method)) {
-            if (raw.method === 'connectWithIntent') {
-                const params = raw.params as { payload?: string; connectRequest?: ConnectRequest; protocolVersion?: number };
-                if (!params.payload) {
-                    log.warn('connectWithIntent received without payload, ignoring');
-                    return;
-                }
-                this.eventEmitter.emit(
-                    'bridge-connect-with-intent',
-                    {
-                        intentUrl: params.payload,
-                        connectRequest: params.connectRequest,
-                        tabId: raw.tabId,
-                        messageId: raw.messageId,
-                        walletId: raw.walletId,
-                    },
-                    'event-router',
-                );
-            } else {
-                this.eventEmitter.emit('bridge-draft-intent', event, 'event-router');
-            }
-            return;
-        }
-
         // Validate event structure
         const validation = validateBridgeEvent(event);
         if (!validation.isValid) {
@@ -286,10 +256,6 @@ export class EventRouter {
         if (this.disconnectCallback) {
             enabledTypes.push('disconnect');
         }
-
-        // Intent draft and connectWithIntent events are always enabled — they are routed
-        // via eventEmitter and do not require a registered callback to be processed.
-        enabledTypes.push('txDraft', 'signMsgDraft', 'actionDraft', 'connectWithIntent');
 
         return enabledTypes;
     }

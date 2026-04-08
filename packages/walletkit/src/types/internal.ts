@@ -219,7 +219,7 @@ export type RawBridgeEvent =
     | RawBridgeEventDisconnect;
 
 // Internal event routing types
-export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'signMessage' | 'disconnect' | 'restoreConnection' | 'txDraft' | 'signMsgDraft' | 'actionDraft' | 'connectWithIntent';
+export type EventType = 'connect' | 'sendTransaction' | 'signData' | 'signMessage' | 'disconnect' | 'restoreConnection';
 
 export interface EventHandler<T extends BridgeEvent = BridgeEvent, V extends RawBridgeEvent = RawBridgeEvent> {
     canHandle(event: RawBridgeEvent): event is V;

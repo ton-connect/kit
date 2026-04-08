@@ -435,8 +435,6 @@ export class StorageEventProcessor implements IEventProcessor {
      */
     private getNoWalletEnabledEventTypes(): EventType[] {
         const enabledTypes = this.eventRouter.getEnabledEventTypes();
-        return enabledTypes.filter(
-            (type) => type === 'connect' || type === 'restoreConnection' || type === 'connectWithIntent',
-        );
+        return enabledTypes.filter((type) => type === 'connect' || type === 'restoreConnection');
     }
 }
