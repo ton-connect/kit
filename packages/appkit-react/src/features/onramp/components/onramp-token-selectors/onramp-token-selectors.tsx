@@ -11,6 +11,7 @@ import clsx from 'clsx';
 
 import styles from './onramp-token-selectors.module.css';
 import { TokenSelector } from '../../../../components/token-selector';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export interface OnrampTokenSelectorsProps extends ComponentProps<'div'> {
     from: { title: string; logoSrc?: string };
@@ -27,13 +28,15 @@ export const OnrampTokenSelectors: FC<OnrampTokenSelectorsProps> = ({
     className,
     ...props
 }) => {
+    const { t } = useI18n();
+
     return (
         <div className={clsx(styles.container, className)} {...props}>
             <TokenSelector
                 size="m"
                 variant="secondary"
                 className={styles.tokenSelector}
-                title={`Buy ${from.title}`}
+                title={t('onramp.buyToken', { symbol: from.title })}
                 icon={from.logoSrc}
                 onClick={onFromClick}
             />
@@ -42,7 +45,7 @@ export const OnrampTokenSelectors: FC<OnrampTokenSelectorsProps> = ({
                 size="m"
                 variant="secondary"
                 className={styles.tokenSelector}
-                title={`for ${to.title}`}
+                title={t('onramp.forCurrency', { symbol: to.title })}
                 icon={to.logoSrc}
                 onClick={onToClick}
             />

@@ -57,4 +57,17 @@ export default {
         slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
         provider: 'Provider',
     },
+
+    // Onramp
+    onramp: {
+        continue: 'Continue',
+        selectToken: 'Token to buy',
+        searchToken: 'Search tokens',
+        selectCurrency: 'Select currency',
+        searchCurrency: 'Search currencies',
+        checkout: 'Checkout',
+        buyToken: 'Buy {{ symbol }}',
+        forCurrency: 'for {{ symbol }}',
+        noQuotesFound: 'No quotes found',
+    },
 } as const;

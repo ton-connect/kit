@@ -12,6 +12,7 @@ import type { FC } from 'react';
 import { CurrencySelect } from '../../../../components/currency-select-modal';
 import type { OnrampCurrency } from '../../types';
 import { OnrampCurrencyItem } from '../onramp-currency-item';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export interface OnrampCurrencySelectModalProps {
     open: boolean;
@@ -26,6 +27,7 @@ export const OnrampCurrencySelectModal: FC<OnrampCurrencySelectModalProps> = ({
     currencies,
     onSelect,
 }) => {
+    const { t } = useI18n();
     const [search, setSearch] = useState('');
 
     const filtered = currencies.filter(
@@ -47,8 +49,12 @@ export const OnrampCurrencySelectModal: FC<OnrampCurrencySelectModalProps> = ({
     };
 
     return (
-        <CurrencySelect.Modal open={open} onOpenChange={handleOpenChange} title="Select currency">
-            <CurrencySelect.Search searchValue={search} onSearchChange={setSearch} placeholder="Search currencies" />
+        <CurrencySelect.Modal open={open} onOpenChange={handleOpenChange} title={t('onramp.selectCurrency')}>
+            <CurrencySelect.Search
+                searchValue={search}
+                onSearchChange={setSearch}
+                placeholder={t('onramp.searchCurrency')}
+            />
 
             <CurrencySelect.ListContainer isEmpty={filtered.length === 0}>
                 {filtered.map((currency) => (

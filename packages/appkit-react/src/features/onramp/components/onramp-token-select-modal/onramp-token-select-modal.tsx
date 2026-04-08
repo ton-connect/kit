@@ -10,9 +10,12 @@ import type { FC } from 'react';
 
 import { TokenSelectModal } from '../../../../components/token-select-modal';
 import type { TokenSelectModalProps } from '../../../../components/token-select-modal';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export type OnrampTokenSelectModalProps = Omit<TokenSelectModalProps, 'title' | 'searchPlaceholder'>;
 
 export const OnrampTokenSelectModal: FC<OnrampTokenSelectModalProps> = (props) => {
-    return <TokenSelectModal {...props} title="Token to buy" searchPlaceholder="Search tokens" />;
+    const { t } = useI18n();
+
+    return <TokenSelectModal {...props} title={t('onramp.selectToken')} searchPlaceholder={t('onramp.searchToken')} />;
 };

@@ -20,6 +20,7 @@ import { OnrampProviderSelect } from '../onramp-provider-select';
 import styles from './onramp-widget-ui.module.css';
 import { OnrampAmountReversed } from '../onramp-amount-reversed';
 import type { OnrampProvider } from '../../types';
+import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export type OnrampWidgetRenderProps = OnrampContextType;
 
@@ -41,6 +42,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     error,
     onReset,
 }) => {
+    const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
     const [isCurrencySelectOpen, setIsCurrencySelectOpen] = useState(false);
     const [isProviderSelectOpen, setIsProviderSelectOpen] = useState(false);
@@ -80,7 +82,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
                 ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
                 symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
-                errorMessage={error}
+                errorMessage={error ? t(`onramp.${error}`) : undefined}
             />
 
             <OnrampAmountPresets
@@ -91,7 +93,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
             />
 
             <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
-                Continue
+                {t('onramp.continue')}
             </Button>
 
             <OnrampTokenSelectModal
