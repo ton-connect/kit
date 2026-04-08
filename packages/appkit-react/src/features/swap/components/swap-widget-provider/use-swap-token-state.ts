@@ -14,18 +14,16 @@ import { truncateDecimals } from '../../utils/truncate-decimals';
 
 interface UseSwapTokenStateOptions {
     mappedTokens: AppkitUIToken[];
-    defaultFromSymbol?: string;
-    defaultToSymbol?: string;
+    defaultFromId?: string;
+    defaultToId?: string;
 }
 
-export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) {
+export function useSwapTokenState({ mappedTokens, defaultFromId, defaultToId }: UseSwapTokenStateOptions) {
     const [fromToken, setFromToken] = useState<AppkitUIToken | null>(
-        mappedTokens.find((t) => t.symbol.toLowerCase() === defaultFromSymbol?.toLowerCase()) ??
-            mappedTokens[0] ??
-            null,
+        mappedTokens.find((t) => t.id === defaultFromId) ?? mappedTokens[0] ?? null,
     );
     const [toToken, setToToken] = useState<AppkitUIToken | null>(
-        mappedTokens.find((t) => t.symbol.toLowerCase() === defaultToSymbol?.toLowerCase()) ?? mappedTokens[1] ?? null,
+        mappedTokens.find((t) => t.id === defaultToId) ?? mappedTokens[1] ?? null,
     );
     const [fromAmount, setFromAmountRaw] = useState('');
 

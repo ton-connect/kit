@@ -26,6 +26,7 @@ export type OnrampWidgetRenderProps = OnrampContextType;
 
 export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     tokens,
+    tokenSections,
     selectedToken,
     setSelectedToken,
     currencies,
@@ -44,6 +45,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
+
     const [isCurrencySelectOpen, setIsCurrencySelectOpen] = useState(false);
     const [isProviderSelectOpen, setIsProviderSelectOpen] = useState(false);
 
@@ -100,6 +102,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 open={isTokenSelectOpen}
                 onClose={() => setIsTokenSelectOpen(false)}
                 tokens={tokens}
+                tokenSections={tokenSections}
                 onSelect={setSelectedToken}
             />
 

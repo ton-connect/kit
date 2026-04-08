@@ -19,6 +19,24 @@
   flex: 1;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeader {
+  composes: labelSemibold from "../../styles/typography.module.css";
+  
+  color: var(--ta-color-text-secondary);
+  margin: 0;
+  padding: 8px 0 4px;
+}
+
+.section:first-child .sectionHeader {
+  padding-top: 0;
+}
+
 .empty {
   padding: 32px 0;
 }

@@ -17,6 +17,7 @@ import { useSelectedWallet, useAddress } from '../../../wallets';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import type { TokenSectionConfig } from '../../../../components/token-select-modal';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
@@ -29,6 +30,8 @@ export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quote
 export interface SwapContextType {
     /** Full list of available tokens */
     tokens: AppkitUIToken[];
+    /** Optional section configs for grouping tokens in the selector */
+    tokenSections?: TokenSectionConfig[];
     /** Currently selected "from" token */
     fromToken: AppkitUIToken | null;
     /** Currently selected "to" token */
@@ -67,6 +70,7 @@ export interface SwapContextType {
 
 export const SwapContext = createContext<SwapContextType>({
     tokens: [],
+    tokenSections: undefined,
     fromToken: null,
     toToken: null,
     fromAmount: '',
@@ -97,14 +101,16 @@ export function useSwapContext() {
 export interface SwapProviderProps extends PropsWithChildren {
     /** Full list of tokens available for swapping */
     tokens: AppkitUIToken[];
+    /** Optional section configs for grouping tokens in the selector */
+    tokenSections?: TokenSectionConfig[];
     /** Network to use for quote fetching, defaults to mainnet */
     network: Network;
     /** Fiat currency symbol shown next to amounts, defaults to "$" */
     fiatSymbol?: string;
-    /** Symbol of the token pre-selected in the "from" field */
-    defaultFromSymbol?: string;
-    /** Symbol of the token pre-selected in the "to" field */
-    defaultToSymbol?: string;
+    /** Id of the token pre-selected in the "from" field */
+    defaultFromId?: string;
+    /** Id of the token pre-selected in the "to" field */
+    defaultToId?: string;
     /** Initial slippage in basis points (100 = 1%), defaults to 50 (0.5%) */
     defaultSlippage?: number;
 }
@@ -112,18 +118,19 @@ export interface SwapProviderProps extends PropsWithChildren {
 export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     children,
     tokens,
+    tokenSections,
     network,
     fiatSymbol = '$',
-    defaultFromSymbol,
-    defaultToSymbol,
+    defaultFromId,
+    defaultToId,
     defaultSlippage = 100,
 }) => {
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 
     const { fromToken, toToken, fromAmount, setFromToken, setToToken, setFromAmount, onFlip } = useSwapTokenState({
         mappedTokens,
-        defaultFromSymbol,
-        defaultToSymbol,
+        defaultFromId,
+        defaultToId,
     });
 
     const [slippage, setSlippage] = useState(defaultSlippage);
@@ -204,6 +211,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const value = useMemo(
         () => ({
             tokens: mappedTokens,
+            tokenSections,
             fromToken,
             toToken,
             fromAmount,
@@ -228,6 +236,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         }),
         [
             mappedTokens,
+            tokenSections,
             fromToken,
             toToken,
             fromAmount,

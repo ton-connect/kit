@@ -23,16 +23,17 @@ type Story = StoryObj<typeof OnrampWidget>;
 export const Default: Story = {
     args: {
         tokens: STORY_TOKENS,
-        defaultTokenSymbol: 'USD₮',
-        defaultCurrencyCode: 'EUR',
+        defaultTokenId: 'usdt',
+        defaultCurrencyId: 'eur',
+        tokenSections: [{ title: 'Popular', ids: ['ton', 'usdt'] }],
     },
 };
 
 export const CustomUI: Story = {
     args: {
         tokens: STORY_TOKENS,
-        defaultTokenSymbol: 'TON',
-        defaultCurrencyCode: 'USD',
+        defaultTokenId: 'ton',
+        defaultCurrencyId: 'usd',
     },
     render: (args) => (
         <OnrampWidget {...args}>

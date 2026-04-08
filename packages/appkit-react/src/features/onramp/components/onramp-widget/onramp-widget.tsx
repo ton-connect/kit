@@ -28,12 +28,19 @@ const OnrampWidgetContent: FC<{ children?: (props: OnrampWidgetRenderProps) => R
     return <OnrampWidgetUI {...ctx} />;
 };
 
-export const OnrampWidget: FC<OnrampWidgetProps> = ({ children, tokens, defaultTokenSymbol, defaultCurrencyCode }) => {
+export const OnrampWidget: FC<OnrampWidgetProps> = ({
+    children,
+    tokens,
+    tokenSections,
+    defaultTokenId,
+    defaultCurrencyId,
+}) => {
     return (
         <OnrampWidgetProvider
             tokens={tokens}
-            defaultTokenSymbol={defaultTokenSymbol}
-            defaultCurrencyCode={defaultCurrencyCode}
+            tokenSections={tokenSections}
+            defaultTokenId={defaultTokenId}
+            defaultCurrencyId={defaultCurrencyId}
         >
             <OnrampWidgetContent>{children}</OnrampWidgetContent>
         </OnrampWidgetProvider>

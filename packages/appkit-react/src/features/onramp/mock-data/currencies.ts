@@ -9,9 +9,22 @@
 import type { OnrampCurrency } from '../types';
 
 export const ONRAMP_CURRENCIES: OnrampCurrency[] = [
-    { code: 'EUR', name: 'Euro', symbol: '\u20AC', logo: 'https://static.moonpay.com/widget/currencies/eur.svg' },
-    { code: 'USD', name: 'US Dollar', symbol: '$', logo: 'https://static.moonpay.com/widget/currencies/usd.svg' },
     {
+        id: 'eur',
+        code: 'EUR',
+        name: 'Euro',
+        symbol: '\u20AC',
+        logo: 'https://static.moonpay.com/widget/currencies/eur.svg',
+    },
+    {
+        id: 'usd',
+        code: 'USD',
+        name: 'US Dollar',
+        symbol: '$',
+        logo: 'https://static.moonpay.com/widget/currencies/usd.svg',
+    },
+    {
+        id: 'gbp',
         code: 'GBP',
         name: 'Pound Sterling',
         symbol: '\u00A3',

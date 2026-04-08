@@ -10,6 +10,7 @@ import { createContext, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import type { TokenSectionConfig } from '../../../../components/token-select-modal';
 import type { OnrampCurrency, OnrampProvider, AmountInputMode, OnrampAmountPreset } from '../../types';
 import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
 import { ONRAMP_PROVIDERS } from '../../mock-data/providers';
@@ -28,6 +29,8 @@ const DEFAULT_PRESETS: OnrampAmountPreset[] = [
 export interface OnrampContextType {
     /** Full list of available tokens to buy */
     tokens: AppkitUIToken[];
+    /** Optional section configs for grouping tokens in the selector */
+    tokenSections?: TokenSectionConfig[];
     /** Currently selected token to buy */
     selectedToken: AppkitUIToken | null;
     /** Select a token to buy */
@@ -66,6 +69,7 @@ export interface OnrampContextType {
 
 const defaultContext: OnrampContextType = {
     tokens: [],
+    tokenSections: undefined,
     selectedToken: null,
     setSelectedToken: () => {},
     currencies: [],
@@ -92,24 +96,27 @@ export function useOnrampContext() {
 export interface OnrampProviderProps extends PropsWithChildren {
     /** Full list of tokens available for purchase */
     tokens: AppkitUIToken[];
-    /** Symbol of the token pre-selected for purchase */
-    defaultTokenSymbol?: string;
-    /** Code of the fiat currency pre-selected */
-    defaultCurrencyCode?: string;
+    /** Optional section configs for grouping tokens in the selector */
+    tokenSections?: TokenSectionConfig[];
+    /** Id of the token pre-selected for purchase */
+    defaultTokenId?: string;
+    /** Id of the fiat currency pre-selected */
+    defaultCurrencyId?: string;
 }
 
 export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     children,
     tokens,
-    defaultTokenSymbol,
-    defaultCurrencyCode,
+    tokenSections,
+    defaultTokenId,
+    defaultCurrencyId,
 }) => {
     const [selectedToken, setSelectedToken] = useState<AppkitUIToken | null>(
-        () => tokens.find((t) => t.symbol === defaultTokenSymbol) ?? tokens[0] ?? null,
+        () => tokens.find((t) => t.id === defaultTokenId) ?? tokens[0] ?? null,
     );
 
     const [selectedCurrency, setSelectedCurrency] = useState<OnrampCurrency>(
-        () => ONRAMP_CURRENCIES.find((c) => c.code === defaultCurrencyCode) ?? ONRAMP_CURRENCIES[0]!,
+        () => ONRAMP_CURRENCIES.find((c) => c.id === defaultCurrencyId) ?? ONRAMP_CURRENCIES[0]!,
     );
 
     const [amount, setAmount] = useState('');
@@ -136,6 +143,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
     const value = useMemo(
         () => ({
             tokens,
+            tokenSections,
             selectedToken,
             setSelectedToken,
             currencies: ONRAMP_CURRENCIES,
@@ -154,6 +162,7 @@ export const OnrampWidgetProvider: FC<OnrampProviderProps> = ({
         }),
         [
             tokens,
+            tokenSections,
             selectedToken,
             selectedCurrency,
             amount,

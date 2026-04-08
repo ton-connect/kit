@@ -7,6 +7,7 @@
  */
 
 export interface OnrampCurrency {
+    id: string;
     code: string;
     name: string;
     symbol?: string;

@@ -31,19 +31,21 @@ const SwapWidgetContent: FC<{ children?: (props: SwapWidgetRenderProps) => React
 export const SwapWidget: FC<SwapWidgetProps> = ({
     children,
     tokens,
+    tokenSections,
     network,
     fiatSymbol,
-    defaultFromSymbol,
-    defaultToSymbol,
+    defaultFromId,
+    defaultToId,
     defaultSlippage,
 }) => {
     return (
         <SwapWidgetProvider
             tokens={tokens}
+            tokenSections={tokenSections}
             network={network}
             fiatSymbol={fiatSymbol}
-            defaultFromSymbol={defaultFromSymbol}
-            defaultToSymbol={defaultToSymbol}
+            defaultFromId={defaultFromId}
+            defaultToId={defaultToId}
             defaultSlippage={defaultSlippage}
         >
             <SwapWidgetContent>{children}</SwapWidgetContent>

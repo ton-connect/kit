@@ -58,6 +58,11 @@ export default {
         provider: 'Provider',
     },
 
+    // Token select
+    tokenSelect: {
+        otherTokens: 'Other Tokens',
+    },
+
     // Onramp
     onramp: {
         continue: 'Continue',

@@ -71,6 +71,18 @@ export const CurrencySelectListContainer: FC<CurrencySelectListContainerProps> =
     );
 };
 
+export const CurrencySelectSectionHeader: FC<ComponentProps<'p'>> = ({ className, children, ...props }) => (
+    <p className={clsx(styles.sectionHeader, className)} {...props}>
+        {children}
+    </p>
+);
+
+export const CurrencySelectSection: FC<ComponentProps<'div'>> = ({ className, children, ...props }) => (
+    <div className={clsx(styles.section, className)} {...props}>
+        {children}
+    </div>
+);
+
 export const CurrencySelectModal: FC<ModalProps> = ({ className, ...props }) => {
     return <Modal className={clsx(styles.body, className)} {...props} />;
 };
@@ -79,4 +91,6 @@ export const CurrencySelect = {
     Modal: CurrencySelectModal,
     Search: CurrencySelectSearch,
     ListContainer: CurrencySelectListContainer,
+    SectionHeader: CurrencySelectSectionHeader,
+    Section: CurrencySelectSection,
 };
