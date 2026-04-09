@@ -30,6 +30,48 @@ import { get, release, retain, retainWithId } from '../utils/registry';
  * Populated by ProxyStreamingProvider.watch(); consumed by kotlinProviderDispatch.
  */
 const kotlinSubCallbacks = new Map<string, (update: unknown) => void>();
+const kotlinProviderSubs = new Map<string, Set<string>>();
+
+type InternalStreamingManager = {
+    providers: Map<string, StreamingProvider>;
+    providerConnectionUnsubs: Map<string, () => void>;
+};
+
+function trackKotlinSub(providerId: string, subId: string): void {
+    let subs = kotlinProviderSubs.get(providerId);
+    if (!subs) {
+        subs = new Set<string>();
+        kotlinProviderSubs.set(providerId, subs);
+    }
+    subs.add(subId);
+}
+
+function forgetKotlinSub(providerId: string, subId: string): void {
+    const subs = kotlinProviderSubs.get(providerId);
+    if (!subs) return;
+    subs.delete(subId);
+    if (subs.size === 0) {
+        kotlinProviderSubs.delete(providerId);
+    }
+}
+
+function cleanupReplacedKotlinProvider(instance: { streaming: unknown }, nextProviderId: string, network: { chainId: string }): void {
+    const manager = instance.streaming as InternalStreamingManager;
+    const networkId = String(network.chainId);
+    const previousProvider = manager.providers.get(networkId);
+    if (!(previousProvider instanceof ProxyStreamingProvider)) {
+        return;
+    }
+
+    manager.providerConnectionUnsubs.get(networkId)?.();
+    manager.providerConnectionUnsubs.delete(networkId);
+    manager.providers.delete(networkId);
+    previousProvider.dispose();
+    if (previousProvider.providerId !== nextProviderId) {
+        void bridgeRequest('kotlinProviderRelease', { providerId: previousProvider.providerId });
+    }
+    release(previousProvider.providerId);
+}
 
 /**
  * Proxy that wraps a Kotlin-implemented ITONStreamingProvider.
@@ -50,9 +92,11 @@ class ProxyStreamingProvider implements StreamingProvider {
     private watch(type: string, address: string | null, onChange: (update: unknown) => void): () => void {
         const subId = uuidv7();
         kotlinSubCallbacks.set(subId, onChange);
+        trackKotlinSub(this.providerId, subId);
         void bridgeRequest('kotlinProviderWatch', { providerId: this.providerId, subId, type, address });
         return () => {
             kotlinSubCallbacks.delete(subId);
+            forgetKotlinSub(this.providerId, subId);
             void bridgeRequest('kotlinProviderUnwatch', { subId });
         };
     }
@@ -79,6 +123,16 @@ class ProxyStreamingProvider implements StreamingProvider {
 
     disconnect(): void {
         void bridgeRequest('kotlinProviderDisconnect', { providerId: this.providerId });
+    }
+
+    dispose(): void {
+        const subs = kotlinProviderSubs.get(this.providerId);
+        if (!subs) return;
+        for (const subId of subs) {
+            kotlinSubCallbacks.delete(subId);
+            void bridgeRequest('kotlinProviderUnwatch', { subId });
+        }
+        kotlinProviderSubs.delete(this.providerId);
     }
 }
 
@@ -189,6 +243,7 @@ export async function streamingWatchJettons(args: { network: { chainId: string }
  */
 export async function registerKotlinStreamingProvider(args: { providerId: string; network: { chainId: string } }) {
     const instance = await getKit();
+    cleanupReplacedKotlinProvider(instance, args.providerId, args.network);
     const provider = new ProxyStreamingProvider(args.providerId, args.network as unknown as Network);
     retainWithId(args.providerId, provider);
     instance.streaming.registerProvider(() => provider);
