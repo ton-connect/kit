@@ -294,6 +294,21 @@ export interface StreamingWatchConnectionChangeArgs {
     network: { chainId: string };
 }
 
+export interface StreamingWatchAddressArgs {
+    network: { chainId: string };
+    address: string;
+}
+
+export interface RegisterKotlinStreamingProviderArgs {
+    providerId: string;
+    network: { chainId: string };
+}
+
+export interface KotlinProviderDispatchArgs {
+    subId: string;
+    updateJson: string;
+}
+
 export interface HandleTonConnectUrlArgs {
     url: string;
 }
@@ -363,4 +378,9 @@ export interface WalletKitBridgeApi {
     streamingWatchConnectionChange(
         args: StreamingWatchConnectionChangeArgs,
     ): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchBalance(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchTransactions(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchJettons(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    registerKotlinStreamingProvider(args: RegisterKotlinStreamingProviderArgs): PromiseOrValue<void>;
+    kotlinProviderDispatch(args: KotlinProviderDispatchArgs): PromiseOrValue<void>;
 }

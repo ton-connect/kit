@@ -102,4 +102,9 @@ export const api = {
     streamingConnect: streaming.streamingConnect,
     streamingDisconnect: streaming.streamingDisconnect,
     streamingWatchConnectionChange: streaming.streamingWatchConnectionChange,
+    streamingWatchBalance: streaming.streamingWatchBalance,
+    streamingWatchTransactions: streaming.streamingWatchTransactions,
+    streamingWatchJettons: streaming.streamingWatchJettons,
+    registerKotlinStreamingProvider: streaming.registerKotlinStreamingProvider,
+    kotlinProviderDispatch: streaming.kotlinProviderDispatch,
 } as unknown as WalletKitBridgeApi;
