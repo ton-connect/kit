@@ -15,6 +15,7 @@ export * from './components/block';
 export * from './components/info-block';
 export * from './components/button';
 export * from './components/logo';
+export * from './components/logo-with-network';
 export * from './components/modal';
 export * from './components/skeleton';
 export * from './components/ton-icon';

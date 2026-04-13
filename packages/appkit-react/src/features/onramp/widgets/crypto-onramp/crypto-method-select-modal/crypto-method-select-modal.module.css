@@ -1,0 +1,34 @@
+.networkTabs {
+	display: flex;
+	gap: 6px;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	padding: 4px 0 8px;
+	scrollbar-width: none;
+}
+
+.networkTabs::-webkit-scrollbar {
+	display: none;
+}
+
+.networkTab {
+	flex-shrink: 0;
+	padding: 4px 12px;
+	border: none;
+	border-radius: var(--ta-border-radius-full);
+	background-color: var(--ta-color-background-secondary);
+	color: var(--ta-color-text-secondary);
+	cursor: pointer;
+	composes: labelMedium from '../../../../../styles/typography.module.css';
+	transition: background-color 0.15s, color 0.15s;
+}
+
+.networkTab:hover {
+	background-color: var(--ta-color-background-tertiary);
+	color: var(--ta-color-text);
+}
+
+.networkTabActive {
+	background-color: var(--ta-color-primary);
+	color: var(--ta-color-primary-foreground);
+}

@@ -6,7 +6,5 @@
  *
  */
 
-export * from './widgets/fiat-onramp/onramp-widget';
-export * from './widgets/crypto-onramp/crypto-onramp-widget';
-
-export * from './types';
+export { CryptoOnrampWidget } from './crypto-onramp-widget';
+export type { CryptoOnrampWidgetProps, CryptoOnrampContextType } from './crypto-onramp-widget';

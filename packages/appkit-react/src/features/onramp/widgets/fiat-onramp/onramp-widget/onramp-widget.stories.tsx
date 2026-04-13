@@ -8,7 +8,7 @@
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { STORY_TOKENS } from '../../../../storybook/fixtures/tokens';
+import { STORY_TOKENS } from '../../../../../storybook/fixtures/tokens';
 import { OnrampWidget } from './onramp-widget';
 
 const meta: Meta<typeof OnrampWidget> = {

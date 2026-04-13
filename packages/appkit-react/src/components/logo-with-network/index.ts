@@ -6,7 +6,5 @@
  *
  */
 
-export * from './widgets/fiat-onramp/onramp-widget';
-export * from './widgets/crypto-onramp/crypto-onramp-widget';
-
-export * from './types';
+export { LogoWithNetwork } from './logo-with-network';
+export type { LogoWithNetworkProps } from './logo-with-network';

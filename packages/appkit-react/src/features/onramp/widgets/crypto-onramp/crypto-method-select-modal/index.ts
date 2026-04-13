@@ -6,7 +6,5 @@
  *
  */
 
-export * from './widgets/fiat-onramp/onramp-widget';
-export * from './widgets/crypto-onramp/crypto-onramp-widget';
-
-export * from './types';
+export { CryptoMethodSelectModal } from './crypto-method-select-modal';
+export type { CryptoMethodSelectModalProps } from './crypto-method-select-modal';

@@ -6,7 +6,5 @@
  *
  */
 
-export * from './widgets/fiat-onramp/onramp-widget';
-export * from './widgets/crypto-onramp/crypto-onramp-widget';
-
-export * from './types';
+export { CryptoOnrampDepositModal } from './crypto-onramp-deposit-modal';
+export type { CryptoOnrampDepositModalProps } from './crypto-onramp-deposit-modal';

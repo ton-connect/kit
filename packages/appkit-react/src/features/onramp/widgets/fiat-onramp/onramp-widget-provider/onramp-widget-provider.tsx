@@ -9,17 +9,17 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
-import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import type { TokenSectionConfig } from '../../../../components/token-select-modal';
+import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
+import type { TokenSectionConfig } from '../../../../../components/token-select-modal';
 import type {
     OnrampCurrency,
     OnrampProvider,
     AmountInputMode,
     OnrampAmountPreset,
     CurrencySectionConfig,
-} from '../../types';
-import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
-import { ONRAMP_PROVIDERS } from '../../mock-data/providers';
+} from '../../../types';
+import { ONRAMP_CURRENCIES } from '../../../mock-data/currencies';
+import { ONRAMP_PROVIDERS } from '../../../mock-data/providers';
 
 export type { AppkitUIToken };
 

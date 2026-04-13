@@ -32,3 +32,24 @@ export interface OnrampAmountPreset {
     amount: string;
     label: string;
 }
+
+export interface CryptoPaymentMethod {
+    id: string;
+    /** Token symbol, e.g. "BTC", "USDT" */
+    symbol: string;
+    /** Token name, e.g. "Bitcoin", "Tether" */
+    name: string;
+    /** Human-readable network name, e.g. "Tron", "Ethereum", "Bitcoin" */
+    network: string;
+    /** Network id used for filter tabs, e.g. "tron", "ethereum" */
+    networkId: string;
+    logo?: string;
+    networkLogo?: string;
+    /** Mock deposit address for this method */
+    depositAddress?: string;
+}
+
+export interface PaymentMethodSectionConfig {
+    title: string;
+    ids: string[];
+}

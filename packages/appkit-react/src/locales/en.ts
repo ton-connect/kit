@@ -64,6 +64,20 @@ export default {
         otherCurrencies: 'Other Currencies',
     },
 
+    // Crypto Onramp
+    cryptoOnramp: {
+        sendExactAmount: 'Send the exact amount to the address below',
+        youNeedToSend: 'You need to send',
+        toThisAddress: 'To this address',
+        transactionDetails: 'Transaction details',
+        deposit: 'Deposit',
+        continue: 'Continue',
+        methodOfPurchase: 'Method of purchase',
+        allNetworks: 'All networks',
+        selectMethod: 'Select payment method',
+        searchMethod: 'Search',
+    },
+
     // Onramp
     onramp: {
         continue: 'Continue',

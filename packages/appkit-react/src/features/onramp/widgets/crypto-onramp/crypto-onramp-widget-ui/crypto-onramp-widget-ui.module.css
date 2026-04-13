@@ -1,0 +1,21 @@
+.widget {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.selectors {
+	margin-bottom: 4px;
+}
+
+.input {
+	margin: 8px 0;
+}
+
+.converted {
+	margin-bottom: 4px;
+}
+
+.presets {
+	margin-bottom: 8px;
+}
