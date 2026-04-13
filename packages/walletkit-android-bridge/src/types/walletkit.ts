@@ -6,29 +6,7 @@
  *
  */
 
-import type {
-    ApiClient,
-    BridgeEventMessageInfo,
-    ConnectionApprovalResponse,
-    ConnectionRequestEvent,
-    DeviceInfo,
-    DisconnectionEvent,
-    InjectedToExtensionBridgeRequestPayload,
-    Network,
-    RequestErrorEvent,
-    SendTransactionApprovalResponse,
-    SendTransactionRequestEvent,
-    SignDataApprovalResponse,
-    SignDataRequestEvent,
-    SwapAPI,
-    TONConnectSession,
-    TransactionRequest,
-    Wallet,
-    WalletAdapter,
-    WalletInfo,
-    WalletSigner,
-} from '@ton/walletkit';
-import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from '@tonconnect/protocol';
+import type { DeviceInfo, TonWalletKit, WalletAdapter, WalletInfo, WalletSigner } from '@ton/walletkit';
 
 /**
  * Configuration and bridge-facing types for Ton WalletKit.
@@ -66,56 +44,4 @@ export interface WalletKitNativeBridgeType {
 
 export type WalletKitAdapter = WalletAdapter;
 export type WalletKitSigner = WalletSigner;
-
-export interface WalletKitInstance {
-    ensureInitialized?: () => Promise<void>;
-    getWallets: () => Wallet[];
-    getWallet(walletId: string): Wallet | undefined;
-    getNetwork?: () => string;
-    removeWallet(walletId: string): Promise<void>;
-    getApiClient(network?: Network): ApiClient;
-    addWallet(adapter: WalletAdapter): Promise<Wallet | null>;
-    handleNewTransaction(wallet: Wallet, transaction: TransactionRequest): Promise<void>;
-    handleTonConnectUrl(url: string): Promise<void>;
-    connectionEventFromUrl?(url: string): Promise<ConnectionRequestEvent>;
-    listSessions?(): Promise<TONConnectSession[]>;
-    disconnect?(sessionId?: string): Promise<void>;
-    processInjectedBridgeRequest?(
-        messageInfo: BridgeEventMessageInfo,
-        request: InjectedToExtensionBridgeRequestPayload,
-    ): Promise<void>;
-    onConnectRequest(callback: (event: ConnectionRequestEvent) => void): void;
-    removeConnectRequestCallback(): void;
-    onTransactionRequest(callback: (event: SendTransactionRequestEvent) => void): void;
-    removeTransactionRequestCallback(): void;
-    onSignDataRequest(callback: (event: SignDataRequestEvent) => void): void;
-    removeSignDataRequestCallback(): void;
-    onDisconnect(callback: (event: DisconnectionEvent) => void): void;
-    removeDisconnectCallback(): void;
-    onRequestError(callback: (event: RequestErrorEvent) => void): void;
-    removeErrorCallback(): void;
-    // Request approval methods - event and response are separate parameters
-    approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void>;
-    rejectConnectRequest(
-        event: ConnectionRequestEvent,
-        reason?: string,
-        errorCode?: CONNECT_EVENT_ERROR_CODES,
-    ): Promise<void>;
-    approveTransactionRequest(
-        event: SendTransactionRequestEvent,
-        response?: SendTransactionApprovalResponse,
-    ): Promise<SendTransactionApprovalResponse>;
-    rejectTransactionRequest(
-        event: SendTransactionRequestEvent,
-        reason?: string | SendTransactionRpcResponseError['error'],
-    ): Promise<void>;
-    approveSignDataRequest(
-        event: SignDataRequestEvent,
-        response?: SignDataApprovalResponse,
-    ): Promise<SignDataApprovalResponse>;
-    rejectSignDataRequest(
-        event: SignDataRequestEvent,
-        reason?: string | SendTransactionRpcResponseError['error'],
-    ): Promise<void>;
-    swap?: SwapAPI;
-}
+export type WalletKitInstance = TonWalletKit;
