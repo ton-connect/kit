@@ -24,7 +24,6 @@
     "@ton/crypto": "catalog:",
     "@ton/ton": "16.2.3",
     "@ton/walletkit": "workspace:*",
-    "axios": "1.15.0",
     "bignumber.js": "9.3.1",
     "bip39": "3.1.0",
     "dayjs": "1.11.20",
