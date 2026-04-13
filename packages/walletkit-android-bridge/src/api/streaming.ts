@@ -51,7 +51,11 @@ function forgetKotlinSub(providerId: string, subId: string): void {
     }
 }
 
-function cleanupReplacedKotlinProvider(instance: { streaming: unknown }, nextProviderId: string, network: { chainId: string }): void {
+function cleanupReplacedKotlinProvider(
+    instance: { streaming: unknown },
+    nextProviderId: string,
+    network: { chainId: string },
+): void {
     const manager = instance.streaming as InternalStreamingManager;
     const networkId = String(network.chainId);
     const previousProvider = manager.providers.get(networkId);
