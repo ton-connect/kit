@@ -26,29 +26,32 @@ export const StakingInfo: FC<StakingInfoProps> = ({ quote, isQuoteLoading, provi
 
     const formattedAmountToReceive = useMemo(() => {
         const parsedAmount = parseFloat(quote?.amountOut || '0');
-        const trimmed = Number(parsedAmount.toFixed(5)).toString();
+        const trimmed = Number(parsedAmount.toFixed(Math.min(5, providerInfo?.lstDecimals || 9))).toString();
 
-        return formatLargeValue(trimmed, 9);
-    }, [quote?.amountOut]);
+        return formatLargeValue(trimmed, providerInfo?.lstDecimals);
+    }, [quote?.amountOut, providerInfo?.lstDecimals]);
 
-    // const exchangeRate = useMemo(() => {
-    //     const parsedAmountIn = Number(quote?.amountIn || '0');
-    //     const parsedAmountOut = Number(quote?.amountOut || '0');
-    //     const rate = parsedAmountIn / parsedAmountOut;
-    //     const trimmed = formatLargeValue(Number(rate.toFixed(5)).toString(), 9);
+    const exchangeRate = useMemo(() => {
+        const rate = Number(providerInfo?.lstExchangeRate || '0');
+        const trimmed = formatLargeValue(
+            Number(rate.toFixed(Math.min(5, providerInfo?.lstDecimals || 9))).toString(),
+            providerInfo?.lstDecimals,
+        );
 
-    //     return `1 TON = ${trimmed} TON`;
-    // }, [quote?.amountIn, quote?.amountOut]);
+        return `1 TON = ${trimmed} ${providerInfo?.lstTicker}`;
+    }, [providerInfo?.lstExchangeRate, providerInfo?.lstDecimals, providerInfo?.lstTicker]);
 
     return (
         <InfoBlock.Container variant="outline">
             <InfoBlock.Row>
                 <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
 
-                {isQuoteLoading ? (
+                {isQuoteLoading || isProviderInfoLoading ? (
                     <InfoBlock.ValueSkeleton />
                 ) : (
-                    <InfoBlock.Value>{formattedAmountToReceive}</InfoBlock.Value>
+                    <InfoBlock.Value>
+                        {formattedAmountToReceive} {providerInfo?.lstTicker}
+                    </InfoBlock.Value>
                 )}
             </InfoBlock.Row>
 
@@ -64,11 +67,15 @@ export const StakingInfo: FC<StakingInfoProps> = ({ quote, isQuoteLoading, provi
                 )}
             </InfoBlock.Row>
 
-            {/* <InfoBlock.Row>
+            <InfoBlock.Row>
                 <InfoBlock.Label>{t('staking.exchangeRate')}</InfoBlock.Label>
 
-                {isQuoteLoading ? <InfoBlock.ValueSkeleton /> : <InfoBlock.Value>{exchangeRate}</InfoBlock.Value>}
-            </InfoBlock.Row> */}
+                {isProviderInfoLoading ? (
+                    <InfoBlock.ValueSkeleton />
+                ) : (
+                    <InfoBlock.Value>{exchangeRate}</InfoBlock.Value>
+                )}
+            </InfoBlock.Row>
         </InfoBlock.Container>
     );
 };

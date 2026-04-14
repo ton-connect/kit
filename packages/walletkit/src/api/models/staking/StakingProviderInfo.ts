@@ -13,6 +13,22 @@ import type { TokenAmount } from '../core/TokenAmount';
  */
 export interface StakingProviderInfo {
     /**
+     * Liquid staking token ticker
+     */
+    lstTicker: string;
+
+    /**
+     * Liquid staking token decimals
+     * @format int
+     */
+    lstDecimals: number;
+
+    /**
+     * Exchange rate for the token
+     */
+    lstExchangeRate?: string;
+
+    /**
      * Annual Percentage Yield in basis points (100 = 1%)
      */
     apy: number;

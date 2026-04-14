@@ -349,12 +349,16 @@ export class TonStakersStakingProvider extends StakingProvider {
             const contract = this.getContract(targetNetwork);
             const instantLiquidity = await contract.getPoolBalance();
             const apy = await this.getApyFromTonApi(targetNetwork);
+            const rates = await contract.getRates();
 
             return {
                 apy,
                 rawInstantUnstakeAvailable: instantLiquidity.toString(),
                 instantUnstakeAvailable: formatUnits(instantLiquidity, 9),
                 providerId: 'tonstakers',
+                lstExchangeRate: String(rates.tsTONTONProjected),
+                lstTicker: 'tsTON',
+                lstDecimals: 9,
             };
         });
     }
