@@ -52,7 +52,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                 <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
 
-            <Input.Field style={{ minHeight: 'var(--ta-input-l-line-height)' }}>
+            <Input.Field className={styles.field}>
                 <Input.Input
                     placeholder="0"
                     value={amount}

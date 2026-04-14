@@ -16,7 +16,6 @@ import { AmountPresets } from '../../../../components/amount-presets';
 import type { AmountPreset } from '../../../../components/amount-presets';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/tabs';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { useConnect, useConnectors, useSelectedWallet } from '../../../wallets';
 import { StakingInfo } from '../staking-info';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';

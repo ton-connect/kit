@@ -9,9 +9,8 @@
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 
-import { Button } from '../../../../components/button';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { useConnect, useConnectors, useSelectedWallet } from '../../../wallets';
+import { useSelectedWallet } from '../../../wallets';
 import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
@@ -22,6 +21,7 @@ import styles from './swap-widget-ui.module.css';
 import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
+import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
 export type SwapWidgetRenderProps = SwapContextType;
 
@@ -47,8 +47,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     sendSwapTransaction,
     isSendingTransaction,
 }) => {
-    const connectors = useConnectors();
-    const { mutate: connect, isPending: isConnecting } = useConnect();
     const [wallet] = useSelectedWallet();
     const isWalletConnected = wallet !== null;
 
@@ -119,29 +117,16 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
             {fromAmount && <SwapInfo rows={infoRows} isLoading={isQuoteLoading || !quote || infoRows.length === 0} />}
 
-            {isWalletConnected ? (
-                <Button
-                    variant="fill"
-                    size="l"
-                    fullWidth
-                    style={{ marginTop: '8px' }}
-                    disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                    onClick={sendSwapTransaction}
-                >
-                    {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
-                </Button>
-            ) : (
-                <Button
-                    variant="fill"
-                    size="l"
-                    fullWidth
-                    style={{ marginTop: '8px' }}
-                    disabled={isConnecting || connectors.length === 0}
-                    onClick={() => connectors[0] && connect({ connectorId: connectors[0].id })}
-                >
-                    {t('wallet.connectWallet')}
-                </Button>
-            )}
+            <ButtonWithConnect
+                className={styles.swapButton}
+                variant="fill"
+                size="l"
+                fullWidth
+                disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                onClick={sendSwapTransaction}
+            >
+                {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+            </ButtonWithConnect>
         </div>
     );
 };
