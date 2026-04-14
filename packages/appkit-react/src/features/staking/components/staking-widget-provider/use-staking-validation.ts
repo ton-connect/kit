@@ -7,6 +7,7 @@
  */
 
 import { useMemo } from 'react';
+import type { StakingQuoteDirection } from '@ton/appkit';
 
 import type { StakingWidgetError } from './staking-widget-provider';
 
@@ -15,9 +16,18 @@ interface UseStakingValidationOptions {
     amountDebounced: string;
     balance: string | undefined;
     quoteError: Error | null;
+    direction: StakingQuoteDirection;
+    stakedBalance?: string;
 }
 
-export const useStakingValidation = ({ amount, amountDebounced, balance, quoteError }: UseStakingValidationOptions) => {
+export const useStakingValidation = ({
+    amount,
+    amountDebounced,
+    balance,
+    quoteError,
+    direction,
+    stakedBalance,
+}: UseStakingValidationOptions) => {
     const error: StakingWidgetError = useMemo(() => {
         const parsed = parseFloat(amount) || 0;
         if (parsed <= 0) return null;
@@ -27,7 +37,9 @@ export const useStakingValidation = ({ amount, amountDebounced, balance, quoteEr
             return 'tooManyDecimals';
         }
 
-        if (balance !== undefined && parsed > parseFloat(balance)) {
+        const maxAmount = direction === 'unstake' ? stakedBalance : balance;
+
+        if (maxAmount !== undefined && parsed > parseFloat(maxAmount)) {
             return 'insufficientBalance';
         }
 
@@ -36,7 +48,7 @@ export const useStakingValidation = ({ amount, amountDebounced, balance, quoteEr
         }
 
         return null;
-    }, [amount, balance, quoteError, amountDebounced]);
+    }, [amount, balance, quoteError, amountDebounced, direction, stakedBalance]);
 
     const canSubmit = (parseFloat(amount) || 0) > 0 && error === null;
 

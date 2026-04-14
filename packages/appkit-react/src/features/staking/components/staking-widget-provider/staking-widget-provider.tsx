@@ -8,12 +8,14 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import type { Network } from '@ton/appkit';
+import type { Network, StakingQuoteDirection } from '@ton/appkit';
 import { validateNumericString } from '@ton/appkit';
-import type { StakingQuote, StakingProviderInfo } from '@ton/appkit';
+import type { StakingQuote, StakingProviderInfo, StakingBalance, UnstakeModes } from '@ton/appkit';
+import { UnstakeMode } from '@ton/appkit';
 
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
+import { useStakedBalance } from '../../hooks/use-staked-balance';
 import { useBuildStakeTransaction } from '../../hooks/use-build-stake-transaction';
 import { useSelectedWallet, useAddress } from '../../../wallets';
 import { useBalance } from '../../../balances/hooks/use-balance';
@@ -36,16 +38,27 @@ export interface StakingContextType {
     isWalletConnected: boolean;
     /** Raw staking quote from the provider */
     quote: StakingQuote | undefined;
-    /** True while the quote is being fetched */
+    /** True while the stake quote is being fetched */
     isQuoteLoading: boolean;
-    /** Current validation/fetch error, null when everything is ok */
+    /** Current validation/fetch error for staking, null when everything is ok */
     error: StakingWidgetError;
     /** Staking provider info (APY, instant unstake availability, etc.) */
     providerInfo: StakingProviderInfo | undefined;
+    /** Current direction */
+    direction: StakingQuoteDirection;
     /** True while provider info is being fetched */
     isProviderInfoLoading: boolean;
+    /** User's staked balance */
+    stakedBalance: StakingBalance | undefined;
+    /** True while staked balance is being fetched */
+    isStakedBalanceLoading: boolean;
+    /** Selected unstake mode */
+    unstakeMode: UnstakeModes;
     setAmount: (amount: string) => void;
+    setUnstakeMode: (mode: UnstakeModes) => void;
     sendStakingTransaction: () => Promise<void>;
+    sendUnstakingTransaction: () => Promise<void>;
+    onChangeDirection: (direction: StakingQuoteDirection) => void;
     isSendingTransaction: boolean;
 }
 
@@ -59,9 +72,16 @@ export const StakingContext = createContext<StakingContextType>({
     isQuoteLoading: false,
     error: null,
     providerInfo: undefined,
+    direction: 'stake',
     isProviderInfoLoading: false,
+    stakedBalance: undefined,
+    isStakedBalanceLoading: false,
+    unstakeMode: UnstakeMode.INSTANT,
     setAmount: () => {},
+    setUnstakeMode: () => {},
     sendStakingTransaction: () => Promise.resolve(),
+    sendUnstakingTransaction: () => Promise.resolve(),
+    onChangeDirection: () => {},
     isSendingTransaction: false,
 });
 
@@ -80,6 +100,8 @@ export interface StakingProviderProps extends PropsWithChildren {
 
 export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network, fiatSymbol = '$', tonRate }) => {
     const [amount, setAmountRaw] = useState('');
+    const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
+    const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
 
     const setAmount = useCallback((value: string) => {
         if (value === '' || validateNumericString(value, 9)) {
@@ -94,8 +116,9 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         isFetching: isQuoteLoading,
         error: quoteError,
     } = useStakingQuote({
-        direction: 'stake',
+        direction,
         amount: amountDebounced,
+        unstakeMode,
         network,
     });
 
@@ -106,6 +129,10 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const address = useAddress();
 
     const { data: balance } = useBalance();
+    const { data: stakedBalanceData, isFetching: isStakedBalanceLoading } = useStakedBalance({
+        userAddress: address ?? undefined,
+        network,
+    });
 
     const { mutateAsync: buildTransaction } = useBuildStakeTransaction();
     const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
@@ -118,11 +145,21 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         await sendTransaction(transactionParams);
     }, [quote, address, buildTransaction, sendTransaction]);
 
+    const sendUnstakingTransaction = useCallback(async () => {
+        if (!quote || !address) return;
+
+        const transactionParams = await buildTransaction({ quote, userAddress: address });
+
+        await sendTransaction(transactionParams);
+    }, [quote, address, buildTransaction, sendTransaction]);
+
     const { error, canSubmit } = useStakingValidation({
         amount,
         amountDebounced,
         balance,
         quoteError,
+        direction,
+        stakedBalance: stakedBalanceData?.stakedBalance,
     });
 
     const value = useMemo(
@@ -131,30 +168,45 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             fiatSymbol,
             tonRate,
             canSubmit,
+            direction,
             isWalletConnected,
             quote,
-            isQuoteLoading,
+            isQuoteLoading: isQuoteLoading || amount !== amountDebounced,
             error,
             providerInfo,
             isProviderInfoLoading,
+            stakedBalance: stakedBalanceData,
+            isStakedBalanceLoading,
+            unstakeMode,
             setAmount,
+            setUnstakeMode,
             sendStakingTransaction,
+            sendUnstakingTransaction,
             isSendingTransaction,
+            onChangeDirection: setDirection,
         }),
         [
             amount,
+            amountDebounced,
             fiatSymbol,
             tonRate,
             canSubmit,
             isWalletConnected,
+            direction,
             quote,
             isQuoteLoading,
             error,
             providerInfo,
             isProviderInfoLoading,
+            stakedBalanceData,
+            isStakedBalanceLoading,
+            unstakeMode,
             setAmount,
+            setUnstakeMode,
             sendStakingTransaction,
+            sendUnstakingTransaction,
             isSendingTransaction,
+            setDirection,
         ],
     );
 

@@ -8,9 +8,9 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { calcFiatValue } from '@ton/appkit';
+import { UnstakeMode } from '@ton/appkit';
+import type { StakingQuoteDirection, UnstakeModes } from '@ton/appkit';
 
-import { Button } from '../../../../components/button';
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { AmountPresets } from '../../../../components/amount-presets';
 import type { AmountPreset } from '../../../../components/amount-presets';
@@ -21,6 +21,8 @@ import { StakingInfo } from '../staking-info';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { useBalance } from '../../../balances';
+import { getFormattedFiatValue, getPresets } from './utils';
+import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
 export type StakingWidgetRenderProps = StakingContextType;
 
@@ -33,99 +35,115 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     providerInfo,
     isProviderInfoLoading,
     setAmount,
+    direction,
     quote,
     tonRate,
     sendStakingTransaction,
+    sendUnstakingTransaction,
     isSendingTransaction,
+    unstakeMode,
+    setUnstakeMode,
+    stakedBalance,
+    isStakedBalanceLoading,
+    onChangeDirection,
 }) => {
-    const connectors = useConnectors();
-    const { mutate: connect, isPending: isConnecting } = useConnect();
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
     const { data: balance } = useBalance();
 
     const { t } = useI18n();
 
-    const fiatValue = useMemo(() => {
-        const parsedAmount = calcFiatValue(amount || '0', tonRate);
-        return `${fiatSymbol}${parsedAmount}`;
-    }, [amount, tonRate, fiatSymbol]);
-
     const presets: AmountPreset[] = useMemo(() => {
-        const formattedBalance = balance ? parseFloat(balance.replace(/\s/g, '')) : 0;
+        return getPresets(direction === 'unstake' ? stakedBalance?.stakedBalance : balance, t);
+    }, [balance, direction, t]);
 
-        if (!formattedBalance) {
-            return [
-                { label: '10%', amount: '' },
-                { label: '50%', amount: '' },
-                { label: '75%', amount: '' },
-                { label: t('staking.max'), amount: '' },
-            ];
-        }
+    const unstakeModes: { value: UnstakeModes; label: string }[] = useMemo(
+        () => [
+            { value: UnstakeMode.INSTANT, label: t('staking.instant') },
+            { value: UnstakeMode.WHEN_AVAILABLE, label: t('staking.whenAvailable') },
+            { value: UnstakeMode.ROUND_END, label: t('staking.roundEnd') },
+        ],
+        [t],
+    );
 
-        const calc = (percentage: number) => Number((formattedBalance * percentage).toFixed(4)).toString();
+    const buttonText = useMemo(() => {
+        if (error) return t(`staking.${error}`);
+        if (direction === 'stake') return t('staking.continue');
 
-        return [
-            { label: '10%', amount: calc(0.1) },
-            { label: '50%', amount: calc(0.5) },
-            { label: '75%', amount: calc(0.75) },
-            { label: t('staking.max'), amount: balance ?? '' },
-        ];
-    }, [balance, t]);
+        return t('staking.unstake');
+    }, [error, direction, t]);
 
     return (
         <div className={styles.widget}>
-            <Tabs defaultValue="stake">
+            <Tabs defaultValue={direction} onValueChange={(value) => onChangeDirection(value as StakingQuoteDirection)}>
                 <TabsList>
                     <TabsTrigger value="stake">{t('staking.stake')}</TabsTrigger>
-                    <TabsTrigger value="unstake" disabled>
-                        {t('staking.unstake')}
-                    </TabsTrigger>
+                    <TabsTrigger value="unstake">{t('staking.unstake')}</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="stake">
+                {/* ── STAKE TAB ── */}
+                <TabsContent className={styles.tab} value="stake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
                             <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="TON" />
-                            {fiatValue && <span className={styles.fiatValue}>{fiatValue}</span>}
+                            {tonRate && (
+                                <span className={styles.fiatValue}>
+                                    {getFormattedFiatValue(amount, tonRate, fiatSymbol)}
+                                </span>
+                            )}
+                        </div>
+
+                        <AmountPresets presets={presets} onPresetSelect={setAmount} />
+                    </div>
+                </TabsContent>
+
+                {/* ── UNSTAKE TAB ── */}
+                <TabsContent className={styles.tab} value="unstake">
+                    <div className={styles.content}>
+                        <div className={styles.inputSection}>
+                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="tsTON" />
+                            {tonRate && (
+                                <span className={styles.fiatValue}>
+                                    {getFormattedFiatValue(amount, tonRate, fiatSymbol)}
+                                </span>
+                            )}
                         </div>
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />
 
-                        {isWalletConnected ? (
-                            <Button
-                                variant="fill"
-                                size="l"
-                                fullWidth
-                                disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                                onClick={sendStakingTransaction}
-                            >
-                                {error
-                                    ? t(`staking.${error}`)
-                                    : canSubmit
-                                      ? t('staking.continue')
-                                      : t('staking.enterAmount')}
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="fill"
-                                size="l"
-                                fullWidth
-                                disabled={isConnecting || connectors.length === 0}
-                                onClick={() => connectors[0] && connect({ connectorId: connectors[0].id })}
-                            >
-                                {t('wallet.connectWallet')}
-                            </Button>
-                        )}
-
-                        <StakingInfo
-                            quote={quote}
-                            isQuoteLoading={isQuoteLoading}
-                            providerInfo={providerInfo}
-                            isProviderInfoLoading={isProviderInfoLoading}
-                        />
+                        <div className={styles.unstakeModes}>
+                            {unstakeModes.map(({ value, label }) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    className={`${styles.unstakeModeBtn} ${unstakeMode === value ? styles.unstakeModeBtnActive : ''}`}
+                                    onClick={() => setUnstakeMode(value)}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </TabsContent>
+
+                <ButtonWithConnect
+                    variant="fill"
+                    size="l"
+                    fullWidth
+                    disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                    onClick={direction === 'stake' ? sendStakingTransaction : sendUnstakingTransaction}
+                >
+                    {buttonText}
+                </ButtonWithConnect>
+
+                <StakingInfo
+                    className={styles.infoBlock}
+                    quote={quote}
+                    isQuoteLoading={isQuoteLoading}
+                    providerInfo={providerInfo}
+                    isProviderInfoLoading={isProviderInfoLoading}
+                    direction={direction}
+                    stakedBalance={stakedBalance?.stakedBalance}
+                    isStakedBalanceLoading={isStakedBalanceLoading}
+                />
             </Tabs>
         </div>
     );

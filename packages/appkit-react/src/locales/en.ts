@@ -63,6 +63,7 @@ export default {
         stake: 'Stake',
         unstake: 'Unstake',
         continue: 'Stake',
+        continueUnstake: 'Unstake',
         enterAmount: 'Enter an amount',
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
@@ -71,5 +72,9 @@ export default {
         currentApy: 'Current APY',
         max: 'MAX',
         exchangeRate: 'Exchange rate',
+        stakedBalance: 'Staked balance',
+        instant: 'Instant',
+        whenAvailable: 'When available',
+        roundEnd: 'Round end',
     },
 } as const;

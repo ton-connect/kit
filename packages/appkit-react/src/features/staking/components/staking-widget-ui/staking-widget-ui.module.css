@@ -13,6 +13,14 @@
   padding-top: 16px;
 }
 
+.tab {
+  margin-bottom: 16px;
+}
+
+.infoBlock {
+  margin-top: 16px;
+}
+
 .inputSection {
   display: flex;
   flex-direction: column;
@@ -24,4 +32,42 @@
 .fiatValue {
   composes: bodyRegular from "../../../../styles/typography.module.css";
   color: var(--ta-color-text-secondary);
+}
+
+.unstakeModes {
+  display: flex;
+  gap: 8px;
+}
+
+.unstakeModeBtn {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+  flex: 1;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--ta-color-separator);
+  background: transparent;
+  color: var(--ta-color-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unstakeModeBtn:hover {
+  border-color: var(--ta-color-accent);
+  color: var(--ta-color-text-primary);
+}
+
+.unstakeModeBtnActive {
+  border-color: var(--ta-color-accent);
+  color: var(--ta-color-accent);
+  background: color-mix(in srgb, var(--ta-color-accent) 10%, transparent);
+}
+
+.unstakeModeHint {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text-secondary);
+  text-align: center;
+  display: block;
 }
