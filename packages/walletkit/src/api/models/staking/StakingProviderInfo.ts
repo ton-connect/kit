@@ -14,14 +14,18 @@ import type { TokenAmount } from '../core/TokenAmount';
 export interface StakingProviderInfo {
     /**
      * Annual Percentage Yield in basis points (100 = 1%)
-     * @format int
      */
     apy: number;
 
     /**
      * Amount available for instant unstake
      */
-    instantUnstakeAvailable?: TokenAmount;
+    rawInstantUnstakeAvailable?: TokenAmount;
+
+    /**
+     * Amount available for instant unstake
+     */
+    instantUnstakeAvailable?: string;
 
     /**
      * Identifier of the staking provider

@@ -18,14 +18,14 @@ export interface MetadataV3 {
 export interface AddressBookRowV3 {
     domain: string | null;
     user_friendly: string;
-    interfaces: string[];
+    interfaces: string[] | null;
 }
 
 export function toAddressBookEntry(row: AddressBookRowV3): AddressBookEntry {
     return {
         domain: row.domain ?? undefined,
         address: asAddressFriendly(row.user_friendly),
-        interfaces: row.interfaces,
+        interfaces: row.interfaces ?? [],
     };
 }
 
