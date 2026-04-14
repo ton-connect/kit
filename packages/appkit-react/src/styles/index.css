@@ -62,6 +62,14 @@
   --ta-input-l-weight: 700;
   --ta-input-l-line-height: 40px;
 
+  --ta-input-xl-size: 60px;
+  --ta-input-xl-weight: 700;
+  --ta-input-xl-line-height: 78px;
+
+  --ta-input-xl-symbol-size: 40px;
+  --ta-input-xl-symbol-weight: 700;
+  --ta-input-xl-symbol-line-height: 100%;
+
   /* Colors */
   --ta-color-primary: #007AFF;
   --ta-color-primary-foreground: #FFFFFF;

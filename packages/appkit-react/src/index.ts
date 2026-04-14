@@ -20,6 +20,9 @@ export * from './components/skeleton';
 export * from './components/ton-icon';
 export * from './components/input';
 export * from './components/token-select-modal';
+export * from './components/tabs';
+export * from './components/centered-amount-input';
+export * from './components/amount-presets';
 
 export * from './features/balances';
 export * from './features/jettons';

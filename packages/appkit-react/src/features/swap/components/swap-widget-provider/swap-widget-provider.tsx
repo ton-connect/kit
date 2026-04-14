@@ -13,7 +13,7 @@ import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction';
-import { useSelectedWallet, useAddress } from '../../../wallets';
+import { useAddress } from '../../../wallets';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
@@ -45,8 +45,6 @@ export interface SwapContextType {
     toBalance: string | undefined;
     /** Whether the user can proceed with the swap */
     canSubmit: boolean;
-    /** Whether a wallet is currently connected */
-    isWalletConnected: boolean;
     /** Raw swap quote from the provider */
     quote: GetSwapQuoteData | undefined;
     /** True while the quote is being fetched */
@@ -75,7 +73,6 @@ export const SwapContext = createContext<SwapContextType>({
     fromBalance: undefined,
     toBalance: undefined,
     canSubmit: false,
-    isWalletConnected: false,
     quote: undefined,
     isQuoteLoading: false,
     error: null,
@@ -165,8 +162,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const toAmount = quote?.toAmount ?? '';
 
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
     const address = useAddress();
 
     const { fromBalance, toBalance } = useSwapBalances({
@@ -212,7 +207,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fromBalance,
             toBalance,
             canSubmit,
-            isWalletConnected,
             quote,
             isQuoteLoading,
             error,
@@ -236,7 +230,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fromBalance,
             toBalance,
             canSubmit,
-            isWalletConnected,
             quote,
             isQuoteLoading,
             error,

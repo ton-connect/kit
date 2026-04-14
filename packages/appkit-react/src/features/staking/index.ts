@@ -29,3 +29,6 @@ export {
     type UseStakingProviderInfoReturnType,
 } from './hooks/use-staking-provider-info';
 export { useBuildStakeTransaction, type UseBuildStakeTransactionReturnType } from './hooks/use-build-stake-transaction';
+
+export * from './components/staking-widget';
+export * from './components/staking-widget-provider';

@@ -1,0 +1,27 @@
+.widget {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 386px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 0;
+}
+
+.fiatValue {
+  composes: bodyRegular from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text-secondary);
+}

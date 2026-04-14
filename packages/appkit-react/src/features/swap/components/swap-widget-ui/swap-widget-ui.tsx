@@ -11,7 +11,7 @@ import type { FC } from 'react';
 
 import { Button } from '../../../../components/button';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { useConnect, useConnectors } from '../../../wallets';
+import { useConnect, useConnectors, useSelectedWallet } from '../../../wallets';
 import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
@@ -34,7 +34,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromBalance,
     toBalance,
     canSubmit,
-    isWalletConnected,
     quote,
     isQuoteLoading,
     error,
@@ -50,7 +49,11 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 }) => {
     const connectors = useConnectors();
     const { mutate: connect, isPending: isConnecting } = useConnect();
+    const [wallet] = useSelectedWallet();
+    const isWalletConnected = wallet !== null;
+
     const { t } = useI18n();
+
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);

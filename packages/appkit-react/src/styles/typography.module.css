@@ -126,3 +126,17 @@
   font-weight: var(--ta-input-l-weight);
   line-height: var(--ta-input-l-line-height);
 }
+
+.inputXl {
+  font-family: var(--ta-font-family);
+  font-size: var(--ta-input-xl-size);
+  font-weight: var(--ta-input-xl-weight);
+  line-height: var(--ta-input-xl-line-height);
+}
+
+.inputXlSymbol {
+  font-family: var(--ta-font-family);
+  font-size: var(--ta-input-xl-symbol-size);
+  font-weight: var(--ta-input-xl-symbol-weight);
+  line-height: var(--ta-input-xl-symbol-line-height);
+}

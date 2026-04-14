@@ -57,4 +57,19 @@ export default {
         slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
         provider: 'Provider',
     },
+
+    // Staking
+    staking: {
+        stake: 'Stake',
+        unstake: 'Unstake',
+        continue: 'Stake',
+        enterAmount: 'Enter an amount',
+        insufficientBalance: 'Insufficient balance',
+        tooManyDecimals: 'Too many decimal places',
+        quoteError: 'Unable to get a quote',
+        youGet: 'You get',
+        currentApy: 'Current APY',
+        max: 'MAX',
+        exchangeRate: 'Exchange rate',
+    },
 } as const;
