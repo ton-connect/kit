@@ -23,6 +23,9 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      */
     preview: ConnectionRequestEventPreview;
 
+    /**
+     * Intent action for user to approve along with connection
+     */
     intentAction?: IntentAction;
 }
 

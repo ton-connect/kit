@@ -27,6 +27,7 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    IntentActionRequestEvent,
     ApiClientConfig,
     ApiClient,
     SignatureDomain,
@@ -414,7 +415,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         async approveConnectRequest(
             event: ConnectionRequestEvent,
             response?: ConnectionApprovalResponse,
-        ): Promise<void> {
+        ): Promise<IntentActionRequestEvent | undefined> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('✅ Bridge: Approving connect request:', event, event.walletAddress);
 
