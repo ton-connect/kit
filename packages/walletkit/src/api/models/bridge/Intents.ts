@@ -53,7 +53,7 @@ export interface IntentActionSendTransactionRequestEvent extends SendTransaction
     type: 'sendTransaction';
 
     /**
-     * @discriminator frozen
+     * @frozen
      */
     connectionResult: IntentConnectionResult;
 }
@@ -62,7 +62,7 @@ export interface IntentActionSignMessageRequestEvent extends SignMessageRequestE
     type: 'signMessage';
 
     /**
-     * @discriminator frozen
+     * @frozen
      */
     connectionResult: IntentConnectionResult;
 }
@@ -71,7 +71,7 @@ export interface IntentActionSignDataRequestEvent extends SignDataRequestEvent {
     type: 'signData';
 
     /**
-     * @discriminator frozen
+     * @frozen
      */
     connectionResult: IntentConnectionResult;
 }
