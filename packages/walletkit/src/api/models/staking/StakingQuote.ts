@@ -23,12 +23,22 @@ export interface StakingQuote {
     /**
      * Amount of tokens being provided
      */
-    amountIn: TokenAmount;
+    rawAmountIn: TokenAmount;
 
     /**
      * Estimated amount of tokens to be received
      */
-    amountOut: TokenAmount;
+    rawAmountOut: TokenAmount;
+
+    /**
+     * Formatted amount of tokens being provided
+     */
+    amountIn: string;
+
+    /**
+     * Formatted estimated amount of tokens to be received
+     */
+    amountOut: string;
 
     /**
      * Network on which the staking will be executed
@@ -42,7 +52,6 @@ export interface StakingQuote {
 
     /**
      * Annual Percentage Yield in basis points (100 = 1%)
-     * @format int
      */
     apy?: number;
 
@@ -50,17 +59,6 @@ export interface StakingQuote {
      * Mode of unstaking (if applicable)
      */
     unstakeMode?: UnstakeModes;
-
-    /**
-     * Estimated delay in hours for unstaking
-     * @format int
-     */
-    estimatedUnstakeDelayHours?: number;
-
-    /**
-     * Amount available for instant unstake
-     */
-    instantUnstakeAvailable?: TokenAmount;
 
     /**
      * Provider-specific metadata for the quote

@@ -109,15 +109,19 @@ export class TonStakersStakingProvider extends StakingProvider {
         const stakingInfo = await this.getStakingProviderInfo(params.network);
         const contract = this.getContract(params.network);
         const rates = await contract.getRates();
+        const rawAmountIn = parseUnits(params.amount, 9).toString();
 
         if (params.direction === 'stake') {
             // User deposits TON, receives tsTON: tsTON = TON / rate
             const amountInTokens = Number(params.amount);
             const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
-            const amountOut = amountOutTokens.toFixed(9);
+            const rawAmountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
+            const amountOut = formatUnits(rawAmountOut, 9).toString();
 
             const quote: StakingQuote = {
                 direction: 'stake',
+                rawAmountIn,
+                rawAmountOut,
                 amountIn: params.amount,
                 amountOut,
                 network: params.network || Network.mainnet(),
@@ -132,10 +136,13 @@ export class TonStakersStakingProvider extends StakingProvider {
                 params.unstakeMode === UnstakeMode.INSTANT || params.unstakeMode === UnstakeMode.WHEN_AVAILABLE
                     ? amountInTokens * rates.tsTONTON
                     : amountInTokens * rates.tsTONTONProjected;
-            const amountOut = amountOutTokens.toFixed(9);
+            const rawAmountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
+            const amountOut = formatUnits(rawAmountOut, 9).toString();
 
             const quote: StakingQuote = {
                 direction: 'unstake',
+                rawAmountIn,
+                rawAmountOut,
                 amountIn: params.amount,
                 amountOut,
                 network: params.network || Network.mainnet(),
@@ -174,7 +181,7 @@ export class TonStakersStakingProvider extends StakingProvider {
 
         const network = params.quote.network;
         const contractAddress = this.getStakingContractAddress(network);
-        const amount = parseUnits(params.quote.amountIn, 9);
+        const amount = BigInt(params.quote.rawAmountIn);
         const totalAmount = amount + CONTRACT.STAKE_FEE_RES;
 
         const contract = this.getContract(network);
@@ -210,7 +217,7 @@ export class TonStakersStakingProvider extends StakingProvider {
         }
 
         const network = params.quote.network;
-        const amount = parseUnits(params.quote.amountIn, 9);
+        const amount = BigInt(params.quote.rawAmountIn);
         const unstakeMode = params.quote.unstakeMode ?? UnstakeMode.INSTANT;
 
         /* if(optimistic_deposit_withdrawals &
@@ -308,7 +315,9 @@ export class TonStakersStakingProvider extends StakingProvider {
             }
 
             return {
+                rawStakedBalance: stakedBalance,
                 stakedBalance: formatUnits(stakedBalance, 9), // in tsTON tokens
+                rawInstantUnstakeAvailable: instantUnstakeAvailable.toString(),
                 instantUnstakeAvailable: formatUnits(instantUnstakeAvailable, 9),
                 providerId: 'tonstakers',
             };
@@ -343,6 +352,7 @@ export class TonStakersStakingProvider extends StakingProvider {
 
             return {
                 apy,
+                rawInstantUnstakeAvailable: instantLiquidity.toString(),
                 instantUnstakeAvailable: formatUnits(instantLiquidity, 9),
                 providerId: 'tonstakers',
             };

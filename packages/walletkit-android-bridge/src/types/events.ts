@@ -6,9 +6,6 @@
  *
  */
 
-/**
- * WalletKit bridge event primitives shared between the native layer and the JS bridge.
- */
 export type WalletKitBridgeEventType =
     | 'ready'
     | 'connectRequest'
@@ -20,6 +17,11 @@ export type WalletKitBridgeEventType =
     | 'browserPageFinished'
     | 'browserError'
     | 'browserBridgeRequest'
+    | 'streamingUpdate'
+    | 'streamingConnectionChange'
+    | 'streamingBalanceUpdate'
+    | 'streamingTransactionsUpdate'
+    | 'streamingJettonsUpdate'
     | (string & {});
 
 export interface WalletKitBridgeEvent<T = unknown> {
