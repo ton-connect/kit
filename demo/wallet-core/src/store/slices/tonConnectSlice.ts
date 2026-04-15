@@ -88,17 +88,32 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 walletId: selectedWallet.getWalletId(),
             };
 
-            await state.walletCore.walletKit.approveConnectRequest(event);
+            const intentResult = await state.walletCore.walletKit.approveConnectRequest(event);
 
             set((state) => {
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
+
+            if (intentResult) {
+                switch (intentResult.type) {
+                    case 'sendTransaction':
+                        get().showTransactionRequest(intentResult);
+                        break;
+                    case 'signMessage':
+                        get().showSignMessageRequest(intentResult);
+                        break;
+                    case 'signData':
+                        get().showSignDataRequest(intentResult);
+                        break;
+                }
+            } else {
+                state.clearCurrentRequestFromQueue();
+            }
         } catch (error) {
             log.error('Failed to approve connect request:', error);
-            throw error;
-        } finally {
             state.clearCurrentRequestFromQueue();
+            throw error;
         }
     },
 

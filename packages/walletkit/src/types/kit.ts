@@ -29,6 +29,7 @@ import type {
     TONConnectSession,
     SendTransactionApprovalResponse,
     ConnectionApprovalResponse,
+    IntentActionRequestEvent,
 } from '../api/models';
 import type { SwapAPI, StakingAPI } from '../api/interfaces';
 import type { NetworkManager } from '../core/NetworkManager';
@@ -103,8 +104,11 @@ export interface ITonWalletKit {
 
     // === Request Processing ===
 
-    /** Approve a connect request */
-    approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void>;
+    /** Approve a connect request. Returns an IntentActionRequestEvent if the event carries an intent. */
+    approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response?: ConnectionApprovalResponse,
+    ): Promise<IntentActionRequestEvent | undefined>;
     /** Reject a connect request */
     rejectConnectRequest(
         event: ConnectionRequestEvent,

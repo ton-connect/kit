@@ -68,8 +68,10 @@ import type {
     SignMessageApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
+    IntentActionRequestEvent,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
+import { parseIntentFromReqParam } from '../utils/intent';
 import type { ProviderFactoryContext } from '../types/factory';
 
 const log = globalLogger.createChild('TonWalletKit');
@@ -685,6 +687,7 @@ export class TonWalletKit implements ITonWalletKit {
         clientId: string;
         requestId: string;
         r: string;
+        req?: string;
         returnStrategy?: string;
     }): RawBridgeEventConnect | undefined {
         const rString = params.r;
@@ -693,7 +696,8 @@ export class TonWalletKit implements ITonWalletKit {
         if (!r?.manifestUrl || !params.clientId) {
             return undefined;
         }
-        return {
+
+        const bridgeEvent: RawBridgeEventConnect = {
             from: params.clientId,
             id: params.requestId,
             method: 'connect',
@@ -707,11 +711,21 @@ export class TonWalletKit implements ITonWalletKit {
             timestamp: Date.now(),
             domain: '',
         };
+
+        // Parse embedded intent request if present
+        if (params.req) {
+            bridgeEvent.intentPayload = parseIntentFromReqParam(params.req);
+        }
+
+        return bridgeEvent;
     }
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void> {
+    async approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response?: ConnectionApprovalResponse,
+    ): Promise<IntentActionRequestEvent | undefined> {
         await this.ensureInitialized();
         return this.requestProcessor.approveConnectRequest(event, response);
     }

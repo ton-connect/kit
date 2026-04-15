@@ -12,19 +12,25 @@ import type {
     ConnectItem,
     SendTransactionRpcRequest,
     SignDataRpcRequest,
+    SignDataPayload as TonConnectSignDataPayload,
     WalletResponseTemplateError,
     ChainId,
 } from '@tonconnect/protocol';
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
+import type { IntentAction } from '../api/models';
 import type {
     ExtraCurrencies,
     TransactionRequest,
     TransactionRequestMessage,
     BridgeEvent,
     Base64String,
+    SignData,
+    SignDataPayload,
 } from '../api/models';
+import { Network } from '../api/models';
+import { validateSignDataPayload } from '../validation/signData';
 import type { RawStructuredItem, StructuredItem } from '../api/models/transactions/StructuredItem';
 import { parseRawStructuredItem, toRawStructuredItem } from '../api/models/transactions/StructuredItem';
 import { SendModeFromValue } from '../utils/sendMode';
@@ -81,6 +87,8 @@ export interface RawBridgeEventConnect extends BridgeEvent {
         returnStrategy?: string;
     };
     timestamp?: number;
+    /** Parsed intent action from the `req` URL parameter (embedded requests). */
+    intentPayload?: IntentAction;
 }
 
 export interface RawBridgeEventRestoreConnection extends BridgeEvent {
@@ -143,6 +151,44 @@ export function parseConnectTransactionParamContent(
         validUntil: raw.valid_until,
         from: raw.from,
     };
+}
+
+/**
+ * Parse raw TON Connect sign data params to internal SignDataPayload format
+ */
+export function parseConnectSignDataParamContent(event: RawBridgeEventSignData): SignDataPayload | undefined {
+    try {
+        const parsed = JSON.parse(event.params[0]) as TonConnectSignDataPayload;
+
+        const validationResult = validateSignDataPayload(parsed);
+        if (validationResult) {
+            return undefined;
+        }
+
+        if (parsed === undefined) {
+            return undefined;
+        }
+
+        let signData: SignData;
+
+        if (parsed.type === 'text') {
+            signData = { type: 'text', value: { content: parsed.text } };
+        } else if (parsed.type === 'binary') {
+            signData = { type: 'binary', value: { content: parsed.bytes as Base64String } };
+        } else if (parsed.type === 'cell') {
+            signData = { type: 'cell', value: { schema: parsed.schema, content: parsed.cell as Base64String } };
+        } else {
+            return undefined;
+        }
+
+        return {
+            network: parsed.network ? Network.custom(parsed.network) : undefined,
+            fromAddress: parsed.from,
+            data: signData,
+        };
+    } catch {
+        return undefined;
+    }
 }
 
 export function toTransactionRequestMessage(msg: ConnectTransactionParamMessage): TransactionRequestMessage {

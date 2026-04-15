@@ -53,6 +53,17 @@ export type {
 export type { SignMessageApprovalResponse } from './bridge/SignMessageApprovalResponse';
 export type { SignMessageRequestEvent } from './bridge/SignMessageRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
+export type {
+    IntentAction,
+    SendTransactionIntentAction,
+    SignMessageIntentAction,
+    SignDataIntentAction,
+    IntentConnectionResult,
+    IntentActionRequestEvent,
+    IntentActionSendTransactionRequestEvent,
+    IntentActionSignMessageRequestEvent,
+    IntentActionSignDataRequestEvent,
+} from './bridge/Intents';
 export type { TONConnectSession } from './sessions/TONConnectSession';
 
 // Jetton models
