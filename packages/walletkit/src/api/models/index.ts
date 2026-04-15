@@ -107,6 +107,7 @@ export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
 export type { TransactionTraceMoneyFlow as TransactionMoneyFlow } from './transactions/TransactionTraceMoneyFlow';
 export type { TransactionRequest, TransactionRequestMessage } from './transactions/TransactionRequest';
+export type { SignedSendTransactionOptions } from './transactions/SignedSendTransactionOptions';
 export type {
     StructuredItem,
     StructuredItemType,

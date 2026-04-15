@@ -31,8 +31,7 @@ import type {
 } from '../api/models';
 import { Network } from '../api/models';
 import { validateSignDataPayload } from '../validation/signData';
-import type { RawStructuredItem, StructuredItem } from '../api/models/transactions/StructuredItem';
-import { parseRawStructuredItem, toRawStructuredItem } from '../api/models/transactions/StructuredItem';
+import type { StructuredItem } from '../api/models/transactions/StructuredItem';
 import { SendModeFromValue } from '../utils/sendMode';
 import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
@@ -109,6 +108,115 @@ export interface ConnectTransactionParamMessage {
     stateInit?: string; // boc
     extraCurrency?: ConnectExtraCurrency;
     mode?: number;
+}
+
+/** Snake_case wire-format items as received in JSON-RPC payload */
+export type RawStructuredItem = RawTonTransferItem | RawJettonTransferItem | RawNftTransferItem;
+
+export interface RawTonTransferItem {
+    type: 'ton';
+    address: string;
+    amount: string;
+    payload?: string;
+    state_init?: string;
+    extra_currency?: { [k: number]: string };
+}
+
+export interface RawJettonTransferItem {
+    type: 'jetton';
+    master: string;
+    destination: string;
+    amount: string;
+    attach_amount?: string;
+    response_destination?: string;
+    custom_payload?: string;
+    forward_amount?: string;
+    forward_payload?: string;
+}
+
+export interface RawNftTransferItem {
+    type: 'nft';
+    nft_address: string;
+    new_owner: string;
+    attach_amount?: string;
+    response_destination?: string;
+    custom_payload?: string;
+    forward_amount?: string;
+    forward_payload?: string;
+}
+
+export function parseRawStructuredItem(raw: RawStructuredItem): StructuredItem {
+    switch (raw.type) {
+        case 'ton':
+            return {
+                type: 'ton',
+                address: raw.address,
+                amount: raw.amount,
+                payload: raw.payload as Base64String | undefined,
+                stateInit: raw.state_init as Base64String | undefined,
+                extraCurrency: raw.extra_currency as ExtraCurrencies | undefined,
+            };
+        case 'jetton':
+            return {
+                type: 'jetton',
+                master: raw.master,
+                destination: raw.destination,
+                amount: raw.amount,
+                attachAmount: raw.attach_amount,
+                responseDestination: raw.response_destination,
+                customPayload: raw.custom_payload as Base64String | undefined,
+                forwardAmount: raw.forward_amount,
+                forwardPayload: raw.forward_payload as Base64String | undefined,
+            };
+        case 'nft':
+            return {
+                type: 'nft',
+                nftAddress: raw.nft_address,
+                newOwner: raw.new_owner,
+                attachAmount: raw.attach_amount,
+                responseDestination: raw.response_destination,
+                customPayload: raw.custom_payload as Base64String | undefined,
+                forwardAmount: raw.forward_amount,
+                forwardPayload: raw.forward_payload as Base64String | undefined,
+            };
+    }
+}
+
+export function toRawStructuredItem(item: StructuredItem): RawStructuredItem {
+    switch (item.type) {
+        case 'ton':
+            return {
+                type: 'ton',
+                address: item.address,
+                amount: item.amount,
+                payload: item.payload,
+                state_init: item.stateInit,
+                extra_currency: item.extraCurrency,
+            };
+        case 'jetton':
+            return {
+                type: 'jetton',
+                master: item.master,
+                destination: item.destination,
+                amount: item.amount,
+                attach_amount: item.attachAmount,
+                response_destination: item.responseDestination,
+                custom_payload: item.customPayload,
+                forward_amount: item.forwardAmount,
+                forward_payload: item.forwardPayload,
+            };
+        case 'nft':
+            return {
+                type: 'nft',
+                nft_address: item.nftAddress,
+                new_owner: item.newOwner,
+                attach_amount: item.attachAmount,
+                response_destination: item.responseDestination,
+                custom_payload: item.customPayload,
+                forward_amount: item.forwardAmount,
+                forward_payload: item.forwardPayload,
+            };
+    }
 }
 
 export function toExtraCurrencies(extraCurrency: ConnectExtraCurrency | undefined): ExtraCurrencies | undefined {

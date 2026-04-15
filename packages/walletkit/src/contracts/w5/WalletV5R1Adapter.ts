@@ -37,6 +37,7 @@ import { CreateTonProofMessageBytes } from '../../utils/tonProof';
 import type { WalletId } from '../../utils/walletId';
 import { createWalletId } from '../../utils/walletId';
 import type { WalletAdapter, WalletSigner } from '../../api/interfaces';
+import type { SignedSendTransactionOptions } from '../../api/models';
 import type {
     Network,
     PreparedSignData,
@@ -170,7 +171,7 @@ export class WalletV5R1Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        options?: { fakeSignature?: boolean; internal?: boolean },
+        options?: SignedSendTransactionOptions,
     ): Promise<Base64String> {
         const actions = packActionsList(
             input.messages.map((m) => {
