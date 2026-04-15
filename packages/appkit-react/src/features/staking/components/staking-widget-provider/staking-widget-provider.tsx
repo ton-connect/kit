@@ -9,7 +9,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { Network, StakingQuoteDirection } from '@ton/appkit';
-import { validateNumericString } from '@ton/appkit';
+import { parseUnits, validateNumericString } from '@ton/appkit';
 import type { StakingQuote, StakingProviderInfo, StakingBalance, UnstakeModes } from '@ton/appkit';
 import { UnstakeMode } from '@ton/appkit';
 
@@ -22,6 +22,7 @@ import { useBalance } from '../../../balances/hooks/use-balance';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
+import { calculateToLst } from '../../utils/calculate-lst';
 
 export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
@@ -103,13 +104,42 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
 
+    const [wallet] = useSelectedWallet();
+    const isWalletConnected = wallet !== null;
+    const address = useAddress();
+
+    const { data: balance } = useBalance();
+    const { data: stakedBalanceData, isFetching: isStakedBalanceLoading } = useStakedBalance({
+        userAddress: address ?? undefined,
+        network,
+        query: { refetchInterval: 5000 },
+    });
+    const { data: providerInfo, isFetching: isProviderInfoLoading } = useStakingProviderInfo({ network });
+
+    const { mutateAsync: buildTransaction } = useBuildStakeTransaction();
+    const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
+
     const setAmount = useCallback((value: string) => {
-        if (value === '' || validateNumericString(value, 9)) {
-            setAmountRaw(value);
-        }
+        if (value === '' || validateNumericString(value, 9)) setAmountRaw(value);
     }, []);
 
-    const [amountDebounced] = useDebounceValue(amount, 500);
+    const quoteAmount = useMemo(() => {
+        if (direction !== 'unstake') return amount;
+        if (!providerInfo) return '';
+
+        const result = calculateToLst(amount, providerInfo.lstExchangeRate, providerInfo.lstDecimals);
+
+        if (
+            stakedBalanceData &&
+            BigInt(stakedBalanceData.rawStakedBalance) - parseUnits(result, providerInfo.lstDecimals) <= 2n
+        ) {
+            return stakedBalanceData.stakedBalance;
+        }
+
+        return result;
+    }, [direction, providerInfo?.lstExchangeRate, providerInfo?.lstDecimals, amount]);
+
+    const [amountDebounced] = useDebounceValue(quoteAmount, 500);
 
     const {
         data: quote,
@@ -121,21 +151,6 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         unstakeMode,
         network,
     });
-
-    const { data: providerInfo, isFetching: isProviderInfoLoading } = useStakingProviderInfo({ network });
-
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
-    const address = useAddress();
-
-    const { data: balance } = useBalance();
-    const { data: stakedBalanceData, isFetching: isStakedBalanceLoading } = useStakedBalance({
-        userAddress: address ?? undefined,
-        network,
-    });
-
-    const { mutateAsync: buildTransaction } = useBuildStakeTransaction();
-    const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
 
     const sendStakingTransaction = useCallback(async () => {
         if (!quote || !address) return;
@@ -154,7 +169,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     }, [quote, address, buildTransaction, sendTransaction]);
 
     const { error, canSubmit } = useStakingValidation({
-        amount,
+        amount: quoteAmount,
         amountDebounced,
         balance,
         quoteError,
@@ -171,7 +186,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             direction,
             isWalletConnected,
             quote,
-            isQuoteLoading: isQuoteLoading || amount !== amountDebounced,
+            isQuoteLoading: isQuoteLoading || isProviderInfoLoading || quoteAmount !== amountDebounced,
             error,
             providerInfo,
             isProviderInfoLoading,
@@ -187,6 +202,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         }),
         [
             amount,
+            quoteAmount,
             amountDebounced,
             fiatSymbol,
             tonRate,

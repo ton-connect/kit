@@ -21,6 +21,7 @@ import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { useBalance } from '../../../balances';
 import { getFormattedFiatValue, getPresets } from './utils';
+import { calculateFromLst } from '../../utils/calculate-lst';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
 export type StakingWidgetRenderProps = StakingContextType;
@@ -50,9 +51,15 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
 
     const { t } = useI18n();
 
+    const stakedBalanceInTon = useMemo(() => {
+        if (!stakedBalance?.stakedBalance) return '0';
+        const result = calculateFromLst(stakedBalance.stakedBalance, providerInfo?.lstExchangeRate, 9);
+        return result || '0';
+    }, [stakedBalance?.stakedBalance, providerInfo?.lstExchangeRate]);
+
     const presets: AmountPreset[] = useMemo(() => {
-        return getPresets(direction === 'unstake' ? stakedBalance?.stakedBalance : balance, t);
-    }, [balance, direction, t]);
+        return getPresets(direction === 'unstake' ? stakedBalanceInTon : balance, t);
+    }, [balance, stakedBalanceInTon, direction, t]);
 
     const buttonText = useMemo(() => {
         if (error) return t(`staking.${error}`);
@@ -89,7 +96,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 <TabsContent className={styles.tab} value="unstake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
-                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="tsTON" />
+                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="TON" />
                             {tonRate && (
                                 <span className={styles.fiatValue}>
                                     {getFormattedFiatValue(amount, tonRate, fiatSymbol)}

@@ -6,11 +6,10 @@
  *
  */
 
-import { formatLargeValue } from '@ton/appkit';
+import { formatLargeValue, truncateDecimals } from '@ton/appkit';
 
 export const formatAmount = (amount?: string, decimals?: number) => {
-    const parsedAmount = parseFloat(amount || '0');
-    const trimmed = Number(parsedAmount.toFixed(Math.min(5, decimals || 9))).toString();
+    const trimmed = truncateDecimals(amount || '0', Math.min(5, decimals || 9));
 
     return formatLargeValue(trimmed, decimals);
 };

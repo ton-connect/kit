@@ -37,18 +37,34 @@ export const StakingInfo: FC<StakingInfoProps> = ({
 
     return (
         <InfoBlock.Container variant="outline" {...props}>
-            <InfoBlock.Row>
-                <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
+            {direction === 'stake' && (
+                <InfoBlock.Row>
+                    <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
 
-                {isQuoteLoading || isProviderInfoLoading ? (
-                    <InfoBlock.ValueSkeleton />
-                ) : (
-                    <InfoBlock.Value>
-                        {formatAmount(quote?.amountOut, providerInfo?.lstDecimals)}{' '}
-                        {direction === 'stake' ? providerInfo?.lstTicker : 'TON'}
-                    </InfoBlock.Value>
-                )}
-            </InfoBlock.Row>
+                    {isQuoteLoading || isProviderInfoLoading ? (
+                        <InfoBlock.ValueSkeleton />
+                    ) : (
+                        <InfoBlock.Value>
+                            {formatAmount(quote?.amountOut, providerInfo?.lstDecimals)}{' '}
+                            {direction === 'stake' ? providerInfo?.lstTicker : 'TON'}
+                        </InfoBlock.Value>
+                    )}
+                </InfoBlock.Row>
+            )}
+
+            {direction === 'unstake' && (
+                <InfoBlock.Row>
+                    <InfoBlock.Label>{t('staking.stakedBalance')}</InfoBlock.Label>
+
+                    {isStakedBalanceLoading ? (
+                        <InfoBlock.ValueSkeleton />
+                    ) : (
+                        <InfoBlock.Value>
+                            {formatAmount(stakedBalance, providerInfo?.lstDecimals)} {providerInfo?.lstTicker}
+                        </InfoBlock.Value>
+                    )}
+                </InfoBlock.Row>
+            )}
 
             <InfoBlock.Row>
                 <InfoBlock.Label>{t('staking.currentApy')}</InfoBlock.Label>
@@ -74,20 +90,6 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                     </InfoBlock.Value>
                 )}
             </InfoBlock.Row>
-
-            {direction === 'unstake' && (
-                <InfoBlock.Row>
-                    <InfoBlock.Label>{t('staking.stakedBalance')}</InfoBlock.Label>
-
-                    {isStakedBalanceLoading ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>
-                            {formatAmount(stakedBalance, providerInfo?.lstDecimals)} {providerInfo?.lstTicker}
-                        </InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>
-            )}
         </InfoBlock.Container>
     );
 };

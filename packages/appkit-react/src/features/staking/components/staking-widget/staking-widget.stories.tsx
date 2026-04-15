@@ -53,7 +53,7 @@ export const CustomUI: Story = {
                     </div>
                     <div>
                         <label>You get</label>
-                        <input value={isQuoteLoading ? '...' : quote?.amountOut} readOnly />
+                        <input value={isQuoteLoading ? '...' : quote?.amountOut || ''} readOnly />
                     </div>
                     <button disabled={!canSubmit || isQuoteLoading} type="button">
                         {canSubmit ? 'Stake' : 'Enter an amount'}

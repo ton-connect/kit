@@ -7,10 +7,9 @@
  */
 
 import { useCallback, useState } from 'react';
-import { validateNumericString } from '@ton/appkit';
+import { validateNumericString, truncateDecimals } from '@ton/appkit';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import { truncateDecimals } from '../../utils/truncate-decimals';
 
 interface UseSwapTokenStateOptions {
     mappedTokens: AppkitUIToken[];

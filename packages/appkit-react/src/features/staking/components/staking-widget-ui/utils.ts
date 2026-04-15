@@ -6,7 +6,7 @@
  *
  */
 
-import { calcFiatValue, UnstakeMode } from '@ton/appkit';
+import { calcFiatValue, truncateDecimals, UnstakeMode } from '@ton/appkit';
 
 import type { I18n } from '../../../../libs/i18n';
 import type { AmountPreset } from '../../../../components/amount-presets';
@@ -26,7 +26,7 @@ export const getFormattedFiatValue = (amount: string, tonRate: string, fiatSymbo
 };
 
 export const getPresets = (balance: string | undefined, t: I18n['t']): AmountPreset[] => {
-    const calc = (balance: number, percentage: number) => Number((balance * percentage).toFixed(4)).toString();
+    const calc = (balance: number, percentage: number) => truncateDecimals(balance * percentage, 4);
     const formattedBalance = balance ? parseFloat(balance) : 0;
 
     if (!formattedBalance) {
