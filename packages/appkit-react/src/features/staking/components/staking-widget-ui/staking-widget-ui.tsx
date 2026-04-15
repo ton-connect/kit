@@ -8,8 +8,7 @@
 
 import { useMemo } from 'react';
 import type { FC } from 'react';
-import { UnstakeMode } from '@ton/appkit';
-import type { StakingQuoteDirection, UnstakeModes } from '@ton/appkit';
+import type { StakingQuoteDirection } from '@ton/appkit';
 
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { AmountPresets } from '../../../../components/amount-presets';
@@ -17,6 +16,7 @@ import type { AmountPreset } from '../../../../components/amount-presets';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/tabs';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { StakingInfo } from '../staking-info';
+import { SelectUnstakeMode } from '../select-unstake-mode';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { useBalance } from '../../../balances';
@@ -53,15 +53,6 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     const presets: AmountPreset[] = useMemo(() => {
         return getPresets(direction === 'unstake' ? stakedBalance?.stakedBalance : balance, t);
     }, [balance, direction, t]);
-
-    const unstakeModes: { value: UnstakeModes; label: string }[] = useMemo(
-        () => [
-            { value: UnstakeMode.INSTANT, label: t('staking.instant') },
-            { value: UnstakeMode.WHEN_AVAILABLE, label: t('staking.whenAvailable') },
-            { value: UnstakeMode.ROUND_END, label: t('staking.roundEnd') },
-        ],
-        [t],
-    );
 
     const buttonText = useMemo(() => {
         if (error) return t(`staking.${error}`);
@@ -108,18 +99,11 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />
 
-                        <div className={styles.unstakeModes}>
-                            {unstakeModes.map(({ value, label }) => (
-                                <button
-                                    key={value}
-                                    type="button"
-                                    className={`${styles.unstakeModeBtn} ${unstakeMode === value ? styles.unstakeModeBtnActive : ''}`}
-                                    onClick={() => setUnstakeMode(value)}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
+                        <SelectUnstakeMode
+                            value={unstakeMode}
+                            onValueChange={setUnstakeMode}
+                            providerInfo={providerInfo}
+                        />
                     </div>
                 </TabsContent>
 

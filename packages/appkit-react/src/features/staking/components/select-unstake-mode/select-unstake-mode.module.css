@@ -1,0 +1,115 @@
+.root {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: var(--ta-border-radius-l);
+  background-color: var(--ta-color-background-secondary);
+}
+
+.header {
+  composes: bodyMedium from "../../../../styles/typography.module.css";
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 16px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ta-color-text);
+}
+
+.headerLabel {
+  color: var(--ta-color-text);
+}
+
+.headerValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ta-color-text-secondary);
+}
+
+.chevron {
+  transition: transform 0.25s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  padding-bottom: 16px;
+}
+
+.option {
+  cursor: pointer;
+  border: var(--ta-border-width-s) solid var(--ta-color-background-tertiary);
+  transition: border-color 0.15s;
+  padding: 16px 8px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: var(--ta-border-radius-l);
+  background-color: var(--ta-color-background-secondary);
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ta-border-radius-full);
+  border: var(--ta-border-width-m) solid var(--ta-color-background-tertiary);
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.radioActive {
+  border-color: var(--ta-color-primary);
+}
+
+.point {
+  width: 12px;
+  height: 12px;
+  background-color: transparent;
+  border-radius: var(--ta-border-radius-full);
+  transition: background-color 0.15s;
+}
+
+.pointActive {
+  background-color: var(--ta-color-primary);
+}
+
+.optionLabel {
+  composes: bodyMedium from "../../../../styles/typography.module.css";
+  color: var(--ta-color-text);
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.tag {
+  composes: labelMedium from "../../../../styles/typography.module.css";
+  padding: 4px 8px;
+  border-radius: var(--ta-border-radius-full);
+  white-space: nowrap;
+  background-color: var(--ta-color-background-bezeled);
+  color: var(--ta-color-primary);
+}

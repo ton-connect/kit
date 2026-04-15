@@ -73,8 +73,9 @@ export default {
         max: 'MAX',
         exchangeRate: 'Exchange rate',
         stakedBalance: 'Staked balance',
+        unstakeType: 'Unstake type',
+        maximumReward: 'Maximum reward',
         instant: 'Instant',
-        whenAvailable: 'When available',
-        roundEnd: 'Round end',
+        maximumRewardLimit: 'No limits',
     },
 } as const;

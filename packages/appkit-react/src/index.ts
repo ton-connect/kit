@@ -23,6 +23,7 @@ export * from './components/token-select-modal';
 export * from './components/tabs';
 export * from './components/centered-amount-input';
 export * from './components/amount-presets';
+export * from './components/collapsible';
 
 export * from './features/balances';
 export * from './features/jettons';
