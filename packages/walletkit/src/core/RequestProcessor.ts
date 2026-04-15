@@ -596,10 +596,10 @@ export class RequestProcessor {
                     );
                 }
                 if (hasConnectionResult(event)) {
-                    await this.sendIntentApproval(event, { internal_boc: response.internalBoc });
+                    await this.sendIntentApproval(event, { internalBoc: response.internalBoc });
                 } else {
                     const tonConnectResponse = {
-                        result: { internal_boc: response.internalBoc },
+                        result: { internalBoc: response.internalBoc },
                         id: event.id || '',
                     };
                     await this.bridgeManager.sendResponse(event, tonConnectResponse);
@@ -616,7 +616,7 @@ export class RequestProcessor {
                     );
                 }
                 const internalBoc = await wallet.getSignedSendTransaction(event.request, { internal: true });
-                const actionResult = { internal_boc: internalBoc };
+                const actionResult = { internalBoc: internalBoc };
 
                 if (hasConnectionResult(event)) {
                     await this.sendIntentApproval(event, actionResult);

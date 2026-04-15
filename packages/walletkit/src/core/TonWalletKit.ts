@@ -687,7 +687,7 @@ export class TonWalletKit implements ITonWalletKit {
         clientId: string;
         requestId: string;
         r: string;
-        req?: string;
+        e?: string;
         returnStrategy?: string;
     }): RawBridgeEventConnect | undefined {
         const rString = params.r;
@@ -713,8 +713,8 @@ export class TonWalletKit implements ITonWalletKit {
         };
 
         // Parse embedded intent request if present
-        if (params.req) {
-            bridgeEvent.intentPayload = parseIntentFromReqParam(params.req);
+        if (params.e) {
+            bridgeEvent.intentPayload = parseIntentFromReqParam(params.e);
         }
 
         return bridgeEvent;

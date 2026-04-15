@@ -35,6 +35,7 @@ import type { StructuredItem } from '../api/models/transactions/StructuredItem';
 import { SendModeFromValue } from '../utils/sendMode';
 import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
+import { asBase64 } from '../utils/base64';
 
 // import type { WalletInterface } from './wallet';
 
@@ -118,7 +119,7 @@ export interface RawTonTransferItem {
     address: string;
     amount: string;
     payload?: string;
-    state_init?: string;
+    stateInit?: string;
     extra_currency?: { [k: number]: string };
 }
 
@@ -127,22 +128,24 @@ export interface RawJettonTransferItem {
     master: string;
     destination: string;
     amount: string;
-    attach_amount?: string;
-    response_destination?: string;
-    custom_payload?: string;
-    forward_amount?: string;
-    forward_payload?: string;
+    attachAmount?: string;
+    queryId?: string;
+    responseDestination?: string;
+    customPayload?: string;
+    forwardAmount?: string;
+    forwardPayload?: string;
 }
 
 export interface RawNftTransferItem {
     type: 'nft';
-    nft_address: string;
-    new_owner: string;
-    attach_amount?: string;
-    response_destination?: string;
-    custom_payload?: string;
-    forward_amount?: string;
-    forward_payload?: string;
+    nftAddress: string;
+    newOwner: string;
+    attachAmount?: string;
+    queryId?: string;
+    responseDestination?: string;
+    customPayload?: string;
+    forwardAmount?: string;
+    forwardPayload?: string;
 }
 
 export function parseRawStructuredItem(raw: RawStructuredItem): StructuredItem {
@@ -152,8 +155,8 @@ export function parseRawStructuredItem(raw: RawStructuredItem): StructuredItem {
                 type: 'ton',
                 address: raw.address,
                 amount: raw.amount,
-                payload: raw.payload as Base64String | undefined,
-                stateInit: raw.state_init as Base64String | undefined,
+                payload: raw.payload ? asBase64(raw.payload) : undefined,
+                stateInit: raw.stateInit ? asBase64(raw.stateInit) : undefined,
                 extraCurrency: raw.extra_currency as ExtraCurrencies | undefined,
             };
         case 'jetton':
@@ -162,22 +165,22 @@ export function parseRawStructuredItem(raw: RawStructuredItem): StructuredItem {
                 master: raw.master,
                 destination: raw.destination,
                 amount: raw.amount,
-                attachAmount: raw.attach_amount,
-                responseDestination: raw.response_destination,
-                customPayload: raw.custom_payload as Base64String | undefined,
-                forwardAmount: raw.forward_amount,
-                forwardPayload: raw.forward_payload as Base64String | undefined,
+                attachAmount: raw.attachAmount,
+                responseDestination: raw.responseDestination,
+                customPayload: raw.customPayload ? asBase64(raw.customPayload) : undefined,
+                forwardAmount: raw.forwardAmount,
+                forwardPayload: raw.forwardPayload ? asBase64(raw.forwardPayload) : undefined,
             };
         case 'nft':
             return {
                 type: 'nft',
-                nftAddress: raw.nft_address,
-                newOwner: raw.new_owner,
-                attachAmount: raw.attach_amount,
-                responseDestination: raw.response_destination,
-                customPayload: raw.custom_payload as Base64String | undefined,
-                forwardAmount: raw.forward_amount,
-                forwardPayload: raw.forward_payload as Base64String | undefined,
+                nftAddress: raw.nftAddress,
+                newOwner: raw.newOwner,
+                attachAmount: raw.attachAmount,
+                responseDestination: raw.responseDestination,
+                customPayload: raw.customPayload ? asBase64(raw.customPayload) : undefined,
+                forwardAmount: raw.forwardAmount,
+                forwardPayload: raw.forwardPayload ? asBase64(raw.forwardPayload) : undefined,
             };
     }
 }
@@ -190,7 +193,7 @@ export function toRawStructuredItem(item: StructuredItem): RawStructuredItem {
                 address: item.address,
                 amount: item.amount,
                 payload: item.payload,
-                state_init: item.stateInit,
+                stateInit: item.stateInit,
                 extra_currency: item.extraCurrency,
             };
         case 'jetton':
@@ -199,22 +202,22 @@ export function toRawStructuredItem(item: StructuredItem): RawStructuredItem {
                 master: item.master,
                 destination: item.destination,
                 amount: item.amount,
-                attach_amount: item.attachAmount,
-                response_destination: item.responseDestination,
-                custom_payload: item.customPayload,
-                forward_amount: item.forwardAmount,
-                forward_payload: item.forwardPayload,
+                attachAmount: item.attachAmount,
+                responseDestination: item.responseDestination,
+                customPayload: item.customPayload,
+                forwardAmount: item.forwardAmount,
+                forwardPayload: item.forwardPayload,
             };
         case 'nft':
             return {
                 type: 'nft',
-                nft_address: item.nftAddress,
-                new_owner: item.newOwner,
-                attach_amount: item.attachAmount,
-                response_destination: item.responseDestination,
-                custom_payload: item.customPayload,
-                forward_amount: item.forwardAmount,
-                forward_payload: item.forwardPayload,
+                nftAddress: item.nftAddress,
+                newOwner: item.newOwner,
+                attachAmount: item.attachAmount,
+                responseDestination: item.responseDestination,
+                customPayload: item.customPayload,
+                forwardAmount: item.forwardAmount,
+                forwardPayload: item.forwardPayload,
             };
     }
 }
