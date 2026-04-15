@@ -18,18 +18,6 @@ catalogs:
     '@ton/crypto':
       specifier: 3.3.0
       version: 3.3.0
-    '@tonconnect/protocol':
-      specifier: 2.4.0
-      version: 2.4.0
-    '@tonconnect/sdk':
-      specifier: 3.4.1
-      version: 3.4.1
-    '@tonconnect/ui':
-      specifier: 2.4.1
-      version: 2.4.1
-    '@tonconnect/ui-react':
-      specifier: 2.4.1
-      version: 2.4.1
     '@types/react':
       specifier: 19.2.8
       version: 19.2.8
@@ -52,6 +40,12 @@ catalogs:
     react-native:
       specifier: 0.81.5
       version: 0.81.5
+
+overrides:
+  '@tonconnect/protocol': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
+  '@tonconnect/sdk': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
+  '@tonconnect/ui': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
+  '@tonconnect/ui-react': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz
 
 importers:
 
@@ -103,11 +97,11 @@ importers:
         specifier: 'catalog:'
         version: 3.3.0
       '@tonconnect/sdk':
-        specifier: 'catalog:'
-        version: 3.4.1
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
       '@tonconnect/ui-react':
-        specifier: 'catalog:'
-        version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -551,11 +545,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/walletkit
       '@tonconnect/sdk':
-        specifier: 'catalog:'
-        version: 3.4.1
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
       '@tonconnect/ui-react':
-        specifier: 'catalog:'
-        version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.8
@@ -606,8 +600,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/walletkit
       '@tonconnect/protocol':
-        specifier: 'catalog:'
-        version: 2.4.0
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
     devDependencies:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ^6.29.17
@@ -664,6 +658,9 @@ importers:
       '@ton/walletkit':
         specifier: workspace:*
         version: link:../walletkit
+      '@tonconnect/ui':
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
     devDependencies:
       '@tanstack/query-core':
         specifier: 'catalog:'
@@ -671,9 +668,6 @@ importers:
       '@ton/core':
         specifier: 'catalog:'
         version: 0.63.0(@ton/crypto@3.3.0)
-      '@tonconnect/ui':
-        specifier: 'catalog:'
-        version: 2.4.1
       typescript:
         specifier: ~5.8.3
         version: 5.8.3
@@ -687,8 +681,11 @@ importers:
         specifier: workspace:*
         version: link:../appkit
       '@tonconnect/ui':
-        specifier: '>=2.4.1'
-        version: 2.4.1
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
+      '@tonconnect/ui-react':
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -714,9 +711,6 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.90.20(react@19.2.3)
-      '@tonconnect/ui-react':
-        specifier: 'catalog:'
-        version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.8
@@ -800,11 +794,11 @@ importers:
         specifier: ^0.2.8
         version: 0.2.8
       '@tonconnect/protocol':
-        specifier: 'catalog:'
-        version: 2.4.0
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
       '@tonconnect/sdk':
-        specifier: 'catalog:'
-        version: 3.4.1
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
       lru-cache:
         specifier: ^11.2.4
         version: 11.2.6
@@ -898,8 +892,8 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4
       '@tonconnect/protocol':
-        specifier: 'catalog:'
-        version: 2.4.0
+        specifier: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
+        version: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
       buffer:
         specifier: ^6.0.3
         version: 6.0.3
@@ -3801,20 +3795,24 @@ packages:
   '@tonconnect/isomorphic-fetch@0.0.3':
     resolution: {integrity: sha512-jIg5nTrDwnite4fXao3dD83eCpTvInTjZon/rZZrIftIegh4XxyVb5G2mpMqXrVGk1e8SVXm3Kj5OtfMplQs0w==}
 
-  '@tonconnect/protocol@2.4.0':
-    resolution: {integrity: sha512-3xg6sMWIrSgW7/f7iPgOb2BI3LaMScjDMqfu20fcEMbOVvNFk3TGAUKK5cJ3pfvUINsyLgPoylcIbPap37jXiA==}
+  '@tonconnect/protocol@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz':
+    resolution: {tarball: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz}
+    version: 2.4.0
 
-  '@tonconnect/sdk@3.4.1':
-    resolution: {integrity: sha512-eVH8erAFout89gXYHXua/es+mmLPiW1r7ng9hgHKYQv85HLq8/zzQEkbJpbTlnIuQ6CJ/QKchjMsIgYz3BYCUQ==}
+  '@tonconnect/sdk@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz':
+    resolution: {tarball: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz}
+    version: 3.4.1
 
-  '@tonconnect/ui-react@2.4.1':
-    resolution: {integrity: sha512-99NOq5Dj7Z0s0FE+bSrS9dAYlfeUGucZKw431+qeiBFvgpqNxzxfoiSI4mef/ezns8wI4UiDrdXyEulek3RwBw==}
+  '@tonconnect/ui-react@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz':
+    resolution: {tarball: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz}
+    version: 2.4.4
     peerDependencies:
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
 
-  '@tonconnect/ui@2.4.1':
-    resolution: {integrity: sha512-W0wIDJdDdYV3rqP0vt92H/5HktkjeEAddhAOBo0LKZzrMG0r9obY00FKpuV/i2re9RAXLGq/oMwBRZaRHer4kA==}
+  '@tonconnect/ui@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz':
+    resolution: {tarball: https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz}
+    version: 2.4.4
 
   '@truecarry/vite-plugin-web-extension@4.5.1':
     resolution: {integrity: sha512-WSramCYE+wVFH/zQdBhaBP5gSd9pldyjOu+jvkaTEFXwzCDbNQJ+34ke4/XDsaohpcQTe+lbVXbUT+Jt4Ni9Jw==}
@@ -13699,7 +13697,7 @@ snapshots:
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.4.0
+      '@tonconnect/protocol': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
     transitivePeerDependencies:
       - encoding
 
@@ -13707,7 +13705,7 @@ snapshots:
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.4.0
+      '@tonconnect/protocol': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
       blakejs: 1.2.1
       tweetnacl: 1.0.3
     transitivePeerDependencies:
@@ -13723,30 +13721,30 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/protocol@2.4.0':
+  '@tonconnect/protocol@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz':
     dependencies:
       tweetnacl: 1.0.3
       tweetnacl-util: 0.15.1
 
-  '@tonconnect/sdk@3.4.1':
+  '@tonconnect/sdk@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz':
     dependencies:
       '@tonconnect/isomorphic-eventsource': 0.0.2
       '@tonconnect/isomorphic-fetch': 0.0.3
-      '@tonconnect/protocol': 2.4.0
+      '@tonconnect/protocol': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-protocol-2.4.0.tgz
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/ui-react@2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@tonconnect/ui-react@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-react-2.4.4.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
-      '@tonconnect/ui': 2.4.1
+      '@tonconnect/ui': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
       - encoding
 
-  '@tonconnect/ui@2.4.1':
+  '@tonconnect/ui@https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-ui-2.4.4.tgz':
     dependencies:
-      '@tonconnect/sdk': 3.4.1
+      '@tonconnect/sdk': https://github.com/ton-connect/sdk/releases/download/2.5.0-alpha.1/tonconnect-sdk-3.4.1.tgz
       classnames: 2.5.1
       csstype: 3.2.3
       deepmerge: 4.3.1
