@@ -7,18 +7,21 @@
  */
 
 import { useSyncExternalStore, useCallback } from 'react';
-import { getStakingProviders, watchStakingProviders } from '@ton/appkit';
-import type { GetStakingProvidersReturnType } from '@ton/appkit';
+import { getStakingProvider, watchStakingProviders } from '@ton/appkit';
+import type { GetStakingProviderOptions, GetStakingProviderReturnType } from '@ton/appkit';
 
-import { useAppKit } from '../../settings';
+import { useAppKit } from '../../settings/hooks/use-app-kit';
 
-export type UseStakingProvidersReturnType = GetStakingProvidersReturnType;
+export type UseStakingProviderReturnType = GetStakingProviderReturnType;
 
 /**
- * Hook to get available staking provider IDs
+ * Hook to get staking provider
  */
-export const useStakingProviders = (): UseStakingProvidersReturnType => {
+export const useStakingProvider = (
+    options: GetStakingProviderOptions = {},
+): UseStakingProviderReturnType | undefined => {
     const appKit = useAppKit();
+    const { id } = options;
 
     const subscribe = useCallback(
         (onChange: () => void) => {
@@ -29,11 +32,11 @@ export const useStakingProviders = (): UseStakingProvidersReturnType => {
 
     const getSnapshot = useCallback(() => {
         try {
-            return getStakingProviders(appKit);
+            return getStakingProvider(appKit, { id });
         } catch {
-            return [];
+            return undefined;
         }
-    }, [appKit]);
+    }, [appKit, id]);
 
     return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

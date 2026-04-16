@@ -188,6 +188,14 @@ Hook to get a specific swap provider. Returns the provider instance directly or 
 
 %%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
 
+## Staking
+
+### `useStakingProviderMetadata`
+
+Hook to get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+
 ## Transaction
 
 ### `useSendTransaction`

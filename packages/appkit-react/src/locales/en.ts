@@ -77,5 +77,6 @@ export default {
         maximumReward: 'Maximum reward',
         instant: 'Instant',
         maximumRewardLimit: 'No limits',
+        switchTo: 'Switch to {{ ticker }}',
     },
 } as const;

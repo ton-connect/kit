@@ -132,6 +132,16 @@ export {
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
 export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
 export {
+    getStakingProvider,
+    type GetStakingProviderOptions,
+    type GetStakingProviderReturnType,
+} from './staking/get-staking-provider';
+export {
+    watchStakingProviders,
+    type WatchStakingProvidersParameters,
+    type WatchStakingProvidersReturnType,
+} from './staking/watch-staking-providers';
+export {
     getStakingQuote,
     type GetStakingQuoteOptions,
     type GetStakingQuoteReturnType,
@@ -151,6 +161,11 @@ export {
     type GetStakingProviderInfoOptions,
     type GetStakingProviderInfoReturnType,
 } from './staking/get-staking-provider-info';
+export {
+    getStakingProviderMetadata,
+    type GetStakingProviderMetadataOptions,
+    type GetStakingProviderMetadataReturnType,
+} from './staking/get-staking-provider-metadata';
 
 // Transactions
 export {

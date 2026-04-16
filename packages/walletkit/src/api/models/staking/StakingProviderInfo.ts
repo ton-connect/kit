@@ -9,25 +9,9 @@
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
- * Staking information for a provider
+ * Dynamic staking information for a provider
  */
 export interface StakingProviderInfo {
-    /**
-     * Liquid staking token ticker
-     */
-    lstTicker: string;
-
-    /**
-     * Liquid staking token decimals
-     * @format int
-     */
-    lstDecimals: number;
-
-    /**
-     * Exchange rate for the token
-     */
-    lstExchangeRate?: string;
-
     /**
      * Annual Percentage Yield in basis points (100 = 1%)
      */
@@ -44,7 +28,7 @@ export interface StakingProviderInfo {
     instantUnstakeAvailable?: string;
 
     /**
-     * Identifier of the staking provider
+     * Exchange rate for the token
      */
-    providerId: string;
+    lstExchangeRate?: string;
 }

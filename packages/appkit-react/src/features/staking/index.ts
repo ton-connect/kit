@@ -8,11 +8,8 @@
 
 export { UnstakeMode, type UnstakeModes } from '@ton/appkit';
 
-export {
-    useStakingProviders,
-    type UseStakingProvidersParameters,
-    type UseStakingProvidersReturnType,
-} from './hooks/use-staking-providers';
+export { useStakingProviders, type UseStakingProvidersReturnType } from './hooks/use-staking-providers';
+export { useStakingProvider, type UseStakingProviderReturnType } from './hooks/use-staking-provider';
 export {
     useStakingQuote,
     type UseStakingQuoteParameters,
@@ -28,6 +25,10 @@ export {
     type UseStakingProviderInfoParameters,
     type UseStakingProviderInfoReturnType,
 } from './hooks/use-staking-provider-info';
+export {
+    useStakingProviderMetadata,
+    type UseStakingProviderMetadataParameters,
+} from './hooks/use-staking-provider-metadata';
 export { useBuildStakeTransaction, type UseBuildStakeTransactionReturnType } from './hooks/use-build-stake-transaction';
 
 export * from './components/staking-widget';

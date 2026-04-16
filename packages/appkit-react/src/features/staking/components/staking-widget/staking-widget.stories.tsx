@@ -23,16 +23,12 @@ type Story = StoryObj<typeof StakingWidget>;
 export const Default: Story = {
     args: {
         network: Network.mainnet(),
-        fiatSymbol: '$',
-        tonRate: '1.42',
     },
 };
 
 export const CustomUI: Story = {
     args: {
         network: Network.mainnet(),
-        fiatSymbol: '$',
-        tonRate: '1.42',
     },
     render: (args) => (
         <StakingWidget {...args}>

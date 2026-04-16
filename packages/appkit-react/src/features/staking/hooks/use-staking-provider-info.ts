@@ -16,6 +16,7 @@ import type {
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useStakingProvider } from './use-staking-provider';
 
 export type UseStakingProviderInfoParameters<selectData = GetStakingProviderInfoData> =
     GetStakingProviderInfoQueryConfig<selectData>;
@@ -31,5 +32,7 @@ export const useStakingProviderInfo = <selectData = GetStakingProviderInfoData>(
     parameters: UseStakingProviderInfoParameters<selectData> = {},
 ): UseStakingProviderInfoReturnType<selectData> => {
     const appKit = useAppKit();
-    return useQuery(getStakingProviderInfoQueryOptions(appKit, parameters));
+    const provider = useStakingProvider({ id: parameters.providerId });
+
+    return useQuery(getStakingProviderInfoQueryOptions(appKit, { providerId: provider?.providerId, ...parameters }));
 };

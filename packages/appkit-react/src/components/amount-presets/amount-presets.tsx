@@ -15,6 +15,7 @@ import styles from './amount-presets.module.css';
 export interface AmountPreset {
     label: string;
     amount: string;
+    onSelect?: () => void;
 }
 
 export interface AmountPresetsProps extends ComponentProps<'div'> {
@@ -38,7 +39,7 @@ export const AmountPresets: FC<AmountPresetsProps> = ({
                     size="s"
                     variant="secondary"
                     className={styles.preset}
-                    onClick={() => onPresetSelect(preset.amount)}
+                    onClick={() => (preset.onSelect ? preset.onSelect() : onPresetSelect(preset.amount))}
                 >
                     {currencySymbol}
                     {preset.label}

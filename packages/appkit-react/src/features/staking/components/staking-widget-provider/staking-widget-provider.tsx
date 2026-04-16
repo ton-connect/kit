@@ -9,12 +9,19 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { Network, StakingQuoteDirection } from '@ton/appkit';
-import { parseUnits, validateNumericString } from '@ton/appkit';
-import type { StakingQuote, StakingProviderInfo, StakingBalance, UnstakeModes } from '@ton/appkit';
+import { validateNumericString } from '@ton/appkit';
+import type {
+    StakingQuote,
+    StakingProviderInfo,
+    StakingBalance,
+    UnstakeModes,
+    StakingProviderMetadata,
+} from '@ton/appkit';
 import { UnstakeMode } from '@ton/appkit';
 
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
+import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
 import { useBuildStakeTransaction } from '../../hooks/use-build-stake-transaction';
 import { useSelectedWallet, useAddress } from '../../../wallets';
@@ -22,17 +29,12 @@ import { useBalance } from '../../../balances/hooks/use-balance';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
-import { calculateToLst } from '../../utils/calculate-lst';
 
 export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
 export interface StakingContextType {
     /** Amount the user wants to stake (string to preserve input UX) */
     amount: string;
-    /** Fiat currency symbol, e.g. "$" */
-    fiatSymbol: string;
-    /** TON exchange rate for fiat display */
-    tonRate: string | undefined;
     /** Whether the user can proceed with staking */
     canSubmit: boolean;
     /** Whether a wallet is connected */
@@ -43,8 +45,10 @@ export interface StakingContextType {
     isQuoteLoading: boolean;
     /** Current validation/fetch error for staking, null when everything is ok */
     error: StakingWidgetError;
-    /** Staking provider info (APY, instant unstake availability, etc.) */
+    /** Staking provider dynamic info (APY, instant unstake availability, etc.) */
     providerInfo: StakingProviderInfo | undefined;
+    /** Staking provider static metadata */
+    providerMetadata: StakingProviderMetadata | undefined;
     /** Current direction */
     direction: StakingQuoteDirection;
     /** True while provider info is being fetched */
@@ -57,22 +61,22 @@ export interface StakingContextType {
     unstakeMode: UnstakeModes;
     setAmount: (amount: string) => void;
     setUnstakeMode: (mode: UnstakeModes) => void;
-    sendStakingTransaction: () => Promise<void>;
-    sendUnstakingTransaction: () => Promise<void>;
+    sendTransaction: () => Promise<void>;
     onChangeDirection: (direction: StakingQuoteDirection) => void;
     isSendingTransaction: boolean;
+    isReversed: boolean;
+    toggleReversed: () => void;
 }
 
 export const StakingContext = createContext<StakingContextType>({
     amount: '',
-    fiatSymbol: '$',
-    tonRate: undefined,
     canSubmit: false,
     isWalletConnected: false,
     quote: undefined,
     isQuoteLoading: false,
     error: null,
     providerInfo: undefined,
+    providerMetadata: undefined,
     direction: 'stake',
     isProviderInfoLoading: false,
     stakedBalance: undefined,
@@ -80,10 +84,11 @@ export const StakingContext = createContext<StakingContextType>({
     unstakeMode: UnstakeMode.INSTANT,
     setAmount: () => {},
     setUnstakeMode: () => {},
-    sendStakingTransaction: () => Promise.resolve(),
-    sendUnstakingTransaction: () => Promise.resolve(),
+    sendTransaction: () => Promise.resolve(),
     onChangeDirection: () => {},
     isSendingTransaction: false,
+    isReversed: false,
+    toggleReversed: () => {},
 });
 
 export const useStakingContext = () => {
@@ -93,16 +98,13 @@ export const useStakingContext = () => {
 export interface StakingProviderProps extends PropsWithChildren {
     /** Network to use for quote fetching */
     network: Network;
-    /** Fiat currency symbol shown next to amounts, defaults to "$" */
-    fiatSymbol?: string;
-    /** TON exchange rate for fiat display (e.g. "3.42") */
-    tonRate?: string;
 }
 
-export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network, fiatSymbol = '$', tonRate }) => {
+export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network }) => {
     const [amount, setAmountRaw] = useState('');
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
+    const [isReversed, setIsReversed] = useState(false);
 
     const [wallet] = useSelectedWallet();
     const isWalletConnected = wallet !== null;
@@ -115,31 +117,28 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         query: { refetchInterval: 5000 },
     });
     const { data: providerInfo, isFetching: isProviderInfoLoading } = useStakingProviderInfo({ network });
+    const providerMetadata = useStakingProviderMetadata({ network });
 
     const { mutateAsync: buildTransaction } = useBuildStakeTransaction();
     const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
 
-    const setAmount = useCallback((value: string) => {
-        if (value === '' || validateNumericString(value, 9)) setAmountRaw(value);
+    const amountDecimals = useMemo(() => {
+        const unstakeDecimals = isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeCoinDecimals;
+        return direction === 'stake' ? providerMetadata?.stakeCoinDecimals : unstakeDecimals;
+    }, [direction, providerMetadata?.stakeCoinDecimals, providerMetadata?.lstDecimals, isReversed]);
+
+    const setAmount = useCallback(
+        (value: string) => {
+            if (value === '' || validateNumericString(value, amountDecimals)) setAmountRaw(value);
+        },
+        [amountDecimals],
+    );
+
+    const toggleReversed = useCallback(() => {
+        setIsReversed((prev) => !prev);
     }, []);
 
-    const quoteAmount = useMemo(() => {
-        if (direction !== 'unstake') return amount;
-        if (!providerInfo) return '';
-
-        const result = calculateToLst(amount, providerInfo.lstExchangeRate, providerInfo.lstDecimals);
-
-        if (
-            stakedBalanceData &&
-            BigInt(stakedBalanceData.rawStakedBalance) - parseUnits(result, providerInfo.lstDecimals) <= 2n
-        ) {
-            return stakedBalanceData.stakedBalance;
-        }
-
-        return result;
-    }, [direction, providerInfo?.lstExchangeRate, providerInfo?.lstDecimals, amount]);
-
-    const [amountDebounced] = useDebounceValue(quoteAmount, 500);
+    const [amountDebounced] = useDebounceValue(amount, 500);
 
     const {
         data: quote,
@@ -149,18 +148,11 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         direction,
         amount: amountDebounced,
         unstakeMode,
+        isReversed,
         network,
     });
 
-    const sendStakingTransaction = useCallback(async () => {
-        if (!quote || !address) return;
-
-        const transactionParams = await buildTransaction({ quote, userAddress: address });
-
-        await sendTransaction(transactionParams);
-    }, [quote, address, buildTransaction, sendTransaction]);
-
-    const sendUnstakingTransaction = useCallback(async () => {
+    const handleSendTransaction = useCallback(async () => {
         if (!quote || !address) return;
 
         const transactionParams = await buildTransaction({ quote, userAddress: address });
@@ -169,43 +161,43 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     }, [quote, address, buildTransaction, sendTransaction]);
 
     const { error, canSubmit } = useStakingValidation({
-        amount: quoteAmount,
+        amount,
         amountDebounced,
         balance,
         quoteError,
         direction,
         stakedBalance: stakedBalanceData?.stakedBalance,
+        quote,
+        isReversed,
+        amountDecimals,
     });
 
     const value = useMemo(
         () => ({
             amount,
-            fiatSymbol,
-            tonRate,
             canSubmit,
             direction,
             isWalletConnected,
             quote,
-            isQuoteLoading: isQuoteLoading || isProviderInfoLoading || quoteAmount !== amountDebounced,
+            isQuoteLoading: isQuoteLoading || isProviderInfoLoading || amount !== amountDebounced,
             error,
             providerInfo,
+            providerMetadata,
             isProviderInfoLoading,
             stakedBalance: stakedBalanceData,
             isStakedBalanceLoading,
             unstakeMode,
             setAmount,
             setUnstakeMode,
-            sendStakingTransaction,
-            sendUnstakingTransaction,
+            sendTransaction: handleSendTransaction,
             isSendingTransaction,
+            isReversed,
+            toggleReversed,
             onChangeDirection: setDirection,
         }),
         [
             amount,
-            quoteAmount,
             amountDebounced,
-            fiatSymbol,
-            tonRate,
             canSubmit,
             isWalletConnected,
             direction,
@@ -213,15 +205,17 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isQuoteLoading,
             error,
             providerInfo,
+            providerMetadata,
             isProviderInfoLoading,
             stakedBalanceData,
             isStakedBalanceLoading,
             unstakeMode,
             setAmount,
             setUnstakeMode,
-            sendStakingTransaction,
-            sendUnstakingTransaction,
+            handleSendTransaction,
             isSendingTransaction,
+            isReversed,
+            toggleReversed,
             setDirection,
         ],
     );

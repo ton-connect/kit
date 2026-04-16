@@ -10,7 +10,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 import { UnstakeMode } from '@ton/appkit';
-import type { UnstakeModes, StakingProviderInfo } from '@ton/appkit';
+import type { UnstakeModes, StakingProviderInfo, StakingProviderMetadata } from '@ton/appkit';
 
 import { Collapsible } from '../../../../components/collapsible';
 import { useI18n } from '../../../settings/hooks/use-i18n';
@@ -21,6 +21,7 @@ export interface SelectUnstakeModeProps extends ComponentProps<'div'> {
     value: UnstakeModes;
     onValueChange: (mode: UnstakeModes) => void;
     providerInfo: StakingProviderInfo | undefined;
+    providerMetadata: StakingProviderMetadata | undefined;
 }
 
 interface ModeOption {
@@ -33,6 +34,7 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
     value,
     onValueChange,
     providerInfo,
+    providerMetadata,
     className,
     ...props
 }) => {
@@ -41,8 +43,8 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
 
     const instantLimit = useMemo(() => {
         if (!providerInfo?.instantUnstakeAvailable) return undefined;
-        return `Limit: ${formatAmount(providerInfo.instantUnstakeAvailable, providerInfo.lstDecimals)} TON`;
-    }, [providerInfo]);
+        return `Limit: ${formatAmount(providerInfo.instantUnstakeAvailable, providerMetadata?.lstDecimals)} ${providerMetadata?.stakeCoinTicker}`;
+    }, [providerInfo, providerMetadata]);
 
     const modes: ModeOption[] = useMemo(
         () => [

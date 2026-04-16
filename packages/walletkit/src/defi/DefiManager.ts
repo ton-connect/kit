@@ -13,6 +13,7 @@ import type { ProviderInput } from '../types';
 import type { ProviderFactoryContext } from '../types/factory';
 import { DefiManagerError } from './errors';
 import type { SharedKitEvents } from '../types/emitter';
+import type { EventEmitter } from '../core/EventEmitter';
 
 export abstract class DefiManager<
     T extends DefiProvider,
@@ -23,9 +24,11 @@ export abstract class DefiManager<
     protected providers: Map<string, T> = new Map();
     protected defaultProviderId?: string;
     protected abstract createError(message: string, code: string, details?: unknown): DefiManagerError;
+    protected eventEmitter: EventEmitter<E>;
 
     constructor(createFactoryContext: () => ProviderFactoryContext<E>) {
         this.createFactoryContext = createFactoryContext;
+        this.eventEmitter = createFactoryContext().eventEmitter;
     }
 
     /**
@@ -41,9 +44,11 @@ export abstract class DefiManager<
         }
 
         this.providers.set(providerId, provider);
+        this.eventEmitter.emit('provider:registered', { providerId, type: provider.type }, 'defi-manager');
 
         if (!this.defaultProviderId) {
             this.defaultProviderId = providerId;
+            this.eventEmitter.emit('provider:default-changed', { providerId, type: provider.type }, 'defi-manager');
         }
     }
 
@@ -53,14 +58,17 @@ export abstract class DefiManager<
      * @throws DefiManagerError if provider not found
      */
     setDefaultProvider(providerId: string): void {
-        if (!this.providers.has(providerId)) {
-            throw this.createError(`Provider '${providerId}' not registered`, DefiManagerError.PROVIDER_NOT_FOUND, {
+        const provider = this.providers.get(providerId);
+
+        if (!provider) {
+            throw this.createError(`Provider '${providerId}' not found`, DefiManagerError.PROVIDER_NOT_FOUND, {
                 provider: providerId,
                 registered: Array.from(this.providers.keys()),
             });
         }
 
         this.defaultProviderId = providerId;
+        this.eventEmitter.emit('provider:default-changed', { providerId, type: provider.type }, 'defi-manager');
     }
 
     /**

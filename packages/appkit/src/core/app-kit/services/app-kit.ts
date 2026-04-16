@@ -10,7 +10,7 @@ import { SwapManager, StreamingManager } from '@ton/walletkit';
 import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
-import { CONNECTOR_EVENTS, PROVIDER_EVENTS, WALLETS_EVENTS } from '../constants/events';
+import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import { StakingManager } from '../../../staking';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
 import { EventEmitter } from '../../emitter';
@@ -111,19 +111,9 @@ export class AppKit {
         switch (provider.type) {
             case 'swap':
                 this.swapManager.registerProvider(provider as SwapProviderInterface);
-                this.emitter.emit(
-                    PROVIDER_EVENTS.REGISTERED,
-                    { providerId: provider.providerId, providerType: provider.type },
-                    'appkit',
-                );
                 break;
             case 'staking':
                 this.stakingManager.registerProvider(provider as StakingProviderInterface);
-                this.emitter.emit(
-                    PROVIDER_EVENTS.REGISTERED,
-                    { providerId: provider.providerId, providerType: provider.type },
-                    'appkit',
-                );
                 break;
             default:
                 throw new Error('Unknown provider type');

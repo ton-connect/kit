@@ -13,6 +13,7 @@ import type {
     StakeParams,
     StakingBalance,
     StakingProviderInfo,
+    StakingProviderMetadata,
     StakingQuoteParams,
     StakingQuote,
 } from '../../../api/models';
@@ -28,7 +29,6 @@ import { StakingCache } from './StakingCache';
 import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
 import { formatUnits, parseUnits } from '../../../utils/units';
 import type { ApiClient } from '../../../types/toncenter/ApiClient';
-import type { UnstakeModes } from '../../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');
 
@@ -104,53 +104,69 @@ export class TonStakersStakingProvider extends StakingProvider {
             direction: params.direction,
             amount: params.amount,
             userAddress: params.userAddress,
+            isReversed: params.isReversed,
         });
 
-        const stakingInfo = await this.getStakingProviderInfo(params.network);
         const contract = this.getContract(params.network);
-        const rates = await contract.getRates();
-        const rawAmountIn = parseUnits(params.amount, 9).toString();
+        const poolData = await contract.getPoolData();
+        const network = params.network || Network.mainnet();
+        const unstakeMode = params.unstakeMode ?? UnstakeMode.INSTANT;
 
         if (params.direction === 'stake') {
-            // User deposits TON, receives tsTON: tsTON = TON / rate
-            const amountInTokens = Number(params.amount);
-            const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
-            const rawAmountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
-            const amountOut = formatUnits(rawAmountOut, 9).toString();
+            // User deposits TON, receives tsTON: tsTON = amountIn * projectedSupply / projectedBalance
+            const rawAmountIn = parseUnits(params.amount, 9);
+            const rawAmountOut =
+                poolData.projectedBalance > 0n
+                    ? (rawAmountIn * poolData.projectedSupply) / poolData.projectedBalance
+                    : rawAmountIn;
 
-            const quote: StakingQuote = {
+            return {
                 direction: 'stake',
-                rawAmountIn,
-                rawAmountOut,
+                rawAmountIn: rawAmountIn.toString(),
+                rawAmountOut: rawAmountOut.toString(),
                 amountIn: params.amount,
-                amountOut,
-                network: params.network || Network.mainnet(),
-                providerId: 'tonstakers',
-                apy: stakingInfo.apy,
+                amountOut: formatUnits(rawAmountOut, 9),
+                network,
+                providerId: this.providerId,
             };
-            return quote;
-        } else {
-            // User burns tsTON, receives TON: TON = tsTON * rate
-            const amountInTokens = Number(params.amount);
-            const amountOutTokens =
-                params.unstakeMode === UnstakeMode.INSTANT || params.unstakeMode === UnstakeMode.WHEN_AVAILABLE
-                    ? amountInTokens * rates.tsTONTON
-                    : amountInTokens * rates.tsTONTONProjected;
-            const rawAmountOut = parseUnits(amountOutTokens.toFixed(9), 9).toString();
-            const amountOut = formatUnits(rawAmountOut, 9).toString();
-
-            const quote: StakingQuote = {
-                direction: 'unstake',
-                rawAmountIn,
-                rawAmountOut,
-                amountIn: params.amount,
-                amountOut,
-                network: params.network || Network.mainnet(),
-                providerId: 'tonstakers',
-                unstakeMode: params.unstakeMode ?? UnstakeMode.INSTANT,
-            };
-            return quote;
         }
+
+        const useSpotRate = unstakeMode === UnstakeMode.INSTANT || unstakeMode === UnstakeMode.WHEN_AVAILABLE;
+        const balance = useSpotRate ? poolData.totalBalance : poolData.projectedBalance;
+        const supply = useSpotRate ? poolData.supply : poolData.projectedSupply;
+
+        if (params.isReversed) {
+            // User specifies TON to receive, we calculate how much tsTON to burn
+            // tsTON_in = amountOut_TON * supply / balance
+            const rawAmountOut = parseUnits(params.amount, 9);
+            const rawAmountIn = balance > 0n ? (rawAmountOut * supply) / balance : rawAmountOut;
+
+            return {
+                direction: 'unstake',
+                rawAmountIn: rawAmountIn.toString(),
+                rawAmountOut: rawAmountOut.toString(),
+                amountIn: formatUnits(rawAmountIn, 9),
+                amountOut: params.amount,
+                network,
+                providerId: this.providerId,
+                unstakeMode,
+            };
+        }
+
+        // User burns tsTON, receives TON: TON = amountIn * balance / supply
+        const rawAmountIn = parseUnits(params.amount, 9);
+        const rawAmountOut = supply > 0n ? (rawAmountIn * balance) / supply : rawAmountIn;
+
+        return {
+            direction: 'unstake',
+            rawAmountIn: rawAmountIn.toString(),
+            rawAmountOut: rawAmountOut.toString(),
+            amountIn: params.amount,
+            amountOut: formatUnits(rawAmountOut, 9),
+            network,
+            providerId: this.providerId,
+            unstakeMode,
+        };
     }
 
     /**
@@ -319,7 +335,7 @@ export class TonStakersStakingProvider extends StakingProvider {
                 stakedBalance: formatUnits(stakedBalance, 9), // in tsTON tokens
                 rawInstantUnstakeAvailable: instantUnstakeAvailable.toString(),
                 instantUnstakeAvailable: formatUnits(instantUnstakeAvailable, 9),
-                providerId: 'tonstakers',
+                providerId: this.providerId,
             };
         } catch (error) {
             log.error('Failed to get balance', { error, userAddress, network });
@@ -349,26 +365,32 @@ export class TonStakersStakingProvider extends StakingProvider {
             const contract = this.getContract(targetNetwork);
             const instantLiquidity = await contract.getPoolBalance();
             const apy = await this.getApyFromTonApi(targetNetwork);
-            const rates = await contract.getRates();
+            const poolData = await contract.getPoolData();
+
+            // Compute exchange rate with 9-digit precision via bigint: (totalBalance * 10^9) / supply
+            const PRECISION = 1_000_000_000n;
+            const lstExchangeRate =
+                poolData.supply > 0n ? formatUnits((poolData.totalBalance * PRECISION) / poolData.supply, 9) : '1';
 
             return {
                 apy,
                 rawInstantUnstakeAvailable: instantLiquidity.toString(),
                 instantUnstakeAvailable: formatUnits(instantLiquidity, 9),
-                providerId: 'tonstakers',
-                lstExchangeRate: String(rates.tsTONTONProjected),
-                lstTicker: 'tsTON',
-                lstDecimals: 9,
+                lstExchangeRate,
             };
         });
     }
 
-    /**
-     * Get supported unstake modes
-     * @returns An array of supported unstake modes
-     */
-    getSupportedUnstakeModes(): UnstakeModes[] {
-        return [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END];
+    getStakingProviderMetadata(): StakingProviderMetadata {
+        return {
+            providerId: this.providerId,
+            stakeCoinTicker: 'TON',
+            stakeCoinDecimals: 9,
+            lstTicker: 'tsTON',
+            lstDecimals: 9,
+            supportedUnstakeModes: [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END],
+            supportsReversedQuote: true,
+        };
     }
 
     /**

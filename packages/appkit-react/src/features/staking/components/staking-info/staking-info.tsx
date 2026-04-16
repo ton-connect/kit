@@ -8,6 +8,7 @@
 
 import type { ComponentProps, FC } from 'react';
 import type { StakingQuote, StakingProviderInfo, StakingQuoteDirection } from '@ton/appkit';
+import type { StakingProviderMetadata } from '@ton/appkit';
 
 import { InfoBlock } from '../../../../components/info-block';
 import { useI18n } from '../../../settings/hooks/use-i18n';
@@ -17,6 +18,7 @@ export interface StakingInfoProps extends ComponentProps<typeof InfoBlock.Contai
     quote: StakingQuote | undefined;
     isQuoteLoading: boolean;
     providerInfo: StakingProviderInfo | undefined;
+    providerMetadata: StakingProviderMetadata | undefined;
     isProviderInfoLoading: boolean;
     direction?: StakingQuoteDirection;
     stakedBalance?: string;
@@ -27,6 +29,7 @@ export const StakingInfo: FC<StakingInfoProps> = ({
     quote,
     isQuoteLoading,
     providerInfo,
+    providerMetadata,
     isProviderInfoLoading,
     direction = 'stake',
     stakedBalance,
@@ -35,36 +38,34 @@ export const StakingInfo: FC<StakingInfoProps> = ({
 }) => {
     const { t } = useI18n();
 
+    const youGetDecimals = direction === 'stake' ? providerMetadata?.lstDecimals : providerMetadata?.stakeCoinDecimals;
+    const youGetTicker = direction === 'stake' ? providerMetadata?.lstTicker : providerMetadata?.stakeCoinTicker;
+
     return (
         <InfoBlock.Container variant="outline" {...props}>
-            {direction === 'stake' && (
-                <InfoBlock.Row>
-                    <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
 
-                    {isQuoteLoading || isProviderInfoLoading ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>
-                            {formatAmount(quote?.amountOut, providerInfo?.lstDecimals)}{' '}
-                            {direction === 'stake' ? providerInfo?.lstTicker : 'TON'}
-                        </InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>
-            )}
+                {isQuoteLoading || isProviderInfoLoading ? (
+                    <InfoBlock.ValueSkeleton />
+                ) : (
+                    <InfoBlock.Value>
+                        {formatAmount(quote?.amountOut, youGetDecimals)} {youGetTicker}
+                    </InfoBlock.Value>
+                )}
+            </InfoBlock.Row>
 
-            {direction === 'unstake' && (
-                <InfoBlock.Row>
-                    <InfoBlock.Label>{t('staking.stakedBalance')}</InfoBlock.Label>
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('staking.stakedBalance')}</InfoBlock.Label>
 
-                    {isStakedBalanceLoading ? (
-                        <InfoBlock.ValueSkeleton />
-                    ) : (
-                        <InfoBlock.Value>
-                            {formatAmount(stakedBalance, providerInfo?.lstDecimals)} {providerInfo?.lstTicker}
-                        </InfoBlock.Value>
-                    )}
-                </InfoBlock.Row>
-            )}
+                {isStakedBalanceLoading && !stakedBalance ? (
+                    <InfoBlock.ValueSkeleton />
+                ) : (
+                    <InfoBlock.Value>
+                        {formatAmount(stakedBalance, providerMetadata?.lstDecimals)} {providerMetadata?.lstTicker}
+                    </InfoBlock.Value>
+                )}
+            </InfoBlock.Row>
 
             <InfoBlock.Row>
                 <InfoBlock.Label>{t('staking.currentApy')}</InfoBlock.Label>
@@ -85,8 +86,9 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                     <InfoBlock.ValueSkeleton />
                 ) : (
                     <InfoBlock.Value>
-                        1 TON = {formatAmount(providerInfo?.lstExchangeRate, providerInfo?.lstDecimals)}{' '}
-                        {providerInfo?.lstTicker}
+                        1 {providerMetadata?.stakeCoinTicker} ={' '}
+                        {formatAmount(providerInfo?.lstExchangeRate, providerMetadata?.lstDecimals)}{' '}
+                        {providerMetadata?.lstTicker}
                     </InfoBlock.Value>
                 )}
             </InfoBlock.Row>

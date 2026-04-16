@@ -28,9 +28,9 @@ const StakingWidgetContent: FC<{ children?: (props: StakingWidgetRenderProps) =>
     return <StakingWidgetUI {...ctx} />;
 };
 
-export const StakingWidget: FC<StakingWidgetProps> = ({ children, network, fiatSymbol, tonRate }) => {
+export const StakingWidget: FC<StakingWidgetProps> = ({ children, network }) => {
     return (
-        <StakingWidgetProvider network={network} fiatSymbol={fiatSymbol} tonRate={tonRate}>
+        <StakingWidgetProvider network={network}>
             <StakingWidgetContent>{children}</StakingWidgetContent>
         </StakingWidgetProvider>
     );

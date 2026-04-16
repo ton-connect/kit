@@ -12,7 +12,6 @@ import type { StakingQuoteDirection } from '@ton/appkit';
 
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { AmountPresets } from '../../../../components/amount-presets';
-import type { AmountPreset } from '../../../../components/amount-presets';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/tabs';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { StakingInfo } from '../staking-info';
@@ -20,52 +19,58 @@ import { SelectUnstakeMode } from '../select-unstake-mode';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { useBalance } from '../../../balances';
-import { getFormattedFiatValue, getPresets } from './utils';
 import { calculateFromLst } from '../../utils/calculate-lst';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
+import { AmountReversed } from '../../../../components/amount-reversed';
+import { useStakingPresets } from './use-staking-presets';
 
 export type StakingWidgetRenderProps = StakingContextType;
 
 export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     amount,
-    fiatSymbol,
     canSubmit,
     isQuoteLoading,
     error,
     providerInfo,
+    providerMetadata,
     isProviderInfoLoading,
     setAmount,
     direction,
     quote,
-    tonRate,
-    sendStakingTransaction,
-    sendUnstakingTransaction,
+    sendTransaction,
     isSendingTransaction,
     unstakeMode,
     setUnstakeMode,
     stakedBalance,
     isStakedBalanceLoading,
     onChangeDirection,
+    isReversed,
+    toggleReversed,
 }) => {
     const { data: balance } = useBalance();
-
     const { t } = useI18n();
 
-    const stakedBalanceInTon = useMemo(() => {
-        if (!stakedBalance?.stakedBalance) return '0';
-        const result = calculateFromLst(stakedBalance.stakedBalance, providerInfo?.lstExchangeRate, 9);
-        return result || '0';
-    }, [stakedBalance?.stakedBalance, providerInfo?.lstExchangeRate]);
+    const unstakeReversedAmount = useMemo(() => {
+        if (!quote?.amountIn) return '0';
+        return (
+            calculateFromLst(quote.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeCoinDecimals) || '0'
+        );
+    }, [quote?.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeCoinDecimals]);
 
-    const presets: AmountPreset[] = useMemo(() => {
-        return getPresets(direction === 'unstake' ? stakedBalanceInTon : balance, t);
-    }, [balance, stakedBalanceInTon, direction, t]);
+    const presets = useStakingPresets({
+        direction,
+        balance,
+        stakedBalance,
+        providerInfo,
+        providerMetadata,
+        isReversed,
+        toggleReversed,
+        setAmount,
+    });
 
     const buttonText = useMemo(() => {
         if (error) return t(`staking.${error}`);
-        if (direction === 'stake') return t('staking.continue');
-
-        return t('staking.unstake');
+        return direction === 'stake' ? t('staking.continue') : t('staking.unstake');
     }, [error, direction, t]);
 
     return (
@@ -80,15 +85,29 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 <TabsContent className={styles.tab} value="stake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
-                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="TON" />
-                            {tonRate && (
-                                <span className={styles.fiatValue}>
-                                    {getFormattedFiatValue(amount, tonRate, fiatSymbol)}
-                                </span>
-                            )}
+                            <CenteredAmountInput
+                                value={amount}
+                                onValueChange={setAmount}
+                                ticker={providerMetadata?.stakeCoinTicker}
+                            />
+                            <AmountReversed
+                                value={quote?.amountOut || '0'}
+                                ticker={providerMetadata?.lstTicker}
+                                decimals={providerMetadata?.lstDecimals}
+                            />
                         </div>
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />
+
+                        <ButtonWithConnect
+                            variant="fill"
+                            size="l"
+                            fullWidth
+                            disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                            onClick={sendTransaction}
+                        >
+                            {buttonText}
+                        </ButtonWithConnect>
                     </div>
                 </TabsContent>
 
@@ -96,39 +115,48 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 <TabsContent className={styles.tab} value="unstake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
-                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker="TON" />
-                            {tonRate && (
-                                <span className={styles.fiatValue}>
-                                    {getFormattedFiatValue(amount, tonRate, fiatSymbol)}
-                                </span>
-                            )}
+                            <CenteredAmountInput
+                                value={amount}
+                                onValueChange={setAmount}
+                                ticker={isReversed ? providerMetadata?.stakeCoinTicker : providerMetadata?.lstTicker}
+                            />
+                            <AmountReversed
+                                value={isReversed ? quote?.amountIn || '0' : unstakeReversedAmount}
+                                ticker={isReversed ? providerMetadata?.lstTicker : providerMetadata?.stakeCoinTicker}
+                                decimals={
+                                    isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeCoinDecimals
+                                }
+                                symbol={isReversed ? undefined : '~'}
+                                onChangeDirection={providerMetadata?.supportsReversedQuote ? toggleReversed : undefined}
+                            />
                         </div>
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />
+
+                        <ButtonWithConnect
+                            variant="fill"
+                            size="l"
+                            fullWidth
+                            disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                            onClick={sendTransaction}
+                        >
+                            {buttonText}
+                        </ButtonWithConnect>
 
                         <SelectUnstakeMode
                             value={unstakeMode}
                             onValueChange={setUnstakeMode}
                             providerInfo={providerInfo}
+                            providerMetadata={providerMetadata}
                         />
                     </div>
                 </TabsContent>
 
-                <ButtonWithConnect
-                    variant="fill"
-                    size="l"
-                    fullWidth
-                    disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                    onClick={direction === 'stake' ? sendStakingTransaction : sendUnstakingTransaction}
-                >
-                    {buttonText}
-                </ButtonWithConnect>
-
                 <StakingInfo
-                    className={styles.infoBlock}
                     quote={quote}
                     isQuoteLoading={isQuoteLoading}
                     providerInfo={providerInfo}
+                    providerMetadata={providerMetadata}
                     isProviderInfoLoading={isProviderInfoLoading}
                     direction={direction}
                     stakedBalance={stakedBalance?.stakedBalance}
