@@ -41,11 +41,6 @@ export async function processInternalBrowserRequest(args: unknown[]) {
         throw new Error('processInternalBrowserRequest: messageId is required in messageInfo');
     }
 
-    // Normalize the inner request params: TonConnect protocol uses integer message IDs
-    // but @ton/walletkit's validateBridgeEvent requires event.id to be a string.
-    // After queueJsBridgeEvent spreads params[0], event.id becomes the numeric dApp id.
-    const normalizedArgs = normalizeRequestParamIds(args);
-
     return new Promise<unknown>((resolve, reject) => {
         const timeoutId = setTimeout(() => {
             const resolverMap = ensureInternalBrowserResolverMap();
@@ -71,40 +66,10 @@ export async function processInternalBrowserRequest(args: unknown[]) {
         });
 
         // Call processInjectedBridgeRequest AFTER resolver is registered
-        kit('processInjectedBridgeRequest', ...normalizedArgs).catch((err) => {
+        kit('processInjectedBridgeRequest', ...args).catch((err) => {
             clearTimeout(timeoutId);
             resolverMap.delete(messageId);
             reject(err);
         });
     });
-}
-
-/**
- * Ensures numeric `id` fields in request params are coerced to strings.
- *
- * TonConnect protocol message IDs are integers, but walletkit's validateBridgeEvent
- * requires event.id to be a non-empty string. queueJsBridgeEvent spreads params[0]
- * into the queued event, so a numeric params[0].id ends up as rawEvent.id and fails
- * validation, silently dropping the event (e.g. a dApp-initiated disconnect).
- *
- * args[1] is the request: { method: 'send', params: [{ method, id, ... }] }
- */
-function normalizeRequestParamIds(args: unknown[]): unknown[] {
-    const request = args[1];
-    if (!request || typeof request !== 'object') return args;
-
-    const req = request as Record<string, unknown>;
-    if (!Array.isArray(req.params)) return args;
-
-    const normalizedParams = req.params.map((p: unknown) => {
-        if (p && typeof p === 'object') {
-            const item = p as Record<string, unknown>;
-            if (item.id != null && typeof item.id !== 'string') {
-                return { ...item, id: String(item.id) };
-            }
-        }
-        return p;
-    });
-
-    return [args[0], { ...req, params: normalizedParams }];
 }
