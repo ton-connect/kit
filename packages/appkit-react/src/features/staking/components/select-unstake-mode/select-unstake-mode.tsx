@@ -48,19 +48,29 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
     }, [providerInfo, providerMetadata, t]);
 
     const modes: ModeOption[] = useMemo(
-        () => [
-            {
-                value: UnstakeMode.INSTANT,
-                label: t('staking.instant'),
-                tags: instantLimit ? [instantLimit] : [],
-            },
-            {
-                value: UnstakeMode.ROUND_END,
-                label: t('staking.maximumReward'),
-                tags: [t('staking.maximumRewardLimit')],
-            },
-        ],
-        [t, instantLimit],
+        () =>
+            [
+                {
+                    value: UnstakeMode.INSTANT,
+                    label: t('staking.instant'),
+                    tags: instantLimit ? [instantLimit] : [],
+                },
+                {
+                    value: UnstakeMode.ROUND_END,
+                    label: t('staking.maximumReward'),
+                    tags: [t('staking.maximumRewardLimit')],
+                },
+                {
+                    value: UnstakeMode.WHEN_AVAILABLE,
+                    label: t('staking.whenAvailable'),
+                    tags: [t('staking.whenAvailableLimit')],
+                },
+            ].filter((m) =>
+                providerMetadata?.supportedUnstakeModes
+                    ? providerMetadata?.supportedUnstakeModes.includes(m.value)
+                    : true,
+            ),
+        [t, instantLimit, providerMetadata?.supportedUnstakeModes],
     );
 
     const selectedLabel = modes.find((m) => m.value === value)?.label ?? '';

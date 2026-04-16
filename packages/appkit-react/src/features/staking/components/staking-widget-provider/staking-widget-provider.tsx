@@ -27,7 +27,7 @@ import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
 import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
 import { useBuildStakeTransaction } from '../../hooks/use-build-stake-transaction';
-import { useSelectedWallet, useAddress } from '../../../wallets';
+import { useAddress } from '../../../wallets';
 import { useBalance } from '../../../balances/hooks/use-balance';
 import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
@@ -41,8 +41,6 @@ export interface StakingContextType {
     amount: string;
     /** Whether the user can proceed with staking */
     canSubmit: boolean;
-    /** Whether a wallet is connected */
-    isWalletConnected: boolean;
     /** Raw staking quote from the provider */
     quote: StakingQuote | undefined;
     /** True while the stake quote is being fetched */
@@ -81,7 +79,6 @@ export interface StakingContextType {
 export const StakingContext = createContext<StakingContextType>({
     amount: '',
     canSubmit: false,
-    isWalletConnected: false,
     quote: undefined,
     isQuoteLoading: false,
     error: null,
@@ -119,8 +116,6 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
     const [isReversed, setIsReversed] = useState(false);
 
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
     const address = useAddress();
 
     const { data: providerInfo, isLoading: isProviderInfoLoading } = useStakingProviderInfo({ network });
@@ -224,7 +219,6 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             amount,
             canSubmit,
             direction,
-            isWalletConnected,
             quote,
             isQuoteLoading: isQuoteLoading || isProviderInfoLoading || amount !== quoteParamsDebounced.amount,
             error,
@@ -249,7 +243,6 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             amount,
             quoteParamsDebounced.amount,
             canSubmit,
-            isWalletConnected,
             direction,
             quote,
             isQuoteLoading,

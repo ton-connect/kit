@@ -75,7 +75,9 @@ export default {
         maximumReward: 'Maximum reward',
         instant: 'Instant',
         instantLimit: 'Limit: {{ limit }}',
-        maximumRewardLimit: 'No limits',
+        maximumRewardLimit: 'Next cycle',
+        whenAvailable: 'When available',
+        whenAvailableLimit: 'No limits',
         yourBalance: 'Your balance',
     },
 } as const;
