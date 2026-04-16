@@ -38,8 +38,8 @@ export const StakingInfo: FC<StakingInfoProps> = ({
 }) => {
     const { t } = useI18n();
 
-    const youGetDecimals = direction === 'stake' ? providerMetadata?.lstDecimals : providerMetadata?.stakeCoinDecimals;
-    const youGetTicker = direction === 'stake' ? providerMetadata?.lstTicker : providerMetadata?.stakeCoinTicker;
+    const youGetDecimals = direction === 'stake' ? providerMetadata?.lstDecimals : providerMetadata?.stakeTokenDecimals;
+    const youGetTicker = direction === 'stake' ? providerMetadata?.lstTicker : providerMetadata?.stakeTokenTicker;
 
     return (
         <InfoBlock.Container variant="outline" {...props}>
@@ -86,7 +86,7 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                     <InfoBlock.ValueSkeleton />
                 ) : (
                     <InfoBlock.Value>
-                        1 {providerMetadata?.stakeCoinTicker} ={' '}
+                        1 {providerMetadata?.stakeTokenTicker} ={' '}
                         {formatAmount(providerInfo?.lstExchangeRate, providerMetadata?.lstDecimals)}{' '}
                         {providerMetadata?.lstTicker}
                     </InfoBlock.Value>

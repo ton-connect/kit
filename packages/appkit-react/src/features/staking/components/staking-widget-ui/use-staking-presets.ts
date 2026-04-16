@@ -43,10 +43,10 @@ export const useStakingPresets = ({
             calculateFromLst(
                 stakedBalance.stakedBalance,
                 providerInfo?.lstExchangeRate,
-                providerMetadata?.stakeCoinDecimals,
+                providerMetadata?.stakeTokenDecimals,
             ) || '0'
         );
-    }, [stakedBalance?.stakedBalance, providerInfo?.lstExchangeRate, providerMetadata?.stakeCoinDecimals]);
+    }, [stakedBalance?.stakedBalance, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals]);
 
     const unstakePresetBalance = isReversed ? stakedBalanceInTon : stakedBalance?.stakedBalance;
     const presetBalance = direction === 'unstake' ? unstakePresetBalance : balance;

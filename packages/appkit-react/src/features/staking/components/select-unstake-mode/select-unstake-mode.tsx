@@ -43,7 +43,7 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
 
     const instantLimit = useMemo(() => {
         if (!providerInfo?.instantUnstakeAvailable) return undefined;
-        return `Limit: ${formatAmount(providerInfo.instantUnstakeAvailable, providerMetadata?.lstDecimals)} ${providerMetadata?.stakeCoinTicker}`;
+        return `Limit: ${formatAmount(providerInfo.instantUnstakeAvailable, providerMetadata?.lstDecimals)} ${providerMetadata?.stakeTokenTicker}`;
     }, [providerInfo, providerMetadata]);
 
     const modes: ModeOption[] = useMemo(

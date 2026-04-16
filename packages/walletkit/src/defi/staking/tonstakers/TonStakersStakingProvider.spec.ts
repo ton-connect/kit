@@ -13,10 +13,11 @@ import type { NetworkManager } from '../../../core/NetworkManager';
 import type { TonStakersStakingProvider } from './TonStakersStakingProvider';
 import { createTonstakersProvider } from './TonStakersStakingProvider';
 import { PoolContract } from './PoolContract';
-import { CONTRACT } from './constants';
+import { CONTRACT, DEFAULT_METADATA } from './constants';
 import { Network, UnstakeMode } from '../../../api/models';
 import type { Base64String, UserFriendlyAddress } from '../../../api/models';
 import type { ApiClient } from '../../../types/toncenter/ApiClient';
+import type { ProviderFactoryContext } from '../../../types/factory';
 
 const mockApiClient = {
     runGetMethod: vi.fn(),
@@ -61,10 +62,12 @@ describe('TonStakersStakingProvider', () => {
 
         const factory = createTonstakersProvider({
             [Network.mainnet().chainId]: {
-                contractAddress: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR' as UserFriendlyAddress,
+                metadata: {
+                    contractAddress: 'EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR' as UserFriendlyAddress,
+                },
             },
         });
-        provider = factory({ networkManager: mockNetworkManager });
+        provider = factory({ networkManager: mockNetworkManager } as ProviderFactoryContext);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.spyOn(provider as any, 'getApyFromTonApi').mockResolvedValue(0.05);
@@ -307,7 +310,7 @@ describe('TonStakersStakingProvider', () => {
 
     describe('getStakingProviderMetadata', () => {
         it('should return supported unstake modes', () => {
-            const metadata = provider.getStakingProviderMetadata();
+            const metadata = provider.getStakingProviderMetadata(Network.mainnet());
             expect(metadata.supportedUnstakeModes).toEqual([
                 UnstakeMode.INSTANT,
                 UnstakeMode.WHEN_AVAILABLE,
@@ -316,13 +319,72 @@ describe('TonStakersStakingProvider', () => {
         });
 
         it('should return provider metadata', () => {
-            const metadata = provider.getStakingProviderMetadata();
-            expect(metadata.providerId).toBe('tonstakers');
-            expect(metadata.stakeCoinTicker).toBe('TON');
-            expect(metadata.stakeCoinDecimals).toBe(9);
+            const metadata = provider.getStakingProviderMetadata(Network.mainnet());
+            expect(metadata.stakeTokenTicker).toBe('TON');
+            expect(metadata.stakeTokenDecimals).toBe(9);
             expect(metadata.lstTicker).toBe('tsTON');
             expect(metadata.lstDecimals).toBe(9);
             expect(metadata.supportsReversedQuote).toBe(true);
+        });
+
+        it('should use default lstAddress from DEFAULT_METADATA for mainnet', () => {
+            const metadata = provider.getStakingProviderMetadata(Network.mainnet());
+            expect(metadata.lstAddress).toBe(DEFAULT_METADATA[Network.mainnet().chainId].lstAddress);
+        });
+
+        it('should use default lstAddress from DEFAULT_METADATA for testnet', () => {
+            const mockNetworkManager: NetworkManager = {
+                getClient: () => mockApiClient as unknown as ApiClient,
+                hasNetwork: () => true,
+                getConfiguredNetworks: () => [Network.testnet()],
+                setClient: vi.fn(),
+            };
+            const testnetProvider = createTonstakersProvider()({
+                networkManager: mockNetworkManager,
+            } as ProviderFactoryContext);
+
+            const metadata = testnetProvider.getStakingProviderMetadata(Network.testnet());
+            expect(metadata.lstAddress).toBe(DEFAULT_METADATA[Network.testnet().chainId].lstAddress);
+        });
+
+        it('should prefer lstAddress from config metadata over the default', () => {
+            const customLstAddress = 'EQCustomLstAddress' as UserFriendlyAddress;
+            const mockNetworkManager: NetworkManager = {
+                getClient: () => mockApiClient as unknown as ApiClient,
+                hasNetwork: () => true,
+                getConfiguredNetworks: () => [Network.mainnet()],
+                setClient: vi.fn(),
+            };
+            const customProvider = createTonstakersProvider({
+                [Network.mainnet().chainId]: { metadata: { lstAddress: customLstAddress } },
+            })({ networkManager: mockNetworkManager } as ProviderFactoryContext);
+
+            const metadata = customProvider.getStakingProviderMetadata(Network.mainnet());
+            expect(metadata.lstAddress).toBe(customLstAddress);
+        });
+
+        it('should throw when metadata is not available for the network', () => {
+            expect(() => provider.getStakingProviderMetadata(Network.testnet())).toThrow();
+        });
+
+        it('should throw on construction when custom network has incomplete metadata', () => {
+            const customNetwork = Network.custom('custom-chain-id');
+            const customNetworkManager: NetworkManager = {
+                getClient: () => mockApiClient as unknown as ApiClient,
+                hasNetwork: () => true,
+                getConfiguredNetworks: () => [customNetwork],
+                setClient: vi.fn(),
+            };
+
+            expect(() =>
+                createTonstakersProvider({
+                    [customNetwork.chainId]: {
+                        metadata: {
+                            contractAddress: 'EQSomeContract' as UserFriendlyAddress,
+                        },
+                    },
+                })({ networkManager: customNetworkManager } as ProviderFactoryContext),
+            ).toThrow('Invalid metadata configuration');
         });
     });
 });

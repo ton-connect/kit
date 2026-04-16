@@ -23,7 +23,7 @@ import { StakingError, StakingErrorCode } from '../errors';
 import type { TonStakersChainConfig, TonStakersProviderConfig } from './models/TonStakersProviderConfig';
 import type { ProviderFactoryContext } from '../../../types/factory';
 import type { NetworkManager } from '../../../core/NetworkManager';
-import { CONTRACT, STAKING_CONTRACT_ADDRESS } from './constants';
+import { CONTRACT, DEFAULT_METADATA } from './constants';
 import { PoolContract } from './PoolContract';
 import { StakingCache } from './StakingCache';
 import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
@@ -45,6 +45,7 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
 export class TonStakersStakingProvider extends StakingProvider {
     private readonly networkManager: NetworkManager;
     private readonly chainConfig: Record<string, TonStakersChainConfig>;
+    private readonly metadataByNetwork: Record<string, StakingProviderMetadata>;
     private cache: StakingCache;
 
     /**
@@ -56,6 +57,25 @@ export class TonStakersStakingProvider extends StakingProvider {
         this.networkManager = networkManager;
         this.chainConfig = chainConfig;
         this.cache = new StakingCache();
+
+        this.metadataByNetwork = {};
+        for (const [chainId, config] of Object.entries(chainConfig)) {
+            const defaultMetadata = DEFAULT_METADATA[chainId];
+            const merged = {
+                ...defaultMetadata,
+                ...config.metadata,
+            };
+
+            if (!TonStakersStakingProvider.isValidMetadata(merged)) {
+                throw new StakingError('Invalid metadata configuration', StakingErrorCode.InvalidParams, {
+                    chainId,
+                    merged,
+                });
+            }
+
+            this.metadataByNetwork[chainId] = merged;
+        }
+
         log.info('TonStakersStakingProvider initialized');
     }
 
@@ -72,21 +92,20 @@ export class TonStakersStakingProvider extends StakingProvider {
         for (const network of ctx.networkManager.getConfiguredNetworks()) {
             const chainId = network.chainId;
             const perChain = config[chainId] ?? {};
-            const defaultContract = STAKING_CONTRACT_ADDRESS[chainId as keyof typeof STAKING_CONTRACT_ADDRESS];
-            if (!defaultContract && !perChain.contractAddress) {
+
+            const hasDefaultContract = !!DEFAULT_METADATA[chainId]?.contractAddress;
+            const hasCustomContract = !!perChain.metadata?.contractAddress;
+
+            if (!hasDefaultContract && !hasCustomContract) {
                 continue;
             }
 
-            const contractAddress = (perChain.contractAddress ?? defaultContract) as UserFriendlyAddress;
-            chainConfig[chainId] = {
-                contractAddress,
-                ...(perChain.tonApiToken !== undefined ? { tonApiToken: perChain.tonApiToken } : {}),
-            };
+            chainConfig[chainId] = perChain;
         }
 
         if (Object.keys(chainConfig).length === 0) {
             throw new Error(
-                'createTonstakersProvider: no eligible networks (add mainnet/testnet or pass contractAddress in overrides)',
+                'createTonstakersProvider: no eligible networks (add mainnet/testnet or pass metadata.contractAddress in overrides)',
             );
         }
 
@@ -381,16 +400,19 @@ export class TonStakersStakingProvider extends StakingProvider {
         });
     }
 
-    getStakingProviderMetadata(): StakingProviderMetadata {
-        return {
-            providerId: this.providerId,
-            stakeCoinTicker: 'TON',
-            stakeCoinDecimals: 9,
-            lstTicker: 'tsTON',
-            lstDecimals: 9,
-            supportedUnstakeModes: [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END],
-            supportsReversedQuote: true,
-        };
+    getStakingProviderMetadata(network?: Network): StakingProviderMetadata {
+        const targetNetwork = network ?? Network.mainnet();
+        const metadata = this.metadataByNetwork[targetNetwork.chainId];
+
+        if (!metadata) {
+            throw new StakingError(
+                'Metadata is not configured for the selected network',
+                StakingErrorCode.InvalidParams,
+                { network: targetNetwork },
+            );
+        }
+
+        return metadata;
     }
 
     /**
@@ -403,9 +425,9 @@ export class TonStakersStakingProvider extends StakingProvider {
 
     private getStakingContractAddress(network?: Network): string {
         const targetNetwork = network ?? Network.mainnet();
-        const entry = this.chainConfig[targetNetwork.chainId];
+        const metadata = this.getStakingProviderMetadata(targetNetwork);
 
-        if (!entry?.contractAddress) {
+        if (!metadata.contractAddress) {
             throw new StakingError(
                 'Staking contract address is not configured for the selected network',
                 StakingErrorCode.InvalidParams,
@@ -413,7 +435,7 @@ export class TonStakersStakingProvider extends StakingProvider {
             );
         }
 
-        return entry.contractAddress;
+        return metadata.contractAddress;
     }
 
     private getContract(network?: Network): PoolContract {
@@ -445,6 +467,24 @@ export class TonStakersStakingProvider extends StakingProvider {
         }
 
         return Number(poolInfo.pool.apy);
+    }
+
+    private static isValidMetadata(meta: unknown): meta is StakingProviderMetadata {
+        if (!meta || typeof meta !== 'object') return false;
+
+        const m = meta as Record<string, unknown>;
+
+        return (
+            typeof m.stakeTokenTicker === 'string' &&
+            typeof m.stakeTokenDecimals === 'number' &&
+            typeof m.stakeTokenAddress === 'string' &&
+            typeof m.lstTicker === 'string' &&
+            typeof m.lstDecimals === 'number' &&
+            typeof m.lstAddress === 'string' &&
+            typeof m.contractAddress === 'string' &&
+            Array.isArray(m.supportedUnstakeModes) &&
+            typeof m.supportsReversedQuote === 'boolean'
+        );
     }
 }
 

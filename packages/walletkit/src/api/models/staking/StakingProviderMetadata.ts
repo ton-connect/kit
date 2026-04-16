@@ -6,6 +6,7 @@
  *
  */
 
+import type { UserFriendlyAddress } from '../core/Primitives';
 import type { UnstakeModes } from './UnstakeMode';
 
 /**
@@ -13,20 +14,20 @@ import type { UnstakeModes } from './UnstakeMode';
  */
 export interface StakingProviderMetadata {
     /**
-     * Identifier of the staking provider
+     * Staking token ticker
      */
-    providerId: string;
+    stakeTokenTicker: string;
 
     /**
-     * Staking coin ticker
-     */
-    stakeCoinTicker: string;
-
-    /**
-     * Staking coin decimals
+     * Staking token decimals
      * @format int
      */
-    stakeCoinDecimals: number;
+    stakeTokenDecimals: number;
+
+    /**
+     * Staking token address ('ton' if native, otherwise contract address in friendly format)
+     */
+    stakeTokenAddress: string;
 
     /**
      * Liquid staking token ticker
@@ -38,6 +39,16 @@ export interface StakingProviderMetadata {
      * @format int
      */
     lstDecimals: number;
+
+    /**
+     * Liquid staking token address
+     */
+    lstAddress: UserFriendlyAddress;
+
+    /**
+     * Provider contract address
+     */
+    contractAddress: UserFriendlyAddress;
 
     /**
      * Supported unstake modes for this provider

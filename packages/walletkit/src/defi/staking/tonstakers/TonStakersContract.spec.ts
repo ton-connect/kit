@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Cell } from '@ton/core';
 
 import { PoolContract } from './PoolContract';
-import { CONTRACT, STAKING_CONTRACT_ADDRESS } from './constants';
+import { CONTRACT, DEFAULT_METADATA } from './constants';
 import { Network } from '../../../api/models';
 
 const mockApiClient = {
@@ -23,7 +23,10 @@ describe('TonStakersContract', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        contract = new PoolContract(STAKING_CONTRACT_ADDRESS[Network.mainnet().chainId], mockApiClient as never);
+        contract = new PoolContract(
+            DEFAULT_METADATA[Network.mainnet().chainId].contractAddress,
+            mockApiClient as never,
+        );
     });
 
     describe('buildStakePayload', () => {

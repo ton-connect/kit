@@ -53,9 +53,9 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     const unstakeReversedAmount = useMemo(() => {
         if (!quote?.amountIn) return '0';
         return (
-            calculateFromLst(quote.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeCoinDecimals) || '0'
+            calculateFromLst(quote.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals) || '0'
         );
-    }, [quote?.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeCoinDecimals]);
+    }, [quote?.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals]);
 
     const presets = useStakingPresets({
         direction,
@@ -88,7 +88,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             <CenteredAmountInput
                                 value={amount}
                                 onValueChange={setAmount}
-                                ticker={providerMetadata?.stakeCoinTicker}
+                                ticker={providerMetadata?.stakeTokenTicker}
                             />
                             <AmountReversed
                                 value={quote?.amountOut || '0'}
@@ -118,13 +118,13 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             <CenteredAmountInput
                                 value={amount}
                                 onValueChange={setAmount}
-                                ticker={isReversed ? providerMetadata?.stakeCoinTicker : providerMetadata?.lstTicker}
+                                ticker={isReversed ? providerMetadata?.stakeTokenTicker : providerMetadata?.lstTicker}
                             />
                             <AmountReversed
                                 value={isReversed ? quote?.amountIn || '0' : unstakeReversedAmount}
-                                ticker={isReversed ? providerMetadata?.lstTicker : providerMetadata?.stakeCoinTicker}
+                                ticker={isReversed ? providerMetadata?.lstTicker : providerMetadata?.stakeTokenTicker}
                                 decimals={
-                                    isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeCoinDecimals
+                                    isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeTokenDecimals
                                 }
                                 symbol={isReversed ? undefined : '~'}
                                 onChangeDirection={providerMetadata?.supportsReversedQuote ? toggleReversed : undefined}
