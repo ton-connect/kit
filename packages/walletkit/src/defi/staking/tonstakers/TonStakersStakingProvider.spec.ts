@@ -286,7 +286,7 @@ describe('TonStakersStakingProvider', () => {
             expect(info.apy).toBe(0.05);
             expect(info.rawInstantUnstakeAvailable).toBe('500000000000');
             expect(info.instantUnstakeAvailable).toBe('500');
-            expect(info.lstExchangeRate).toBe('1.05');
+            expect(info.exchangeRate).toBe('1.05');
             // Ensure exchange rates are NOT in the response
             expect(info).not.toHaveProperty('tsTONTON');
             expect(info).not.toHaveProperty('tsTONTONProjected');
@@ -318,21 +318,23 @@ describe('TonStakersStakingProvider', () => {
             ]);
         });
 
-        it('should return provider metadata', () => {
+        it('should return provider metadata with token info', () => {
             const metadata = provider.getStakingProviderMetadata(Network.mainnet());
-            expect(metadata.stakeTokenTicker).toBe('TON');
-            expect(metadata.stakeTokenDecimals).toBe(9);
-            expect(metadata.lstTicker).toBe('tsTON');
-            expect(metadata.lstDecimals).toBe(9);
+            expect(metadata.stakeToken.ticker).toBe('TON');
+            expect(metadata.stakeToken.decimals).toBe(9);
+            expect(metadata.receiveToken?.ticker).toBe('tsTON');
+            expect(metadata.receiveToken?.decimals).toBe(9);
             expect(metadata.supportsReversedQuote).toBe(true);
         });
 
-        it('should use default lstAddress from DEFAULT_METADATA for mainnet', () => {
+        it('should use default receiveToken address from DEFAULT_METADATA for mainnet', () => {
             const metadata = provider.getStakingProviderMetadata(Network.mainnet());
-            expect(metadata.lstAddress).toBe(DEFAULT_METADATA[Network.mainnet().chainId].lstAddress);
+            expect(metadata.receiveToken?.address).toBe(
+                DEFAULT_METADATA[Network.mainnet().chainId].receiveToken?.address,
+            );
         });
 
-        it('should use default lstAddress from DEFAULT_METADATA for testnet', () => {
+        it('should use default receiveToken address from DEFAULT_METADATA for testnet', () => {
             const mockNetworkManager: NetworkManager = {
                 getClient: () => mockApiClient as unknown as ApiClient,
                 hasNetwork: () => true,
@@ -344,11 +346,13 @@ describe('TonStakersStakingProvider', () => {
             } as ProviderFactoryContext);
 
             const metadata = testnetProvider.getStakingProviderMetadata(Network.testnet());
-            expect(metadata.lstAddress).toBe(DEFAULT_METADATA[Network.testnet().chainId].lstAddress);
+            expect(metadata.receiveToken?.address).toBe(
+                DEFAULT_METADATA[Network.testnet().chainId].receiveToken?.address,
+            );
         });
 
-        it('should prefer lstAddress from config metadata over the default', () => {
-            const customLstAddress = 'EQCustomLstAddress' as UserFriendlyAddress;
+        it('should prefer receiveToken from config metadata over the default', () => {
+            const customAddress = 'EQCustomReceiveToken' as UserFriendlyAddress;
             const mockNetworkManager: NetworkManager = {
                 getClient: () => mockApiClient as unknown as ApiClient,
                 hasNetwork: () => true,
@@ -356,11 +360,14 @@ describe('TonStakersStakingProvider', () => {
                 setClient: vi.fn(),
             };
             const customProvider = createTonstakersProvider({
-                [Network.mainnet().chainId]: { metadata: { lstAddress: customLstAddress } },
+                [Network.mainnet().chainId]: {
+                    metadata: { receiveToken: { ticker: 'CUSTOM', decimals: 9, address: customAddress } },
+                },
             })({ networkManager: mockNetworkManager } as ProviderFactoryContext);
 
             const metadata = customProvider.getStakingProviderMetadata(Network.mainnet());
-            expect(metadata.lstAddress).toBe(customLstAddress);
+            expect(metadata.receiveToken?.address).toBe(customAddress);
+            expect(metadata.receiveToken?.ticker).toBe('CUSTOM');
         });
 
         it('should throw when metadata is not available for the network', () => {
@@ -385,6 +392,30 @@ describe('TonStakersStakingProvider', () => {
                     },
                 })({ networkManager: customNetworkManager } as ProviderFactoryContext),
             ).toThrow('Invalid metadata configuration');
+        });
+
+        it('should succeed with complete custom network metadata', () => {
+            const customNetwork = Network.custom('custom-chain-id');
+            const customNetworkManager: NetworkManager = {
+                getClient: () => mockApiClient as unknown as ApiClient,
+                hasNetwork: () => true,
+                getConfiguredNetworks: () => [customNetwork],
+                setClient: vi.fn(),
+            };
+            const customProvider = createTonstakersProvider({
+                [customNetwork.chainId]: {
+                    metadata: {
+                        stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
+                        contractAddress: 'EQSomeContract' as UserFriendlyAddress,
+                        supportedUnstakeModes: [UnstakeMode.INSTANT],
+                        supportsReversedQuote: false,
+                    },
+                },
+            })({ networkManager: customNetworkManager } as ProviderFactoryContext);
+
+            const metadata = customProvider.getStakingProviderMetadata(customNetwork);
+            expect(metadata.stakeToken.ticker).toBe('TON');
+            expect(metadata.receiveToken).toBeUndefined();
         });
     });
 });

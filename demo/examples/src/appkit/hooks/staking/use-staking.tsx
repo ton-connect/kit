@@ -25,7 +25,7 @@ export const UseStakingExample = () => {
         <div>
             <div>Staking Quote: {quote?.amountOut}</div>
             <div>Staked Balance: {balance?.stakedBalance}</div>
-            <div>Liquid Staking Token Ticker: {metadata?.lstTicker}</div>
+            <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
         </div>
     );
     // SAMPLE_END: USE_STAKING

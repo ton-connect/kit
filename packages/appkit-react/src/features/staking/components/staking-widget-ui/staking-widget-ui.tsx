@@ -19,7 +19,7 @@ import { SelectUnstakeMode } from '../select-unstake-mode';
 import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { useBalance } from '../../../balances';
-import { calculateFromLst } from '../../utils/calculate-lst';
+import { convertByRate } from '../../utils/convert-by-rate';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 import { AmountReversed } from '../../../../components/amount-reversed';
 import { useStakingPresets } from './use-staking-presets';
@@ -50,12 +50,13 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     const { data: balance } = useBalance();
     const { t } = useI18n();
 
+    const receiveToken = providerMetadata?.receiveToken;
+    const stakeToken = providerMetadata?.stakeToken;
+
     const unstakeReversedAmount = useMemo(() => {
         if (!quote?.amountIn) return '0';
-        return (
-            calculateFromLst(quote.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals) || '0'
-        );
-    }, [quote?.amountIn, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals]);
+        return convertByRate(quote.amountIn, providerInfo?.exchangeRate, stakeToken?.decimals) || '0';
+    }, [quote?.amountIn, providerInfo?.exchangeRate, stakeToken?.decimals]);
 
     const presets = useStakingPresets({
         direction,
@@ -85,16 +86,14 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                 <TabsContent className={styles.tab} value="stake">
                     <div className={styles.content}>
                         <div className={styles.inputSection}>
-                            <CenteredAmountInput
-                                value={amount}
-                                onValueChange={setAmount}
-                                ticker={providerMetadata?.stakeTokenTicker}
-                            />
-                            <AmountReversed
-                                value={quote?.amountOut || '0'}
-                                ticker={providerMetadata?.lstTicker}
-                                decimals={providerMetadata?.lstDecimals}
-                            />
+                            <CenteredAmountInput value={amount} onValueChange={setAmount} ticker={stakeToken?.ticker} />
+                            {receiveToken && (
+                                <AmountReversed
+                                    value={quote?.amountOut || '0'}
+                                    ticker={receiveToken.ticker}
+                                    decimals={receiveToken.decimals}
+                                />
+                            )}
                         </div>
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />
@@ -118,17 +117,25 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             <CenteredAmountInput
                                 value={amount}
                                 onValueChange={setAmount}
-                                ticker={isReversed ? providerMetadata?.stakeTokenTicker : providerMetadata?.lstTicker}
-                            />
-                            <AmountReversed
-                                value={isReversed ? quote?.amountIn || '0' : unstakeReversedAmount}
-                                ticker={isReversed ? providerMetadata?.lstTicker : providerMetadata?.stakeTokenTicker}
-                                decimals={
-                                    isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeTokenDecimals
+                                ticker={
+                                    receiveToken
+                                        ? isReversed
+                                            ? stakeToken?.ticker
+                                            : receiveToken.ticker
+                                        : stakeToken?.ticker
                                 }
-                                symbol={isReversed ? undefined : '~'}
-                                onChangeDirection={providerMetadata?.supportsReversedQuote ? toggleReversed : undefined}
                             />
+                            {receiveToken && (
+                                <AmountReversed
+                                    value={isReversed ? quote?.amountIn || '0' : unstakeReversedAmount}
+                                    ticker={isReversed ? receiveToken.ticker : (stakeToken?.ticker ?? '')}
+                                    decimals={isReversed ? receiveToken.decimals : stakeToken?.decimals}
+                                    symbol={isReversed ? undefined : '~'}
+                                    onChangeDirection={
+                                        providerMetadata?.supportsReversedQuote ? toggleReversed : undefined
+                                    }
+                                />
+                            )}
                         </div>
 
                         <AmountPresets presets={presets} onPresetSelect={setAmount} />

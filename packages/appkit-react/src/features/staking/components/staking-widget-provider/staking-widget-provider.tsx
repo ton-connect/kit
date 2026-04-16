@@ -123,9 +123,11 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
 
     const amountDecimals = useMemo(() => {
-        const unstakeDecimals = isReversed ? providerMetadata?.lstDecimals : providerMetadata?.stakeTokenDecimals;
-        return direction === 'stake' ? providerMetadata?.stakeTokenDecimals : unstakeDecimals;
-    }, [direction, providerMetadata?.stakeTokenDecimals, providerMetadata?.lstDecimals, isReversed]);
+        const unstakeDecimals = isReversed
+            ? providerMetadata?.receiveToken?.decimals
+            : providerMetadata?.stakeToken.decimals;
+        return direction === 'stake' ? providerMetadata?.stakeToken.decimals : unstakeDecimals;
+    }, [direction, providerMetadata?.stakeToken.decimals, providerMetadata?.receiveToken?.decimals, isReversed]);
 
     const setAmount = useCallback(
         (value: string) => {

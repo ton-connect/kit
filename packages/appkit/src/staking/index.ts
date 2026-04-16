@@ -19,4 +19,5 @@ export type {
     StakingProviderInterface,
     StakingQuoteDirection,
     StakingProviderMetadata,
+    StakingTokenInfo,
 } from '@ton/walletkit';

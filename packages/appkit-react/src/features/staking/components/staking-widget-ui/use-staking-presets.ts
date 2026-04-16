@@ -12,7 +12,7 @@ import { truncateDecimals } from '@ton/appkit';
 
 import type { AmountPreset } from '../../../../components/amount-presets';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { calculateFromLst } from '../../utils/calculate-lst';
+import { convertByRate } from '../../utils/convert-by-rate';
 
 interface UseStakingPresetsOptions {
     direction: StakingQuoteDirection;
@@ -37,18 +37,18 @@ export const useStakingPresets = ({
 }: UseStakingPresetsOptions): AmountPreset[] => {
     const { t } = useI18n();
 
-    const stakedBalanceInTon = useMemo(() => {
+    const stakedBalanceInStakeToken = useMemo(() => {
         if (!stakedBalance?.stakedBalance) return '0';
         return (
-            calculateFromLst(
+            convertByRate(
                 stakedBalance.stakedBalance,
-                providerInfo?.lstExchangeRate,
-                providerMetadata?.stakeTokenDecimals,
+                providerInfo?.exchangeRate,
+                providerMetadata?.stakeToken.decimals,
             ) || '0'
         );
-    }, [stakedBalance?.stakedBalance, providerInfo?.lstExchangeRate, providerMetadata?.stakeTokenDecimals]);
+    }, [stakedBalance?.stakedBalance, providerInfo?.exchangeRate, providerMetadata?.stakeToken.decimals]);
 
-    const unstakePresetBalance = isReversed ? stakedBalanceInTon : stakedBalance?.stakedBalance;
+    const unstakePresetBalance = isReversed ? stakedBalanceInStakeToken : stakedBalance?.stakedBalance;
     const presetBalance = direction === 'unstake' ? unstakePresetBalance : balance;
 
     const selectMaxUnstake = useCallback(() => {

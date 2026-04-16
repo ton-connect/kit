@@ -61,9 +61,14 @@ export class TonStakersStakingProvider extends StakingProvider {
         this.metadataByNetwork = {};
         for (const [chainId, config] of Object.entries(chainConfig)) {
             const defaultMetadata = DEFAULT_METADATA[chainId];
+            const overrides = config.metadata ?? {};
             const merged = {
                 ...defaultMetadata,
-                ...config.metadata,
+                ...overrides,
+                stakeToken: { ...defaultMetadata?.stakeToken, ...overrides.stakeToken },
+                ...(defaultMetadata?.receiveToken || overrides.receiveToken
+                    ? { receiveToken: { ...defaultMetadata?.receiveToken, ...overrides.receiveToken } }
+                    : {}),
             };
 
             if (!TonStakersStakingProvider.isValidMetadata(merged)) {
@@ -388,14 +393,14 @@ export class TonStakersStakingProvider extends StakingProvider {
 
             // Compute exchange rate with 9-digit precision via bigint: (totalBalance * 10^9) / supply
             const PRECISION = 1_000_000_000n;
-            const lstExchangeRate =
+            const exchangeRate =
                 poolData.supply > 0n ? formatUnits((poolData.totalBalance * PRECISION) / poolData.supply, 9) : '1';
 
             return {
                 apy,
                 rawInstantUnstakeAvailable: instantLiquidity.toString(),
                 instantUnstakeAvailable: formatUnits(instantLiquidity, 9),
-                lstExchangeRate,
+                exchangeRate,
             };
         });
     }
@@ -469,19 +474,19 @@ export class TonStakersStakingProvider extends StakingProvider {
         return Number(poolInfo.pool.apy);
     }
 
+    private static isValidTokenInfo(token: unknown): boolean {
+        if (!token || typeof token !== 'object') return false;
+        const t = token as Record<string, unknown>;
+        return typeof t.ticker === 'string' && typeof t.decimals === 'number' && typeof t.address === 'string';
+    }
+
     private static isValidMetadata(meta: unknown): meta is StakingProviderMetadata {
         if (!meta || typeof meta !== 'object') return false;
 
         const m = meta as Record<string, unknown>;
 
         return (
-            typeof m.stakeTokenTicker === 'string' &&
-            typeof m.stakeTokenDecimals === 'number' &&
-            typeof m.stakeTokenAddress === 'string' &&
-            typeof m.lstTicker === 'string' &&
-            typeof m.lstDecimals === 'number' &&
-            typeof m.lstAddress === 'string' &&
-            typeof m.contractAddress === 'string' &&
+            TonStakersStakingProvider.isValidTokenInfo(m.stakeToken) &&
             Array.isArray(m.supportedUnstakeModes) &&
             typeof m.supportsReversedQuote === 'boolean'
         );

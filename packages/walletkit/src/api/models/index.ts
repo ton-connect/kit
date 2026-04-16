@@ -84,7 +84,7 @@ export type { SwapParams } from './swaps/SwapParams';
 export type { StakeParams } from './staking/StakeParams';
 export type { StakingBalance } from './staking/StakingBalance';
 export type { StakingProviderInfo } from './staking/StakingProviderInfo';
-export type { StakingProviderMetadata } from './staking/StakingProviderMetadata';
+export type { StakingProviderMetadata, StakingTokenInfo } from './staking/StakingProviderMetadata';
 export type { StakingQuote } from './staking/StakingQuote';
 export type { StakingQuoteDirection } from './staking/StakingQuoteDirection';
 export type { StakingQuoteParams } from './staking/StakingQuoteParams';

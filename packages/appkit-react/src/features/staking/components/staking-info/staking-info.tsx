@@ -38,8 +38,14 @@ export const StakingInfo: FC<StakingInfoProps> = ({
 }) => {
     const { t } = useI18n();
 
-    const youGetDecimals = direction === 'stake' ? providerMetadata?.lstDecimals : providerMetadata?.stakeTokenDecimals;
-    const youGetTicker = direction === 'stake' ? providerMetadata?.lstTicker : providerMetadata?.stakeTokenTicker;
+    const receiveToken = providerMetadata?.receiveToken;
+    const stakeToken = providerMetadata?.stakeToken;
+
+    const youGetDecimals = direction === 'stake' ? receiveToken?.decimals : stakeToken?.decimals;
+    const youGetTicker = direction === 'stake' ? receiveToken?.ticker : stakeToken?.ticker;
+
+    const balanceDecimals = receiveToken?.decimals ?? stakeToken?.decimals;
+    const balanceTicker = receiveToken?.ticker ?? stakeToken?.ticker;
 
     return (
         <InfoBlock.Container variant="outline" {...props}>
@@ -62,7 +68,7 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                     <InfoBlock.ValueSkeleton />
                 ) : (
                     <InfoBlock.Value>
-                        {formatAmount(stakedBalance, providerMetadata?.lstDecimals)} {providerMetadata?.lstTicker}
+                        {formatAmount(stakedBalance, balanceDecimals)} {balanceTicker}
                     </InfoBlock.Value>
                 )}
             </InfoBlock.Row>
@@ -79,19 +85,20 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                 )}
             </InfoBlock.Row>
 
-            <InfoBlock.Row>
-                <InfoBlock.Label>{t('staking.exchangeRate')}</InfoBlock.Label>
+            {receiveToken && (
+                <InfoBlock.Row>
+                    <InfoBlock.Label>{t('staking.exchangeRate')}</InfoBlock.Label>
 
-                {isProviderInfoLoading ? (
-                    <InfoBlock.ValueSkeleton />
-                ) : (
-                    <InfoBlock.Value>
-                        1 {providerMetadata?.stakeTokenTicker} ={' '}
-                        {formatAmount(providerInfo?.lstExchangeRate, providerMetadata?.lstDecimals)}{' '}
-                        {providerMetadata?.lstTicker}
-                    </InfoBlock.Value>
-                )}
-            </InfoBlock.Row>
+                    {isProviderInfoLoading ? (
+                        <InfoBlock.ValueSkeleton />
+                    ) : (
+                        <InfoBlock.Value>
+                            1 {stakeToken?.ticker} = {formatAmount(providerInfo?.exchangeRate, receiveToken.decimals)}{' '}
+                            {receiveToken.ticker}
+                        </InfoBlock.Value>
+                    )}
+                </InfoBlock.Row>
+            )}
         </InfoBlock.Container>
     );
 };
