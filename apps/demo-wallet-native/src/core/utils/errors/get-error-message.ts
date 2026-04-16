@@ -6,22 +6,26 @@
  *
  */
 
-import axios from 'axios';
-
 type ObjectWithMessage = { message: string } & { [key: string]: unknown };
 
 const isObjectWithMessage = (toBeDetermined: unknown): toBeDetermined is ObjectWithMessage =>
     !!toBeDetermined && !!(toBeDetermined as ObjectWithMessage).message;
 
 export const getErrorMessage = (error: unknown, defaultMessage?: string): string => {
-    if (axios.isAxiosError(error)) {
-        if (error.response?.data && isObjectWithMessage(error.response.data)) {
-            return error.response.data.message;
+    // if (axios.isAxiosError(error)) {
+    //     if (error.response?.data && isObjectWithMessage(error.response.data)) {
+    //         return error.response.data.message;
+    //     }
+
+    //     return error.message;
+    // }
+    if (typeof error === 'object') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e = error as any;
+        if (e && isObjectWithMessage(e?.response?.data)) {
+            return e?.response?.data?.message;
         }
-
-        return error.message;
     }
-
     if (typeof error === 'string') {
         return error;
     }
