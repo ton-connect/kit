@@ -15,12 +15,3 @@ export const convertByRate = (amount: string, exchangeRate?: string, decimals?: 
 
     return truncateDecimals((Number(amount) * Number(exchangeRate)).toString(), decimals);
 };
-
-export const convertByInverseRate = (amount: string, exchangeRate?: string, decimals?: number) => {
-    if (!exchangeRate || !decimals) {
-        return '';
-    }
-
-    const rate = Number(exchangeRate);
-    return truncateDecimals((Number(amount) / rate).toString(), decimals);
-};

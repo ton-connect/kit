@@ -11,6 +11,12 @@
     gap: 8px;
 }
 
+.skeleton {
+    width: 70px;
+    height: calc(var(--ta-body-regular-line-height) - 4px);
+    margin: 2px 0;
+}
+
 .changeDirection {
     width: 14px;
     height: 14px;

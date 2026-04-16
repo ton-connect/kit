@@ -47,12 +47,12 @@ export const useStakingValidation = ({
             return 'insufficientBalance';
         }
 
-        if (direction === 'unstake' && !!stakedBalance) {
+        if (direction === 'unstake' && stakedBalance) {
             if (!isReversed && parsed > parseFloat(stakedBalance)) {
                 return 'insufficientBalance';
             }
 
-            if (isReversed && !!quote && parseFloat(quote.amountIn) > parseFloat(stakedBalance)) {
+            if (isReversed && quote && parseFloat(quote.amountIn) > parseFloat(stakedBalance)) {
                 return 'insufficientBalance';
             }
         }

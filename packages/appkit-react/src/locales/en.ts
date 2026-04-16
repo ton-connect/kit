@@ -76,6 +76,7 @@ export default {
         unstakeType: 'Unstake type',
         maximumReward: 'Maximum reward',
         instant: 'Instant',
+        instantLimit: 'Limit: {{ limit }}',
         maximumRewardLimit: 'No limits',
         switchTo: 'Switch to {{ ticker }}',
     },

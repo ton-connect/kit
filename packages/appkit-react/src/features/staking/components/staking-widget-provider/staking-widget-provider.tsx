@@ -18,8 +18,11 @@ import type {
     StakingProviderMetadata,
 } from '@ton/appkit';
 import { UnstakeMode } from '@ton/appkit';
+import { keepPreviousData } from '@tanstack/react-query';
 
+import { convertByRate } from '../../utils/convert-by-rate';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
+import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
 import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
@@ -66,6 +69,8 @@ export interface StakingContextType {
     isSendingTransaction: boolean;
     isReversed: boolean;
     toggleReversed: () => void;
+    /** Amount displayed in the reversed (bottom) input */
+    reversedAmount: string;
 }
 
 export const StakingContext = createContext<StakingContextType>({
@@ -89,6 +94,7 @@ export const StakingContext = createContext<StakingContextType>({
     isSendingTransaction: false,
     isReversed: false,
     toggleReversed: () => {},
+    reversedAmount: '0',
 });
 
 export const useStakingContext = () => {
@@ -136,23 +142,39 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         [amountDecimals],
     );
 
-    const toggleReversed = useCallback(() => {
-        setIsReversed((prev) => !prev);
-    }, []);
+    const [quoteParamsDebounced] = useDebounceValue<UseStakingQuoteParameters>(
+        {
+            direction,
+            amount,
+            unstakeMode,
+            isReversed,
+            network,
+            query: { placeholderData: keepPreviousData },
+        },
+        500,
+    );
 
-    const [amountDebounced] = useDebounceValue(amount, 500);
+    const { data: quote, isFetching: isQuoteLoading, error: quoteError } = useStakingQuote(quoteParamsDebounced);
 
-    const {
-        data: quote,
-        isFetching: isQuoteLoading,
-        error: quoteError,
-    } = useStakingQuote({
+    const reversedAmount = useMemo(() => {
+        if (direction === 'stake') return quote?.amountOut || '0';
+        if (isReversed) return quote?.amountIn || '0';
+        if (!quote?.amountIn) return '0';
+
+        return convertByRate(quote.amountIn, providerInfo?.exchangeRate, providerMetadata?.stakeToken.decimals) || '0';
+    }, [
         direction,
-        amount: amountDebounced,
-        unstakeMode,
         isReversed,
-        network,
-    });
+        quote?.amountOut,
+        quote?.amountIn,
+        providerInfo?.exchangeRate,
+        providerMetadata?.stakeToken.decimals,
+    ]);
+
+    const toggleReversed = useCallback(() => {
+        setAmountRaw(reversedAmount);
+        setIsReversed((prev) => !prev);
+    }, [reversedAmount]);
 
     const handleSendTransaction = useCallback(async () => {
         if (!quote || !address) return;
@@ -164,7 +186,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
 
     const { error, canSubmit } = useStakingValidation({
         amount,
-        amountDebounced,
+        amountDebounced: quoteParamsDebounced.amount || '',
         balance,
         quoteError,
         direction,
@@ -181,7 +203,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             direction,
             isWalletConnected,
             quote,
-            isQuoteLoading: isQuoteLoading || isProviderInfoLoading || amount !== amountDebounced,
+            isQuoteLoading: isQuoteLoading || isProviderInfoLoading || amount !== quoteParamsDebounced.amount,
             error,
             providerInfo,
             providerMetadata,
@@ -195,11 +217,12 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isSendingTransaction,
             isReversed,
             toggleReversed,
+            reversedAmount,
             onChangeDirection: setDirection,
         }),
         [
             amount,
-            amountDebounced,
+            quoteParamsDebounced.amount,
             canSubmit,
             isWalletConnected,
             direction,
@@ -218,6 +241,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isSendingTransaction,
             isReversed,
             toggleReversed,
+            reversedAmount,
             setDirection,
         ],
     );

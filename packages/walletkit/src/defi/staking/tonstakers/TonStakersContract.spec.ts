@@ -24,7 +24,7 @@ describe('TonStakersContract', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         contract = new PoolContract(
-            DEFAULT_METADATA[Network.mainnet().chainId].contractAddress,
+            DEFAULT_METADATA[Network.mainnet().chainId].contractAddress!,
             mockApiClient as never,
         );
     });

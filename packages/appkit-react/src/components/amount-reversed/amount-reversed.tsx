@@ -11,6 +11,7 @@ import { formatLargeValue } from '@ton/appkit';
 import clsx from 'clsx';
 
 import styles from './amount-reversed.module.css';
+import { Skeleton } from '../skeleton';
 
 export interface AmountReversedProps extends ComponentProps<'div'> {
     value: string;
@@ -19,6 +20,7 @@ export interface AmountReversedProps extends ComponentProps<'div'> {
     symbol?: string;
     decimals?: number;
     errorMessage?: string;
+    isLoading?: boolean;
 }
 
 export const AmountReversed: FC<AmountReversedProps> = ({
@@ -29,6 +31,7 @@ export const AmountReversed: FC<AmountReversedProps> = ({
     decimals,
     errorMessage,
     className,
+    isLoading,
     ...props
 }) => {
     if (errorMessage) {
@@ -41,11 +44,15 @@ export const AmountReversed: FC<AmountReversedProps> = ({
 
     return (
         <div className={clsx(styles.container, className)} {...props}>
-            <span>
-                {symbol}
-                {value ? formatLargeValue(value, decimals) : '0'}
-                {ticker ? ` ${ticker}` : ''}
-            </span>
+            {isLoading ? (
+                <Skeleton className={styles.skeleton} />
+            ) : (
+                <span>
+                    {symbol}
+                    {value ? formatLargeValue(value, decimals) : '0'}
+                    {ticker ? ` ${ticker}` : ''}
+                </span>
+            )}
 
             {onChangeDirection && (
                 <button type="button" className={styles.changeDirection} onClick={onChangeDirection}>

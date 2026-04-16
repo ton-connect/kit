@@ -48,7 +48,7 @@ export const StakingInfo: FC<StakingInfoProps> = ({
     const balanceTicker = receiveToken?.ticker ?? stakeToken?.ticker;
 
     return (
-        <InfoBlock.Container variant="outline" {...props}>
+        <InfoBlock.Container {...props}>
             <InfoBlock.Row>
                 <InfoBlock.Label>{t('staking.youGet')}</InfoBlock.Label>
 

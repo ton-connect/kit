@@ -21,14 +21,14 @@
 }
 
 .headerLabel {
-  color: var(--ta-color-text);
+  color: var(--ta-color-text-secondary);
 }
 
 .headerValue {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: var(--ta-color-text-secondary);
+  color: var(--ta-color-text);
 }
 
 .chevron {
