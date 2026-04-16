@@ -77,6 +77,10 @@ export const SelectUnstakeMode: FC<SelectUnstakeModeProps> = ({
 
     const handleSelect = useCallback((mode: UnstakeModes) => onValueChange(mode), [onValueChange]);
 
+    if (modes.length === 1) {
+        return null;
+    }
+
     return (
         <div className={clsx(styles.root, className)} {...props}>
             <button type="button" className={styles.header} onClick={() => setOpen((v) => !v)}>
