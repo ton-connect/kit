@@ -133,7 +133,7 @@ export class TonStakersStakingProvider extends StakingProvider {
 
         const contract = this.getContract(params.network);
         const poolData = await contract.getPoolData();
-        const network = params.network || Network.mainnet();
+        const network = params.network ?? Network.mainnet();
         const unstakeMode = params.unstakeMode ?? UnstakeMode.INSTANT;
 
         if (params.direction === 'stake') {

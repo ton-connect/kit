@@ -111,6 +111,43 @@ describe('TonStakersStakingProvider', () => {
             expect(quote.unstakeMode).toBe(UnstakeMode.INSTANT);
         });
 
+        it('should return correct reversed quote with INSTANT unstake (spot rate)', async () => {
+            // User says "I want 1 TON out", provider calculates tsTON to burn
+            // tsTON_in = 1 TON * supply / totalBalance = 1 * 1000/1050 = 0.952380952
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount: '1',
+                userAddress: testUserAddress,
+                network: Network.mainnet(),
+                unstakeMode: UnstakeMode.INSTANT,
+                isReversed: true,
+            });
+
+            expect(quote.direction).toBe('unstake');
+            expect(quote.amountOut).toBe('1');
+            expect(quote.rawAmountOut).toBe('1000000000');
+            expect(quote.amountIn).toBe('0.952380952');
+            expect(quote.rawAmountIn).toBe('952380952');
+            expect(quote.unstakeMode).toBe(UnstakeMode.INSTANT);
+        });
+
+        it('should return correct reversed quote with ROUND_END unstake (projected rate)', async () => {
+            // tsTON_in = 1 TON * projectedSupply / projectedBalance = 1 * 1000/1100 = 0.909090909
+            const quote = await provider.getQuote({
+                direction: 'unstake',
+                amount: '1',
+                userAddress: testUserAddress,
+                network: Network.mainnet(),
+                unstakeMode: UnstakeMode.ROUND_END,
+                isReversed: true,
+            });
+
+            expect(quote.direction).toBe('unstake');
+            expect(quote.amountOut).toBe('1');
+            expect(quote.amountIn).toBe('0.909090909');
+            expect(quote.unstakeMode).toBe(UnstakeMode.ROUND_END);
+        });
+
         it('should default unstakeMode to INSTANT when not specified', async () => {
             const quote = await provider.getQuote({
                 direction: 'unstake',

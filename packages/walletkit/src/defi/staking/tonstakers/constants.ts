@@ -44,5 +44,4 @@ export const CONTRACT = {
     PAYLOAD_STAKE: 0x47d54391,
     STAKE_FEE_RES: parseUnits('1', 9),
     UNSTAKE_FEE_RES: parseUnits('1.05', 9),
-    RECOMMENDED_FEE_RESERVE: parseUnits('1.1', 9),
 };
