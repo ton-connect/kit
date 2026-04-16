@@ -21,17 +21,12 @@
   border: none;
   border-radius: calc(var(--ta-border-radius-2xl) - 4px);
   background: transparent;
-  color: var(--ta-color-text-secondary);
+  color: var(--ta-color-text);
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
   outline: none;
 }
 
-.trigger:hover {
-  color: var(--ta-color-text);
-}
-
 .trigger[data-state="active"] {
-  background-color: var(--ta-color-background-tertiary);
-  color: var(--ta-color-text);
+  background-color: var(--ta-color-background);
 }

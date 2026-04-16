@@ -71,16 +71,17 @@
   --ta-input-xl-symbol-line-height: 100%;
 
   /* Colors */
-  --ta-color-primary: #007AFF;
+  --ta-color-primary: #0098EA;
   --ta-color-primary-foreground: #FFFFFF;
+  --ta-color-primary-light: rgba(0, 152, 234, 0.1);
   --ta-color-error: #FF3B30;
   --ta-color-success: #34C759;
-  --ta-color-text: #141416;
-  --ta-color-text-secondary: #787881;
-  --ta-color-text-tertiary: #93939D;
+  --ta-color-text: #121214;
+  --ta-color-text-secondary: #7A8999;
+  --ta-color-text-tertiary: #909DAB;
   --ta-color-background: #FFFFFF;
-  --ta-color-background-secondary: #F7F8FA;
-  --ta-color-background-tertiary: #E5E8ED;
+  --ta-color-background-secondary: #F1F3F5;
+  --ta-color-background-tertiary: #E0E5EA;
   --ta-color-background-bezeled: rgba(0, 122, 255, 0.10);
   --ta-color-block: var(--ta-color-background);
   --ta-color-block-foreground: var(--ta-color-text);
@@ -111,16 +112,16 @@
 }
 
 :where([data-ta-theme='dark']) {
-  --ta-color-primary: #007AFF;
+  --ta-color-primary: #0098EA;
   --ta-color-primary-foreground: #FFFFFF;
   --ta-color-error: #FF3B30;
   --ta-color-success: #30D158;
   --ta-color-text: #FFFFFF;
-  --ta-color-text-secondary: #93939D;
-  --ta-color-text-tertiary: #787881;
-  --ta-color-background: #141416;
-  --ta-color-background-secondary: #1E1E1E;
-  --ta-color-background-tertiary: #2C2C2C;
+  --ta-color-text-secondary: #909DAB;
+  --ta-color-text-tertiary: #7A8999;
+  --ta-color-background: #121214;
+  --ta-color-background-secondary: #222224;
+  --ta-color-background-tertiary: #2D2D2F;
   --ta-color-background-bezeled: rgba(0, 122, 255, 0.10);
   --ta-color-block: var(--ta-color-background);
   --ta-color-block-foreground: var(--ta-color-text);
