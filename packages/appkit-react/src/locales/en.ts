@@ -63,8 +63,6 @@ export default {
         stake: 'Stake',
         unstake: 'Unstake',
         continue: 'Stake',
-        continueUnstake: 'Unstake',
-        enterAmount: 'Enter an amount',
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
         quoteError: 'Unable to get a quote',
@@ -78,6 +76,6 @@ export default {
         instant: 'Instant',
         instantLimit: 'Limit: {{ limit }}',
         maximumRewardLimit: 'No limits',
-        switchTo: 'Switch to {{ ticker }}',
+        yourBalance: 'Your balance',
     },
 } as const;

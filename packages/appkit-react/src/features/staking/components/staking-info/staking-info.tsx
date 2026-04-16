@@ -21,8 +21,6 @@ export interface StakingInfoProps extends ComponentProps<typeof InfoBlock.Contai
     providerMetadata: StakingProviderMetadata | undefined;
     isProviderInfoLoading: boolean;
     direction?: StakingQuoteDirection;
-    stakedBalance?: string;
-    isStakedBalanceLoading?: boolean;
 }
 
 export const StakingInfo: FC<StakingInfoProps> = ({
@@ -32,8 +30,6 @@ export const StakingInfo: FC<StakingInfoProps> = ({
     providerMetadata,
     isProviderInfoLoading,
     direction = 'stake',
-    stakedBalance,
-    isStakedBalanceLoading,
     ...props
 }) => {
     const { t } = useI18n();
@@ -43,9 +39,6 @@ export const StakingInfo: FC<StakingInfoProps> = ({
 
     const youGetDecimals = direction === 'stake' ? receiveToken?.decimals : stakeToken?.decimals;
     const youGetTicker = direction === 'stake' ? receiveToken?.ticker : stakeToken?.ticker;
-
-    const balanceDecimals = receiveToken?.decimals ?? stakeToken?.decimals;
-    const balanceTicker = receiveToken?.ticker ?? stakeToken?.ticker;
 
     return (
         <InfoBlock.Container {...props}>
@@ -57,18 +50,6 @@ export const StakingInfo: FC<StakingInfoProps> = ({
                 ) : (
                     <InfoBlock.Value>
                         {formatAmount(quote?.amountOut, youGetDecimals)} {youGetTicker}
-                    </InfoBlock.Value>
-                )}
-            </InfoBlock.Row>
-
-            <InfoBlock.Row>
-                <InfoBlock.Label>{t('staking.stakedBalance')}</InfoBlock.Label>
-
-                {isStakedBalanceLoading && !stakedBalance ? (
-                    <InfoBlock.ValueSkeleton />
-                ) : (
-                    <InfoBlock.Value>
-                        {formatAmount(stakedBalance, balanceDecimals)} {balanceTicker}
                     </InfoBlock.Value>
                 )}
             </InfoBlock.Row>

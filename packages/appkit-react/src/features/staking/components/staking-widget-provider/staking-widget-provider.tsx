@@ -29,6 +29,7 @@ import { useStakedBalance } from '../../hooks/use-staked-balance';
 import { useBuildStakeTransaction } from '../../hooks/use-build-stake-transaction';
 import { useSelectedWallet, useAddress } from '../../../wallets';
 import { useBalance } from '../../../balances/hooks/use-balance';
+import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
@@ -56,6 +57,10 @@ export interface StakingContextType {
     direction: StakingQuoteDirection;
     /** True while provider info is being fetched */
     isProviderInfoLoading: boolean;
+    /** Base balance (native or jetton) */
+    balance: string | undefined;
+    /** True while base balance is being fetched */
+    isBalanceLoading: boolean;
     /** User's staked balance */
     stakedBalance: StakingBalance | undefined;
     /** True while staked balance is being fetched */
@@ -84,6 +89,8 @@ export const StakingContext = createContext<StakingContextType>({
     providerMetadata: undefined,
     direction: 'stake',
     isProviderInfoLoading: false,
+    balance: undefined,
+    isBalanceLoading: false,
     stakedBalance: undefined,
     isStakedBalanceLoading: false,
     unstakeMode: UnstakeMode.INSTANT,
@@ -116,22 +123,38 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const isWalletConnected = wallet !== null;
     const address = useAddress();
 
-    const { data: balance } = useBalance();
-    const { data: stakedBalanceData, isFetching: isStakedBalanceLoading } = useStakedBalance({
+    const { data: providerInfo, isLoading: isProviderInfoLoading } = useStakingProviderInfo({ network });
+    const providerMetadata = useStakingProviderMetadata({ network });
+
+    const isNativeTon = providerMetadata?.stakeToken.address === 'ton';
+
+    const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
+        query: { enabled: isNativeTon },
+    });
+
+    const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({
+        jettonAddress: !isNativeTon ? providerMetadata?.stakeToken.address : undefined,
+        ownerAddress: address ?? undefined,
+        network,
+        query: { enabled: !isNativeTon && !!providerMetadata?.stakeToken.address && !!address },
+    });
+
+    const balance = isNativeTon ? nativeBalanceData : jettonBalanceData;
+    const isBalanceLoading = isNativeTon ? isNativeBalanceLoading : isJettonBalanceLoading;
+
+    const { data: stakedBalanceData, isLoading: isStakedBalanceLoading } = useStakedBalance({
         userAddress: address ?? undefined,
         network,
         query: { refetchInterval: 5000 },
     });
-    const { data: providerInfo, isFetching: isProviderInfoLoading } = useStakingProviderInfo({ network });
-    const providerMetadata = useStakingProviderMetadata({ network });
 
     const { mutateAsync: buildTransaction } = useBuildStakeTransaction();
     const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
 
     const amountDecimals = useMemo(() => {
         const unstakeDecimals = isReversed
-            ? providerMetadata?.receiveToken?.decimals
-            : providerMetadata?.stakeToken.decimals;
+            ? providerMetadata?.stakeToken.decimals
+            : providerMetadata?.receiveToken?.decimals;
         return direction === 'stake' ? providerMetadata?.stakeToken.decimals : unstakeDecimals;
     }, [direction, providerMetadata?.stakeToken.decimals, providerMetadata?.receiveToken?.decimals, isReversed]);
 
@@ -208,6 +231,8 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             providerInfo,
             providerMetadata,
             isProviderInfoLoading,
+            balance,
+            isBalanceLoading,
             stakedBalance: stakedBalanceData,
             isStakedBalanceLoading,
             unstakeMode,
@@ -232,6 +257,8 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             providerInfo,
             providerMetadata,
             isProviderInfoLoading,
+            balance,
+            isBalanceLoading,
             stakedBalanceData,
             isStakedBalanceLoading,
             unstakeMode,

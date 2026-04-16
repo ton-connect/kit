@@ -10,19 +10,16 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-top: 16px;
 }
 
 .tab {
   margin-bottom: 16px;
 }
 
-
 .inputSection {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 16px 0;
+  padding: 28px 0;
 }
-
