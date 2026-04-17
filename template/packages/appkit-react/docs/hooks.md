@@ -190,12 +190,6 @@ Hook to get a specific swap provider. Returns the provider instance directly or 
 
 ## Staking
 
-### `useStakingContext`
-
-Hook to access the staking context. Provides all necessary state and actions for building custom staking UIs. Must be used within a `StakingWidget` or `StakingWidgetProvider`.
-
-%%demo/examples/src/appkit/staking#USE_STAKING_CONTEXT%%
-
 ### Staking Hooks
 
 These hooks allow you to interact with staking providers directly.

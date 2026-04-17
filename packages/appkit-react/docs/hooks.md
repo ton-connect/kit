@@ -706,6 +706,8 @@ return <div>Result: {provider ? provider.providerId : 'null'}</div>;
 
 ## Staking
 
+### Staking Hooks
+
 These hooks allow you to interact with staking providers directly.
 
 #### `useStakingQuote`

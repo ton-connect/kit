@@ -10,9 +10,10 @@ import { Network } from '@ton/appkit';
 import { StakingWidget } from '@ton/appkit-react';
 
 export const StakingWidgetExample = () => {
-    // SAMPLE_START: STAKING_WIDGET
-    return <StakingWidget network={Network.mainnet()} className="my-custom-widget" />;
-    // SAMPLE_END: STAKING_WIDGET
+    // SAMPLE_START: STAKING_WIDGET_DEFAULT
+    // Default UI
+    return <StakingWidget network={Network.mainnet()} />;
+    // SAMPLE_END: STAKING_WIDGET_DEFAULT
 };
 
 export const StakingWidgetCustomExample = () => {

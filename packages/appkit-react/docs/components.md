@@ -113,9 +113,6 @@ return <TonConnectButton />;
 A high-level component that provides a complete staking interface. It handles quote fetching, transaction building, and user interactions.
 
 ```tsx
-import { StakingWidget } from '@ton/appkit-react';
-import { Network } from '@ton/appkit';
-
 // Default UI
 return <StakingWidget network={Network.mainnet()} />;
 ```
@@ -144,5 +141,37 @@ return (
             </div>
         )}
     </StakingWidget>
+);
+```
+
+## Swap
+
+### `SwapWidget`
+
+A high-level component that provides a complete swap interface. It handles token selection, quote fetching, and transaction building.
+
+```tsx
+return <SwapWidget tokens={tokens} network={Network.mainnet()} />;
+```
+
+#### Custom UI
+
+You can also use a render function to build a completely custom UI while keeping the swap logic.
+
+```tsx
+return (
+    <SwapWidget tokens={tokens} network={Network.mainnet()}>
+        {({ fromAmount, setFromAmount, toAmount, isQuoteLoading, sendSwapTransaction, canSubmit }) => (
+            <div className="custom-swap-ui">
+                <input value={fromAmount} onChange={(e) => setFromAmount(e.target.value)} placeholder="Sell" />
+
+                <div>{isQuoteLoading ? 'Calculating...' : `Receive: ${toAmount}`}</div>
+
+                <button disabled={!canSubmit || isQuoteLoading} onClick={sendSwapTransaction}>
+                    Swap Now
+                </button>
+            </div>
+        )}
+    </SwapWidget>
 );
 ```
