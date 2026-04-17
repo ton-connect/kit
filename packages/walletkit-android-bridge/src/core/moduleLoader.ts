@@ -15,11 +15,9 @@ const walletKitModulePromise = import('@ton/walletkit');
 
 type TonWalletKitConstructor = new (options: Record<string, unknown>) => WalletKitInstance;
 
-type SignerDomain = { type: string; globalId?: number };
-
 type SignerFactory = {
-    fromMnemonic: (mnemonic: string[], options: { type: string }, domain?: SignerDomain) => Promise<WalletKitSigner>;
-    fromPrivateKey: (secretKey: string, domain?: SignerDomain) => Promise<WalletKitSigner>;
+    fromMnemonic: (mnemonic: string[], options: { type: string }) => Promise<WalletKitSigner>;
+    fromPrivateKey: (secretKey: string) => Promise<WalletKitSigner>;
 };
 
 type AdapterFactory = {

@@ -132,20 +132,16 @@ export async function getBalance(args: { walletId: string }) {
     return wallet(args.walletId, 'getBalance');
 }
 
-export async function createSignerFromMnemonic(args: {
-    mnemonic: string[];
-    mnemonicType?: string;
-    domain?: SignatureDomain;
-}) {
+export async function createSignerFromMnemonic(args: { mnemonic: string[]; mnemonicType?: string }) {
     if (!Signer) throw new Error('Signer module not loaded');
-    const signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' }, args.domain);
+    const signer = await Signer.fromMnemonic(args.mnemonic, { type: args.mnemonicType ?? 'ton' });
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
 
-export async function createSignerFromPrivateKey(args: { secretKey: string; domain?: SignatureDomain }) {
+export async function createSignerFromPrivateKey(args: { secretKey: string }) {
     if (!Signer) throw new Error('Signer module not loaded');
-    const signer = await Signer.fromPrivateKey(args.secretKey, args.domain);
+    const signer = await Signer.fromPrivateKey(args.secretKey);
     const signerId = retain('signer', signer);
     return { signerId, publicKey: signer.publicKey };
 }
@@ -172,6 +168,7 @@ export async function createV5R1WalletAdapter(args: {
     network: { chainId: string };
     workchain?: number;
     walletId?: number;
+    domain?: SignatureDomain;
 }) {
     const instance = await getKit();
     const signer = get<{ publicKey: Hex; sign: (data: Iterable<number>) => Promise<Hex> }>(args.signerId);
@@ -184,6 +181,7 @@ export async function createV5R1WalletAdapter(args: {
         network,
         workchain: args.workchain ?? 0,
         walletId: args.walletId,
+        domain: args.domain,
     });
 
     const adapterId = retain('adapter', adapter);
@@ -195,6 +193,7 @@ export async function createV4R2WalletAdapter(args: {
     network: { chainId: string };
     workchain?: number;
     walletId?: number;
+    domain?: SignatureDomain;
 }) {
     const instance = await getKit();
     const signer = get<{ publicKey: Hex; sign: (data: Iterable<number>) => Promise<Hex> }>(args.signerId);
@@ -207,6 +206,7 @@ export async function createV4R2WalletAdapter(args: {
         network,
         workchain: args.workchain ?? 0,
         walletId: args.walletId,
+        domain: args.domain,
     });
 
     const adapterId = retain('adapter', adapter);

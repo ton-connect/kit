@@ -17,8 +17,8 @@ declare global {
     }
 }
 
-setBridgeApi(api as WalletKitBridgeApi);
+setBridgeApi(api as unknown as WalletKitBridgeApi);
 registerNativeCallHandler();
 registerNativeResponseHandler();
 
-window.walletkitBridge = api;
+window.walletkitBridge = api as unknown as WalletKitBridgeApi;

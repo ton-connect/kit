@@ -126,7 +126,8 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
                 if (storedLedgerConfig) {
                     return createWalletV4R2Ledger(
                         createWalletInitConfigLedger({
-                            createTransport: createLedgerTransport,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            createTransport: createLedgerTransport as any,
                             path: storedLedgerConfig.path,
                             publicKey: Buffer.from(storedLedgerConfig.publicKey.substring(2), 'hex'),
                             version: storedLedgerConfig.version as 'v4r2',
@@ -149,7 +150,8 @@ export async function createWalletAdapter(params: CreateWalletAdapterParams): Pr
 
                 return createWalletV4R2Ledger(
                     createWalletInitConfigLedger({
-                        createTransport: createLedgerTransport,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        createTransport: createLedgerTransport as any,
                         path,
                         version: 'v4r2',
                         network: chainNetwork,

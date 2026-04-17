@@ -25,7 +25,7 @@ import type {
     JSBridgeTransportFunction,
     WalletInfo,
 } from '../types/jsBridge';
-import { uuidv7 } from '../utils/uuid';
+import { uuidv7 } from '../utils/uuid.mjs';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TonWalletKitOptions } from '../types/config';
