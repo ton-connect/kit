@@ -6,32 +6,35 @@
  *
  */
 
-import type { FC, ReactNode } from 'react';
+import type { FC, ReactNode, ComponentProps } from 'react';
 
 import type { StakingWidgetRenderProps } from '../staking-widget-ui';
 import { StakingWidgetUI } from '../staking-widget-ui';
 import { StakingWidgetProvider, useStakingContext } from '../staking-widget-provider';
 import type { StakingProviderProps } from '../staking-widget-provider';
 
-export interface StakingWidgetProps extends Omit<StakingProviderProps, 'children'> {
+export interface StakingWidgetProps
+    extends Omit<StakingProviderProps, 'children'>, Omit<ComponentProps<'div'>, 'children'> {
     /** Custom render function — when provided, replaces the default widget UI */
     children?: (props: StakingWidgetRenderProps) => ReactNode;
 }
 
-const StakingWidgetContent: FC<{ children?: (props: StakingWidgetRenderProps) => ReactNode }> = ({ children }) => {
+const StakingWidgetContent: FC<
+    { children?: (props: StakingWidgetRenderProps) => ReactNode } & Omit<ComponentProps<'div'>, 'children'>
+> = ({ children, ...rest }) => {
     const ctx = useStakingContext();
 
     if (children) {
-        return <>{children(ctx)}</>;
+        return <>{children({ ...ctx, ...rest })}</>;
     }
 
-    return <StakingWidgetUI {...ctx} />;
+    return <StakingWidgetUI {...ctx} {...rest} />;
 };
 
-export const StakingWidget: FC<StakingWidgetProps> = ({ children, network }) => {
+export const StakingWidget: FC<StakingWidgetProps> = ({ children, network, ...rest }) => {
     return (
         <StakingWidgetProvider network={network}>
-            <StakingWidgetContent>{children}</StakingWidgetContent>
+            <StakingWidgetContent {...rest}>{children}</StakingWidgetContent>
         </StakingWidgetProvider>
     );
 };

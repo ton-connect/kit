@@ -32,4 +32,8 @@ export {
 export { useBuildStakeTransaction, type UseBuildStakeTransactionReturnType } from './hooks/use-build-stake-transaction';
 
 export * from './components/staking-widget';
+export * from './components/staking-widget-ui';
 export * from './components/staking-widget-provider';
+export * from './components/staking-balance-block';
+export * from './components/staking-info';
+export * from './components/select-unstake-mode';

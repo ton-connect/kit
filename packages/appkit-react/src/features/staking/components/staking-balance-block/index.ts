@@ -6,4 +6,4 @@
  *
  */
 
-export { StakingBalance, type StakingBalanceProps } from './staking-balance';
+export { StakingBalanceBlock, type StakingBalanceBlockProps } from './staking-balance-block';

@@ -7,7 +7,8 @@
  */
 
 import { useCallback, useState } from 'react';
-import type { FC } from 'react';
+import type { FC, ComponentProps } from 'react';
+import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { useSelectedWallet } from '../../../wallets';
@@ -23,7 +24,7 @@ import type { SwapContextType } from '../swap-widget-provider';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
-export type SwapWidgetRenderProps = SwapContextType;
+export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
 
 export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
@@ -46,6 +47,8 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     setSlippage,
     sendSwapTransaction,
     isSendingTransaction,
+    className,
+    ...props
 }) => {
     const [wallet] = useSelectedWallet();
     const isWalletConnected = wallet !== null;
@@ -65,7 +68,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken });
 
     return (
-        <div className={styles.widget}>
+        <div className={clsx(styles.widget, className)} {...props}>
             <div className={styles.header}>
                 <h2 className={styles.headerTitle}>{t('swap.title')}</h2>
                 <SwapSettingsButton onClick={() => setIsSettingsOpen(true)} />

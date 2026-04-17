@@ -6,18 +6,25 @@
  *
  */
 
-import type { FC } from 'react';
+import type { ComponentProps, FC } from 'react';
+import clsx from 'clsx';
 
 import { Button } from '../../../../components/button';
 import styles from './swap-settings-button.module.css';
 
-export interface SwapSettingsButtonProps {
+export interface SwapSettingsButtonProps extends ComponentProps<typeof Button> {
     onClick?: () => void;
 }
 
-export const SwapSettingsButton: FC<SwapSettingsButtonProps> = ({ onClick }) => {
+export const SwapSettingsButton: FC<SwapSettingsButtonProps> = ({ onClick, className, ...props }) => {
     return (
-        <Button className={styles.settingsButton} variant="ghost" size="s" onClick={onClick}>
+        <Button
+            className={clsx(styles.settingsButton, className)}
+            variant="ghost"
+            size="s"
+            onClick={onClick}
+            {...props}
+        >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 7H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M12 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

@@ -16,11 +16,11 @@ import { useI18n } from '../../../settings/hooks/use-i18n';
 import { TonIconCircle } from '../../../../components/ton-icon';
 import { Button } from '../../../../components/button';
 import { Skeleton } from '../../../../components/skeleton';
-import styles from './staking-balance.module.css';
+import styles from './staking-balance-block.module.css';
 import { Logo } from '../../../../components/logo';
 import { useJettonInfo } from '../../../jettons';
 
-export interface StakingBalanceProps extends ComponentProps<'div'> {
+export interface StakingBalanceBlockProps extends ComponentProps<'div'> {
     providerMetadata: StakingProviderMetadata | undefined;
     direction: StakingQuoteDirection;
     stakedBalance?: string;
@@ -30,7 +30,7 @@ export interface StakingBalanceProps extends ComponentProps<'div'> {
     onMaxClick?: () => void;
 }
 
-export const StakingBalance: FC<StakingBalanceProps> = ({
+export const StakingBalanceBlock: FC<StakingBalanceBlockProps> = ({
     providerMetadata,
     direction,
     stakedBalance,

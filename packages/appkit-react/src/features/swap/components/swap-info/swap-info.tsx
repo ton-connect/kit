@@ -6,7 +6,7 @@
  *
  */
 
-import type { FC } from 'react';
+import type { ComponentProps, FC } from 'react';
 
 import { InfoBlock } from '../../../../components/info-block';
 
@@ -15,14 +15,14 @@ export interface SwapInfoRowProps {
     value: string;
 }
 
-export interface SwapInfoProps {
+export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container> {
     rows: SwapInfoRowProps[];
     isLoading?: boolean;
 }
 
-export const SwapInfo: FC<SwapInfoProps> = ({ rows, isLoading }) => {
+export const SwapInfo: FC<SwapInfoProps> = ({ rows, isLoading, ...props }) => {
     return (
-        <InfoBlock.Container>
+        <InfoBlock.Container {...props}>
             {isLoading
                 ? Array.from({ length: 3 }).map((_, idx) => (
                       <InfoBlock.Row key={idx}>

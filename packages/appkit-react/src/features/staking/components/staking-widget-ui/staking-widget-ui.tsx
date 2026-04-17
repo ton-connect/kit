@@ -14,7 +14,7 @@ import clsx from 'clsx';
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/tabs';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { StakingBalance } from '../staking-balance';
+import { StakingBalanceBlock } from '../staking-balance-block';
 import { StakingInfo } from '../staking-info';
 import { SelectUnstakeMode } from '../select-unstake-mode';
 import styles from './staking-widget-ui.module.css';
@@ -93,7 +93,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             )}
                         </div>
 
-                        <StakingBalance
+                        <StakingBalanceBlock
                             direction="stake"
                             providerMetadata={providerMetadata}
                             stakedBalance={stakedBalance?.stakedBalance}
@@ -136,7 +136,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             )}
                         </div>
 
-                        <StakingBalance
+                        <StakingBalanceBlock
                             direction="unstake"
                             providerMetadata={providerMetadata}
                             stakedBalance={stakedBalance?.stakedBalance}
