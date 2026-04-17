@@ -16,6 +16,7 @@ import type {
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 import { useStakingProvider } from './use-staking-provider';
 
 export type UseStakingProviderInfoParameters<selectData = GetStakingProviderInfoData> =
@@ -32,7 +33,14 @@ export const useStakingProviderInfo = <selectData = GetStakingProviderInfoData>(
     parameters: UseStakingProviderInfoParameters<selectData> = {},
 ): UseStakingProviderInfoReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
     const provider = useStakingProvider({ id: parameters.providerId });
 
-    return useQuery(getStakingProviderInfoQueryOptions(appKit, { providerId: provider?.providerId, ...parameters }));
+    return useQuery(
+        getStakingProviderInfoQueryOptions(appKit, {
+            providerId: provider?.providerId,
+            ...parameters,
+            network: parameters.network ?? walletNetwork,
+        }),
+    );
 };

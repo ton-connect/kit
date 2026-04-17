@@ -20,6 +20,7 @@ import type {
 import { UnstakeMode } from '@ton/appkit';
 import { keepPreviousData } from '@tanstack/react-query';
 
+import { useNetwork } from '../../../network';
 import { convertByRate } from '../../utils/convert-by-rate';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';

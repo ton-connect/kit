@@ -17,6 +17,7 @@ import { getTransactionStatusQueryOptions } from '@ton/appkit/queries';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
 import { useAppKit } from '../../settings';
+import { useNetwork } from '../../network';
 
 export type UseTransactionStatusParameters<selectData = GetTransactionStatusData> = GetTransactionStatusParameters &
     GetTransactionStatusQueryConfig<selectData>;
@@ -50,6 +51,9 @@ export const useTransactionStatus = <selectData = GetTransactionStatusData>(
     parameters: UseTransactionStatusParameters<selectData>,
 ): UseTransactionStatusReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getTransactionStatusQueryOptions(appKit, parameters));
+    return useQuery(
+        getTransactionStatusQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

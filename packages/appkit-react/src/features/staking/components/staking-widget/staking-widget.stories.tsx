@@ -20,9 +20,11 @@ const meta: Meta<typeof StakingWidget> = {
 export default meta;
 type Story = StoryObj<typeof StakingWidget>;
 
-export const Default: Story = {
+export const Default: Story = {};
+
+export const Testnet: Story = {
     args: {
-        network: Network.mainnet(),
+        network: Network.testnet(),
     },
 };
 

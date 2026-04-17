@@ -6,7 +6,7 @@
  *
  */
 
-import { getStakingProviderMetadata } from '@ton/appkit';
+import { getStakingProviderMetadata, resolveNetwork } from '@ton/appkit';
 import type { GetStakingProviderMetadataOptions, GetStakingProviderMetadataReturnType } from '@ton/appkit';
 import { useMemo } from 'react';
 
@@ -22,12 +22,13 @@ export type UseStakingProviderMetadataReturnType = GetStakingProviderMetadataRet
 export const useStakingProviderMetadata = (parameters: UseStakingProviderMetadataParameters = {}) => {
     const appKit = useAppKit();
     const provider = useStakingProvider({ id: parameters.providerId });
+    const network = resolveNetwork(appKit, parameters.network);
 
     return useMemo(() => {
         try {
-            return getStakingProviderMetadata(appKit, parameters);
+            return getStakingProviderMetadata(appKit, { ...parameters, network });
         } catch {
             return undefined;
         }
-    }, [appKit, parameters.network, parameters.providerId, provider?.providerId]);
+    }, [appKit, network, parameters.providerId, provider?.providerId]);
 };

@@ -12,6 +12,7 @@ import type { GetJettonsByAddressData, GetJettonsErrorType, GetJettonsByAddressQ
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseJettonsByAddressParameters<selectData = GetJettonsByAddressData> =
     GetJettonsByAddressQueryConfig<selectData>;
@@ -28,6 +29,9 @@ export const useJettonsByAddress = <selectData = GetJettonsByAddressData>(
     parameters: UseJettonsByAddressParameters<selectData> = {},
 ): UseJettonsByAddressReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getJettonsByAddressQueryOptions(appKit, parameters));
+    return useQuery(
+        getJettonsByAddressQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };
