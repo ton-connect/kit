@@ -42,7 +42,9 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     providers,
     canContinue,
     error,
-    onReset,
+    isLoading,
+    onContinue,
+    setSelectedProvider,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -55,10 +57,17 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     }, []);
 
     const handleProviderSelected = useCallback(
-        (_provider: OnrampProvider) => {
-            onReset();
+        (provider: OnrampProvider) => {
+            setSelectedProvider(provider);
+            // We give it a small timeout or wait for state update to ensure
+            // the buildOnrampUrl uses the correct providerId if it's derived from state.
+            // In our provider, buildOnrampUrl uses selectedProvider.id from state.
+            setTimeout(() => {
+                onContinue();
+                setIsProviderSelectOpen(false);
+            }, 0);
         },
-        [onReset],
+        [onContinue, setSelectedProvider],
     );
 
     return (
@@ -95,7 +104,14 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onPresetSelect={setAmount}
             />
 
-            <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
+            <Button
+                variant="fill"
+                size="l"
+                disabled={!canContinue}
+                loading={isLoading}
+                onClick={handleContinue}
+                fullWidth
+            >
                 {t('onramp.continue')}
             </Button>
 

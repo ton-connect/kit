@@ -22,6 +22,8 @@ export abstract class DefiManager<
 
     protected providers: Map<string, T> = new Map();
     protected defaultProviderId?: string;
+    private providersSnapshot: T[] = [];
+    private providerIdsSnapshot: string[] = [];
     protected abstract createError(message: string, code: string, details?: unknown): DefiManagerError;
 
     constructor(createFactoryContext: () => ProviderFactoryContext<E>) {
@@ -41,10 +43,16 @@ export abstract class DefiManager<
         }
 
         this.providers.set(providerId, provider);
+        this.refreshSnapshots();
 
         if (!this.defaultProviderId) {
             this.defaultProviderId = providerId;
         }
+    }
+
+    private refreshSnapshots(): void {
+        this.providersSnapshot = Array.from(this.providers.values());
+        this.providerIdsSnapshot = Array.from(this.providers.keys());
     }
 
     /**
@@ -95,7 +103,7 @@ export abstract class DefiManager<
      * @returns Array of provider names
      */
     getRegisteredProviders(): string[] {
-        return Array.from(this.providers.keys());
+        return this.providerIdsSnapshot;
     }
 
     /**
@@ -103,7 +111,7 @@ export abstract class DefiManager<
      * @returns Array of provider instances
      */
     getProviders(): T[] {
-        return Array.from(this.providers.values());
+        return this.providersSnapshot;
     }
 
     /**

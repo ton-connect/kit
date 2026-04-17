@@ -128,6 +128,22 @@ export {
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
 
+// Onramp
+export { getOnrampManager, type GetOnrampManagerReturnType } from './onramp/get-onramp-manager';
+export {
+    getOnrampProvider,
+    type GetOnrampProviderOptions,
+    type GetOnrampProviderReturnType,
+} from './onramp/get-onramp-provider';
+export { getOnrampProviders, type GetOnrampProvidersReturnType } from './onramp/get-onramp-providers';
+export { getOnrampQuote, type GetOnrampQuoteOptions, type GetOnrampQuoteReturnType } from './onramp/get-onramp-quote';
+export {
+    watchOnrampProviders,
+    type WatchOnrampProvidersParameters,
+    type WatchOnrampProvidersReturnType,
+} from './onramp/watch-onramp-providers';
+export { buildOnrampUrl, type BuildOnrampUrlOptions, type BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
+
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
 export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';

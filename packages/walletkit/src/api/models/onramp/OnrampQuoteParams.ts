@@ -30,7 +30,7 @@ export interface OnrampQuoteParams<TProviderOptions = unknown> {
     /**
      * Network on which the crypto will be received
      */
-    network: Network;
+    network?: Network;
 
     /**
      * Provider-specific options

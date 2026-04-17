@@ -19,7 +19,7 @@ export const STORY_TOKENS: AppkitUIToken[] = [
     },
     {
         id: 'usdt',
-        symbol: 'USD₮',
+        symbol: 'USDT',
         name: 'Tether USD',
         decimals: 6,
         address: 'UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p',
