@@ -8,6 +8,7 @@
 
 import type { FC, ComponentProps } from 'react';
 import { calcFiatValue, formatLargeValue } from '@ton/appkit';
+import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
@@ -49,7 +50,14 @@ export const SwapField: FC<SwapFieldProps> = ({
     const displayDecimals = token ? Math.min(token.decimals, 5) : 5;
 
     return (
-        <Input.Container size="l" variant="unstyled" className={className} loading={loading} resizable {...props}>
+        <Input.Container
+            className={clsx(styles.container, className)}
+            size="l"
+            variant="unstyled"
+            loading={loading}
+            resizable
+            {...props}
+        >
             <Input.Header className={styles.header}>
                 <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
