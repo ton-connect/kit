@@ -90,6 +90,13 @@ export type { StakingQuoteParams } from './staking/StakingQuoteParams';
 export type { UnstakeModes } from './staking/UnstakeMode';
 export { UnstakeMode } from './staking/UnstakeMode';
 
+// Onramp models
+export type { OnrampParams } from './onramp/OnrampParams';
+export type { OnrampQuote } from './onramp/OnrampQuote';
+export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
+export type { OnrampLimits } from './onramp/OnrampLimits';
+export type { OnrampLimitParams } from './onramp/OnrampLimitParams';
+
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';

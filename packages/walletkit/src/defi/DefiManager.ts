@@ -99,6 +99,14 @@ export abstract class DefiManager<
     }
 
     /**
+     * Get list of registered provider instances
+     * @returns Array of provider instances
+     */
+    getProviders(): T[] {
+        return Array.from(this.providers.values());
+    }
+
+    /**
      * Check if a provider is registered
      * @param providerId - Provider id
      * @returns True if provider exists
