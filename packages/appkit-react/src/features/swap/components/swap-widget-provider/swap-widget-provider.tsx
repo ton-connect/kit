@@ -14,6 +14,7 @@ import type { GetSwapQuoteData } from '@ton/appkit/queries';
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction';
 import { useAddress } from '../../../wallets';
+import { useNetwork } from '../../../network';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
@@ -94,8 +95,8 @@ export function useSwapContext() {
 export interface SwapProviderProps extends PropsWithChildren {
     /** Full list of tokens available for swapping */
     tokens: AppkitUIToken[];
-    /** Network to use for quote fetching, defaults to mainnet */
-    network: Network;
+    /** Network to use for quote fetching. When omitted, uses the selected wallet's network. */
+    network?: Network;
     /** Fiat currency symbol shown next to amounts, defaults to "$" */
     fiatSymbol?: string;
     /** Symbol of the token pre-selected in the "from" field */
@@ -109,12 +110,14 @@ export interface SwapProviderProps extends PropsWithChildren {
 export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     children,
     tokens,
-    network,
+    network: networkProp,
     fiatSymbol = '$',
     defaultFromSymbol,
     defaultToSymbol,
     defaultSlippage = 100,
 }) => {
+    const walletNetwork = useNetwork();
+    const network = networkProp ?? walletNetwork;
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 
     const { fromToken, toToken, fromAmount, setFromToken, setToToken, setFromAmount, onFlip } = useSwapTokenState({

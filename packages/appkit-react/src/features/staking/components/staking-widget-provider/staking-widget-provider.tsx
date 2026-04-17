@@ -107,15 +107,18 @@ export const useStakingContext = () => {
 };
 
 export interface StakingProviderProps extends PropsWithChildren {
-    /** Network to use for quote fetching */
-    network: Network;
+    /** Network to use for quote fetching. When omitted, uses the selected wallet's network. */
+    network?: Network;
 }
 
-export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network }) => {
+export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, network: networkProp }) => {
     const [amount, setAmountRaw] = useState('');
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
     const [isReversed, setIsReversed] = useState(false);
+
+    const walletNetwork = useNetwork();
+    const network = networkProp ?? walletNetwork;
 
     const address = useAddress();
 
