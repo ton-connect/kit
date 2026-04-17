@@ -59,6 +59,7 @@ import type {
     IntentActionSignMessageRequestEvent,
     IntentActionSignDataRequestEvent,
     IntentConnectionResult,
+    TONConnectSession,
 } from '../api/models';
 import { PrepareSignData } from '../utils/signData/sign';
 import { validateBOC } from '../validation/transaction';
@@ -208,6 +209,7 @@ export class RequestProcessor {
         }
 
         const connectionResult = await this.createConnectApprovalResponse(event, response?.proof);
+        await this.createSessionForIntentAction(event);
 
         let preview: TransactionEmulatedPreview | undefined;
 
@@ -253,6 +255,7 @@ export class RequestProcessor {
         }
 
         const connectionResult = await this.createConnectApprovalResponse(event, response?.proof);
+        await this.createSessionForIntentAction(event);
 
         return {
             ...event,
@@ -272,21 +275,11 @@ export class RequestProcessor {
 
         const intentAction = event.intentAction;
         const connectionResult = await this.createConnectApprovalResponse(event, response?.proof);
-
-        let domain = event.domain;
-
-        if (!domain || domain?.length == 0) {
-            try {
-                const url: URL = new URL(event.dAppInfo?.url || '');
-                domain = url.host;
-            } catch {
-                throw new Error('Unable to resolve domain for approving sign data event');
-            }
-        }
+        const session = await this.createSessionForIntentAction(event);
 
         return {
             ...event,
-            domain: domain,
+            domain: session.domain,
             type: 'signData',
             payload: intentAction.payload,
             preview: {
@@ -340,7 +333,7 @@ export class RequestProcessor {
      * Create session and bridge session for an intent action event before sending the combined response.
      * Mirrors the session creation in approveConnectRequest.
      */
-    private async createSessionForIntentAction(event: BridgeEvent): Promise<void> {
+    private async createSessionForIntentAction(event: BridgeEvent): Promise<TONConnectSession> {
         const wallet = this.getWalletFromEvent(event);
         if (!wallet) {
             throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, 'Wallet not found for intent session creation');
@@ -358,6 +351,7 @@ export class RequestProcessor {
             event.isJsBridge ?? false,
         );
         await this.bridgeManager.createSession(newSession.sessionId);
+        return newSession;
     }
 
     /**
@@ -367,7 +361,6 @@ export class RequestProcessor {
         event: BridgeEvent & { connectionResult: IntentConnectionResult },
         result: unknown,
     ): Promise<void> {
-        await this.createSessionForIntentAction(event);
         const connResult = event.connectionResult as unknown as ConnectEventSuccess;
         const response = { ...connResult, response: { result } as ConnectEventSuccess['response'] };
         await this.bridgeManager.sendResponse(event, response);
@@ -380,7 +373,6 @@ export class RequestProcessor {
         event: BridgeEvent & { connectionResult: IntentConnectionResult },
         error: { code: number; message: string },
     ): Promise<void> {
-        await this.createSessionForIntentAction(event);
         const connResult = event.connectionResult as unknown as ConnectEventSuccess;
         const response = { ...connResult, response: { error } as ConnectEventSuccess['response'] };
         await this.bridgeManager.sendResponse(event, response);
