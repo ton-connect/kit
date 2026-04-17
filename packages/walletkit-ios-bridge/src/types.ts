@@ -24,6 +24,8 @@ import type {
     ConnectionApprovalResponse,
     SendTransactionRequestEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
+    SignMessageApprovalResponse,
     SwapProviderInterface,
     SwapAPI,
     TonCenterStreamingProviderConfig,
@@ -132,6 +134,13 @@ export interface SwiftWalletKit {
     ): Promise<SignDataApprovalResponse>;
 
     rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void>;
+
+    approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse>;
+
+    rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void>;
 
     disconnect(sessionId: string): Promise<void>;
 
