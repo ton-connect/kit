@@ -704,6 +704,40 @@ const provider = useSwapProvider({ id: 'stonfi' });
 return <div>Result: {provider ? provider.providerId : 'null'}</div>;
 ```
 
+## Staking
+
+These hooks allow you to interact with staking providers directly.
+
+#### `useStakingQuote`
+Get a quote for staking or unstaking.
+
+#### `useStakedBalance`
+Get the user's staked balance.
+
+#### `useStakingProviderMetadata`
+Get static metadata about a specific staking provider.
+
+```tsx
+const { data: quote } = useStakingQuote({
+    amount: '1000000000',
+    direction: 'stake',
+});
+
+const { data: balance } = useStakedBalance({
+    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+});
+
+const metadata = useStakingProviderMetadata();
+
+return (
+    <div>
+        <div>Staking Quote: {quote?.amountOut}</div>
+        <div>Staked Balance: {balance?.stakedBalance}</div>
+        <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
+    </div>
+);
+```
+
 ## Transaction
 
 ### `useSendTransaction`

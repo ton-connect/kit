@@ -13,9 +13,16 @@ import { StakingWidgetUI } from '../staking-widget-ui';
 import { StakingWidgetProvider, useStakingContext } from '../staking-widget-provider';
 import type { StakingProviderProps } from '../staking-widget-provider';
 
+/**
+ * Props for the StakingWidget component.
+ */
 export interface StakingWidgetProps
     extends Omit<StakingProviderProps, 'children'>, Omit<ComponentProps<'div'>, 'children'> {
-    /** Custom render function — when provided, replaces the default widget UI */
+    /**
+     * Custom render function.
+     * When provided, it replaces the default widget UI and gives full control over the rendering.
+     * Useful for building unique staking interfaces while leveraging the widget's internal logic.
+     */
     children?: (props: StakingWidgetRenderProps) => ReactNode;
 }
 
@@ -31,6 +38,13 @@ const StakingWidgetContent: FC<
     return <StakingWidgetUI {...ctx} {...rest} />;
 };
 
+/**
+ * A high-level component that provides a complete staking interface.
+ *
+ * It manages the staking lifecycle, including fetching quotes, building transactions,
+ * and handling user input. It can be used as a standalone widget with default UI
+ * or customized using a render function.
+ */
 export const StakingWidget: FC<StakingWidgetProps> = ({ children, network, ...rest }) => {
     return (
         <StakingWidgetProvider network={network}>

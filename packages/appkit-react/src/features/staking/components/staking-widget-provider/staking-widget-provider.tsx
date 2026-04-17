@@ -37,10 +37,14 @@ import { useStakingValidation } from './use-staking-validation';
 
 export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
+/**
+ * Context type for the StakingWidget.
+ * Provides all necessary state and actions for building custom staking UIs.
+ */
 export interface StakingContextType {
     /** Amount the user wants to stake (string to preserve input UX) */
     amount: string;
-    /** Whether the user can proceed with staking */
+    /** Whether the user can proceed with staking (checks balance, amount validity, etc.) */
     canSubmit: boolean;
     /** Raw staking quote from the provider */
     quote: StakingQuote | undefined;
@@ -52,26 +56,33 @@ export interface StakingContextType {
     providerInfo: StakingProviderInfo | undefined;
     /** Staking provider static metadata */
     providerMetadata: StakingProviderMetadata | undefined;
-    /** Current direction */
+    /** Current operation direction: 'stake' or 'unstake' */
     direction: StakingQuoteDirection;
     /** True while provider info is being fetched */
     isProviderInfoLoading: boolean;
-    /** Base balance (native or jetton) */
+    /** Base balance (native or jetton) available for staking */
     balance: string | undefined;
     /** True while base balance is being fetched */
     isBalanceLoading: boolean;
-    /** User's staked balance */
+    /** User's currently staked balance */
     stakedBalance: StakingBalance | undefined;
     /** True while staked balance is being fetched */
     isStakedBalanceLoading: boolean;
-    /** Selected unstake mode */
+    /** Selected unstake mode (e.g. instant or delayed) */
     unstakeMode: UnstakeModes;
+    /** Sets the input amount */
     setAmount: (amount: string) => void;
+    /** Sets the unstake mode */
     setUnstakeMode: (mode: UnstakeModes) => void;
+    /** Triggers the staking/unstaking transaction */
     sendTransaction: () => Promise<void>;
+    /** Changes the direction (stake/unstake) */
     onChangeDirection: (direction: StakingQuoteDirection) => void;
+    /** True while a transaction is being processed */
     isSendingTransaction: boolean;
+    /** True if the user is inputting the output amount ("I want to get X") */
     isReversed: boolean;
+    /** Toggles between inputting from amount and output amount */
     toggleReversed: () => void;
     /** Amount displayed in the reversed (bottom) input */
     reversedAmount: string;
@@ -102,12 +113,22 @@ export const StakingContext = createContext<StakingContextType>({
     reversedAmount: '0',
 });
 
+/**
+ * Hook to access the staking context.
+ * Must be used within a StakingWidgetProvider (or StakingWidget).
+ */
 export const useStakingContext = () => {
     return useContext(StakingContext);
 };
 
+/**
+ * Props for the StakingWidgetProvider.
+ */
 export interface StakingProviderProps extends PropsWithChildren {
-    /** Network to use for quote fetching. When omitted, uses the selected wallet's network. */
+    /**
+     * Network to use for quote fetching and transactions.
+     * When omitted, uses the selected wallet's network.
+     */
     network?: Network;
 }
 

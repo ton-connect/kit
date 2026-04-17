@@ -43,3 +43,23 @@ A drop-in component that handles the entire transaction flow.
 A button that triggers the wallet connection flow.
 
 %%demo/examples/src/appkit/components/wallets#CONNECT_BUTTON%%
+
+## Staking
+
+### `StakingWidget`
+
+A high-level component that provides a complete staking interface. It handles quote fetching, transaction building, and user interactions.
+
+```tsx
+import { StakingWidget } from '@ton/appkit-react';
+import { Network } from '@ton/appkit';
+
+// Default UI
+return <StakingWidget network={Network.mainnet()} />;
+```
+
+#### Custom UI
+
+You can also use a render function to build a completely custom UI while keeping the staking logic.
+
+%%demo/examples/src/appkit/staking#STAKING_WIDGET_CUSTOM%%

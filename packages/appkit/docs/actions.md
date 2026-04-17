@@ -565,13 +565,24 @@ console.log('Available Staking Providers:', providers);
 
 ### `getStakingProviderInfo`
 
-Get information about a specific staking provider.
+Get dynamic information about a specific staking provider (e.g. APY, rate).
 
 ```ts
 const providerInfo = await getStakingProviderInfo(appKit, {
     providerId: 'tonstakers',
 });
 console.log('Provider Info:', providerInfo);
+```
+
+### `getStakingProviderMetadata`
+
+Get static metadata about a specific staking provider.
+
+```ts
+const providerMetadata = getStakingProviderMetadata(appKit, {
+    providerId: 'tonstakers',
+});
+console.log('Provider Metadata:', providerMetadata);
 ```
 
 ### `getStakingQuote`

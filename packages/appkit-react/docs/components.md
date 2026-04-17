@@ -105,3 +105,44 @@ A button that triggers the wallet connection flow.
 ```tsx
 return <TonConnectButton />;
 ```
+
+## Staking
+
+### `StakingWidget`
+
+A high-level component that provides a complete staking interface. It handles quote fetching, transaction building, and user interactions.
+
+```tsx
+import { StakingWidget } from '@ton/appkit-react';
+import { Network } from '@ton/appkit';
+
+// Default UI
+return <StakingWidget network={Network.mainnet()} />;
+```
+
+#### Custom UI
+
+You can also use a render function to build a completely custom UI while keeping the staking logic.
+
+```tsx
+return (
+    <StakingWidget network={Network.mainnet()}>
+        {({ amount, setAmount, sendTransaction, quote, isQuoteLoading, canSubmit }) => (
+            <div className="custom-staking-ui">
+                <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Amount to stake"
+                />
+
+                {isQuoteLoading ? <p>Fetching quote...</p> : quote ? <p>You will receive: {quote.amountOut}</p> : null}
+
+                <button disabled={!canSubmit || isQuoteLoading} onClick={() => sendTransaction()}>
+                    Stake TON
+                </button>
+            </div>
+        )}
+    </StakingWidget>
+);
+```

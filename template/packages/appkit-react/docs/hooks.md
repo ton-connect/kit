@@ -190,9 +190,24 @@ Hook to get a specific swap provider. Returns the provider instance directly or 
 
 ## Staking
 
-### `useStakingProviderMetadata`
+### `useStakingContext`
 
-Hook to get static metadata about a specific staking provider.
+Hook to access the staking context. Provides all necessary state and actions for building custom staking UIs. Must be used within a `StakingWidget` or `StakingWidgetProvider`.
+
+%%demo/examples/src/appkit/staking#USE_STAKING_CONTEXT%%
+
+### Staking Hooks
+
+These hooks allow you to interact with staking providers directly.
+
+#### `useStakingQuote`
+Get a quote for staking or unstaking.
+
+#### `useStakedBalance`
+Get the user's staked balance.
+
+#### `useStakingProviderMetadata`
+Get static metadata about a specific staking provider.
 
 %%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
 
