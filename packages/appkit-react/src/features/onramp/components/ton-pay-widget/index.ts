@@ -6,5 +6,5 @@
  *
  */
 
-export { OnrampAmountPresets } from './onramp-amount-presets';
-export type { OnrampAmountPresetsProps } from './onramp-amount-presets';
+export { TonPayWidget } from './ton-pay-widget';
+export type { TonPayWidgetProps } from './ton-pay-widget';

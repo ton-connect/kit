@@ -13,7 +13,6 @@ import { Button } from '../../../../components/button';
 import type { OnrampContextType } from '../onramp-widget-provider';
 import { OnrampTokenSelectors } from '../onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../components/centered-amount-input';
-import { OnrampAmountPresets } from '../onramp-amount-presets';
 import { OnrampTokenSelectModal } from '../onramp-token-select-modal';
 import { OnrampCurrencySelectModal } from '../onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../onramp-provider-select';
@@ -21,6 +20,7 @@ import styles from './onramp-widget-ui.module.css';
 import { OnrampAmountReversed } from '../onramp-amount-reversed';
 import type { OnrampProvider } from '../../types';
 import { useI18n } from '../../../settings/hooks/use-i18n';
+import { AmountPresets } from '../../../../components/amount-presets';
 
 export type OnrampWidgetRenderProps = OnrampContextType;
 
@@ -97,7 +97,7 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 errorMessage={error ? t(`onramp.${error}`) : undefined}
             />
 
-            <OnrampAmountPresets
+            <AmountPresets
                 className={styles.presets}
                 presets={presetAmounts}
                 currencySymbol={selectedCurrency.symbol}

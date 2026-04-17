@@ -8,9 +8,11 @@
 
 export * from './components/onramp-widget';
 export * from './components/onramp-widget-provider';
-export * from './types';
+export * from './components/ton-pay-widget';
 
 export * from './hooks/use-onramp-quote';
 export * from './hooks/use-onramp-provider';
 export * from './hooks/use-onramp-providers';
 export * from './hooks/use-build-onramp-url';
+
+export * from './types';

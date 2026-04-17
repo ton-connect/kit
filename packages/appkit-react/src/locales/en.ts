@@ -75,6 +75,8 @@ export default {
         buyToken: 'Buy {{ symbol }}',
         forCurrency: 'for {{ symbol }}',
         noQuotesFound: 'No quotes found',
+        connectWallet: 'Connect a wallet to continue',
+        tonPayError: 'Failed to start TonPay checkout',
     },
 
     // Staking
