@@ -49,3 +49,7 @@
   height: 1em;
   height: 0.8lh;
 }
+
+.field {
+  min-height: var(--ta-input-l-line-height);
+}

@@ -13,3 +13,13 @@ export interface BaseProvider {
     readonly providerId: string;
     readonly type: string;
 }
+
+export interface BaseProviderUpdate {
+    providerId: string;
+    type: string;
+}
+
+export interface BaseProviderEvents {
+    'provider:registered': BaseProviderUpdate;
+    'provider:default-changed': BaseProviderUpdate;
+}

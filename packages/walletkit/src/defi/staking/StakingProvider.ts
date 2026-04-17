@@ -6,7 +6,7 @@
  *
  */
 
-import type { Network, TransactionRequest, UserFriendlyAddress } from '../../api/models';
+import type { Network, StakingProviderMetadata, TransactionRequest, UserFriendlyAddress } from '../../api/models';
 import type {
     StakeParams,
     StakingBalance,
@@ -15,7 +15,6 @@ import type {
     StakingQuote,
 } from '../../api/models';
 import type { StakingProviderInterface } from '../../api/interfaces';
-import type { UnstakeModes } from '../../api/models/staking/UnstakeMode';
 
 /**
  * Abstract base class for staking providers
@@ -58,8 +57,9 @@ export abstract class StakingProvider implements StakingProviderInterface {
     abstract getStakingProviderInfo(network?: Network): Promise<StakingProviderInfo>;
 
     /**
-     * Get supported unstake modes
-     * @returns An array of supported unstake modes
+     * Get staking provider metadata
+     * @param network - Optional network to fetch info for
+     * @returns Staking provider metadata
      */
-    abstract getSupportedUnstakeModes(): UnstakeModes[];
+    abstract getStakingProviderMetadata(network?: Network): StakingProviderMetadata;
 }

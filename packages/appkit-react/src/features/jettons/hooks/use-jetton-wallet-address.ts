@@ -16,6 +16,7 @@ import type {
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseJettonWalletAddressParameters<selectData = GetJettonWalletAddressData> =
     GetJettonWalletAddressQueryConfig<selectData>;
@@ -32,6 +33,9 @@ export const useJettonWalletAddress = <selectData = GetJettonWalletAddressData>(
     parameters: UseJettonWalletAddressParameters<selectData> = {},
 ) => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getJettonWalletAddressQueryOptions(appKit, parameters));
+    return useQuery(
+        getJettonWalletAddressQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

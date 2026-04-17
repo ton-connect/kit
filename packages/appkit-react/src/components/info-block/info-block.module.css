@@ -6,7 +6,15 @@
   box-sizing: border-box;
   padding: 16px;
   border-radius: var(--ta-border-radius-l);
+}
+
+.fill {
   background-color: var(--ta-color-background-secondary);
+}
+
+.outline {
+  background-color: transparent;
+  border: var(--ta-border-width-m) solid var(--ta-color-background-tertiary);
 }
 
 .row {

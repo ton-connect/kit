@@ -13,6 +13,7 @@ import {
     getStakedBalance,
     getStakingProviders,
     getStakingProviderInfo,
+    getStakingProviderMetadata,
 } from '@ton/appkit';
 
 export const stakingExample = async (appKit: AppKit) => {
@@ -29,6 +30,13 @@ export const stakingExample = async (appKit: AppKit) => {
     });
     console.log('Provider Info:', providerInfo);
     // SAMPLE_END: GET_STAKING_PROVIDER_INFO
+
+    // SAMPLE_START: GET_STAKING_PROVIDER_METADATA
+    const providerMetadata = getStakingProviderMetadata(appKit, {
+        providerId: 'tonstakers',
+    });
+    console.log('Provider Metadata:', providerMetadata);
+    // SAMPLE_END: GET_STAKING_PROVIDER_METADATA
 
     // SAMPLE_START: GET_STAKING_QUOTE
     const quote = await getStakingQuote(appKit, {

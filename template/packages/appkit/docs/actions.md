@@ -308,9 +308,15 @@ Get all available staking provider IDs.
 
 ### `getStakingProviderInfo`
 
-Get information about a specific staking provider.
+Get dynamic information about a specific staking provider (e.g. APY, rate).
 
 %%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO%%
+
+### `getStakingProviderMetadata`
+
+Get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_METADATA%%
 
 ### `getStakingQuote`
 

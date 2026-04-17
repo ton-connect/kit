@@ -210,6 +210,23 @@ Hook to get all registered onramp providers.
 
 Hook to build an onramp URL for redirecting the user to the provider.
 
+## Staking
+
+### Staking Hooks
+
+These hooks allow you to interact with staking providers directly.
+
+#### `useStakingQuote`
+Get a quote for staking or unstaking.
+
+#### `useStakedBalance`
+Get the user's staked balance.
+
+#### `useStakingProviderMetadata`
+Get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+
 ## Transaction
 
 ### `useSendTransaction`

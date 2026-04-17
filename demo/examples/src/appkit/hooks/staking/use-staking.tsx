@@ -6,7 +6,7 @@
  *
  */
 
-import { useStakingQuote, useStakedBalance } from '@ton/appkit-react';
+import { useStakingQuote, useStakedBalance, useStakingProviderMetadata } from '@ton/appkit-react';
 
 export const UseStakingExample = () => {
     // SAMPLE_START: USE_STAKING
@@ -19,10 +19,13 @@ export const UseStakingExample = () => {
         userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     });
 
+    const metadata = useStakingProviderMetadata();
+
     return (
         <div>
             <div>Staking Quote: {quote?.amountOut}</div>
             <div>Staked Balance: {balance?.stakedBalance}</div>
+            <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
         </div>
     );
     // SAMPLE_END: USE_STAKING

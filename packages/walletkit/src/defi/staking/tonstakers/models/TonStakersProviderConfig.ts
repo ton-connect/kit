@@ -6,16 +6,16 @@
  *
  */
 
-import type { UserFriendlyAddress } from '../../../../api/models';
+import type { StakingProviderMetadata } from '../../../../api/models';
 
 export type TonStakersChainConfig = {
-    contractAddress?: UserFriendlyAddress;
     tonApiToken?: string;
+    metadata?: Partial<StakingProviderMetadata>;
 };
 
 /**
- * - **contractAddress** – optional; defaults to the known pool for mainnet/testnet when present on the manager.
  * - **tonApiToken** – optional TonAPI key for APY requests only. If not provided, APY will be available, but if you're using TonAPI, it's recommended to provide the key.
+ * - **metadata** – optional StakingProviderMetadata partial override to customize provider metadata.
  */
 export interface TonStakersProviderConfig {
     [chainId: string]: TonStakersChainConfig;

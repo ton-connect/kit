@@ -7,7 +7,7 @@
  */
 
 export { AppKit } from './services/app-kit';
-export { CONNECTOR_EVENTS, WALLETS_EVENTS, PROVIDER_EVENTS, NETWORKS_EVENTS } from './constants/events';
+export { CONNECTOR_EVENTS, WALLETS_EVENTS, NETWORKS_EVENTS } from './constants/events';
 
 export type { AppKitConfig } from './types/config';
 export type {
@@ -15,6 +15,5 @@ export type {
     AppKitEvents,
     WalletConnectedPayload,
     WalletDisconnectedPayload,
-    ProviderRegisteredPayload,
     DefaultNetworkChangedPayload,
 } from './types/events';

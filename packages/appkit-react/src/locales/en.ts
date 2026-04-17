@@ -76,4 +76,27 @@ export default {
         forCurrency: 'for {{ symbol }}',
         noQuotesFound: 'No quotes found',
     },
+
+    // Staking
+    staking: {
+        stake: 'Stake',
+        unstake: 'Unstake',
+        continue: 'Stake',
+        insufficientBalance: 'Insufficient balance',
+        tooManyDecimals: 'Too many decimal places',
+        quoteError: 'Unable to get a quote',
+        youGet: 'You get',
+        currentApy: 'Current APY',
+        max: 'MAX',
+        exchangeRate: 'Exchange rate',
+        stakedBalance: 'Staked balance',
+        unstakeType: 'Unstake type',
+        maximumReward: 'Maximum reward',
+        instant: 'Instant',
+        instantLimit: 'Limit: {{ limit }}',
+        maximumRewardLimit: 'Next cycle',
+        whenAvailable: 'When available',
+        whenAvailableLimit: 'No limits',
+        yourBalance: 'Your balance',
+    },
 } as const;

@@ -12,6 +12,7 @@ import type { GetBlockNumberData, GetBlockNumberErrorType, GetBlockNumberQueryCo
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../hooks/use-network';
 
 export type UseBlockNumberParameters<selectData = GetBlockNumberData> = GetBlockNumberQueryConfig<selectData>;
 
@@ -27,6 +28,9 @@ export const useBlockNumber = <selectData = GetBlockNumberData>(
     parameters: UseBlockNumberParameters<selectData> = {},
 ): UseBlockNumberReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getBlockNumberQueryOptions(appKit, parameters));
+    return useQuery(
+        getBlockNumberQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

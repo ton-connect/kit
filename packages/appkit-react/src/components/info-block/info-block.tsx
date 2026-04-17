@@ -13,8 +13,14 @@ import styles from './info-block.module.css';
 import { Skeleton } from '../skeleton';
 import type { SkeletonProps } from '../skeleton';
 
-const Container: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
-    return <div className={clsx(styles.container, className)} {...props} />;
+export type InfoBlockVariant = 'fill' | 'outline';
+
+interface ContainerProps extends ComponentProps<'div'> {
+    variant?: InfoBlockVariant;
+}
+
+const Container: FC<ContainerProps> = ({ variant = 'fill', className, ...props }) => {
+    return <div className={clsx(styles.container, styles[variant], className)} {...props} />;
 };
 
 const Row: FC<ComponentProps<'div'>> = ({ className, ...props }) => {

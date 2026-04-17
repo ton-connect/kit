@@ -29,10 +29,3 @@ export const NETWORKS_EVENTS = {
     UPDATED: 'networks:updated',
     DEFAULT_CHANGED: 'networks:default-changed',
 } as const;
-
-/**
- * Providers events
- */
-export const PROVIDER_EVENTS = {
-    REGISTERED: 'providers:registered',
-} as const;

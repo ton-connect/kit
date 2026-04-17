@@ -14,19 +14,19 @@ import type {
     TransactionsUpdate,
     StreamingUpdate,
     StreamingWatchType,
-    StreamingEvents,
 } from '../api/models';
 import { globalLogger } from '../core/Logger';
 import { asAddressFriendly } from '../utils';
 import { resolveProvider } from '../types/factory';
 import type { ProviderFactoryContext, ProviderInput } from '../types/factory';
+import type { SharedKitEvents } from '../types/emitter';
 
 const log = globalLogger.createChild('StreamingManager');
 
 /**
  * Orchestrates streaming providers and routes watch calls to the correct provider by network.
  */
-export class StreamingManager<E extends StreamingEvents = StreamingEvents> implements StreamingAPI {
+export class StreamingManager<E extends SharedKitEvents = SharedKitEvents> implements StreamingAPI {
     private createFactoryContext: () => ProviderFactoryContext<E>;
     private providers: Map<string, StreamingProvider> = new Map();
     private connectionChangeCallbacks: Map<string, Set<(connected: boolean) => void>> = new Map();

@@ -7,7 +7,7 @@
  */
 
 import type { Network } from '../../../types/network';
-import type { CONNECTOR_EVENTS, WALLETS_EVENTS, PROVIDER_EVENTS, NETWORKS_EVENTS } from '../constants/events';
+import type { CONNECTOR_EVENTS, WALLETS_EVENTS, NETWORKS_EVENTS } from '../constants/events';
 import type { SharedKitEvents } from '../../emitter';
 import type { EventEmitter } from '../../emitter';
 import type { WalletInterface } from '../../../types/wallet';
@@ -19,11 +19,6 @@ export interface WalletConnectedPayload {
 
 export interface WalletDisconnectedPayload {
     connectorId: string;
-}
-
-export interface ProviderRegisteredPayload {
-    providerId: string;
-    providerType: string;
 }
 
 export interface DefaultNetworkChangedPayload {
@@ -42,9 +37,6 @@ export type AppKitEvents = {
     // Networks events
     [NETWORKS_EVENTS.UPDATED]: Record<string, never>;
     [NETWORKS_EVENTS.DEFAULT_CHANGED]: DefaultNetworkChangedPayload;
-
-    // Provider events
-    [PROVIDER_EVENTS.REGISTERED]: ProviderRegisteredPayload;
 } & SharedKitEvents;
 
 export type AppKitEmitter = EventEmitter<AppKitEvents>;

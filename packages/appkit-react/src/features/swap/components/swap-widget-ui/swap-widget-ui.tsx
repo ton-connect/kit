@@ -7,11 +7,11 @@
  */
 
 import { useCallback, useState } from 'react';
-import type { FC } from 'react';
+import type { FC, ComponentProps } from 'react';
+import clsx from 'clsx';
 
-import { Button } from '../../../../components/button';
 import { useI18n } from '../../../settings/hooks/use-i18n';
-import { useConnect, useConnectors } from '../../../wallets';
+import { useSelectedWallet } from '../../../wallets';
 import { SwapField } from '../swap-field';
 import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
@@ -22,7 +22,9 @@ import styles from './swap-widget-ui.module.css';
 import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
-export type SwapWidgetRenderProps = SwapContextType;
+import { ButtonWithConnect } from '../../../../components/button-with-connect';
+
+export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
 
 export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
@@ -34,7 +36,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromBalance,
     toBalance,
     canSubmit,
-    isWalletConnected,
     quote,
     isQuoteLoading,
     error,
@@ -47,10 +48,14 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     setSlippage,
     sendSwapTransaction,
     isSendingTransaction,
+    className,
+    ...props
 }) => {
-    const connectors = useConnectors();
-    const { mutate: connect, isPending: isConnecting } = useConnect();
+    const [wallet] = useSelectedWallet();
+    const isWalletConnected = wallet !== null;
+
     const { t } = useI18n();
+
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -65,7 +70,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken });
 
     return (
-        <div className={styles.widget}>
+        <div className={clsx(styles.widget, className)} {...props}>
             <div className={styles.header}>
                 <h2 className={styles.headerTitle}>{t('swap.title')}</h2>
                 <SwapSettingsButton onClick={() => setIsSettingsOpen(true)} />
@@ -118,29 +123,16 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
             {fromAmount && <SwapInfo rows={infoRows} isLoading={isQuoteLoading || !quote || infoRows.length === 0} />}
 
-            {isWalletConnected ? (
-                <Button
-                    variant="fill"
-                    size="l"
-                    fullWidth
-                    style={{ marginTop: '8px' }}
-                    disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
-                    onClick={sendSwapTransaction}
-                >
-                    {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
-                </Button>
-            ) : (
-                <Button
-                    variant="fill"
-                    size="l"
-                    fullWidth
-                    style={{ marginTop: '8px' }}
-                    disabled={isConnecting || connectors.length === 0}
-                    onClick={() => connectors[0] && connect({ connectorId: connectors[0].id })}
-                >
-                    {t('wallet.connectWallet')}
-                </Button>
-            )}
+            <ButtonWithConnect
+                className={styles.swapButton}
+                variant="fill"
+                size="l"
+                fullWidth
+                disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
+                onClick={sendSwapTransaction}
+            >
+                {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+            </ButtonWithConnect>
         </div>
     );
 };

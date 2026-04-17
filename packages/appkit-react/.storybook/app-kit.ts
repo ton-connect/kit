@@ -10,6 +10,7 @@ import { AppKit, Network } from '@ton/appkit';
 import { createTonConnectConnector } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { TonPayProvider } from '@ton/appkit/onramp/ton-pay';
+import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 
 export const appKit = new AppKit({
     networks: {
@@ -34,5 +35,5 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new OmnistonSwapProvider(), new TonPayProvider()],
+    providers: [new OmnistonSwapProvider(), new TonPayProvider(), createTonstakersProvider()],
 });
