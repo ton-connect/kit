@@ -43,3 +43,27 @@ A drop-in component that handles the entire transaction flow.
 A button that triggers the wallet connection flow.
 
 %%demo/examples/src/appkit/components/wallets#CONNECT_BUTTON%%
+
+## Swap
+
+### `SwapWidget`
+
+A high-level component that provides a complete swap interface. It handles token selection, quote fetching, and transaction building.
+
+```tsx
+import { SwapWidget } from '@ton/appkit-react';
+import { Network } from '@ton/appkit';
+
+return (
+    <SwapWidget
+        tokens={tokens}
+        network={Network.mainnet()}
+    />
+);
+```
+
+#### Custom UI
+
+You can also use a render function to build a completely custom UI while keeping the swap logic.
+
+%%demo/examples/src/appkit/swap#SWAP_WIDGET_CUSTOM%%

@@ -603,6 +603,24 @@ return (
 
 ## Swap
 
+### `useSwapContext`
+
+Hook to access the swap context. Provides all necessary state and actions for building custom swap UIs. Must be used within a `SwapWidget` or `SwapWidgetProvider`.
+
+```tsx
+const { fromAmount, setFromAmount, toAmount, isQuoteLoading, canSubmit, sendSwapTransaction } = useSwapContext();
+
+return (
+    <div>
+        <input value={fromAmount} onChange={(e) => setFromAmount(e.target.value)} placeholder="Amount to swap" />
+        {isQuoteLoading && <div>Fetching best price...</div>}
+        <button disabled={!canSubmit || isQuoteLoading} onClick={sendSwapTransaction}>
+            Swap for {toAmount}
+        </button>
+    </div>
+);
+```
+
 ### `useSwapQuote`
 
 Hook to get a swap quote for a token pair.

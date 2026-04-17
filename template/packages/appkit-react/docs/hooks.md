@@ -170,6 +170,12 @@ Hook to sign text messages with the connected wallet.
 
 ## Swap
 
+### `useSwapContext`
+
+Hook to access the swap context. Provides all necessary state and actions for building custom swap UIs. Must be used within a `SwapWidget` or `SwapWidgetProvider`.
+
+%%demo/examples/src/appkit/swap#USE_SWAP_CONTEXT%%
+
 ### `useSwapQuote`
 
 Hook to get a swap quote for a token pair.
