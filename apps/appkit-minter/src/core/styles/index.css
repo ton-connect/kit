@@ -34,6 +34,7 @@
   --border: oklch(0.923 0.003 48.717);
   --background: oklch(1 0 0);
   --foreground: oklch(0.147 0.004 49.25);
+  --ring: oklch(0.71 0.13 215);
 }
 
 .dark {
@@ -51,6 +52,7 @@
   --success: oklch(0.75 0.18 144);
   --success-foreground: oklch(0 0 0);
   --border: oklch(1 0 0 / 10%);
+  --ring: oklch(0.71 0.13 215);
 }
 
 #root {
@@ -158,6 +160,7 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-border: var(--border);
+  --color-ring: var(--ring);
   --font-sans: "Inter", sans-serif;
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);

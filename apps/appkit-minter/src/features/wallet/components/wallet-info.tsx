@@ -8,35 +8,24 @@
 
 import { useState, useCallback } from 'react';
 import type { ComponentProps, FC } from 'react';
-import { useSelectedWallet, Network, Button } from '@ton/appkit-react';
+import { useSelectedWallet } from '@ton/appkit-react';
 import { Wallet, Check, Copy } from 'lucide-react';
 
-import { Card } from '@/core/components';
-
-const NETWORK_LABELS: Record<string, string> = {
-    [Network.mainnet().chainId]: 'Mainnet',
-    [Network.testnet().chainId]: 'Testnet',
-    [Network.tetra().chainId]: 'Tetra',
-};
-
-const getNetworkLabel = (chainId: string): string => {
-    return NETWORK_LABELS[chainId] ?? `Chain ${chainId}`;
-};
+import { cn } from '@/core/lib/utils';
 
 const truncateAddress = (address: string): string => {
     if (address.length <= 12) {
         return address;
     }
 
-    return `${address.slice(0, 6)}…${address.slice(-6)}`;
+    return `${address.slice(0, 4)}…${address.slice(-4)}`;
 };
 
-export const WalletInfo: FC<ComponentProps<'div'>> = (props) => {
+export const WalletInfo: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
     const [wallet] = useSelectedWallet();
     const [copied, setCopied] = useState(false);
 
     const address = wallet?.getAddress() ?? '';
-    const networkLabel = wallet ? getNetworkLabel(wallet.getNetwork().chainId) : '';
 
     const handleCopy = useCallback(async () => {
         if (!address) return;
@@ -45,43 +34,36 @@ export const WalletInfo: FC<ComponentProps<'div'>> = (props) => {
         setTimeout(() => setCopied(false), 2000);
     }, [address]);
 
+    if (!wallet) return null;
+
     return (
-        <Card {...props}>
-            <div className="flex items-center justify-between gap-4 py-1">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Wallet className="w-5 h-5 text-primary" />
-                    </div>
-
-                    {!wallet && <p className="text-muted-foreground text-sm">Connect wallet to mint</p>}
-
-                    {wallet && (
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate" title={address}>
-                                {truncateAddress(address)}
-                            </p>
-
-                            <p className="text-xs text-muted-foreground">Network: {networkLabel}</p>
-                        </div>
-                    )}
-                </div>
-
-                {wallet && (
-                    <Button type="button" onClick={handleCopy} size="s" variant="bezeled" title="Copy address">
-                        {copied ? (
-                            <>
-                                <Check className="w-3.5 h-3.5 text-green-500" />
-                                Copied
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="w-3.5 h-3.5" />
-                                Copy Address
-                            </>
-                        )}
-                    </Button>
-                )}
+        <div
+            className={cn(
+                'flex items-center gap-2 rounded-md border border-border bg-card/50 p-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-none group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0',
+                className,
+            )}
+            {...props}
+        >
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Wallet className="size-3.5 text-primary" />
             </div>
-        </Card>
+
+            <span
+                className="min-w-0 flex-1 truncate font-mono text-xs text-foreground group-data-[collapsible=icon]:hidden"
+                title={address}
+            >
+                {truncateAddress(address)}
+            </span>
+
+            <button
+                type="button"
+                onClick={handleCopy}
+                title="Copy address"
+                aria-label="Copy address"
+                className="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground group-data-[collapsible=icon]:hidden"
+            >
+                {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+            </button>
+        </div>
     );
 };

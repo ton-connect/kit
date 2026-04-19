@@ -83,7 +83,7 @@ const TOKENS: AppkitUIToken[] = [
 
 export const SwapPage: React.FC = () => {
     return (
-        <Layout>
+        <Layout title="Swap">
             <Card className="w-fit mx-auto">
                 <SwapWidget
                     tokens={TOKENS}

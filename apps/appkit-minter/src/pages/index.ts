@@ -8,3 +8,5 @@
 
 export { MinterPage } from './minter-page';
 export { SwapPage } from './swap-page';
+export { StakingPage } from './staking-page';
+export { SignMessagePage } from './sign-message-page';
