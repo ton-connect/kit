@@ -15,7 +15,7 @@ export interface GetGemsFixPriceSale {
     type?: string;
     fullPrice: string;
     marketplaceFee?: string;
-    currency?: string;
+    currency: string;
     version: string;
     contractAddress?: string;
 }

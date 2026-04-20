@@ -6,4 +6,4 @@
  *
  */
 
-export const FEATURED_COLLECTION_ADDRESSES: readonly string[] = ['EQCWB1WLs7rDJfYaeVxTZWnwQmrIFzbUcr-us-9aIn1ZNFpq'];
+export const FEATURED_COLLECTION_ADDRESSES: readonly string[] = ['EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz'];

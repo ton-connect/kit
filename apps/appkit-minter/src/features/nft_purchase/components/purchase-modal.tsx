@@ -17,9 +17,9 @@ import { toast } from 'sonner';
 export interface PurchaseDetails {
     nftName: string;
     nftImage?: string | null;
-    priceTon: string;
-    feeTon: string;
-    totalTon: string;
+    priceAmount: string;
+    priceCurrency: string;
+    networkFeeTon: string;
     tx: TransactionRequest;
 }
 
@@ -53,14 +53,16 @@ export const PurchaseModal: FC<PurchaseModalProps> = ({ open, onOpenChange, deta
                             <p className="text-sm font-semibold">NFT price</p>
                             <p className="text-xs text-muted-foreground">Includes service fee and royalties</p>
                         </div>
-                        <p className="text-sm font-semibold shrink-0">{details.priceTon} TON</p>
+                        <p className="text-sm font-semibold shrink-0">
+                            {details.priceAmount} {details.priceCurrency}
+                        </p>
                     </div>
                     <div className="p-3 flex items-start justify-between gap-3">
                         <div>
                             <p className="text-sm font-semibold">Network fee</p>
                             <p className="text-xs text-muted-foreground">Unused part will be refunded to your wallet</p>
                         </div>
-                        <p className="text-sm font-semibold shrink-0">{details.feeTon} TON</p>
+                        <p className="text-sm font-semibold shrink-0">{details.networkFeeTon} TON</p>
                     </div>
                 </div>
 
@@ -106,7 +108,7 @@ export const PurchaseModal: FC<PurchaseModalProps> = ({ open, onOpenChange, deta
                             loading={isLoading}
                             icon={<ShoppingCart className="w-4 h-4" />}
                         >
-                            Buy for {details.totalTon} TON
+                            Buy for {details.priceAmount} {details.priceCurrency}
                         </Button>
                     )}
                 </Send>

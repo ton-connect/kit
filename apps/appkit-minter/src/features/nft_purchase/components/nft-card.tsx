@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { buildBuyTransaction, fetchNft } from '../api/getgems-client';
 import { isFixPriceSale } from '../api/types';
 import type { GetGemsNftOnSale } from '../api/types';
+import { formatAmount, formatPrice, getCurrencyDecimals, safeBigInt } from '../lib/currency';
 import { PurchaseModal } from './purchase-modal';
 import type { PurchaseDetails } from './purchase-modal';
 
@@ -24,20 +25,7 @@ interface NftCardProps {
     nft: GetGemsNftOnSale;
 }
 
-function formatTonPrice(nano: bigint): string {
-    const whole = nano / 1_000_000_000n;
-    const frac = nano % 1_000_000_000n;
-    const fracStr = frac.toString().padStart(9, '0').slice(0, 4).replace(/0+$/, '');
-    return fracStr ? `${whole}.${fracStr}` : `${whole}`;
-}
-
-function safeBigInt(value: string): bigint {
-    try {
-        return BigInt(value);
-    } catch {
-        return 0n;
-    }
-}
+const TON_DECIMALS = 9;
 
 export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const [wallet] = useSelectedWallet();
@@ -45,7 +33,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const [details, setDetails] = useState<PurchaseDetails | null>(null);
 
     const sale = isFixPriceSale(nft.sale) ? nft.sale : null;
-    const priceTon = sale ? formatTonPrice(safeBigInt(sale.fullPrice)) : null;
+    const priceLabel = sale ? `${formatPrice(sale.fullPrice, sale.currency)} ${sale.currency}` : null;
 
     const isMainnet = wallet?.getNetwork().chainId === Network.mainnet().chainId;
 
@@ -73,16 +61,17 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 messages,
             };
 
-            const priceNano = safeBigInt(fresh.sale.fullPrice);
-            const totalNano = buy.list.reduce((acc, item) => acc + safeBigInt(item.amount), 0n);
-            const feeNano = totalNano > priceNano ? totalNano - priceNano : 0n;
+            const currency = fresh.sale.currency;
+            const priceDecimals = getCurrencyDecimals(currency);
+            const priceRaw = safeBigInt(fresh.sale.fullPrice);
+            const totalTonRaw = buy.list.reduce((acc, item) => acc + safeBigInt(item.amount), 0n);
 
             setDetails({
                 nftName: fresh.name ?? nft.name ?? 'Untitled',
                 nftImage: fresh.image ?? nft.image,
-                priceTon: formatTonPrice(priceNano),
-                feeTon: formatTonPrice(feeNano),
-                totalTon: formatTonPrice(totalNano),
+                priceAmount: formatAmount(priceRaw, priceDecimals),
+                priceCurrency: currency,
+                networkFeeTon: formatAmount(totalTonRaw, TON_DECIMALS),
                 tx,
             });
         } catch (error) {
@@ -104,7 +93,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 </div>
                 <div className="p-3 flex flex-col gap-2 flex-1">
                     <p className="text-sm font-semibold text-foreground truncate">{nft.name ?? 'Untitled'}</p>
-                    <p className="text-xs text-muted-foreground">{priceTon ? `${priceTon} TON` : 'Not for sale'}</p>
+                    <p className="text-xs text-muted-foreground">{priceLabel ?? 'Not for sale'}</p>
                     {sale && (
                         <div className="mt-auto">
                             {!wallet ? (
