@@ -10,6 +10,10 @@ import { WalletApp } from '../qa';
 
 // const timeout = 20_000;
 
+function delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class DemoWallet extends WalletApp {
     get onboardingPage() {
         if (this.isExtension) {
@@ -59,6 +63,7 @@ export class DemoWallet extends WalletApp {
 
     async connectBy(url: string, shouldSkipConnect: boolean = false, confirm: boolean = true): Promise<void> {
         const app = await this.open();
+        await delay(500);
         await app.getByTestId('tonconnect-url').fill(url);
         await app.getByTestId('tonconnect-process').click();
 
