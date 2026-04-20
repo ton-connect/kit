@@ -19,6 +19,13 @@ export default defineConfig({
     server: {
         port: 5174,
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
+        proxy: {
+            '/getgems-api': {
+                target: 'https://api.getgems.io',
+                changeOrigin: true,
+                rewrite: (p) => p.replace(/^\/getgems-api/, '/public-api'),
+            },
+        },
     },
     resolve: {
         alias: {

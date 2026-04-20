@@ -12,3 +12,4 @@ export const ENV_TON_API_KEY_TESTNET =
     import.meta.env.VITE_TON_API_TESTNET_KEY ?? 'd852b54d062f631565761042cccea87fa6337c41eb19b075e6c7fb88898a3992';
 
 export const ENV_PRIVY_APP_ID = import.meta.env.VITE_PRIVY_APP_ID ?? '';
+export const ENV_GETGEMS_API_KEY: string = import.meta.env.VITE_GETGEMS_API_KEY ?? '';
