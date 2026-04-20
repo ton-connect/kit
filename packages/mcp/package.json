@@ -70,8 +70,8 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@ston-fi/omniston-sdk": "^0.7.9",
     "@ton/walletkit": "workspace:*",
-    "https-proxy-agent": "^7.0.6",
-    "undici": "^7.16.0",
+    "https-proxy-agent": "^9.0.0",
+    "undici": "^8.1.0",
     "ws": "^8.20.0",
     "zod": "^3.25.76"
   },
@@ -82,7 +82,7 @@
     "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.4",
     "rimraf": "^6.1.0",
-    "rolldown": "1.0.0-rc.9",
+    "rolldown": "1.0.0-rc.15",
     "typescript": "~5.9.3",
     "vitest": "^4.1.4"
   },

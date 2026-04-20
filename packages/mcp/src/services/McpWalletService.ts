@@ -28,6 +28,8 @@ import {
     getJettonsFromClient,
     getNftsFromClient,
     getJettonWalletAddressFromClient,
+    HexToBase64,
+    Uint8ArrayToHex,
 } from '@ton/walletkit';
 import type {
     Wallet,
@@ -36,6 +38,7 @@ import type {
     WalletAdapter,
     TransactionRequest,
     TransactionStatusResponse,
+    ProofMessage,
 } from '@ton/walletkit';
 import type { OmnistonProviderOptions } from '@ton/walletkit/swap/omniston';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
@@ -178,6 +181,21 @@ export interface SwapQuoteResult {
         }>;
         validUntil?: number;
     };
+}
+
+/**
+ * Signed TonProof payload for third-party authentication
+ */
+export interface TonProofResult {
+    address: string;
+    chain: string;
+    walletStateInit: string;
+    publicKey: string;
+    timestamp: number;
+    domainLengthBytes: number;
+    domainValue: string;
+    signature: string;
+    payload: string;
 }
 
 /**
@@ -1095,6 +1113,42 @@ export class McpWalletService {
     async backResolveDns(address: string): Promise<string | null> {
         const client = this.wallet.getClient();
         return client.backResolveDnsWallet(address);
+    }
+
+    /**
+     * Generate a signed TonProof for authenticating with third-party services.
+     * Produces a payload compatible with TonConnect proof-of-ownership verification.
+     */
+    async generateTonProof(domain: string, payload: string): Promise<TonProofResult> {
+        const address = Address.parse(this.wallet.getAddress());
+        const stateInit = await this.wallet.getStateInit();
+        const publicKey = this.wallet.getPublicKey();
+        const timestamp = Math.floor(Date.now() / 1000);
+        const domainLengthBytes = Buffer.byteLength(domain, 'utf-8');
+
+        const proofMessage: ProofMessage = {
+            workchain: address.workChain,
+            addressHash: Uint8ArrayToHex(address.hash),
+            domain: { lengthBytes: domainLengthBytes, value: domain },
+            payload,
+            stateInit,
+            timestamp,
+        };
+
+        const signatureHex = await this.wallet.getSignedTonProof(proofMessage);
+        const signatureBase64 = HexToBase64(signatureHex);
+
+        return {
+            address: `${address.workChain}:${address.hash.toString('hex')}`,
+            chain: this.wallet.getNetwork().chainId === Network.mainnet().chainId ? '-239' : '-3',
+            walletStateInit: stateInit,
+            publicKey,
+            timestamp,
+            domainLengthBytes,
+            domainValue: domain,
+            signature: signatureBase64,
+            payload,
+        };
     }
 
     /**
