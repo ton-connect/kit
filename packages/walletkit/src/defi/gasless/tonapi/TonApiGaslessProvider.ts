@@ -13,12 +13,13 @@ import {
     external,
     internal,
     loadMessageRelaxed,
+    loadStateInit,
     storeMessage,
     storeMessageRelaxed,
 } from '@ton/core';
 import type { TonApiClient } from '@ton-api/client';
 
-import type { Base64String } from '../../../api/models/core/Primitives';
+import type { Base64String, TransactionRequestMessage } from '../../../api/models';
 import { globalLogger } from '../../../core/Logger';
 import { CallForSuccess } from '../../../utils/retry';
 import { GaslessError } from '../errors';
@@ -172,16 +173,11 @@ function cellToBase64(cell: Cell): Base64String {
     return cell.toBoc().toString('base64') as Base64String;
 }
 
-function buildInternalMessageCell(message: {
-    address: string;
-    amount: string | bigint;
-    payload?: string;
-    stateInit?: string;
-}): Cell {
+function buildInternalMessageCell(message: TransactionRequestMessage): Cell {
     const to = Address.parse(message.address);
     const value = BigInt(message.amount);
     const body = message.payload ? Cell.fromBase64(message.payload) : beginCell().endCell();
-    const init = message.stateInit ? parseStateInit(message.stateInit) : undefined;
+    const init = message.stateInit ? loadStateInit(Cell.fromBase64(message.stateInit).beginParse()) : undefined;
 
     return beginCell()
         .storeWritable(
@@ -189,6 +185,10 @@ function buildInternalMessageCell(message: {
                 internal({
                     to,
                     value,
+                    // Jetton transfers (the primary gasless use case) require bounce=true;
+                    // TransactionRequestMessage does not carry a bounce flag, so we default
+                    // to true. Callers needing non-bounceable messages should handle that
+                    // outside the gasless flow.
                     bounce: true,
                     body,
                     init,
@@ -196,16 +196,6 @@ function buildInternalMessageCell(message: {
             ),
         )
         .endCell();
-}
-
-function parseStateInit(base64: string) {
-    const cell = Cell.fromBase64(base64);
-    const slice = cell.beginParse();
-    const maybeCodeBit = slice.loadBit();
-    const code = maybeCodeBit ? slice.loadRef() : undefined;
-    const maybeDataBit = slice.loadBit();
-    const data = maybeDataBit ? slice.loadRef() : undefined;
-    return { code, data };
 }
 
 /**
