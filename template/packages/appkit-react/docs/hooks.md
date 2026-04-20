@@ -235,6 +235,12 @@ Hook to send a transaction to the blockchain.
 
 %%demo/examples/src/appkit/hooks/transaction#USE_SEND_TRANSACTION%%
 
+### `useSignMessage`
+
+Hook to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_SIGN_MESSAGE%%
+
 ### `useTransferTon`
 
 Hook to simplify transferring TON to another address.

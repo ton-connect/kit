@@ -18,6 +18,8 @@ import {
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
+import { TonApiGaslessProvider } from '@ton/appkit/gasless/tonapi';
+import { TonApiClient } from '@ton-api/client';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET, ENV_PRIVY_APP_ID } from '@/core/configs/env';
 import { loadStoredNetworkChainId } from '@/features/network';
@@ -42,6 +44,9 @@ const CONFIGURED_CHAIN_IDS = new Set([Network.mainnet().chainId, Network.testnet
 const storedChainId = loadStoredNetworkChainId();
 const initialDefaultNetwork =
     storedChainId && CONFIGURED_CHAIN_IDS.has(storedChainId) ? Network.custom(storedChainId) : undefined;
+const mainnetTonApi = new TonApiClient({
+    baseUrl: 'https://tonapi.io',
+});
 
 export const appKit = new AppKit({
     networks: {
@@ -60,7 +65,12 @@ export const appKit = new AppKit({
             ? [createPrivyConnector({ appId: ENV_PRIVY_APP_ID, defaultNetwork: Network.mainnet() })]
             : []),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
+    providers: [
+        new DeDustSwapProvider(),
+        new OmnistonSwapProvider(),
+        createTonstakersProvider({}),
+        new TonApiGaslessProvider({ client: mainnetTonApi }),
+    ],
 });
 
 // TODO: replace in normal config

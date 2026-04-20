@@ -13,6 +13,7 @@ import type {
     TransactionRequest as WalletKitTransactionRequest,
     UserFriendlyAddress,
     WalletSigner,
+    Feature,
 } from '@ton/walletkit';
 import {
     asHex,
@@ -25,7 +26,7 @@ import {
 
 import type { WalletInterface } from '../../../types/wallet';
 import type { TransactionRequest } from '../../../types/transaction';
-import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
+import type { SignDataRequest, SignDataResponse, SignMessageResponse } from '../../../types/signing';
 import type { Base64String } from '../../../types/primitives';
 import type { Network } from '../../../types/network';
 import type { PrivyState } from '../types/privy-state';
@@ -145,6 +146,20 @@ export class PrivyWalletAdapter implements WalletInterface {
             domain: prepared.domain,
             signature,
         };
+    }
+
+    async signMessage(request: TransactionRequest): Promise<SignMessageResponse> {
+        const boc = await this.walletAdapter.getSignedSendTransaction(request, {
+            internal: true,
+        });
+
+        return {
+            internalBoc: boc,
+        };
+    }
+
+    getSupportedFeatures(): Feature[] | undefined {
+        return this.walletAdapter.getSupportedFeatures();
     }
 }
 

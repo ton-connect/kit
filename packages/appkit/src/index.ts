@@ -35,6 +35,7 @@ export * from './connectors/privy';
 
 export * from './swap';
 export * from './staking';
+export * from './gasless';
 
 // Actions
 export * from './actions';

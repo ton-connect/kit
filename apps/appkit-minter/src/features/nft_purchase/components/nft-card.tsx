@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { Button, useSelectedWallet } from '@ton/appkit-react';
-import type { TransactionRequest, TransactionRequestMessage } from '@ton/appkit';
+import type { Base64String, TransactionRequest, TransactionRequestMessage } from '@ton/appkit';
 import { getJettonWalletAddress, Network } from '@ton/appkit';
 import { beginCell, toNano } from '@ton/core';
 import { Image as ImageIcon, ShoppingCart } from 'lucide-react';
@@ -64,19 +64,11 @@ async function buildJettonBuyTransaction(args: {
         forwardPayload: commentCell,
     });
 
-    console.log('[nft_purchase] USDT buy tx', {
-        userJettonWallet,
-        saleContract: args.saleContract,
-        priceNano: args.priceNano.toString(),
-        buyGas: JETTON_BUY_GAS.toString(),
-        forwardTon: JETTON_FORWARD_TON.toString(),
-    });
-
     const messages: TransactionRequestMessage[] = [
         {
             address: userJettonWallet,
             amount: JETTON_BUY_GAS.toString(),
-            payload,
+            payload: payload as unknown as Base64String,
         },
     ];
 
@@ -117,8 +109,8 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 const buy = await buildBuyTransaction(nft.address, fresh.sale.version);
                 const messages: TransactionRequestMessage[] = buy.list.map((item) => {
                     const message: TransactionRequestMessage = { address: item.to, amount: item.amount };
-                    if (item.payload) message.payload = item.payload;
-                    if (item.stateInit) message.stateInit = item.stateInit;
+                    if (item.payload) message.payload = item.payload as unknown as Base64String;
+                    if (item.stateInit) message.stateInit = item.stateInit as unknown as Base64String;
                     return message;
                 });
                 tx = {

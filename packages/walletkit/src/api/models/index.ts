@@ -109,6 +109,13 @@ export type { StakingQuoteParams } from './staking/StakingQuoteParams';
 export type { UnstakeModes } from './staking/UnstakeMode';
 export { UnstakeMode } from './staking/UnstakeMode';
 
+// Gasless models
+export type { GaslessConfig } from './gasless/GaslessConfig';
+export type { GaslessGasJetton } from './gasless/GaslessGasJetton';
+export type { GaslessEstimateParams } from './gasless/GaslessEstimateParams';
+export type { GaslessEstimateResult } from './gasless/GaslessEstimateResult';
+export type { GaslessSendParams } from './gasless/GaslessSendParams';
+
 // Onramp models
 export type { OnrampParams } from './onramp/OnrampParams';
 export type { OnrampQuote } from './onramp/OnrampQuote';

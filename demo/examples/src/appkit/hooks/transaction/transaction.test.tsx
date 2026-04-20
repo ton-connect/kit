@@ -14,6 +14,7 @@ import { Network } from '@ton/walletkit';
 
 import { createWrapper } from '../../../__tests__/test-utils';
 import { UseSendTransactionExample } from './use-send-transaction';
+import { UseSignMessageExample } from './use-sign-message';
 import { UseTransferTonExample } from './use-transfer-ton';
 import { UseWatchTransactionsByAddressExample } from './use-watch-transactions-by-address';
 import { UseWatchTransactionsExample } from './use-watch-transactions';
@@ -21,14 +22,17 @@ import { UseWatchTransactionsExample } from './use-watch-transactions';
 describe('Transaction Hooks Examples', () => {
     let mockAppKit: any;
     let mockSendTransaction: any;
+    let mockSignMessage: any;
 
     const mockBoc = 'te6cckEBAQEAAgAAAEysuc0=';
+    const mockInternalBoc = 'te6cckEBAQEAAgAAAEysuc1=';
     const mockNetwork = Network.mainnet();
 
     const mockWallet = {
         getAddress: () => 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
         getNetwork: () => mockNetwork,
         sendTransaction: vi.fn(),
+        signMessage: vi.fn(),
     };
 
     beforeEach(() => {
@@ -37,6 +41,9 @@ describe('Transaction Hooks Examples', () => {
 
         mockSendTransaction = vi.fn().mockResolvedValue({ boc: mockBoc });
         mockWallet.sendTransaction = mockSendTransaction;
+
+        mockSignMessage = vi.fn().mockResolvedValue({ internalBoc: mockInternalBoc });
+        mockWallet.signMessage = mockSignMessage;
 
         mockAppKit = {
             getDefaultNetwork: vi.fn(),
@@ -112,6 +119,62 @@ describe('Transaction Hooks Examples', () => {
 
             await waitFor(() => {
                 expect(screen.getByText('Error: Transaction rejected')).toBeDefined();
+            });
+        });
+    });
+
+    describe('UseSignMessageExample', () => {
+        it('should render sign button initially', () => {
+            render(<UseSignMessageExample />, { wrapper: createWrapper(mockAppKit) });
+            expect(screen.getByText('Sign Message')).toBeDefined();
+        });
+
+        it('should call signMessage on button click', async () => {
+            render(<UseSignMessageExample />, { wrapper: createWrapper(mockAppKit) });
+
+            const button = screen.getByText('Sign Message');
+            act(() => {
+                button.click();
+            });
+
+            await waitFor(() => {
+                expect(mockSignMessage).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        messages: expect.arrayContaining([
+                            expect.objectContaining({
+                                amount: '100000000',
+                                address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                            }),
+                        ]),
+                    }),
+                );
+            });
+        });
+
+        it('should display internal BOC on success', async () => {
+            render(<UseSignMessageExample />, { wrapper: createWrapper(mockAppKit) });
+
+            const button = screen.getByText('Sign Message');
+            act(() => {
+                button.click();
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText(`Internal BOC: ${mockInternalBoc}`)).toBeDefined();
+            });
+        });
+
+        it('should display error on failure', async () => {
+            mockSignMessage.mockRejectedValue(new Error('User rejected'));
+            render(<UseSignMessageExample />, { wrapper: createWrapper(mockAppKit) });
+
+            const button = screen.getByText('Sign Message');
+            act(() => {
+                button.click();
+            });
+
+            await waitFor(() => {
+                expect(screen.getByText('Error: User rejected')).toBeDefined();
             });
         });
     });

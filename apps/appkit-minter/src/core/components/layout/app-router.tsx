@@ -19,6 +19,7 @@ import {
     SignMessagePage,
     NftPurchasePage,
     NftPurchaseCollectionPage,
+    GaslessPage,
 } from '@/pages';
 
 export const AppRouter: React.FC = () => {
@@ -64,6 +65,7 @@ export const AppRouter: React.FC = () => {
                 <Route path="/sign" element={<SignMessagePage />} />
                 <Route path="/buy-nft" element={<NftPurchasePage />} />
                 <Route path="/buy-nft/:collectionAddress" element={<NftPurchaseCollectionPage />} />
+                <Route path="/gasless" element={<GaslessPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
