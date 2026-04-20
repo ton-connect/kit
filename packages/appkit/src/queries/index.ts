@@ -239,6 +239,18 @@ export {
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
 export {
+    signMessageMutationOptions,
+    type SignMessageData,
+    type SignMessageErrorType,
+    type SignMessageMutate,
+    type SignMessageMutateAsync,
+    type SignMessageMutationOptions,
+    type SignMessageOptions,
+    type SignMessageVariables,
+    type SignMessageParameters,
+    type SignMessageReturnType,
+} from './transaction/sign-message';
+export {
     getTransactionStatusQueryOptions,
     type GetTransactionStatusData,
     type GetTransactionStatusErrorType,

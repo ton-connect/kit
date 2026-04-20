@@ -189,6 +189,12 @@ export {
     type SendTransactionParameters,
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
+export {
+    signMessage,
+    type SignMessageParameters,
+    type SignMessageReturnType,
+    type SignMessageErrorType,
+} from './transaction/sign-message';
 export { transferTon, type TransferTonParameters, type TransferTonReturnType } from './transaction/transfer-ton';
 export {
     getTransactionStatus,

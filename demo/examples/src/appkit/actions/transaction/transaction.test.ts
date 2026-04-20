@@ -12,6 +12,7 @@ import { Network } from '@ton/walletkit';
 import type { WalletInterface } from '@ton/appkit';
 
 import { sendTransactionExample } from './send-transaction';
+import { signMessageExample } from './sign-message';
 import { transferTonExample } from './transfer-ton';
 import { createTransferTonTransactionExample } from './create-transfer-ton-transaction';
 
@@ -19,6 +20,7 @@ describe('Transaction Actions Examples', () => {
     let appKit: AppKit;
     let consoleSpy: ReturnType<typeof vi.spyOn>;
     let mockSendTransaction: ReturnType<typeof vi.fn>;
+    let mockSignMessage: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -31,6 +33,7 @@ describe('Transaction Actions Examples', () => {
         });
 
         mockSendTransaction = vi.fn();
+        mockSignMessage = vi.fn();
     });
 
     afterEach(() => {
@@ -43,6 +46,7 @@ describe('Transaction Actions Examples', () => {
             getWalletId: () => 'mock-wallet-id',
             getNetwork: () => Network.mainnet(),
             sendTransaction: mockSendTransaction,
+            signMessage: mockSignMessage,
         } as unknown as WalletInterface;
 
         appKit.walletsManager.setWallets([mockWallet]);
@@ -58,6 +62,18 @@ describe('Transaction Actions Examples', () => {
 
             expect(mockSendTransaction).toHaveBeenCalled();
             expect(consoleSpy).toHaveBeenCalledWith('Transaction Result:', { hash: 'mock-hash' });
+        });
+    });
+
+    describe('signMessageExample', () => {
+        it('should log signed message result', async () => {
+            setupMockWallet();
+            mockSignMessage.mockResolvedValue({ internalBoc: 'mock-internal-boc' });
+
+            await signMessageExample(appKit);
+
+            expect(mockSignMessage).toHaveBeenCalled();
+            expect(consoleSpy).toHaveBeenCalledWith('Signed Message:', { internalBoc: 'mock-internal-boc' });
         });
     });
 

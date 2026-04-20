@@ -702,6 +702,25 @@ const result = await sendTransaction(appKit, {
 
 console.log('Transaction Result:', result);
 ```
+
+### `signMessage`
+
+Ask the connected wallet to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+```ts
+const result = await signMessage(appKit, {
+    messages: [
+        {
+            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+            amount: '100000000', // 0.1 TON in nanotons
+        },
+    ],
+});
+
+// result.internalBoc is a signed internal message BoC (base64)
+// that can be relayed on-chain by a third party (e.g. a gasless relayer).
+console.log('Signed Message:', result);
+```
  
 ### `transferTon`
  

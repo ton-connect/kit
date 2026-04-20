@@ -9,7 +9,7 @@
 import { Address } from '@ton/core';
 import type { Wallet as TonConnectWallet } from '@tonconnect/sdk';
 import type { SignDataPayload as TonConnectSignDataPayload } from '@tonconnect/sdk';
-import type { SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
+import type { Feature, SendTransactionResponse, UserFriendlyAddress, Hex } from '@ton/walletkit';
 import { asHex, createWalletId, getNormalizedExtMessageHash } from '@ton/walletkit';
 import type { TonConnectUI } from '@tonconnect/ui';
 
@@ -17,7 +17,7 @@ import type { TransactionRequest } from '../../../types/transaction';
 import type { Base64String } from '../../../types/primitives';
 import { getValidUntil } from '../utils/transaction';
 import type { WalletInterface } from '../../../types/wallet';
-import type { SignDataRequest, SignDataResponse } from '../../../types/signing';
+import type { SignDataRequest, SignDataResponse, SignMessageResponse } from '../../../types/signing';
 import { Network } from '../../../types/network';
 
 /**
@@ -73,21 +73,16 @@ export class TonConnectWalletAdapter implements WalletInterface {
         return createWalletId(this.getNetwork(), this.getAddress());
     }
 
+    getSupportedFeatures(): Feature[] | undefined {
+        return this.tonConnectWallet.device?.features;
+    }
+
     // ==========================================
     // Signing / Transactions
     // ==========================================
 
     async sendTransaction(request: TransactionRequest): Promise<SendTransactionResponse> {
-        const transaction = {
-            validUntil: request.validUntil || getValidUntil(),
-            messages: request.messages.map((msg) => ({
-                address: msg.address,
-                amount: String(msg.amount),
-                payload: msg.payload,
-                stateInit: msg.stateInit,
-            })),
-            network: request.network?.chainId ?? this.tonConnectWallet.account?.chain,
-        };
+        const transaction = this.mapTransactionRequest(request);
 
         const result = await this.tonConnectUI.sendTransaction(transaction);
         const { hash, boc: normalizedBoc } = getNormalizedExtMessageHash(result.boc);
@@ -96,6 +91,16 @@ export class TonConnectWalletAdapter implements WalletInterface {
             boc: result.boc as Base64String,
             normalizedBoc,
             normalizedHash: hash,
+        };
+    }
+
+    async signMessage(request: TransactionRequest): Promise<SignMessageResponse> {
+        const message = this.mapTransactionRequest(request);
+
+        const result = await this.tonConnectUI.signMessage(message);
+
+        return {
+            internalBoc: result.internalBoc as Base64String,
         };
     }
 
@@ -114,6 +119,19 @@ export class TonConnectWalletAdapter implements WalletInterface {
     // ==========================================
     // Private helpers
     // ==========================================
+
+    private mapTransactionRequest(request: TransactionRequest) {
+        return {
+            validUntil: request.validUntil || getValidUntil(),
+            messages: request.messages.map((msg) => ({
+                address: msg.address,
+                amount: String(msg.amount),
+                payload: msg.payload,
+                stateInit: msg.stateInit,
+            })),
+            network: request.network?.chainId ?? this.tonConnectWallet.account?.chain,
+        };
+    }
 
     private mapSignDataRequest(request: SignDataRequest): TonConnectSignDataPayload {
         const chainId = request.network?.chainId ?? this.getNetwork().chainId;
