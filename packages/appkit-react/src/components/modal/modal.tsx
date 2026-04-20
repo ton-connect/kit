@@ -33,6 +33,10 @@ export interface ModalProps {
      * Additional class name for the content container.
      */
     className?: string;
+    /**
+     * Additional class name for the body container.
+     */
+    bodyClassName?: string;
 }
 
 const CloseIcon = () => (
@@ -47,13 +51,13 @@ const CloseIcon = () => (
     </svg>
 );
 
-export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, className }) => {
+export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, className, bodyClassName }) => {
     return (
         <Dialog.Root open={open} onOpenChange={onOpenChange}>
             <Dialog.Portal>
                 <Dialog.Overlay className={styles.overlay} onClick={() => onOpenChange?.(false)}>
                     <Dialog.Content className={clsx(styles.content, className)} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles.header}>
+                        <div className={clsx(styles.header, bodyClassName)}>
                             {title && <Dialog.Title className={styles.title}>{title}</Dialog.Title>}
                             <Dialog.Close className={styles.close} aria-label="Close">
                                 <CloseIcon />

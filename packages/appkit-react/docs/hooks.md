@@ -704,6 +704,41 @@ const provider = useSwapProvider({ id: 'stonfi' });
 return <div>Result: {provider ? provider.providerId : 'null'}</div>;
 ```
 
+## Onramp
+
+### `useOnrampQuote`
+
+Hook to get an onramp quote for a specific fiat/crypto pair.
+
+```tsx
+const { data: quote, isLoading } = useOnrampQuote({
+    fiatCurrency: 'USD',
+    cryptoCurrency: 'TON',
+    amount: '100',
+});
+
+if (isLoading) return <div>Loading quote...</div>;
+return <div>Quote: {quote?.cryptoAmount} TON</div>;
+```
+
+### `useOnrampProvider`
+
+Hook to get a specific onramp provider.
+
+```tsx
+const provider = useOnrampProvider({ id: 'moonpay' });
+
+return <div>Provider: {provider?.providerId}</div>;
+```
+
+### `useOnrampProviders`
+
+Hook to get all registered onramp providers.
+
+### `useBuildOnrampUrl`
+
+Hook to build an onramp URL for redirecting the user to the provider.
+
 ## Staking
 
 ### Staking Hooks

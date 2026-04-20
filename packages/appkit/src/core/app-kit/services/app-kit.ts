@@ -6,8 +6,13 @@
  *
  */
 
-import { SwapManager, StreamingManager } from '@ton/walletkit';
-import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } from '@ton/walletkit';
+import { SwapManager, StreamingManager, OnrampManager } from '@ton/walletkit';
+import type {
+    ProviderInput,
+    SwapProviderInterface,
+    StakingProviderInterface,
+    OnrampProviderInterface,
+} from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
@@ -30,6 +35,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
     readonly stakingManager: StakingManager;
+    readonly onrampManager: OnrampManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly streamingManager: StreamingManager;
@@ -52,6 +58,7 @@ export class AppKit {
 
         this.swapManager = new SwapManager(() => this.createFactoryContext());
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
+        this.onrampManager = new OnrampManager(() => this.createFactoryContext());
         this.streamingManager = new StreamingManager(() => this.createFactoryContext());
 
         if (config.connectors) {
@@ -114,6 +121,9 @@ export class AppKit {
                 break;
             case 'staking':
                 this.stakingManager.registerProvider(provider as StakingProviderInterface);
+                break;
+            case 'onramp':
+                this.onrampManager.registerProvider(provider as OnrampProviderInterface);
                 break;
             default:
                 throw new Error('Unknown provider type');

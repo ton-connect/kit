@@ -58,6 +58,27 @@ export default {
         provider: 'Provider',
     },
 
+    // Token select
+    tokenSelect: {
+        otherTokens: 'Other Tokens',
+        otherCurrencies: 'Other Currencies',
+    },
+
+    // Onramp
+    onramp: {
+        continue: 'Continue',
+        selectToken: 'Token to buy',
+        searchToken: 'Search tokens',
+        selectCurrency: 'Select currency',
+        searchCurrency: 'Search currencies',
+        checkout: 'Checkout',
+        buyToken: 'Buy {{ symbol }}',
+        forCurrency: 'for {{ symbol }}',
+        noQuotesFound: 'No quotes found',
+        connectWallet: 'Connect a wallet to continue',
+        tonPayError: 'Failed to start TonPay checkout',
+    },
+
     // Staking
     staking: {
         stake: 'Stake',

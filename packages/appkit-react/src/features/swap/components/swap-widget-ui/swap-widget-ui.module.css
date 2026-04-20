@@ -20,11 +20,6 @@
   margin: 0;
 }
 
-.card {
-  position: relative;
-  border-radius: var(--ta-border-radius-xl);
-}
-
 .fieldsContainer {
   box-sizing: border-box;
   width: 100%;

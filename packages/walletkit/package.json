@@ -60,6 +60,16 @@
         "types": "./dist/cjs/defi/staking/tonstakers/index.d.ts",
         "default": "./dist/cjs/defi/staking/tonstakers/index.js"
       }
+    },
+    "./onramp/ton-pay": {
+      "import": {
+        "types": "./dist/esm/defi/onramp/ton-pay/index.d.ts",
+        "default": "./dist/esm/defi/onramp/ton-pay/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/onramp/ton-pay/index.d.ts",
+        "default": "./dist/cjs/defi/onramp/ton-pay/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -75,6 +85,9 @@
       ],
       "staking/tonstakers": [
         "./dist/cjs/defi/staking/tonstakers/index.d.ts"
+      ],
+      "onramp/ton-pay": [
+        "./dist/cjs/defi/onramp/ton-pay/index.d.ts"
       ]
     }
   },

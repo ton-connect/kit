@@ -6,21 +6,30 @@
  *
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
-import { compareAddress } from '@ton/appkit';
 
-import { Input } from '../input/input';
-import { Modal } from '../modal/modal';
-import { SearchIcon } from '../search-icon';
-import { CurrencyItem } from '../../features/balances';
+import { CurrencySelect } from '../currency-select-modal';
+import { CurrencyItem } from '../currency-item';
 import type { AppkitUIToken } from '../../types/appkit-ui-token';
-import styles from './token-select-modal.module.css';
+import { useI18n } from '../../features/settings/hooks/use-i18n';
+import { filterTokens, groupTokenSections } from './utils';
+
+export interface TokenSection {
+    title: string;
+    tokens: AppkitUIToken[];
+}
+
+export interface TokenSectionConfig {
+    title: string;
+    ids: string[];
+}
 
 export interface TokenSelectModalProps {
     open: boolean;
     onClose: () => void;
     tokens: AppkitUIToken[];
+    tokenSections?: TokenSectionConfig[];
     onSelect: (token: AppkitUIToken) => void;
     title: string;
     searchPlaceholder?: string;
@@ -30,18 +39,25 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     open,
     onClose,
     tokens,
+    tokenSections,
     onSelect,
     title,
     searchPlaceholder,
 }) => {
+    const { t } = useI18n();
     const [search, setSearch] = useState('');
 
-    const filtered = tokens.filter(
-        (token) =>
-            token.symbol.toLowerCase().includes(search.toLowerCase()) ||
-            token.name.toLowerCase().includes(search.toLowerCase()) ||
-            compareAddress(token.address, search),
-    );
+    const displaySections = useMemo((): TokenSection[] => {
+        if (search) {
+            return [{ title: '', tokens: filterTokens(tokens, search) }];
+        }
+        if (tokenSections) {
+            return groupTokenSections(tokens, tokenSections, t('tokenSelect.otherTokens'));
+        }
+        return [{ title: '', tokens }];
+    }, [tokens, tokenSections, search, t]);
+
+    const isEmpty = displaySections.every((s) => s.tokens.length === 0);
 
     const handleSelect = (token: AppkitUIToken) => () => {
         onSelect(token);
@@ -57,30 +73,13 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     };
 
     return (
-        <Modal open={open} onOpenChange={handleOpenChange} title={title}>
-            <Input.Container className={styles.searchWrapper} size="s">
-                <Input.Field>
-                    <Input.Slot>
-                        <SearchIcon size={24} />
-                    </Input.Slot>
-                    <Input.Input
-                        placeholder={searchPlaceholder}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        autoFocus
-                    />
-                </Input.Field>
-            </Input.Container>
-
-            <div className={styles.list}>
-                {filtered.length === 0 ? (
-                    <div className={styles.empty}>
-                        <p className={styles.emptyText}>We didn&#x27;t find any tokens.</p>
-                        <p className={styles.emptyText}>Try searching by address.</p>
-                    </div>
-                ) : (
-                    <ul className={styles.list}>
-                        {filtered.map((token) => (
+        <CurrencySelect.Modal open={open} onOpenChange={handleOpenChange} title={title}>
+            <CurrencySelect.Search searchValue={search} onSearchChange={setSearch} placeholder={searchPlaceholder} />
+            <CurrencySelect.ListContainer isEmpty={isEmpty}>
+                {displaySections.map((section) => (
+                    <CurrencySelect.Section key={section.title}>
+                        {section.title && <CurrencySelect.SectionHeader>{section.title}</CurrencySelect.SectionHeader>}
+                        {section.tokens.map((token) => (
                             <CurrencyItem
                                 key={token.address}
                                 icon={token.logo}
@@ -89,9 +88,9 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
                                 onClick={handleSelect(token)}
                             />
                         ))}
-                    </ul>
-                )}
-            </div>
-        </Modal>
+                    </CurrencySelect.Section>
+                ))}
+            </CurrencySelect.ListContainer>
+        </CurrencySelect.Modal>
     );
 };

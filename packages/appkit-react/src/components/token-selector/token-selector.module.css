@@ -1,0 +1,21 @@
+.tokenSelector:hover {
+  opacity: 0.8;
+}
+
+.readOnly {
+  cursor: default;
+}
+
+.readOnly:hover {
+  opacity: 1;
+}
+
+.symbol {
+  padding-right: 2px;
+  margin-right: auto;
+}
+
+.chevron {
+  opacity: 0.5;
+  margin-left: auto;
+}

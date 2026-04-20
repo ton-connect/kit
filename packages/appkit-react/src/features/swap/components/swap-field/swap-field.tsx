@@ -13,7 +13,7 @@ import clsx from 'clsx';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
 import { Skeleton } from '../../../../components/skeleton';
-import { TokenSelector } from '../token-selector/token-selector';
+import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { useSwapContext } from '../swap-widget-provider/swap-widget-provider';
 import styles from './swap-field.module.css';
@@ -70,7 +70,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     disabled={type === 'receive'}
                 />
                 <Input.Slot side="right">
-                    <TokenSelector symbol={tokenSymbol} icon={token?.logo} onClick={onTokenSelectorClick} />
+                    <TokenSelector title={tokenSymbol} icon={token?.logo} onClick={onTokenSelectorClick} />
                 </Input.Slot>
             </Input.Field>
 

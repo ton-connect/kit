@@ -63,7 +63,7 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
                     </ActiveTouchAction>
                 </View>
 
-                <ActiveTouchAction onPress={handleSelectTon} style={styles.tokenItem}>
+                <ActiveTouchAction onPress={handleSelectTon} style={styles.currencyItem}>
                     <View style={styles.tokenInfo}>
                         <AppLogo />
                         <View style={styles.tokenDetails}>
@@ -89,7 +89,7 @@ export const TokenListSheet: FC<TokenListSheetProps> = ({ isOpen, onClose, onSel
                         <ActiveTouchAction
                             key={address}
                             onPress={() => handleSelectJetton(jetton)}
-                            style={styles.tokenItem}
+                            style={styles.currencyItem}
                         >
                             <View style={styles.tokenInfo}>
                                 {image ? (
@@ -143,7 +143,7 @@ const styles = StyleSheet.create(({ sizes, colors }, runtime) => ({
         top: 0,
         right: 12,
     },
-    tokenItem: {
+    currencyItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
