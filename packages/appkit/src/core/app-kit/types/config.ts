@@ -10,6 +10,7 @@ import type { NetworkAdapters, ProviderInput } from '@ton/walletkit';
 
 import type { ConnectorInput } from '../../../types/connector';
 import type { Network } from '../../../types/network';
+import type { PluginInput } from '../../../types/plugin';
 
 /**
  * Configuration for AppKit
@@ -37,6 +38,11 @@ export interface AppKitConfig {
     defaultNetwork?: Network;
 
     providers?: ProviderInput[];
+
+    /**
+     * Plugins that register extensions into AppKit.
+     */
+    plugins?: PluginInput[];
 
     /**
      * Enable server-side rendering support

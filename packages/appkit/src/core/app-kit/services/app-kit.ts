@@ -11,7 +11,9 @@ import type { ProviderInput, SwapProviderInterface, StakingProviderInterface } f
 
 import { StakingManager } from '../../../staking';
 import type { Connector, ConnectorFactoryContext, ConnectorInput } from '../../../types/connector';
+import type { AppKitPlugin, PluginInput } from '../../../types/plugin';
 import { EventEmitter } from '../../emitter';
+import { PluginManager } from '../../plugin-manager';
 import { CONNECTOR_EVENTS, WALLETS_EVENTS } from '../constants/events';
 import type { AppKitEmitter, AppKitEvents } from '../types/events';
 import type { WalletInterface } from '../../../types/wallet';
@@ -30,6 +32,7 @@ export class AppKit {
     readonly walletsManager: WalletsManager;
     readonly swapManager: SwapManager;
     readonly stakingManager: StakingManager;
+    readonly pluginManager: PluginManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly streamingManager: StreamingManager;
@@ -53,6 +56,7 @@ export class AppKit {
         this.swapManager = new SwapManager(() => this.createFactoryContext());
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
         this.streamingManager = new StreamingManager(() => this.createFactoryContext());
+        this.pluginManager = new PluginManager(this.emitter);
 
         if (config.connectors) {
             config.connectors.forEach((input) => {
@@ -63,6 +67,12 @@ export class AppKit {
         if (config.providers) {
             config.providers.forEach((input) => {
                 this.registerProvider(input);
+            });
+        }
+
+        if (config.plugins) {
+            config.plugins.forEach((input) => {
+                this.addPlugin(input);
             });
         }
     }
@@ -101,6 +111,15 @@ export class AppKit {
             oldConnector.destroy();
             this.connectors.splice(this.connectors.indexOf(oldConnector), 1);
         }
+    }
+
+    /**
+     * Add a plugin
+     */
+    addPlugin(input: PluginInput): void {
+        const plugin: AppKitPlugin = typeof input === 'function' ? input(this.createFactoryContext()) : input;
+        plugin.init(this.createFactoryContext());
+        this.pluginManager.register(plugin.id, plugin);
     }
 
     /**
