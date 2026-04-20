@@ -25,8 +25,8 @@
   "dependencies": {
     "@demo/v4ledger-adapter": "workspace:*",
     "@demo/wallet-core": "workspace:*",
-    "@ledgerhq/hw-transport-webhid": "^6.34.0",
-    "@ledgerhq/hw-transport-webusb": "^6.33.0",
+    "@ledgerhq/hw-transport-webhid": "6.34.0",
+    "@ledgerhq/hw-transport-webusb": "6.33.0",
     "@tailwindcss/vite": "^4.2.2",
     "@ton/core": "catalog:",
     "@ton/crypto": "catalog:",

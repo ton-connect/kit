@@ -200,11 +200,11 @@ importers:
         specifier: workspace:*
         version: link:../../demo/wallet-core
       '@ledgerhq/hw-transport-webhid':
-        specifier: ^6.34.0
-        version: 6.35.0
-      '@ledgerhq/hw-transport-webusb':
-        specifier: ^6.33.0
+        specifier: 6.34.0
         version: 6.34.0
+      '@ledgerhq/hw-transport-webusb':
+        specifier: 6.33.0
+        version: 6.33.0
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.9(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -2281,11 +2281,11 @@ packages:
   '@ledgerhq/hw-transport-node-hid@6.30.0':
     resolution: {integrity: sha512-HYaBEnb/LY/YFKVQz+DMmUKIZRUIRHvY94JhBIulXVXlPB3I0MmZBtccVVspz+RzCt1KPe61NMJSc1ebeWcOyw==}
 
-  '@ledgerhq/hw-transport-webhid@6.35.0':
-    resolution: {integrity: sha512-Zo0BFOApGspbcPRyIYmlbrPY9Er6jwfa4YjjSWWIFMQ38t4fOCny/Cu+JKtvTmCrwPASVP9d90PneJ2OSCt8xQ==}
+  '@ledgerhq/hw-transport-webhid@6.34.0':
+    resolution: {integrity: sha512-SG+UnZXyUzrJBSkZnRYGaaZV+C8yiu+pF69Mzw4AKOX6TG8RZ1tOvly8hhnRQ2/gXSiTgbc07N4T8ne2eFei3A==}
 
-  '@ledgerhq/hw-transport-webusb@6.34.0':
-    resolution: {integrity: sha512-q0to/Rn7Z6iVdxIJHXPFNR4fw02m1GGT29dwQzSmdhbQZyY/yDH0jB/DNPR8D62JQdSuQgFX25yA1wDGtdQD5w==}
+  '@ledgerhq/hw-transport-webusb@6.33.0':
+    resolution: {integrity: sha512-/CSDMzBykihqumItyRxmrmqvBHIBRO9eQlHk2Xvrok6X09EF8ENglcITmEiyqvtDQEofD9A0+tdUhWgV9z82fg==}
 
   '@ledgerhq/hw-transport@6.32.0':
     resolution: {integrity: sha512-bf2nxzDQ21DV/bsmExfWI0tatoVeoqhu/ePWalD/nPgPnTn/ZIDq7VBU+TY5p0JZaE87NQwmRUAjm6C1Exe61A==}
@@ -2295,9 +2295,6 @@ packages:
 
   '@ledgerhq/hw-transport@6.35.0':
     resolution: {integrity: sha512-BFk4Zr5gfzT40RT6nj0NQTNB25bxWD3QWhdrOA6Mi/CChFTdGomjOuAhWHla2kH50ft8M5UsiiUeHoR+56J69g==}
-
-  '@ledgerhq/logs@6.14.0':
-    resolution: {integrity: sha512-kJFu1+asWQmU9XlfR1RM3lYR76wuEoPyZvkI/CNjpft78BQr3+MMf3Nu77ABzcKFnhIcmAkOLlDQ6B8L6hDXHA==}
 
   '@ledgerhq/logs@6.17.0':
     resolution: {integrity: sha512-yra33g5q/AU7+PwAws+GaVpQGUuxnDREjVBnviJjcaJLVKuLzI4pnj8Bd3nY3fypM5k1yZEYKEXfUuGFUjP2+w==}
@@ -4393,6 +4390,7 @@ packages:
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -11780,7 +11778,7 @@ snapshots:
   '@ledgerhq/devices@8.10.0':
     dependencies:
       '@ledgerhq/errors': 6.29.0
-      '@ledgerhq/logs': 6.14.0
+      '@ledgerhq/logs': 6.17.0
       rxjs: 7.8.2
       semver: 7.7.3
 
@@ -11807,7 +11805,7 @@ snapshots:
       '@ledgerhq/devices': 8.10.0
       '@ledgerhq/errors': 6.29.0
       '@ledgerhq/hw-transport': 6.32.0
-      '@ledgerhq/logs': 6.14.0
+      '@ledgerhq/logs': 6.17.0
       node-hid: 2.1.2
 
   '@ledgerhq/hw-transport-node-hid@6.30.0':
@@ -11816,30 +11814,30 @@ snapshots:
       '@ledgerhq/errors': 6.29.0
       '@ledgerhq/hw-transport': 6.32.0
       '@ledgerhq/hw-transport-node-hid-noevents': 6.31.0
-      '@ledgerhq/logs': 6.14.0
+      '@ledgerhq/logs': 6.17.0
       lodash: 4.17.23
       node-hid: 2.1.2
       usb: 2.9.0
 
-  '@ledgerhq/hw-transport-webhid@6.35.0':
+  '@ledgerhq/hw-transport-webhid@6.34.0':
     dependencies:
-      '@ledgerhq/devices': 8.14.0
+      '@ledgerhq/devices': 8.13.0
       '@ledgerhq/errors': 6.33.0
-      '@ledgerhq/hw-transport': 6.35.0
+      '@ledgerhq/hw-transport': 6.34.1
       '@ledgerhq/logs': 6.17.0
 
-  '@ledgerhq/hw-transport-webusb@6.34.0':
+  '@ledgerhq/hw-transport-webusb@6.33.0':
     dependencies:
-      '@ledgerhq/devices': 8.14.0
+      '@ledgerhq/devices': 8.13.0
       '@ledgerhq/errors': 6.33.0
-      '@ledgerhq/hw-transport': 6.35.0
+      '@ledgerhq/hw-transport': 6.34.1
       '@ledgerhq/logs': 6.17.0
 
   '@ledgerhq/hw-transport@6.32.0':
     dependencies:
       '@ledgerhq/devices': 8.10.0
-      '@ledgerhq/errors': 6.29.0
-      '@ledgerhq/logs': 6.14.0
+      '@ledgerhq/errors': 6.33.0
+      '@ledgerhq/logs': 6.17.0
       events: 3.3.0
 
   '@ledgerhq/hw-transport@6.34.1':
@@ -11855,8 +11853,6 @@ snapshots:
       '@ledgerhq/errors': 6.33.0
       '@ledgerhq/logs': 6.17.0
       events: 3.3.0
-
-  '@ledgerhq/logs@6.14.0': {}
 
   '@ledgerhq/logs@6.17.0': {}
 
@@ -13676,7 +13672,7 @@ snapshots:
 
   '@ton-community/ton-ledger@7.3.0(@ton/core@0.63.1(@ton/crypto@3.3.0))':
     dependencies:
-      '@ledgerhq/hw-transport': 6.32.0
+      '@ledgerhq/hw-transport': 6.35.0
       '@ton/core': 0.63.1(@ton/crypto@3.3.0)
       '@ton/crypto': 3.3.0
       teslabot: 1.5.0
