@@ -8,19 +8,19 @@
 
 import type { FC } from 'react';
 
-import { useCollections } from '../hooks/use-collections';
+import { useFeaturedCollectionAddresses } from '../hooks/use-collections';
 import { CollectionCard } from './collection-card';
 
 import { Card } from '@/core/components';
 
 export const CollectionsList: FC = () => {
-    const collections = useCollections();
+    const addresses = useFeaturedCollectionAddresses();
 
     return (
         <Card title="Collections">
             <div className="space-y-3">
-                {collections.map((collection) => (
-                    <CollectionCard key={collection.address} collection={collection} />
+                {addresses.map((address) => (
+                    <CollectionCard key={address} address={address} />
                 ))}
             </div>
         </Card>

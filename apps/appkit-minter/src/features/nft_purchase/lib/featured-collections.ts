@@ -6,17 +6,4 @@
  *
  */
 
-export interface FeaturedCollection {
-    address: string;
-    name: string;
-    description?: string;
-    image?: string;
-}
-
-export const FEATURED_COLLECTIONS: readonly FeaturedCollection[] = [
-    {
-        address: 'EQCWB1WLs7rDJfYaeVxTZWnwQmrIFzbUcr-us-9aIn1ZNFpq',
-        name: 'Featured Collection',
-        description: 'Browse and buy NFTs from this collection on GetGems.',
-    },
-];
+export const FEATURED_COLLECTION_ADDRESSES: readonly string[] = ['EQCWB1WLs7rDJfYaeVxTZWnwQmrIFzbUcr-us-9aIn1ZNFpq'];

@@ -6,7 +6,13 @@
  *
  */
 
-import type { GetGemsBuyResponse, GetGemsEnvelope, GetGemsNftFull, GetGemsNftsOnSaleResponse } from './types';
+import type {
+    GetGemsBuyResponse,
+    GetGemsCollection,
+    GetGemsEnvelope,
+    GetGemsNftFull,
+    GetGemsNftsOnSaleResponse,
+} from './types';
 
 import { ENV_GETGEMS_API_KEY } from '@/core/configs/env';
 
@@ -42,6 +48,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
 
     return body as T;
+}
+
+export function fetchCollection(collectionAddress: string): Promise<GetGemsCollection> {
+    return request<GetGemsCollection>(`/v1/collection/${encodeURIComponent(collectionAddress)}`);
 }
 
 export function fetchNftsOnSale(collectionAddress: string, limit = 30): Promise<GetGemsNftsOnSaleResponse> {

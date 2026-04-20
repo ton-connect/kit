@@ -43,6 +43,14 @@ export interface GetGemsNftFull {
     sale?: GetGemsSale | null;
 }
 
+export interface GetGemsCollection {
+    address: string;
+    name?: string | null;
+    description?: string | null;
+    image?: string | null;
+    ownerAddress?: string | null;
+}
+
 export interface GetGemsBuyMessage {
     to: string;
     amount: string;

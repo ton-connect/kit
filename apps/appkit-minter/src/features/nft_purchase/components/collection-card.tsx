@@ -8,32 +8,39 @@
 
 import type { FC } from 'react';
 import { Link } from 'react-router-dom';
-import { ImageIcon, ChevronRight } from 'lucide-react';
+import { ChevronRight, ImageIcon } from 'lucide-react';
 
-import type { FeaturedCollection } from '../lib/featured-collections';
+import { useCollection } from '../hooks/use-collections';
 
 interface CollectionCardProps {
-    collection: FeaturedCollection;
+    address: string;
 }
 
-export const CollectionCard: FC<CollectionCardProps> = ({ collection }) => {
+export const CollectionCard: FC<CollectionCardProps> = ({ address }) => {
+    const { data, isLoading, isError } = useCollection(address);
+
+    const name = data?.name ?? (isLoading ? 'Loading…' : 'Unknown collection');
+    const description = data?.description;
+    const image = data?.image;
+
     return (
         <Link
-            to={`/buy-nft/${collection.address}`}
+            to={`/buy-nft/${address}`}
             className="flex items-center gap-4 p-4 rounded-lg border border-border bg-muted hover:bg-muted/70 transition-colors"
         >
-            <div className="w-14 h-14 rounded-lg overflow-hidden bg-background/60 flex items-center justify-center shrink-0">
-                {collection.image ? (
-                    <img src={collection.image} alt={collection.name} className="w-full h-full object-cover" />
+            <div className="w-16 h-16 rounded-lg overflow-hidden bg-background/60 flex items-center justify-center shrink-0">
+                {image ? (
+                    <img src={image} alt={name} className="w-full h-full object-cover" />
+                ) : isLoading ? (
+                    <div className="w-full h-full animate-pulse bg-background/80" />
                 ) : (
                     <ImageIcon className="w-6 h-6 text-muted-foreground" />
                 )}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">{collection.name}</p>
-                {collection.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-1">{collection.description}</p>
-                )}
+                <p className="font-semibold text-foreground truncate">{name}</p>
+                {description && !isError && <p className="text-xs text-muted-foreground line-clamp-1">{description}</p>}
+                {isError && <p className="text-xs text-destructive">Failed to load collection info</p>}
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
         </Link>
