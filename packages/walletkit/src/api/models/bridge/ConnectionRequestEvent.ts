@@ -8,6 +8,7 @@
 
 import type { DAppInfo } from '../core/DAppInfo';
 import type { BridgeEvent } from './BridgeEvent';
+import type { IntentAction } from './Intents';
 
 /**
  * Event containing a connection request from a dApp via TON Connect.
@@ -21,6 +22,11 @@ export interface ConnectionRequestEvent extends BridgeEvent {
      * Preview information for UI display
      */
     preview: ConnectionRequestEventPreview;
+
+    /**
+     * Intent action for user to approve along with connection
+     */
+    intentAction?: IntentAction;
 }
 
 /**

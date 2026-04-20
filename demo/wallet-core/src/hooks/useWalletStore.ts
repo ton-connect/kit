@@ -142,6 +142,22 @@ export const useSignDataRequests = () => {
 };
 
 /**
+ * Hook for sign message requests
+ */
+export const useSignMessageRequests = () => {
+    return useWalletStore(
+        useShallow((state) => ({
+            pendingSignMessageRequest: state.tonConnect.pendingSignMessageRequestEvent,
+            isSignMessageModalOpen: state.tonConnect.isSignMessageModalOpen,
+            showSignMessageRequest: state.showSignMessageRequest,
+            approveSignMessageRequest: state.approveSignMessageRequest,
+            rejectSignMessageRequest: state.rejectSignMessageRequest,
+            closeSignMessageModal: state.closeSignMessageModal,
+        })),
+    );
+};
+
+/**
  * Hook for disconnect events
  */
 export const useDisconnectEvents = () => {

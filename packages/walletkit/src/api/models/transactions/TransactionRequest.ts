@@ -11,15 +11,23 @@ import type { Network } from '../core/Network';
 import type { Base64String } from '../core/Primitives';
 import type { SendMode } from '../core/SendMode';
 import type { TokenAmount } from '../core/TokenAmount';
+import type { StructuredItem } from './StructuredItem';
 
 /**
  * Request to send a transaction on the TON blockchain.
+ * Contains either `messages` (raw format) or `items` (structured format), never both.
  */
 export interface TransactionRequest {
     /**
-     * List of messages to include in the transaction
+     * List of messages to include in the transaction (raw format)
      */
     messages: TransactionRequestMessage[];
+
+    /**
+     * List of structured items (ton/jetton/nft) as an alternative to raw messages.
+     * When present, the wallet app is responsible for resolving items into messages.
+     */
+    items?: StructuredItem[];
 
     /**
      * Network to execute the transaction on

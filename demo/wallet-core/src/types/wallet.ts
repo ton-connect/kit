@@ -11,6 +11,7 @@ import type {
     JSBridgeTransportFunction,
     StorageAdapter as KitStorageAdapter,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     SendTransactionRequestEvent,
     AnalyticsManagerOptions,
 } from '@ton/walletkit';
@@ -94,7 +95,16 @@ export interface QueuedRequestSignData {
     request: SignDataRequestEvent;
 }
 
-export type QueuedRequestData = QueuedRequestConnect | QueuedRequestTransaction | QueuedRequestSignData;
+export interface QueuedRequestSignMessage {
+    type: 'signMessage';
+    request: SignMessageRequestEvent;
+}
+
+export type QueuedRequestData =
+    | QueuedRequestConnect
+    | QueuedRequestTransaction
+    | QueuedRequestSignData
+    | QueuedRequestSignMessage;
 
 export type QueuedRequest = QueueRequestBase & QueuedRequestData;
 

@@ -76,6 +76,20 @@ export class TonConnectBridge {
     }
 
     /**
+     * Initiates connection and submits an intent in a single call.
+     * Returns the connect event (if a new connection was established) and the intent response.
+     */
+    async connectWithIntent(
+        payload: string,
+        options?: { protocolVersion?: number; connectRequest?: ConnectRequest },
+    ): Promise<unknown> {
+        return this.transport.send({
+            method: 'connectWithIntent',
+            params: { payload, ...(options ?? {}) },
+        });
+    }
+
+    /**
      * Registers a listener for events from the wallet
      * Returns unsubscribe function
      */

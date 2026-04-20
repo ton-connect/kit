@@ -72,6 +72,7 @@ export class ConnectHandler
             isJsBridge: event.isJsBridge,
             tabId: event.tabId,
             returnStrategy: event.params.returnStrategy,
+            intentAction: event.intentPayload,
         };
 
         // Send wallet-connect-request-received event
