@@ -21,7 +21,7 @@ import { ENV_GETGEMS_API_KEY } from '@/core/configs/env';
 // dev-server proxy configured in vite.config.ts.
 const BASE_URL = '/getgems-api';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: Parameters<typeof fetch>[1]): Promise<T> {
     const res = await fetch(`${BASE_URL}${path}`, {
         ...init,
         headers: {
@@ -54,9 +54,21 @@ export function fetchCollection(collectionAddress: string): Promise<GetGemsColle
     return request<GetGemsCollection>(`/v1/collection/${encodeURIComponent(collectionAddress)}`);
 }
 
-export function fetchNftsOnSale(collectionAddress: string, limit = 30): Promise<GetGemsNftsOnSaleResponse> {
+export interface FetchNftsOnSaleParams {
+    limit?: number;
+    after?: string | null;
+}
+
+export function fetchNftsOnSale(
+    collectionAddress: string,
+    params: FetchNftsOnSaleParams = {},
+): Promise<GetGemsNftsOnSaleResponse> {
+    const { limit = 30, after } = params;
+    const query = new URLSearchParams();
+    query.set('limit', String(limit));
+    if (after) query.set('after', after);
     return request<GetGemsNftsOnSaleResponse>(
-        `/v1/nfts/on-sale/${encodeURIComponent(collectionAddress)}?limit=${limit}`,
+        `/v1/nfts/on-sale/${encodeURIComponent(collectionAddress)}?${query.toString()}`,
     );
 }
 
