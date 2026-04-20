@@ -14,3 +14,12 @@ export interface SwapProviderMetadata {
     logo?: string;
     url?: string;
 }
+
+/**
+ * Used in provider configuration to override fields of the provider's metadata.
+ */
+export interface SwapProviderMetadataOverride {
+    name?: string;
+    logo?: string;
+    url?: string;
+}
