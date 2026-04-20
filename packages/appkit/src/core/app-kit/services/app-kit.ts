@@ -54,6 +54,9 @@ export class AppKit {
         };
 
         this.networkManager = new AppKitNetworkManager({ networks }, this.emitter);
+        if (config.defaultNetwork) {
+            this.networkManager.setDefaultNetwork(config.defaultNetwork);
+        }
         this.walletsManager = new WalletsManager(this.emitter);
 
         this.swapManager = new SwapManager(() => this.createFactoryContext());

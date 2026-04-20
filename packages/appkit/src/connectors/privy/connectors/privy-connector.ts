@@ -9,6 +9,7 @@
 import { CONNECTOR_EVENTS, NETWORKS_EVENTS } from '../../../core/app-kit';
 import { createConnector } from '../../../types/connector';
 import type { Connector, ConnectorMetadata } from '../../../types/connector';
+import type { Network } from '../../../types/network';
 import type { WalletInterface } from '../../../types/wallet';
 import { PRIVY_DEFAULT_CONNECTOR_ID } from '../constants/id';
 import { PrivyWalletAdapter } from '../adapters/privy-wallet-adapter';
@@ -22,6 +23,12 @@ export interface PrivyConnectorConfig {
     appId: string;
     /** Subwallet id override for V5R1. Defaults to walletkit's `defaultWalletIdV5R1`. */
     walletId?: number;
+    /**
+     * Fallback network used when the AppKit-level default network is unset.
+     * Privy requires a concrete network to build its wallet adapter — this lets
+     * the connector stay functional when the app leaves the default as "any".
+     */
+    defaultNetwork?: Network;
 }
 
 export type PrivyBuildStatus = 'idle' | 'building' | 'ready' | 'error' | 'skipped-no-network' | 'skipped-no-token';
@@ -62,7 +69,7 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
             buildStatus = 'building';
             lastBuildError = null;
 
-            const network = networkManager.getDefaultNetwork();
+            const network = networkManager.getDefaultNetwork() ?? config.defaultNetwork;
             if (!network) {
                 buildStatus = 'skipped-no-network';
                 return;
