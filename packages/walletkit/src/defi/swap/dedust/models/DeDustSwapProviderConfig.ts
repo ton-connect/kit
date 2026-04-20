@@ -6,7 +6,7 @@
  *
  */
 
-import type { SwapProviderMetadata } from '../../../../api/models';
+import type { SwapProviderMetadataOverride } from '../../../../api/models';
 import type { DeDustReferralOptions } from './DeDustReferralOptions';
 
 /**
@@ -61,5 +61,5 @@ export interface DeDustSwapProviderConfig extends DeDustReferralOptions {
     /**
      * Custom metadata for the provider
      */
-    metadata?: Partial<SwapProviderMetadata>;
+    metadata?: SwapProviderMetadataOverride;
 }
