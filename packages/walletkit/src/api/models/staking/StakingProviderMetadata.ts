@@ -21,6 +21,12 @@ export interface StakingTokenInfo {
  * Static metadata for a staking provider
  */
 export interface StakingProviderMetadata {
+    /** Supported unstake modes for this provider */
+    supportedUnstakeModes: UnstakeModes[];
+
+    /** Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) */
+    supportsReversedQuote: boolean;
+
     /** Token that the user sends when staking (e.g. TON) */
     stakeToken: StakingTokenInfo;
 
@@ -29,10 +35,15 @@ export interface StakingProviderMetadata {
 
     /** Provider contract address (optional — custodial providers may not have one) */
     contractAddress?: UserFriendlyAddress;
+}
 
-    /** Supported unstake modes for this provider */
-    supportedUnstakeModes: UnstakeModes[];
-
-    /** Whether provider supports reversed quote format (e.g., passing TON instead of tsTON for unstake) */
-    supportsReversedQuote: boolean;
+/**
+ * Used in provider configuration to override fields of the provider's metadata.
+ */
+export interface StakingProviderMetadataOverride {
+    stakeToken?: StakingTokenInfo;
+    receiveToken?: StakingTokenInfo;
+    contractAddress?: UserFriendlyAddress;
+    supportedUnstakeModes?: UnstakeModes[];
+    supportsReversedQuote?: boolean;
 }
