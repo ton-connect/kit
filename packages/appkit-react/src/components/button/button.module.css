@@ -49,6 +49,13 @@
   border-radius: var(--ta-border-radius-2xl);
 }
 
+.icon {
+  composes: labelSemibold from "../../styles/typography.module.css";
+  aspect-ratio: 1;
+  padding: 6px;
+  border-radius: var(--ta-border-radius-full);
+}
+
 /* Variants */
 .fill {
   background-color: var(--ta-color-primary);
@@ -83,7 +90,7 @@
   width: 100%;
 }
 
-.icon {
+.innerIcon {
   display: flex;
   align-items: center;
   justify-content: center;

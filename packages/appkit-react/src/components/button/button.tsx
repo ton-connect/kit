@@ -13,7 +13,7 @@ import clsx from 'clsx';
 import styles from './button.module.css';
 
 export interface ButtonProps extends ComponentProps<'button'> {
-    size?: 's' | 'm' | 'l';
+    size?: 's' | 'm' | 'l' | 'icon';
     variant?: 'fill' | 'secondary' | 'bezeled' | 'gray' | 'ghost';
     loading?: boolean;
     fullWidth?: boolean;
@@ -53,7 +53,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                     <span className={styles.spinner} />
                 ) : (
                     <>
-                        {icon && <span className={styles.icon}>{icon}</span>}
+                        {icon && <span className={styles.innerIcon}>{icon}</span>}
                         {children}
                     </>
                 )}

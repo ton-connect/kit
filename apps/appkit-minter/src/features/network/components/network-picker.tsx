@@ -42,7 +42,7 @@ export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...prop
     }
 
     return (
-        <div className={cn('relative inline-block max-w-xs', className)}>
+        <div className={cn('relative inline-block w-full', className)}>
             <select
                 className={cn(
                     'peer appearance-none w-full cursor-pointer rounded-4xl border border-border bg-card/60 px-4 py-2.5 pr-10 text-sm font-medium text-foreground outline-none backdrop-blur-md transition-all placeholder:text-muted-foreground hover:border-border hover:bg-card/80 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50',
