@@ -10,22 +10,81 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { Button, useSelectedWallet } from '@ton/appkit-react';
 import type { TransactionRequest, TransactionRequestMessage } from '@ton/appkit';
-import { Network } from '@ton/appkit';
+import { getJettonWalletAddress, Network } from '@ton/appkit';
+import { beginCell, toNano } from '@ton/core';
 import { Image as ImageIcon, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { buildBuyTransaction, fetchNft } from '../api/getgems-client';
 import { isFixPriceSale } from '../api/types';
-import type { GetGemsNftOnSale } from '../api/types';
+import type { GetGemsNftFull, GetGemsNftOnSale } from '../api/types';
 import { formatAmount, formatPrice, getCurrencyDecimals, safeBigInt } from '../lib/currency';
+import { buildJettonTransferBody, getJettonMaster } from '../lib/jetton';
 import { PurchaseModal } from './purchase-modal';
 import type { PurchaseDetails } from './purchase-modal';
+
+import { appKit } from '@/core/configs/app-kit';
 
 interface NftCardProps {
     nft: GetGemsNftOnSale;
 }
 
 const TON_DECIMALS = 9;
+
+/** Gas attached to the jetton_transfer (matches what GetGems' own UI sends). */
+const JETTON_BUY_GAS = toNano('0.5');
+/** TON forwarded with jetton_notify to the sale contract. */
+const JETTON_FORWARD_TON = toNano('0.35');
+
+async function buildJettonBuyTransaction(args: {
+    nft: GetGemsNftFull;
+    userAddress: string;
+    currency: string;
+    priceNano: bigint;
+    saleContract: string;
+}): Promise<TransactionRequest> {
+    const master = getJettonMaster(args.currency);
+    if (!master) {
+        throw new Error(`Currency ${args.currency} is not supported yet`);
+    }
+
+    const userJettonWallet = await getJettonWalletAddress(appKit, {
+        jettonAddress: master,
+        ownerAddress: args.userAddress,
+    });
+
+    const commentCell = beginCell().storeUint(0, 32).storeStringTail('Bought on getgems.io').endCell();
+
+    const payload = buildJettonTransferBody({
+        queryId: BigInt(Date.now()),
+        jettonAmount: args.priceNano,
+        destination: args.saleContract,
+        responseDestination: args.userAddress,
+        forwardTonAmount: JETTON_FORWARD_TON,
+        forwardPayload: commentCell,
+    });
+
+    console.log('[nft_purchase] USDT buy tx', {
+        userJettonWallet,
+        saleContract: args.saleContract,
+        priceNano: args.priceNano.toString(),
+        buyGas: JETTON_BUY_GAS.toString(),
+        forwardTon: JETTON_FORWARD_TON.toString(),
+    });
+
+    const messages: TransactionRequestMessage[] = [
+        {
+            address: userJettonWallet,
+            amount: JETTON_BUY_GAS.toString(),
+            payload,
+        },
+    ];
+
+    return {
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        messages,
+    };
+}
 
 export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const [wallet] = useSelectedWallet();
@@ -38,7 +97,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const isMainnet = wallet?.getNetwork().chainId === Network.mainnet().chainId;
 
     const handleBuyClick = async () => {
-        if (isLoadingBuy) return;
+        if (isLoadingBuy || !wallet) return;
         setIsLoadingBuy(true);
         try {
             const fresh = await fetchNft(nft.address);
@@ -47,31 +106,47 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 return;
             }
 
-            const buy = await buildBuyTransaction(nft.address, fresh.sale.version);
-
-            const messages: TransactionRequestMessage[] = buy.list.map((item) => {
-                const message: TransactionRequestMessage = { address: item.to, amount: item.amount };
-                if (item.payload) message.payload = item.payload;
-                if (item.stateInit) message.stateInit = item.stateInit;
-                return message;
-            });
-
-            const tx: TransactionRequest = {
-                validUntil: Math.floor(new Date(buy.timeout).getTime() / 1000),
-                messages,
-            };
-
             const currency = fresh.sale.currency;
             const priceDecimals = getCurrencyDecimals(currency);
             const priceRaw = safeBigInt(fresh.sale.fullPrice);
-            const totalTonRaw = buy.list.reduce((acc, item) => acc + safeBigInt(item.amount), 0n);
+
+            let tx: TransactionRequest;
+            let networkFeeRaw: bigint;
+
+            if (currency === 'TON') {
+                const buy = await buildBuyTransaction(nft.address, fresh.sale.version);
+                const messages: TransactionRequestMessage[] = buy.list.map((item) => {
+                    const message: TransactionRequestMessage = { address: item.to, amount: item.amount };
+                    if (item.payload) message.payload = item.payload;
+                    if (item.stateInit) message.stateInit = item.stateInit;
+                    return message;
+                });
+                tx = {
+                    validUntil: Math.floor(new Date(buy.timeout).getTime() / 1000),
+                    messages,
+                };
+                networkFeeRaw = buy.list.reduce((acc, item) => acc + safeBigInt(item.amount), 0n);
+            } else {
+                const saleContract = fresh.sale.contractAddress;
+                if (!saleContract) {
+                    throw new Error('Sale contract address is missing');
+                }
+                tx = await buildJettonBuyTransaction({
+                    nft: fresh,
+                    userAddress: wallet.getAddress(),
+                    currency,
+                    priceNano: priceRaw,
+                    saleContract,
+                });
+                networkFeeRaw = JETTON_BUY_GAS;
+            }
 
             setDetails({
                 nftName: fresh.name ?? nft.name ?? 'Untitled',
                 nftImage: fresh.image ?? nft.image,
                 priceAmount: formatAmount(priceRaw, priceDecimals),
                 priceCurrency: currency,
-                networkFeeTon: formatAmount(totalTonRaw, TON_DECIMALS),
+                networkFeeTon: formatAmount(networkFeeRaw, TON_DECIMALS),
                 tx,
             });
         } catch (error) {
