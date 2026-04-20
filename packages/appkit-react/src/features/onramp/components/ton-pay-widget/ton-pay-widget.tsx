@@ -88,6 +88,7 @@ export const TonPayWidget: FC<TonPayWidgetProps> = ({
     const isAmountValid = !isNaN(numericAmount) && numericAmount > 0;
     const canContinue = isAmountValid && !!selectedToken && !!activeWallet && !isSubmitting;
     const isCurrencyReadOnly = currencies.length <= 1;
+    const isTokenReadOnly = supportedTokens.length <= 1;
 
     const effectivePresets = useMemo<OnrampAmountPreset[]>(() => {
         if (presetAmounts) return presetAmounts;
@@ -144,6 +145,7 @@ export const TonPayWidget: FC<TonPayWidgetProps> = ({
                     className={styles.selector}
                     title={t('onramp.buyToken', { symbol: selectedToken?.symbol ?? '' })}
                     icon={selectedToken?.logo}
+                    readOnly={isTokenReadOnly}
                     onClick={() => setIsTokenSelectOpen(true)}
                 />
 
@@ -180,13 +182,15 @@ export const TonPayWidget: FC<TonPayWidgetProps> = ({
 
             {errorMessage && <div className={styles.error}>{errorMessage}</div>}
 
-            <OnrampTokenSelectModal
-                open={isTokenSelectOpen}
-                onClose={() => setIsTokenSelectOpen(false)}
-                tokens={supportedTokens}
-                tokenSections={tokenSections}
-                onSelect={setSelectedToken}
-            />
+            {!isTokenReadOnly && (
+                <OnrampTokenSelectModal
+                    open={isTokenSelectOpen}
+                    onClose={() => setIsTokenSelectOpen(false)}
+                    tokens={supportedTokens}
+                    tokenSections={tokenSections}
+                    onSelect={setSelectedToken}
+                />
+            )}
 
             {!isCurrencyReadOnly && (
                 <OnrampCurrencySelectModal
