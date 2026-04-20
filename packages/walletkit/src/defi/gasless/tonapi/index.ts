@@ -6,8 +6,5 @@
  *
  */
 
-export * from './errors';
-export * from './DefiManager';
-export * from './swap';
-export * from './onramp';
-export * from './gasless';
+export { TonApiGaslessProvider } from './TonApiGaslessProvider';
+export type { TonApiGaslessProviderConfig } from './TonApiGaslessProvider';

@@ -6,7 +6,7 @@
  *
  */
 
-export { formatUnits, parseUnits, compareAddress } from '@ton/walletkit';
+export { formatUnits, parseUnits, compareAddress, createJettonTransferPayload } from '@ton/walletkit';
 
 export * from './address/format';
 export * from './amount/calc-fiat-value';

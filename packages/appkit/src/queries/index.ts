@@ -183,6 +183,32 @@ export {
     type BuildOnrampUrlVariables,
 } from './onramp/build-onramp-url';
 
+// Gasless
+export {
+    getGaslessConfigQueryOptions,
+    type GetGaslessConfigQueryConfig,
+    type GetGaslessConfigData,
+    type GetGaslessConfigErrorType,
+} from './gasless/get-gasless-config';
+export {
+    estimateGaslessMutationOptions,
+    type EstimateGaslessMutationConfig,
+    type EstimateGaslessData,
+    type EstimateGaslessErrorType,
+    type EstimateGaslessMutate,
+    type EstimateGaslessMutateAsync,
+    type EstimateGaslessVariables,
+} from './gasless/estimate-gasless';
+export {
+    sendGaslessTransactionMutationOptions,
+    type SendGaslessTransactionMutationConfig,
+    type SendGaslessTransactionData,
+    type SendGaslessTransactionErrorType,
+    type SendGaslessTransactionMutate,
+    type SendGaslessTransactionMutateAsync,
+    type SendGaslessTransactionVariables,
+} from './gasless/send-gasless-transaction';
+
 // Staking
 export {
     getStakingQuoteQueryOptions,

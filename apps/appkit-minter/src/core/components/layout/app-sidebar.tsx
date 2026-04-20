@@ -7,7 +7,7 @@
  */
 
 import type React from 'react';
-import { Coins, ArrowLeftRight, Sparkles, BookOpen, Github, PenLine, CreditCard } from 'lucide-react';
+import { Coins, ArrowLeftRight, Sparkles, BookOpen, Github, PenLine, CreditCard, Zap } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { AppLogo } from '../app-logo';
@@ -33,6 +33,7 @@ const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType
     { to: '/staking', label: 'Staking', icon: Coins },
     { to: '/onramp', label: 'Buy', icon: CreditCard },
     { to: '/sign', label: 'Sign Message', icon: PenLine },
+    { to: '/gasless', label: 'Gasless', icon: Zap },
 ];
 
 const EXTERNAL_LINKS: readonly { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [

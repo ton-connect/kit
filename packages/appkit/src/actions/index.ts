@@ -108,6 +108,26 @@ export { transferNft, type TransferNftParameters, type TransferNftReturnType } f
 // Providers
 export { registerProvider, type RegisterProviderOptions } from './providers/register-provider';
 
+// Gasless
+export {
+    getGaslessConfig,
+    type GetGaslessConfigOptions,
+    type GetGaslessConfigReturnType,
+    type GetGaslessConfigErrorType,
+} from './gasless/get-gasless-config';
+export {
+    estimateGasless,
+    type EstimateGaslessParameters,
+    type EstimateGaslessReturnType,
+    type EstimateGaslessErrorType,
+} from './gasless/estimate-gasless';
+export {
+    sendGaslessTransaction,
+    type SendGaslessTransactionParameters,
+    type SendGaslessTransactionReturnType,
+    type SendGaslessTransactionErrorType,
+} from './gasless/send-gasless-transaction';
+
 // Signing
 export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
 export { signBinary, type SignBinaryParameters, type SignBinaryReturnType } from './signing/sign-binary';

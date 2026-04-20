@@ -17,6 +17,8 @@ import {
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
+import { TonApiGaslessProvider } from '@ton/appkit/gasless/tonapi';
+import { TonApiClient } from '@ton-api/client';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
 
@@ -35,6 +37,10 @@ const tetraApiClient = new ApiClientTonApi({
     endpoint: 'https://tetra.tonapi.io',
 });
 
+const mainnetTonApi = new TonApiClient({
+    baseUrl: 'https://tonapi.io',
+});
+
 export const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: { apiClient: mainnetApiClient },
@@ -48,7 +54,12 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
+    providers: [
+        new DeDustSwapProvider(),
+        new OmnistonSwapProvider(),
+        createTonstakersProvider({}),
+        new TonApiGaslessProvider({ client: mainnetTonApi }),
+    ],
 });
 
 // TODO: replace in normal config

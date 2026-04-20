@@ -70,6 +70,16 @@
         "types": "./dist/cjs/defi/onramp/ton-pay/index.d.ts",
         "default": "./dist/cjs/defi/onramp/ton-pay/index.js"
       }
+    },
+    "./gasless/tonapi": {
+      "import": {
+        "types": "./dist/esm/defi/gasless/tonapi/index.d.ts",
+        "default": "./dist/esm/defi/gasless/tonapi/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/gasless/tonapi/index.d.ts",
+        "default": "./dist/cjs/defi/gasless/tonapi/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -88,6 +98,9 @@
       ],
       "onramp/ton-pay": [
         "./dist/cjs/defi/onramp/ton-pay/index.d.ts"
+      ],
+      "gasless/tonapi": [
+        "./dist/cjs/defi/gasless/tonapi/index.d.ts"
       ]
     }
   },
@@ -136,10 +149,14 @@
   "peerDependenciesMeta": {
     "@ston-fi/omniston-sdk": {
       "optional": true
+    },
+    "@ton-api/client": {
+      "optional": true
     }
   },
   "optionalDependencies": {
-    "@ston-fi/omniston-sdk": "^0.7.9"
+    "@ston-fi/omniston-sdk": "^0.7.9",
+    "@ton-api/client": "^0.4.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",

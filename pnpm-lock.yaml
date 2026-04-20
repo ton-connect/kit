@@ -863,6 +863,9 @@ importers:
       '@ston-fi/omniston-sdk':
         specifier: ^0.7.9
         version: 0.7.9
+      '@ton-api/client':
+        specifier: ^0.4.0
+        version: 0.4.0(@ton/core@0.63.1(@ton/crypto@3.3.0))
 
   packages/walletkit-android-bridge:
     dependencies:
@@ -3840,6 +3843,11 @@ packages:
     peerDependencies:
       '@testing-library/dom': '>=7.21.4'
 
+  '@ton-api/client@0.4.0':
+    resolution: {integrity: sha512-k3d6RzNWRDEZpVa9Gig2kHqp74tGvaK/imkjb08RIGxn+wKC7Yv5g98GnXEHf3srRkjtRCG0Nnjx8EsasOMJkw==}
+    peerDependencies:
+      '@ton/core': '>=0.59.0'
+
   '@ton-community/ton-ledger@7.3.0':
     resolution: {integrity: sha512-eG4KqQaQoUgdVzedUlt8ZkwHDw7JiXnPqZOO+1fUKISwjU2OdiRIeo+TB0yKK3X3fm/0hgQbFBEZAbGSCKvzTw==}
     peerDependencies:
@@ -5156,6 +5164,9 @@ packages:
 
   core-js-compat@3.48.0:
     resolution: {integrity: sha512-OM4cAF3D6VtH/WkLtWvyNC56EZVXsZdU3iqaMG2B4WvYrlqU831pc4UtG5yp0sE9z8Y02wVN7PjW5Zf9Gt0f1Q==}
+
+  core-js-pure@3.49.0:
+    resolution: {integrity: sha512-XM4RFka59xATyJv/cS3O3Kml72hQXUeGRuuTmMYFxwzc9/7C8OYTaIR/Ji+Yt8DXzsFLNhat15cE/JP15HrCgw==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -13670,6 +13681,12 @@ snapshots:
     dependencies:
       '@testing-library/dom': 10.4.1
 
+  '@ton-api/client@0.4.0(@ton/core@0.63.1(@ton/crypto@3.3.0))':
+    dependencies:
+      '@ton/core': 0.63.1(@ton/crypto@3.3.0)
+      core-js-pure: 3.49.0
+    optional: true
+
   '@ton-community/ton-ledger@7.3.0(@ton/core@0.63.1(@ton/crypto@3.3.0))':
     dependencies:
       '@ledgerhq/hw-transport': 6.35.0
@@ -15251,6 +15268,9 @@ snapshots:
   core-js-compat@3.48.0:
     dependencies:
       browserslist: 4.28.1
+
+  core-js-pure@3.49.0:
+    optional: true
 
   core-util-is@1.0.3: {}
 
