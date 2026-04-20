@@ -18,3 +18,7 @@ export { Sidebar } from './sidebar';
 export { Sheet } from './sheet';
 export { Separator } from './separator';
 export { Tooltip } from './tooltip';
+
+// Integrations
+export { TelegramPrivyAutoConnect } from './telegram-privy-auto-connect';
+export { PrivyDebugPanel } from './privy-debug-panel';

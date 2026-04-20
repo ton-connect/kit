@@ -10,6 +10,7 @@ import {
     AppKit,
     Network,
     createTonConnectConnector,
+    createPrivyConnector,
     ApiClientTonApi,
     ApiClientToncenter,
     createTonCenterStreamingProvider,
@@ -18,7 +19,7 @@ import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 
-import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
+import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET, ENV_PRIVY_APP_ID } from '@/core/configs/env';
 
 const mainnetApiClient = new ApiClientToncenter({
     network: Network.mainnet(),
@@ -47,6 +48,7 @@ export const appKit = new AppKit({
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },
         }),
+        ...(ENV_PRIVY_APP_ID ? [createPrivyConnector({ appId: ENV_PRIVY_APP_ID })] : []),
     ],
     providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
 });

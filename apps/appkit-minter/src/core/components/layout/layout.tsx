@@ -7,9 +7,9 @@
  */
 
 import type React from 'react';
-import { TonConnectButton } from '@ton/appkit-react';
 
 import { AppSidebar } from './app-sidebar';
+import { HeaderWallet } from './header-wallet';
 import { ThemeSwitcher } from './theme-switcher';
 
 import { Separator } from '@/core/components/separator';
@@ -35,7 +35,7 @@ export const Layout: React.FC<LayoutProps> = ({ title, children }) => {
                         </>
                     )}
 
-                    <TonConnectButton className="ml-auto" />
+                    <HeaderWallet />
                     <ThemeSwitcher />
                 </header>
 

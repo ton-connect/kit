@@ -24,6 +24,16 @@ export interface PrivyConnectorConfig {
     walletId?: number;
 }
 
+export type PrivyBuildStatus = 'idle' | 'building' | 'ready' | 'error' | 'skipped-no-network' | 'skipped-no-token';
+
+export interface PrivyConnectorDebugInfo {
+    status: PrivyBuildStatus;
+    error: string | null;
+    lastWalletId: string | null;
+    hasLatestState: boolean;
+    hasTonWallet: boolean;
+}
+
 export type PrivyConnector = Connector & {
     type: 'privy';
     /**
@@ -32,6 +42,8 @@ export type PrivyConnector = Connector & {
      * hooks (`usePrivy`, `useSignRawHash`) produce new values.
      */
     updatePrivyState(state: PrivyState): void;
+    /** Diagnostic snapshot of the connector's internal build state — for debug UIs. */
+    getDebugInfo(): PrivyConnectorDebugInfo;
 };
 
 export const createPrivyConnector = (config: PrivyConnectorConfig) => {
@@ -42,17 +54,23 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
         let currentWallet: PrivyWalletAdapter | null = null;
         let currentWalletUuid: string | null = null;
         let inflightBuild = 0;
+        let buildStatus: PrivyBuildStatus = 'idle';
+        let lastBuildError: string | null = null;
 
         async function buildWallet(tonWallet: PrivyTonWallet, state: PrivyState): Promise<void> {
             const token = ++inflightBuild;
+            buildStatus = 'building';
+            lastBuildError = null;
 
             const network = networkManager.getDefaultNetwork();
             if (!network) {
+                buildStatus = 'skipped-no-network';
                 return;
             }
 
             const accessToken = await state.getAccessToken();
             if (!accessToken) {
+                buildStatus = 'skipped-no-token';
                 return;
             }
 
@@ -76,7 +94,15 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
 
             currentWallet = adapter;
             currentWalletUuid = tonWallet.walletId;
+            buildStatus = 'ready';
             eventEmitter.emit(CONNECTOR_EVENTS.CONNECTED, { wallets: [adapter], connectorId: id }, id);
+        }
+
+        function runBuild(tonWallet: PrivyTonWallet, state: PrivyState): void {
+            buildWallet(tonWallet, state).catch((err) => {
+                buildStatus = 'error';
+                lastBuildError = err instanceof Error ? err.message : String(err);
+            });
         }
 
         function clearWallet(): void {
@@ -106,12 +132,12 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
                 // walletId changed — rebuild from scratch.
                 currentWallet = null;
                 currentWalletUuid = null;
-                void buildWallet(state.tonWallet, state);
+                runBuild(state.tonWallet, state);
                 return;
             }
 
             if (!currentWallet) {
-                void buildWallet(state.tonWallet, state);
+                runBuild(state.tonWallet, state);
             }
         }
 
@@ -122,7 +148,7 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
             // Force a rebuild against the new network/client.
             currentWallet = null;
             currentWalletUuid = null;
-            void buildWallet(latestState.tonWallet, latestState);
+            runBuild(latestState.tonWallet, latestState);
         });
 
         return {
@@ -135,6 +161,16 @@ export const createPrivyConnector = (config: PrivyConnectorConfig) => {
 
             updatePrivyState(state: PrivyState) {
                 applyState(state);
+            },
+
+            getDebugInfo(): PrivyConnectorDebugInfo {
+                return {
+                    status: buildStatus,
+                    error: lastBuildError,
+                    lastWalletId: currentWalletUuid,
+                    hasLatestState: latestState !== null,
+                    hasTonWallet: Boolean(latestState?.tonWallet),
+                };
             },
 
             getConnectedWallets(): WalletInterface[] {

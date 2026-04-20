@@ -12,9 +12,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app';
+import { AppPrivyProvider } from './privyProvider';
 
-createRoot(document.getElementById('root')!).render(
-    <StrictMode>
+const root = (
+    <AppPrivyProvider>
         <App />
-    </StrictMode>,
+    </AppPrivyProvider>
 );
+
+createRoot(document.getElementById('root')!).render(<StrictMode>{root}</StrictMode>);

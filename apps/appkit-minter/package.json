@@ -20,6 +20,7 @@
     "@ton/appkit-react": "workspace:*",
     "@ton/core": "catalog:",
     "@ton/crypto": "catalog:",
+    "@privy-io/react-auth": "^3.22.1",
     "@tonconnect/sdk": "catalog:",
     "@tonconnect/ui-react": "catalog:",
     "@radix-ui/react-dialog": "1.1.15",
