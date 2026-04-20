@@ -6,31 +6,20 @@
  *
  */
 
-import {
-    Address,
-    beginCell,
-    Cell,
-    external,
-    internal,
-    loadMessageRelaxed,
-    loadStateInit,
-    storeMessage,
-    storeMessageRelaxed,
-} from '@ton/core';
+import { Address } from '@ton/core';
 import type { TonApiClient } from '@ton-api/client';
 
-import type { Base64String, TransactionRequestMessage } from '../../../api/models';
-import { globalLogger } from '../../../core/Logger';
-import { CallForSuccess } from '../../../utils/retry';
-import { GaslessError } from '../errors';
-import { GaslessProvider } from '../GaslessProvider';
 import type {
     GaslessConfig,
     GaslessEstimateParams,
     GaslessEstimateResult,
     GaslessSendParams,
-    GaslessSendResult,
-} from '../types';
+} from '../../../api/models';
+import { globalLogger } from '../../../core/Logger';
+import { CallForSuccess } from '../../../utils/retry';
+import { GaslessError } from '../errors';
+import { GaslessProvider } from '../GaslessProvider';
+import { buildInternalMessageCell, cellToBase64, internalBocToExternalMessageBoc, stripHexPrefix } from './utils';
 
 const log = globalLogger.createChild('TonApiGaslessProvider');
 
@@ -86,8 +75,8 @@ export class TonApiGaslessProvider extends GaslessProvider {
             const cfg = await this.client.gasless.gaslessConfig();
             return {
                 relayAddress: cfg.relayAddress.toString({ bounceable: true }),
-                gasJettons: cfg.gasJettons.map((jetton) => ({
-                    masterId: jetton.masterId.toString({ bounceable: true }),
+                supportedGasJettons: cfg.gasJettons.map((jetton) => ({
+                    jettonMaster: jetton.masterId.toString({ bounceable: true }),
                 })),
             };
         } catch (error) {
@@ -123,7 +112,7 @@ export class TonApiGaslessProvider extends GaslessProvider {
                     payload: message.payload ? cellToBase64(message.payload) : undefined,
                     stateInit: message.stateInit ? cellToBase64(message.stateInit) : undefined,
                 })),
-                commission: result.commission,
+                fee: result.commission.toString(),
                 validUntil: result.validUntil,
                 relayAddress: result.relayAddress.toString({ bounceable: true }),
                 from: result.from.toString({ bounceable: true }),
@@ -138,12 +127,12 @@ export class TonApiGaslessProvider extends GaslessProvider {
         }
     }
 
-    async send(params: GaslessSendParams): Promise<GaslessSendResult> {
+    async send(params: GaslessSendParams): Promise<void> {
         const walletPublicKey = stripHexPrefix(params.walletPublicKey);
         const externalBoc = internalBocToExternalMessageBoc(params.internalBoc);
 
         try {
-            const result = await CallForSuccess(
+            await CallForSuccess(
                 () =>
                     this.client.gasless.gaslessSend({
                         walletPublicKey,
@@ -152,8 +141,6 @@ export class TonApiGaslessProvider extends GaslessProvider {
                 this.sendRetries,
                 this.sendRetryDelayMs,
             );
-
-            return (result ?? {}) as GaslessSendResult;
         } catch (error) {
             log.error('Failed to send gasless transaction', { error });
             throw new GaslessError(
@@ -163,62 +150,4 @@ export class TonApiGaslessProvider extends GaslessProvider {
             );
         }
     }
-}
-
-function stripHexPrefix(value: string): string {
-    return value.startsWith('0x') ? value.slice(2) : value;
-}
-
-function cellToBase64(cell: Cell): Base64String {
-    return cell.toBoc().toString('base64') as Base64String;
-}
-
-function buildInternalMessageCell(message: TransactionRequestMessage): Cell {
-    const to = Address.parse(message.address);
-    const value = BigInt(message.amount);
-    const body = message.payload ? Cell.fromBase64(message.payload) : beginCell().endCell();
-    const init = message.stateInit ? loadStateInit(Cell.fromBase64(message.stateInit).beginParse()) : undefined;
-
-    return beginCell()
-        .storeWritable(
-            storeMessageRelaxed(
-                internal({
-                    to,
-                    value,
-                    // Jetton transfers (the primary gasless use case) require bounce=true;
-                    // TransactionRequestMessage does not carry a bounce flag, so we default
-                    // to true. Callers needing non-bounceable messages should handle that
-                    // outside the gasless flow.
-                    bounce: true,
-                    body,
-                    init,
-                }),
-            ),
-        )
-        .endCell();
-}
-
-/**
- * Convert an internal-message BoC (what `wallet.signMessage` returns) into an
- * external message BoC that the relayer accepts for broadcast.
- */
-function internalBocToExternalMessageBoc(internalBoc: Base64String): Cell {
-    const parsed = Cell.fromBase64(internalBoc);
-    const { info, body, init } = loadMessageRelaxed(parsed.beginParse());
-
-    if (info.type !== 'internal') {
-        throw new GaslessError('Signed message must be an internal message', GaslessError.SEND_FAILED);
-    }
-
-    return beginCell()
-        .storeWritable(
-            storeMessage(
-                external({
-                    to: info.dest,
-                    init: init ?? undefined,
-                    body,
-                }),
-            ),
-        )
-        .endCell();
 }

@@ -9,11 +9,3 @@
 export { GaslessProvider } from './GaslessProvider';
 export { GaslessManager } from './GaslessManager';
 export { GaslessError } from './errors';
-export type {
-    GaslessConfig,
-    GaslessGasJetton,
-    GaslessEstimateParams,
-    GaslessEstimateResult,
-    GaslessSendParams,
-    GaslessSendResult,
-} from './types';

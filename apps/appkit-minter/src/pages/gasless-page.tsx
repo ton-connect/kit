@@ -16,7 +16,7 @@ import {
     useJettonWalletAddress,
 } from '@ton/appkit-react';
 import type { Base64String } from '@ton/appkit-react';
-import { parseUnits, createJettonTransferPayload } from '@ton/appkit';
+import { parseUnits, createJettonTransferPayload, compareAddress } from '@ton/appkit';
 import { toast } from 'sonner';
 
 import { Card, Layout } from '@/core/components';
@@ -50,7 +50,7 @@ export const GaslessPage: FC = () => {
     }, [address, recipient]);
 
     const isUsdtSupported = useMemo(() => {
-        return gaslessConfig?.gasJettons.some((j) => j.masterId === USDT_MASTER_MAINNET);
+        return gaslessConfig?.supportedGasJettons.some((j) => compareAddress(j.jettonMaster, USDT_MASTER_MAINNET));
     }, [gaslessConfig]);
 
     const handleSend = async () => {

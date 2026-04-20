@@ -6,7 +6,7 @@
  *
  */
 
-import type { GaslessSendResult } from '@ton/walletkit';
+import type { TokenAmount } from '@ton/walletkit';
 
 import type { Base64String } from '../../types/primitives';
 import type { TransactionRequestMessage } from '../../types/transaction';
@@ -25,10 +25,8 @@ export interface SendGaslessTransactionParameters {
 export interface SendGaslessTransactionReturnType {
     /** Signed internal BoC that was submitted to the relayer */
     internalBoc: Base64String;
-    /** Relayer commission in fee-jetton nanounits */
-    commission: bigint;
-    /** Provider-specific relayer response */
-    relayerResponse: GaslessSendResult;
+    /** Relayer fee in fee-jetton nanounits */
+    fee: TokenAmount;
 }
 
 export type SendGaslessTransactionErrorType = Error;
@@ -68,7 +66,7 @@ export const sendGaslessTransaction = async (
         validUntil: estimate.validUntil,
     });
 
-    const relayerResponse = await appKit.gaslessManager.send(
+    await appKit.gaslessManager.send(
         {
             walletPublicKey,
             internalBoc,
@@ -78,7 +76,6 @@ export const sendGaslessTransaction = async (
 
     return {
         internalBoc,
-        commission: estimate.commission,
-        relayerResponse,
+        fee: estimate.fee,
     };
 };

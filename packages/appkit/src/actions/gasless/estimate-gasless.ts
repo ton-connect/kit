@@ -29,7 +29,7 @@ export type EstimateGaslessErrorType = Error;
  * Ask the relayer to estimate a gasless transaction.
  *
  * Returns relayer-wrapped messages (ready to be signed via `signMessage`), the
- * commission charged in the fee jetton, and the bundle validity window.
+ * fee charged in the fee jetton, and the bundle validity window.
  */
 export const estimateGasless = async (
     appKit: AppKit,

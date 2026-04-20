@@ -6,13 +6,7 @@
  *
  */
 
-import type {
-    GaslessConfig,
-    GaslessEstimateParams,
-    GaslessEstimateResult,
-    GaslessSendParams,
-    GaslessSendResult,
-} from '../../defi/gasless/types';
+import type { GaslessConfig, GaslessEstimateParams, GaslessEstimateResult, GaslessSendParams } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
 
@@ -46,7 +40,7 @@ export interface GaslessAPI extends DefiManagerAPI<GaslessProviderInterface> {
      * @param params Signed message and wallet public key
      * @param providerId Provider identifier (optional, uses default if not specified)
      */
-    send(params: GaslessSendParams, providerId?: string): Promise<GaslessSendResult>;
+    send(params: GaslessSendParams, providerId?: string): Promise<void>;
 }
 
 /**
@@ -73,5 +67,5 @@ export interface GaslessProviderInterface extends DefiProvider {
     /**
      * Submit a signed transaction BoC to the relayer.
      */
-    send(params: GaslessSendParams): Promise<GaslessSendResult>;
+    send(params: GaslessSendParams): Promise<void>;
 }
