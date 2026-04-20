@@ -39,3 +39,5 @@ export * from './features/staking';
 export * from './features/onramp';
 
 export * from './types/appkit-ui-token';
+
+export * from './privy';

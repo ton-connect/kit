@@ -49,6 +49,7 @@
     "rosetta": "1.1.0"
   },
   "devDependencies": {
+    "@privy-io/react-auth": "^3.22.1",
     "@storybook/addon-docs": "10.3.5",
     "@storybook/react": "10.3.5",
     "@storybook/react-vite": "10.3.5",
@@ -66,6 +67,7 @@
     "vite-plugin-node-polyfills": "^0.26.0"
   },
   "peerDependencies": {
+    "@privy-io/react-auth": ">=3.0.0",
     "@tanstack/react-query": ">=5.0.0",
     "@tonconnect/ui": ">=2.4.1",
     "@tonconnect/ui-react": ">=2.4.1",
@@ -73,6 +75,9 @@
     "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
+    "@privy-io/react-auth": {
+      "optional": true
+    },
     "@tonconnect/ui": {
       "optional": true
     },

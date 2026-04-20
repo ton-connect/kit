@@ -34,6 +34,7 @@ export { StorageEventProcessor } from './core/EventProcessor';
 export { ConnectHandler } from './handlers/ConnectHandler';
 export { TransactionHandler } from './handlers/TransactionHandler';
 export { SignDataHandler } from './handlers/SignDataHandler';
+export { PrepareSignData } from './utils/signData/sign';
 export { DisconnectHandler } from './handlers/DisconnectHandler';
 export { WalletV5, WalletV5R1Id, Opcodes } from './contracts/w5/WalletV5R1';
 export type { WalletV5Config } from './contracts/w5/WalletV5R1';
