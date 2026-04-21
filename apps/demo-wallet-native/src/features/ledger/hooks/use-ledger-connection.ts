@@ -142,7 +142,8 @@ export const useLedgerConnection = (options?: UseLedgerConnectionOptions): UseLe
 
             try {
                 const newTransport = await connectToLedgerDevice(device.id);
-                const newTonTransport = new TonTransport(newTransport);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const newTonTransport = new TonTransport(newTransport as any);
 
                 setTransport(newTransport);
                 setTonTransport(newTonTransport);

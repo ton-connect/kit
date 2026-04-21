@@ -60,6 +60,16 @@
         "types": "./dist/cjs/staking/tonstakers/index.d.ts",
         "default": "./dist/cjs/staking/tonstakers/index.js"
       }
+    },
+    "./onramp/ton-pay": {
+      "import": {
+        "types": "./dist/esm/onramp/ton-pay/index.d.ts",
+        "default": "./dist/esm/onramp/ton-pay/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/onramp/ton-pay/index.d.ts",
+        "default": "./dist/cjs/onramp/ton-pay/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -75,6 +85,9 @@
       ],
       "staking/tonstakers": [
         "./dist/esm/staking/tonstakers/index.d.ts"
+      ],
+      "onramp/ton-pay": [
+        "./dist/esm/onramp/ton-pay/index.d.ts"
       ]
     }
   },
@@ -117,7 +130,7 @@
     "@tanstack/query-core": "catalog:",
     "@ton/core": "catalog:",
     "@tonconnect/ui": "catalog:",
-    "typescript": "~5.8.3",
-    "vitest": "^4.0.17"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.4"
   }
 }

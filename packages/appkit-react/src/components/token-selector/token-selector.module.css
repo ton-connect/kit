@@ -1,13 +1,18 @@
-.tokenSelector {
-  padding: 8px;
-}
-
 .tokenSelector:hover {
   opacity: 0.8;
 }
 
+.readOnly {
+  cursor: default;
+}
+
+.readOnly:hover {
+  opacity: 1;
+}
+
 .symbol {
-  margin-right: 2px;
+  padding-right: 2px;
+  margin-right: auto;
 }
 
 .chevron {

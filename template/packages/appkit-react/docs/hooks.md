@@ -188,6 +188,45 @@ Hook to get a specific swap provider. Returns the provider instance directly or 
 
 %%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
 
+## Onramp
+
+### `useOnrampQuote`
+
+Hook to get an onramp quote for a specific fiat/crypto pair.
+
+%%demo/examples/src/appkit/hooks/onramp#USE_ONRAMP_QUOTE%%
+
+### `useOnrampProvider`
+
+Hook to get a specific onramp provider.
+
+%%demo/examples/src/appkit/hooks/onramp#USE_ONRAMP_PROVIDER%%
+
+### `useOnrampProviders`
+
+Hook to get all registered onramp providers.
+
+### `useBuildOnrampUrl`
+
+Hook to build an onramp URL for redirecting the user to the provider.
+
+## Staking
+
+### Staking Hooks
+
+These hooks allow you to interact with staking providers directly.
+
+#### `useStakingQuote`
+Get a quote for staking or unstaking.
+
+#### `useStakedBalance`
+Get the user's staked balance.
+
+#### `useStakingProviderMetadata`
+Get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+
 ## Transaction
 
 ### `useSendTransaction`

@@ -9,6 +9,7 @@
 import type { SwapQuote, SwapQuoteParams } from '@ton/walletkit';
 
 import type { AppKit } from '../../core/app-kit';
+import { resolveNetwork } from '../../utils';
 
 export type GetSwapQuoteOptions<T = unknown> = SwapQuoteParams<T> & {
     providerId?: string;
@@ -23,5 +24,10 @@ export const getSwapQuote = async <T = unknown>(
     appKit: AppKit,
     options: GetSwapQuoteOptions<T>,
 ): GetSwapQuoteReturnType => {
-    return appKit.swapManager.getQuote(options, options.providerId);
+    const optionsWithNetwork = {
+        ...options,
+        network: resolveNetwork(appKit, options.network),
+    };
+
+    return appKit.swapManager.getQuote(optionsWithNetwork, options.providerId);
 };

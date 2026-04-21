@@ -12,30 +12,21 @@ import { useSelectedWallet } from '@ton/appkit-react';
 import { TokensCard } from '@/features/balances';
 import { CardGenerator } from '@/features/mint';
 import { NftsCard } from '@/features/nft';
-import { WalletInfo } from '@/features/wallet';
 import { Layout } from '@/core/components';
-import { StakingCard } from '@/features/staking';
-import { SignMessageCard } from '@/features/signing';
 
 export const MinterPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
     const isConnected = !!wallet;
 
     return (
-        <Layout>
+        <Layout title="Mint">
             <div className="space-y-4">
-                <WalletInfo />
-
-                {/* Card Generator with integrated mint button */}
                 <CardGenerator />
 
-                {/* Connected wallet assets */}
                 {isConnected && (
                     <div className="space-y-4">
                         <TokensCard />
                         <NftsCard />
-                        <SignMessageCard />
-                        <StakingCard />
                     </div>
                 )}
             </div>

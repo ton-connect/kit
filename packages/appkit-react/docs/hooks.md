@@ -704,6 +704,77 @@ const provider = useSwapProvider({ id: 'stonfi' });
 return <div>Result: {provider ? provider.providerId : 'null'}</div>;
 ```
 
+## Onramp
+
+### `useOnrampQuote`
+
+Hook to get an onramp quote for a specific fiat/crypto pair.
+
+```tsx
+const { data: quote, isLoading } = useOnrampQuote({
+    fiatCurrency: 'USD',
+    cryptoCurrency: 'TON',
+    amount: '100',
+});
+
+if (isLoading) return <div>Loading quote...</div>;
+return <div>Quote: {quote?.cryptoAmount} TON</div>;
+```
+
+### `useOnrampProvider`
+
+Hook to get a specific onramp provider.
+
+```tsx
+const provider = useOnrampProvider({ id: 'moonpay' });
+
+return <div>Provider: {provider?.providerId}</div>;
+```
+
+### `useOnrampProviders`
+
+Hook to get all registered onramp providers.
+
+### `useBuildOnrampUrl`
+
+Hook to build an onramp URL for redirecting the user to the provider.
+
+## Staking
+
+### Staking Hooks
+
+These hooks allow you to interact with staking providers directly.
+
+#### `useStakingQuote`
+Get a quote for staking or unstaking.
+
+#### `useStakedBalance`
+Get the user's staked balance.
+
+#### `useStakingProviderMetadata`
+Get static metadata about a specific staking provider.
+
+```tsx
+const { data: quote } = useStakingQuote({
+    amount: '1000000000',
+    direction: 'stake',
+});
+
+const { data: balance } = useStakedBalance({
+    userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+});
+
+const metadata = useStakingProviderMetadata();
+
+return (
+    <div>
+        <div>Staking Quote: {quote?.amountOut}</div>
+        <div>Staked Balance: {balance?.stakedBalance}</div>
+        <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
+    </div>
+);
+```
+
 ## Transaction
 
 ### `useSendTransaction`

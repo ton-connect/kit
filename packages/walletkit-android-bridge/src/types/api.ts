@@ -18,7 +18,10 @@ import type {
     NFT,
     NFTsResponse,
     SendTransactionResponse,
+    StreamingWatchType,
     TONConnectSession,
+    TonApiStreamingProviderConfig,
+    TonCenterStreamingProviderConfig,
     Transaction,
     TransactionEmulatedPreview,
     TransactionRequest,
@@ -56,14 +59,10 @@ export interface CreateTonMnemonicArgs {
 export interface CreateSignerFromMnemonicArgs {
     mnemonic: string[];
     mnemonicType?: string;
-    /** Optional signature domain for L2 chains (e.g. Tetra). */
-    domain?: { type: 'l2'; globalId: number } | { type: 'empty' };
 }
 
 export interface CreateSignerFromPrivateKeyArgs {
     secretKey: string;
-    /** Optional signature domain for L2 chains (e.g. Tetra). */
-    domain?: { type: 'l2'; globalId: number } | { type: 'empty' };
 }
 
 export interface CreateSignerFromCustomArgs {
@@ -76,6 +75,8 @@ export interface CreateWalletAdapterArgs {
     network: { chainId: string };
     workchain?: number;
     walletId?: number;
+    /** Optional signature domain for L2 chains (e.g. Tetra). */
+    domain?: { type: 'l2'; globalId: number } | { type: 'empty' };
 }
 
 export interface AddWalletArgs {
@@ -123,7 +124,7 @@ export interface CreateTransferMultiTonTransactionArgs {
 
 export interface TransactionContentArgs {
     walletId: string;
-    transactionContent: TransactionRequest | string; // Can be object (from Kotlin) or string (legacy)
+    transactionContent: TransactionRequest;
 }
 
 export interface TonConnectRequestEvent extends BridgeEvent {
@@ -261,8 +262,147 @@ export interface EmitBrowserBridgeRequestArgs {
     request: string;
 }
 
+export interface CreateTonCenterStreamingProviderArgs {
+    config: TonCenterStreamingProviderConfig;
+}
+
+export interface CreateTonApiStreamingProviderArgs {
+    config: TonApiStreamingProviderConfig;
+}
+
+export interface RegisterStreamingProviderArgs {
+    providerId: string;
+}
+
+export interface StreamingHasProviderArgs {
+    network: { chainId: string };
+}
+
+export interface StreamingWatchArgs {
+    network: { chainId: string };
+    address: string;
+    types: StreamingWatchType[];
+}
+
+export interface StreamingUnwatchArgs {
+    subscriptionId: string;
+}
+
+export interface StreamingWatchConnectionChangeArgs {
+    network: { chainId: string };
+}
+
+export interface StreamingWatchAddressArgs {
+    network: { chainId: string };
+    address: string;
+}
+
+export interface RegisterKotlinStreamingProviderArgs {
+    providerId: string;
+    network: { chainId: string };
+}
+
+export interface KotlinProviderDispatchArgs {
+    subId: string;
+    updateJson: string;
+}
+
 export interface HandleTonConnectUrlArgs {
     url: string;
+}
+
+export interface TonStakersChainConfig {
+    contractAddress?: string;
+    tonApiToken?: string;
+}
+
+export interface CreateTonStakersStakingProviderArgs {
+    config?: {
+        mainnet?: TonStakersChainConfig;
+        testnet?: TonStakersChainConfig;
+    };
+}
+
+export interface RegisterStakingProviderArgs {
+    providerId: string;
+}
+
+export interface SetDefaultStakingProviderArgs {
+    providerId: string;
+}
+
+export interface GetStakingQuoteArgs {
+    direction: 'stake' | 'unstake';
+    amount: string;
+    userAddress?: string;
+    network?: { chainId: string };
+    unstakeMode?: string;
+    providerOptions?: unknown;
+    providerId?: string;
+}
+
+export interface BuildStakeTransactionArgs {
+    quote: StakingQuoteResponse;
+    userAddress: string;
+    providerOptions?: unknown;
+    providerId?: string;
+}
+
+export interface StakingQuoteResponse {
+    direction: 'stake' | 'unstake';
+    amountIn: string;
+    amountOut: string;
+    network: { chainId: string };
+    providerId: string;
+    apy?: number;
+    unstakeMode?: string;
+    estimatedUnstakeDelayHours?: number;
+    instantUnstakeAvailable?: string;
+    metadata?: unknown;
+}
+
+export interface GetStakedBalanceArgs {
+    userAddress: string;
+    network?: { chainId: string };
+    providerId?: string;
+}
+
+export interface GetStakingProviderInfoArgs {
+    network?: { chainId: string };
+    providerId?: string;
+}
+
+export interface GetSupportedUnstakeModesArgs {
+    providerId?: string;
+}
+
+export interface CreateOmnistonSwapProviderArgs {
+    config?: Record<string, unknown>;
+}
+
+export interface CreateDeDustSwapProviderArgs {
+    config?: Record<string, unknown>;
+}
+
+export interface RegisterSwapProviderArgs {
+    providerId: string;
+}
+
+export interface GetSwapQuoteArgs {
+    params: Record<string, unknown>;
+    providerId?: string;
+}
+
+export interface SetDefaultSwapProviderArgs {
+    providerId: string;
+}
+
+export interface HasSwapProviderArgs {
+    providerId: string;
+}
+
+export interface BuildSwapTransactionArgs {
+    params: Record<string, unknown>;
 }
 
 export interface WalletKitBridgeApi {
@@ -294,7 +434,7 @@ export interface WalletKitBridgeApi {
     createTransferTonTransaction(args: CreateTransferTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     createTransferMultiTonTransaction(args: CreateTransferMultiTonTransactionArgs): PromiseOrValue<TransactionRequest>;
     getTransactionPreview(args: TransactionContentArgs): PromiseOrValue<TransactionEmulatedPreview>;
-    handleNewTransaction(args: TransactionContentArgs): PromiseOrValue<{ success: boolean }>;
+    handleNewTransaction(args: TransactionContentArgs): PromiseOrValue<void>;
     sendTransaction(args: TransactionContentArgs): PromiseOrValue<SendTransactionResponse>;
     approveConnectRequest(args: ApproveConnectRequestArgs): PromiseOrValue<void>;
     rejectConnectRequest(args: RejectConnectRequestArgs): PromiseOrValue<{ success: boolean }>;
@@ -317,4 +457,46 @@ export interface WalletKitBridgeApi {
     emitBrowserPageFinished(args: EmitBrowserPageArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserError(args: EmitBrowserErrorArgs): PromiseOrValue<{ success: boolean }>;
     emitBrowserBridgeRequest(args: EmitBrowserBridgeRequestArgs): PromiseOrValue<{ success: boolean }>;
+    createTonCenterStreamingProvider(
+        args: CreateTonCenterStreamingProviderArgs,
+    ): PromiseOrValue<{ providerId: string }>;
+    createTonApiStreamingProvider(args: CreateTonApiStreamingProviderArgs): PromiseOrValue<{ providerId: string }>;
+    registerStreamingProvider(args: RegisterStreamingProviderArgs): PromiseOrValue<void>;
+    streamingHasProvider(args: StreamingHasProviderArgs): PromiseOrValue<{ hasProvider: boolean }>;
+    streamingWatch(args: StreamingWatchArgs): PromiseOrValue<{ subscriptionId: string }>;
+    streamingUnwatch(args: StreamingUnwatchArgs): PromiseOrValue<void>;
+    streamingConnect(): PromiseOrValue<void>;
+    streamingDisconnect(): PromiseOrValue<void>;
+    streamingWatchConnectionChange(
+        args: StreamingWatchConnectionChangeArgs,
+    ): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchBalance(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchTransactions(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    streamingWatchJettons(args: StreamingWatchAddressArgs): PromiseOrValue<{ subscriptionId: string }>;
+    registerKotlinStreamingProvider(args: RegisterKotlinStreamingProviderArgs): PromiseOrValue<void>;
+    kotlinProviderDispatch(args: KotlinProviderDispatchArgs): PromiseOrValue<void>;
+    createTonStakersStakingProvider(args?: CreateTonStakersStakingProviderArgs): PromiseOrValue<{ providerId: string }>;
+    registerStakingProvider(args: RegisterStakingProviderArgs): PromiseOrValue<void>;
+    setDefaultStakingProvider(args: SetDefaultStakingProviderArgs): PromiseOrValue<void>;
+    getStakingQuote(args: GetStakingQuoteArgs): PromiseOrValue<StakingQuoteResponse>;
+    buildStakeTransaction(args: BuildStakeTransactionArgs): PromiseOrValue<unknown>;
+    getStakedBalance(args: GetStakedBalanceArgs): PromiseOrValue<{
+        stakedBalance: string;
+        instantUnstakeAvailable: string;
+        providerId: string;
+    }>;
+    getStakingProviderInfo(args: GetStakingProviderInfoArgs): PromiseOrValue<{
+        apy: number;
+        instantUnstakeAvailable?: string;
+        providerId: string;
+    }>;
+    getSupportedUnstakeModes(args: GetSupportedUnstakeModesArgs): PromiseOrValue<string[]>;
+    createOmnistonSwapProvider(args: CreateOmnistonSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
+    createDeDustSwapProvider(args: CreateDeDustSwapProviderArgs): PromiseOrValue<{ providerId: string }>;
+    registerSwapProvider(args: RegisterSwapProviderArgs): PromiseOrValue<void>;
+    setDefaultSwapProvider(args: SetDefaultSwapProviderArgs): PromiseOrValue<void>;
+    getRegisteredSwapProviders(): PromiseOrValue<{ providerIds: string[] }>;
+    hasSwapProvider(args: HasSwapProviderArgs): PromiseOrValue<{ result: boolean }>;
+    getSwapQuote(args: GetSwapQuoteArgs): PromiseOrValue<unknown>;
+    buildSwapTransaction(args: BuildSwapTransactionArgs): PromiseOrValue<unknown>;
 }

@@ -12,7 +12,7 @@ import type { FC } from 'react';
 import { Button } from '../../../../../components/button';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
-import { OnrampAmountPresets } from '../../../components/onramp-amount-presets';
+import { AmountPresets } from '../../../../../components/amount-presets';
 import { OnrampTokenSelectModal } from '../../../components/onramp-token-select-modal';
 import { OnrampAmountReversed } from '../../../components/onramp-amount-reversed';
 import { CryptoMethodSelectModal } from '../crypto-method-select-modal';
@@ -85,7 +85,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 errorMessage={error ? t(`onramp.${error}`) : undefined}
             />
 
-            <OnrampAmountPresets className={styles.presets} presets={presetAmounts} onPresetSelect={setAmount} />
+            <AmountPresets className={styles.presets} presets={presetAmounts} onPresetSelect={setAmount} />
 
             <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
                 {t('cryptoOnramp.continue')}

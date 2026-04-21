@@ -208,6 +208,36 @@ Transfer a NFT to a recipient address.
 
 %%demo/examples/src/appkit/actions/nft#TRANSFER_NFT%%
 
+## Onramp
+
+### `getOnrampManager`
+
+Get the `OnrampManager` instance.
+
+### `getOnrampProvider`
+
+Get a specific onramp provider by its ID.
+
+### `getOnrampProviders`
+
+Get all registered onramp providers.
+
+### `watchOnrampProviders`
+
+Watch for new onramp providers registration.
+
+### `getOnrampQuote`
+
+Get an onramp quote from registered providers.
+
+%%demo/examples/src/appkit/actions/onramp#GET_ONRAMP_QUOTE%%
+
+### `buildOnrampUrl`
+
+Build an onramp URL for redirecting the user to the provider.
+
+%%demo/examples/src/appkit/actions/onramp#BUILD_ONRAMP_URL%%
+
 ## Providers
 
 ### `registerProvider`
@@ -278,9 +308,15 @@ Get all available staking provider IDs.
 
 ### `getStakingProviderInfo`
 
-Get information about a specific staking provider.
+Get dynamic information about a specific staking provider (e.g. APY, rate).
 
 %%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_INFO%%
+
+### `getStakingProviderMetadata`
+
+Get static metadata about a specific staking provider.
+
+%%demo/examples/src/appkit/actions/staking#GET_STAKING_PROVIDER_METADATA%%
 
 ### `getStakingQuote`
 

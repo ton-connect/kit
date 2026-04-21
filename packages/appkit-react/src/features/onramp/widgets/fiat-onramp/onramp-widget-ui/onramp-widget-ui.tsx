@@ -13,7 +13,7 @@ import { Button } from '../../../../../components/button';
 import type { OnrampContextType } from '../onramp-widget-provider';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
-import { OnrampAmountPresets } from '../../../components/onramp-amount-presets';
+import { AmountPresets } from '../../../../../components/amount-presets';
 import { OnrampTokenSelectModal } from '../../../components/onramp-token-select-modal';
 import { OnrampCurrencySelectModal } from '../../../components/onramp-currency-select-modal';
 import { OnrampProviderSelect } from '../../../components/onramp-provider-select';
@@ -42,7 +42,9 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     providers,
     canContinue,
     error,
-    onReset,
+    isLoading,
+    onContinue,
+    setSelectedProvider,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -55,10 +57,17 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
     }, []);
 
     const handleProviderSelected = useCallback(
-        (_provider: OnrampProvider) => {
-            onReset();
+        (provider: OnrampProvider) => {
+            setSelectedProvider(provider);
+            // We give it a small timeout or wait for state update to ensure
+            // the buildOnrampUrl uses the correct providerId if it's derived from state.
+            // In our provider, buildOnrampUrl uses selectedProvider.id from state.
+            setTimeout(() => {
+                onContinue();
+                setIsProviderSelectOpen(false);
+            }, 0);
         },
-        [onReset],
+        [onContinue, setSelectedProvider],
     );
 
     return (
@@ -88,14 +97,21 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 errorMessage={error ? t(`onramp.${error}`) : undefined}
             />
 
-            <OnrampAmountPresets
+            <AmountPresets
                 className={styles.presets}
                 presets={presetAmounts}
                 currencySymbol={selectedCurrency.symbol}
                 onPresetSelect={setAmount}
             />
 
-            <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
+            <Button
+                variant="fill"
+                size="l"
+                disabled={!canContinue}
+                loading={isLoading}
+                onClick={handleContinue}
+                fullWidth
+            >
                 {t('onramp.continue')}
             </Button>
 

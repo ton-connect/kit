@@ -165,13 +165,25 @@ export {
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
 
-// Staking
+// Onramp
 export {
-    getStakingProvidersQueryOptions,
-    type GetStakingProvidersData,
-    type GetStakingProvidersErrorType,
-    type GetStakingProvidersQueryConfig,
-} from './staking/get-staking-providers';
+    getOnrampQuoteQueryOptions,
+    type GetOnrampQuoteQueryConfig,
+    type GetOnrampQuoteQueryOptions,
+    type GetOnrampQuoteData,
+    type GetOnrampQuoteErrorType,
+    type GetOnrampQuoteQueryFnData,
+    type GetOnrampQuoteQueryKey,
+} from './onramp/get-onramp-quote';
+export {
+    buildOnrampUrlMutationOptions,
+    type BuildOnrampUrlMutationOptions,
+    type BuildOnrampUrlData,
+    type BuildOnrampUrlErrorType,
+    type BuildOnrampUrlVariables,
+} from './onramp/build-onramp-url';
+
+// Staking
 export {
     getStakingQuoteQueryOptions,
     type GetStakingQuoteQueryConfig,

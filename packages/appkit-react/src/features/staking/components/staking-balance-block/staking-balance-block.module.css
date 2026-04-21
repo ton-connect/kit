@@ -1,0 +1,39 @@
+.container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.iconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.label {
+    composes: labelRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+}
+
+.value {
+    composes: bodyMedium from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text);
+    height: var(--ta-body-medium-line-height);
+}
+
+.skeleton {
+    width: 70px;
+    height: calc(var(--ta-body-medium-line-height) - 4px);
+    margin-top: 2px;
+    border-radius: 4px;
+}
+
+.maxButton {
+    margin-left: auto;
+}

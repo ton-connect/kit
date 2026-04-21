@@ -9,22 +9,27 @@
 import type { TokenAmount } from '../core/TokenAmount';
 
 /**
- * Staking information for a provider
+ * Dynamic staking information for a provider
  */
 export interface StakingProviderInfo {
     /**
      * Annual Percentage Yield in basis points (100 = 1%)
-     * @format int
      */
     apy: number;
 
     /**
      * Amount available for instant unstake
      */
-    instantUnstakeAvailable?: TokenAmount;
+    rawInstantUnstakeAvailable?: TokenAmount;
 
     /**
-     * Identifier of the staking provider
+     * Amount available for instant unstake
      */
-    providerId: string;
+    instantUnstakeAvailable?: string;
+
+    /**
+     * Exchange rate between stakeToken and receiveToken (e.g. 1 TON = 0.95 tsTON).
+     * Undefined when there is no receiveToken (direct/custodial staking).
+     */
+    exchangeRate?: string;
 }

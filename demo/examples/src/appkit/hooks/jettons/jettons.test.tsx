@@ -8,7 +8,16 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import * as AppKitReact from '@ton/appkit-react';
+import {
+    useJettonInfo,
+    useJettonWalletAddress,
+    useJettonBalanceByAddress,
+    useJettonsByAddress,
+    useJettons,
+    useTransferJetton,
+    useWatchJettons,
+    useWatchJettonsByAddress,
+} from '@ton/appkit-react';
 
 import { UseJettonInfoExample } from './use-jetton-info';
 import { UseJettonBalanceByAddressExample } from './use-jetton-balance-by-address';
@@ -47,7 +56,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseJettonInfoExample', () => {
         it('should render loading state', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
+            vi.mocked(useJettonInfo).mockReturnValue({
                 isLoading: true,
                 data: undefined,
                 error: null,
@@ -59,7 +68,7 @@ describe('Jetton Hooks Examples', () => {
 
         it('should render error state', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
+            vi.mocked(useJettonInfo).mockReturnValue({
                 isLoading: false,
                 data: undefined,
                 error: new Error('Failed to fetch'),
@@ -71,7 +80,7 @@ describe('Jetton Hooks Examples', () => {
 
         it('should render jetton info', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonInfo).mockReturnValue({
+            vi.mocked(useJettonInfo).mockReturnValue({
                 isLoading: false,
                 data: {
                     name: 'Test Jetton',
@@ -91,7 +100,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseJettonBalanceByAddressExample', () => {
         it('should render balance', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonBalanceByAddress).mockReturnValue({
+            vi.mocked(useJettonBalanceByAddress).mockReturnValue({
                 isLoading: false,
                 data: '1000000',
                 error: null,
@@ -105,7 +114,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseJettonWalletAddressExample', () => {
         it('should render wallet address', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonWalletAddress).mockReturnValue({
+            vi.mocked(useJettonWalletAddress).mockReturnValue({
                 isLoading: false,
                 data: 'EQB-mock-address',
                 error: null,
@@ -119,7 +128,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseJettonsByAddressExample', () => {
         it('should render list of jettons', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonsByAddress).mockReturnValue({
+            vi.mocked(useJettonsByAddress).mockReturnValue({
                 isLoading: false,
                 data: {
                     jettons: [
@@ -139,7 +148,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseJettonsExample', () => {
         it('should render list of jettons for current wallet', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettons).mockReturnValue({
+            vi.mocked(useJettons).mockReturnValue({
                 isLoading: false,
                 data: {
                     jettons: [{ walletAddress: 'addr1', info: { name: 'My Jetton' }, balance: '100' }],
@@ -156,7 +165,7 @@ describe('Jetton Hooks Examples', () => {
         it('should call transfer mutation on button click', () => {
             const mockMutate = vi.fn();
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useTransferJetton).mockReturnValue({
+            vi.mocked(useTransferJetton).mockReturnValue({
                 mutate: mockMutate,
                 isPending: false,
                 error: null,
@@ -176,7 +185,7 @@ describe('Jetton Hooks Examples', () => {
 
         it('should disable button when loading', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useTransferJetton).mockReturnValue({
+            vi.mocked(useTransferJetton).mockReturnValue({
                 mutate: vi.fn(),
                 isPending: true,
                 error: null,
@@ -191,7 +200,7 @@ describe('Jetton Hooks Examples', () => {
     describe('UseWatchJettonsExample', () => {
         it('should render jetton list', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettons).mockReturnValue({
+            vi.mocked(useJettons).mockReturnValue({
                 isLoading: false,
                 data: {
                     jettons: [{ walletAddress: 'addr1', info: { name: 'My Jetton' }, balance: '100' }],
@@ -201,14 +210,14 @@ describe('Jetton Hooks Examples', () => {
 
             render(<UseWatchJettonsExample />);
             expect(screen.getByText('My Jetton: 100')).toBeDefined();
-            expect(AppKitReact.useWatchJettons).toHaveBeenCalled();
+            expect(useWatchJettons).toHaveBeenCalled();
         });
     });
 
     describe('UseWatchJettonsByAddressExample', () => {
         it('should render jetton list for address', () => {
             // @ts-expect-error - mock
-            vi.mocked(AppKitReact.useJettonsByAddress).mockReturnValue({
+            vi.mocked(useJettonsByAddress).mockReturnValue({
                 isLoading: false,
                 data: {
                     jettons: [{ walletAddress: 'addr2', info: { name: 'Other Jetton' }, balance: '50' }],
@@ -218,7 +227,7 @@ describe('Jetton Hooks Examples', () => {
 
             render(<UseWatchJettonsByAddressExample />);
             expect(screen.getByText('Other Jetton: 50')).toBeDefined();
-            expect(AppKitReact.useWatchJettonsByAddress).toHaveBeenCalledWith({
+            expect(useWatchJettonsByAddress).toHaveBeenCalledWith({
                 address: 'UQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJKZ',
             });
         });

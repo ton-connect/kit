@@ -27,4 +27,10 @@ export const ONRAMP_PROVIDERS: OnrampProvider[] = [
         description: 'Debit Card, Apple Pay, Binance Cash Balance and other options',
         logo: 'https://cdn.meld.io/images-serviceprovider/BINANCECONNECT/short_logo_light.png',
     },
+    {
+        id: 'mercuryo',
+        name: 'Mercuryo',
+        description: 'Debit Card, Apple Pay, Google Pay, SEPA',
+        logo: 'https://static.mercuryo.io/logo/mercuryo-logo.svg',
+    },
 ];

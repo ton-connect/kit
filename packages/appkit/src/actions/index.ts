@@ -128,9 +128,35 @@ export {
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
 
+// Onramp
+export { getOnrampManager, type GetOnrampManagerReturnType } from './onramp/get-onramp-manager';
+export {
+    getOnrampProvider,
+    type GetOnrampProviderOptions,
+    type GetOnrampProviderReturnType,
+} from './onramp/get-onramp-provider';
+export { getOnrampProviders, type GetOnrampProvidersReturnType } from './onramp/get-onramp-providers';
+export { getOnrampQuote, type GetOnrampQuoteOptions, type GetOnrampQuoteReturnType } from './onramp/get-onramp-quote';
+export {
+    watchOnrampProviders,
+    type WatchOnrampProvidersParameters,
+    type WatchOnrampProvidersReturnType,
+} from './onramp/watch-onramp-providers';
+export { buildOnrampUrl, type BuildOnrampUrlOptions, type BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
+
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
 export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
+export {
+    getStakingProvider,
+    type GetStakingProviderOptions,
+    type GetStakingProviderReturnType,
+} from './staking/get-staking-provider';
+export {
+    watchStakingProviders,
+    type WatchStakingProvidersParameters,
+    type WatchStakingProvidersReturnType,
+} from './staking/watch-staking-providers';
 export {
     getStakingQuote,
     type GetStakingQuoteOptions,
@@ -151,6 +177,11 @@ export {
     type GetStakingProviderInfoOptions,
     type GetStakingProviderInfoReturnType,
 } from './staking/get-staking-provider-info';
+export {
+    getStakingProviderMetadata,
+    type GetStakingProviderMetadataOptions,
+    type GetStakingProviderMetadataReturnType,
+} from './staking/get-staking-provider-metadata';
 
 // Transactions
 export {

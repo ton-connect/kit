@@ -8,5 +8,11 @@
 
 export * from './widgets/fiat-onramp/onramp-widget';
 export * from './widgets/crypto-onramp/crypto-onramp-widget';
+export * from './components/ton-pay-widget';
+
+export * from './hooks/use-onramp-quote';
+export * from './hooks/use-onramp-provider';
+export * from './hooks/use-onramp-providers';
+export * from './hooks/use-build-onramp-url';
 
 export * from './types';

@@ -12,6 +12,7 @@ import type { GetBalanceByAddressData, GetBalanceErrorType, GetBalanceByAddressQ
 import { useAppKit } from '../../settings';
 import { useQuery } from '../../../libs/query';
 import type { UseQueryReturnType } from '../../../libs/query';
+import { useNetwork } from '../../network';
 
 export type UseBalanceByAddressParameters<selectData = GetBalanceByAddressData> =
     GetBalanceByAddressQueryConfig<selectData>;
@@ -28,6 +29,9 @@ export const useBalanceByAddress = <selectData = GetBalanceByAddressData>(
     parameters: UseBalanceByAddressParameters<selectData> = {},
 ): UseBalanceByAddressReturnType<selectData> => {
     const appKit = useAppKit();
+    const walletNetwork = useNetwork();
 
-    return useQuery(getBalanceByAddressQueryOptions(appKit, parameters));
+    return useQuery(
+        getBalanceByAddressQueryOptions(appKit, { ...parameters, network: parameters.network ?? walletNetwork }),
+    );
 };

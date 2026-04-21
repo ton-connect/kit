@@ -6,30 +6,34 @@
  *
  */
 
-import { getStakingProvidersQueryOptions } from '@ton/appkit/queries';
-import type {
-    GetStakingProvidersData,
-    GetStakingProvidersErrorType,
-    GetStakingProvidersQueryConfig,
-} from '@ton/appkit/queries';
+import { useSyncExternalStore, useCallback } from 'react';
+import { getStakingProviders, watchStakingProviders } from '@ton/appkit';
+import type { GetStakingProvidersReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings';
-import { useQuery } from '../../../libs/query';
-import type { UseQueryReturnType } from '../../../libs/query';
 
-export type UseStakingProvidersParameters<selectData = GetStakingProvidersData> =
-    GetStakingProvidersQueryConfig<selectData>;
-export type UseStakingProvidersReturnType<selectData = GetStakingProvidersData> = UseQueryReturnType<
-    selectData,
-    GetStakingProvidersErrorType
->;
+export type UseStakingProvidersReturnType = GetStakingProvidersReturnType;
 
 /**
  * Hook to get available staking provider IDs
  */
-export const useStakingProviders = <selectData = GetStakingProvidersData>(
-    parameters: UseStakingProvidersParameters<selectData> = {},
-): UseStakingProvidersReturnType<selectData> => {
+export const useStakingProviders = (): UseStakingProvidersReturnType => {
     const appKit = useAppKit();
-    return useQuery(getStakingProvidersQueryOptions(appKit, parameters));
+
+    const subscribe = useCallback(
+        (onChange: () => void) => {
+            return watchStakingProviders(appKit, { onChange });
+        },
+        [appKit],
+    );
+
+    const getSnapshot = useCallback(() => {
+        try {
+            return getStakingProviders(appKit);
+        } catch {
+            return [];
+        }
+    }, [appKit]);
+
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 };

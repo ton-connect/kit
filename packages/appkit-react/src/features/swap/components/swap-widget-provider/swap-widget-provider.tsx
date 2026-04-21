@@ -13,7 +13,8 @@ import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction';
-import { useSelectedWallet, useAddress } from '../../../wallets';
+import { useAddress } from '../../../wallets';
+import { useNetwork } from '../../../network';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
@@ -27,44 +28,54 @@ export type { AppkitUIToken };
 
 export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
 
+/**
+ * Context type for the SwapWidget.
+ * Provides all necessary state and actions for building custom swap UIs.
+ */
 export interface SwapContextType {
-    /** Full list of available tokens */
+    /** Full list of available tokens for swapping */
     tokens: AppkitUIToken[];
     /** Optional section configs for grouping tokens in the selector */
     tokenSections?: TokenSectionConfig[];
-    /** Currently selected "from" token */
+    /** Currently selected source token */
     fromToken: AppkitUIToken | null;
-    /** Currently selected "to" token */
+    /** Currently selected target token */
     toToken: AppkitUIToken | null;
     /** Amount the user wants to swap (string to preserve input UX) */
     fromAmount: string;
-    /** Calculated receive amount from the quote */
+    /** Calculated receive amount from the current quote */
     toAmount: string;
-    /** Fiat currency symbol, e.g. "$" */
+    /** Fiat currency symbol for price display, e.g. "$" */
     fiatSymbol: string;
-    /** Balance of the "from" token for the connected wallet */
+    /** User's balance of the "from" token */
     fromBalance: string | undefined;
-    /** Balance of the "to" token for the connected wallet */
+    /** User's balance of the "to" token */
     toBalance: string | undefined;
-    /** Whether the user can proceed with the swap */
+    /** Whether the user can proceed with the swap (checks balance, amount, quote) */
     canSubmit: boolean;
-    /** Whether a wallet is currently connected */
-    isWalletConnected: boolean;
     /** Raw swap quote from the provider */
     quote: GetSwapQuoteData | undefined;
-    /** True while the quote is being fetched */
+    /** True while the quote is being fetched from the API */
     isQuoteLoading: boolean;
-    /** Current validation/fetch error, null when everything is ok */
+    /** Current validation or fetch error, null when everything is ok */
     error: SwapWidgetError;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
+    /** Updates the source token */
     setFromToken: (token: AppkitUIToken) => void;
+    /** Updates the target token */
     setToToken: (token: AppkitUIToken) => void;
+    /** Updates the swap amount */
     setFromAmount: (amount: string) => void;
+    /** Updates the slippage tolerance */
     setSlippage: (slippage: number) => void;
+    /** Swaps source and target tokens */
     onFlip: () => void;
+    /** Sets the "from" amount to the maximum available balance */
     onMaxClick: () => void;
+    /** Executes the swap transaction */
     sendSwapTransaction: () => Promise<void>;
+    /** True while a transaction is being sent or processed */
     isSendingTransaction: boolean;
 }
 
@@ -79,7 +90,6 @@ export const SwapContext = createContext<SwapContextType>({
     fromBalance: undefined,
     toBalance: undefined,
     canSubmit: false,
-    isWalletConnected: false,
     quote: undefined,
     isQuoteLoading: false,
     error: null,
@@ -94,24 +104,32 @@ export const SwapContext = createContext<SwapContextType>({
     isSendingTransaction: false,
 });
 
+/**
+ * Hook to access the swap context.
+ * Must be used within a SwapWidgetProvider (or SwapWidget).
+ */
 export function useSwapContext() {
     return useContext(SwapContext);
 }
 
+/**
+ * Props for the SwapWidgetProvider.
+ */
 export interface SwapProviderProps extends PropsWithChildren {
-    /** Full list of tokens available for swapping */
+    /** Full list of tokens available for swapping in the UI */
     tokens: AppkitUIToken[];
     /** Optional section configs for grouping tokens in the selector */
     tokenSections?: TokenSectionConfig[];
-    /** Network to use for quote fetching, defaults to mainnet */
-    network: Network;
-    /** Fiat currency symbol shown next to amounts, defaults to "$" */
-    fiatSymbol?: string;
     /** Id of the token pre-selected in the "from" field */
     defaultFromId?: string;
     /** Id of the token pre-selected in the "to" field */
     defaultToId?: string;
     /** Initial slippage in basis points (100 = 1%), defaults to 50 (0.5%) */
+    /** Network to use for quote fetching. When omitted, uses the selected wallet's network. */
+    network?: Network;
+    /** Fiat currency symbol for price display, defaults to "$" */
+    fiatSymbol?: string;
+    /** Initial slippage in basis points (100 = 1%), defaults to 100 (1%) */
     defaultSlippage?: number;
 }
 
@@ -119,12 +137,14 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     children,
     tokens,
     tokenSections,
-    network,
+    network: networkProp,
     fiatSymbol = '$',
     defaultFromId,
     defaultToId,
     defaultSlippage = 100,
 }) => {
+    const walletNetwork = useNetwork();
+    const network = networkProp ?? walletNetwork;
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 
     const { fromToken, toToken, fromAmount, setFromToken, setToToken, setFromAmount, onFlip } = useSwapTokenState({
@@ -172,8 +192,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const toAmount = quote?.toAmount ?? '';
 
-    const [wallet] = useSelectedWallet();
-    const isWalletConnected = wallet !== null;
     const address = useAddress();
 
     const { fromBalance, toBalance } = useSwapBalances({
@@ -220,7 +238,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fromBalance,
             toBalance,
             canSubmit,
-            isWalletConnected,
             quote,
             isQuoteLoading,
             error,
@@ -245,7 +262,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fromBalance,
             toBalance,
             canSubmit,
-            isWalletConnected,
             quote,
             isQuoteLoading,
             error,

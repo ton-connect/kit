@@ -7,7 +7,6 @@
  */
 
 import type { AppKit } from '../../core/app-kit';
-import { PROVIDER_EVENTS } from '../../core/app-kit';
 
 export interface WatchSwapProvidersParameters {
     onChange: () => void;
@@ -24,11 +23,16 @@ export const watchSwapProviders = (
 ): WatchSwapProvidersReturnType => {
     const { onChange } = parameters;
 
-    const unsubscribe = appKit.emitter.on(PROVIDER_EVENTS.REGISTERED, (event) => {
-        if (event.payload.providerType === 'swap') {
-            onChange();
-        }
+    const unsubscribeRegistered = appKit.emitter.on('provider:registered', (event) => {
+        if (event.payload.type === 'swap') onChange();
     });
 
-    return unsubscribe;
+    const unsubscribeDefaultChanged = appKit.emitter.on('provider:default-changed', (event) => {
+        if (event.payload.type === 'swap') onChange();
+    });
+
+    return () => {
+        unsubscribeRegistered();
+        unsubscribeDefaultChanged();
+    };
 };

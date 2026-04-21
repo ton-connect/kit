@@ -6,8 +6,9 @@
  *
  */
 
-import type { FC } from 'react';
+import type { FC, ComponentProps } from 'react';
 import { calcFiatValue, formatLargeValue } from '@ton/appkit';
+import clsx from 'clsx';
 
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import { Input } from '../../../../components/input/input';
@@ -17,7 +18,7 @@ import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { useSwapContext } from '../swap-widget-provider/swap-widget-provider';
 import styles from './swap-field.module.css';
 
-export interface SwapFieldProps {
+export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
     type: 'pay' | 'receive';
     amount: string;
     token?: AppkitUIToken;
@@ -39,6 +40,8 @@ export const SwapField: FC<SwapFieldProps> = ({
     onMaxClick,
     onTokenSelectorClick,
     isWalletConnected,
+    className,
+    ...props
 }) => {
     const { t } = useI18n();
     const { fiatSymbol } = useSwapContext();
@@ -47,12 +50,19 @@ export const SwapField: FC<SwapFieldProps> = ({
     const displayDecimals = token ? Math.min(token.decimals, 5) : 5;
 
     return (
-        <Input.Container size="l" variant="unstyled" className={styles.container} loading={loading} resizable>
+        <Input.Container
+            className={clsx(styles.container, className)}
+            size="l"
+            variant="unstyled"
+            loading={loading}
+            resizable
+            {...props}
+        >
             <Input.Header className={styles.header}>
                 <Input.Title>{type === 'pay' ? t('swap.pay') : t('swap.receive')}</Input.Title>
             </Input.Header>
 
-            <Input.Field style={{ minHeight: 'var(--ta-input-l-line-height)' }}>
+            <Input.Field className={styles.field}>
                 <Input.Input
                     placeholder="0"
                     value={amount}

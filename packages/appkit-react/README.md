@@ -254,10 +254,13 @@ const { data: balance } = useStakedBalance({
     userAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
 });
 
+const metadata = useStakingProviderMetadata();
+
 return (
     <div>
         <div>Staking Quote: {quote?.amountOut}</div>
         <div>Staked Balance: {balance?.stakedBalance}</div>
+        <div>Receive Token Ticker: {metadata?.receiveToken?.ticker}</div>
     </div>
 );
 ```

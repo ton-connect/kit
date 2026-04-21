@@ -13,6 +13,7 @@ import type {
     StakeParams,
     StakingBalance,
     StakingProviderInfo,
+    StakingProviderMetadata,
     StakingQuoteParams,
     StakingQuote,
 } from '../../../api/models';
@@ -22,13 +23,12 @@ import { StakingError, StakingErrorCode } from '../errors';
 import type { TonStakersChainConfig, TonStakersProviderConfig } from './models/TonStakersProviderConfig';
 import type { ProviderFactoryContext } from '../../../types/factory';
 import type { NetworkManager } from '../../../core/NetworkManager';
-import { CONTRACT, STAKING_CONTRACT_ADDRESS } from './constants';
+import { CONTRACT, DEFAULT_METADATA } from './constants';
 import { PoolContract } from './PoolContract';
 import { StakingCache } from './StakingCache';
 import { ApiClientTonApi } from '../../../clients/tonapi/ApiClientTonApi';
 import { formatUnits, parseUnits } from '../../../utils/units';
 import type { ApiClient } from '../../../types/toncenter/ApiClient';
-import type { UnstakeModes } from '../../../api/models/staking/UnstakeMode';
 
 const log = globalLogger.createChild('TonStakersStakingProvider');
 
@@ -45,6 +45,7 @@ const log = globalLogger.createChild('TonStakersStakingProvider');
 export class TonStakersStakingProvider extends StakingProvider {
     private readonly networkManager: NetworkManager;
     private readonly chainConfig: Record<string, TonStakersChainConfig>;
+    private readonly metadataByNetwork: Record<string, StakingProviderMetadata>;
     private cache: StakingCache;
 
     /**
@@ -56,6 +57,30 @@ export class TonStakersStakingProvider extends StakingProvider {
         this.networkManager = networkManager;
         this.chainConfig = chainConfig;
         this.cache = new StakingCache();
+
+        this.metadataByNetwork = {};
+        for (const [chainId, config] of Object.entries(chainConfig)) {
+            const defaultMetadata = DEFAULT_METADATA[chainId];
+            const overrides = config.metadata ?? {};
+            const merged = {
+                ...defaultMetadata,
+                ...overrides,
+                stakeToken: { ...defaultMetadata?.stakeToken, ...overrides.stakeToken },
+                ...(defaultMetadata?.receiveToken || overrides.receiveToken
+                    ? { receiveToken: { ...defaultMetadata?.receiveToken, ...overrides.receiveToken } }
+                    : {}),
+            };
+
+            if (!TonStakersStakingProvider.isValidMetadata(merged)) {
+                throw new StakingError('Invalid metadata configuration', StakingErrorCode.InvalidParams, {
+                    chainId,
+                    merged,
+                });
+            }
+
+            this.metadataByNetwork[chainId] = merged;
+        }
+
         log.info('TonStakersStakingProvider initialized');
     }
 
@@ -72,21 +97,20 @@ export class TonStakersStakingProvider extends StakingProvider {
         for (const network of ctx.networkManager.getConfiguredNetworks()) {
             const chainId = network.chainId;
             const perChain = config[chainId] ?? {};
-            const defaultContract = STAKING_CONTRACT_ADDRESS[chainId as keyof typeof STAKING_CONTRACT_ADDRESS];
-            if (!defaultContract && !perChain.contractAddress) {
+
+            const hasDefaultContract = !!DEFAULT_METADATA[chainId]?.contractAddress;
+            const hasCustomContract = !!perChain.metadata?.contractAddress;
+
+            if (!hasDefaultContract && !hasCustomContract) {
                 continue;
             }
 
-            const contractAddress = (perChain.contractAddress ?? defaultContract) as UserFriendlyAddress;
-            chainConfig[chainId] = {
-                contractAddress,
-                ...(perChain.tonApiToken !== undefined ? { tonApiToken: perChain.tonApiToken } : {}),
-            };
+            chainConfig[chainId] = perChain;
         }
 
         if (Object.keys(chainConfig).length === 0) {
             throw new Error(
-                'createTonstakersProvider: no eligible networks (add mainnet/testnet or pass contractAddress in overrides)',
+                'createTonstakersProvider: no eligible networks (add mainnet/testnet or pass metadata.contractAddress in overrides)',
             );
         }
 
@@ -104,46 +128,69 @@ export class TonStakersStakingProvider extends StakingProvider {
             direction: params.direction,
             amount: params.amount,
             userAddress: params.userAddress,
+            isReversed: params.isReversed,
         });
 
-        const stakingInfo = await this.getStakingProviderInfo(params.network);
         const contract = this.getContract(params.network);
-        const rates = await contract.getRates();
+        const poolData = await contract.getPoolData();
+        const network = params.network ?? Network.mainnet();
+        const unstakeMode = params.unstakeMode ?? UnstakeMode.INSTANT;
 
         if (params.direction === 'stake') {
-            // User deposits TON, receives tsTON: tsTON = TON / rate
-            const amountInTokens = Number(params.amount);
-            const amountOutTokens = amountInTokens / rates.tsTONTONProjected;
-            const amountOut = amountOutTokens.toFixed(9);
+            // User deposits TON, receives tsTON: tsTON = amountIn * projectedSupply / projectedBalance
+            const rawAmountIn = parseUnits(params.amount, 9);
+            const rawAmountOut =
+                poolData.projectedBalance > 0n
+                    ? (rawAmountIn * poolData.projectedSupply) / poolData.projectedBalance
+                    : rawAmountIn;
 
-            const quote: StakingQuote = {
+            return {
                 direction: 'stake',
+                rawAmountIn: rawAmountIn.toString(),
+                rawAmountOut: rawAmountOut.toString(),
                 amountIn: params.amount,
-                amountOut,
-                network: params.network || Network.mainnet(),
-                providerId: 'tonstakers',
-                apy: stakingInfo.apy,
+                amountOut: formatUnits(rawAmountOut, 9),
+                network,
+                providerId: this.providerId,
             };
-            return quote;
-        } else {
-            // User burns tsTON, receives TON: TON = tsTON * rate
-            const amountInTokens = Number(params.amount);
-            const amountOutTokens =
-                params.unstakeMode === UnstakeMode.INSTANT || params.unstakeMode === UnstakeMode.WHEN_AVAILABLE
-                    ? amountInTokens * rates.tsTONTON
-                    : amountInTokens * rates.tsTONTONProjected;
-            const amountOut = amountOutTokens.toFixed(9);
-
-            const quote: StakingQuote = {
-                direction: 'unstake',
-                amountIn: params.amount,
-                amountOut,
-                network: params.network || Network.mainnet(),
-                providerId: 'tonstakers',
-                unstakeMode: params.unstakeMode ?? UnstakeMode.INSTANT,
-            };
-            return quote;
         }
+
+        const useSpotRate = unstakeMode === UnstakeMode.INSTANT || unstakeMode === UnstakeMode.WHEN_AVAILABLE;
+        const balance = useSpotRate ? poolData.totalBalance : poolData.projectedBalance;
+        const supply = useSpotRate ? poolData.supply : poolData.projectedSupply;
+
+        if (params.isReversed) {
+            // User specifies TON to receive, we calculate how much tsTON to burn
+            // tsTON_in = amountOut_TON * supply / balance
+            const rawAmountOut = parseUnits(params.amount, 9);
+            const rawAmountIn = balance > 0n ? (rawAmountOut * supply) / balance : rawAmountOut;
+
+            return {
+                direction: 'unstake',
+                rawAmountIn: rawAmountIn.toString(),
+                rawAmountOut: rawAmountOut.toString(),
+                amountIn: formatUnits(rawAmountIn, 9),
+                amountOut: params.amount,
+                network,
+                providerId: this.providerId,
+                unstakeMode,
+            };
+        }
+
+        // User burns tsTON, receives TON: TON = amountIn * balance / supply
+        const rawAmountIn = parseUnits(params.amount, 9);
+        const rawAmountOut = supply > 0n ? (rawAmountIn * balance) / supply : rawAmountIn;
+
+        return {
+            direction: 'unstake',
+            rawAmountIn: rawAmountIn.toString(),
+            rawAmountOut: rawAmountOut.toString(),
+            amountIn: params.amount,
+            amountOut: formatUnits(rawAmountOut, 9),
+            network,
+            providerId: this.providerId,
+            unstakeMode,
+        };
     }
 
     /**
@@ -174,7 +221,7 @@ export class TonStakersStakingProvider extends StakingProvider {
 
         const network = params.quote.network;
         const contractAddress = this.getStakingContractAddress(network);
-        const amount = parseUnits(params.quote.amountIn, 9);
+        const amount = BigInt(params.quote.rawAmountIn);
         const totalAmount = amount + CONTRACT.STAKE_FEE_RES;
 
         const contract = this.getContract(network);
@@ -210,7 +257,7 @@ export class TonStakersStakingProvider extends StakingProvider {
         }
 
         const network = params.quote.network;
-        const amount = parseUnits(params.quote.amountIn, 9);
+        const amount = BigInt(params.quote.rawAmountIn);
         const unstakeMode = params.quote.unstakeMode ?? UnstakeMode.INSTANT;
 
         /* if(optimistic_deposit_withdrawals &
@@ -308,9 +355,11 @@ export class TonStakersStakingProvider extends StakingProvider {
             }
 
             return {
+                rawStakedBalance: stakedBalance,
                 stakedBalance: formatUnits(stakedBalance, 9), // in tsTON tokens
+                rawInstantUnstakeAvailable: instantUnstakeAvailable.toString(),
                 instantUnstakeAvailable: formatUnits(instantUnstakeAvailable, 9),
-                providerId: 'tonstakers',
+                providerId: this.providerId,
             };
         } catch (error) {
             log.error('Failed to get balance', { error, userAddress, network });
@@ -340,21 +389,35 @@ export class TonStakersStakingProvider extends StakingProvider {
             const contract = this.getContract(targetNetwork);
             const instantLiquidity = await contract.getPoolBalance();
             const apy = await this.getApyFromTonApi(targetNetwork);
+            const poolData = await contract.getPoolData();
+
+            // Compute exchange rate with 9-digit precision via bigint: (totalBalance * 10^9) / supply
+            const PRECISION = 1_000_000_000n;
+            const exchangeRate =
+                poolData.supply > 0n ? formatUnits((poolData.totalBalance * PRECISION) / poolData.supply, 9) : '1';
 
             return {
                 apy,
+                rawInstantUnstakeAvailable: instantLiquidity.toString(),
                 instantUnstakeAvailable: formatUnits(instantLiquidity, 9),
-                providerId: 'tonstakers',
+                exchangeRate,
             };
         });
     }
 
-    /**
-     * Get supported unstake modes
-     * @returns An array of supported unstake modes
-     */
-    getSupportedUnstakeModes(): UnstakeModes[] {
-        return [UnstakeMode.INSTANT, UnstakeMode.WHEN_AVAILABLE, UnstakeMode.ROUND_END];
+    getStakingProviderMetadata(network?: Network): StakingProviderMetadata {
+        const targetNetwork = network ?? Network.mainnet();
+        const metadata = this.metadataByNetwork[targetNetwork.chainId];
+
+        if (!metadata) {
+            throw new StakingError(
+                'Metadata is not configured for the selected network',
+                StakingErrorCode.InvalidParams,
+                { network: targetNetwork },
+            );
+        }
+
+        return metadata;
     }
 
     /**
@@ -367,9 +430,9 @@ export class TonStakersStakingProvider extends StakingProvider {
 
     private getStakingContractAddress(network?: Network): string {
         const targetNetwork = network ?? Network.mainnet();
-        const entry = this.chainConfig[targetNetwork.chainId];
+        const metadata = this.getStakingProviderMetadata(targetNetwork);
 
-        if (!entry?.contractAddress) {
+        if (!metadata.contractAddress) {
             throw new StakingError(
                 'Staking contract address is not configured for the selected network',
                 StakingErrorCode.InvalidParams,
@@ -377,7 +440,7 @@ export class TonStakersStakingProvider extends StakingProvider {
             );
         }
 
-        return entry.contractAddress;
+        return metadata.contractAddress;
     }
 
     private getContract(network?: Network): PoolContract {
@@ -409,6 +472,24 @@ export class TonStakersStakingProvider extends StakingProvider {
         }
 
         return Number(poolInfo.pool.apy);
+    }
+
+    private static isValidTokenInfo(token: unknown): boolean {
+        if (!token || typeof token !== 'object') return false;
+        const t = token as Record<string, unknown>;
+        return typeof t.ticker === 'string' && typeof t.decimals === 'number' && typeof t.address === 'string';
+    }
+
+    private static isValidMetadata(meta: unknown): meta is StakingProviderMetadata {
+        if (!meta || typeof meta !== 'object') return false;
+
+        const m = meta as Record<string, unknown>;
+
+        return (
+            TonStakersStakingProvider.isValidTokenInfo(m.stakeToken) &&
+            Array.isArray(m.supportedUnstakeModes) &&
+            typeof m.supportsReversedQuote === 'boolean'
+        );
     }
 }
 

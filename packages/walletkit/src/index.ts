@@ -21,6 +21,7 @@ export { Initializer } from './core/Initializer';
 export { JettonsManager } from './core/JettonsManager';
 export { SwapManager, SwapProvider, SwapError } from './defi/swap';
 export { StakingManager, StakingProvider, StakingError } from './defi/staking';
+export { OnrampManager, OnrampProvider, OnrampError } from './defi/onramp';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener, EventPayload, KitEvent } from './core/EventEmitter';
 export type { SharedKitEvents } from './types/emitter';
@@ -94,7 +95,7 @@ export type {
     Feature,
     InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
-export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
+export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic.mjs';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
 export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';

@@ -75,7 +75,7 @@ export type { TONTransferRequest } from './tons/TONTransferRequest';
 // Swap models
 export type { SwapToken } from './swaps/SwapToken';
 export type { SwapFee } from './swaps/SwapFee';
-export type { SwapProviderMetadata } from './swaps/SwapProviderMetadata';
+export type { SwapProviderMetadata, SwapProviderMetadataOverride } from './swaps/SwapProviderMetadata';
 export type { SwapQuote } from './swaps/SwapQuote';
 export type { SwapQuoteParams } from './swaps/SwapQuoteParams';
 export type { SwapParams } from './swaps/SwapParams';
@@ -84,11 +84,23 @@ export type { SwapParams } from './swaps/SwapParams';
 export type { StakeParams } from './staking/StakeParams';
 export type { StakingBalance } from './staking/StakingBalance';
 export type { StakingProviderInfo } from './staking/StakingProviderInfo';
+export type {
+    StakingProviderMetadata,
+    StakingProviderMetadataOverride,
+    StakingTokenInfo,
+} from './staking/StakingProviderMetadata';
 export type { StakingQuote } from './staking/StakingQuote';
 export type { StakingQuoteDirection } from './staking/StakingQuoteDirection';
 export type { StakingQuoteParams } from './staking/StakingQuoteParams';
 export type { UnstakeModes } from './staking/UnstakeMode';
 export { UnstakeMode } from './staking/UnstakeMode';
+
+// Onramp models
+export type { OnrampParams } from './onramp/OnrampParams';
+export type { OnrampQuote } from './onramp/OnrampQuote';
+export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
+export type { OnrampLimits } from './onramp/OnrampLimits';
+export type { OnrampLimitParams } from './onramp/OnrampLimitParams';
 
 // Transaction models
 export * from './transactions/Transaction';
