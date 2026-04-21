@@ -55,6 +55,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     isWalletConnected,
     canContinue,
     error,
+    onReset,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -73,7 +74,8 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
 
     const handleDepositClose = useCallback(() => {
         setIsDepositOpen(false);
-    }, []);
+        onReset();
+    }, [onReset]);
 
     return (
         <div className={styles.widget}>

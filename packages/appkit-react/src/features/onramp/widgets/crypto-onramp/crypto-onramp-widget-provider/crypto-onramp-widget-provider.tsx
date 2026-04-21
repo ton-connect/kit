@@ -89,6 +89,8 @@ export interface CryptoOnrampContextType {
     error: CryptoOnrampWidgetError;
     /** Whether the user can proceed (valid amount + quote available + wallet connected) */
     canContinue: boolean;
+    /** Reset state (invalidate quote and clear deposit) */
+    onReset: () => void;
 }
 
 const defaultContext: CryptoOnrampContextType = {
@@ -121,6 +123,7 @@ const defaultContext: CryptoOnrampContextType = {
 
     error: null,
     canContinue: false,
+    onReset: () => {},
 };
 
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
@@ -233,6 +236,11 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         });
     }, [quoteQuery.data, userAddress, createDepositMutation]);
 
+    const onReset = useCallback(() => {
+        createDepositMutation.reset();
+        quoteQuery.refetch();
+    }, [createDepositMutation, quoteQuery]);
+
     const value = useMemo(
         () => ({
             tokens,
@@ -260,6 +268,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             isWalletConnected: !!userAddress,
             error,
             canContinue,
+            onReset,
         }),
         [
             tokens,
@@ -284,6 +293,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             userAddress,
             error,
             canContinue,
+            onReset,
         ],
     );
 
