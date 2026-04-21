@@ -15,6 +15,11 @@
 	margin-top: 4px;
 }
 
+.infoTitle {
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+	margin: 0;
+}
+
 .infoCard {
 	background-color: var(--ta-color-background-secondary);
 	border-radius: var(--ta-border-radius-l);
@@ -24,7 +29,6 @@
 .infoRow {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
 	padding: 12px 16px;
 }
 

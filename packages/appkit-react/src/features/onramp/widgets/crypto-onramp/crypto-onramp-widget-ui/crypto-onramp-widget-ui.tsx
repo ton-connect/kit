@@ -55,7 +55,6 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     isWalletConnected,
     canContinue,
     error,
-    onReset,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -74,8 +73,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
 
     const handleDepositClose = useCallback(() => {
         setIsDepositOpen(false);
-        onReset();
-    }, [onReset]);
+    }, []);
 
     return (
         <div className={styles.widget}>
@@ -101,10 +99,10 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 />
 
                 <OnrampAmountReversed
+                    className={styles.converted}
                     value={convertedAmount}
                     onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'method' : 'token')}
                     ticker={amountInputMode === 'token' ? selectedMethod.symbol : selectedToken?.symbol}
-                    errorMessage={error ? t(`cryptoOnramp.${error}`) : undefined}
                 />
             </div>
 
@@ -118,7 +116,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 onClick={handleContinue}
                 fullWidth
             >
-                {t('cryptoOnramp.continue')}
+                {error ? t(`cryptoOnramp.${error}`) : t('cryptoOnramp.continue')}
             </ButtonWithConnect>
 
             <InfoBlock.Container className={styles.info}>

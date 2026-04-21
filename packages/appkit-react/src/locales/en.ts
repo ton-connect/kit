@@ -66,6 +66,7 @@ export default {
 
     // Crypto Onramp
     cryptoOnramp: {
+        depositModalTitle: 'Crypto deposit',
         sendExactAmount: 'Send the exact amount to the address below',
         youNeedToSend: 'You need to send',
         toThisAddress: 'To this address',

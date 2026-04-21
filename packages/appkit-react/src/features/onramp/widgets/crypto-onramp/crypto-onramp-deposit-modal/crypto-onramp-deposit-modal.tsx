@@ -69,19 +69,6 @@ const WarningIcon: FC = () => (
     </svg>
 );
 
-const ChevronIcon: FC<{ open: boolean }> = ({ open }) => (
-    <svg
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 0.2s' }}
-    >
-        <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
-
 const useCopy = (text: string): [boolean, () => void] => {
     const [copied, setCopied] = useState(false);
 
@@ -114,7 +101,6 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     const [amountCopied, copyAmount] = useCopy(`${amount} ${symbol}`);
     const [addressCopied, copyAddress] = useCopy(address);
     const [memoCopied, copyMemo] = useCopy(memo ?? '');
-    const [detailsOpen, setDetailsOpen] = useState(false);
     const [qrTab, setQrTab] = useState<QrTab>('address');
 
     const qrImageSettings = tokenLogo ? { src: tokenLogo, width: 40, height: 40, excavate: true } : undefined;
@@ -122,7 +108,7 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     const qrValue = memo && qrTab === 'memo' ? memo : address;
 
     return (
-        <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()} title={t('cryptoOnramp.sendExactAmount')}>
+        <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()} title={t('cryptoOnramp.depositModalTitle')}>
             <div className={styles.content}>
                 {memo ? (
                     <Tabs value={qrTab} onValueChange={(v) => setQrTab(v as QrTab)}>
@@ -132,20 +118,42 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                         </TabsList>
                         <TabsContent value="address">
                             <div className={styles.qrWrapper}>
-                                <QRCodeSVG value={address} size={200} level="M" imageSettings={qrImageSettings} />
+                                <QRCodeSVG
+                                    value={address}
+                                    size={200}
+                                    level="H"
+                                    bgColor="transparent"
+                                    fgColor="var(--ta-color-text)"
+                                    imageSettings={qrImageSettings}
+                                />
                             </div>
                         </TabsContent>
                         <TabsContent value="memo">
                             <div className={styles.qrWrapper}>
-                                <QRCodeSVG value={memo} size={200} level="M" />
+                                <QRCodeSVG
+                                    value={memo}
+                                    size={200}
+                                    level="H"
+                                    bgColor="transparent"
+                                    fgColor="var(--ta-color-text)"
+                                />
                             </div>
                         </TabsContent>
                     </Tabs>
                 ) : (
                     <div className={styles.qrWrapper}>
-                        <QRCodeSVG value={qrValue} size={200} level="M" imageSettings={qrImageSettings} />
+                        <QRCodeSVG
+                            value={qrValue}
+                            size={200}
+                            level="H"
+                            bgColor="transparent"
+                            fgColor="var(--ta-color-text)"
+                            imageSettings={qrImageSettings}
+                        />
                     </div>
                 )}
+
+                <p className={styles.infoTitle}>{t('cryptoOnramp.sendExactAmount')}</p>
 
                 <div className={styles.infoCard}>
                     <div className={styles.infoRow}>
@@ -202,16 +210,6 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                         </>
                     )}
                 </div>
-
-                <button
-                    type="button"
-                    className={styles.detailsToggle}
-                    onClick={() => setDetailsOpen((prev) => !prev)}
-                    aria-expanded={detailsOpen}
-                >
-                    <span>{t('cryptoOnramp.transactionDetails')}</span>
-                    <ChevronIcon open={detailsOpen} />
-                </button>
 
                 {networkWarning && (
                     <div className={styles.warning}>

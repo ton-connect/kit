@@ -6,7 +6,7 @@
  *
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { CryptoOnrampQuote, CryptoOnrampDeposit } from '@ton/appkit';
 import { formatUnits, parseUnits, validateNumericString } from '@ton/appkit';
@@ -89,7 +89,6 @@ export interface CryptoOnrampContextType {
     error: CryptoOnrampWidgetError;
     /** Whether the user can proceed (valid amount + quote available + wallet connected) */
     canContinue: boolean;
-    onReset: () => void;
 }
 
 const defaultContext: CryptoOnrampContextType = {
@@ -122,7 +121,6 @@ const defaultContext: CryptoOnrampContextType = {
 
     error: null,
     canContinue: false,
-    onReset: () => {},
 };
 
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
@@ -226,22 +224,6 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         return amount;
     }, [createDepositMutation.data, amount, selectedMethod]);
 
-    const onReset = useCallback(() => {
-        setAmountRaw('');
-        setAmountInputMode('method');
-        createDepositMutation.reset();
-    }, [createDepositMutation]);
-
-    // Reset widget state when the connected TON address changes —
-    // the previous quote/deposit is tied to the old recipient.
-    const previousUserAddressRef = useRef(userAddress);
-    useEffect(() => {
-        if (previousUserAddressRef.current !== userAddress) {
-            previousUserAddressRef.current = userAddress;
-            onReset();
-        }
-    }, [userAddress, onReset]);
-
     const createDeposit = useCallback(() => {
         if (!quoteQuery.data || !userAddress) return;
         createDepositMutation.mutate({
@@ -278,7 +260,6 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             isWalletConnected: !!userAddress,
             error,
             canContinue,
-            onReset,
         }),
         [
             tokens,
@@ -303,7 +284,6 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             userAddress,
             error,
             canContinue,
-            onReset,
         ],
     );
 

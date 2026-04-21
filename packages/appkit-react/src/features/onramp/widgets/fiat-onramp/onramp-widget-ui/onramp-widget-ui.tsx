@@ -87,13 +87,12 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                     ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
                     symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
                 />
-
                 <OnrampAmountReversed
+                    className={styles.converted}
                     value={convertedAmount}
                     onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
                     ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
                     symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
-                    errorMessage={error ? t(`onramp.${error}`) : undefined}
                 />
             </div>
 
@@ -107,12 +106,12 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
             <Button
                 variant="fill"
                 size="l"
-                disabled={!canContinue}
+                disabled={!canContinue && !error}
                 loading={isLoading}
                 onClick={handleContinue}
                 fullWidth
             >
-                {t('onramp.continue')}
+                {error ? t(`onramp.${error}`) : t('onramp.continue')}
             </Button>
 
             <OnrampTokenSelectModal
