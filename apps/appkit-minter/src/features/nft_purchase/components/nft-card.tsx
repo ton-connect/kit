@@ -6,11 +6,11 @@
  *
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { FC } from 'react';
-import { Button, useSelectedWallet } from '@ton/appkit-react';
+import { Button, useGaslessConfig, useSelectedWallet } from '@ton/appkit-react';
 import type { Base64String, TransactionRequest, TransactionRequestMessage } from '@ton/appkit';
-import { getJettonWalletAddress, Network } from '@ton/appkit';
+import { compareAddress, getJettonWalletAddress, Network } from '@ton/appkit';
 import { beginCell, toNano } from '@ton/core';
 import { Image as ImageIcon, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,7 +21,7 @@ import type { GetGemsNftFull, GetGemsNftOnSale } from '../api/types';
 import { formatAmount, formatPrice, getCurrencyDecimals, safeBigInt } from '../lib/currency';
 import { buildJettonTransferBody, getJettonMaster } from '../lib/jetton';
 import { PurchaseModal } from './purchase-modal';
-import type { PurchaseDetails } from './purchase-modal';
+import type { GaslessPurchaseConfig, PurchaseDetails } from './purchase-modal';
 
 import { appKit } from '@/core/configs/app-kit';
 
@@ -36,13 +36,18 @@ const JETTON_BUY_GAS = toNano('0.5');
 /** TON forwarded with jetton_notify to the sale contract. */
 const JETTON_FORWARD_TON = toNano('0.35');
 
+interface JettonBuyBuildResult {
+    tx: TransactionRequest;
+    jettonMaster: string;
+}
+
 async function buildJettonBuyTransaction(args: {
     nft: GetGemsNftFull;
     userAddress: string;
     currency: string;
     priceNano: bigint;
     saleContract: string;
-}): Promise<TransactionRequest> {
+}): Promise<JettonBuyBuildResult> {
     const master = getJettonMaster(args.currency);
     if (!master) {
         throw new Error(`Currency ${args.currency} is not supported yet`);
@@ -73,13 +78,17 @@ async function buildJettonBuyTransaction(args: {
     ];
 
     return {
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages,
+        tx: {
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages,
+        },
+        jettonMaster: master,
     };
 }
 
 export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const [wallet] = useSelectedWallet();
+    const { data: gaslessConfig } = useGaslessConfig();
     const [isLoadingBuy, setIsLoadingBuy] = useState(false);
     const [details, setDetails] = useState<PurchaseDetails | null>(null);
 
@@ -87,6 +96,12 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
     const priceLabel = sale ? `${formatPrice(sale.fullPrice, sale.currency)} ${sale.currency}` : null;
 
     const isMainnet = wallet?.getNetwork().chainId === Network.mainnet().chainId;
+
+    const supportedGasJettons = useMemo(() => gaslessConfig?.supportedGasJettons ?? [], [gaslessConfig]);
+
+    const isGaslessSupportedFor = (jettonMaster: string): boolean => {
+        return supportedGasJettons.some((j) => compareAddress(j.jettonMaster, jettonMaster));
+    };
 
     const handleBuyClick = async () => {
         if (isLoadingBuy || !wallet) return;
@@ -104,6 +119,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
 
             let tx: TransactionRequest;
             let networkFeeRaw: bigint;
+            let gasless: GaslessPurchaseConfig | undefined;
 
             if (currency === 'TON') {
                 const buy = await buildBuyTransaction(nft.address, fresh.sale.version);
@@ -123,14 +139,21 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 if (!saleContract) {
                     throw new Error('Sale contract address is missing');
                 }
-                tx = await buildJettonBuyTransaction({
+                const built = await buildJettonBuyTransaction({
                     nft: fresh,
                     userAddress: wallet.getAddress(),
                     currency,
                     priceNano: priceRaw,
                     saleContract,
                 });
+                tx = built.tx;
                 networkFeeRaw = JETTON_BUY_GAS;
+                if (isGaslessSupportedFor(built.jettonMaster)) {
+                    gasless = {
+                        feeJettonMaster: built.jettonMaster,
+                        messages: built.tx.messages,
+                    };
+                }
             }
 
             setDetails({
@@ -140,6 +163,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 priceCurrency: currency,
                 networkFeeTon: formatAmount(networkFeeRaw, TON_DECIMALS),
                 tx,
+                gasless,
             });
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to prepare purchase');

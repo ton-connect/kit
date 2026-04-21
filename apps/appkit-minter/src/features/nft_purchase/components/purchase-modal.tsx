@@ -9,10 +9,15 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { AlertCircle, Image as ImageIcon, ShoppingCart } from 'lucide-react';
-import { Button, Modal, Send } from '@ton/appkit-react';
-import type { TransactionRequest } from '@ton/appkit';
+import { Button, Modal, Send, useSendGaslessTransaction } from '@ton/appkit-react';
+import type { TransactionRequest, TransactionRequestMessage } from '@ton/appkit';
 import { getErrorMessage } from '@ton/appkit';
 import { toast } from 'sonner';
+
+export interface GaslessPurchaseConfig {
+    feeJettonMaster: string;
+    messages: TransactionRequestMessage[];
+}
 
 export interface PurchaseDetails {
     nftName: string;
@@ -21,6 +26,7 @@ export interface PurchaseDetails {
     priceCurrency: string;
     networkFeeTon: string;
     tx: TransactionRequest;
+    gasless?: GaslessPurchaseConfig;
 }
 
 interface PurchaseModalProps {
@@ -32,6 +38,24 @@ interface PurchaseModalProps {
 
 export const PurchaseModal: FC<PurchaseModalProps> = ({ open, onOpenChange, details, onPurchased }) => {
     const [confirmed, setConfirmed] = useState(false);
+    const { mutateAsync: sendGasless, isPending: isGaslessSending } = useSendGaslessTransaction();
+
+    const isGasless = !!details.gasless;
+
+    const handleGaslessBuy = async () => {
+        if (!details.gasless) return;
+        try {
+            await sendGasless({
+                feeJettonMaster: details.gasless.feeJettonMaster,
+                messages: details.gasless.messages,
+            });
+            toast.success('Purchase sent');
+            onPurchased();
+            onOpenChange(false);
+        } catch (error) {
+            toast.error(getErrorMessage(error instanceof Error ? error : new Error(String(error))));
+        }
+    };
 
     return (
         <Modal open={open} onOpenChange={onOpenChange} title="Buy NFT">
@@ -60,9 +84,15 @@ export const PurchaseModal: FC<PurchaseModalProps> = ({ open, onOpenChange, deta
                     <div className="p-3 flex items-start justify-between gap-3">
                         <div>
                             <p className="text-sm font-semibold">Network fee</p>
-                            <p className="text-xs text-muted-foreground">Unused part will be refunded to your wallet</p>
+                            <p className="text-xs text-muted-foreground">
+                                {isGasless
+                                    ? `Paid in ${details.priceCurrency} via gasless relayer`
+                                    : 'Unused part will be refunded to your wallet'}
+                            </p>
                         </div>
-                        <p className="text-sm font-semibold shrink-0">{details.networkFeeTon} TON</p>
+                        <p className="text-sm font-semibold shrink-0">
+                            {isGasless ? `Gasless` : `${details.networkFeeTon} TON`}
+                        </p>
                     </div>
                 </div>
 
@@ -88,30 +118,44 @@ export const PurchaseModal: FC<PurchaseModalProps> = ({ open, onOpenChange, deta
                     </label>
                 </div>
 
-                <Send
-                    request={details.tx}
-                    onSuccess={() => {
-                        toast.success('Purchase sent');
-                        onPurchased();
-                        onOpenChange(false);
-                    }}
-                    onError={(error: Error) => toast.error(getErrorMessage(error))}
-                    disabled={!confirmed}
-                >
-                    {({ isLoading, onSubmit, disabled }) => (
-                        <Button
-                            size="m"
-                            variant="fill"
-                            className="w-full"
-                            onClick={onSubmit}
-                            disabled={disabled}
-                            loading={isLoading}
-                            icon={<ShoppingCart className="w-4 h-4" />}
-                        >
-                            Buy for {details.priceAmount} {details.priceCurrency}
-                        </Button>
-                    )}
-                </Send>
+                {isGasless ? (
+                    <Button
+                        size="m"
+                        variant="fill"
+                        className="w-full"
+                        onClick={handleGaslessBuy}
+                        disabled={!confirmed || isGaslessSending}
+                        loading={isGaslessSending}
+                        icon={<ShoppingCart className="w-4 h-4" />}
+                    >
+                        Buy for {details.priceAmount} {details.priceCurrency} (Gasless)
+                    </Button>
+                ) : (
+                    <Send
+                        request={details.tx}
+                        onSuccess={() => {
+                            toast.success('Purchase sent');
+                            onPurchased();
+                            onOpenChange(false);
+                        }}
+                        onError={(error: Error) => toast.error(getErrorMessage(error))}
+                        disabled={!confirmed}
+                    >
+                        {({ isLoading, onSubmit, disabled }) => (
+                            <Button
+                                size="m"
+                                variant="fill"
+                                className="w-full"
+                                onClick={onSubmit}
+                                disabled={disabled}
+                                loading={isLoading}
+                                icon={<ShoppingCart className="w-4 h-4" />}
+                            >
+                                Buy for {details.priceAmount} {details.priceCurrency}
+                            </Button>
+                        )}
+                    </Send>
+                )}
             </div>
         </Modal>
     );

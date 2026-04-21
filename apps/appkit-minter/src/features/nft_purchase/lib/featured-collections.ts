@@ -6,4 +6,7 @@
  *
  */
 
-export const FEATURED_COLLECTION_ADDRESSES: readonly string[] = ['EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz'];
+export const FEATURED_COLLECTION_ADDRESSES: readonly string[] = [
+    // 'EQC3dNlesgVD8YbAazcauIrXBPfiVhMMr5YYk2in0Mtsz0Bz', // TON DNS
+    'EQBIj0uF-qIASqv6qIvcTif2wKSdt4WQc4mcoBywNp5GntuG', // Instant Ramens
+];
