@@ -183,6 +183,24 @@ export {
     type BuildOnrampUrlVariables,
 } from './onramp/build-onramp-url';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteQueryConfig,
+    type GetCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteData,
+    type GetCryptoOnrampQuoteErrorType,
+    type GetCryptoOnrampQuoteQueryFnData,
+    type GetCryptoOnrampQuoteQueryKey,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    createCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositData,
+    type CreateCryptoOnrampDepositErrorType,
+    type CreateCryptoOnrampDepositVariables,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+
 // Staking
 export {
     getStakingQuoteQueryOptions,

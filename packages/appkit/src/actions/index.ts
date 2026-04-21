@@ -144,6 +144,18 @@ export {
 } from './onramp/watch-onramp-providers';
 export { buildOnrampUrl, type BuildOnrampUrlOptions, type BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuote,
+    type GetCryptoOnrampQuoteOptions,
+    type GetCryptoOnrampQuoteReturnType,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    createCryptoOnrampDeposit,
+    type CreateCryptoOnrampDepositOptions,
+    type CreateCryptoOnrampDepositReturnType,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
 export { getStakingProviders, type GetStakingProvidersReturnType } from './staking/get-staking-providers';
