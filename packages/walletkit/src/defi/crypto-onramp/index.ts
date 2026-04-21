@@ -9,3 +9,4 @@
 export * from './errors';
 export * from './CryptoOnrampManager';
 export * from './CryptoOnrampProvider';
+export * from './swaps-xyz';
