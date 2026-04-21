@@ -6,10 +6,11 @@
  *
  */
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { CryptoOnrampQuote, CryptoOnrampDeposit } from '@ton/appkit';
-import { formatUnits, parseUnits } from '@ton/appkit';
+import { formatUnits, parseUnits, validateNumericString } from '@ton/appkit';
+import { keepPreviousData } from '@tanstack/react-query';
 
 import type {
     CryptoOnrampToken,
@@ -23,8 +24,8 @@ import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-to
 import { useCryptoOnrampQuote, useCreateCryptoOnrampDeposit } from '../../../../crypto-onramp';
 import { useAddress } from '../../../../wallets';
 import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
+import { useCryptoOnrampValidation } from './use-crypto-onramp-validation';
 
-const ERROR_THRESHOLD = 10000;
 const DEFAULT_PRESETS: OnrampAmountPreset[] = [
     { amount: '100', label: '100' },
     { amount: '250', label: '250' },
@@ -33,6 +34,8 @@ const DEFAULT_PRESETS: OnrampAmountPreset[] = [
 ];
 
 export type CryptoAmountInputMode = 'token' | 'method';
+
+export type CryptoOnrampWidgetError = 'tooManyDecimals' | 'quoteError' | null;
 
 export interface CryptoOnrampContextType {
     /** Full list of tokens to buy */
@@ -82,8 +85,10 @@ export interface CryptoOnrampContextType {
     /** Whether a TON wallet is currently connected */
     isWalletConnected: boolean;
 
+    /** Validation / fetch error */
+    error: CryptoOnrampWidgetError;
+    /** Whether the user can proceed (valid amount + quote available + wallet connected) */
     canContinue: boolean;
-    error?: string;
     onReset: () => void;
 }
 
@@ -115,8 +120,8 @@ const defaultContext: CryptoOnrampContextType = {
 
     isWalletConnected: false,
 
+    error: null,
     canContinue: false,
-    error: undefined,
     onReset: () => {},
 };
 
@@ -152,25 +157,33 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         () => paymentMethods.find((m) => m.id === defaultMethodId) ?? paymentMethods[0] ?? CRYPTO_PAYMENT_METHODS[0]!,
     );
 
-    const [amount, setAmount] = useState('');
+    const [amount, setAmountRaw] = useState('');
     const [amountInputMode, setAmountInputMode] = useState<CryptoAmountInputMode>('method');
+
+    const amountDecimals = amountInputMode === 'method' ? selectedMethod.decimals : (selectedToken?.decimals ?? 9);
+
+    const setAmount = useCallback(
+        (value: string) => {
+            if (value === '' || validateNumericString(value, amountDecimals)) setAmountRaw(value);
+        },
+        [amountDecimals],
+    );
 
     const userAddress = useAddress();
 
     const [amountDebounced] = useDebounceValue(amount, 500);
 
-    const requestAmountNano = useMemo(() => {
+    const requestAmountBase = useMemo(() => {
         if (!amountDebounced || isNaN(parseFloat(amountDebounced))) return '';
-        const decimals = amountInputMode === 'method' ? selectedMethod.decimals : (selectedToken?.decimals ?? 9);
         try {
-            return parseUnits(amountDebounced, decimals).toString();
+            return parseUnits(amountDebounced, amountDecimals).toString();
         } catch {
             return '';
         }
-    }, [amountDebounced, amountInputMode, selectedMethod, selectedToken]);
+    }, [amountDebounced, amountDecimals]);
 
     const quoteQuery = useCryptoOnrampQuote({
-        amount: requestAmountNano,
+        amount: requestAmountBase,
         sourceCurrency: selectedMethod.address,
         sourceNetwork: selectedMethod.networkId,
         targetCurrency: selectedToken?.address ?? '',
@@ -179,46 +192,32 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             recipient: userAddress ?? '',
         },
         query: {
-            enabled:
-                !!requestAmountNano &&
-                !!selectedToken &&
-                !!userAddress &&
-                !isNaN(parseFloat(amountDebounced)) &&
-                parseFloat(amountDebounced) > 0,
+            enabled: !!requestAmountBase && !!selectedToken && !!userAddress && parseFloat(amountDebounced) > 0,
             retry: false,
+            placeholderData: keepPreviousData,
         },
     });
 
     const createDepositMutation = useCreateCryptoOnrampDeposit();
 
     const convertedAmount = useMemo(() => {
-        if (quoteQuery.data) {
-            const rawAmount = amountInputMode === 'token' ? quoteQuery.data.sourceAmount : quoteQuery.data.targetAmount;
-            const decimals = amountInputMode === 'token' ? selectedMethod.decimals : (selectedToken?.decimals ?? 9);
-            return formatUnits(rawAmount, decimals);
-        }
-        return '';
+        if (!quoteQuery.data) return '';
+        const rawAmount = amountInputMode === 'token' ? quoteQuery.data.sourceAmount : quoteQuery.data.targetAmount;
+        const decimals = amountInputMode === 'token' ? selectedMethod.decimals : (selectedToken?.decimals ?? 9);
+        return formatUnits(rawAmount, decimals);
     }, [quoteQuery.data, amountInputMode, selectedMethod, selectedToken]);
 
-    const numericAmount = parseFloat(amount);
-    const error =
-        (!isNaN(numericAmount) && numericAmount > ERROR_THRESHOLD) || quoteQuery.error ? 'noQuotesFound' : undefined;
+    const { error, canSubmit } = useCryptoOnrampValidation({
+        amount,
+        amountDebounced,
+        amountInputMode,
+        selectedMethod,
+        selectedToken,
+        quoteError: quoteQuery.error,
+        hasQuote: !!quoteQuery.data,
+    });
 
-    const canContinue =
-        amount !== '' &&
-        !isNaN(numericAmount) &&
-        numericAmount > 0 &&
-        !error &&
-        !!quoteQuery.data &&
-        !quoteQuery.isFetching &&
-        amount === amountDebounced &&
-        !!userAddress;
-
-    const onReset = () => {
-        setAmount('');
-        setAmountInputMode('method');
-        createDepositMutation.reset();
-    };
+    const canContinue = canSubmit && !quoteQuery.isFetching && amount === amountDebounced && !!userAddress;
 
     const depositAmount = useMemo(() => {
         if (createDepositMutation.data) {
@@ -227,14 +226,20 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         return amount;
     }, [createDepositMutation.data, amount, selectedMethod]);
 
-    const createDeposit = () => {
+    const onReset = useCallback(() => {
+        setAmountRaw('');
+        setAmountInputMode('method');
+        createDepositMutation.reset();
+    }, [createDepositMutation]);
+
+    const createDeposit = useCallback(() => {
         if (!quoteQuery.data || !userAddress) return;
         createDepositMutation.mutate({
             quote: quoteQuery.data,
             userAddress,
             providerId: quoteQuery.data.providerId,
         });
-    };
+    }, [quoteQuery.data, userAddress, createDepositMutation]);
 
     const value = useMemo(
         () => ({
@@ -261,8 +266,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             depositAmount,
             createDeposit,
             isWalletConnected: !!userAddress,
-            canContinue,
             error,
+            canContinue,
             onReset,
         }),
         [
@@ -273,6 +278,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             methodSections,
             selectedMethod,
             amount,
+            setAmount,
             amountInputMode,
             convertedAmount,
             quoteQuery.data,
@@ -283,9 +289,10 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             createDepositMutation.isPending,
             createDepositMutation.error,
             depositAmount,
+            createDeposit,
             userAddress,
-            canContinue,
             error,
+            canContinue,
             onReset,
         ],
     );

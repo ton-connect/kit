@@ -77,6 +77,8 @@ export default {
         allNetworks: 'All networks',
         selectMethod: 'Select payment method',
         searchMethod: 'Search',
+        quoteError: 'Failed to get a quote',
+        tooManyDecimals: 'Too many decimals',
     },
 
     // Onramp

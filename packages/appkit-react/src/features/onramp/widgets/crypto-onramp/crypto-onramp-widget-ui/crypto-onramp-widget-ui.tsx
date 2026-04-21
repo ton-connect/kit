@@ -97,7 +97,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 value={displayConvertedAmount}
                 onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'method' : 'token')}
                 ticker={amountInputMode === 'token' ? selectedMethod.symbol : selectedToken?.symbol}
-                errorMessage={error ? t(`onramp.${error}`) : undefined}
+                errorMessage={error ? t(`cryptoOnramp.${error}`) : undefined}
             />
 
             <AmountPresets className={styles.presets} presets={presetAmounts} onPresetSelect={setAmount} />
