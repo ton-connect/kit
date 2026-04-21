@@ -6,12 +6,7 @@
  *
  */
 
-export {
-    CryptoOnrampProvider,
-    CryptoOnrampManager,
-    CryptoOnrampError,
-    SwapsXyzCryptoOnrampProvider,
-} from '@ton/walletkit';
+export { CryptoOnrampProvider, CryptoOnrampManager, CryptoOnrampError } from '@ton/walletkit';
 
 export type {
     CryptoOnrampAPI,
@@ -20,14 +15,6 @@ export type {
     CryptoOnrampQuoteParams,
     CryptoOnrampDeposit,
     CryptoOnrampDepositParams,
-    SwapsXyzProviderConfig,
-    SwapsXyzQuoteOptions,
-    SwapsXyzDepositOptions,
-    SwapsXyzGetActionResponse,
-    SwapsXyzErrorResponse,
-    SwapsXyzVmId,
-    SwapsXyzSwapDirection,
-    SwapsXyzPayment,
-    SwapsXyzEvmTx,
-    SwapsXyzBridgeRouteStep,
+    CryptoOnrampStatus,
+    CryptoOnrampStatusParams,
 } from '@ton/walletkit';

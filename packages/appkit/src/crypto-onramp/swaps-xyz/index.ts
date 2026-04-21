@@ -6,6 +6,4 @@
  *
  */
 
-export * from './errors';
-export * from './CryptoOnrampManager';
-export * from './CryptoOnrampProvider';
+export * from '@ton/walletkit/crypto-onramp/swaps-xyz';

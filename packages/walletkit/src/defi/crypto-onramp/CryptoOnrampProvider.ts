@@ -11,6 +11,8 @@ import type {
     CryptoOnrampDepositParams,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
+    CryptoOnrampStatus,
+    CryptoOnrampStatusParams,
 } from '../../api/models';
 import type { CryptoOnrampProviderInterface } from '../../api/interfaces';
 
@@ -53,4 +55,11 @@ export abstract class CryptoOnrampProvider<
      * @returns Promise resolving to deposit details (address, amount, memo, etc.)
      */
     abstract createDeposit(params: CryptoOnrampDepositParams<TDepositOptions>): Promise<CryptoOnrampDeposit>;
+
+    /**
+     * Get the status of a deposit
+     * @param params - Deposit status parameters including the deposit ID
+     * @returns Promise resolving to the deposit status
+     */
+    abstract getStatus(params: CryptoOnrampStatusParams): Promise<CryptoOnrampStatus>;
 }

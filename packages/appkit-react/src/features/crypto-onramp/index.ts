@@ -16,3 +16,8 @@ export {
     type UseCreateCryptoOnrampDepositParameters,
     type UseCreateCryptoOnrampDepositReturnType,
 } from './hooks/use-create-crypto-onramp-deposit';
+export {
+    useCryptoOnrampStatus,
+    type UseCryptoOnrampStatusParameters,
+    type UseCryptoOnrampStatusReturnType,
+} from './hooks/use-crypto-onramp-status';

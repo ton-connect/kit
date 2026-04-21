@@ -11,6 +11,8 @@ import type {
     CryptoOnrampDepositParams,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
+    CryptoOnrampStatus,
+    CryptoOnrampStatusParams,
 } from '../models';
 import type { DefiManagerAPI } from './DefiManagerAPI';
 import type { DefiProvider } from './DefiProvider';
@@ -34,6 +36,13 @@ export interface CryptoOnrampAPI extends DefiManagerAPI<CryptoOnrampProviderInte
      * @returns A promise that resolves to a CryptoOnrampDeposit
      */
     createDeposit(params: CryptoOnrampDepositParams, providerId?: string): Promise<CryptoOnrampDeposit>;
+
+    /**
+     * Get the status of a deposit
+     * @param params - Deposit status parameters including the deposit ID
+     * @returns Promise resolving to the deposit status
+     */
+    getStatus(params: CryptoOnrampStatusParams, providerId?: string): Promise<CryptoOnrampStatus>;
 }
 
 /**
@@ -63,4 +72,11 @@ export interface CryptoOnrampProviderInterface<
      * @returns A promise that resolves to a CryptoOnrampDeposit
      */
     createDeposit(params: CryptoOnrampDepositParams<TDepositOptions>): Promise<CryptoOnrampDeposit>;
+
+    /**
+     * Get the status of a deposit
+     * @param params - Deposit status parameters including the deposit ID
+     * @returns Promise resolving to the deposit status
+     */
+    getStatus(params: CryptoOnrampStatusParams): Promise<CryptoOnrampStatus>;
 }

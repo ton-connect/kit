@@ -70,6 +70,16 @@
         "types": "./dist/cjs/onramp/ton-pay/index.d.ts",
         "default": "./dist/cjs/onramp/ton-pay/index.js"
       }
+    },
+    "./crypto-onramp/swaps-xyz": {
+      "import": {
+        "types": "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/esm/crypto-onramp/swaps-xyz/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/cjs/crypto-onramp/swaps-xyz/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -88,6 +98,9 @@
       ],
       "onramp/ton-pay": [
         "./dist/esm/onramp/ton-pay/index.d.ts"
+      ],
+      "crypto-onramp/swaps-xyz": [
+        "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts"
       ]
     }
   },

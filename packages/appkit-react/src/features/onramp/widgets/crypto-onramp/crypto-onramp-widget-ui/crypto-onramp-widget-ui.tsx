@@ -56,6 +56,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     canContinue,
     error,
     onReset,
+    depositStatus,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -178,6 +179,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 memo={deposit?.memo}
                 tokenLogo={selectedMethod.logo}
                 networkWarning={deposit?.networkWarning}
+                depositStatus={depositStatus}
             />
         </div>
     );

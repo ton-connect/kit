@@ -15,6 +15,11 @@
  */
 export interface CryptoOnrampDeposit {
     /**
+     * Deposit id
+     */
+    depositId: string;
+
+    /**
      * Deposit address on the source chain
      */
     address: string;

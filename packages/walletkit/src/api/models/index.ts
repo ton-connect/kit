@@ -107,6 +107,8 @@ export type { CryptoOnrampQuote } from './crypto-onramp/CryptoOnrampQuote';
 export type { CryptoOnrampQuoteParams } from './crypto-onramp/CryptoOnrampQuoteParams';
 export type { CryptoOnrampDepositParams } from './crypto-onramp/CryptoOnrampDepositParams';
 export type { CryptoOnrampDeposit } from './crypto-onramp/CryptoOnrampDeposit';
+export type { CryptoOnrampStatusParams } from './crypto-onramp/CryptoOnrampStatusParams';
+export type { CryptoOnrampStatus } from './crypto-onramp/CryptoOnrampStatus';
 
 // Transaction models
 export * from './transactions/Transaction';

@@ -12,6 +12,8 @@ import type {
     CryptoOnrampDepositParams,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
+    CryptoOnrampStatus,
+    CryptoOnrampStatusParams,
 } from '../../api/models';
 import { CryptoOnrampError } from './errors';
 import { globalLogger } from '../../core/Logger';
@@ -92,6 +94,34 @@ export class CryptoOnrampManager extends DefiManager<CryptoOnrampProviderInterfa
             return deposit;
         } catch (error) {
             log.error('Failed to create crypto onramp deposit', { error, params });
+            throw error;
+        }
+    }
+
+    /**
+     * Get the status of a deposit
+     * @param params - Deposit status parameters including the deposit ID
+     * @param providerId - Optional provider name to use
+     * @returns Promise resolving to the deposit status
+     */
+    async getStatus(params: CryptoOnrampStatusParams, providerId?: string): Promise<CryptoOnrampStatus> {
+        const selectedProviderId = providerId || this.defaultProviderId;
+
+        log.debug('Getting crypto onramp deposit status', {
+            providerId: selectedProviderId,
+            depositId: params.depositId,
+        });
+
+        try {
+            const status = await this.getProvider(selectedProviderId).getStatus(params);
+
+            log.debug('Received crypto onramp deposit status', {
+                status,
+            });
+
+            return status;
+        } catch (error) {
+            log.error('Failed to get crypto onramp deposit status', { error, params });
             throw error;
         }
     }

@@ -11,16 +11,18 @@ import type {
     CryptoOnrampDepositParams,
     CryptoOnrampQuote,
     CryptoOnrampQuoteParams,
+    CryptoOnrampStatus,
+    CryptoOnrampStatusParams,
 } from '../../../api/models';
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
-import type { SwapsXyzErrorResponse, SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
+import type { SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
+import { isErrorResponse, mapStatus, parseChainId } from './utils';
 
 const SWAPS_XYZ_API_URL = 'https://api-v2.swaps.xyz/api';
 const TON_CHAIN_ID = 999000337;
 const DEFAULT_SLIPPAGE_BPS = 100;
-/** Any valid checksummed EVM address — swaps.xyz only cares that the field parses. */
-const DEFAULT_SENDER = '0x10E06012e8dCE715B471A582da7FA83a018675a3';
+const DEFAULT_SENDER = '0x4C798114E4d85f9A70321E4198DF20CD920d9387';
 
 export interface SwapsXyzProviderConfig {
     /**
@@ -59,9 +61,6 @@ export interface SwapsXyzQuoteOptions {
     sender?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface SwapsXyzDepositOptions {}
-
 /**
  * Metadata stored on the CryptoOnrampQuote returned by this provider.
  *
@@ -80,7 +79,7 @@ export interface SwapsXyzQuoteMetadata {
  * is not `evm` are rejected (non-EVM chains require a separate registerTxs
  * flow that we do not implement yet).
  */
-export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQuoteOptions, SwapsXyzDepositOptions> {
+export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQuoteOptions> {
     readonly providerId = 'swaps-xyz';
 
     private readonly apiKey: string;
@@ -99,7 +98,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (!recipient) {
             throw new CryptoOnrampError(
                 'SwapsXyz requires a TON recipient address in providerOptions.recipient',
-                CryptoOnrampError.InvalidParams,
+                CryptoOnrampError.INVALID_PARAMS,
             );
         }
 
@@ -107,7 +106,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (srcChainId === undefined) {
             throw new CryptoOnrampError(
                 `SwapsXyz: sourceNetwork must be a numeric chainId (got "${params.sourceNetwork}")`,
-                CryptoOnrampError.InvalidParams,
+                CryptoOnrampError.INVALID_PARAMS,
             );
         }
 
@@ -127,36 +126,59 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         url.searchParams.set('recipient', recipient);
         url.searchParams.set('returnDepositAddress', 'true');
 
-        const response = await this.callGetAction(url);
-
-        if (response.vmId !== 'evm') {
+        let response: Response;
+        try {
+            response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: { 'x-api-key': this.apiKey },
+            });
+        } catch (error) {
             throw new CryptoOnrampError(
-                `SwapsXyz: only EVM source chains are supported (got vmId="${response.vmId}")`,
-                CryptoOnrampError.InvalidParams,
-                { vmId: response.vmId, srcChainId },
+                'SwapsXyz: network error while calling getAction',
+                CryptoOnrampError.QUOTE_FAILED,
+                error,
             );
         }
 
-        const metadata: SwapsXyzQuoteMetadata = { recipient, response };
+        const body = (await response.json().catch(() => undefined)) as SwapsXyzGetActionResponse;
+
+        if (!response.ok || isErrorResponse(body)) {
+            const err = isErrorResponse(body) ? body.error : undefined;
+            throw new CryptoOnrampError(
+                err?.message ?? `SwapsXyz getAction failed (HTTP ${response.status})`,
+                err?.code ?? CryptoOnrampError.QUOTE_FAILED,
+                err ?? { status: response.status },
+            );
+        }
+
+        if (body.vmId !== 'evm') {
+            throw new CryptoOnrampError(
+                `SwapsXyz: only EVM source chains are supported (got vmId="${body.vmId}")`,
+                CryptoOnrampError.INVALID_PARAMS,
+                { vmId: body.vmId, srcChainId },
+            );
+        }
+
+        const metadata: SwapsXyzQuoteMetadata = { recipient, response: body };
 
         return {
-            sourceCurrency: response.amountIn.symbol,
-            sourceNetwork: String(response.amountIn.chainId),
-            targetCurrency: response.amountOut.symbol,
-            sourceAmount: response.amountIn.amount,
-            targetAmount: response.amountOut.amount,
-            rate: String(response.exchangeRate),
+            sourceCurrency: body.amountIn.symbol,
+            sourceNetwork: String(body.amountIn.chainId),
+            targetCurrency: body.amountOut.symbol,
+            sourceAmount: body.amountIn.amount,
+            targetAmount: body.amountOut.amount,
+            rate: String(body.exchangeRate),
             providerId: this.providerId,
             metadata,
         };
     }
 
-    async createDeposit(params: CryptoOnrampDepositParams<SwapsXyzDepositOptions>): Promise<CryptoOnrampDeposit> {
+    async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
         const metadata = params.quote.metadata as SwapsXyzQuoteMetadata | undefined;
         if (!metadata?.response?.tx?.to) {
             throw new CryptoOnrampError(
                 'SwapsXyz: quote metadata is missing — quote must be obtained from this provider',
-                CryptoOnrampError.InvalidParams,
+                CryptoOnrampError.INVALID_PARAMS,
             );
         }
 
@@ -165,12 +187,13 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         if (params.userAddress && params.userAddress !== recipient) {
             throw new CryptoOnrampError(
                 'SwapsXyz: deposit userAddress does not match the recipient baked into the quote',
-                CryptoOnrampError.InvalidParams,
+                CryptoOnrampError.INVALID_PARAMS,
                 { quoteRecipient: recipient, depositUserAddress: params.userAddress },
             );
         }
 
         return {
+            depositId: response.txId,
             address: response.tx.to,
             amount: response.amountIn.amount,
             sourceCurrency: response.amountIn.symbol,
@@ -186,7 +209,10 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         };
     }
 
-    private async callGetAction(url: URL): Promise<SwapsXyzGetActionResponse> {
+    async getStatus(params: CryptoOnrampStatusParams): Promise<CryptoOnrampStatus> {
+        const url = new URL(`${this.apiUrl}/getStatus`);
+        url.searchParams.set('txId', params.depositId);
+
         let response: Response;
         try {
             response = await fetch(url.toString(), {
@@ -201,10 +227,15 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
-        const body = await response.json().catch(() => undefined);
+        const body = (await response.json().catch(() => undefined)) as { status: string };
 
         if (!response.ok || isErrorResponse(body)) {
             const err = isErrorResponse(body) ? body.error : undefined;
+
+            if (isErrorResponse(body) && err?.code === 'NOT_FOUND') {
+                return 'pending';
+            }
+
             throw new CryptoOnrampError(
                 err?.message ?? `SwapsXyz getAction failed (HTTP ${response.status})`,
                 err?.code ?? CryptoOnrampError.QUOTE_FAILED,
@@ -212,20 +243,6 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
-        return body as SwapsXyzGetActionResponse;
+        return mapStatus(body.status);
     }
-}
-
-function parseChainId(value: string): number | undefined {
-    const n = Number(value);
-    return Number.isInteger(n) && n > 0 ? n : undefined;
-}
-
-function isErrorResponse(body: unknown): body is SwapsXyzErrorResponse {
-    return (
-        typeof body === 'object' &&
-        body !== null &&
-        (body as { success?: unknown }).success === false &&
-        typeof (body as { error?: unknown }).error === 'object'
-    );
 }

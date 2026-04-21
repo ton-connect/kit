@@ -9,11 +9,13 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import type { CryptoOnrampStatus } from '@ton/appkit';
 
 import { Modal } from '../../../../../components/modal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/tabs';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-deposit-modal.module.css';
+import { Button } from '../../../../../components/button';
 
 type QrTab = 'address' | 'memo';
 
@@ -26,6 +28,8 @@ export interface CryptoOnrampDepositModalProps {
     amount: string;
     /** Token symbol, e.g. "BTC" */
     symbol: string;
+    /** Deposit status */
+    depositStatus: CryptoOnrampStatus | null;
     /** Optional memo / tag / comment */
     memo?: string;
     /** URL of the token logo to embed in the QR code center */
@@ -96,6 +100,7 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     memo,
     tokenLogo,
     networkWarning,
+    depositStatus,
 }) => {
     const { t } = useI18n();
     const [amountCopied, copyAmount] = useCopy(`${amount} ${symbol}`);
@@ -219,6 +224,10 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                         <p className={styles.warningText}>{networkWarning}</p>
                     </div>
                 )}
+
+                <Button variant="fill" size="l" fullWidth onClick={onClose}>
+                    {depositStatus === 'success' ? 'Done' : 'Close'}
+                </Button>
             </div>
         </Modal>
     );

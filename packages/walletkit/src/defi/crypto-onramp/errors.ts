@@ -10,7 +10,6 @@ import { DefiManagerError } from '../errors';
 
 export class CryptoOnrampError extends DefiManagerError {
     static readonly PROVIDER_ERROR = 'PROVIDER_ERROR';
-    static readonly InvalidParams = 'INVALID_CRYPTO_ONRAMP_PARAMS';
     static readonly QUOTE_FAILED = 'QUOTE_FAILED';
     static readonly DEPOSIT_FAILED = 'DEPOSIT_FAILED';
 

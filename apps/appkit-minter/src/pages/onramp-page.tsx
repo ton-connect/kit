@@ -59,7 +59,7 @@ const PAYMENT_METHODS: CryptoPaymentMethod[] = [
 export const OnrampPage: React.FC = () => {
     return (
         <Layout title="Buy">
-            <Card className="w-full max-w-[434px] mx-auto">
+            <Card className="w-full max-w-[422px] mx-auto">
                 <CryptoOnrampWidget
                     tokens={TOKENS}
                     defaultTokenId="usdt-ton"

@@ -6,10 +6,11 @@
  *
  */
 
-import { AppKit, Network, SwapsXyzCryptoOnrampProvider, createTonConnectConnector } from '@ton/appkit';
+import { AppKit, Network, createTonConnectConnector } from '@ton/appkit';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { TonPayProvider } from '@ton/appkit/onramp/ton-pay';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
+import { SwapsXyzCryptoOnrampProvider } from '@ton/appkit/crypto-onramp/swaps-xyz';
 
 export const appKit = new AppKit({
     networks: {

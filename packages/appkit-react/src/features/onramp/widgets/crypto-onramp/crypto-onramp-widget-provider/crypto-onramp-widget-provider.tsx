@@ -8,7 +8,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import type { CryptoOnrampQuote, CryptoOnrampDeposit } from '@ton/appkit';
+import type { CryptoOnrampQuote, CryptoOnrampDeposit, CryptoOnrampStatus } from '@ton/appkit';
 import { formatUnits, parseUnits, validateNumericString } from '@ton/appkit';
 import { keepPreviousData } from '@tanstack/react-query';
 
@@ -21,7 +21,7 @@ import type {
 } from '../../../types';
 import { CRYPTO_PAYMENT_METHODS } from '../../../mock-data/crypto-payment-methods';
 import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-tokens';
-import { useCryptoOnrampQuote, useCreateCryptoOnrampDeposit } from '../../../../crypto-onramp';
+import { useCryptoOnrampQuote, useCreateCryptoOnrampDeposit, useCryptoOnrampStatus } from '../../../../crypto-onramp';
 import { useAddress } from '../../../../wallets';
 import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
 import { useCryptoOnrampValidation } from './use-crypto-onramp-validation';
@@ -81,6 +81,8 @@ export interface CryptoOnrampContextType {
     depositAmount: string;
     /** Function to trigger deposit creation */
     createDeposit: () => void;
+    /** Deposit status */
+    depositStatus: CryptoOnrampStatus | null;
 
     /** Whether a TON wallet is currently connected */
     isWalletConnected: boolean;
@@ -118,6 +120,7 @@ const defaultContext: CryptoOnrampContextType = {
     depositError: null,
     depositAmount: '',
     createDeposit: () => {},
+    depositStatus: null,
 
     isWalletConnected: false,
 
@@ -196,10 +199,19 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             enabled: !!requestAmountBase && !!selectedToken && !!userAddress && parseFloat(amountDebounced) > 0,
             retry: false,
             placeholderData: keepPreviousData,
+            refetchOnWindowFocus: false,
         },
     });
 
     const createDepositMutation = useCreateCryptoOnrampDeposit();
+
+    const { data: depositStatus } = useCryptoOnrampStatus({
+        depositId: createDepositMutation.data?.depositId,
+        query: {
+            refetchInterval: 10000,
+            retry: false,
+        },
+    });
 
     const convertedAmount = useMemo(() => {
         if (!quoteQuery.data) return '';
@@ -269,6 +281,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             error,
             canContinue,
             onReset,
+            depositStatus: depositStatus ?? null,
         }),
         [
             tokens,
@@ -294,6 +307,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             error,
             canContinue,
             onReset,
+            depositStatus,
         ],
     );
 
