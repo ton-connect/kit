@@ -22,6 +22,7 @@ import { CRYPTO_PAYMENT_METHODS } from '../../../mock-data/crypto-payment-method
 import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-tokens';
 import { useCryptoOnrampQuote, useCreateCryptoOnrampDeposit } from '../../../../crypto-onramp';
 import { useAddress } from '../../../../wallets';
+import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
 
 const ERROR_THRESHOLD = 10000;
 const DEFAULT_PRESETS: OnrampAmountPreset[] = [
@@ -156,15 +157,17 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
 
     const userAddress = useAddress();
 
+    const [amountDebounced] = useDebounceValue(amount, 500);
+
     const requestAmountNano = useMemo(() => {
-        if (!amount || isNaN(parseFloat(amount))) return '';
+        if (!amountDebounced || isNaN(parseFloat(amountDebounced))) return '';
         const decimals = amountInputMode === 'method' ? selectedMethod.decimals : (selectedToken?.decimals ?? 9);
         try {
-            return parseUnits(amount, decimals).toString();
+            return parseUnits(amountDebounced, decimals).toString();
         } catch {
             return '';
         }
-    }, [amount, amountInputMode, selectedMethod, selectedToken]);
+    }, [amountDebounced, amountInputMode, selectedMethod, selectedToken]);
 
     const quoteQuery = useCryptoOnrampQuote({
         amount: requestAmountNano,
@@ -180,8 +183,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
                 !!requestAmountNano &&
                 !!selectedToken &&
                 !!userAddress &&
-                !isNaN(parseFloat(amount)) &&
-                parseFloat(amount) > 0,
+                !isNaN(parseFloat(amountDebounced)) &&
+                parseFloat(amountDebounced) > 0,
             retry: false,
         },
     });
@@ -207,7 +210,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         numericAmount > 0 &&
         !error &&
         !!quoteQuery.data &&
-        !quoteQuery.isLoading &&
+        !quoteQuery.isFetching &&
+        amount === amountDebounced &&
         !!userAddress;
 
     const onReset = () => {
@@ -249,7 +253,7 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             convertedAmount,
             presetAmounts: DEFAULT_PRESETS,
             quote: quoteQuery.data ?? null,
-            isLoadingQuote: quoteQuery.isLoading,
+            isLoadingQuote: quoteQuery.isFetching || amount !== amountDebounced,
             quoteError: quoteQuery.error,
             deposit: createDepositMutation.data ?? null,
             isCreatingDeposit: createDepositMutation.isPending,
@@ -272,8 +276,9 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             amountInputMode,
             convertedAmount,
             quoteQuery.data,
-            quoteQuery.isLoading,
+            quoteQuery.isFetching,
             quoteQuery.error,
+            amountDebounced,
             createDepositMutation.data,
             createDepositMutation.isPending,
             createDepositMutation.error,
