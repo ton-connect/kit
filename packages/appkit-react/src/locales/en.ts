@@ -94,6 +94,10 @@ export default {
             'Enter the address on the source network where the funds will be returned in case of a problem with the exchange',
         invalidRefundAddress: 'Invalid refund address',
         refundAddressPlaceholder: 'Your address',
+        yourBalance: 'Your balance',
+        statusPending: 'Waiting for your transfer',
+        statusSuccess: 'Transfer completed',
+        statusFailed: 'Transfer failed',
     },
 
     // Onramp

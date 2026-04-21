@@ -23,8 +23,12 @@ import { CRYPTO_PAYMENT_METHODS } from '../../../mock-data/crypto-payment-method
 import { CRYPTO_ONRAMP_TARGET_TOKENS } from '../../../mock-data/crypto-onramp-tokens';
 import { useCryptoOnrampQuote, useCreateCryptoOnrampDeposit, useCryptoOnrampStatus } from '../../../../crypto-onramp';
 import { useAddress } from '../../../../wallets';
+import { useBalance } from '../../../../balances/hooks/use-balance';
+import { useJettonBalanceByAddress } from '../../../../jettons/hooks/use-jetton-balance-by-address';
 import { useDebounceValue } from '../../../../../hooks/use-debounce-value';
 import { useCryptoOnrampValidation } from './use-crypto-onramp-validation';
+
+const NATIVE_TON_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const DEFAULT_PRESETS: OnrampAmountPreset[] = [
     { amount: '100', label: '100' },
@@ -86,6 +90,11 @@ export interface CryptoOnrampContextType {
     refundAddress: string;
     setRefundAddress: (address: string) => void;
 
+    /** User's balance of the selected target token (formatted, token units) */
+    targetBalance: string;
+    /** Whether the target token balance is being fetched */
+    isLoadingTargetBalance: boolean;
+
     /** Whether a TON wallet is currently connected */
     isWalletConnected: boolean;
 
@@ -124,6 +133,9 @@ const defaultContext: CryptoOnrampContextType = {
 
     refundAddress: '',
     setRefundAddress: () => {},
+
+    targetBalance: '',
+    isLoadingTargetBalance: false,
 
     isWalletConnected: false,
 
@@ -178,6 +190,22 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     );
 
     const userAddress = useAddress();
+
+    const isNativeTonTarget = selectedToken?.address === NATIVE_TON_ADDRESS;
+
+    const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
+        query: { enabled: isNativeTonTarget && !!userAddress },
+    });
+
+    const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({
+        jettonAddress: !isNativeTonTarget ? selectedToken?.address : undefined,
+        ownerAddress: userAddress ?? undefined,
+        jettonDecimals: selectedToken?.decimals,
+        query: { enabled: !isNativeTonTarget && !!selectedToken?.address && !!userAddress },
+    });
+
+    const targetBalance = (isNativeTonTarget ? nativeBalanceData : jettonBalanceData) ?? '';
+    const isLoadingTargetBalance = isNativeTonTarget ? isNativeBalanceLoading : isJettonBalanceLoading;
 
     const [amountDebounced] = useDebounceValue(amount, 500);
 
@@ -245,7 +273,9 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     }, [createDepositMutation.data, amount, selectedMethod]);
 
     const createDeposit = useCallback(() => {
-        if (!quoteQuery.data || !userAddress || !refundAddress) return;
+        if (!quoteQuery.data || !userAddress) return;
+        const requiresRefundAddress = quoteQuery.data.providerId !== 'layerswap';
+        if (requiresRefundAddress && !refundAddress) return;
 
         createDepositMutation.mutate({
             quote: quoteQuery.data,
@@ -301,6 +331,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             depositStatus: depositStatus ?? null,
             refundAddress,
             setRefundAddress: handleSetRefundAddress,
+            targetBalance,
+            isLoadingTargetBalance,
         }),
         [
             tokens,
@@ -328,6 +360,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             depositStatus,
             refundAddress,
             handleSetRefundAddress,
+            targetBalance,
+            isLoadingTargetBalance,
         ],
     );
 

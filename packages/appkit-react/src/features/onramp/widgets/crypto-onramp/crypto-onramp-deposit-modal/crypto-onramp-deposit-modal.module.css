@@ -112,3 +112,29 @@
 	color: var(--ta-color-text-secondary);
 	margin: 0;
 }
+
+.balanceRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 16px;
+	background-color: var(--ta-color-background-secondary);
+	border-radius: var(--ta-border-radius-l);
+}
+
+.balanceLabel {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+}
+
+.balanceValue {
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text);
+}
+
+.statusText {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+	text-align: center;
+	margin: 0;
+}

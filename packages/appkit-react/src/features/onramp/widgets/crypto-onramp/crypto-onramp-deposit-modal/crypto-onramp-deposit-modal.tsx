@@ -10,9 +10,11 @@ import { useState } from 'react';
 import type { FC } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { CryptoOnrampStatus } from '@ton/appkit';
+import { formatLargeValue, truncateDecimals } from '@ton/appkit';
 
 import { Modal } from '../../../../../components/modal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/tabs';
+import { Skeleton } from '../../../../../components/skeleton';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-deposit-modal.module.css';
 import { Button } from '../../../../../components/button';
@@ -36,6 +38,14 @@ export interface CryptoOnrampDepositModalProps {
     tokenLogo?: string;
     /** Optional network-specific warning message */
     networkWarning?: string;
+    /** Symbol of the target token the user is buying */
+    targetSymbol?: string;
+    /** User's formatted balance of the target token */
+    targetBalance?: string;
+    /** Decimals of the target token */
+    targetDecimals?: number;
+    /** Whether the target balance is loading */
+    isLoadingTargetBalance?: boolean;
 }
 
 const CopyIcon: FC = () => (
@@ -91,6 +101,11 @@ const truncateAddress = (address: string): string => {
     return `${address.slice(0, 10)}...${address.slice(-8)}`;
 };
 
+const formatBalance = (amount?: string, decimals?: number) => {
+    const trimmed = truncateDecimals(amount || '0', Math.min(5, decimals || 9));
+    return formatLargeValue(trimmed, decimals);
+};
+
 export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     open,
     onClose,
@@ -101,6 +116,10 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     tokenLogo,
     networkWarning,
     depositStatus,
+    targetSymbol,
+    targetBalance,
+    targetDecimals,
+    isLoadingTargetBalance,
 }) => {
     const { t } = useI18n();
     const [amountCopied, copyAmount] = useCopy(`${amount} ${symbol}`);
@@ -225,9 +244,30 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                     </div>
                 )}
 
-                <Button variant="fill" size="l" fullWidth onClick={onClose}>
+                {targetSymbol && (
+                    <div className={styles.balanceRow}>
+                        <span className={styles.balanceLabel}>{t('cryptoOnramp.yourBalance')}</span>
+                        {isLoadingTargetBalance ? (
+                            <Skeleton width={80} height={16} />
+                        ) : (
+                            <span className={styles.balanceValue}>
+                                {formatBalance(targetBalance || '0', targetDecimals)} {targetSymbol}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                <Button variant={depositStatus === 'success' ? 'fill' : 'gray'} size="l" fullWidth onClick={onClose}>
                     {depositStatus === 'success' ? 'Done' : 'Close'}
                 </Button>
+
+                {depositStatus && (
+                    <p className={styles.statusText}>
+                        {depositStatus === 'success' && t('cryptoOnramp.statusSuccess')}
+                        {depositStatus === 'pending' && t('cryptoOnramp.statusPending')}
+                        {depositStatus === 'failed' && t('cryptoOnramp.statusFailed')}
+                    </p>
+                )}
             </div>
         </Modal>
     );

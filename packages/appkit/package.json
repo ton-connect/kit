@@ -80,6 +80,16 @@
         "types": "./dist/cjs/crypto-onramp/swaps-xyz/index.d.ts",
         "default": "./dist/cjs/crypto-onramp/swaps-xyz/index.js"
       }
+    },
+    "./crypto-onramp/layerswap": {
+      "import": {
+        "types": "./dist/esm/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/esm/crypto-onramp/layerswap/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/cjs/crypto-onramp/layerswap/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -101,6 +111,9 @@
       ],
       "crypto-onramp/swaps-xyz": [
         "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts"
+      ],
+      "crypto-onramp/layerswap": [
+        "./dist/esm/crypto-onramp/layerswap/index.d.ts"
       ]
     }
   },

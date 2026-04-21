@@ -61,6 +61,8 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     setRefundAddress,
     quoteError,
     depositError,
+    targetBalance,
+    isLoadingTargetBalance,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
@@ -76,8 +78,12 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     }, [deposit]);
 
     const handleContinue = useCallback(() => {
+        if (quote?.providerId === 'layerswap') {
+            createDeposit();
+            return;
+        }
         setIsRefundAddressOpen(true);
-    }, []);
+    }, [quote?.providerId, createDeposit]);
 
     const handleConfirmRefundAddress = useCallback(() => {
         createDeposit();
@@ -167,6 +173,20 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                         </InfoBlock.Value>
                     )}
                 </InfoBlock.Row>
+
+                {isWalletConnected && (
+                    <InfoBlock.Row>
+                        <InfoBlock.Label>{t('cryptoOnramp.yourBalance')}</InfoBlock.Label>
+
+                        {isLoadingTargetBalance ? (
+                            <InfoBlock.ValueSkeleton />
+                        ) : (
+                            <InfoBlock.Value>
+                                {formatAmount(targetBalance || '0', selectedToken?.decimals)} {selectedToken?.symbol}
+                            </InfoBlock.Value>
+                        )}
+                    </InfoBlock.Row>
+                )}
             </InfoBlock.Container>
 
             <OnrampTokenSelectModal
@@ -195,6 +215,10 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 tokenLogo={selectedMethod.logo}
                 networkWarning={deposit?.networkWarning}
                 depositStatus={depositStatus}
+                targetSymbol={selectedToken?.symbol ?? ''}
+                targetBalance={targetBalance}
+                targetDecimals={selectedToken?.decimals}
+                isLoadingTargetBalance={isLoadingTargetBalance}
             />
 
             <CryptoOnrampRefundAddressModal
