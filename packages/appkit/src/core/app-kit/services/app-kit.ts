@@ -136,6 +136,7 @@ export class AppKit {
                 break;
             case 'gasless':
                 this.gaslessManager.registerProvider(provider as GaslessProviderInterface);
+                break;
             case 'crypto-onramp':
                 this.cryptoOnrampManager.registerProvider(provider as CryptoOnrampProviderInterface);
                 break;

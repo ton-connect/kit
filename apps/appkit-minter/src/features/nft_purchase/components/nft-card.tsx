@@ -160,6 +160,7 @@ export const NftCard: FC<NftCardProps> = ({ nft }) => {
                 nftName: fresh.name ?? nft.name ?? 'Untitled',
                 nftImage: fresh.image ?? nft.image,
                 priceAmount: formatAmount(priceRaw, priceDecimals),
+                priceRaw,
                 priceCurrency: currency,
                 networkFeeTon: formatAmount(networkFeeRaw, TON_DECIMALS),
                 tx,

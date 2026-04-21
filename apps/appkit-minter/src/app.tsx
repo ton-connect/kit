@@ -13,13 +13,7 @@ import { PrivyBridgeProvider } from './privyProvider';
 
 import { appKit } from '@/core/configs/app-kit';
 import { ENV_PRIVY_APP_ID } from '@/core/configs/env';
-import {
-    AppRouter,
-    ThemeProvider,
-    ToasterProvider,
-    TelegramPrivyAutoConnect,
-    PrivyDebugPanel,
-} from '@/core/components';
+import { AppRouter, ThemeProvider, ToasterProvider, TelegramPrivyAutoConnect } from '@/core/components';
 
 import './core/styles/index.css';
 
@@ -37,7 +31,7 @@ export const App = () => {
                         {ENV_PRIVY_APP_ID && (
                             <>
                                 <TelegramPrivyAutoConnect />
-                                <PrivyDebugPanel />
+                                {/* <PrivyDebugPanel /> */}
                             </>
                         )}
                     </PrivyBridgeProvider>
