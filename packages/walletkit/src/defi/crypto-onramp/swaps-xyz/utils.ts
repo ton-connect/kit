@@ -9,6 +9,8 @@
 import type { CryptoOnrampStatus } from '../../../api/models';
 import type { SwapsXyzErrorResponse } from './types';
 
+const EVM_ADDRESS_REGEX = /^(0x)?[0-9a-fA-F]{40}$/;
+
 export const parseChainId = (value: string): number | undefined => {
     const n = Number(value);
     return Number.isInteger(n) && n > 0 ? n : undefined;
@@ -36,4 +38,8 @@ export const mapStatus = (status: string): CryptoOnrampStatus => {
         default:
             throw new Error(`Unknown status: ${status}`);
     }
+};
+
+export const isEvmAddress = (address: string): boolean => {
+    return EVM_ADDRESS_REGEX.test(address);
 };

@@ -9,7 +9,7 @@
 /**
  * Deposit details returned by a crypto onramp provider.
  *
- * The user must send `amount` of `sourceCurrency` to `address` on `sourceNetwork`
+ * The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceNetwork`
  * to complete the onramp; the provider then delivers the target crypto to the
  * user's TON address.
  */

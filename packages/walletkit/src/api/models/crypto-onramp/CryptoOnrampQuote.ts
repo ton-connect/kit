@@ -9,11 +9,11 @@
 /**
  * Crypto onramp quote response with pricing information
  */
-export interface CryptoOnrampQuote {
+export interface CryptoOnrampQuote<TMetadata = unknown> {
     /**
-     * Source crypto currency ticker (e.g. 'USDC')
+     * Source crypto currency address (contract address or 0x0... for native)
      */
-    sourceCurrency: string;
+    sourceCurrencyAddress: string;
 
     /**
      * Source network identifier (e.g. 'solana')
@@ -21,9 +21,9 @@ export interface CryptoOnrampQuote {
     sourceNetwork: string;
 
     /**
-     * Target crypto currency ticker on TON (e.g. 'TON')
+     * Target crypto currency address on TON (contract address or 0x0... for native)
      */
-    targetCurrency: string;
+    targetCurrencyAddress: string;
 
     /**
      * Amount of source crypto to send
@@ -48,5 +48,5 @@ export interface CryptoOnrampQuote {
     /**
      * Provider-specific metadata for the quote (e.g. raw response needed to execute)
      */
-    metadata?: unknown;
+    metadata?: TMetadata;
 }

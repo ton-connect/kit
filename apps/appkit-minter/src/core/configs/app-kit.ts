@@ -55,7 +55,6 @@ export const appKit = new AppKit({
         createTonstakersProvider({}),
         new SwapsXyzCryptoOnrampProvider({
             apiKey: '1be323b5c83198191ba640f07f8815b0',
-            defaultSender: '0x10E06012e8dCE715B471A582da7FA83a018675a3',
         }),
     ],
 });

@@ -17,7 +17,7 @@ import type {
 import { CryptoOnrampProvider } from '../CryptoOnrampProvider';
 import { CryptoOnrampError } from '../errors';
 import type { SwapsXyzGetActionResponse, SwapsXyzSwapDirection } from './types';
-import { isErrorResponse, mapStatus, parseChainId } from './utils';
+import { isErrorResponse, isEvmAddress, mapStatus, parseChainId } from './utils';
 
 const SWAPS_XYZ_API_URL = 'https://api-v2.swaps.xyz/api';
 const TON_CHAIN_ID = 999000337;
@@ -54,11 +54,6 @@ export interface SwapsXyzQuoteOptions {
      * Slippage tolerance in basis points (0-10000). Defaults to 100 (1%).
      */
     slippageBps?: number;
-
-    /**
-     * Override the configured `defaultSender` for this request.
-     */
-    sender?: string;
 }
 
 /**
@@ -69,6 +64,7 @@ export interface SwapsXyzQuoteOptions {
  */
 export interface SwapsXyzQuoteMetadata {
     recipient: string;
+    sender: string;
     response: SwapsXyzGetActionResponse;
 }
 
@@ -79,7 +75,7 @@ export interface SwapsXyzQuoteMetadata {
  * is not `evm` are rejected (non-EVM chains require a separate registerTxs
  * flow that we do not implement yet).
  */
-export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQuoteOptions> {
+export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQuoteOptions, SwapsXyzQuoteMetadata> {
     readonly providerId = 'swaps-xyz';
 
     private readonly apiKey: string;
@@ -93,7 +89,10 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         this.defaultSender = config.defaultSender ?? DEFAULT_SENDER;
     }
 
-    async getQuote(params: CryptoOnrampQuoteParams<SwapsXyzQuoteOptions>): Promise<CryptoOnrampQuote> {
+    async getQuote(
+        params: CryptoOnrampQuoteParams<SwapsXyzQuoteOptions>,
+    ): Promise<CryptoOnrampQuote<SwapsXyzQuoteMetadata>> {
+        const sender = params.refundAddress ?? this.defaultSender;
         const recipient = params.providerOptions?.recipient;
         if (!recipient) {
             throw new CryptoOnrampError(
@@ -113,13 +112,20 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         const swapDirection: SwapsXyzSwapDirection =
             params.isSourceAmount === false ? 'exact-amount-out' : 'exact-amount-in';
 
+        if (!isEvmAddress(sender)) {
+            throw new CryptoOnrampError(
+                'SwapsXyz: senderAddress must be a valid EVM address (got "' + sender + '")',
+                CryptoOnrampError.INVALID_REFUND_ADDRESS,
+            );
+        }
+
         const url = new URL(`${this.apiUrl}/getAction`);
         url.searchParams.set('actionType', 'swap-action');
-        url.searchParams.set('sender', params.providerOptions?.sender ?? this.defaultSender);
+        url.searchParams.set('sender', sender);
         url.searchParams.set('srcChainId', String(srcChainId));
-        url.searchParams.set('srcToken', params.sourceCurrency);
+        url.searchParams.set('srcToken', params.sourceCurrencyAddress);
         url.searchParams.set('dstChainId', String(TON_CHAIN_ID));
-        url.searchParams.set('dstToken', params.targetCurrency);
+        url.searchParams.set('dstToken', params.targetCurrencyAddress);
         url.searchParams.set('amount', params.amount);
         url.searchParams.set('swapDirection', swapDirection);
         url.searchParams.set('slippage', String(params.providerOptions?.slippageBps ?? DEFAULT_SLIPPAGE_BPS));
@@ -159,12 +165,12 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
-        const metadata: SwapsXyzQuoteMetadata = { recipient, response: body };
+        const metadata: SwapsXyzQuoteMetadata = { recipient, sender, response: body };
 
         return {
-            sourceCurrency: body.amountIn.symbol,
+            sourceCurrencyAddress: params.sourceCurrencyAddress,
             sourceNetwork: String(body.amountIn.chainId),
-            targetCurrency: body.amountOut.symbol,
+            targetCurrencyAddress: params.targetCurrencyAddress,
             sourceAmount: body.amountIn.amount,
             targetAmount: body.amountOut.amount,
             rate: String(body.exchangeRate),
@@ -173,8 +179,8 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         };
     }
 
-    async createDeposit(params: CryptoOnrampDepositParams): Promise<CryptoOnrampDeposit> {
-        const metadata = params.quote.metadata as SwapsXyzQuoteMetadata | undefined;
+    async createDeposit(params: CryptoOnrampDepositParams<SwapsXyzQuoteMetadata>): Promise<CryptoOnrampDeposit> {
+        const metadata = params.quote.metadata;
         if (!metadata?.response?.tx?.to) {
             throw new CryptoOnrampError(
                 'SwapsXyz: quote metadata is missing — quote must be obtained from this provider',
@@ -192,20 +198,51 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
             );
         }
 
+        if (metadata.sender === this.defaultSender || metadata.sender !== params.refundAddress) {
+            if (!isEvmAddress(params.refundAddress)) {
+                throw new CryptoOnrampError(
+                    'SwapsXyz: senderAddress must be a valid EVM address (got "' + params.refundAddress + '")',
+                    CryptoOnrampError.INVALID_REFUND_ADDRESS,
+                );
+            }
+
+            const newQuote = await this.getQuote({
+                amount: params.quote.sourceAmount,
+                sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
+                sourceNetwork: params.quote.sourceNetwork,
+                targetCurrencyAddress: params.quote.targetCurrencyAddress,
+                refundAddress: params.refundAddress,
+                isSourceAmount: true,
+                providerOptions: {
+                    recipient: params.userAddress,
+                },
+            });
+            const newMetadata = newQuote.metadata;
+
+            if (!newMetadata) {
+                throw new CryptoOnrampError(
+                    'SwapsXyz: quote metadata is missing — quote must be obtained from this provider',
+                    CryptoOnrampError.INVALID_PARAMS,
+                );
+            }
+
+            return {
+                depositId: newMetadata.response.txId,
+                address: newMetadata.response.tx.to,
+                amount: newMetadata.response.amountIn.amount,
+                sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
+                sourceNetwork: String(newMetadata.response.amountIn.chainId),
+                providerId: this.providerId,
+            };
+        }
+
         return {
             depositId: response.txId,
             address: response.tx.to,
             amount: response.amountIn.amount,
-            sourceCurrency: response.amountIn.symbol,
+            sourceCurrencyAddress: params.quote.sourceCurrencyAddress,
             sourceNetwork: String(response.amountIn.chainId),
             providerId: this.providerId,
-            metadata: {
-                txId: response.txId,
-                chainKey: response.tx.chainKey,
-                value: response.tx.value,
-                bridgeIds: response.bridgeIds,
-                estimatedTxTime: response.estimatedTxTime,
-            },
         };
     }
 

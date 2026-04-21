@@ -80,10 +80,20 @@ export default {
         searchMethod: 'Search',
         quoteError: 'Failed to get a quote',
         tooManyDecimals: 'Too many decimals',
+        providerError: 'Provider error',
+        depositFailed: 'Failed to create deposit',
+        networkError: 'Network error',
+        invalidParams: 'Invalid parameters',
+        genericError: 'Something went wrong',
         addressTab: 'Address',
         memoTab: 'Memo',
         youGet: 'You get',
         exchangeRate: 'Exchange rate',
+        refundAddressModalTitle: 'Refund address',
+        refundAddressLabel:
+            'Enter the address on the source network where the funds will be returned in case of a problem with the exchange',
+        invalidRefundAddress: 'Invalid refund address',
+        refundAddressPlaceholder: 'Your address',
     },
 
     // Onramp

@@ -9,7 +9,7 @@
 /**
  * Deposit details returned by a crypto onramp provider.
  *
- * The user must send `amount` of `sourceCurrency` to `address` on `sourceNetwork`
+ * The user must send `amount` of `sourceCurrencyAddress` to `address` on `sourceNetwork`
  * to complete the onramp; the provider then delivers the target crypto to the
  * user's TON address.
  */
@@ -30,9 +30,9 @@ export interface CryptoOnrampDeposit {
     amount: string;
 
     /**
-     * Source crypto currency ticker (e.g. 'USDC')
+     * Source crypto currency address (contract address or 0x0... for native)
      */
-    sourceCurrency: string;
+    sourceCurrencyAddress: string;
 
     /**
      * Source network identifier (e.g. 'solana')
@@ -58,9 +58,4 @@ export interface CryptoOnrampDeposit {
      * Identifier of the provider that issued this deposit
      */
     providerId: string;
-
-    /**
-     * Provider-specific metadata (e.g. transaction id for status polling)
-     */
-    metadata?: unknown;
 }

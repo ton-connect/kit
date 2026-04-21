@@ -18,9 +18,9 @@ export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     amount: string;
 
     /**
-     * Source crypto currency ticker (e.g. 'USDC', 'BTC')
+     * Source crypto currency address (contract address or 0x0... for native)
      */
-    sourceCurrency: string;
+    sourceCurrencyAddress: string;
 
     /**
      * Source network identifier (e.g. 'solana', 'ethereum', 'bitcoin')
@@ -28,9 +28,14 @@ export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
     sourceNetwork: string;
 
     /**
-     * Target crypto currency ticker on TON (e.g. 'TON', 'USDT')
+     * Target crypto currency address on TON (contract address or 0x0... for native)
      */
-    targetCurrency: string;
+    targetCurrencyAddress: string;
+
+    /**
+     * Refund address for the source crypto
+     */
+    refundAddress?: string;
 
     /**
      * If true, `amount` is the source amount to spend.

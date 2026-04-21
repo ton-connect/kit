@@ -18,6 +18,7 @@ import { OnrampTokenSelectModal } from '../../../components/onramp-token-select-
 import { OnrampAmountReversed } from '../../../components/onramp-amount-reversed';
 import { CryptoMethodSelectModal } from '../crypto-method-select-modal';
 import { CryptoOnrampDepositModal } from '../crypto-onramp-deposit-modal';
+import { CryptoOnrampRefundAddressModal } from '../crypto-onramp-refund-address-modal';
 import { InfoBlock } from '../../../../../components/info-block';
 import type { CryptoOnrampContextType } from '../crypto-onramp-widget-provider';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
@@ -54,27 +55,41 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     depositAmount,
     isWalletConnected,
     canContinue,
-    error,
     onReset,
     depositStatus,
+    refundAddress,
+    setRefundAddress,
+    quoteError,
+    depositError,
 }) => {
     const { t } = useI18n();
     const [isTokenSelectOpen, setIsTokenSelectOpen] = useState(false);
     const [isMethodSelectOpen, setIsMethodSelectOpen] = useState(false);
+    const [isRefundAddressOpen, setIsRefundAddressOpen] = useState(false);
     const [isDepositOpen, setIsDepositOpen] = useState(false);
 
     useEffect(() => {
         if (deposit) {
             setIsDepositOpen(true);
+            setIsRefundAddressOpen(false);
         }
     }, [deposit]);
 
     const handleContinue = useCallback(() => {
+        setIsRefundAddressOpen(true);
+    }, []);
+
+    const handleConfirmRefundAddress = useCallback(() => {
         createDeposit();
     }, [createDeposit]);
 
     const handleDepositClose = useCallback(() => {
         setIsDepositOpen(false);
+        onReset();
+    }, [onReset]);
+
+    const handleRefundAddressClose = useCallback(() => {
+        setIsRefundAddressOpen(false);
         onReset();
     }, [onReset]);
 
@@ -119,7 +134,7 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 onClick={handleContinue}
                 fullWidth
             >
-                {error ? t(`cryptoOnramp.${error}`) : t('cryptoOnramp.continue')}
+                {quoteError ?? t('cryptoOnramp.continue')}
             </ButtonWithConnect>
 
             <InfoBlock.Container className={styles.info}>
@@ -175,11 +190,21 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 onClose={handleDepositClose}
                 address={deposit?.address ?? ''}
                 amount={depositAmount}
-                symbol={deposit?.sourceCurrency ?? selectedMethod.symbol}
+                symbol={selectedMethod.symbol}
                 memo={deposit?.memo}
                 tokenLogo={selectedMethod.logo}
                 networkWarning={deposit?.networkWarning}
                 depositStatus={depositStatus}
+            />
+
+            <CryptoOnrampRefundAddressModal
+                open={isRefundAddressOpen}
+                onClose={handleRefundAddressClose}
+                value={refundAddress}
+                onChange={setRefundAddress}
+                onConfirm={handleConfirmRefundAddress}
+                isLoading={isCreatingDeposit}
+                error={depositError}
             />
         </div>
     );

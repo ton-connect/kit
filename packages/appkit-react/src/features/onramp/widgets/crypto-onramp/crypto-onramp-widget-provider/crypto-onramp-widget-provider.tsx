@@ -35,8 +35,6 @@ const DEFAULT_PRESETS: OnrampAmountPreset[] = [
 
 export type CryptoAmountInputMode = 'token' | 'method';
 
-export type CryptoOnrampWidgetError = 'tooManyDecimals' | 'quoteError' | null;
-
 export interface CryptoOnrampContextType {
     /** Full list of tokens to buy */
     tokens: CryptoOnrampToken[];
@@ -69,14 +67,14 @@ export interface CryptoOnrampContextType {
     /** Whether quote is being fetched */
     isLoadingQuote: boolean;
     /** Error from quote fetch */
-    quoteError: Error | null;
+    quoteError: string | null;
 
     /** Current deposit offer from provider */
     deposit: CryptoOnrampDeposit | null;
     /** Whether deposit is being created */
     isCreatingDeposit: boolean;
     /** Error from deposit creation */
-    depositError: Error | null;
+    depositError: string | null;
     /** Formatted deposit amount */
     depositAmount: string;
     /** Function to trigger deposit creation */
@@ -84,11 +82,13 @@ export interface CryptoOnrampContextType {
     /** Deposit status */
     depositStatus: CryptoOnrampStatus | null;
 
+    /** Refund address */
+    refundAddress: string;
+    setRefundAddress: (address: string) => void;
+
     /** Whether a TON wallet is currently connected */
     isWalletConnected: boolean;
 
-    /** Validation / fetch error */
-    error: CryptoOnrampWidgetError;
     /** Whether the user can proceed (valid amount + quote available + wallet connected) */
     canContinue: boolean;
     /** Reset state (invalidate quote and clear deposit) */
@@ -122,18 +122,20 @@ const defaultContext: CryptoOnrampContextType = {
     createDeposit: () => {},
     depositStatus: null,
 
+    refundAddress: '',
+    setRefundAddress: () => {},
+
     isWalletConnected: false,
 
-    error: null,
     canContinue: false,
     onReset: () => {},
 };
 
 export const CryptoOnrampContext = createContext<CryptoOnrampContextType>(defaultContext);
 
-export function useCryptoOnrampContext(): CryptoOnrampContextType {
+export const useCryptoOnrampContext = (): CryptoOnrampContextType => {
     return useContext(CryptoOnrampContext);
-}
+};
 
 export interface CryptoOnrampProviderProps extends PropsWithChildren {
     tokens?: CryptoOnrampToken[];
@@ -160,6 +162,8 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     const [selectedMethod, setSelectedMethod] = useState<CryptoPaymentMethod>(
         () => paymentMethods.find((m) => m.id === defaultMethodId) ?? paymentMethods[0] ?? CRYPTO_PAYMENT_METHODS[0]!,
     );
+
+    const [refundAddress, setRefundAddress] = useState('');
 
     const [amount, setAmountRaw] = useState('');
     const [amountInputMode, setAmountInputMode] = useState<CryptoAmountInputMode>('method');
@@ -188,9 +192,9 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
 
     const quoteQuery = useCryptoOnrampQuote({
         amount: requestAmountBase,
-        sourceCurrency: selectedMethod.address,
+        sourceCurrencyAddress: selectedMethod.address,
         sourceNetwork: selectedMethod.networkId,
-        targetCurrency: selectedToken?.address ?? '',
+        targetCurrencyAddress: selectedToken?.address ?? '',
         isSourceAmount: amountInputMode === 'method',
         providerOptions: {
             recipient: userAddress ?? '',
@@ -220,13 +224,14 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         return formatUnits(rawAmount, decimals);
     }, [quoteQuery.data, amountInputMode, selectedMethod, selectedToken]);
 
-    const { error, canSubmit } = useCryptoOnrampValidation({
+    const { quoteError, depositError, canSubmit } = useCryptoOnrampValidation({
         amount,
         amountDebounced,
         amountInputMode,
         selectedMethod,
         selectedToken,
         quoteError: quoteQuery.error,
+        depositError: createDepositMutation.error,
         hasQuote: !!quoteQuery.data,
     });
 
@@ -240,18 +245,31 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     }, [createDepositMutation.data, amount, selectedMethod]);
 
     const createDeposit = useCallback(() => {
-        if (!quoteQuery.data || !userAddress) return;
+        if (!quoteQuery.data || !userAddress || !refundAddress) return;
+
         createDepositMutation.mutate({
             quote: quoteQuery.data,
             userAddress,
             providerId: quoteQuery.data.providerId,
+            refundAddress,
         });
-    }, [quoteQuery.data, userAddress, createDepositMutation]);
+    }, [quoteQuery.data, userAddress, createDepositMutation, refundAddress]);
 
     const onReset = useCallback(() => {
         createDepositMutation.reset();
         quoteQuery.refetch();
+        setRefundAddress('');
     }, [createDepositMutation, quoteQuery]);
+
+    const handleSetRefundAddress = useCallback(
+        (address: string) => {
+            setRefundAddress(address);
+            if (createDepositMutation.isError) {
+                createDepositMutation.reset();
+            }
+        },
+        [createDepositMutation],
+    );
 
     const value = useMemo(
         () => ({
@@ -271,17 +289,18 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             presetAmounts: DEFAULT_PRESETS,
             quote: quoteQuery.data ?? null,
             isLoadingQuote: quoteQuery.isFetching || amount !== amountDebounced,
-            quoteError: quoteQuery.error,
+            quoteError,
             deposit: createDepositMutation.data ?? null,
             isCreatingDeposit: createDepositMutation.isPending,
-            depositError: createDepositMutation.error,
+            depositError,
             depositAmount,
             createDeposit,
             isWalletConnected: !!userAddress,
-            error,
             canContinue,
             onReset,
             depositStatus: depositStatus ?? null,
+            refundAddress,
+            setRefundAddress: handleSetRefundAddress,
         }),
         [
             tokens,
@@ -296,18 +315,19 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
             convertedAmount,
             quoteQuery.data,
             quoteQuery.isFetching,
-            quoteQuery.error,
+            quoteError,
             amountDebounced,
             createDepositMutation.data,
             createDepositMutation.isPending,
-            createDepositMutation.error,
+            depositError,
             depositAmount,
             createDeposit,
             userAddress,
-            error,
             canContinue,
             onReset,
             depositStatus,
+            refundAddress,
+            handleSetRefundAddress,
         ],
     );
 
