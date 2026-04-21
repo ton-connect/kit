@@ -102,6 +102,12 @@ export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
 export type { OnrampLimits } from './onramp/OnrampLimits';
 export type { OnrampLimitParams } from './onramp/OnrampLimitParams';
 
+// Crypto onramp models
+export type { CryptoOnrampQuote } from './crypto-onramp/CryptoOnrampQuote';
+export type { CryptoOnrampQuoteParams } from './crypto-onramp/CryptoOnrampQuoteParams';
+export type { CryptoOnrampDepositParams } from './crypto-onramp/CryptoOnrampDepositParams';
+export type { CryptoOnrampDeposit } from './crypto-onramp/CryptoOnrampDeposit';
+
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
