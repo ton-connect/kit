@@ -13,6 +13,7 @@ import {
     ApiClientTonApi,
     ApiClientToncenter,
     createTonCenterStreamingProvider,
+    SwapsXyzCryptoOnrampProvider,
 } from '@ton/appkit';
 import { DeDustSwapProvider } from '@ton/appkit/swap/dedust';
 import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
@@ -48,7 +49,15 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
+    providers: [
+        new DeDustSwapProvider(),
+        new OmnistonSwapProvider(),
+        createTonstakersProvider({}),
+        new SwapsXyzCryptoOnrampProvider({
+            apiKey: '1be323b5c83198191ba640f07f8815b0',
+            defaultSender: '0x10E06012e8dCE715B471A582da7FA83a018675a3',
+        }),
+    ],
 });
 
 // TODO: replace in normal config

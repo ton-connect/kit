@@ -35,21 +35,47 @@ export interface OnrampAmountPreset {
 
 export interface CryptoPaymentMethod {
     id: string;
-    /** Token symbol, e.g. "BTC", "USDT" */
+    /** Token symbol, e.g. "USDC", "USDT" */
     symbol: string;
-    /** Token name, e.g. "Bitcoin", "Tether" */
+    /** Token name, e.g. "USD Coin", "Tether" */
     name: string;
-    /** Human-readable network name, e.g. "Tron", "Ethereum", "Bitcoin" */
+    /** Human-readable network name, e.g. "Base", "BSC" */
     network: string;
-    /** Network id used for filter tabs, e.g. "tron", "ethereum" */
+    /** Source chain id as string (decimal), e.g. "8453", "56" — passed as srcChainId to the onramp provider */
     networkId: string;
+    /** Number of decimals for the token */
+    decimals: number;
+    /** Token contract address on the source network (empty string / zero address for native) */
+    address: string;
     logo?: string;
     networkLogo?: string;
-    /** Mock deposit address for this method */
-    depositAddress?: string;
 }
 
 export interface PaymentMethodSectionConfig {
+    title: string;
+    ids: string[];
+}
+
+/**
+ * Target token (what the user is buying on TON) in the crypto onramp widget.
+ * Kept separate from AppkitUIToken because `address` is the raw form expected
+ * by the onramp provider (e.g. "0x0000000000000000000000000000000000000000"
+ * for native TON, "EQCx..." for USDT jetton master).
+ */
+export interface CryptoOnrampToken {
+    id: string;
+    /** Token symbol, e.g. "TON", "USDT" */
+    symbol: string;
+    /** Full token name, e.g. "Toncoin", "Tether" */
+    name: string;
+    /** Number of decimals for the token */
+    decimals: number;
+    /** Address as the onramp provider expects it */
+    address: string;
+    logo?: string;
+}
+
+export interface CryptoOnrampTokenSectionConfig {
     title: string;
     ids: string[];
 }

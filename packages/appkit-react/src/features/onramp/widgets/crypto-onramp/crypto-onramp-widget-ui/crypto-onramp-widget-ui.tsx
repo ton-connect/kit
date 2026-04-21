@@ -6,10 +6,10 @@
  *
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FC } from 'react';
 
-import { Button } from '../../../../../components/button';
+import { ButtonWithConnect } from '../../../../../components/button-with-connect';
 import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
 import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
 import { AmountPresets } from '../../../../../components/amount-presets';
@@ -38,6 +38,12 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     setAmountInputMode,
     convertedAmount,
     presetAmounts,
+    isLoadingQuote,
+    createDeposit,
+    isCreatingDeposit,
+    deposit,
+    depositAmount,
+    isWalletConnected,
     canContinue,
     error,
     onReset,
@@ -47,14 +53,22 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
     const [isMethodSelectOpen, setIsMethodSelectOpen] = useState(false);
     const [isDepositOpen, setIsDepositOpen] = useState(false);
 
+    useEffect(() => {
+        if (deposit) {
+            setIsDepositOpen(true);
+        }
+    }, [deposit]);
+
     const handleContinue = useCallback(() => {
-        setIsDepositOpen(true);
-    }, []);
+        createDeposit();
+    }, [createDeposit]);
 
     const handleDepositClose = useCallback(() => {
         setIsDepositOpen(false);
         onReset();
     }, [onReset]);
+
+    const displayConvertedAmount = isLoadingQuote ? '...' : convertedAmount;
 
     return (
         <div className={styles.widget}>
@@ -74,12 +88,13 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
                 className={styles.input}
                 value={amount}
                 onValueChange={setAmount}
+                disabled={!isWalletConnected}
                 ticker={amountInputMode === 'token' ? selectedToken?.symbol : selectedMethod.symbol}
             />
 
             <OnrampAmountReversed
                 className={styles.converted}
-                value={convertedAmount}
+                value={displayConvertedAmount}
                 onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'method' : 'token')}
                 ticker={amountInputMode === 'token' ? selectedMethod.symbol : selectedToken?.symbol}
                 errorMessage={error ? t(`onramp.${error}`) : undefined}
@@ -87,9 +102,16 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
 
             <AmountPresets className={styles.presets} presets={presetAmounts} onPresetSelect={setAmount} />
 
-            <Button variant="fill" size="l" disabled={!canContinue} onClick={handleContinue} fullWidth>
+            <ButtonWithConnect
+                variant="fill"
+                size="l"
+                disabled={!canContinue || isCreatingDeposit}
+                loading={isCreatingDeposit}
+                onClick={handleContinue}
+                fullWidth
+            >
                 {t('cryptoOnramp.continue')}
-            </Button>
+            </ButtonWithConnect>
 
             <OnrampTokenSelectModal
                 open={isTokenSelectOpen}
@@ -110,10 +132,12 @@ export const CryptoOnrampWidgetUI: FC<CryptoOnrampWidgetRenderProps> = ({
             <CryptoOnrampDepositModal
                 open={isDepositOpen}
                 onClose={handleDepositClose}
-                address={selectedMethod.depositAddress ?? ''}
-                amount={amount}
-                symbol={selectedMethod.symbol}
+                address={deposit?.address ?? ''}
+                amount={depositAmount}
+                symbol={deposit?.sourceCurrency ?? selectedMethod.symbol}
+                memo={deposit?.memo}
                 tokenLogo={selectedMethod.logo}
+                networkWarning={deposit?.networkWarning}
             />
         </div>
     );

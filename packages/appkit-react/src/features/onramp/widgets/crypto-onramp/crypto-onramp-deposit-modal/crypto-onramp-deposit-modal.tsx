@@ -23,6 +23,8 @@ export interface CryptoOnrampDepositModalProps {
     amount: string;
     /** Token symbol, e.g. "BTC" */
     symbol: string;
+    /** Optional memo / tag / comment */
+    memo?: string;
     /** URL of the token logo to embed in the QR code center */
     tokenLogo?: string;
     /** Optional network-specific warning message */
@@ -101,12 +103,14 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     address,
     amount,
     symbol,
+    memo,
     tokenLogo,
     networkWarning,
 }) => {
     const { t } = useI18n();
     const [amountCopied, copyAmount] = useCopy(`${amount} ${symbol}`);
     const [addressCopied, copyAddress] = useCopy(address);
+    const [memoCopied, copyMemo] = useCopy(memo ?? '');
     const [detailsOpen, setDetailsOpen] = useState(false);
 
     return (
@@ -164,6 +168,26 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                             </button>
                         </div>
                     </div>
+
+                    {memo && (
+                        <>
+                            <div className={styles.divider} />
+                            <div className={styles.infoRow}>
+                                <span className={styles.infoLabel}>{t('cryptoOnramp.memoTag')}</span>
+                                <div className={styles.infoValueRow}>
+                                    <span className={styles.infoValue}>{memo}</span>
+                                    <button
+                                        type="button"
+                                        className={styles.copyButton}
+                                        onClick={copyMemo}
+                                        aria-label="Copy memo"
+                                    >
+                                        {memoCopied ? <CheckIcon /> : <CopyIcon />}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <button

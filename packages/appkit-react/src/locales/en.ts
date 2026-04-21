@@ -69,6 +69,7 @@ export default {
         sendExactAmount: 'Send the exact amount to the address below',
         youNeedToSend: 'You need to send',
         toThisAddress: 'To this address',
+        memoTag: 'Memo / Tag',
         transactionDetails: 'Transaction details',
         deposit: 'Deposit',
         continue: 'Continue',

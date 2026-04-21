@@ -19,6 +19,8 @@ import type { SwapsXyzErrorResponse, SwapsXyzGetActionResponse, SwapsXyzSwapDire
 const SWAPS_XYZ_API_URL = 'https://api-v2.swaps.xyz/api';
 const TON_CHAIN_ID = 999000337;
 const DEFAULT_SLIPPAGE_BPS = 100;
+/** Any valid checksummed EVM address — swaps.xyz only cares that the field parses. */
+const DEFAULT_SENDER = '0x10E06012e8dCE715B471A582da7FA83a018675a3';
 
 export interface SwapsXyzProviderConfig {
     /**
@@ -33,9 +35,10 @@ export interface SwapsXyzProviderConfig {
 
     /**
      * EVM address used as `sender` on getAction requests. Required by the API
-     * even for deposit flows where the actual payer is unknown.
+     * even for deposit flows where the actual payer is unknown. Defaults to a
+     * well-known valid address when omitted.
      */
-    defaultSender: string;
+    defaultSender?: string;
 }
 
 export interface SwapsXyzQuoteOptions {
@@ -56,7 +59,8 @@ export interface SwapsXyzQuoteOptions {
     sender?: string;
 }
 
-export type SwapsXyzDepositOptions = SwapsXyzQuoteOptions;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface SwapsXyzDepositOptions {}
 
 /**
  * Metadata stored on the CryptoOnrampQuote returned by this provider.
@@ -87,7 +91,7 @@ export class SwapsXyzCryptoOnrampProvider extends CryptoOnrampProvider<SwapsXyzQ
         super();
         this.apiKey = config.apiKey;
         this.apiUrl = config.apiUrl ?? SWAPS_XYZ_API_URL;
-        this.defaultSender = config.defaultSender;
+        this.defaultSender = config.defaultSender ?? DEFAULT_SENDER;
     }
 
     async getQuote(params: CryptoOnrampQuoteParams<SwapsXyzQuoteOptions>): Promise<CryptoOnrampQuote> {
