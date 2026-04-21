@@ -11,8 +11,11 @@ import type { FC } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
 import { Modal } from '../../../../../components/modal';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../components/tabs';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
 import styles from './crypto-onramp-deposit-modal.module.css';
+
+type QrTab = 'address' | 'memo';
 
 export interface CryptoOnrampDepositModalProps {
     open: boolean;
@@ -112,27 +115,37 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
     const [addressCopied, copyAddress] = useCopy(address);
     const [memoCopied, copyMemo] = useCopy(memo ?? '');
     const [detailsOpen, setDetailsOpen] = useState(false);
+    const [qrTab, setQrTab] = useState<QrTab>('address');
+
+    const qrImageSettings = tokenLogo ? { src: tokenLogo, width: 40, height: 40, excavate: true } : undefined;
+
+    const qrValue = memo && qrTab === 'memo' ? memo : address;
 
     return (
         <Modal open={open} onOpenChange={(isOpen) => !isOpen && onClose()} title={t('cryptoOnramp.sendExactAmount')}>
             <div className={styles.content}>
-                <div className={styles.qrWrapper}>
-                    <QRCodeSVG
-                        value={address}
-                        size={200}
-                        level="M"
-                        imageSettings={
-                            tokenLogo
-                                ? {
-                                      src: tokenLogo,
-                                      width: 40,
-                                      height: 40,
-                                      excavate: true,
-                                  }
-                                : undefined
-                        }
-                    />
-                </div>
+                {memo ? (
+                    <Tabs value={qrTab} onValueChange={(v) => setQrTab(v as QrTab)}>
+                        <TabsList className={styles.tabsList}>
+                            <TabsTrigger value="address">{t('cryptoOnramp.addressTab')}</TabsTrigger>
+                            <TabsTrigger value="memo">{t('cryptoOnramp.memoTab')}</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="address">
+                            <div className={styles.qrWrapper}>
+                                <QRCodeSVG value={address} size={200} level="M" imageSettings={qrImageSettings} />
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="memo">
+                            <div className={styles.qrWrapper}>
+                                <QRCodeSVG value={memo} size={200} level="M" />
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                ) : (
+                    <div className={styles.qrWrapper}>
+                        <QRCodeSVG value={qrValue} size={200} level="M" imageSettings={qrImageSettings} />
+                    </div>
+                )}
 
                 <div className={styles.infoCard}>
                     <div className={styles.infoRow}>

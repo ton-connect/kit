@@ -8,14 +8,14 @@
 
 import { useMemo, useState } from 'react';
 import type { FC } from 'react';
-import clsx from 'clsx';
+// import clsx from 'clsx';
 
 import { CurrencySelect } from '../../../../../components/currency-select-modal';
 import { LogoWithNetwork } from '../../../../../components/logo-with-network';
 import { CurrencyItem } from '../../../../../components/currency-item';
 import type { CryptoPaymentMethod, PaymentMethodSectionConfig } from '../../../types';
 import { useI18n } from '../../../../settings/hooks/use-i18n';
-import styles from './crypto-method-select-modal.module.css';
+// import styles from './crypto-method-select-modal.module.css';
 
 export interface CryptoMethodSelectModalProps {
     open: boolean;
@@ -75,16 +75,16 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
     const [search, setSearch] = useState('');
     const [networkFilter, setNetworkFilter] = useState<string | null>(null);
 
-    const networks = useMemo(() => {
-        const seen = new Set<string>();
-        return methods
-            .filter((m) => {
-                if (seen.has(m.networkId)) return false;
-                seen.add(m.networkId);
-                return true;
-            })
-            .map((m) => ({ id: m.networkId, label: m.network }));
-    }, [methods]);
+    // const networks = useMemo(() => {
+    //     const seen = new Set<string>();
+    //     return methods
+    //         .filter((m) => {
+    //             if (seen.has(m.networkId)) return false;
+    //             seen.add(m.networkId);
+    //             return true;
+    //         })
+    //         .map((m) => ({ id: m.networkId, label: m.network }));
+    // }, [methods]);
 
     const filteredByNetwork = useMemo(
         () => (networkFilter ? methods.filter((m) => m.networkId === networkFilter) : methods),
@@ -126,7 +126,7 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
                 placeholder={t('cryptoOnramp.searchMethod')}
             />
 
-            <div className={styles.networkTabs}>
+            {/* <div className={styles.networkTabs}>
                 <button
                     type="button"
                     className={clsx(styles.networkTab, !networkFilter && styles.networkTabActive)}
@@ -144,7 +144,7 @@ export const CryptoMethodSelectModal: FC<CryptoMethodSelectModalProps> = ({
                         {net.label}
                     </button>
                 ))}
-            </div>
+            </div> */}
 
             <CurrencySelect.ListContainer isEmpty={isEmpty}>
                 {displaySections.map((section) => (

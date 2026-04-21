@@ -79,6 +79,10 @@ export default {
         searchMethod: 'Search',
         quoteError: 'Failed to get a quote',
         tooManyDecimals: 'Too many decimals',
+        addressTab: 'Address',
+        memoTab: 'Memo',
+        youGet: 'You get',
+        exchangeRate: 'Exchange rate',
     },
 
     // Onramp
@@ -94,6 +98,8 @@ export default {
         noQuotesFound: 'No quotes found',
         connectWallet: 'Connect a wallet to continue',
         tonPayError: 'Failed to start TonPay checkout',
+        youGet: 'You get',
+        exchangeRate: 'Exchange rate',
     },
 
     // Staking

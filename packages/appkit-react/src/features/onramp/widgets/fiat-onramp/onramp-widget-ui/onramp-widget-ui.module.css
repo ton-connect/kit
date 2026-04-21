@@ -7,17 +7,22 @@
 }
 
 .selectors {
-    margin-bottom: 64px;
+    margin-bottom: 24px;
 }
 
-.input {
-    margin-bottom: 16px;
-}
-
-.converted {
-    margin-bottom: 64px;
+.inputSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 28px 0;
+    margin-bottom: 24px;
 }
 
 .presets {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.info {
+    margin-bottom: 24px;
 }

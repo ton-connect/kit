@@ -11,6 +11,10 @@
 	padding: 16px 0;
 }
 
+.tabsList {
+	margin-top: 4px;
+}
+
 .infoCard {
 	background-color: var(--ta-color-background-secondary);
 	border-radius: var(--ta-border-radius-l);

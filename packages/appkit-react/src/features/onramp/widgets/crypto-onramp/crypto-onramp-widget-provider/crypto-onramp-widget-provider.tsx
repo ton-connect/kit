@@ -6,7 +6,7 @@
  *
  */
 
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 import type { CryptoOnrampQuote, CryptoOnrampDeposit } from '@ton/appkit';
 import { formatUnits, parseUnits, validateNumericString } from '@ton/appkit';
@@ -231,6 +231,16 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
         setAmountInputMode('method');
         createDepositMutation.reset();
     }, [createDepositMutation]);
+
+    // Reset widget state when the connected TON address changes —
+    // the previous quote/deposit is tied to the old recipient.
+    const previousUserAddressRef = useRef(userAddress);
+    useEffect(() => {
+        if (previousUserAddressRef.current !== userAddress) {
+            previousUserAddressRef.current = userAddress;
+            onReset();
+        }
+    }, [userAddress, onReset]);
 
     const createDeposit = useCallback(() => {
         if (!quoteQuery.data || !userAddress) return;

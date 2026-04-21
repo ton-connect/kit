@@ -68,7 +68,6 @@ export interface SwapsXyzGetActionResponse {
     estimatedTxTime: number;
     estimatedPriceImpact: number;
     requiresTokenApproval: boolean;
-    requiresRegisterTransaction: boolean;
     executionsType: 'DEFAULT' | 'GASLESS';
 }
 

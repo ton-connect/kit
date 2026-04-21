@@ -80,22 +80,22 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onToClick={() => setIsCurrencySelectOpen(true)}
             />
 
-            <CenteredAmountInput
-                className={styles.input}
-                value={amount}
-                onValueChange={setAmount}
-                ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
-                symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
-            />
+            <div className={styles.inputSection}>
+                <CenteredAmountInput
+                    value={amount}
+                    onValueChange={setAmount}
+                    ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
+                    symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
+                />
 
-            <OnrampAmountReversed
-                className={styles.converted}
-                value={convertedAmount}
-                onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
-                ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
-                symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
-                errorMessage={error ? t(`onramp.${error}`) : undefined}
-            />
+                <OnrampAmountReversed
+                    value={convertedAmount}
+                    onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
+                    ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
+                    symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
+                    errorMessage={error ? t(`onramp.${error}`) : undefined}
+                />
+            </div>
 
             <AmountPresets
                 className={styles.presets}
