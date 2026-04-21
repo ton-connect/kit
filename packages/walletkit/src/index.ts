@@ -23,6 +23,7 @@ export { SwapManager, SwapProvider, SwapError } from './defi/swap';
 export { StakingManager, StakingProvider, StakingError } from './defi/staking';
 export { OnrampManager, OnrampProvider, OnrampError } from './defi/onramp';
 export { GaslessManager, GaslessProvider, GaslessError } from './defi/gasless';
+export { CryptoOnrampManager, CryptoOnrampProvider, CryptoOnrampError } from './defi/crypto-onramp';
 export { EventEmitter } from './core/EventEmitter';
 export type { EventListener, EventPayload, KitEvent } from './core/EventEmitter';
 export type { SharedKitEvents } from './types/emitter';

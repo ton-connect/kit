@@ -1,0 +1,140 @@
+.content {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding-bottom: 8px;
+}
+
+.qrWrapper {
+	display: flex;
+	justify-content: center;
+	padding: 16px 0;
+}
+
+.tabsList {
+	margin-top: 4px;
+}
+
+.infoTitle {
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+	margin: 0;
+}
+
+.infoCard {
+	background-color: var(--ta-color-background-secondary);
+	border-radius: var(--ta-border-radius-l);
+	overflow: hidden;
+}
+
+.infoRow {
+	display: flex;
+	flex-direction: column;
+	padding: 12px 16px;
+}
+
+.infoLabel {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+}
+
+.infoValueRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.infoValue {
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text);
+	word-break: break-all;
+}
+
+.copyButton {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: none;
+	background: none;
+	cursor: pointer;
+	color: var(--ta-color-text-secondary);
+	border-radius: var(--ta-border-radius-s);
+	transition: color 0.15s, background-color 0.15s;
+}
+
+.copyButton:hover {
+	color: var(--ta-color-text);
+	background-color: var(--ta-color-background-tertiary);
+}
+
+.divider {
+	height: 1px;
+	background-color: var(--ta-color-background-tertiary);
+	margin: 0 16px;
+}
+
+.detailsToggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: 12px 16px;
+	background-color: var(--ta-color-background-secondary);
+	border: none;
+	border-radius: var(--ta-border-radius-l);
+	cursor: pointer;
+	color: var(--ta-color-text);
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+}
+
+.warning {
+	display: flex;
+	gap: 10px;
+	padding: 12px 14px;
+	background-color: rgba(255, 165, 0, 0.1);
+	border-radius: var(--ta-border-radius-l);
+	border: 1px solid rgba(255, 165, 0, 0.25);
+}
+
+.warningIcon {
+	flex-shrink: 0;
+	color: #ff9500;
+	display: flex;
+	align-items: flex-start;
+	padding-top: 1px;
+}
+
+.warningText {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+	margin: 0;
+}
+
+.balanceRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 16px;
+	background-color: var(--ta-color-background-secondary);
+	border-radius: var(--ta-border-radius-l);
+}
+
+.balanceLabel {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+}
+
+.balanceValue {
+	composes: bodyMedium from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text);
+}
+
+.statusText {
+	composes: footnoteRegular from '../../../../../styles/typography.module.css';
+	color: var(--ta-color-text-secondary);
+	text-align: center;
+	margin: 0;
+}

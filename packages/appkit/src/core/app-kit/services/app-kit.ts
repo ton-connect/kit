@@ -6,13 +6,14 @@
  *
  */
 
-import { SwapManager, StreamingManager, OnrampManager, GaslessManager } from '@ton/walletkit';
+import { SwapManager, StreamingManager, OnrampManager, GaslessManager, CryptoOnrampManager } from '@ton/walletkit';
 import type {
     ProviderInput,
     SwapProviderInterface,
     StakingProviderInterface,
     OnrampProviderInterface,
     GaslessProviderInterface,
+    CryptoOnrampProviderInterface,
 } from '@ton/walletkit';
 
 import type { AppKitConfig } from '../types/config';
@@ -38,6 +39,7 @@ export class AppKit {
     readonly stakingManager: StakingManager;
     readonly onrampManager: OnrampManager;
     readonly gaslessManager: GaslessManager;
+    readonly cryptoOnrampManager: CryptoOnrampManager;
 
     readonly networkManager: AppKitNetworkManager;
     readonly streamingManager: StreamingManager;
@@ -65,6 +67,7 @@ export class AppKit {
         this.stakingManager = new StakingManager(() => this.createFactoryContext());
         this.onrampManager = new OnrampManager(() => this.createFactoryContext());
         this.gaslessManager = new GaslessManager(() => this.createFactoryContext());
+        this.cryptoOnrampManager = new CryptoOnrampManager(() => this.createFactoryContext());
         this.streamingManager = new StreamingManager(() => this.createFactoryContext());
 
         if (config.connectors) {
@@ -133,6 +136,8 @@ export class AppKit {
                 break;
             case 'gasless':
                 this.gaslessManager.registerProvider(provider as GaslessProviderInterface);
+            case 'crypto-onramp':
+                this.cryptoOnrampManager.registerProvider(provider as CryptoOnrampProviderInterface);
                 break;
             default:
                 throw new Error('Unknown provider type');

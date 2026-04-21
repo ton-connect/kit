@@ -20,6 +20,7 @@ export interface CenteredAmountInputProps extends ComponentProps<'div'> {
     ticker?: string;
     symbol?: string;
     placeholder?: string;
+    disabled?: boolean;
 }
 
 export const CenteredAmountInput: FC<CenteredAmountInputProps> = ({
@@ -28,6 +29,7 @@ export const CenteredAmountInput: FC<CenteredAmountInputProps> = ({
     ticker,
     symbol,
     placeholder = '0',
+    disabled,
     className,
     ...props
 }) => {
@@ -97,6 +99,7 @@ export const CenteredAmountInput: FC<CenteredAmountInputProps> = ({
                     inputMode="decimal"
                     placeholder={placeholder}
                     value={value}
+                    disabled={disabled}
                     onChange={(e) => onValueChange(e.target.value)}
                     style={{
                         width: inputWidth ? `${inputWidth}px` : undefined,

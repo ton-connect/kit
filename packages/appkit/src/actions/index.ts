@@ -41,6 +41,23 @@ export {
     type WatchConnectorByIdReturnType,
 } from './connectors/watch-connector-by-id';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuote,
+    type GetCryptoOnrampQuoteOptions,
+    type GetCryptoOnrampQuoteReturnType,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    createCryptoOnrampDeposit,
+    type CreateCryptoOnrampDepositOptions,
+    type CreateCryptoOnrampDepositReturnType,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+export {
+    getCryptoOnrampStatus,
+    type GetCryptoOnrampStatusOptions,
+    type GetCryptoOnrampStatusReturnType,
+} from './crypto-onramp/get-crypto-onramp-status';
+
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
 export {

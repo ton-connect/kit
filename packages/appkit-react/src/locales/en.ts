@@ -64,6 +64,42 @@ export default {
         otherCurrencies: 'Other Currencies',
     },
 
+    // Crypto Onramp
+    cryptoOnramp: {
+        depositModalTitle: 'Crypto deposit',
+        sendExactAmount: 'Send the exact amount to the address below',
+        youNeedToSend: 'You need to send',
+        toThisAddress: 'To this address',
+        memoTag: 'Memo / Tag',
+        transactionDetails: 'Transaction details',
+        deposit: 'Deposit',
+        continue: 'Continue',
+        methodOfPurchase: 'Method of purchase',
+        allNetworks: 'All networks',
+        selectMethod: 'Select payment method',
+        searchMethod: 'Search',
+        quoteError: 'Failed to get a quote',
+        tooManyDecimals: 'Too many decimals',
+        providerError: 'Provider error',
+        depositFailed: 'Failed to create deposit',
+        networkError: 'Network error',
+        invalidParams: 'Invalid parameters',
+        genericError: 'Something went wrong',
+        addressTab: 'Address',
+        memoTab: 'Memo',
+        youGet: 'You get',
+        exchangeRate: 'Exchange rate',
+        refundAddressModalTitle: 'Refund address',
+        refundAddressLabel:
+            'Enter the address on the source network where the funds will be returned in case of a problem with the exchange',
+        invalidRefundAddress: 'Invalid refund address',
+        refundAddressPlaceholder: 'Your address',
+        yourBalance: 'Your balance',
+        statusPending: 'Waiting for your transfer',
+        statusSuccess: 'Transfer completed',
+        statusFailed: 'Transfer failed',
+    },
+
     // Onramp
     onramp: {
         continue: 'Continue',
@@ -77,6 +113,8 @@ export default {
         noQuotesFound: 'No quotes found',
         connectWallet: 'Connect a wallet to continue',
         tonPayError: 'Failed to start TonPay checkout',
+        youGet: 'You get',
+        exchangeRate: 'Exchange rate',
     },
 
     // Staking

@@ -36,6 +36,7 @@ export * from './connectors/privy';
 export * from './swap';
 export * from './staking';
 export * from './gasless';
+export * from './crypto-onramp';
 
 // Actions
 export * from './actions';

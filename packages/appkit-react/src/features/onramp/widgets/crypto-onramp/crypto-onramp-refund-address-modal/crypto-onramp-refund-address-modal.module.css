@@ -1,0 +1,12 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.label {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--ta-color-text-secondary);
+}

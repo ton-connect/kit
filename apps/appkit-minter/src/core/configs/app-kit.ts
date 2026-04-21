@@ -20,6 +20,7 @@ import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 import { TonApiGaslessProvider } from '@ton/appkit/gasless/tonapi';
 import { TonApiClient } from '@ton-api/client';
+import { LayerswapCryptoOnrampProvider } from '@ton/appkit/crypto-onramp/layerswap';
 
 import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET, ENV_PRIVY_APP_ID } from '@/core/configs/env';
 import { loadStoredNetworkChainId } from '@/features/network';
@@ -70,6 +71,7 @@ export const appKit = new AppKit({
         new OmnistonSwapProvider(),
         createTonstakersProvider({}),
         new TonApiGaslessProvider({ client: mainnetTonApi }),
+        new LayerswapCryptoOnrampProvider(),
     ],
 });
 
