@@ -2,9 +2,22 @@
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", "lib/**", "docs/**", "!.next/cache/**"],
-      "env": ["VITE_TON_API_KEY", "VITE_TON_API_TESTNET_KEY", "VITE_TON_API_PROVIDER"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        "lib/**",
+        "docs/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "VITE_TON_API_KEY",
+        "VITE_TON_API_TESTNET_KEY",
+        "VITE_TON_API_PROVIDER",
+        "VITE_PRIVY_APP_ID",
+        "VITE_GETGEMS_API_KEY"
+      ]
     },
     "build:bridge": {
       "cache": false
@@ -16,36 +29,58 @@
     "preview": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
-    "//#lint": {
-    },
+    "//#lint": {},
     "verify": {
-      "dependsOn": ["//#lint", "build"]
+      "dependsOn": [
+        "//#lint",
+        "build"
+      ]
     },
     "quality": {
-      "dependsOn": ["verify", "typecheck", "^quality"],
-      "env": ["WALLET_MNEMONIC", "CI"]
+      "dependsOn": [
+        "verify",
+        "typecheck",
+        "^quality"
+      ],
+      "env": [
+        "WALLET_MNEMONIC",
+        "CI"
+      ]
     },
     "quality:bridge": {
-      "dependsOn": ["typecheck:bridge"]
+      "dependsOn": [
+        "typecheck:bridge"
+      ]
     },
     "typecheck:bridge": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "e2e": {
-      "dependsOn": ["build", "^e2e"]
+      "dependsOn": [
+        "build",
+        "^e2e"
+      ]
     },
     "clean": {
       "cache": false
     },
     "typecheck": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "generate-openapi-spec": {
-      "dependsOn": ["^generate-openapi-spec"]
+      "dependsOn": [
+        "^generate-openapi-spec"
+      ]
     }
   }
 }
