@@ -33,6 +33,7 @@ export interface JettonTransferItem {
     destination: string;
     amount: string;
     attachAmount?: string;
+    queryId?: string;
     responseDestination?: string;
     customPayload?: Base64String;
     forwardAmount?: string;
@@ -44,6 +45,7 @@ export interface NftTransferItem {
     nftAddress: string;
     newOwner: string;
     attachAmount?: string;
+    queryId?: string;
     responseDestination?: string;
     customPayload?: Base64String;
     forwardAmount?: string;

@@ -77,7 +77,7 @@ async function resolveJettonItem(
     const payload = beginCell()
         .store(
             storeJettonTransferMessage({
-                queryId: 0n,
+                queryId: item.queryId ? BigInt(item.queryId) : 0n,
                 amount: BigInt(item.amount),
                 destination: Address.parse(item.destination),
                 responseDestination: item.responseDestination
@@ -105,7 +105,7 @@ function resolveNftItem(item: StructuredItem & { type: 'nft' }, wallet: Wallet):
     const payload = beginCell()
         .store(
             storeNftTransferMessage({
-                queryId: 0n,
+                queryId: item.queryId ? BigInt(item.queryId) : 0n,
                 newOwner: Address.parse(item.newOwner),
                 responseDestination: item.responseDestination
                     ? Address.parse(item.responseDestination)
