@@ -74,7 +74,6 @@ export type { TONTransferRequest } from './tons/TONTransferRequest';
 
 // Swap models
 export type { SwapToken } from './swaps/SwapToken';
-export type { SwapFee } from './swaps/SwapFee';
 export type { SwapProviderMetadata, SwapProviderMetadataOverride } from './swaps/SwapProviderMetadata';
 export type { SwapQuote } from './swaps/SwapQuote';
 export type { SwapQuoteParams } from './swaps/SwapQuoteParams';

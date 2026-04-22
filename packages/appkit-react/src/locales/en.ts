@@ -56,6 +56,12 @@ export default {
         slippageError: 'The maximum slippage tolerance cannot be more than 50%. The recommended range is 1%',
         slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
         provider: 'Provider',
+        minReceived: 'Min Received',
+        lowBalanceTitle: 'Not enough TON',
+        lowBalanceMessage:
+            'This swap requires ~{{ amount }} TON which exceeds your TON balance. Reduce the amount to continue.',
+        lowBalanceChange: 'Change amount',
+        lowBalanceCancel: 'Cancel',
     },
 
     // Staking

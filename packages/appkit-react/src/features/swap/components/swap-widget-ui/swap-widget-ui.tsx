@@ -17,9 +17,9 @@ import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
 import { SwapSettingsButton } from '../swap-settings-button';
 import { SwapSettingsModal } from '../swap-settings-modal';
+import { SwapLowBalanceModal } from '../swap-low-balance-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import styles from './swap-widget-ui.module.css';
-import { getInfoFromQuote } from '../../utils/get-info-from-quote';
 import type { SwapContextType } from '../swap-widget-provider';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
@@ -47,6 +47,10 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     setSlippage,
     sendSwapTransaction,
     isSendingTransaction,
+    isLowBalanceWarningOpen,
+    pendingSwapRequiredTon,
+    changePendingSwap,
+    cancelPendingSwap,
     className,
     ...props
 }) => {
@@ -65,7 +69,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     }, [onFlip]);
 
     const provider = useSwapProvider({ id: quote?.providerId });
-    const infoRows = getInfoFromQuote({ quote, slippage, provider, toToken });
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
@@ -118,7 +121,12 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onSlippageChange={setSlippage}
             />
 
-            {fromAmount && <SwapInfo rows={infoRows} isLoading={isQuoteLoading || !quote || infoRows.length === 0} />}
+            <SwapLowBalanceModal
+                open={isLowBalanceWarningOpen}
+                requiredTon={pendingSwapRequiredTon}
+                onChange={changePendingSwap}
+                onCancel={cancelPendingSwap}
+            />
 
             <ButtonWithConnect
                 className={styles.swapButton}
@@ -130,6 +138,14 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
             >
                 {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
             </ButtonWithConnect>
+
+            <SwapInfo
+                quote={quote}
+                provider={provider}
+                toToken={toToken}
+                slippage={slippage}
+                isQuoteLoading={isQuoteLoading}
+            />
         </div>
     );
 };

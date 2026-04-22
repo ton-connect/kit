@@ -1,5 +1,10 @@
 .container {
-  composes: block from "../../../../components/block/block.module.css";
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: var(--ta-border-radius-xl);
+  background-color: var(--ta-color-background-secondary);
 
   width: 100%;
   border: var(--ta-border-width-m) solid transparent;

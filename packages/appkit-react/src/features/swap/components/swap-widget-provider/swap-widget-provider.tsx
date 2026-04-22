@@ -8,12 +8,14 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
+import { formatUnits, parseUnits } from '@ton/appkit';
 import type { Network } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction';
 import { useAddress } from '../../../wallets';
+import { useBalance } from '../../../balances/hooks/use-balance';
 import { useNetwork } from '../../../network';
 import { useSendTransaction } from '../../../transaction/hooks/use-send-transaction';
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
@@ -22,6 +24,11 @@ import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
 import { useSwapValidation } from './use-swap-validation';
+
+/** Reserve (in TON) subtracted from balance on MAX click for native TON swaps. */
+const TON_FEE_RESERVE = 0.3;
+/** Extra TON buffer added on top of built transaction outflow when checking balance before sending. */
+const TON_GAS_BUFFER_NANOS = 100_000_000n;
 
 export type { AppkitUIToken };
 
@@ -72,8 +79,16 @@ export interface SwapContextType {
     onMaxClick: () => void;
     /** Executes the swap transaction */
     sendSwapTransaction: () => Promise<void>;
-    /** True while a transaction is being sent or processed */
+    /** True while a transaction is being built or sent */
     isSendingTransaction: boolean;
+    /** True when the built transaction outflow exceeds the user's TON balance */
+    isLowBalanceWarningOpen: boolean;
+    /** Required TON amount for the pending swap, formatted as a decimal string. Empty when no pending swap. */
+    pendingSwapRequiredTon: string;
+    /** Replace fromAmount with a value that fits into the current TON balance and close the warning */
+    changePendingSwap: () => void;
+    /** Dismiss the low-balance warning without changing the amount */
+    cancelPendingSwap: () => void;
 }
 
 export const SwapContext = createContext<SwapContextType>({
@@ -98,6 +113,10 @@ export const SwapContext = createContext<SwapContextType>({
     onMaxClick: () => {},
     sendSwapTransaction: () => Promise.resolve(),
     isSendingTransaction: false,
+    isLowBalanceWarningOpen: false,
+    pendingSwapRequiredTon: '',
+    changePendingSwap: () => {},
+    cancelPendingSwap: () => {},
 });
 
 /**
@@ -191,23 +210,64 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         toToken,
         ownerAddress: address ?? undefined,
     });
+    const { data: tonBalance } = useBalance();
 
     const handleMaxClick = useCallback(() => {
-        if (fromBalance) {
-            setFromAmount(fromBalance.replace(/\s/g, ''));
+        if (!fromBalance || !fromToken) return;
+        const clean = fromBalance.replace(/\s/g, '');
+        if (fromToken.address === 'ton') {
+            const balanceNanos = parseUnits(clean, fromToken.decimals);
+            const reserveNanos = parseUnits(TON_FEE_RESERVE.toString(), fromToken.decimals);
+            const reducedNanos = balanceNanos > reserveNanos ? balanceNanos - reserveNanos : 0n;
+            setFromAmount(formatUnits(reducedNanos, fromToken.decimals));
+            return;
         }
-    }, [fromBalance, setFromAmount]);
+        setFromAmount(clean);
+    }, [fromBalance, fromToken, setFromAmount]);
 
-    const { mutateAsync: buildTransaction } = useBuildSwapTransaction();
-    const { mutateAsync: sendTransaction, isPending: isSendingTransaction } = useSendTransaction();
+    const { mutateAsync: buildTransaction, isPending: isBuildingTransaction } = useBuildSwapTransaction();
+    const { mutateAsync: sendTransaction, isPending: isSendingPending } = useSendTransaction();
+
+    const [pendingSwap, setPendingSwap] = useState<{
+        requiredNanos: bigint;
+        suggestedFromAmount: string;
+    } | null>(null);
 
     const sendSwapTransaction = useCallback(async () => {
-        if (!quote || !address) return;
+        if (!quote || !address || !fromToken) return;
 
-        const transactionParams = await buildTransaction({ quote, userAddress: address });
+        const tx = await buildTransaction({ quote, userAddress: address });
 
-        await sendTransaction(transactionParams);
-    }, [quote, address, buildTransaction, sendTransaction]);
+        const totalOutNanos = tx.messages.reduce((acc, m) => acc + BigInt(m.amount), 0n);
+        const requiredNanos = totalOutNanos + TON_GAS_BUFFER_NANOS;
+        const tonBalanceNanos = tonBalance ? parseUnits(tonBalance, 9) : 0n;
+
+        if (tonBalanceNanos < requiredNanos) {
+            const diff = totalOutNanos - parseUnits(fromAmount, 9) + parseUnits('0.02', 9);
+            const suggestedFromAmount = formatUnits(tonBalanceNanos - diff - TON_GAS_BUFFER_NANOS, 9);
+            setPendingSwap({ requiredNanos, suggestedFromAmount });
+            return;
+        }
+
+        await sendTransaction(tx);
+    }, [quote, address, fromToken, fromAmount, buildTransaction, sendTransaction, tonBalance]);
+
+    const changePendingSwap = useCallback(() => {
+        if (!pendingSwap) return;
+        setFromAmount(pendingSwap.suggestedFromAmount);
+        setPendingSwap(null);
+    }, [pendingSwap, setFromAmount]);
+
+    const cancelPendingSwap = useCallback(() => {
+        setPendingSwap(null);
+    }, []);
+
+    const isSendingTransaction = isBuildingTransaction || isSendingPending;
+    const isLowBalanceWarningOpen = pendingSwap !== null;
+    const pendingSwapRequiredTon = useMemo(() => {
+        if (!pendingSwap) return '';
+        return formatUnits(pendingSwap.requiredNanos, 9);
+    }, [pendingSwap]);
 
     const { error, canSubmit } = useSwapValidation({
         fromAmount,
@@ -241,6 +301,10 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             onMaxClick: handleMaxClick,
             sendSwapTransaction,
             isSendingTransaction,
+            isLowBalanceWarningOpen,
+            pendingSwapRequiredTon,
+            changePendingSwap,
+            cancelPendingSwap,
         }),
         [
             mappedTokens,
@@ -264,6 +328,10 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             handleMaxClick,
             sendSwapTransaction,
             isSendingTransaction,
+            isLowBalanceWarningOpen,
+            pendingSwapRequiredTon,
+            changePendingSwap,
+            cancelPendingSwap,
         ],
     );
 

@@ -48,7 +48,7 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new DeDustSwapProvider(), new OmnistonSwapProvider(), createTonstakersProvider({})],
+    providers: [new OmnistonSwapProvider(), new DeDustSwapProvider(), createTonstakersProvider({})],
 });
 
 // TODO: replace in normal config

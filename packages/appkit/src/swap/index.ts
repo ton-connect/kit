@@ -11,7 +11,6 @@ export type {
     TokenAmount,
     SwapParams,
     SwapAPI,
-    SwapFee,
     SwapQuote,
     SwapQuoteParams,
     DefiManagerAPI,

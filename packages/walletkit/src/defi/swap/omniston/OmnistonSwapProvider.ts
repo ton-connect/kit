@@ -12,7 +12,7 @@ import { Address } from '@ton/core';
 
 import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
-import type { SwapQuoteParams, SwapQuote, SwapParams, SwapFee, SwapProviderMetadata } from '../../../api/models';
+import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
@@ -294,8 +294,6 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             omnistonQuote: quote,
         };
 
-        const fee: SwapFee[] = [];
-
         // if (quote.protocolFeeAsset) {
         //     fee.push({
         //         amount: formatUnits(quote.protocolFeeUnits, 9),
@@ -326,7 +324,6 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
 
             network: params.network,
             expiresAt: quote.tradeStartDeadline ? quote.tradeStartDeadline : undefined,
-            fee: fee?.length ? fee : undefined,
         };
     }
 }

@@ -14,5 +14,5 @@ export function calcFiatValue(amount: string, rate: string | undefined): string 
     if (!rate) return '0';
     const num = parseFloat(amount);
     if (!num || num <= 0) return '0';
-    return Number((num * parseFloat(rate)).toFixed(2)).toString();
+    return Number((num * parseFloat(rate)).toFixed(10)).toString();
 }

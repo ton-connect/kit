@@ -6,7 +6,7 @@
  *
  */
 
-export const formatLargeValue = (amount: string, decimals: number = 2): string => {
+export const formatLargeValue = (amount: string, decimals: number = 2, minimumFractionDigits: number = 0): string => {
     const cleanAmount = amount.toString().replace(/\s/g, '');
     const intPart = cleanAmount.split('.')[0] || '0';
 
@@ -37,7 +37,7 @@ export const formatLargeValue = (amount: string, decimals: number = 2): string =
     const truncated = Math.floor(value * factor) / factor;
 
     return truncated.toLocaleString('en-US', {
-        minimumFractionDigits: 0,
+        minimumFractionDigits,
         maximumFractionDigits: decimals,
     });
 };

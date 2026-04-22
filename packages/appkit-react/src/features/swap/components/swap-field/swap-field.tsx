@@ -78,7 +78,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                 <div className={styles.balanceLine}>
                     <span>
                         {token?.rate &&
-                            `${fiatSymbol} ${formatLargeValue(calcFiatValue(amount || '0', token.rate), 2)}`}
+                            `${fiatSymbol} ${formatLargeValue(calcFiatValue(amount || '0', token.rate), 2, 2)}`}
                     </span>
                     {type === 'pay' && (
                         <span className={styles.balanceWrapper}>

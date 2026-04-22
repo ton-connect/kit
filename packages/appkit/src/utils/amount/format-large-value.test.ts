@@ -41,4 +41,10 @@ describe('formatLargeValue', () => {
         expect(formatLargeValue('1234.5678', 4)).toBe('1,234.5678');
         expect(formatLargeValue('1234.5678', 2)).toBe('1,234.56');
     });
+
+    it('should round down (floor) fractional values', () => {
+        expect(formatLargeValue('2.996848', 2)).toBe('2.99');
+        expect(formatLargeValue('2.996848', 6)).toBe('2.996848');
+        expect(formatLargeValue('0.9999', 2)).toBe('0.99');
+    });
 });
