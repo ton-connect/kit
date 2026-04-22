@@ -697,11 +697,31 @@ return (
 
 ### `useSwapProvider`
 
-Hook to get a specific swap provider. Returns the provider instance directly or `null` if not found.
+Hook to read and change the currently selected swap provider. Returns a tuple `[provider, setProviderId]` — mirrors `useSelectedWallet`.
 
 ```tsx
-const provider = useSwapProvider({ id: 'stonfi' });
-return <div>Result: {provider ? provider.providerId : 'null'}</div>;
+const [provider, setProviderId] = useSwapProvider();
+return (
+    <div>
+        <div>Result: {provider ? provider.providerId : 'null'}</div>
+        <button onClick={() => setProviderId('stonfi')}>Use STON.fi</button>
+    </div>
+);
+```
+
+### `useSwapProviders`
+
+Hook to get all registered swap providers. The returned array keeps a stable reference until the provider list changes, so it is safe to use with `useSyncExternalStore`.
+
+```tsx
+const providers = useSwapProviders();
+return (
+    <ul>
+        {providers.map((p) => (
+            <li key={p.providerId}>{p.getMetadata().name}</li>
+        ))}
+    </ul>
+);
 ```
 
 ## Staking

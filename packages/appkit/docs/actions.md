@@ -510,6 +510,26 @@ Get a specific swap provider by its ID.
 const swapProvider = getSwapProvider(appKit, { id: 'stonfi' });
 ```
 
+### `getSwapProviders`
+
+Get all registered swap providers. The returned array keeps a stable reference until the provider list changes.
+
+```ts
+const swapProviders = getSwapProviders(appKit);
+console.log(
+    'Registered providers:',
+    swapProviders.map((p) => p.providerId),
+);
+```
+
+### `setDefaultSwapProvider`
+
+Set the default swap provider. Subsequent quote and swap-transaction calls will use this provider when none is specified.
+
+```ts
+setDefaultSwapProvider(appKit, { providerId: 'stonfi' });
+```
+
 ### `watchSwapProviders`
 
 Watch for new swap providers registration.

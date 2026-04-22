@@ -29,6 +29,9 @@ export type UseBuildSwapTransactionReturnType<context = unknown> = UseMutationRe
     context
 >;
 
+/**
+ * Hook to build a swap transaction from a previously fetched quote.
+ */
 export const useBuildSwapTransaction = <context = unknown>(
     parameters?: UseBuildSwapTransactionParameters<context>,
 ): UseBuildSwapTransactionReturnType<context> => {

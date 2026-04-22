@@ -184,9 +184,15 @@ Hook to build a transaction for a swap operation based on a quote.
 
 ### `useSwapProvider`
 
-Hook to get a specific swap provider. Returns the provider instance directly or `null` if not found.
+Hook to read and change the currently selected swap provider. Returns a tuple `[provider, setProviderId]` — mirrors `useSelectedWallet`.
 
 %%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDER%%
+
+### `useSwapProviders`
+
+Hook to get all registered swap providers. The returned array keeps a stable reference until the provider list changes, so it is safe to use with `useSyncExternalStore`.
+
+%%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDERS%%
 
 ## Staking
 

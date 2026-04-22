@@ -23,6 +23,9 @@ export type UseSwapQuoteReturnType<selectData = GetSwapQuoteData> = UseQueryRetu
     GetSwapQuoteErrorType
 >;
 
+/**
+ * Hook to get a swap quote for the given token pair and amount.
+ */
 export const useSwapQuote = <selectData = GetSwapQuoteData>(
     parameters: UseSwapQuoteParameters<selectData> = {},
 ): UseSwapQuoteReturnType<selectData> => {

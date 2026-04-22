@@ -13,6 +13,7 @@ import * as AppKitReact from '@ton/appkit-react';
 import { UseSwapQuoteExample } from './use-swap-quote';
 import { UseBuildSwapTransactionExample } from './use-build-swap-transaction';
 import { UseSwapProviderExample } from './use-swap-provider';
+import { UseSwapProvidersExample } from './use-swap-providers';
 
 // Mock the whole module
 vi.mock('@ton/appkit-react', async () => {
@@ -23,6 +24,7 @@ vi.mock('@ton/appkit-react', async () => {
         useBuildSwapTransaction: vi.fn(),
         useSendTransaction: vi.fn(),
         useSwapProvider: vi.fn(),
+        useSwapProviders: vi.fn(),
     };
 });
 
@@ -82,6 +84,19 @@ describe('Swap Hooks Examples', () => {
 
             render(<UseSwapProviderExample />);
             expect(screen.getByText('Result: stonfi')).toBeDefined();
+        });
+    });
+
+    describe('UseSwapProvidersExample', () => {
+        it('should render the list of provider names', () => {
+            vi.mocked(AppKitReact.useSwapProviders).mockReturnValue([
+                { providerId: 'stonfi', getMetadata: () => ({ name: 'STON.fi' }) },
+                { providerId: 'dedust', getMetadata: () => ({ name: 'DeDust' }) },
+            ] as unknown as AppKitReact.UseSwapProvidersReturnType);
+
+            render(<UseSwapProvidersExample />);
+            expect(screen.getByText('STON.fi')).toBeDefined();
+            expect(screen.getByText('DeDust')).toBeDefined();
         });
     });
 
