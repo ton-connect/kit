@@ -194,14 +194,14 @@ export const CryptoOnrampWidgetProvider: FC<CryptoOnrampProviderProps> = ({
     const isNativeTonTarget = selectedToken?.address === NATIVE_TON_ADDRESS;
 
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
-        query: { enabled: isNativeTonTarget && !!userAddress },
+        query: { enabled: isNativeTonTarget && !!userAddress, refetchInterval: 5000 },
     });
 
     const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: !isNativeTonTarget ? selectedToken?.address : undefined,
         ownerAddress: userAddress ?? undefined,
         jettonDecimals: selectedToken?.decimals,
-        query: { enabled: !isNativeTonTarget && !!selectedToken?.address && !!userAddress },
+        query: { enabled: !isNativeTonTarget && !!selectedToken?.address && !!userAddress, refetchInterval: 5000 },
     });
 
     const targetBalance = (isNativeTonTarget ? nativeBalanceData : jettonBalanceData) ?? '';
