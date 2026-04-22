@@ -1,4 +1,12 @@
 /**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/**
  * Integration tests for generate-json-schema.js.
  *
  * Runs the generator once against a fixture file that exercises every distinct
@@ -23,8 +31,9 @@
 
 import { execFileSync } from 'child_process';
 import { readFileSync, unlinkSync } from 'fs';
-import { join } from 'path';
 import { tmpdir } from 'os';
+import { join } from 'path';
+
 import { beforeAll, describe, expect, it } from 'vitest';
 
 const GENERATOR = join(__dirname, 'generate-json-schema.js');
@@ -153,9 +162,7 @@ describe('@discriminator interface union — full variant (2+ remaining fields)'
     it('removes the discriminator field from the member type and adds x-constant-fields', () => {
         const memberProps = defs.InfoNotification?.properties as Record<string, SchemaDef> | undefined;
         expect(memberProps).not.toHaveProperty('type');
-        expect(defs.InfoNotification?.['x-constant-fields']).toEqual([
-            { name: 'type', value: 'info', type: 'String' },
-        ]);
+        expect(defs.InfoNotification?.['x-constant-fields']).toEqual([{ name: 'type', value: 'info', type: 'String' }]);
     });
 });
 
@@ -275,9 +282,7 @@ describe('standalone literal property (postProcessConstantFields)', () => {
     });
 
     it('adds the literal to x-constant-fields with its string value', () => {
-        expect(defs.Versioned?.['x-constant-fields']).toEqual([
-            { name: 'version', value: 'v2', type: 'String' },
-        ]);
+        expect(defs.Versioned?.['x-constant-fields']).toEqual([{ name: 'version', value: 'v2', type: 'String' }]);
     });
 
     it('leaves non-literal properties untouched', () => {
@@ -323,7 +328,9 @@ describe('ALLCAPS enum member names', () => {
 
 describe('multiple standalone literal properties (postProcessConstantFields)', () => {
     it('collects all literal properties into x-constant-fields', () => {
-        const fields = defs.Wire?.['x-constant-fields'] as Array<{ name: string; value: string; type: string }> | undefined;
+        const fields = defs.Wire?.['x-constant-fields'] as
+            | Array<{ name: string; value: string; type: string }>
+            | undefined;
         expect(fields).toHaveLength(2);
         expect(fields).toContainEqual({ name: 'magic', value: '0xff', type: 'String' });
         expect(fields).toContainEqual({ name: 'version', value: '2', type: 'String' });
@@ -379,8 +386,8 @@ describe('discriminator rawValue with underscores → camelCase case name', () =
     });
 });
 
-// 
-// 14. Op─────────────────────────────────────────────────────────────────────────────tional single-field variant
+// ─────────────────────────────────────────────────────────────────────────────
+// 14. Optional single-field variant
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('@discriminator interface union — optional single-field variant', () => {

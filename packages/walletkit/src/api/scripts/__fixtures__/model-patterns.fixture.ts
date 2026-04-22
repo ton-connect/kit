@@ -1,4 +1,12 @@
 /**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/**
  * Fixture covering every distinct TypeScript→JSON Schema pattern handled by generate-json-schema.js.
  * Excluded from the normal TS build (*.fixture.ts in tsconfig exclude), but ts-json-schema-generator
  * processes it explicitly via the `path` option.
@@ -47,10 +55,7 @@ export type PingNotification = { type: 'ping' };
 //   int/str have a `value` property → hasAssociatedValue: true + synthetic ref types
 //   empty has no `value`            → hasAssociatedValue: false
 
-export type StackItem =
-    | { type: 'int'; value: number }
-    | { type: 'str'; value: string }
-    | { type: 'empty' };
+export type StackItem = { type: 'int'; value: number } | { type: 'str'; value: string } | { type: 'empty' };
 
 // ── 6. Generic interface → x-is-generic, x-generic-params, x-generic-type-ref ──
 
