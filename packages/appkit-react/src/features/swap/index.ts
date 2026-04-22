@@ -17,3 +17,4 @@ export * from './components/swap-settings-button';
 export * from './hooks/use-swap-quote';
 export * from './hooks/use-build-swap-transaction';
 export * from './hooks/use-swap-provider';
+export * from './hooks/use-swap-providers';

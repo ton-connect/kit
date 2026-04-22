@@ -6,13 +6,15 @@
  *
  */
 
+import type { StakingProviderInterface } from '@ton/walletkit';
+
 import type { AppKit } from '../../core/app-kit';
 
-export type GetStakingProvidersReturnType = string[];
+export type GetStakingProvidersReturnType = StakingProviderInterface[];
 
 /**
- * Get available staking provider IDs
+ * Get all registered staking providers.
  */
 export const getStakingProviders = (appKit: AppKit): GetStakingProvidersReturnType => {
-    return appKit.stakingManager.getRegisteredProviders();
+    return appKit.stakingManager.getProviders();
 };

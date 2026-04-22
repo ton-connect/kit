@@ -11,8 +11,11 @@ import type { FC, PropsWithChildren } from 'react';
 import { formatUnits } from '@ton/appkit';
 import type { Network } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
+import type { SwapProvider } from '@ton/appkit';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
+import { useSwapProvider } from '../../hooks/use-swap-provider';
+import { useSwapProviders } from '../../hooks/use-swap-providers';
 import { useBuildSwapTransaction } from '../../hooks/use-build-swap-transaction';
 import { useAddress } from '../../../wallets';
 import { useBalance } from '../../../balances/hooks/use-balance';
@@ -63,6 +66,12 @@ export interface SwapContextType {
     error: SwapWidgetError;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
+    /** Currently selected swap provider (defaults to the first registered one) */
+    swapProvider: SwapProvider | undefined;
+    /** All registered swap providers */
+    swapProviders: SwapProvider[];
+    /** Updates the selected swap provider */
+    setSwapProviderId: (providerId: string) => void;
     /** Updates the source token */
     setFromToken: (token: AppkitUIToken) => void;
     /** Updates the target token */
@@ -105,6 +114,9 @@ export const SwapContext = createContext<SwapContextType>({
     isQuoteLoading: false,
     error: null,
     slippage: 50,
+    swapProvider: undefined,
+    swapProviders: [],
+    setSwapProviderId: () => {},
     setFromToken: () => {},
     setToToken: () => {},
     setFromAmount: () => {},
@@ -172,6 +184,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const walletNetwork = useNetwork();
     const network = networkProp ?? walletNetwork;
     const address = useAddress();
+    const [swapProvider, setSwapProviderId] = useSwapProvider();
+    const swapProviders = useSwapProviders();
 
     // Stabilized query inputs — kept next to the query that consumes them.
     const fromTokenParam = useMemo(
@@ -204,6 +218,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         amount: fromAmountDebounced,
         network,
         slippageBps: slippage,
+        providerId: swapProvider?.providerId,
     });
     const { fromBalance, toBalance } = useSwapBalances({
         fromToken,
@@ -285,6 +300,9 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isQuoteLoading,
             error,
             slippage,
+            swapProvider,
+            swapProviders,
+            setSwapProviderId,
             setFromToken,
             setToToken,
             setFromAmount,
@@ -313,6 +331,9 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             isQuoteLoading,
             error,
             slippage,
+            swapProvider,
+            swapProviders,
+            setSwapProviderId,
             setFromToken,
             setToToken,
             setFromAmount,

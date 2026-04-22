@@ -10,7 +10,12 @@ import { useSwapProvider } from '@ton/appkit-react';
 
 export const UseSwapProviderExample = () => {
     // SAMPLE_START: USE_SWAP_PROVIDER
-    const provider = useSwapProvider({ id: 'stonfi' });
-    return <div>Result: {provider ? provider.providerId : 'null'}</div>;
+    const [provider, setProviderId] = useSwapProvider();
+    return (
+        <div>
+            <div>Result: {provider ? provider.providerId : 'null'}</div>
+            <button onClick={() => setProviderId('stonfi')}>Use STON.fi</button>
+        </div>
+    );
     // SAMPLE_END: USE_SWAP_PROVIDER
 };

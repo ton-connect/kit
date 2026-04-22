@@ -9,7 +9,7 @@
 import { formatUnits, parseUnits } from '@ton/appkit';
 
 /** Reserve (in TON) subtracted from balance on MAX click for native TON swaps. */
-export const TON_FEE_RESERVE = 0.3;
+const TON_FEE_RESERVE = 0.35;
 
 /**
  * Compute the value to place into fromAmount when the user clicks MAX.

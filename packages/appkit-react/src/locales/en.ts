@@ -51,11 +51,12 @@ export default {
         quoteError: 'Unable to get a quote',
         selectToken: 'Select Token',
         searchToken: 'Search...',
-        settings: 'Settings',
+        settings: 'Swap settings',
         slippage: 'Slippage',
         slippageError: 'The maximum slippage tolerance cannot be more than 50%. The recommended range is 1%',
         slippageWarning: 'High slippage tolerance increases the risk of an unfavorable trade',
         provider: 'Provider',
+        save: 'Save',
         minReceived: 'Min Received',
         lowBalanceTitle: 'Not enough TON',
         lowBalanceMessageReduce:

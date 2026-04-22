@@ -21,7 +21,6 @@ import { SwapLowBalanceModal } from '../swap-low-balance-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
 import styles from './swap-widget-ui.module.css';
 import type { SwapContextType } from '../swap-widget-provider';
-import { useSwapProvider } from '../../hooks/use-swap-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 
 export type SwapWidgetRenderProps = SwapContextType & ComponentProps<'div'>;
@@ -40,6 +39,9 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     isQuoteLoading,
     error,
     slippage,
+    swapProvider,
+    swapProviders,
+    setSwapProviderId,
     onFlip,
     onMaxClick,
     setFromAmount,
@@ -69,8 +71,6 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
         setIsFlipped((prev) => !prev);
         onFlip();
     }, [onFlip]);
-
-    const provider = useSwapProvider({ id: quote?.providerId });
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
@@ -123,6 +123,9 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onClose={() => setIsSettingsOpen(false)}
                 slippage={slippage}
                 onSlippageChange={setSlippage}
+                provider={swapProvider}
+                providers={swapProviders}
+                onProviderChange={setSwapProviderId}
             />
 
             <SwapLowBalanceModal
@@ -146,7 +149,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
             <SwapInfo
                 quote={quote}
-                provider={provider}
+                provider={swapProvider}
                 toToken={toToken}
                 slippage={slippage}
                 isQuoteLoading={isQuoteLoading}

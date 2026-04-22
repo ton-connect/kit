@@ -7,19 +7,19 @@
  */
 
 import { useSyncExternalStore, useCallback } from 'react';
-import { getSwapProvider, watchSwapProviders } from '@ton/appkit';
-import type { GetSwapProviderOptions, GetSwapProviderReturnType } from '@ton/appkit';
+import { getSwapProvider, setDefaultSwapProvider, watchSwapProviders } from '@ton/appkit';
+import type { GetSwapProviderReturnType } from '@ton/appkit';
 
 import { useAppKit } from '../../settings/hooks/use-app-kit';
 
-export type UseSwapProviderReturnType = GetSwapProviderReturnType;
+export type UseSwapProviderReturnType = readonly [GetSwapProviderReturnType | undefined, (providerId: string) => void];
 
 /**
- * Hook to get swap provider
+ * Hook to get and set the currently selected swap provider.
+ * Mirrors the tuple shape of `useSelectedWallet`.
  */
-export const useSwapProvider = (options: GetSwapProviderOptions = {}): UseSwapProviderReturnType | undefined => {
+export const useSwapProvider = (): UseSwapProviderReturnType => {
     const appKit = useAppKit();
-    const { id } = options;
 
     const subscribe = useCallback(
         (onChange: () => void) => {
@@ -30,11 +30,20 @@ export const useSwapProvider = (options: GetSwapProviderOptions = {}): UseSwapPr
 
     const getSnapshot = useCallback(() => {
         try {
-            return getSwapProvider(appKit, { id });
+            return getSwapProvider(appKit);
         } catch {
             return undefined;
         }
-    }, [appKit, id]);
+    }, [appKit]);
 
-    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    const provider = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+    const setProviderId = useCallback(
+        (providerId: string) => {
+            setDefaultSwapProvider(appKit, { providerId });
+        },
+        [appKit],
+    );
+
+    return [provider, setProviderId] as const;
 };

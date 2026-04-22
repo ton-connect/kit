@@ -75,9 +75,10 @@ describe('Swap Hooks Examples', () => {
 
     describe('UseSwapProviderExample', () => {
         it('should render swap provider', () => {
-            vi.mocked(AppKitReact.useSwapProvider).mockReturnValue({
-                providerId: 'stonfi',
-            } as unknown as AppKitReact.UseSwapProviderReturnType);
+            vi.mocked(AppKitReact.useSwapProvider).mockReturnValue([
+                { providerId: 'stonfi' } as unknown as AppKitReact.UseSwapProviderReturnType[0],
+                () => {},
+            ]);
 
             render(<UseSwapProviderExample />);
             expect(screen.getByText('Result: stonfi')).toBeDefined();
