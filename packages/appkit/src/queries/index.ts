@@ -9,10 +9,12 @@
 // Balances
 export {
     getBalanceByAddressQueryOptions,
+    getBalanceByAddressQueryKey,
     handleBalanceUpdate,
     type GetBalanceByAddressData,
     type GetBalanceErrorType,
     type GetBalanceByAddressQueryConfig,
+    type GetBalanceByAddressQueryKey,
 } from './balances/get-balance-by-address';
 
 // Connectors
@@ -86,10 +88,12 @@ export {
 } from './jettons/get-jetton-balance-by-address';
 export {
     getJettonsByAddressQueryOptions,
+    getJettonsByAddressQueryKey,
     handleJettonsUpdate,
     type GetJettonsByAddressData,
     type GetJettonsErrorType,
     type GetJettonsByAddressQueryConfig,
+    type GetJettonsByAddressQueryKey,
 } from './jettons/get-jettons-by-address';
 export {
     transferJettonMutationOptions,

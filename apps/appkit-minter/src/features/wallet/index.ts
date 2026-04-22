@@ -6,4 +6,4 @@
  *
  */
 
-export { WalletInfo } from './components/wallet-info';
+export { WalletSelector } from './components/wallet-selector';

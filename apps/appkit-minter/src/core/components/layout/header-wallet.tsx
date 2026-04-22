@@ -35,37 +35,38 @@ export const HeaderWallet = () => {
         disconnect({ connectorId });
     }, [connectorId, disconnect]);
 
-    if (!wallet) {
-        return <TonConnectButton className="ml-auto" />;
-    }
-
     return (
-        <div className="ml-auto flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-2 py-1">
-            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Wallet className="size-3 text-primary" />
-            </div>
-            <span className="font-mono text-xs text-foreground" title={address}>
-                {truncateAddress(address)}
-            </span>
-            <button
-                type="button"
-                onClick={handleCopy}
-                title="Copy address"
-                aria-label="Copy address"
-                className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-            >
-                {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
-            </button>
-            <button
-                type="button"
-                onClick={handleDisconnect}
-                disabled={isDisconnecting}
-                title="Disconnect"
-                aria-label="Disconnect"
-                className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground disabled:opacity-50"
-            >
-                <LogOut className="size-3.5" />
-            </button>
+        <div className="ml-auto flex items-center gap-2">
+            {wallet && (
+                <div className="flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-2 py-1">
+                    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Wallet className="size-3 text-primary" />
+                    </div>
+                    <span className="font-mono text-xs text-foreground" title={address}>
+                        {truncateAddress(address)}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={handleCopy}
+                        title="Copy address"
+                        aria-label="Copy address"
+                        className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+                    >
+                        {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleDisconnect}
+                        disabled={isDisconnecting}
+                        title="Disconnect"
+                        aria-label="Disconnect"
+                        className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground disabled:opacity-50"
+                    >
+                        <LogOut className="size-3.5" />
+                    </button>
+                </div>
+            )}
+            <TonConnectButton />
         </div>
     );
 };

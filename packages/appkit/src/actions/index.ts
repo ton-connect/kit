@@ -88,6 +88,11 @@ export {
     type CreateTransferJettonTransactionReturnType,
 } from './jettons/create-transfer-jetton-transaction';
 export {
+    createTransferJettonTransactionForWallet,
+    type CreateTransferJettonTransactionForWalletParameters,
+    type CreateTransferJettonTransactionForWalletReturnType,
+} from './jettons/create-transfer-jetton-transaction-for-wallet';
+export {
     transferJetton,
     type TransferJettonParameters,
     type TransferJettonReturnType,
@@ -259,6 +264,11 @@ export {
     type CreateTransferTonTransactionParameters,
     type CreateTransferTonTransactionReturnType,
 } from './transaction/create-transfer-ton-transaction';
+export {
+    createTransferTonTransactionForWallet,
+    type CreateTransferTonTransactionForWalletParameters,
+    type CreateTransferTonTransactionForWalletReturnType,
+} from './transaction/create-transfer-ton-transaction-for-wallet';
 
 // Wallets
 export { getConnectedWallets, type GetConnectedWalletsReturnType } from './wallets/get-connected-wallets';

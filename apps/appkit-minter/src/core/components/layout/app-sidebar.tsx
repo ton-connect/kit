@@ -25,7 +25,7 @@ import {
     useSidebar,
 } from '@/core/components/sidebar';
 import { NetworkPicker } from '@/features/network';
-import { WalletInfo } from '@/features/wallet';
+import { WalletSelector } from '@/features/wallet';
 
 const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { to: '/', label: 'Mint', icon: Sparkles },
@@ -97,7 +97,7 @@ export const AppSidebar: React.FC = () => {
                 <div className="group-data-[collapsible=icon]:hidden">
                     <NetworkPicker />
                 </div>
-                <WalletInfo />
+                <WalletSelector />
             </SidebarFooter>
         </Sidebar>
     );
