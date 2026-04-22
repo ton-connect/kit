@@ -16,12 +16,11 @@ import {
     storeNftTransferMessage,
     DEFAULT_JETTON_GAS_FEE,
     DEFAULT_NFT_GAS_FEE,
+    DEFAULT_FORWARD_AMOUNT,
 } from './messageBuilders';
 import { globalLogger } from '../core/Logger';
 
 const log = globalLogger.createChild('ItemsResolver');
-
-const DEFAULT_FORWARD_AMOUNT = 1n;
 
 /**
  * Resolve structured items (ton/jetton/nft) into raw TransactionRequestMessages.
