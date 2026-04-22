@@ -23,6 +23,13 @@ export default defineConfig({
     server: {
         allowedHosts: ['localhost', '127.0.0.1', 'local.dev'],
     },
+    build: {
+        rollupOptions: {
+            output: {
+                inlineDynamicImports: true,
+            },
+        },
+    },
     resolve: {
         dedupe: ['react', 'react-dom'],
         alias: {
