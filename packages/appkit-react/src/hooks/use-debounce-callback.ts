@@ -25,11 +25,11 @@ export type DebouncedState<T extends (...args: any[]) => ReturnType<T>> = ((
     ControlFunctions;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useDebounceCallback<T extends (...args: any[]) => ReturnType<T>>(
+export const useDebounceCallback = <T extends (...args: any[]) => ReturnType<T>>(
     func: T,
     delay = 500,
     options?: DebounceOptions,
-): DebouncedState<T> {
+): DebouncedState<T> => {
     const debouncedFunc = useRef<ReturnType<typeof debounce> | null>(null);
 
     useUnmount(() => {
@@ -66,4 +66,4 @@ export function useDebounceCallback<T extends (...args: any[]) => ReturnType<T>>
     }, [func, delay, options]);
 
     return debounced;
-}
+};

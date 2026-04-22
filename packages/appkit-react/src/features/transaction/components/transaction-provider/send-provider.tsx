@@ -33,11 +33,11 @@ export const SendContext = createContext<SendContextType>({
     isLoading: false,
 });
 
-export function useSendContext() {
+export const useSendContext = () => {
     const context = useContext(SendContext);
 
     return context;
-}
+};
 
 export interface SendProviderProps extends PropsWithChildren {
     /** The transaction request parameters */

@@ -113,9 +113,9 @@ const defaultContext: OnrampContextType = {
 
 export const OnrampContext = createContext<OnrampContextType>(defaultContext);
 
-export function useOnrampContext() {
+export const useOnrampContext = () => {
     return useContext(OnrampContext);
-}
+};
 
 export interface OnrampProviderProps extends PropsWithChildren {
     /** Full list of tokens available for purchase */

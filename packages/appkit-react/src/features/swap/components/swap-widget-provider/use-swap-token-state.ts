@@ -17,7 +17,7 @@ interface UseSwapTokenStateOptions {
     defaultToId?: string;
 }
 
-export function useSwapTokenState({ mappedTokens, defaultFromId, defaultToId }: UseSwapTokenStateOptions) {
+export const useSwapTokenState = ({ mappedTokens, defaultFromId, defaultToId }: UseSwapTokenStateOptions) => {
     const [fromToken, setFromToken] = useState<AppkitUIToken | null>(
         mappedTokens.find((t) => t.id === defaultFromId) ?? mappedTokens[0] ?? null,
     );
@@ -73,4 +73,4 @@ export function useSwapTokenState({ mappedTokens, defaultFromId, defaultToId }: 
         setFromAmount,
         onFlip,
     };
-}
+};

@@ -8,7 +8,7 @@
 
 import { Address } from '@ton/core';
 
-export function toBounceableAddress(data?: Address | string | null): string | undefined {
+export const toBounceableAddress = (data?: Address | string | null): string | undefined => {
     if (data instanceof Address) {
         return data.toString();
     }
@@ -18,9 +18,9 @@ export function toBounceableAddress(data?: Address | string | null): string | un
     } catch {
         //
     }
-}
+};
 
-export function toNonBounceableAddress(data?: Address | string | null): string | undefined {
+export const toNonBounceableAddress = (data?: Address | string | null): string | undefined => {
     if (data instanceof Address) {
         return data.toString({ bounceable: false });
     }
@@ -30,4 +30,4 @@ export function toNonBounceableAddress(data?: Address | string | null): string |
     } catch {
         //
     }
-}
+};

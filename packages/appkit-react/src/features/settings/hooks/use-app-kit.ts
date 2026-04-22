@@ -10,7 +10,7 @@ import { useContext } from 'react';
 
 import { AppKitContext } from '../../../providers/app-kit-provider';
 
-export function useAppKit() {
+export const useAppKit = () => {
     const context = useContext(AppKitContext);
 
     if (!context) {
@@ -18,4 +18,4 @@ export function useAppKit() {
     }
 
     return context;
-}
+};

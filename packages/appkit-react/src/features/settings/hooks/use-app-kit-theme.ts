@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 export type AppKitTheme = 'light' | 'dark' | string;
 
-export function useAppKitTheme() {
+export const useAppKitTheme = () => {
     const [theme, setTheme] = useState<AppKitTheme>('light');
 
     useEffect(() => {
@@ -19,4 +19,4 @@ export function useAppKitTheme() {
     }, [theme]);
 
     return [theme, setTheme] as const;
-}
+};

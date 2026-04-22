@@ -30,7 +30,7 @@ interface UseCryptoOnrampValidationResult {
     canSubmit: boolean;
 }
 
-function mapCryptoOnrampError(err: Error | null, t: ReturnType<typeof useI18n>['t']): string | null {
+const mapCryptoOnrampError = (err: Error | null, t: ReturnType<typeof useI18n>['t']): string | null => {
     if (!err) return null;
 
     if (err instanceof CryptoOnrampError) {
@@ -62,7 +62,7 @@ function mapCryptoOnrampError(err: Error | null, t: ReturnType<typeof useI18n>['
     }
 
     return t('cryptoOnramp.genericError');
-}
+};
 
 export const useCryptoOnrampValidation = ({
     amount,

@@ -108,9 +108,9 @@ export const SwapContext = createContext<SwapContextType>({
  * Hook to access the swap context.
  * Must be used within a SwapWidgetProvider (or SwapWidget).
  */
-export function useSwapContext() {
+export const useSwapContext = () => {
     return useContext(SwapContext);
-}
+};
 
 /**
  * Props for the SwapWidgetProvider.

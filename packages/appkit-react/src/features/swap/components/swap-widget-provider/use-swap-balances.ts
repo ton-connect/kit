@@ -16,28 +16,28 @@ interface UseSwapBalancesOptions {
     ownerAddress: string | undefined;
 }
 
-export function useSwapBalances({ fromToken, toToken, ownerAddress }: UseSwapBalancesOptions) {
+export const useSwapBalances = ({ fromToken, toToken, ownerAddress }: UseSwapBalancesOptions) => {
     const isFromNative = fromToken?.address === 'ton';
     const isToNative = toToken?.address === 'ton';
 
-    const { data: tonBalance } = useBalance();
+    const { data: tonBalance } = useBalance({ query: { refetchInterval: 5000 } });
 
     const { data: fromJettonBalance } = useJettonBalanceByAddress({
         jettonAddress: fromToken?.address,
         ownerAddress,
         jettonDecimals: fromToken?.decimals,
-        query: { enabled: !isFromNative && !!fromToken },
+        query: { enabled: !isFromNative && !!fromToken, refetchInterval: 5000 },
     });
 
     const { data: toJettonBalance } = useJettonBalanceByAddress({
         jettonAddress: toToken?.address,
         ownerAddress,
         jettonDecimals: toToken?.decimals,
-        query: { enabled: !isToNative && !!toToken },
+        query: { enabled: !isToNative && !!toToken, refetchInterval: 5000 },
     });
 
     return {
         fromBalance: isFromNative ? tonBalance : fromJettonBalance,
         toBalance: isToNative ? tonBalance : toJettonBalance,
     };
-}
+};
