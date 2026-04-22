@@ -6,8 +6,8 @@
  *
  */
 
-export * from './components/onramp-widget';
-export * from './components/onramp-widget-provider';
+export * from './widgets/fiat-onramp/onramp-widget';
+export * from './widgets/crypto-onramp/crypto-onramp-widget';
 export * from './components/ton-pay-widget';
 
 export * from './hooks/use-onramp-quote';

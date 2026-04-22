@@ -149,14 +149,14 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const isNativeTon = providerMetadata?.stakeToken.address === 'ton';
 
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
-        query: { enabled: isNativeTon },
+        query: { enabled: isNativeTon, refetchInterval: 5000 },
     });
 
     const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: !isNativeTon ? providerMetadata?.stakeToken.address : undefined,
         ownerAddress: address ?? undefined,
         network,
-        query: { enabled: !isNativeTon && !!providerMetadata?.stakeToken.address && !!address },
+        query: { enabled: !isNativeTon && !!providerMetadata?.stakeToken.address && !!address, refetchInterval: 5000 },
     });
 
     const balance = isNativeTon ? nativeBalanceData : jettonBalanceData;

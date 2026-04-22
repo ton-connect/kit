@@ -20,14 +20,14 @@ interface UseSwapValidationOptions {
     quoteError: Error | null;
 }
 
-export function useSwapValidation({
+export const useSwapValidation = ({
     fromAmount,
     fromAmountDebounced,
     fromToken,
     toToken,
     fromBalance,
     quoteError,
-}: UseSwapValidationOptions) {
+}: UseSwapValidationOptions) => {
     const error: SwapWidgetError = useMemo(() => {
         const amount = parseFloat(fromAmount) || 0;
         if (amount <= 0) return null;
@@ -51,4 +51,4 @@ export function useSwapValidation({
     const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null && error === null;
 
     return { error, canSubmit };
-}
+};

@@ -1,0 +1,28 @@
+.widget {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 370px;
+    display: flex;
+    flex-direction: column;
+}
+
+.selectors {
+    margin-bottom: 24px;
+}
+
+.inputSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 28px 0;
+    margin-bottom: 24px;
+}
+
+.info {
+    margin-top: 16px;
+}
+
+.presets {
+    margin-bottom: 16px;
+}

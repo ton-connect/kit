@@ -57,13 +57,13 @@ export const Modal: FC<ModalProps> = ({ open, onOpenChange, title, children, cla
             <Dialog.Portal>
                 <Dialog.Overlay className={styles.overlay} onClick={() => onOpenChange?.(false)}>
                     <Dialog.Content className={clsx(styles.content, className)} onClick={(e) => e.stopPropagation()}>
-                        <div className={clsx(styles.header, bodyClassName)}>
+                        <div className={styles.header}>
                             {title && <Dialog.Title className={styles.title}>{title}</Dialog.Title>}
                             <Dialog.Close className={styles.close} aria-label="Close">
                                 <CloseIcon />
                             </Dialog.Close>
                         </div>
-                        <div className={styles.body}>{children}</div>
+                        <div className={clsx(styles.body, bodyClassName)}>{children}</div>
                     </Dialog.Content>
                 </Dialog.Overlay>
             </Dialog.Portal>

@@ -9,21 +9,21 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
 
-import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import type { TokenSectionConfig } from '../../../../components/token-select-modal';
+import type { AppkitUIToken } from '../../../../../types/appkit-ui-token';
+import type { TokenSectionConfig } from '../../../../../components/token-select-modal';
 import type {
     OnrampCurrency,
     OnrampProvider as OnrampWidgetProviderType,
     AmountInputMode,
     OnrampAmountPreset,
     CurrencySectionConfig,
-} from '../../types';
-import { ONRAMP_CURRENCIES } from '../../mock-data/currencies';
-import { ONRAMP_PROVIDERS as MOCK_PROVIDERS } from '../../mock-data/providers';
-import { useOnrampProviders } from '../../hooks/use-onramp-providers';
-import { useOnrampQuote } from '../../hooks/use-onramp-quote';
-import { useBuildOnrampUrl } from '../../hooks/use-build-onramp-url';
-import { useConnectedWallets } from '../../../../features/wallets/hooks/use-connected-wallets';
+} from '../../../types';
+import { ONRAMP_CURRENCIES } from '../../../mock-data/currencies';
+import { ONRAMP_PROVIDERS as MOCK_PROVIDERS } from '../../../mock-data/providers';
+import { useOnrampProviders } from '../../../hooks/use-onramp-providers';
+import { useOnrampQuote } from '../../../hooks/use-onramp-quote';
+import { useBuildOnrampUrl } from '../../../hooks/use-build-onramp-url';
+import { useConnectedWallets } from '../../../../wallets/hooks/use-connected-wallets';
 
 export type { AppkitUIToken };
 
@@ -113,9 +113,9 @@ const defaultContext: OnrampContextType = {
 
 export const OnrampContext = createContext<OnrampContextType>(defaultContext);
 
-export function useOnrampContext() {
+export const useOnrampContext = () => {
     return useContext(OnrampContext);
-}
+};
 
 export interface OnrampProviderProps extends PropsWithChildren {
     /** Full list of tokens available for purchase */

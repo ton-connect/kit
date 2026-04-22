@@ -39,6 +39,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     quote,
     isQuoteLoading,
     error,
+    fiatSymbol,
     slippage,
     onFlip,
     onMaxClick,
@@ -81,6 +82,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     type="pay"
                     token={fromToken ?? undefined}
                     amount={fromAmount}
+                    fiatSymbol={fiatSymbol}
                     onAmountChange={setFromAmount}
                     balance={fromBalance}
                     onMaxClick={onMaxClick}
@@ -96,6 +98,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                     type="receive"
                     token={toToken ?? undefined}
                     amount={toAmount}
+                    fiatSymbol={fiatSymbol}
                     balance={toBalance}
                     onTokenSelectorClick={() => setActiveField('to')}
                     loading={isQuoteLoading}

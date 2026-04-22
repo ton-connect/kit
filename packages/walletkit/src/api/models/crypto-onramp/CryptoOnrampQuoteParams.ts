@@ -1,0 +1,51 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+/**
+ * Parameters for requesting a crypto-to-crypto onramp quote.
+ *
+ * The target network is always TON, so only the source side is parameterised.
+ */
+export interface CryptoOnrampQuoteParams<TProviderOptions = unknown> {
+    /**
+     * Amount to onramp (either source or target crypto, depending on isSourceAmount)
+     */
+    amount: string;
+
+    /**
+     * Source crypto currency address (contract address or 0x0... for native)
+     */
+    sourceCurrencyAddress: string;
+
+    /**
+     * Source network identifier (e.g. 'solana', 'ethereum', 'bitcoin')
+     */
+    sourceNetwork: string;
+
+    /**
+     * Target crypto currency address on TON (contract address or 0x0... for native)
+     */
+    targetCurrencyAddress: string;
+
+    /**
+     * Refund address for the source crypto
+     */
+    refundAddress?: string;
+
+    /**
+     * If true, `amount` is the source amount to spend.
+     * If false, `amount` is the target amount to receive.
+     * Defaults to true when omitted.
+     */
+    isSourceAmount?: boolean;
+
+    /**
+     * Provider-specific options
+     */
+    providerOptions?: TProviderOptions;
+}

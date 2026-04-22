@@ -13,11 +13,14 @@ import styles from './token-selector.module.css';
 import { Button } from '../button';
 import type { ButtonProps } from '../button';
 import { Logo } from '../logo';
+import { LogoWithNetwork } from '../logo-with-network';
 
 export interface TokenSelectorProps extends ButtonProps {
     title: string;
     icon?: string;
     iconFallback?: string;
+    /** When provided, renders a network badge overlay on the icon */
+    networkIcon?: string;
     /** Hide chevron and suppress click handling — use when there's nothing to pick */
     readOnly?: boolean;
 }
@@ -26,6 +29,7 @@ export const TokenSelector: FC<TokenSelectorProps> = ({
     title,
     icon,
     iconFallback,
+    networkIcon,
     readOnly,
     onClick,
     className,
@@ -39,7 +43,17 @@ export const TokenSelector: FC<TokenSelectorProps> = ({
             onClick={readOnly ? undefined : onClick}
             {...props}
         >
-            <Logo size={24} src={icon} fallback={iconFallback || title[0]} alt={title} />
+            {networkIcon ? (
+                <LogoWithNetwork
+                    size={24}
+                    src={icon}
+                    fallback={iconFallback || title[0]}
+                    alt={title}
+                    networkSrc={networkIcon}
+                />
+            ) : (
+                <Logo size={24} src={icon} fallback={iconFallback || title[0]} alt={title} />
+            )}
 
             <span className={styles.symbol}>{title}</span>
 

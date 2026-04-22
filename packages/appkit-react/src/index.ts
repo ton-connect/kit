@@ -15,6 +15,7 @@ export * from './components/block';
 export * from './components/info-block';
 export * from './components/button';
 export * from './components/logo';
+export * from './components/logo-with-network';
 export * from './components/modal';
 export * from './components/skeleton';
 export * from './components/ton-icon';
@@ -37,5 +38,6 @@ export * from './features/swap';
 export * from './features/signing';
 export * from './features/staking';
 export * from './features/onramp';
+export * from './features/crypto-onramp';
 
 export * from './types/appkit-ui-token';

@@ -1,0 +1,16 @@
+.root {
+	position: relative;
+	display: inline-flex;
+}
+
+.networkBadge {
+	position: absolute;
+	bottom: -2px;
+	right: -2px;
+	border: var(--ta-border-width-m) solid var(--ta-color-background);
+	border-radius: var(--ta-border-radius-full);
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}

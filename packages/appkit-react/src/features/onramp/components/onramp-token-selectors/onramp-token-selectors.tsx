@@ -14,8 +14,8 @@ import { TokenSelector } from '../../../../components/token-selector';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 
 export interface OnrampTokenSelectorsProps extends ComponentProps<'div'> {
-    from: { title: string; logoSrc?: string };
-    to: { title: string; logoSrc?: string };
+    from: { title: string; logoSrc?: string; network?: string; networkLogoSrc?: string };
+    to: { title: string; logoSrc?: string; network?: string; networkLogoSrc?: string };
     onFromClick: () => void;
     onToClick: () => void;
 }
@@ -47,6 +47,7 @@ export const OnrampTokenSelectors: FC<OnrampTokenSelectorsProps> = ({
                 className={styles.tokenSelector}
                 title={t('onramp.forCurrency', { symbol: to.title })}
                 icon={to.logoSrc}
+                networkIcon={to.networkLogoSrc}
                 onClick={onToClick}
             />
         </div>

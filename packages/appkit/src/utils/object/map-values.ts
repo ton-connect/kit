@@ -6,10 +6,10 @@
  *
  */
 
-export function mapValues<T extends object, K extends keyof T, V>(
+export const mapValues = <T extends object, K extends keyof T, V>(
     object: T,
     getNewValue: (value: T[K], key: K, obj: T) => V,
-): Record<K, V> {
+): Record<K, V> => {
     const result = {} as Record<K, V>;
     const keys = Object.keys(object) as K[];
 
@@ -20,4 +20,4 @@ export function mapValues<T extends object, K extends keyof T, V>(
     }
 
     return result;
-}
+};

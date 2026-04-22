@@ -9,18 +9,18 @@
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 
-import { Button } from '../../../../components/button';
+import { Button } from '../../../../../components/button';
 import type { OnrampContextType } from '../onramp-widget-provider';
-import { OnrampTokenSelectors } from '../onramp-token-selectors';
-import { CenteredAmountInput } from '../../../../components/centered-amount-input';
-import { OnrampTokenSelectModal } from '../onramp-token-select-modal';
-import { OnrampCurrencySelectModal } from '../onramp-currency-select-modal';
-import { OnrampProviderSelect } from '../onramp-provider-select';
+import { OnrampTokenSelectors } from '../../../components/onramp-token-selectors';
+import { CenteredAmountInput } from '../../../../../components/centered-amount-input';
+import { AmountPresets } from '../../../../../components/amount-presets';
+import { OnrampTokenSelectModal } from '../../../components/onramp-token-select-modal';
+import { OnrampCurrencySelectModal } from '../../../components/onramp-currency-select-modal';
+import { OnrampProviderSelect } from '../../../components/onramp-provider-select';
 import styles from './onramp-widget-ui.module.css';
-import { OnrampAmountReversed } from '../onramp-amount-reversed';
-import type { OnrampProvider } from '../../types';
-import { useI18n } from '../../../settings/hooks/use-i18n';
-import { AmountPresets } from '../../../../components/amount-presets';
+import { OnrampAmountReversed } from '../../../components/onramp-amount-reversed';
+import type { OnrampProvider } from '../../../types';
+import { useI18n } from '../../../../settings/hooks/use-i18n';
 
 export type OnrampWidgetRenderProps = OnrampContextType;
 
@@ -80,22 +80,21 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
                 onToClick={() => setIsCurrencySelectOpen(true)}
             />
 
-            <CenteredAmountInput
-                className={styles.input}
-                value={amount}
-                onValueChange={setAmount}
-                ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
-                symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
-            />
-
-            <OnrampAmountReversed
-                className={styles.converted}
-                value={convertedAmount}
-                onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
-                ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
-                symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
-                errorMessage={error ? t(`onramp.${error}`) : undefined}
-            />
+            <div className={styles.inputSection}>
+                <CenteredAmountInput
+                    value={amount}
+                    onValueChange={setAmount}
+                    ticker={amountInputMode === 'token' ? selectedToken?.symbol : undefined}
+                    symbol={amountInputMode === 'token' ? undefined : selectedCurrency.symbol}
+                />
+                <OnrampAmountReversed
+                    className={styles.converted}
+                    value={convertedAmount}
+                    onChangeDirection={() => setAmountInputMode(amountInputMode === 'token' ? 'currency' : 'token')}
+                    ticker={amountInputMode === 'token' ? undefined : selectedToken?.symbol}
+                    symbol={amountInputMode === 'token' ? selectedCurrency.symbol : undefined}
+                />
+            </div>
 
             <AmountPresets
                 className={styles.presets}
@@ -107,12 +106,12 @@ export const OnrampWidgetUI: FC<OnrampWidgetRenderProps> = ({
             <Button
                 variant="fill"
                 size="l"
-                disabled={!canContinue}
+                disabled={!canContinue && !error}
                 loading={isLoading}
                 onClick={handleContinue}
                 fullWidth
             >
-                {t('onramp.continue')}
+                {error ? t(`onramp.${error}`) : t('onramp.continue')}
             </Button>
 
             <OnrampTokenSelectModal
