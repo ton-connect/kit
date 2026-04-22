@@ -15,7 +15,7 @@ import { Input } from '../../../../components/input/input';
 import { Skeleton } from '../../../../components/skeleton';
 import { TokenSelector } from '../token-selector/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import { useSwapContext } from '../swap-widget-provider/swap-widget-provider';
+import { getDisplayAmount } from '../../utils/get-display-amount';
 import styles from './swap-field.module.css';
 
 export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
@@ -28,6 +28,7 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
     isWalletConnected?: boolean;
+    fiatSymbol?: string;
 }
 
 export const SwapField: FC<SwapFieldProps> = ({
@@ -40,14 +41,14 @@ export const SwapField: FC<SwapFieldProps> = ({
     onMaxClick,
     onTokenSelectorClick,
     isWalletConnected,
+    fiatSymbol = '$',
     className,
     ...props
 }) => {
     const { t } = useI18n();
-    const { fiatSymbol } = useSwapContext();
 
     const tokenSymbol = token?.symbol || '';
-    const displayDecimals = token ? Math.min(token.decimals, 5) : 5;
+    const displayBalance = getDisplayAmount(balance, token?.decimals);
 
     return (
         <Input.Container
@@ -86,7 +87,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                                 <>
                                     {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
-                                        {formatLargeValue(balance || '0', displayDecimals)} {tokenSymbol}
+                                        {displayBalance} {tokenSymbol}
                                     </button>
                                 </>
                             ) : (
@@ -98,7 +99,7 @@ export const SwapField: FC<SwapFieldProps> = ({
                     {type === 'receive' && (
                         <span className={styles.balanceWrapper}>
                             {balance || !isWalletConnected ? (
-                                `${formatLargeValue(balance || '0', displayDecimals)} ${tokenSymbol}`
+                                `${displayBalance} ${tokenSymbol}`
                             ) : (
                                 <Skeleton className={styles.skeletonText} />
                             )}

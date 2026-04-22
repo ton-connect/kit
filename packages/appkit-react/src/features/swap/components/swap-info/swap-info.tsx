@@ -8,11 +8,11 @@
 
 import type { ComponentProps, FC } from 'react';
 import type { SwapQuote, SwapProvider } from '@ton/appkit';
-import { formatLargeValue } from '@ton/appkit';
 
 import { InfoBlock } from '../../../../components/info-block';
 import { useI18n } from '../../../settings/hooks/use-i18n';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
+import { getDisplayAmount } from '../../utils/get-display-amount';
 
 export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container> {
     toToken: AppkitUIToken | null;
@@ -25,7 +25,7 @@ export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container
 export const SwapInfo: FC<SwapInfoProps> = ({ quote, provider, toToken, slippage, isQuoteLoading, ...props }) => {
     const { t } = useI18n();
 
-    const minReceived = `${formatLargeValue(quote?.minReceived || '0', Math.min(toToken?.decimals || 6, 6))} ${toToken?.symbol}`;
+    const minReceived = `${getDisplayAmount(quote?.minReceived, toToken?.decimals)} ${toToken?.symbol}`;
     const providerName = provider?.getMetadata().name;
     const slippagePercent = `${(slippage / 100).toFixed(2)}%`;
 

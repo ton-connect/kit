@@ -8,7 +8,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import { formatUnits, parseUnits } from '@ton/appkit';
+import { formatUnits } from '@ton/appkit';
 import type { Network } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
 
@@ -21,14 +21,12 @@ import { useSendTransaction } from '../../../transaction/hooks/use-send-transact
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
+import { calcMaxFromAmount } from '../../utils/calc-max-from-amount';
+import { analyzeBalanceShortfall } from '../../utils/analyze-balance-shortfall';
+import type { BalanceShortfall } from '../../utils/analyze-balance-shortfall';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
 import { useSwapValidation } from './use-swap-validation';
-
-/** Reserve (in TON) subtracted from balance on MAX click for native TON swaps. */
-const TON_FEE_RESERVE = 0.3;
-/** Extra TON buffer added on top of built transaction outflow when checking balance before sending. */
-const TON_GAS_BUFFER_NANOS = 100_000_000n;
 
 export type { AppkitUIToken };
 
@@ -157,18 +155,25 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     defaultToSymbol,
     defaultSlippage = 100,
 }) => {
-    const walletNetwork = useNetwork();
-    const network = networkProp ?? walletNetwork;
+    // Input prep — derived from props, consumed by local-state hooks below.
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 
+    // 1. Local state
     const { fromToken, toToken, fromAmount, setFromToken, setToToken, setFromAmount, onFlip } = useSwapTokenState({
         mappedTokens,
         defaultFromSymbol,
         defaultToSymbol,
     });
-
     const [slippage, setSlippage] = useState(defaultSlippage);
+    const [fromAmountDebounced] = useDebounceValue(fromAmount, 500);
+    const [pendingSwap, setPendingSwap] = useState<BalanceShortfall | null>(null);
 
+    // 2. Queries and external readers
+    const walletNetwork = useNetwork();
+    const network = networkProp ?? walletNetwork;
+    const address = useAddress();
+
+    // Stabilized query inputs — kept next to the query that consumes them.
     const fromTokenParam = useMemo(
         () =>
             fromToken
@@ -181,7 +186,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
                 : undefined,
         [fromToken],
     );
-
     const toTokenParam = useMemo(
         () =>
             toToken
@@ -189,8 +193,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
                 : undefined,
         [toToken],
     );
-
-    const [fromAmountDebounced] = useDebounceValue(fromAmount, 500);
 
     const {
         data: quote,
@@ -203,11 +205,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         network,
         slippageBps: slippage,
     });
-
-    const toAmount = quote?.toAmount ?? '';
-
-    const address = useAddress();
-
     const { fromBalance, toBalance } = useSwapBalances({
         fromToken,
         toToken,
@@ -215,48 +212,48 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     });
     const { data: tonBalance } = useBalance();
 
-    const handleMaxClick = useCallback(() => {
-        if (!fromBalance || !fromToken) return;
-        const clean = fromBalance.replace(/\s/g, '');
-        if (fromToken.address === 'ton') {
-            const balanceNanos = parseUnits(clean, fromToken.decimals);
-            const reserveNanos = parseUnits(TON_FEE_RESERVE.toString(), fromToken.decimals);
-            const reducedNanos = balanceNanos > reserveNanos ? balanceNanos - reserveNanos : 0n;
-            setFromAmount(formatUnits(reducedNanos, fromToken.decimals));
-            return;
-        }
-        setFromAmount(clean);
-    }, [fromBalance, fromToken, setFromAmount]);
+    // 3. Derivations
+    const toAmount = quote?.toAmount ?? '';
+    const { error, canSubmit } = useSwapValidation({
+        fromAmount,
+        fromAmountDebounced,
+        fromToken,
+        toToken,
+        fromBalance,
+        quoteError,
+    });
+    const isLowBalanceWarningOpen = pendingSwap !== null;
+    const pendingSwapMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
+    const pendingSwapRequiredTon = useMemo(() => {
+        if (!pendingSwap) return '';
+        return formatUnits(pendingSwap.requiredNanos, 9);
+    }, [pendingSwap]);
 
+    // 4. Mutations
     const { mutateAsync: buildTransaction, isPending: isBuildingTransaction } = useBuildSwapTransaction();
     const { mutateAsync: sendTransaction, isPending: isSendingPending } = useSendTransaction();
+    const isSendingTransaction = isBuildingTransaction || isSendingPending;
 
-    const [pendingSwap, setPendingSwap] = useState<{
-        mode: 'reduce' | 'topup';
-        requiredNanos: bigint;
-        suggestedFromAmount: string;
-    } | null>(null);
+    // 5. Callbacks
+    const handleMaxClick = useCallback(() => {
+        if (!fromBalance || !fromToken) return;
+        setFromAmount(calcMaxFromAmount(fromBalance, fromToken));
+    }, [fromBalance, fromToken, setFromAmount]);
 
     const sendSwapTransaction = useCallback(async () => {
         if (!quote || !address || !fromToken) return;
 
         const tx = await buildTransaction({ quote, userAddress: address });
 
-        const totalOutNanos = tx.messages.reduce((acc, m) => acc + BigInt(m.amount), 0n);
-        const requiredNanos = totalOutNanos + TON_GAS_BUFFER_NANOS;
-        const tonBalanceNanos = tonBalance ? parseUnits(tonBalance, 9) : 0n;
+        const shortfall = analyzeBalanceShortfall({
+            messages: tx.messages,
+            tonBalance,
+            fromToken,
+            fromAmount,
+        });
 
-        if (tonBalanceNanos < requiredNanos) {
-            const isNativeTon = fromToken.address === 'ton';
-
-            if (isNativeTon) {
-                const diff = totalOutNanos - parseUnits(fromAmount, 9) + parseUnits('0.02', 9);
-                const suggestedFromAmount = formatUnits(tonBalanceNanos - diff - TON_GAS_BUFFER_NANOS, 9);
-                setPendingSwap({ mode: 'reduce', requiredNanos, suggestedFromAmount });
-                return;
-            }
-
-            setPendingSwap({ mode: 'topup', requiredNanos, suggestedFromAmount: '' });
+        if (shortfall) {
+            setPendingSwap(shortfall);
             return;
         }
 
@@ -272,23 +269,6 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const cancelPendingSwap = useCallback(() => {
         setPendingSwap(null);
     }, []);
-
-    const isSendingTransaction = isBuildingTransaction || isSendingPending;
-    const isLowBalanceWarningOpen = pendingSwap !== null;
-    const pendingSwapMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
-    const pendingSwapRequiredTon = useMemo(() => {
-        if (!pendingSwap) return '';
-        return formatUnits(pendingSwap.requiredNanos, 9);
-    }, [pendingSwap]);
-
-    const { error, canSubmit } = useSwapValidation({
-        fromAmount,
-        fromAmountDebounced,
-        fromToken,
-        toToken,
-        fromBalance,
-        quoteError,
-    });
 
     const value = useMemo(
         () => ({
