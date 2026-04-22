@@ -48,6 +48,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     sendSwapTransaction,
     isSendingTransaction,
     isLowBalanceWarningOpen,
+    pendingSwapMode,
     pendingSwapRequiredTon,
     changePendingSwap,
     cancelPendingSwap,
@@ -123,6 +124,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
             <SwapLowBalanceModal
                 open={isLowBalanceWarningOpen}
+                mode={pendingSwapMode}
                 requiredTon={pendingSwapRequiredTon}
                 onChange={changePendingSwap}
                 onCancel={cancelPendingSwap}

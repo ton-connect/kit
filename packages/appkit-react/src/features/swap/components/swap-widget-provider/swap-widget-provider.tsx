@@ -83,6 +83,8 @@ export interface SwapContextType {
     isSendingTransaction: boolean;
     /** True when the built transaction outflow exceeds the user's TON balance */
     isLowBalanceWarningOpen: boolean;
+    /** `reduce` when swapping TON (user can fix by changing amount), `topup` when swapping a jetton (must top up TON). */
+    pendingSwapMode: 'reduce' | 'topup';
     /** Required TON amount for the pending swap, formatted as a decimal string. Empty when no pending swap. */
     pendingSwapRequiredTon: string;
     /** Replace fromAmount with a value that fits into the current TON balance and close the warning */
@@ -114,6 +116,7 @@ export const SwapContext = createContext<SwapContextType>({
     sendSwapTransaction: () => Promise.resolve(),
     isSendingTransaction: false,
     isLowBalanceWarningOpen: false,
+    pendingSwapMode: 'reduce',
     pendingSwapRequiredTon: '',
     changePendingSwap: () => {},
     cancelPendingSwap: () => {},
@@ -229,6 +232,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const { mutateAsync: sendTransaction, isPending: isSendingPending } = useSendTransaction();
 
     const [pendingSwap, setPendingSwap] = useState<{
+        mode: 'reduce' | 'topup';
         requiredNanos: bigint;
         suggestedFromAmount: string;
     } | null>(null);
@@ -243,9 +247,16 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         const tonBalanceNanos = tonBalance ? parseUnits(tonBalance, 9) : 0n;
 
         if (tonBalanceNanos < requiredNanos) {
-            const diff = totalOutNanos - parseUnits(fromAmount, 9) + parseUnits('0.02', 9);
-            const suggestedFromAmount = formatUnits(tonBalanceNanos - diff - TON_GAS_BUFFER_NANOS, 9);
-            setPendingSwap({ requiredNanos, suggestedFromAmount });
+            const isNativeTon = fromToken.address === 'ton';
+
+            if (isNativeTon) {
+                const diff = totalOutNanos - parseUnits(fromAmount, 9) + parseUnits('0.02', 9);
+                const suggestedFromAmount = formatUnits(tonBalanceNanos - diff - TON_GAS_BUFFER_NANOS, 9);
+                setPendingSwap({ mode: 'reduce', requiredNanos, suggestedFromAmount });
+                return;
+            }
+
+            setPendingSwap({ mode: 'topup', requiredNanos, suggestedFromAmount: '' });
             return;
         }
 
@@ -253,7 +264,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     }, [quote, address, fromToken, fromAmount, buildTransaction, sendTransaction, tonBalance]);
 
     const changePendingSwap = useCallback(() => {
-        if (!pendingSwap) return;
+        if (!pendingSwap || pendingSwap.mode !== 'reduce') return;
         setFromAmount(pendingSwap.suggestedFromAmount);
         setPendingSwap(null);
     }, [pendingSwap, setFromAmount]);
@@ -264,6 +275,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const isSendingTransaction = isBuildingTransaction || isSendingPending;
     const isLowBalanceWarningOpen = pendingSwap !== null;
+    const pendingSwapMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
     const pendingSwapRequiredTon = useMemo(() => {
         if (!pendingSwap) return '';
         return formatUnits(pendingSwap.requiredNanos, 9);
@@ -302,6 +314,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             sendSwapTransaction,
             isSendingTransaction,
             isLowBalanceWarningOpen,
+            pendingSwapMode,
             pendingSwapRequiredTon,
             changePendingSwap,
             cancelPendingSwap,
@@ -329,6 +342,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             sendSwapTransaction,
             isSendingTransaction,
             isLowBalanceWarningOpen,
+            pendingSwapMode,
             pendingSwapRequiredTon,
             changePendingSwap,
             cancelPendingSwap,

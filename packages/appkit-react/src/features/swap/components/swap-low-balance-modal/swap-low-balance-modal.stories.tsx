@@ -21,6 +21,17 @@ type Story = StoryObj<typeof SwapLowBalanceModal>;
 export const Default: Story = {
     args: {
         open: true,
+        mode: 'reduce',
+        requiredTon: '0.423',
+        onChange: () => {},
+        onCancel: () => {},
+    },
+};
+
+export const Topup: Story = {
+    args: {
+        open: true,
+        mode: 'topup',
         requiredTon: '0.423',
         onChange: () => {},
         onCancel: () => {},
