@@ -22,30 +22,35 @@ export type GetJettonBalanceErrorType = Error;
 
 export type GetJettonBalanceByAddressData = GetJettonBalanceQueryFnData;
 
-export type GetJettonBalanceByAddressQueryConfig<selectData = GetJettonBalanceByAddressData> = Compute<
-    ExactPartial<GetJettonBalanceParameters>
-> &
-    QueryParameter<
-        GetJettonBalanceQueryFnData,
-        GetJettonBalanceErrorType,
-        selectData,
-        GetJettonBalanceByAddressQueryKey
-    >;
+export type GetJettonBalanceByAddressQueryConfig<selectData = GetJettonBalanceByAddressData> =
+    GetJettonBalanceParameters &
+        QueryParameter<
+            GetJettonBalanceQueryFnData,
+            GetJettonBalanceErrorType,
+            selectData,
+            GetJettonBalanceByAddressQueryKey
+        >;
 
 export const getJettonBalanceByAddressQueryOptions = <selectData = GetJettonBalanceByAddressData>(
     appKit: AppKit,
-    initialOptions: GetJettonBalanceByAddressQueryConfig<selectData> = {},
+    initialOptions: GetJettonBalanceByAddressQueryConfig<selectData>,
 ): GetJettonBalanceByAddressQueryOptions<selectData> => {
     const network = resolveNetwork(appKit, initialOptions.network);
     const options = { ...initialOptions, network };
 
     return {
         ...options.query,
-        enabled: Boolean(options.jettonAddress && options.ownerAddress && (options.query?.enabled ?? true)),
+        enabled: Boolean(
+            options.jettonAddress &&
+            options.ownerAddress &&
+            options.jettonDecimals !== undefined &&
+            (options.query?.enabled ?? true),
+        ),
         queryFn: async (context) => {
             const [, parameters] = context.queryKey as [string, GetJettonBalanceParameters];
             if (!parameters.jettonAddress) throw new Error('jettonAddress is required');
             if (!parameters.ownerAddress) throw new Error('ownerAddress is required');
+            if (parameters.jettonDecimals === undefined) throw new Error('jettonDecimals is required');
 
             const balance = await getJettonBalance(appKit, parameters);
             return balance;

@@ -182,6 +182,7 @@ const {
 } = useJettonBalanceByAddress({
     ownerAddress: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
     jettonAddress: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiXme1Xc56Iwobkzgnjj',
+    jettonDecimals: 9,
 });
 
 if (isLoading) {
