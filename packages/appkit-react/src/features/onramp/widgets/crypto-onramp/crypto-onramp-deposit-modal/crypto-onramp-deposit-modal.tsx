@@ -245,15 +245,19 @@ export const CryptoOnrampDepositModal: FC<CryptoOnrampDepositModalProps> = ({
                 )}
 
                 {targetSymbol && (
-                    <div className={styles.balanceRow}>
-                        <span className={styles.balanceLabel}>{t('cryptoOnramp.yourBalance')}</span>
-                        {isLoadingTargetBalance ? (
-                            <Skeleton width={80} height={16} />
-                        ) : (
-                            <span className={styles.balanceValue}>
-                                {formatBalance(targetBalance || '0', targetDecimals)} {targetSymbol}
-                            </span>
-                        )}
+                    <div className={styles.infoCard}>
+                        <div className={styles.infoRow}>
+                            <span className={styles.infoLabel}>{t('cryptoOnramp.yourBalance')}</span>
+                            <div className={styles.infoValueRow}>
+                                {isLoadingTargetBalance ? (
+                                    <Skeleton width={80} height={16} />
+                                ) : (
+                                    <span className={styles.infoValue}>
+                                        {formatBalance(targetBalance || '0', targetDecimals)} {targetSymbol}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 
