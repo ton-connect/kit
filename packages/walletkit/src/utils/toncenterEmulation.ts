@@ -25,6 +25,10 @@ import { SendModeToValue } from './sendMode';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
 import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { TonWalletKitOptions } from '../types/config';
+import { globalLogger } from '../core/Logger';
+
+const log = globalLogger.createChild('ToncenterEmulation');
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 
@@ -326,4 +330,31 @@ export async function createTransactionPreview(
         trace: toTransactionEmulatedTrace(emulationResult),
         moneyFlow,
     };
+}
+
+export async function createTransactionPreviewIfPossible(
+    config: TonWalletKitOptions,
+    client: ApiClient,
+    request: TransactionRequest,
+    wallet?: Wallet,
+): Promise<TransactionEmulatedPreview | undefined> {
+    if (config.eventProcessor?.disableTransactionEmulation) {
+        return undefined;
+    }
+
+    let preview: TransactionEmulatedPreview | undefined;
+    try {
+        preview = await CallForSuccess(() => createTransactionPreview(client, request, wallet));
+    } catch (error) {
+        log.error('Failed to create transaction preview', { error });
+        preview = {
+            error: {
+                code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
+                message: 'Unknown emulation error',
+            },
+            result: Result.failure,
+        };
+    }
+
+    return preview;
 }

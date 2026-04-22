@@ -37,7 +37,6 @@ import { getDeviceInfoForWallet } from '../utils/getDefaultWalletConfig';
 import type { WalletManager } from './WalletManager';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import { HexToBase64 } from '../utils/base64';
-import { Result } from '../api/models';
 import type {
     TransactionRequest,
     SignDataPayload,
@@ -65,9 +64,13 @@ import { PrepareSignData } from '../utils/signData/sign';
 import { validateBOC } from '../validation/transaction';
 import type { Wallet } from '../api/interfaces';
 import type { Analytics, AnalyticsManager } from '../analytics';
-import { createTransactionPreview } from '../utils';
-import { resolveItemsToMessages } from '../utils/itemsResolver';
-import { getClientForWallet, getWalletAddressFromEvent, getWalletFromEvent } from '../utils/events';
+import { createTransactionPreviewIfPossible } from '../utils';
+import {
+    checkTransactionRequestItems,
+    getClientForWallet,
+    getWalletAddressFromEvent,
+    getWalletFromEvent,
+} from '../utils/events';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -170,6 +173,30 @@ export class RequestProcessor {
         }
     }
 
+    private async getTransactionRequestAndPreview(
+        event: ConnectionRequestEvent,
+    ): Promise<{ request: TransactionRequest; preview: TransactionEmulatedPreview | undefined }> {
+        if (!event.intentAction) {
+            throw new WalletKitError(
+                ERROR_CODES.INVALID_REQUEST_EVENT,
+                'Intent action is required for send transaction',
+            );
+        }
+
+        if (event.intentAction.method !== 'sendTransaction' && event.intentAction.method !== 'signMessage') {
+            throw new WalletKitError(ERROR_CODES.INVALID_REQUEST_EVENT, 'Incorrect intent method for send transaction');
+        }
+
+        const wallet = this.validateWalletForIntent(event);
+        const request = await checkTransactionRequestItems(event.intentAction.transactionRequest, wallet);
+        const preview = await createTransactionPreviewIfPossible(this.walletKitOptions, wallet.client, request, wallet);
+
+        return {
+            request,
+            preview,
+        };
+    }
+
     private async approveConnectRequestSendTransactionIntentAction(
         event: ConnectionRequestEvent,
         response?: ConnectionApprovalResponse,
@@ -178,33 +205,10 @@ export class RequestProcessor {
             throw new WalletKitError(ERROR_CODES.INVALID_REQUEST_EVENT, 'Incorrect intent method for send transaction');
         }
 
-        const intentAction = event.intentAction;
-        const wallet = this.validateWalletForIntent(event);
-
-        let request = { ...intentAction.transactionRequest };
-        if (request.items && request.items.length > 0) {
-            request = { ...request, messages: await resolveItemsToMessages(request.items, wallet), items: undefined };
-        }
-
+        const { request, preview } = await this.getTransactionRequestAndPreview(event);
         const connectionResult = await this.createConnectApprovalResponse(event, response?.proof);
         await this.createSessionForIntentAction(event);
 
-        let preview: TransactionEmulatedPreview | undefined;
-
-        if (!this.walletKitOptions.eventProcessor?.disableTransactionEmulation) {
-            try {
-                preview = await CallForSuccess(() => createTransactionPreview(wallet.client, request, wallet));
-            } catch (error) {
-                log.error('Failed to create transaction preview', { error });
-                preview = {
-                    error: {
-                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                        message: 'Unknown emulation error',
-                    },
-                    result: Result.failure,
-                };
-            }
-        }
         return {
             ...event,
             type: 'sendTransaction',
@@ -224,20 +228,16 @@ export class RequestProcessor {
             throw new WalletKitError(ERROR_CODES.INVALID_REQUEST_EVENT, 'Incorrect intent method for sign message');
         }
 
-        const intentAction = event.intentAction;
-
-        let request = { ...intentAction.transactionRequest };
-        if (request.items && request.items.length > 0) {
-            const wallet = this.validateWalletForIntent(event);
-            request = { ...request, messages: await resolveItemsToMessages(request.items, wallet), items: undefined };
-        }
-
+        const { request, preview } = await this.getTransactionRequestAndPreview(event);
         const connectionResult = await this.createConnectApprovalResponse(event, response?.proof);
         await this.createSessionForIntentAction(event);
 
         return {
             ...event,
             type: 'signMessage',
+            preview: {
+                data: preview,
+            },
             request,
             connectionResult: connectionResult.result as unknown as IntentConnectionResult,
         };

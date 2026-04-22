@@ -7,9 +7,23 @@
  */
 
 import type { Wallet } from '../api/interfaces';
+import type { TransactionRequest } from '../api/models';
 import type { WalletManager } from '../core/WalletManager';
 import { ERROR_CODES, WalletKitError } from '../errors';
+import { validateFrom, validateNetwork, validateValidUntil } from '../handlers/transactionValidators';
+import { parseConnectTransactionParamContent, toTransactionRequest } from '../types/internal';
+import type {
+    RawBridgeEventSignMessage,
+    RawBridgeEventTransaction,
+    RawConnectTransactionParamContent,
+} from '../types/internal';
 import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { ValidationResult } from '../validation';
+import { validateStructuredItems, validateTransactionMessages } from '../validation/transaction';
+import { resolveItemsToMessages } from './itemsResolver';
+import { globalLogger } from '../core/Logger';
+
+const log = globalLogger.createChild('EventsUtils');
 
 /**
  * Helper to get wallet from event
@@ -41,4 +55,88 @@ export function getClientForWallet(walletManager: WalletManager, event: { wallet
     }
 
     return wallet.getClient();
+}
+
+export async function checkTransactionRequestItems(
+    request: TransactionRequest,
+    wallet: Wallet,
+): Promise<TransactionRequest> {
+    if (!request.items || request.items.length === 0) {
+        return { ...request };
+    }
+
+    const newRequest = { ...request };
+    newRequest.messages = await resolveItemsToMessages(request.items, wallet);
+    // probably we should not remove items here, it can be used for analytics and debugging
+    // newRequest.items = undefined;
+
+    return newRequest;
+}
+
+export function parseTonConnectTransactionRequest(
+    event: RawBridgeEventTransaction | RawBridgeEventSignMessage,
+    wallet: Wallet,
+): {
+    result: TransactionRequest | undefined;
+    validation: ValidationResult;
+} {
+    let errors: string[] = [];
+    try {
+        if (event.params.length !== 1) {
+            throw new WalletKitError(
+                ERROR_CODES.INVALID_REQUEST_EVENT,
+                'Invalid transaction request - expected exactly 1 parameter',
+                undefined,
+                { paramCount: event.params.length, eventId: event.id },
+            );
+        }
+        const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
+        const params = parseConnectTransactionParamContent(rawParams);
+
+        const validUntilValidation = validateValidUntil(params.validUntil);
+        if (!validUntilValidation.isValid) {
+            errors = errors.concat(validUntilValidation.errors);
+        } else {
+            params.validUntil = validUntilValidation.result;
+        }
+
+        const networkValidation = validateNetwork(params.network, wallet);
+        if (!networkValidation.isValid) {
+            errors = errors.concat(networkValidation.errors);
+        } else {
+            params.network = networkValidation.result;
+        }
+
+        const fromValidation = validateFrom(params.from, wallet);
+        if (!fromValidation.isValid) {
+            errors = errors.concat(fromValidation.errors);
+        } else {
+            params.from = fromValidation.result;
+        }
+
+        const isTonConnect = !event.isLocal;
+        if (params.items && params.items.length > 0) {
+            const itemsValidation = validateStructuredItems(params.items);
+            if (!itemsValidation.isValid) {
+                errors = errors.concat(itemsValidation.errors);
+            }
+        } else {
+            const messagesValidation = validateTransactionMessages(params.messages ?? [], isTonConnect, false);
+            if (!messagesValidation.isValid) {
+                errors = errors.concat(messagesValidation.errors);
+            }
+        }
+
+        return {
+            result: toTransactionRequest(params),
+            validation: { isValid: errors.length === 0, errors: errors },
+        };
+    } catch (error) {
+        log.error('Failed to parse transaction request', { error });
+        errors.push('Failed to parse transaction request');
+        return {
+            result: undefined,
+            validation: { isValid: errors.length === 0, errors: errors },
+        };
+    }
 }

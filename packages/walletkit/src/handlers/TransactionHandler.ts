@@ -10,32 +10,22 @@ import type { SendTransactionRpcResponseError, WalletResponseTemplateError } fro
 import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
-import { toTransactionRequest, parseConnectTransactionParamContent } from '../types/internal';
 import type {
     RawBridgeEvent,
     EventHandler,
     RawBridgeEventTransaction,
-    RawConnectTransactionParamContent,
+    RawBridgeEventSignMessage,
 } from '../types/internal';
-import {
-    validateTransactionMessages as validateTonConnectTransactionMessages,
-    validateStructuredItems,
-} from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
-import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
-import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
+import { createTransactionPreviewIfPossible } from '../utils/toncenterEmulation';
 import { BasicHandler } from './BasicHandler';
-import { CallForSuccess } from '../utils/retry';
-import { resolveItemsToMessages } from '../utils/itemsResolver';
 import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
-import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
-import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
-import { Result } from '../api/models';
+import type { TransactionRequest, SendTransactionRequestEvent } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
-import { getWalletFromEvent } from '../utils/events';
+import { checkTransactionRequestItems, getWalletFromEvent, parseTonConnectTransactionRequest } from '../utils/events';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -89,37 +79,9 @@ export class TransactionHandler
                 id: event.id,
             } as SendTransactionRpcResponseError;
         }
-        const request = requestValidation.result;
 
-        // Resolve structured items into messages so downstream code only sees messages
-        if (request.items && request.items.length > 0) {
-            request.messages = await resolveItemsToMessages(request.items, wallet);
-            request.items = undefined;
-        }
-
-        let preview: TransactionEmulatedPreview | undefined;
-        if (!this.config.eventProcessor?.disableTransactionEmulation) {
-            try {
-                preview = await CallForSuccess(() => createTransactionPreviewHelper(wallet.client, request, wallet));
-                // Emit emulation result event for jetton caching and other components
-                if (preview.result === Result.success && preview.trace) {
-                    try {
-                        this.eventEmitter.emit('emulationResult', preview.trace, 'transaction-handler');
-                    } catch (error) {
-                        log.warn('Error emitting emulation result event', { error });
-                    }
-                }
-            } catch (error) {
-                log.error('Failed to create transaction preview', { error });
-                preview = {
-                    error: {
-                        code: ERROR_CODES.UNKNOWN_EMULATION_ERROR,
-                        message: 'Unknown emulation error',
-                    },
-                    result: Result.failure,
-                };
-            }
-        }
+        const request = await checkTransactionRequestItems(requestValidation.result, wallet);
+        const preview = await createTransactionPreviewIfPossible(this.config, wallet.client, request, wallet);
 
         const txEvent: SendTransactionRequestEvent = {
             ...event,
@@ -155,70 +117,12 @@ export class TransactionHandler
      */
 
     private parseTonConnectTransactionRequest(
-        event: RawBridgeEventTransaction,
+        event: RawBridgeEventTransaction | RawBridgeEventSignMessage,
         wallet: Wallet,
     ): {
         result: TransactionRequest | undefined;
         validation: ValidationResult;
     } {
-        let errors: string[] = [];
-        try {
-            if (event.params.length !== 1) {
-                throw new WalletKitError(
-                    ERROR_CODES.INVALID_REQUEST_EVENT,
-                    'Invalid transaction request - expected exactly 1 parameter',
-                    undefined,
-                    { paramCount: event.params.length, eventId: event.id },
-                );
-            }
-            const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
-            const params = parseConnectTransactionParamContent(rawParams);
-
-            const validUntilValidation = validateValidUntil(params.validUntil);
-            if (!validUntilValidation.isValid) {
-                errors = errors.concat(validUntilValidation.errors);
-            } else {
-                params.validUntil = validUntilValidation.result;
-            }
-
-            const networkValidation = validateNetwork(params.network, wallet);
-            if (!networkValidation.isValid) {
-                errors = errors.concat(networkValidation.errors);
-            } else {
-                params.network = networkValidation.result;
-            }
-
-            const fromValidation = validateFrom(params.from, wallet);
-            if (!fromValidation.isValid) {
-                errors = errors.concat(fromValidation.errors);
-            } else {
-                params.from = fromValidation.result;
-            }
-
-            const isTonConnect = !event.isLocal;
-            if (params.items && params.items.length > 0) {
-                const itemsValidation = validateStructuredItems(params.items);
-                if (!itemsValidation.isValid) {
-                    errors = errors.concat(itemsValidation.errors);
-                }
-            } else {
-                const messagesValidation = validateTonConnectTransactionMessages(params.messages ?? [], isTonConnect);
-                if (!messagesValidation.isValid) {
-                    errors = errors.concat(messagesValidation.errors);
-                }
-            }
-
-            return {
-                result: toTransactionRequest(params),
-                validation: { isValid: errors.length === 0, errors: errors },
-            };
-        } catch (error) {
-            log.error('Failed to parse transaction request', { error });
-            errors.push('Failed to parse transaction request');
-            return {
-                result: undefined,
-                validation: { isValid: errors.length === 0, errors: errors },
-            };
-        }
+        return parseTonConnectTransactionRequest(event, wallet);
     }
 }

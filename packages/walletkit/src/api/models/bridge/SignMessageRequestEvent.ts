@@ -8,6 +8,7 @@
 
 import type { TransactionRequest } from '../transactions/TransactionRequest';
 import type { BridgeEvent } from './BridgeEvent';
+import type { SendTransactionRequestEventPreview } from './SendTransactionRequestEvent';
 
 /**
  * Event containing a sign-message (sign-only transaction) request from a dApp via TON Connect.
@@ -15,6 +16,11 @@ import type { BridgeEvent } from './BridgeEvent';
  * without broadcasting it on-chain.
  */
 export interface SignMessageRequestEvent extends BridgeEvent {
+    /**
+     * Preview information for UI display
+     */
+    preview: SendTransactionRequestEventPreview;
+
     /**
      * Raw transaction request data
      */
