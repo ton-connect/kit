@@ -1668,6 +1668,106 @@ function postProcessStripDefaults(schema) {
     }
 }
 
+/**
+ * Post-process schema to detect unions of string literals + a single ref to a
+ * primitive string type, e.g. `type X = 'a' | 'b' | UserFriendlyAddress`.
+ *
+ * ts-json-schema-generator hoists each string literal into its own synthetic
+ * single-value enum definition (named e.g. `<CAPS_LITERAL><ParentName>`) and
+ * emits the union as `anyOf` of `$ref`s. We detect that shape and rewrite it
+ * into a Swift-friendly vendor extension that the template turns into:
+ *
+ *     enum X { case a; case b; case userFriendlyAddress(UserFriendlyAddress) }
+ *
+ * Detection: definition has `anyOf` where every entry is a `$ref`, each
+ * referenced definition is either a single-value string enum (literal case) or
+ * a plain `{type:"string"}` (ref case), with >=1 literal and exactly 1 ref.
+ */
+function postProcessStringLiteralUnions(schema) {
+    const definitions = schema.definitions || {};
+
+    // Classify an anyOf entry. Returns {kind: 'literal', rawValue} or
+    // {kind: 'ref', targetName, synthetic} or null.
+    const classifyEntry = (entry) => {
+        if (!entry || typeof entry !== 'object') return null;
+
+        // Inline string literal: { type: "string", const: "..." } or enum of one
+        if (entry.type === 'string' && !entry.$ref) {
+            if (typeof entry.const === 'string') return { kind: 'literal', rawValue: entry.const };
+            if (Array.isArray(entry.enum) && entry.enum.length === 1) {
+                return { kind: 'literal', rawValue: String(entry.enum[0]) };
+            }
+        }
+
+        // $ref: classify based on the referenced definition
+        if (typeof entry.$ref === 'string' && Object.keys(entry).length === 1) {
+            const targetName = typeNameFromRef(entry.$ref);
+            const target = definitions[targetName];
+            if (!target) return null;
+            if (target.type === 'string' && !target.$ref) {
+                if (Array.isArray(target.enum) && target.enum.length === 1 && typeof target.enum[0] === 'string') {
+                    return { kind: 'literal', rawValue: target.enum[0], synthetic: targetName };
+                }
+                if (!target.enum && typeof target.const !== 'string') {
+                    return { kind: 'ref', targetName };
+                }
+            }
+        }
+
+        return null;
+    };
+
+    const synthLiteralsToDelete = new Set();
+
+    for (const [, typeDef] of Object.entries(definitions)) {
+        if (!Array.isArray(typeDef.anyOf) || typeDef.anyOf.length < 2) continue;
+
+        const classified = typeDef.anyOf.map(classifyEntry);
+        if (classified.some((c) => c === null)) continue;
+
+        const literalCases = classified.filter((c) => c.kind === 'literal');
+        const refCases = classified.filter((c) => c.kind === 'ref');
+        if (literalCases.length < 1 || refCases.length !== 1) continue;
+
+        for (const { synthetic } of literalCases) {
+            if (synthetic) synthLiteralsToDelete.add(synthetic);
+        }
+
+        const refCase = refCases[0];
+        Object.keys(typeDef).forEach((k) => delete typeDef[k]);
+        typeDef.type = 'object';
+        typeDef.properties = { _placeholder: { type: 'string' } };
+        typeDef['x-string-literal-union'] = true;
+        typeDef['x-literal-cases'] = literalCases.map(({ rawValue }) => ({
+            name: toCamelCase(rawValue),
+            rawValue,
+        }));
+        typeDef['x-ref-case'] = {
+            name: toCamelCase(refCase.targetName),
+            typeRef: refCase.targetName,
+        };
+    }
+
+    if (synthLiteralsToDelete.size === 0) return;
+
+    // Ensure the synthetic literal definitions aren't still referenced elsewhere
+    // before deleting them.
+    const stillReferenced = new Set();
+    const visit = (obj) => {
+        if (obj === null || typeof obj !== 'object') return;
+        if (typeof obj.$ref === 'string') {
+            const name = typeNameFromRef(obj.$ref);
+            if (synthLiteralsToDelete.has(name)) stillReferenced.add(name);
+        }
+        for (const value of Object.values(obj)) visit(value);
+    };
+    visit(definitions);
+
+    for (const name of synthLiteralsToDelete) {
+        if (!stillReferenced.has(name)) delete definitions[name];
+    }
+}
+
 function postProcessTypeAliases(schema) {
     const definitions = schema.definitions || {};
 
@@ -1784,6 +1884,9 @@ try {
 
     // Post-process: strip @default values (documentation-only, not for codegen)
     postProcessStripDefaults(schema);
+
+    // Post-process: detect string-literal + ref unions and rewrite to x-string-literal-union
+    postProcessStringLiteralUnions(schema);
 
     // Post-process: convert pure $ref definitions (type aliases) to x-type-alias
     postProcessTypeAliases(schema);

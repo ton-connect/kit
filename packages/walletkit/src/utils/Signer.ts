@@ -10,7 +10,7 @@
 
 import { keyPairFromSeed } from '@ton/crypto';
 
-import { MnemonicToKeyPair } from './mnemonic';
+import { MnemonicToKeyPair } from './mnemonic.mjs';
 import { createWalletSigner } from './sign';
 import { Uint8ArrayToHex } from './base64';
 import type { WalletSigner } from '../api/interfaces';

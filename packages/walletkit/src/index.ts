@@ -94,7 +94,7 @@ export type {
     Feature,
     InjectedToExtensionBridgeRequestPayload,
 } from './types/jsBridge';
-export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic';
+export { MnemonicToKeyPair, CreateTonMnemonic } from './utils/mnemonic.mjs';
 export { DefaultSignature, FakeSignature } from './utils/sign';
 export { wrapWalletInterface } from './core/Initializer';
 export type { NftTransferParamsHuman, NftTransferParamsRaw } from './types/nfts';

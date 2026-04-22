@@ -15,6 +15,7 @@ import type { Wallet } from '@ton/walletkit';
 import { ApiClientToncenter, Network } from '@ton/walletkit';
 import type { TransactionRequestMessage } from '@ton/walletkit';
 import { wrapWalletInterface } from '@ton/walletkit';
+import type Transport from '@ledgerhq/hw-transport';
 
 import { createLedgerPath, createWalletV4R2Ledger } from '../utils';
 import { createWalletInitConfigLedger } from '../WalletV4R2LedgerAdapter';
@@ -50,7 +51,7 @@ async function createLedgerWallet(
 
         // Create Ledger wallet configuration
         const ledgerConfig = createWalletInitConfigLedger({
-            createTransport: async () => await TransportNodeHid.create(),
+            createTransport: async () => (await TransportNodeHid.create()) as unknown as Transport,
             path,
             version: 'v4r2', // Only v4r2 is supported for Ledger
             network: Network.mainnet(),

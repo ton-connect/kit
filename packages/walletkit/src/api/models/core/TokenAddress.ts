@@ -6,6 +6,6 @@
  *
  */
 
-import axios from 'axios';
+import type { UserFriendlyAddress } from './Primitives';
 
-export const axiosInstance = axios.create({});
+export type TokenAddress = 'ton' | UserFriendlyAddress;
