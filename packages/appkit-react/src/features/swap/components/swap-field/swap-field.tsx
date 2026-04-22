@@ -15,12 +15,12 @@ import { Input } from '../../../../components/input/input';
 import { Skeleton } from '../../../../components/skeleton';
 import { TokenSelector } from '../../../../components/token-selector';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import { useSwapContext } from '../swap-widget-provider/swap-widget-provider';
 import styles from './swap-field.module.css';
 
 export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Container>, 'children'> {
     type: 'pay' | 'receive';
     amount: string;
+    fiatSymbol: string;
     token?: AppkitUIToken;
     onAmountChange?: (value: string) => void;
     balance?: string;
@@ -41,10 +41,10 @@ export const SwapField: FC<SwapFieldProps> = ({
     onTokenSelectorClick,
     isWalletConnected,
     className,
+    fiatSymbol,
     ...props
 }) => {
     const { t } = useI18n();
-    const { fiatSymbol } = useSwapContext();
 
     const tokenSymbol = token?.symbol || '';
     const displayDecimals = token ? Math.min(token.decimals, 5) : 5;
