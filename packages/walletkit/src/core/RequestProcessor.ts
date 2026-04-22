@@ -67,6 +67,7 @@ import type { Wallet } from '../api/interfaces';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import { createTransactionPreview } from '../utils';
 import { resolveItemsToMessages } from '../utils/itemsResolver';
+import { getClientForWallet, getWalletAddressFromEvent, getWalletFromEvent } from '../utils/events';
 
 const log = globalLogger.createChild('RequestProcessor');
 
@@ -88,29 +89,6 @@ export class RequestProcessor {
         analyticsManager?: AnalyticsManager,
     ) {
         this.analytics = analyticsManager?.scoped();
-    }
-
-    /**
-     * Helper to get wallet from event, supporting both walletId and walletAddress
-     */
-    private getWalletFromEvent(event: { walletId?: string }): Wallet | undefined {
-        if (event.walletId) {
-            return this.walletManager.getWallet(event.walletId);
-        }
-        return undefined;
-    }
-
-    /**
-     * Helper to get wallet address from event
-     */
-    private getWalletAddressFromEvent(event: { walletId?: string; walletAddress?: string }): string | undefined {
-        if (event.walletAddress) {
-            return event.walletAddress;
-        }
-        if (event.walletId) {
-            return this.walletManager.getWallet(event.walletId)?.getAddress();
-        }
-        return undefined;
     }
 
     /**
@@ -301,7 +279,7 @@ export class RequestProcessor {
             });
         }
 
-        const wallet = this.getWalletFromEvent(event);
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
             throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, 'Wallet not found for intent', undefined, {
                 walletId,
@@ -334,7 +312,7 @@ export class RequestProcessor {
      * Mirrors the session creation in approveConnectRequest.
      */
     private async createSessionForIntentAction(event: BridgeEvent): Promise<TONConnectSession> {
-        const wallet = this.getWalletFromEvent(event);
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
             throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, 'Wallet not found for intent session creation');
         }
@@ -472,7 +450,7 @@ export class RequestProcessor {
 
                 if (!this.walletKitOptions.dev?.disableNetworkSend) {
                     // Get the client for the wallet's network
-                    const client = this.getClientForWallet(event.walletId);
+                    const client = getClientForWallet(this.walletManager, event);
                     await CallForSuccess(() => client.sendBoc(signedBoc));
                 }
 
@@ -510,7 +488,7 @@ export class RequestProcessor {
     private sendTransactionAnalytics(event: SendTransactionRequestEvent, signedBoc: string): void {
         if (!this.analytics) return;
 
-        const wallet = this.getWalletFromEvent(event);
+        const wallet = getWalletFromEvent(this.walletManager, event);
 
         this.analytics.emitWalletTransactionSent({
             trace_id: event.traceId,
@@ -547,7 +525,7 @@ export class RequestProcessor {
             } else {
                 await this.bridgeManager.sendResponse(event, response);
             }
-            const wallet = this.getWalletFromEvent(event);
+            const wallet = getWalletFromEvent(this.walletManager, event);
 
             if (this.analytics) {
                 const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
@@ -598,7 +576,7 @@ export class RequestProcessor {
                 }
                 return response;
             } else {
-                const wallet = this.getWalletFromEvent(event);
+                const wallet = getWalletFromEvent(this.walletManager, event);
                 if (!wallet) {
                     throw new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
@@ -659,7 +637,7 @@ export class RequestProcessor {
     ): Promise<SignDataApprovalResponse> {
         try {
             if (response) {
-                const wallet = this.getWalletFromEvent(event);
+                const wallet = getWalletFromEvent(this.walletManager, event);
 
                 if (!wallet) {
                     const error = new WalletKitError(
@@ -719,7 +697,7 @@ export class RequestProcessor {
                 }
 
                 const walletId = event.walletId;
-                const walletAddress = this.getWalletAddressFromEvent(event);
+                const walletAddress = getWalletAddressFromEvent(this.walletManager, event);
 
                 if (!walletId && !walletAddress) {
                     const error = new WalletKitError(
@@ -731,7 +709,7 @@ export class RequestProcessor {
                     throw error;
                 }
 
-                const wallet = this.getWalletFromEvent(event);
+                const wallet = getWalletFromEvent(this.walletManager, event);
                 if (!wallet) {
                     const error = new WalletKitError(
                         ERROR_CODES.WALLET_NOT_FOUND,
@@ -840,7 +818,7 @@ export class RequestProcessor {
             } else {
                 await this.bridgeManager.sendResponse(event, response);
             }
-            const wallet = this.getWalletFromEvent(event);
+            const wallet = getWalletFromEvent(this.walletManager, event);
 
             if (this.analytics) {
                 const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
@@ -870,7 +848,7 @@ export class RequestProcessor {
         proof?: ConnectionApprovalProof,
     ): Promise<{ result: ConnectEventSuccess }> {
         const walletId = event.walletId;
-        const walletAddress = this.getWalletAddressFromEvent(event);
+        const walletAddress = getWalletAddressFromEvent(this.walletManager, event);
 
         if (!walletId && !walletAddress) {
             throw new WalletKitError(
@@ -880,7 +858,7 @@ export class RequestProcessor {
                 { eventId: event.id },
             );
         }
-        const wallet = this.getWalletFromEvent(event);
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_NOT_FOUND,
@@ -935,7 +913,7 @@ export class RequestProcessor {
      */
     private async signTransaction(event: SendTransactionRequestEvent): Promise<Base64String> {
         const walletId = event.walletId;
-        const walletAddress = this.getWalletAddressFromEvent(event);
+        const walletAddress = getWalletAddressFromEvent(this.walletManager, event);
 
         if (!walletId && !walletAddress) {
             throw new WalletKitError(
@@ -945,7 +923,7 @@ export class RequestProcessor {
                 { eventId: event.id },
             );
         }
-        const wallet = this.getWalletFromEvent(event);
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
             throw new WalletKitError(
                 ERROR_CODES.WALLET_NOT_FOUND,
@@ -969,23 +947,6 @@ export class RequestProcessor {
         }
 
         return await signTransactionInternal(wallet, event.request);
-    }
-
-    /**
-     * Get API client for a wallet's network
-     * Uses the wallet's network to get the appropriate client from NetworkManager
-     */
-    private getClientForWallet(walletId: string | undefined) {
-        if (!walletId) {
-            throw new WalletKitError(ERROR_CODES.WALLET_REQUIRED, 'Wallet address is required to get API client');
-        }
-
-        const wallet = this.walletManager.getWallet(walletId);
-        if (!wallet) {
-            throw new WalletKitError(ERROR_CODES.WALLET_NOT_FOUND, `Wallet not found: ${walletId}`);
-        }
-
-        return wallet.getClient();
     }
 }
 

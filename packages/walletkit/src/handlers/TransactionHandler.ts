@@ -35,6 +35,7 @@ import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionReq
 import { Result } from '../api/models';
 import type { Analytics, AnalyticsManager } from '../analytics';
 import type { TONConnectSessionManager } from '../api/interfaces/TONConnectSessionManager';
+import { getWalletFromEvent } from '../utils/events';
 
 const log = globalLogger.createChild('TransactionHandler');
 
@@ -63,25 +64,9 @@ export class TransactionHandler
     }
 
     async handle(event: RawBridgeEventTransaction): Promise<SendTransactionRequestEvent | WalletResponseTemplateError> {
-        // Support both walletId (new) and walletAddress (legacy)
-        const walletId = event.walletId;
-        const walletAddress = event.walletAddress;
-
-        if (!walletId && !walletAddress) {
-            log.error('Wallet ID not found', { event });
-            return {
-                error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
-                    message: 'Wallet ID not found',
-                },
-                id: event.id,
-            } as SendTransactionRpcResponseError;
-        }
-
-        // Try to get wallet by walletId first, fall back to address search
-        const wallet = walletId ? this.walletManager.getWallet(walletId) : undefined;
+        const wallet = getWalletFromEvent(this.walletManager, event);
         if (!wallet) {
-            log.error('Wallet not found', { event, walletId, walletAddress });
+            log.error('Wallet not found', { event });
             return {
                 error: {
                     code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
@@ -143,8 +128,8 @@ export class TransactionHandler
                 data: preview,
             },
             dAppInfo: event.dAppInfo ?? {},
-            walletId: walletId ?? this.walletManager.getWalletId(wallet),
-            walletAddress: walletAddress ?? wallet.getAddress(),
+            walletId: wallet.getWalletId(),
+            walletAddress: wallet.getAddress(),
         };
 
         if (this.analytics) {
