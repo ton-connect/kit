@@ -874,16 +874,24 @@ function toHex(value: string): Hex {
         throw new Error('Invalid hex value: empty input');
     }
 
+    const assertHashLength = (hex: string): Hex => {
+        const withoutPrefix = hex.startsWith('0x') ? hex.slice(2) : hex;
+        if (withoutPrefix.length !== 64) {
+            throw new Error(`Invalid hex value: ${value}`);
+        }
+        return (hex.startsWith('0x') ? hex : `0x${hex}`).toLowerCase() as Hex;
+    };
+
     if (isHex(normalized)) {
-        return normalized.toLowerCase() as Hex;
+        return assertHashLength(normalized);
     }
 
     if (/^[0-9a-fA-F]+$/.test(normalized) && normalized.length % 2 === 0) {
-        return `0x${normalized.toLowerCase()}` as Hex;
+        return assertHashLength(normalized);
     }
 
     try {
-        return Base64ToHex(Base64Normalize(normalized)).toLowerCase() as Hex;
+        return assertHashLength(Base64ToHex(Base64Normalize(normalized)));
     } catch {
         // fallthrough
     }
