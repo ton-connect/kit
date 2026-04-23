@@ -26,9 +26,9 @@ export type BalanceShortfall =
  * Check whether the user's TON balance covers the built swap transaction.
  * - Returns `null` if balance is sufficient.
  * - Returns `{ mode: 'reduce', ... }` with a smaller suggested fromAmount when fromToken is TON
- *   (user can fix it by reducing the amount).
- * - Returns `{ mode: 'topup', ... }` when fromToken is a jetton (reducing jetton amount won't free up TON gas;
- *   user must top up TON).
+ *   and the balance is enough to cover at least gas (user can fix it by reducing the amount).
+ * - Returns `{ mode: 'topup', ... }` when fromToken is a jetton (reducing jetton amount won't free up TON gas),
+ *   or when fromToken is TON but the balance can't even cover gas (reducing won't help — user must top up).
  */
 export const analyzeBalanceShortfall = ({
     messages,
@@ -49,8 +49,15 @@ export const analyzeBalanceShortfall = ({
 
     if (fromToken.address === 'ton') {
         const safetyMarginNanos = parseUnits(SUGGESTED_AMOUNT_SAFETY_MARGIN_TON.toString(), 9);
-        const overshootNanos = totalOutNanos - parseUnits(fromAmount, 9) + safetyMarginNanos;
-        const suggestedFromAmount = formatUnits(tonBalanceNanos - overshootNanos - TON_GAS_BUFFER_NANOS, 9);
+        const gasOnlyNanos = totalOutNanos - parseUnits(fromAmount, 9);
+        const nonSwapReservedNanos = gasOnlyNanos + TON_GAS_BUFFER_NANOS + safetyMarginNanos;
+
+        // Balance can't cover even gas for a minimal swap — reducing the amount won't help.
+        if (tonBalanceNanos <= nonSwapReservedNanos) {
+            return { mode: 'topup', requiredNanos, suggestedFromAmount: '' };
+        }
+
+        const suggestedFromAmount = formatUnits(tonBalanceNanos - nonSwapReservedNanos, 9);
         return { mode: 'reduce', requiredNanos, suggestedFromAmount };
     }
 
