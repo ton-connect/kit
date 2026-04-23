@@ -39,7 +39,7 @@ export const WalletInfo: FC<ComponentProps<'div'>> = ({ className, ...props }) =
     return (
         <div
             className={cn(
-                'flex items-center gap-2 rounded-md border border-border bg-card/50 p-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-none group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0',
+                'flex items-center gap-2 rounded-md border border-tertiary bg-secondary/50 p-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-none group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0',
                 className,
             )}
             {...props}
@@ -60,7 +60,7 @@ export const WalletInfo: FC<ComponentProps<'div'>> = ({ className, ...props }) =
                 onClick={handleCopy}
                 title="Copy address"
                 aria-label="Copy address"
-                className="flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground group-data-[collapsible=icon]:hidden"
+                className="flex size-6 shrink-0 items-center justify-center rounded text-tertiary-foreground transition-colors hover:bg-tertiary/40 hover:text-foreground group-data-[collapsible=icon]:hidden"
             >
                 {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
             </button>

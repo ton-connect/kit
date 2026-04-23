@@ -13,7 +13,7 @@
 .imageWrapper {
     position: relative;
     aspect-ratio: 1 / 1;
-    background-color: var(--ta-color-background-secondary);
+    background-color: var(--ta-color-background-tertiary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -29,7 +29,7 @@
 .placeholderIcon {
     width: 32px;
     height: 32px;
-    color: var(--ta-color-text-secondary);
+    color: var(--ta-color-text-tertiary);
 }
 
 .info {

@@ -6,4 +6,4 @@
  *
  */
 
-export { Card } from './card';
+export { ToasterProvider } from './toaster-provider';

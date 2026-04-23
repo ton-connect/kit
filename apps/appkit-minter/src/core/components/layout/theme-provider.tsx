@@ -52,22 +52,13 @@ export function ThemeProvider({
 
     useEffect(() => {
         const root = window.document.documentElement;
+        const resolved: Theme =
+            theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
 
         root.classList.remove('light', 'dark');
-
-        if (theme === 'system') {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-
-            root.classList.add(systemTheme);
-            root.setAttribute('data-theme', systemTheme);
-            return;
-        }
-
-        root.classList.add(theme);
-        if (theme === 'light') {
-            root.classList.remove('dark');
-        }
-        root.setAttribute('data-theme', theme);
+        root.classList.add(resolved);
+        root.setAttribute('data-theme', resolved);
+        root.setAttribute('data-ta-theme', resolved);
     }, [theme]);
 
     const value = {

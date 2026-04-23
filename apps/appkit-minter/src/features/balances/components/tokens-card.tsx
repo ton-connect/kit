@@ -16,14 +16,14 @@ import { Button } from '@ton/appkit-react';
 
 import { TokenTransferModal } from './token-transfer-modal';
 
-import { Card } from '@/core/components';
+import { cn } from '@/core/lib/utils';
 
 interface SelectedToken {
     type: 'TON' | 'JETTON';
     jetton?: Jetton;
 }
 
-export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
+export const TokensCard: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
     const [selectedToken, setSelectedToken] = useState<SelectedToken | null>(null);
 
     const {
@@ -48,34 +48,32 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
 
     if (isError) {
         return (
-            <Card title="Balances" {...props}>
-                <div className="flex flex-col items-center text-center py-4">
-                    <div className="text-destructive mb-2">
-                        <AlertCircle className="w-8 h-8 mx-auto" />
-                    </div>
-
-                    <p className="text-sm text-destructive mb-3">Failed to load balances</p>
-
-                    <Button size="s" variant="secondary" onClick={() => onRefresh()}>
-                        Try Again
-                    </Button>
+            <div className={cn('flex flex-col items-center text-center py-4', className)} {...props}>
+                <div className="text-error mb-2">
+                    <AlertCircle className="w-8 h-8 mx-auto" />
                 </div>
-            </Card>
+
+                <p className="text-sm text-error mb-3">Failed to load balances</p>
+
+                <Button size="s" variant="secondary" onClick={() => onRefresh()}>
+                    Try Again
+                </Button>
+            </div>
         );
     }
 
     return (
         <>
-            <Card title="Balances" {...props}>
+            <div className={cn('', className)} {...props}>
                 {isLoading ? (
                     <div className="flex items-center justify-center py-8">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                        <span className="ml-3 text-sm text-muted-foreground">Loading balances...</span>
+                        <span className="ml-3 text-sm text-tertiary-foreground">Loading balances...</span>
                     </div>
                 ) : (
                     <div className="space-y-3">
                         {/* Summary */}
-                        <div className="flex items-center p-3 bg-muted rounded-lg border border-border">
+                        <div className="flex items-center p-3 bg-secondary rounded-lg border border-secondary">
                             <p className="text-sm font-semibold text-foreground mr-auto">
                                 {totalTokens} {totalTokens === 1 ? 'Asset' : 'Assets'}
                             </p>
@@ -86,7 +84,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
 
                         {/* Token List */}
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                            <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-secondary">
                                 <CurrencyItem
                                     ticker="TON"
                                     name="Toncoin"
@@ -108,7 +106,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                                 return (
                                     <div
                                         key={jetton.address}
-                                        className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border"
+                                        className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-secondary"
                                     >
                                         <CurrencyItem
                                             ticker={info.symbol}
@@ -124,7 +122,7 @@ export const TokensCard: FC<ComponentProps<'div'>> = (props) => {
                         </div>
                     </div>
                 )}
-            </Card>
+            </div>
 
             {/* Token Transfer Modal */}
             {selectedToken && (

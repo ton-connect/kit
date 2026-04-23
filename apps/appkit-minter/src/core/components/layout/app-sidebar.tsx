@@ -49,11 +49,9 @@ export const AppSidebar: React.FC = () => {
     return (
         <Sidebar collapsible="icon" variant="floating">
             <SidebarHeader>
-                <Link to="/" onClick={closeOnMobile} className="flex h-8 items-center gap-2 overflow-hidden">
+                <Link to="/" onClick={closeOnMobile} className="flex h-10 items-center gap-3 overflow-hidden">
                     <AppLogo className="size-8" />
-                    <span className="truncate text-base font-bold group-data-[collapsible=icon]:hidden">
-                        NFT Minter
-                    </span>
+                    <span className="truncate text-lg font-bold group-data-[collapsible=icon]:hidden">NFT Minter</span>
                 </Link>
             </SidebarHeader>
 

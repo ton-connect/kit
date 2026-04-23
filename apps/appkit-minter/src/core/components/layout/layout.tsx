@@ -25,7 +25,7 @@ export const Layout: React.FC<LayoutProps> = ({ title, children }) => {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
+                <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-tertiary bg-background/80 px-4 backdrop-blur">
                     <SidebarTrigger />
 
                     {title && (
@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> = ({ title, children }) => {
 
                 <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-4">{children}</main>
 
-                <footer className="text-center py-2 text-xs text-muted-foreground">
+                <footer className="text-center py-2 text-xs text-tertiary-foreground">
                     <p>Powered by AppKit & TonConnect</p>
                 </footer>
             </SidebarInset>

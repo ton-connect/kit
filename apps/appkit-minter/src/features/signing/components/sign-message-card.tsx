@@ -12,8 +12,6 @@ import { useSignText, useSelectedWallet } from '@ton/appkit-react';
 import { toast } from 'sonner';
 import { Button } from '@ton/appkit-react';
 
-import { Card } from '@/core/components';
-
 export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
     const [message, setMessage] = useState('');
     const [signature, setSignature] = useState<string | null>(null);
@@ -48,13 +46,13 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
     };
 
     return (
-        <Card title="Sign Message" {...props}>
+        <div {...props}>
             <div className="space-y-4">
                 {/* Message Input */}
                 <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Message to sign</label>
                     <textarea
-                        className="w-full p-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full p-3 bg-tertiary border border-tertiary rounded-lg text-foreground placeholder:text-tertiary-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                         rows={3}
                         placeholder="Enter your message here..."
                         value={message}
@@ -78,7 +76,7 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
                 {signature && (
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-foreground">Signature</label>
-                        <div className="p-3 bg-muted border border-border rounded-lg">
+                        <div className="p-3 bg-tertiary border border-tertiary rounded-lg">
                             <code className="text-xs text-foreground break-all">{signature}</code>
                         </div>
                         <Button fullWidth variant="secondary" size="s" onClick={handleCopySignature}>
@@ -89,9 +87,9 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
 
                 {/* Info */}
                 {!wallet && (
-                    <p className="text-sm text-muted-foreground text-center">Connect wallet to sign messages</p>
+                    <p className="text-sm text-tertiary-foreground text-center">Connect wallet to sign messages</p>
                 )}
             </div>
-        </Card>
+        </div>
     );
 };

@@ -11,7 +11,7 @@ import { Network } from '@ton/appkit';
 import { SwapWidget } from '@ton/appkit-react';
 import type { AppkitUIToken } from '@ton/appkit-react';
 
-import { Card, Layout } from '@/core/components';
+import { Layout } from '@/core/components';
 
 const TOKENS: AppkitUIToken[] = [
     {
@@ -93,7 +93,7 @@ const TOKENS: AppkitUIToken[] = [
 export const SwapPage: React.FC = () => {
     return (
         <Layout title="Swap">
-            <Card className="w-fit mx-auto">
+            <div className="w-fit mx-auto">
                 <SwapWidget
                     tokens={TOKENS}
                     network={Network.mainnet()}
@@ -101,7 +101,7 @@ export const SwapPage: React.FC = () => {
                     defaultFromSymbol="TON"
                     defaultToSymbol="USD₮"
                 />
-            </Card>
+            </div>
         </Layout>
     );
 };
