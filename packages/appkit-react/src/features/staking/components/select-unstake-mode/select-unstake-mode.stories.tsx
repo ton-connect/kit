@@ -20,6 +20,7 @@ export default meta;
 type Story = StoryObj<typeof SelectUnstakeMode>;
 
 const mockMetadata = {
+    name: 'Tonstakers',
     providerId: 'tonstakers',
     stakeToken: {
         symbol: 'TON',

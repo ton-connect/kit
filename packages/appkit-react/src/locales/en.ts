@@ -93,5 +93,6 @@ export default {
         whenAvailable: 'When available',
         whenAvailableLimit: 'No limits',
         yourBalance: 'Your balance',
+        provider: 'Provider',
     },
 } as const;

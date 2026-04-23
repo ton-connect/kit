@@ -486,6 +486,7 @@ export class TonStakersStakingProvider extends StakingProvider {
         const m = meta as Record<string, unknown>;
 
         return (
+            typeof m.name === 'string' &&
             TonStakersStakingProvider.isValidTokenInfo(m.stakeToken) &&
             Array.isArray(m.supportedUnstakeModes) &&
             typeof m.supportsReversedQuote === 'boolean'

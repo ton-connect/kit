@@ -14,6 +14,7 @@ export const CACHE_TIMEOUT = 30000;
 
 export const DEFAULT_METADATA: Record<string, StakingProviderMetadata> = {
     [Network.mainnet().chainId]: {
+        name: 'Tonstakers',
         stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
         receiveToken: {
             ticker: 'tsTON',
@@ -25,6 +26,7 @@ export const DEFAULT_METADATA: Record<string, StakingProviderMetadata> = {
         supportsReversedQuote: true,
     },
     [Network.testnet().chainId]: {
+        name: 'Tonstakers',
         stakeToken: { ticker: 'TON', decimals: 9, address: 'ton' },
         receiveToken: {
             ticker: 'TUNA',
