@@ -56,6 +56,10 @@ export interface SwapContextType {
     fromBalance: string | undefined;
     /** User's balance of the "to" token */
     toBalance: string | undefined;
+    /** True while the "from" balance is being fetched */
+    isFromBalanceLoading: boolean;
+    /** True while the "to" balance is being fetched */
+    isToBalanceLoading: boolean;
     /** Whether the user can proceed with the swap (checks balance, amount, quote) */
     canSubmit: boolean;
     /** Raw swap quote from the provider */
@@ -109,6 +113,8 @@ export const SwapContext = createContext<SwapContextType>({
     fiatSymbol: '$',
     fromBalance: undefined,
     toBalance: undefined,
+    isFromBalanceLoading: false,
+    isToBalanceLoading: false,
     canSubmit: false,
     quote: undefined,
     isQuoteLoading: false,
@@ -170,19 +176,24 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     // Input prep — derived from props, consumed by local-state hooks below.
     const mappedTokens = useMemo(() => mapSwapWidgetTokens(tokens), [tokens]);
 
+    // 2. Queries and external readers (hoisted: `network` gates token filtering for local state below)
+    const walletNetwork = useNetwork();
+    const network = networkProp ?? walletNetwork;
+
+    const networkFilteredTokens = useMemo(
+        () => (network ? mappedTokens.filter((t) => t.network.chainId === network.chainId) : mappedTokens),
+        [mappedTokens, network],
+    );
+
     // 1. Local state
     const { fromToken, toToken, fromAmount, setFromToken, setToToken, setFromAmount, onFlip } = useSwapTokenState({
-        mappedTokens,
+        mappedTokens: networkFilteredTokens,
         defaultFromSymbol,
         defaultToSymbol,
     });
     const [slippage, setSlippage] = useState(defaultSlippage);
     const [fromAmountDebounced] = useDebounceValue(fromAmount, 500);
     const [pendingSwap, setPendingSwap] = useState<TonShortfall | undefined>(undefined);
-
-    // 2. Queries and external readers
-    const walletNetwork = useNetwork();
-    const network = networkProp ?? walletNetwork;
     const address = useAddress();
     const [swapProvider, setSwapProviderId] = useSwapProvider();
     const swapProviders = useSwapProviders();
@@ -230,7 +241,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     // Also show "loading" while the user is still typing (debounce in-flight) so the UI doesn't flash
     // the previous quote as if it were final.
     const isQuoteLoading = isQuoteFetching || fromAmount !== fromAmountDebounced;
-    const { fromBalance, toBalance } = useSwapBalances({
+    const { fromBalance, toBalance, isFromBalanceLoading, isToBalanceLoading } = useSwapBalances({
         fromToken,
         toToken,
         ownerAddress: address ?? undefined,
@@ -299,7 +310,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const value = useMemo(
         () => ({
-            tokens: mappedTokens,
+            tokens: networkFilteredTokens,
             fromToken,
             toToken,
             fromAmount,
@@ -307,6 +318,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fiatSymbol,
             fromBalance,
             toBalance,
+            isFromBalanceLoading,
+            isToBalanceLoading,
             canSubmit,
             quote,
             isQuoteLoading,
@@ -330,7 +343,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             onLowBalanceCancel,
         }),
         [
-            mappedTokens,
+            networkFilteredTokens,
             fromToken,
             toToken,
             fromAmount,
@@ -338,6 +351,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             fiatSymbol,
             fromBalance,
             toBalance,
+            isFromBalanceLoading,
+            isToBalanceLoading,
             canSubmit,
             quote,
             isQuoteLoading,

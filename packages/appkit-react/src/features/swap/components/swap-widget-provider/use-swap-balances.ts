@@ -23,9 +23,9 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: U
     const isFromNative = fromToken?.address === 'ton';
     const isToNative = toToken?.address === 'ton';
 
-    const { data: tonBalance } = useBalance({ network });
+    const { data: tonBalance, isLoading: isTonBalanceLoading } = useBalance({ network });
 
-    const { data: fromJettonBalance } = useJettonBalanceByAddress({
+    const { data: fromJettonBalance, isLoading: isFromJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: fromToken?.address,
         ownerAddress,
         jettonDecimals: fromToken?.decimals,
@@ -33,7 +33,7 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: U
         query: { enabled: !isFromNative && !!fromToken, refetchInterval: 5000 },
     });
 
-    const { data: toJettonBalance } = useJettonBalanceByAddress({
+    const { data: toJettonBalance, isLoading: isToJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: toToken?.address,
         ownerAddress,
         jettonDecimals: toToken?.decimals,
@@ -44,5 +44,7 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: U
     return {
         fromBalance: isFromNative ? tonBalance : fromJettonBalance,
         toBalance: isToNative ? tonBalance : toJettonBalance,
+        isFromBalanceLoading: isFromNative ? isTonBalanceLoading : isFromJettonBalanceLoading,
+        isToBalanceLoading: isToNative ? isTonBalanceLoading : isToJettonBalanceLoading,
     };
 }

@@ -29,6 +29,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  height: var(--ta-body-regular-line-height);
 }
 
 .maxButton {

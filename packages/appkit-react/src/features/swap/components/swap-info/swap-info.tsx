@@ -25,7 +25,7 @@ export interface SwapInfoProps extends ComponentProps<typeof InfoBlock.Container
 export const SwapInfo: FC<SwapInfoProps> = ({ quote, provider, toToken, slippage, isQuoteLoading, ...props }) => {
     const { t } = useI18n();
 
-    const minReceived = `${getDisplayAmount(quote?.minReceived, toToken?.decimals)} ${toToken?.symbol}`;
+    const minReceived = `${getDisplayAmount(quote?.minReceived, toToken?.decimals)} ${toToken?.symbol || ''}`;
     const providerName = provider?.getMetadata().name;
     const slippagePercent = `${(slippage / 100).toFixed(2)}%`;
 

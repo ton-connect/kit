@@ -7,7 +7,6 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Network } from '@ton/appkit';
 
 import { STORY_TOKENS } from '../../../../storybook/fixtures/tokens';
 import { SwapWidget } from './swap-widget';
@@ -24,7 +23,7 @@ type Story = StoryObj<typeof SwapWidget>;
 export const Default: Story = {
     args: {
         tokens: STORY_TOKENS,
-        network: Network.mainnet(),
+        network: undefined,
         fiatSymbol: '$',
         defaultFromSymbol: 'TON',
         defaultToSymbol: 'USDT',
@@ -34,7 +33,7 @@ export const Default: Story = {
 export const CustomUI: Story = {
     args: {
         tokens: STORY_TOKENS,
-        network: Network.mainnet(),
+        network: undefined,
         fiatSymbol: '$',
         defaultFromSymbol: 'TON',
         defaultToSymbol: 'USDT',

@@ -14,6 +14,7 @@ import { Input } from '../input/input';
 import { Modal } from '../modal/modal';
 import { SearchIcon } from '../search-icon';
 import { CurrencyItem } from '../../features/balances';
+import { useI18n } from '../../features/settings/hooks/use-i18n';
 import type { AppkitUIToken } from '../../types/appkit-ui-token';
 import styles from './token-select-modal.module.css';
 
@@ -34,6 +35,7 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
     title,
     searchPlaceholder,
 }) => {
+    const { t } = useI18n();
     const [search, setSearch] = useState('');
 
     const filtered = tokens.filter(
@@ -73,10 +75,14 @@ export const TokenSelectModal: FC<TokenSelectModalProps> = ({
             </Input.Container>
 
             <div className={styles.list}>
-                {filtered.length === 0 ? (
+                {tokens.length === 0 ? (
                     <div className={styles.empty}>
-                        <p className={styles.emptyText}>We didn&#x27;t find any tokens.</p>
-                        <p className={styles.emptyText}>Try searching by address.</p>
+                        <p className={styles.emptyText}>{t('tokenSelect.emptyForNetwork')}</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className={styles.empty}>
+                        <p className={styles.emptyText}>{t('tokenSelect.emptyNoMatch')}</p>
+                        <p className={styles.emptyText}>{t('tokenSelect.emptyTryAddress')}</p>
                     </div>
                 ) : (
                     <ul className={styles.list}>

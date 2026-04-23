@@ -24,6 +24,7 @@ export interface SwapFieldProps extends Omit<ComponentProps<typeof Input.Contain
     token?: AppkitUIToken;
     onAmountChange?: (value: string) => void;
     balance?: string;
+    isBalanceLoading?: boolean;
     loading?: boolean;
     onMaxClick?: () => void;
     onTokenSelectorClick?: () => void;
@@ -37,6 +38,7 @@ export const SwapField: FC<SwapFieldProps> = ({
     amount,
     onAmountChange,
     balance,
+    isBalanceLoading,
     loading,
     onMaxClick,
     onTokenSelectorClick,
@@ -47,7 +49,7 @@ export const SwapField: FC<SwapFieldProps> = ({
 }) => {
     const { t } = useI18n();
 
-    const tokenSymbol = token?.symbol || '';
+    const tokenSymbol = token?.symbol;
     const displayBalance = getDisplayAmount(balance, token?.decimals);
 
     return (
@@ -81,27 +83,27 @@ export const SwapField: FC<SwapFieldProps> = ({
                         {token?.rate &&
                             `${fiatSymbol} ${formatLargeValue(calcFiatValue(amount || '0', token.rate), 2, 2)}`}
                     </span>
-                    {type === 'pay' && (
+                    {type === 'pay' && token && (
                         <span className={styles.balanceWrapper}>
-                            {balance || !isWalletConnected ? (
+                            {isBalanceLoading ? (
+                                <Skeleton className={styles.skeletonText} />
+                            ) : (
                                 <>
                                     {t('swap.max')}
                                     <button className={styles.maxButton} onClick={onMaxClick} type="button">
                                         {displayBalance} {tokenSymbol}
                                     </button>
                                 </>
-                            ) : (
-                                <Skeleton className={styles.skeletonText} />
                             )}
                         </span>
                     )}
 
-                    {type === 'receive' && (
+                    {type === 'receive' && token && (
                         <span className={styles.balanceWrapper}>
-                            {balance || !isWalletConnected ? (
-                                `${displayBalance} ${tokenSymbol}`
-                            ) : (
+                            {isBalanceLoading ? (
                                 <Skeleton className={styles.skeletonText} />
+                            ) : (
+                                `${displayBalance} ${tokenSymbol}`
                             )}
                         </span>
                     )}

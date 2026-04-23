@@ -15,6 +15,7 @@ const tokens = [
         symbol: 'TON',
         name: 'Toncoin',
         decimals: 9,
+        network: Network.mainnet(),
         logo: 'https://ton.org/symbol.png',
     },
     {
@@ -22,6 +23,7 @@ const tokens = [
         symbol: 'USDT',
         name: 'Tether',
         decimals: 6,
+        network: Network.mainnet(),
         logo: 'https://tether.to/logo.png',
     },
 ];

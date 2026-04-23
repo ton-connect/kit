@@ -38,6 +38,13 @@ export default {
         onSale: 'On Sale',
     },
 
+    // Token select modal (shared between swap, etc.)
+    tokenSelect: {
+        emptyNoMatch: "We didn't find any tokens.",
+        emptyTryAddress: 'Try searching by address.',
+        emptyForNetwork: 'No tokens available for the selected network.',
+    },
+
     // Swap
     swap: {
         title: 'Swap',

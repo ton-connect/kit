@@ -6,6 +6,8 @@
  *
  */
 
+import type { Network } from '@ton/appkit';
+
 export interface AppkitUIToken {
     /** Token symbol, e.g. "TON" */
     symbol: string;
@@ -19,4 +21,6 @@ export interface AppkitUIToken {
     logo?: string;
     /** Optional exchange rate: 1 token = rate fiat units (used for fiat value display) */
     rate?: string;
+    /** Network the token belongs to. */
+    network: Network;
 }
