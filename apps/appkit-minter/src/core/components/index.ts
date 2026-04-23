@@ -10,6 +10,7 @@
 export { Layout, AppRouter, ThemeProvider } from './layout';
 
 // UI components
+export { EmptyState } from './empty-state';
 export { Sheet } from './sheet';
 export { Separator } from './separator';
 export { Sidebar } from './sidebar';

@@ -7,10 +7,11 @@
  */
 
 import type React from 'react';
-import { useSelectedWallet } from '@ton/appkit-react';
+import { TonConnectButton, useSelectedWallet } from '@ton/appkit-react';
+import { Wallet } from 'lucide-react';
 
 import { TokensCard } from '@/features/balances';
-import { Layout } from '@/core/components';
+import { EmptyState, Layout } from '@/core/components';
 
 export const JettonsPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
@@ -20,7 +21,12 @@ export const JettonsPage: React.FC = () => {
             {wallet ? (
                 <TokensCard />
             ) : (
-                <p className="text-sm text-tertiary-foreground">Connect your wallet to see your jettons.</p>
+                <EmptyState
+                    icon={Wallet}
+                    title="No wallet connected"
+                    description="Connect your wallet to see your jettons."
+                    action={<TonConnectButton />}
+                />
             )}
         </Layout>
     );
