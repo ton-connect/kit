@@ -89,13 +89,13 @@ export interface StakingContextType {
     /** True when the built transaction outflow exceeds the user's TON balance */
     isLowBalanceWarningOpen: boolean;
     /** `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. */
-    pendingStakeMode: 'reduce' | 'topup';
-    /** Required TON amount for the pending stake/unstake, formatted as a decimal string. Empty when no pending op. */
-    pendingStakeRequiredTon: string;
-    /** Replace amount with a value that fits into the current TON balance and close the warning */
-    changePendingStake: () => void;
-    /** Dismiss the low-balance warning without changing the amount */
-    cancelPendingStake: () => void;
+    lowBalanceMode: 'reduce' | 'topup';
+    /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
+    lowBalanceRequiredTon: string;
+    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    onLowBalanceChange: () => void;
+    /** Dismiss the low-balance warning without changing the input */
+    onLowBalanceCancel: () => void;
 }
 
 export const StakingContext = createContext<StakingContextType>({
@@ -123,10 +123,10 @@ export const StakingContext = createContext<StakingContextType>({
     reversedAmount: '0',
     onMaxClick: () => {},
     isLowBalanceWarningOpen: false,
-    pendingStakeMode: 'reduce',
-    pendingStakeRequiredTon: '',
-    changePendingStake: () => {},
-    cancelPendingStake: () => {},
+    lowBalanceMode: 'reduce',
+    lowBalanceRequiredTon: '',
+    onLowBalanceChange: () => {},
+    onLowBalanceCancel: () => {},
 });
 
 /**
@@ -272,7 +272,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         await sendTransaction(transactionParams);
     }, [quote, address, providerMetadata, direction, nativeBalanceData, buildTransaction, sendTransaction]);
 
-    const changePendingStake = useCallback(() => {
+    const onLowBalanceChange = useCallback(() => {
         if (!pendingStake || pendingStake.mode !== 'reduce') return;
         // The suggested amount is always a direct (non-reversed) outgoing amount.
         if (isReversed) setIsReversed(false);
@@ -280,13 +280,13 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         setPendingStake(undefined);
     }, [pendingStake, isReversed]);
 
-    const cancelPendingStake = useCallback(() => {
+    const onLowBalanceCancel = useCallback(() => {
         setPendingStake(undefined);
     }, []);
 
     const isLowBalanceWarningOpen = pendingStake !== undefined;
-    const pendingStakeMode: 'reduce' | 'topup' = pendingStake?.mode ?? 'reduce';
-    const pendingStakeRequiredTon = useMemo(() => {
+    const lowBalanceMode: 'reduce' | 'topup' = pendingStake?.mode ?? 'reduce';
+    const lowBalanceRequiredTon = useMemo(() => {
         if (!pendingStake) return '';
         return formatUnits(pendingStake.requiredNanos, 9);
     }, [pendingStake]);
@@ -329,10 +329,10 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             onMaxClick: handleMaxClick,
             onChangeDirection: setDirection,
             isLowBalanceWarningOpen,
-            pendingStakeMode,
-            pendingStakeRequiredTon,
-            changePendingStake,
-            cancelPendingStake,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         }),
         [
             amount,
@@ -360,10 +360,10 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             handleMaxClick,
             setDirection,
             isLowBalanceWarningOpen,
-            pendingStakeMode,
-            pendingStakeRequiredTon,
-            changePendingStake,
-            cancelPendingStake,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         ],
     );
 

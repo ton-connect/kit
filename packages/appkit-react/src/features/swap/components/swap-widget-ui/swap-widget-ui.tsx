@@ -51,10 +51,10 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     sendSwapTransaction,
     isSendingTransaction,
     isLowBalanceWarningOpen,
-    pendingSwapMode,
-    pendingSwapRequiredTon,
-    changePendingSwap,
-    cancelPendingSwap,
+    lowBalanceMode,
+    lowBalanceRequiredTon,
+    onLowBalanceChange,
+    onLowBalanceCancel,
     className,
     ...props
 }) => {
@@ -130,10 +130,10 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
 
             <LowBalanceModal
                 open={isLowBalanceWarningOpen}
-                mode={pendingSwapMode}
-                requiredTon={pendingSwapRequiredTon}
-                onChange={changePendingSwap}
-                onCancel={cancelPendingSwap}
+                mode={lowBalanceMode}
+                requiredTon={lowBalanceRequiredTon}
+                onChange={onLowBalanceChange}
+                onCancel={onLowBalanceCancel}
             />
 
             <ButtonWithConnect

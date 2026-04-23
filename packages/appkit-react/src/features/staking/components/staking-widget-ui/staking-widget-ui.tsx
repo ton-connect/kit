@@ -50,10 +50,10 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     balance,
     isBalanceLoading,
     isLowBalanceWarningOpen,
-    pendingStakeMode,
-    pendingStakeRequiredTon,
-    changePendingStake,
-    cancelPendingStake,
+    lowBalanceMode,
+    lowBalanceRequiredTon,
+    onLowBalanceChange,
+    onLowBalanceCancel,
     className,
     ...props
 }) => {
@@ -173,10 +173,10 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
 
             <LowBalanceModal
                 open={isLowBalanceWarningOpen}
-                mode={pendingStakeMode}
-                requiredTon={pendingStakeRequiredTon}
-                onChange={changePendingStake}
-                onCancel={cancelPendingStake}
+                mode={lowBalanceMode}
+                requiredTon={lowBalanceRequiredTon}
+                onChange={onLowBalanceChange}
+                onCancel={onLowBalanceCancel}
             />
         </div>
     );

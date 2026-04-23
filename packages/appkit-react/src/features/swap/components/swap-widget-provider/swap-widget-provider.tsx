@@ -90,14 +90,14 @@ export interface SwapContextType {
     isSendingTransaction: boolean;
     /** True when the built transaction outflow exceeds the user's TON balance */
     isLowBalanceWarningOpen: boolean;
-    /** `reduce` when swapping TON (user can fix by changing amount), `topup` when swapping a jetton (must top up TON). */
-    pendingSwapMode: 'reduce' | 'topup';
-    /** Required TON amount for the pending swap, formatted as a decimal string. Empty when no pending swap. */
-    pendingSwapRequiredTon: string;
-    /** Replace fromAmount with a value that fits into the current TON balance and close the warning */
-    changePendingSwap: () => void;
-    /** Dismiss the low-balance warning without changing the amount */
-    cancelPendingSwap: () => void;
+    /** `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. */
+    lowBalanceMode: 'reduce' | 'topup';
+    /** Required TON amount for the pending operation, formatted as a decimal string. Empty when no pending op. */
+    lowBalanceRequiredTon: string;
+    /** Replace the input with a value that fits into the current TON balance and close the warning */
+    onLowBalanceChange: () => void;
+    /** Dismiss the low-balance warning without changing the input */
+    onLowBalanceCancel: () => void;
 }
 
 export const SwapContext = createContext<SwapContextType>({
@@ -126,10 +126,10 @@ export const SwapContext = createContext<SwapContextType>({
     sendSwapTransaction: () => Promise.resolve(),
     isSendingTransaction: false,
     isLowBalanceWarningOpen: false,
-    pendingSwapMode: 'reduce',
-    pendingSwapRequiredTon: '',
-    changePendingSwap: () => {},
-    cancelPendingSwap: () => {},
+    lowBalanceMode: 'reduce',
+    lowBalanceRequiredTon: '',
+    onLowBalanceChange: () => {},
+    onLowBalanceCancel: () => {},
 });
 
 /**
@@ -210,7 +210,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
     const {
         data: quote,
-        isFetching: isQuoteLoading,
+        isFetching: isQuoteFetching,
         error: quoteError,
     } = useSwapQuote({
         from: fromTokenParam,
@@ -220,6 +220,9 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         slippageBps: slippage,
         providerId: swapProvider?.providerId,
     });
+    // Also show "loading" while the user is still typing (debounce in-flight) so the UI doesn't flash
+    // the previous quote as if it were final.
+    const isQuoteLoading = isQuoteFetching || fromAmount !== fromAmountDebounced;
     const { fromBalance, toBalance } = useSwapBalances({
         fromToken,
         toToken,
@@ -238,8 +241,8 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         quoteError,
     });
     const isLowBalanceWarningOpen = pendingSwap !== undefined;
-    const pendingSwapMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
-    const pendingSwapRequiredTon = useMemo(() => {
+    const lowBalanceMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
+    const lowBalanceRequiredTon = useMemo(() => {
         if (!pendingSwap) return '';
         return formatUnits(pendingSwap.requiredNanos, 9);
     }, [pendingSwap]);
@@ -275,13 +278,13 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         await sendTransaction(tx);
     }, [quote, address, fromToken, fromAmount, buildTransaction, sendTransaction, tonBalance]);
 
-    const changePendingSwap = useCallback(() => {
+    const onLowBalanceChange = useCallback(() => {
         if (!pendingSwap || pendingSwap.mode !== 'reduce') return;
         setFromAmount(pendingSwap.suggestedFromAmount);
         setPendingSwap(undefined);
     }, [pendingSwap, setFromAmount]);
 
-    const cancelPendingSwap = useCallback(() => {
+    const onLowBalanceCancel = useCallback(() => {
         setPendingSwap(undefined);
     }, []);
 
@@ -312,10 +315,10 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             sendSwapTransaction,
             isSendingTransaction,
             isLowBalanceWarningOpen,
-            pendingSwapMode,
-            pendingSwapRequiredTon,
-            changePendingSwap,
-            cancelPendingSwap,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         }),
         [
             mappedTokens,
@@ -343,10 +346,10 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
             sendSwapTransaction,
             isSendingTransaction,
             isLowBalanceWarningOpen,
-            pendingSwapMode,
-            pendingSwapRequiredTon,
-            changePendingSwap,
-            cancelPendingSwap,
+            lowBalanceMode,
+            lowBalanceRequiredTon,
+            onLowBalanceChange,
+            onLowBalanceCancel,
         ],
     );
 

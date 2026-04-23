@@ -36,12 +36,12 @@ export const SwapInfo: FC<SwapInfoProps> = ({ quote, provider, toToken, slippage
                 {isQuoteLoading ? <InfoBlock.ValueSkeleton /> : <InfoBlock.Value>{minReceived}</InfoBlock.Value>}
             </InfoBlock.Row>
             <InfoBlock.Row>
-                <InfoBlock.Label>{t('swap.provider')}</InfoBlock.Label>
-                {providerName ? <InfoBlock.Value>{providerName}</InfoBlock.Value> : <InfoBlock.ValueSkeleton />}
-            </InfoBlock.Row>
-            <InfoBlock.Row>
                 <InfoBlock.Label>{t('swap.slippage')}</InfoBlock.Label>
                 <InfoBlock.Value>{slippagePercent}</InfoBlock.Value>
+            </InfoBlock.Row>
+            <InfoBlock.Row>
+                <InfoBlock.Label>{t('swap.provider')}</InfoBlock.Label>
+                {providerName ? <InfoBlock.Value>{providerName}</InfoBlock.Value> : <InfoBlock.ValueSkeleton />}
             </InfoBlock.Row>
         </InfoBlock.Container>
     );
