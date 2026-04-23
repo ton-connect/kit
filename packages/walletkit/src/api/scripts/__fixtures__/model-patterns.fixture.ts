@@ -130,3 +130,53 @@ export type ThemeLight = { type: 'light_mode'; hex: string; opacity: number };
 export type Command = StartCommand | StopCommand;
 export type StartCommand = { type: 'start'; timeout?: number };
 export type StopCommand = { type: 'stop' };
+
+// ── 15. @format int32 / uint32 → integer type with the specific width format preserved ──
+//
+//   `number` + `@format int32` must coerce to { type: 'integer', format: 'int32' }. Same for the
+//   unsigned variant. These are distinct from the bare `@format int` case already covered above
+//   and prove the full INTEGER_FORMATS list is honoured.
+
+export interface WidthFormats {
+    /** @format int32 */
+    seqno: number;
+    /** @format uint32 */
+    timestampSec: number;
+}
+
+// ── 16. @format int64 → integer type with 64-bit format (the "bigint-like" lane) ──
+//
+//   JS/TS only reliably represents integers up to 2^53, so the wire format expects a number
+//   carrying up to 64 bits. `@format int64` keeps `type: 'integer'` with format preserved so
+//   downstream Swift/Kotlin templates can map it to Int64/Long instead of a smaller width.
+
+export interface Int64Fields {
+    /** @format int64 */
+    bigAmount: number;
+    /** @format uint64 */
+    unsignedBigAmount: number;
+}
+
+// ── 17. @format url → string type, format preserved, NO integer coercion ──
+//
+//   Covers the format-passthrough path: a non-integer @format tag must leave `type: 'string'`
+//   intact and just attach `format: 'url'`. Matches real usage on `DAppInfo.iconUrl`, etc.
+
+export interface WithUrl {
+    /** @format url */
+    iconUrl: string;
+    label: string; // plain string, must NOT gain a format
+}
+
+// ── 18. String-literal + ref union → x-string-literal-union (postProcessStringLiteralUnions, PR #361) ──
+//
+//   `type Endpoint = 'local' | 'remote_peer' | HostAlias` where `HostAlias = string`.
+//   ts-json-schema-generator hoists each literal to a synthetic single-value enum definition
+//   and emits the parent as an `anyOf` of `$ref`s. The post-processor must:
+//     • rewrite the parent to { type: 'object', x-string-literal-union: true, ... }
+//     • camelCase each literal rawValue into `x-literal-cases` (`'remote_peer'` → `'remotePeer'`)
+//     • pull the single $ref → string-alias target into `x-ref-case`
+//     • delete the synthetic single-value-literal definitions it hoisted.
+
+export type HostAlias = string;
+export type Endpoint = 'local' | 'remote_peer' | HostAlias;
