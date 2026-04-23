@@ -10,8 +10,5 @@
 export { Layout, AppRouter, ThemeProvider } from './layout';
 
 // UI components
-export { Sidebar } from './sidebar';
 export { Sheet } from './sheet';
-export { Separator } from './separator';
-export { Tooltip } from './tooltip';
 export { ToasterProvider } from './toaster-provider';

@@ -7,6 +7,5 @@
  */
 
 export { Layout } from './layout';
-export { AppSidebar } from './app-sidebar';
 export { AppRouter } from './app-router';
 export { ThemeProvider } from './theme-provider';
