@@ -8,48 +8,48 @@
 
 import type { FC } from 'react';
 
-import { Modal } from '../../../../components/modal/modal';
-import { Button } from '../../../../components/button';
-import { useI18n } from '../../../settings/hooks/use-i18n';
-import styles from './swap-low-balance-modal.module.css';
+import { Modal } from '../modal/modal';
+import { Button } from '../button';
+import { useI18n } from '../../features/settings/hooks/use-i18n';
+import styles from './low-balance-modal.module.css';
 
-export type SwapLowBalanceMode = 'reduce' | 'topup';
+export type LowBalanceMode = 'reduce' | 'topup';
 
-export interface SwapLowBalanceModalProps {
+export interface LowBalanceModalProps {
     open: boolean;
     /**
-     * `reduce` — fromToken is TON, user can fix by reducing the amount (shows Change/Cancel).
-     * `topup`  — fromToken is a jetton, reducing doesn't help (shows Close only).
+     * `reduce` — user can fix it by reducing the amount (shows Change/Cancel).
+     * `topup`  — reducing doesn't help, user must top up TON (shows Close only).
      */
-    mode: SwapLowBalanceMode;
+    mode: LowBalanceMode;
     /** Required amount in TON, formatted as a decimal string (e.g. "0.423"). */
     requiredTon: string;
     onChange: () => void;
     onCancel: () => void;
 }
 
-export const SwapLowBalanceModal: FC<SwapLowBalanceModalProps> = ({ open, mode, requiredTon, onChange, onCancel }) => {
+export const LowBalanceModal: FC<LowBalanceModalProps> = ({ open, mode, requiredTon, onChange, onCancel }) => {
     const { t } = useI18n();
 
-    const messageKey = mode === 'reduce' ? 'swap.lowBalanceMessageReduce' : 'swap.lowBalanceMessageTopup';
+    const messageKey = mode === 'reduce' ? 'lowBalance.messageReduce' : 'lowBalance.messageTopup';
 
     return (
-        <Modal open={open} onOpenChange={(isOpen) => !isOpen && onCancel()} title={t('swap.lowBalanceTitle')}>
+        <Modal open={open} onOpenChange={(isOpen) => !isOpen && onCancel()} title={t('lowBalance.title')}>
             <p className={styles.message}>{t(messageKey, { amount: requiredTon })}</p>
 
             <div className={styles.actions}>
                 {mode === 'reduce' ? (
                     <>
                         <Button variant="secondary" size="l" fullWidth onClick={onCancel}>
-                            {t('swap.lowBalanceCancel')}
+                            {t('lowBalance.cancel')}
                         </Button>
                         <Button variant="fill" size="l" fullWidth onClick={onChange}>
-                            {t('swap.lowBalanceChange')}
+                            {t('lowBalance.change')}
                         </Button>
                     </>
                 ) : (
                     <Button variant="fill" size="l" fullWidth onClick={onCancel}>
-                        {t('swap.lowBalanceClose')}
+                        {t('lowBalance.close')}
                     </Button>
                 )}
             </div>

@@ -8,15 +8,15 @@
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { SwapLowBalanceModal } from './swap-low-balance-modal';
+import { LowBalanceModal } from './low-balance-modal';
 
-const meta: Meta<typeof SwapLowBalanceModal> = {
-    title: 'Public/Features/Swap/Internal/SwapLowBalanceModal',
-    component: SwapLowBalanceModal,
+const meta: Meta<typeof LowBalanceModal> = {
+    title: 'Public/Components/LowBalanceModal',
+    component: LowBalanceModal,
 };
 
 export default meta;
-type Story = StoryObj<typeof SwapLowBalanceModal>;
+type Story = StoryObj<typeof LowBalanceModal>;
 
 export const Default: Story = {
     args: {

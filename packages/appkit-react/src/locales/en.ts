@@ -58,14 +58,18 @@ export default {
         provider: 'Provider',
         save: 'Save',
         minReceived: 'Min Received',
-        lowBalanceTitle: 'Not enough TON',
-        lowBalanceMessageReduce:
-            'This swap requires ~{{ amount }} TON which exceeds your TON balance. Reduce the amount to continue.',
-        lowBalanceMessageTopup:
-            'This swap needs ~{{ amount }} TON to cover network fees. Top up your TON balance to continue.',
-        lowBalanceChange: 'Change amount',
-        lowBalanceCancel: 'Cancel',
-        lowBalanceClose: 'Close',
+    },
+
+    // Low balance modal (shared between swap, staking, etc.)
+    lowBalance: {
+        title: 'Not enough TON',
+        messageReduce:
+            'This operation requires ~{{ amount }} TON which exceeds your TON balance. Reduce the amount to continue.',
+        messageTopup:
+            'This operation needs ~{{ amount }} TON to cover network fees. Top up your TON balance to continue.',
+        change: 'Change amount',
+        cancel: 'Cancel',
+        close: 'Close',
     },
 
     // Staking

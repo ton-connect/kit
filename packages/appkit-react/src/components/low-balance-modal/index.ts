@@ -6,5 +6,5 @@
  *
  */
 
-export { SwapLowBalanceModal } from './swap-low-balance-modal';
-export type { SwapLowBalanceModalProps } from './swap-low-balance-modal';
+export { LowBalanceModal } from './low-balance-modal';
+export type { LowBalanceModalProps, LowBalanceMode } from './low-balance-modal';

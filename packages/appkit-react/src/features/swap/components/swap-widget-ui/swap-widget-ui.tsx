@@ -17,8 +17,8 @@ import { SwapFlipButton } from '../swap-flip-button';
 import { SwapInfo } from '../swap-info';
 import { SwapSettingsButton } from '../swap-settings-button';
 import { SwapSettingsModal } from '../swap-settings-modal';
-import { SwapLowBalanceModal } from '../swap-low-balance-modal';
 import { SwapTokenSelectModal } from '../swap-token-select-modal';
+import { LowBalanceModal } from '../../../../components/low-balance-modal';
 import styles from './swap-widget-ui.module.css';
 import type { SwapContextType } from '../swap-widget-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
@@ -128,7 +128,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 onProviderChange={setSwapProviderId}
             />
 
-            <SwapLowBalanceModal
+            <LowBalanceModal
                 open={isLowBalanceWarningOpen}
                 mode={pendingSwapMode}
                 requiredTon={pendingSwapRequiredTon}
