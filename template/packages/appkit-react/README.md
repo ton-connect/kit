@@ -139,11 +139,13 @@ AppKit supports staking through various providers (e.g., Tonstakers). The stakin
 
 ### Hooks
 
-Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` or `useBuildUnstakeTransaction` to build the transaction.
+Use `useStakingQuote` to get a staking/unstaking quote and `useBuildStakeTransaction` to build the transaction.
 
 [Read more about Staking](https://github.com/ton-connect/kit/tree/main/packages/appkit/docs/staking.md)
 
-%%demo/examples/src/appkit/hooks/staking#USE_STAKING%%
+%%demo/examples/src/appkit/hooks/staking#USE_STAKING_QUOTE%%
+
+%%demo/examples/src/appkit/hooks/staking#USE_BUILD_STAKE_TRANSACTION%%
 
 ## Migration from TonConnect UI
 
