@@ -9,7 +9,7 @@
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
 import { formatLargeValue, Network, useAddress, useBalance, useDefaultNetwork } from '@ton/appkit-react';
-import { Check, Copy, ExternalLink, Wallet } from 'lucide-react';
+import { Check, Copy, ExternalLink } from 'lucide-react';
 
 import { truncateAddress } from '@/core/utils/truncate-address';
 
