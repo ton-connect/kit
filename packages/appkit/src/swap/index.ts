@@ -6,6 +6,8 @@
  *
  */
 
+export { DefiError, SwapError, SwapProvider, SwapManager } from '@ton/walletkit';
+
 export type {
     SwapToken,
     TokenAmount,
@@ -15,7 +17,4 @@ export type {
     SwapQuoteParams,
     DefiManagerAPI,
     DefiProvider,
-    SwapProvider,
-    SwapError,
-    SwapManager,
 } from '@ton/walletkit';

@@ -34,8 +34,6 @@ import { useSendTransaction } from '../../../transaction/hooks/use-send-transact
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
 
-export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | 'unsupportedNetwork' | null;
-
 /**
  * Context type for the StakingWidget.
  * Provides all necessary state and actions for building custom staking UIs.
@@ -50,7 +48,7 @@ export interface StakingContextType {
     /** True while the stake quote is being fetched */
     isQuoteLoading: boolean;
     /** Current validation/fetch error for staking, null when everything is ok */
-    error: StakingWidgetError;
+    error: string | null;
     /** Staking provider dynamic info (APY, instant unstake availability, etc.) */
     providerInfo: StakingProviderInfo | undefined;
     /** Staking provider static metadata */

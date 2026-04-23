@@ -9,7 +9,8 @@
 import { useMemo } from 'react';
 
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
-import type { SwapWidgetError } from './swap-widget-provider';
+import { hasTooManyDecimals, isAmountExceedingBalance } from '../../../../utils/validate-amount';
+import { mapSwapError } from '../../utils/map-swap-error';
 
 interface UseSwapValidationOptions {
     fromAmount: string;
@@ -30,24 +31,16 @@ export function useSwapValidation({
     quoteError,
     isNetworkSupported,
 }: UseSwapValidationOptions) {
-    const error: SwapWidgetError = useMemo(() => {
-        if (!isNetworkSupported) return 'unsupportedNetwork';
+    const error: string | null = useMemo(() => {
+        if (!isNetworkSupported) return 'defi.unsupportedNetwork';
 
-        const amount = parseFloat(fromAmount) || 0;
-        if (amount <= 0) return null;
+        if ((parseFloat(fromAmount) || 0) <= 0) return null;
 
-        const fraction = fromAmount.split('.')[1];
-        if (fraction && fromToken && fraction.length > fromToken.decimals) {
-            return 'tooManyDecimals';
-        }
+        if (hasTooManyDecimals(fromAmount, fromToken?.decimals)) return 'swap.tooManyDecimals';
 
-        if (fromBalance !== undefined && amount > parseFloat(fromBalance)) {
-            return 'insufficientBalance';
-        }
+        if (isAmountExceedingBalance(fromAmount, fromBalance)) return 'swap.insufficientBalance';
 
-        if (quoteError && fromAmountDebounced) {
-            return 'quoteError';
-        }
+        if (quoteError && fromAmountDebounced) return mapSwapError(quoteError);
 
         return null;
     }, [isNetworkSupported, fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);

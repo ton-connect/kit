@@ -45,6 +45,16 @@ export default {
         emptyForNetwork: 'No tokens available for the selected network.',
     },
 
+    // Shared DeFi error messages (rendered by `mapDefiError`)
+    defi: {
+        unsupportedNetwork: 'Network is not supported',
+        networkError: 'Network error, please try again',
+        providerNotFound: 'Provider not found',
+        noDefaultProvider: 'No provider configured',
+        invalidProvider: 'Invalid provider',
+        invalidParams: 'Invalid parameters',
+    },
+
     // Swap
     swap: {
         title: 'Swap',
@@ -56,7 +66,10 @@ export default {
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
         quoteError: 'Unable to get a quote',
-        unsupportedNetwork: 'Network is not supported',
+        invalidQuote: 'Quote is invalid',
+        insufficientLiquidity: 'Insufficient liquidity for this swap',
+        quoteExpired: 'Quote expired, please try again',
+        buildTxFailed: "Couldn't build the swap transaction",
         selectToken: 'Select Token',
         searchToken: 'Search...',
         settings: 'Swap settings',
@@ -88,7 +101,8 @@ export default {
         insufficientBalance: 'Insufficient balance',
         tooManyDecimals: 'Too many decimal places',
         quoteError: 'Unable to get a quote',
-        unsupportedNetwork: 'Network is not supported',
+        invalidParams: 'Invalid staking parameters',
+        unsupportedOperation: 'Operation not supported by this provider',
         youGet: 'You get',
         currentApy: 'Current APY',
         max: 'MAX',

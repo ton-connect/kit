@@ -9,7 +9,8 @@
 import { useMemo } from 'react';
 import type { StakingQuoteDirection, StakingQuote } from '@ton/appkit';
 
-import type { StakingWidgetError } from './staking-widget-provider';
+import { hasTooManyDecimals, isAmountExceedingBalance } from '../../../../utils/validate-amount';
+import { mapStakingError } from '../../utils/map-staking-error';
 
 interface UseStakingValidationOptions {
     amount: string;
@@ -36,34 +37,27 @@ export const useStakingValidation = ({
     stakedBalance,
     isNetworkSupported,
 }: UseStakingValidationOptions) => {
-    const error: StakingWidgetError = useMemo(() => {
-        if (!isNetworkSupported) return 'unsupportedNetwork';
+    const error: string | null = useMemo(() => {
+        if (!isNetworkSupported) return 'defi.unsupportedNetwork';
 
-        const parsed = parseFloat(amount) || 0;
-        if (parsed <= 0) return null;
+        if ((parseFloat(amount) || 0) <= 0) return null;
 
-        const fraction = amount.split('.')[1];
-        if (fraction && amountDecimals && fraction.length > amountDecimals) {
-            return 'tooManyDecimals';
+        if (hasTooManyDecimals(amount, amountDecimals)) return 'staking.tooManyDecimals';
+
+        if (direction === 'stake' && isAmountExceedingBalance(amount, balance)) {
+            return 'staking.insufficientBalance';
         }
 
-        if (direction === 'stake' && balance !== undefined && parsed > parseFloat(balance)) {
-            return 'insufficientBalance';
-        }
-
-        if (direction === 'unstake' && stakedBalance) {
-            if (!isReversed && parsed > parseFloat(stakedBalance)) {
-                return 'insufficientBalance';
-            }
-
-            if (isReversed && quote && parseFloat(quote.amountIn) > parseFloat(stakedBalance)) {
-                return 'insufficientBalance';
+        if (direction === 'unstake') {
+            // On reversed unstake the user types the TON they want to receive; compare the tsTON
+            // spend (quote.amountIn) to the staked balance instead.
+            const outgoingAmount = isReversed ? quote?.amountIn : amount;
+            if (isAmountExceedingBalance(outgoingAmount, stakedBalance)) {
+                return 'staking.insufficientBalance';
             }
         }
 
-        if (quoteError && amountDebounced) {
-            return 'quoteError';
-        }
+        if (quoteError && amountDebounced) return mapStakingError(quoteError);
 
         return null;
     }, [

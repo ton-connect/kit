@@ -33,8 +33,6 @@ import { useSwapValidation } from './use-swap-validation';
 
 export type { AppkitUIToken };
 
-export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | 'unsupportedNetwork' | null;
-
 /**
  * Context type for the SwapWidget.
  * Provides all necessary state and actions for building custom swap UIs.
@@ -67,7 +65,7 @@ export interface SwapContextType {
     /** True while the quote is being fetched from the API */
     isQuoteLoading: boolean;
     /** Current validation or fetch error, null when everything is ok */
-    error: SwapWidgetError;
+    error: string | null;
     /** Slippage tolerance in basis points (100 = 1%) */
     slippage: number;
     /** Currently selected swap provider (defaults to the first registered one) */

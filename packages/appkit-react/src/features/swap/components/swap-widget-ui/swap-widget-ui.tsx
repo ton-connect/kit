@@ -148,7 +148,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
                 onClick={sendSwapTransaction}
             >
-                {error ? t(`swap.${error}`) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+                {error ? t(error) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
             </ButtonWithConnect>
 
             <SwapInfo

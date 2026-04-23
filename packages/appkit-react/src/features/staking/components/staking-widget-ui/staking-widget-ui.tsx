@@ -63,7 +63,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     const stakeToken = providerMetadata?.stakeToken;
 
     const buttonText = useMemo(() => {
-        if (error) return t(`staking.${error}`);
+        if (error) return t(error);
         return direction === 'stake' ? t('staking.continue') : t('staking.unstake');
     }, [error, direction, t]);
 
