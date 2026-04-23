@@ -56,7 +56,7 @@ const AppSidebar: React.FC = () => {
     };
 
     return (
-        <Sidebar collapsible="offcanvas">
+        <Sidebar>
             <SidebarHeader>
                 <Link to="/" onClick={closeOnMobile} className="flex items-center gap-2 px-2 py-1.5">
                     <AppLogo className="size-7" />
@@ -77,7 +77,7 @@ const AppSidebar: React.FC = () => {
                             <SidebarMenuItem key={to}>
                                 <NavLink to={to} end={to === '/'} onClick={closeOnMobile}>
                                     {({ isActive }) => (
-                                        <SidebarMenuButton isActive={isActive} tooltip={label}>
+                                        <SidebarMenuButton isActive={isActive}>
                                             <Icon />
                                             <span>{label}</span>
                                         </SidebarMenuButton>
@@ -93,7 +93,7 @@ const AppSidebar: React.FC = () => {
                 <SidebarMenu>
                     {EXTERNAL_LINKS.map(({ href, label, icon: Icon }) => (
                         <SidebarMenuItem key={href}>
-                            <SidebarMenuButton asChild tooltip={label}>
+                            <SidebarMenuButton asChild>
                                 <a href={href} target="_blank" rel="noreferrer">
                                     <Icon />
                                     <span>{label}</span>
