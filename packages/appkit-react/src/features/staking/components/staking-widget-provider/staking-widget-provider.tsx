@@ -20,7 +20,6 @@ import type {
 import { UnstakeMode } from '@ton/appkit';
 
 import { useNetwork } from '../../../network';
-import { convertByRate } from '../../utils/convert-by-rate';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
@@ -219,19 +218,9 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const { data: quote, isFetching: isQuoteLoading, error: quoteError } = useStakingQuote(quoteParamsDebounced);
 
     const reversedAmount = useMemo(() => {
-        if (direction === 'stake') return quote?.amountOut || '0';
-        if (isReversed) return quote?.amountIn || '0';
-        if (!quote?.amountIn) return '0';
-
-        return convertByRate(quote.amountIn, providerInfo?.exchangeRate, providerMetadata?.stakeToken.decimals) || '0';
-    }, [
-        direction,
-        isReversed,
-        quote?.amountOut,
-        quote?.amountIn,
-        providerInfo?.exchangeRate,
-        providerMetadata?.stakeToken.decimals,
-    ]);
+        if (direction === 'unstake' && isReversed) return quote?.amountIn || '0';
+        return quote?.amountOut || '0';
+    }, [direction, isReversed, quote?.amountOut, quote?.amountIn]);
 
     const toggleReversed = useCallback(() => {
         setAmountRaw(reversedAmount);
