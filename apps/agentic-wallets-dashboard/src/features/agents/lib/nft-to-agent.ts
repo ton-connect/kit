@@ -12,8 +12,9 @@ import type { Cell } from '@ton/core';
 import type { AgentStatus, AgentWallet } from '../types';
 
 function getAttribute(nft: NFT, traitType: string): string | undefined {
-    return nft.attributes?.find((a) => a.traitType === traitType || (a as { trait_type?: string }).trait_type === traitType)
-        ?.value;
+    return nft.attributes?.find(
+        (a) => a.traitType === traitType || (a as { trait_type?: string }).trait_type === traitType,
+    )?.value;
 }
 
 function parseStatus(value: string | undefined): AgentStatus {

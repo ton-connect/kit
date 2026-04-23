@@ -11,14 +11,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAddress, useAppKit, useNetwork } from '@ton/appkit-react';
 import type { NFT } from '@ton/appkit';
 
-import { ENV_AGENTIC_ACTIVITY_POLL_MS, ENV_AGENTIC_COLLECTION_MAINNET, ENV_AGENTIC_COLLECTION_TESTNET } from '@/core/configs/env';
-
 import { useAgentsStore } from '../store/agents-store';
 import type { AgentWallet } from '../types';
 import { extractNameFromMetadata } from '../lib/metadata';
 import { getAgentWalletState } from '../lib/agentic-wallet';
 import { isSameTonAddress } from '../lib/address';
 import { mapWithConcurrency } from '../lib/async';
+
+import {
+    ENV_AGENTIC_ACTIVITY_POLL_MS,
+    ENV_AGENTIC_COLLECTION_MAINNET,
+    ENV_AGENTIC_COLLECTION_TESTNET,
+} from '@/core/configs/env';
 
 function getCollectionAddressForNetwork(chainId: string | undefined): string {
     if (chainId === '-239') {
@@ -31,8 +35,9 @@ function getCollectionAddressForNetwork(chainId: string | undefined): string {
 }
 
 function getAttribute(nft: NFT, traitType: string): string | undefined {
-    return nft.attributes?.find((a) => a.traitType === traitType || (a as { trait_type?: string }).trait_type === traitType)
-        ?.value;
+    return nft.attributes?.find(
+        (a) => a.traitType === traitType || (a as { trait_type?: string }).trait_type === traitType,
+    )?.value;
 }
 
 function parseBigint(value: string | undefined): bigint | null {
@@ -176,7 +181,9 @@ export function useAgents() {
                 },
             );
 
-            return Object.fromEntries(entries.filter((entry): entry is readonly [string, ChainStateEntry] => entry !== null));
+            return Object.fromEntries(
+                entries.filter((entry): entry is readonly [string, ChainStateEntry] => entry !== null),
+            );
         },
     });
 

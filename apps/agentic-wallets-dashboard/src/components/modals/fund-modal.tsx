@@ -213,9 +213,8 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
         setOpenSelectorUid((current) => (current === uid ? null : current));
     };
 
-    const walletFeatures = (
-        wallet as unknown as { tonConnectWallet?: { device?: { features?: unknown[] } } } | null
-    )?.tonConnectWallet?.device?.features;
+    const walletFeatures = (wallet as unknown as { tonConnectWallet?: { device?: { features?: unknown[] } } } | null)
+        ?.tonConnectWallet?.device?.features;
     const maxOutgoingMessages = Math.max(
         1,
         getMaxOutgoingMessages((Array.isArray(walletFeatures) ? walletFeatures : []) as never[]) ?? 1,
@@ -421,23 +420,32 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                             const balance = getAssetBalance(asset);
                             const maxAmountString = asset.kind === 'ton' ? maxTonForFundingString : balance;
                             const canUseMax = isFungible && getAssetBalanceUnits(asset) > 0n;
-                            const maxInputDecimals = asset.kind === 'ton' ? 9 : asset.kind === 'jetton' ? (asset.decimals ?? 9) : 0;
+                            const maxInputDecimals =
+                                asset.kind === 'ton' ? 9 : asset.kind === 'jetton' ? (asset.decimals ?? 9) : 0;
 
                             const selectorOpen = openSelectorUid === item.uid;
                             const jettonsOpen = jettonsOpenByUid[item.uid] ?? false;
                             const nftsOpen = nftsOpenByUid[item.uid] ?? false;
                             const availableJettons = assets.filter(
-                                (option) => option.kind === 'jetton' && !isAssetSelectedInOtherItem(option.id, item.uid),
+                                (option) =>
+                                    option.kind === 'jetton' && !isAssetSelectedInOtherItem(option.id, item.uid),
                             );
                             const availableNfts = assets.filter(
                                 (option) => option.kind === 'nft' && !isAssetSelectedInOtherItem(option.id, item.uid),
                             );
                             return (
-                                <div key={item.uid} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                                <div
+                                    key={item.uid}
+                                    className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
+                                >
                                     <div className="relative mb-3 flex items-center gap-2">
                                         <button
                                             type="button"
-                                            onClick={() => setOpenSelectorUid((current) => (current === item.uid ? null : item.uid))}
+                                            onClick={() =>
+                                                setOpenSelectorUid((current) =>
+                                                    current === item.uid ? null : item.uid,
+                                                )
+                                            }
                                             className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-left text-sm text-white outline-none transition-colors hover:border-white/[0.15] focus:border-amber-500/50"
                                         >
                                             <span className="flex min-w-0 items-center gap-2">
@@ -461,7 +469,12 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                 fill="none"
                                                 className={`transition-transform ${selectorOpen ? 'rotate-180' : ''}`}
                                             >
-                                                <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                <path
+                                                    d="M3 4.5L6 7.5L9 4.5"
+                                                    stroke="currentColor"
+                                                    strokeWidth="1.5"
+                                                    strokeLinecap="round"
+                                                />
                                             </svg>
                                         </button>
                                         <button
@@ -493,7 +506,10 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setJettonsOpenByUid((prev) => ({ ...prev, [item.uid]: !(prev[item.uid] ?? false) }))
+                                                        setJettonsOpenByUid((prev) => ({
+                                                            ...prev,
+                                                            [item.uid]: !(prev[item.uid] ?? false),
+                                                        }))
                                                     }
                                                     className="flex w-full items-center justify-between px-4 py-2 text-left text-xs uppercase tracking-wide text-neutral-400 transition-colors hover:bg-white/[0.04]"
                                                 >
@@ -505,44 +521,59 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                         fill="none"
                                                         className={`transition-transform ${jettonsOpen ? 'rotate-180' : ''}`}
                                                     >
-                                                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                        <path
+                                                            d="M3 4.5L6 7.5L9 4.5"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.5"
+                                                            strokeLinecap="round"
+                                                        />
                                                     </svg>
                                                 </button>
                                                 {jettonsOpen &&
                                                     availableJettons.map((option) => (
-                                                            <button
-                                                                key={option.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    updateFundingItem(item.uid, { assetId: option.id, amount: '' });
-                                                                    setOpenSelectorUid(null);
-                                                                }}
-                                                                className={`flex w-full items-center justify-between gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                                                                    item.assetId === option.id ? 'text-amber-500' : 'text-white'
-                                                                }`}
-                                                            >
-                                                                <span className="flex min-w-0 items-center gap-2">
-                                                                    <AssetIcon asset={option} />
-                                                                    <span className="truncate">{option.label}</span>
-                                                                    {option.sublabel && (
-                                                                        <span className="hidden truncate text-neutral-500 sm:inline">
-                                                                            {option.sublabel}
-                                                                        </span>
-                                                                    )}
-                                                                </span>
-                                                                <span className="font-mono text-xs text-neutral-400">
-                                                                    {formatBalance(option.balance ?? '0')}
-                                                                </span>
-                                                            </button>
-                                                        ))}
+                                                        <button
+                                                            key={option.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                updateFundingItem(item.uid, {
+                                                                    assetId: option.id,
+                                                                    amount: '',
+                                                                });
+                                                                setOpenSelectorUid(null);
+                                                            }}
+                                                            className={`flex w-full items-center justify-between gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                                                                item.assetId === option.id
+                                                                    ? 'text-amber-500'
+                                                                    : 'text-white'
+                                                            }`}
+                                                        >
+                                                            <span className="flex min-w-0 items-center gap-2">
+                                                                <AssetIcon asset={option} />
+                                                                <span className="truncate">{option.label}</span>
+                                                                {option.sublabel && (
+                                                                    <span className="hidden truncate text-neutral-500 sm:inline">
+                                                                        {option.sublabel}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="font-mono text-xs text-neutral-400">
+                                                                {formatBalance(option.balance ?? '0')}
+                                                            </span>
+                                                        </button>
+                                                    ))}
                                                 {jettonsOpen && availableJettons.length === 0 && (
-                                                    <div className="px-6 py-2 text-xs text-neutral-500">No jettons found</div>
+                                                    <div className="px-6 py-2 text-xs text-neutral-500">
+                                                        No jettons found
+                                                    </div>
                                                 )}
 
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        setNftsOpenByUid((prev) => ({ ...prev, [item.uid]: !(prev[item.uid] ?? false) }))
+                                                        setNftsOpenByUid((prev) => ({
+                                                            ...prev,
+                                                            [item.uid]: !(prev[item.uid] ?? false),
+                                                        }))
                                                     }
                                                     className="flex w-full items-center justify-between px-4 py-2 text-left text-xs uppercase tracking-wide text-neutral-400 transition-colors hover:bg-white/[0.04]"
                                                 >
@@ -554,40 +585,53 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                         fill="none"
                                                         className={`transition-transform ${nftsOpen ? 'rotate-180' : ''}`}
                                                     >
-                                                        <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                        <path
+                                                            d="M3 4.5L6 7.5L9 4.5"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1.5"
+                                                            strokeLinecap="round"
+                                                        />
                                                     </svg>
                                                 </button>
                                                 {nftsOpen &&
                                                     availableNfts.map((option) => (
-                                                            <button
-                                                                key={option.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    updateFundingItem(item.uid, { assetId: option.id, amount: '' });
-                                                                    setOpenSelectorUid(null);
-                                                                }}
-                                                                className={`flex w-full items-center gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                                                                    item.assetId === option.id ? 'text-amber-500' : 'text-white'
-                                                                }`}
-                                                            >
-                                                                <AssetIcon asset={option} />
-                                                                <span className="truncate">{option.label}</span>
-                                                                {option.sublabel && (
-                                                                    <span className="hidden truncate text-neutral-500 sm:inline">
-                                                                        {option.sublabel}
-                                                                    </span>
-                                                                )}
-                                                            </button>
-                                                        ))}
+                                                        <button
+                                                            key={option.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                updateFundingItem(item.uid, {
+                                                                    assetId: option.id,
+                                                                    amount: '',
+                                                                });
+                                                                setOpenSelectorUid(null);
+                                                            }}
+                                                            className={`flex w-full items-center gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
+                                                                item.assetId === option.id
+                                                                    ? 'text-amber-500'
+                                                                    : 'text-white'
+                                                            }`}
+                                                        >
+                                                            <AssetIcon asset={option} />
+                                                            <span className="truncate">{option.label}</span>
+                                                            {option.sublabel && (
+                                                                <span className="hidden truncate text-neutral-500 sm:inline">
+                                                                    {option.sublabel}
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    ))}
                                                 {nftsOpen && availableNfts.length === 0 && (
-                                                    <div className="px-6 py-2 text-xs text-neutral-500">No NFTs found</div>
-                                                )}
-                                                {(jettonsLoading || jettonsFetching || nftsLoading || nftsFetching) && assets.length <= 1 && (
-                                                    <div className="flex items-center gap-2 px-4 py-2.5 text-xs text-neutral-500">
-                                                        <div className="h-3 w-3 animate-spin rounded-full border border-white/10 border-t-amber-500" />
-                                                        Loading assets...
+                                                    <div className="px-6 py-2 text-xs text-neutral-500">
+                                                        No NFTs found
                                                     </div>
                                                 )}
+                                                {(jettonsLoading || jettonsFetching || nftsLoading || nftsFetching) &&
+                                                    assets.length <= 1 && (
+                                                        <div className="flex items-center gap-2 px-4 py-2.5 text-xs text-neutral-500">
+                                                            <div className="h-3 w-3 animate-spin rounded-full border border-white/10 border-t-amber-500" />
+                                                            Loading assets...
+                                                        </div>
+                                                    )}
                                             </div>
                                         )}
                                     </div>
@@ -595,7 +639,9 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                     {isFungible ? (
                                         <>
                                             <div className="mb-1.5 flex items-center justify-between gap-3">
-                                                <label className="block text-xs text-neutral-500">Amount ({asset.label})</label>
+                                                <label className="block text-xs text-neutral-500">
+                                                    Amount ({asset.label})
+                                                </label>
                                                 <span className="text-xs text-neutral-500">
                                                     Balance: {formatBalance(balance)} {asset.label}
                                                 </span>
@@ -621,7 +667,9 @@ export function FundModal({ agent, onClose, onSuccess }: FundModalProps) {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => updateFundingItem(item.uid, { amount: maxAmountString })}
+                                                    onClick={() =>
+                                                        updateFundingItem(item.uid, { amount: maxAmountString })
+                                                    }
                                                     disabled={!canUseMax}
                                                     className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-white/15 bg-white/[0.06] px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
                                                 >

@@ -49,12 +49,14 @@ describe('getJettonsByAddress', () => {
                     },
                 },
             ],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
         const appKit = {
             networkManager: {
                 getClient: vi.fn().mockReturnValue({}),
             },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
 
         const result = await getJettonsByAddress(appKit, {

@@ -172,7 +172,9 @@ function printHelp(): void {
     process.stderr.write('    --json, -o json                    JSON output (agent-friendly)\n');
     process.stderr.write('    --network mainnet|testnet          Override network\n');
     process.stderr.write('    --mnemonic "..."                   Provide mnemonic\n');
-    process.stderr.write('    --private-key 0x...                Provide 32-byte seed or 64-byte private||public key\n');
+    process.stderr.write(
+        '    --private-key 0x...                Provide 32-byte seed or 64-byte private||public key\n',
+    );
     process.stderr.write('    --no-color                         Disable colors\n');
     process.stderr.write('    --verbose                          Show debug logs\n');
     process.stderr.write('    --help, -h                         Show help\n');

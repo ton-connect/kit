@@ -33,4 +33,3 @@ export function parsePrivateKeyInput(privateKey: string): ParsedPrivateKeyInput 
         wasCombinedKeypair,
     };
 }
-

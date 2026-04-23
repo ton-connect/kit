@@ -44,6 +44,7 @@ describe('ApiClientTonApi', () => {
 
     it('uses server-side pagination params for account transactions', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getJsonSpy = vi.spyOn(client as any, 'getJson').mockResolvedValue({
             transactions: [makeTransaction()],
         });
@@ -64,6 +65,7 @@ describe('ApiClientTonApi', () => {
 
     it('maps block ref as (workchain, shard, seqno)', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.spyOn(client as any, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
@@ -87,6 +89,7 @@ describe('ApiClientTonApi', () => {
 
     it('keeps safe fallback for unexpected block format', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.spyOn(client as any, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
@@ -110,6 +113,7 @@ describe('ApiClientTonApi', () => {
 
     it('uses server-side pagination params for events and computes hasNext from response cursor', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getJsonSpy = vi.spyOn(client as any, 'getJson').mockResolvedValue({
             events: [makeEvent()],
             next_from: 100,
@@ -135,6 +139,7 @@ describe('ApiClientTonApi', () => {
 
     it('throws on invalid transaction hash instead of silently coercing', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vi.spyOn(client as any, 'getJson').mockResolvedValue({
             transactions: [
                 makeTransaction({
@@ -154,6 +159,7 @@ describe('ApiClientTonApi', () => {
 
     it('resolves bodyHash via /transactions first to avoid message 404 noise', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getJsonSpy = vi.spyOn(client as any, 'getJson').mockImplementation(async (url: string) => {
             if (url.includes('/v2/blockchain/transactions/')) {
                 return makeTransaction();
@@ -170,6 +176,7 @@ describe('ApiClientTonApi', () => {
 
     it('resolves msgHash via /messages first', async () => {
         const client = new ApiClientTonApi();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getJsonSpy = vi.spyOn(client as any, 'getJson').mockImplementation(async (url: string) => {
             if (url.includes('/v2/blockchain/messages/')) {
                 return makeTransaction();

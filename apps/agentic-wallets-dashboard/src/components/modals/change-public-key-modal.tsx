@@ -71,8 +71,8 @@ export function ChangePublicKeyModal({ agent, onClose, onSuccess }: ChangePublic
                 />
 
                 <p className="text-xs leading-relaxed text-neutral-500">
-                    Enter a new operator key in hex (`0x...`) or decimal format. You can use this to reactivate a revoked
-                    agent.
+                    Enter a new operator key in hex (`0x...`) or decimal format. You can use this to reactivate a
+                    revoked agent.
                 </p>
 
                 <div className="flex gap-3">

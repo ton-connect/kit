@@ -59,7 +59,9 @@ export async function nftListByAddressCommand(
     jsonMode: boolean,
 ): Promise<void> {
     try {
-        const nfts = await withSpinner('Fetching NFTs by address...', () => service.getNftsByAddress(address, limit, offset));
+        const nfts = await withSpinner('Fetching NFTs by address...', () =>
+            service.getNftsByAddress(address, limit, offset),
+        );
 
         const mapped = nfts.map((nft) => ({
             address: nft.address,

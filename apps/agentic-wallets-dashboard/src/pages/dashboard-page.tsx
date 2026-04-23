@@ -30,16 +30,8 @@ export function DashboardPage() {
     const network = useNetwork();
     const navigate = useNavigate();
 
-    const {
-        agents,
-        activeAgents,
-        newAgents,
-        isLoading,
-        refresh,
-        collectionAddress,
-        markAgentKnown,
-        markAgentsKnown,
-    } = useAgents();
+    const { agents, activeAgents, newAgents, isLoading, refresh, collectionAddress, markAgentKnown, markAgentsKnown } =
+        useAgents();
 
     const [fundAgent, setFundAgent] = useState<AgentWallet | null>(null);
     const [withdrawAgent, setWithdrawAgent] = useState<AgentWallet | null>(null);

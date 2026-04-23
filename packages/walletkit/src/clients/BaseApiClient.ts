@@ -73,7 +73,10 @@ export abstract class BaseApiClient {
             releaseLock = resolve;
         });
 
-        BaseApiClient.endpointLocks.set(endpointKey, prevLock.then(() => currentLock));
+        BaseApiClient.endpointLocks.set(
+            endpointKey,
+            prevLock.then(() => currentLock),
+        );
         await prevLock;
 
         try {

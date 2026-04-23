@@ -7,7 +7,17 @@
  */
 
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Bot, Cog, ExternalLink, Info, RefreshCw, User } from 'lucide-react';
+import {
+    AlertTriangle,
+    ArrowDownLeft,
+    ArrowUpRight,
+    Bot,
+    Cog,
+    ExternalLink,
+    Info,
+    RefreshCw,
+    User,
+} from 'lucide-react';
 
 import { Modal } from '@/components/modals/modal';
 import type { AgentActivityItem } from '@/features/agents';
@@ -269,7 +279,9 @@ function ActivityDetailsModal({
                     <DetailRow label="Counterparty" value={item.counterparty?.shortLabel ?? 'Unknown'} />
                     <DetailRow label="Direction" value={item.direction} />
                     <DetailRow label="Type" value={item.type} />
-                    {item.hash && <DetailRow label="Tx hash" value={`${item.hash.slice(0, 10)}...${item.hash.slice(-8)}`} />}
+                    {item.hash && (
+                        <DetailRow label="Tx hash" value={`${item.hash.slice(0, 10)}...${item.hash.slice(-8)}`} />
+                    )}
                 </div>
 
                 {!isRevoked && item.canMarkUnexpected && (
@@ -436,7 +448,8 @@ export function ActivityFeedV2({ items, isLoading, isRevoked, onMarkUnexpected }
 
                                                         <div className="mt-1 flex items-center gap-2 text-xs text-neutral-500">
                                                             <span className="max-w-[10rem] truncate">
-                                                                {item.counterparty?.shortLabel ?? 'Unknown counterparty'}
+                                                                {item.counterparty?.shortLabel ??
+                                                                    'Unknown counterparty'}
                                                             </span>
                                                             <span>•</span>
                                                             <span>{formatTime(item.timestamp)}</span>
@@ -474,7 +487,6 @@ export function ActivityFeedV2({ items, isLoading, isRevoked, onMarkUnexpected }
                                                                 </span>
                                                             )}
                                                         </div>
-
                                                     </div>
 
                                                     <div className="col-span-2 mt-1 flex items-center justify-between sm:col-span-1 sm:mt-0 sm:min-w-[170px] sm:flex-col sm:items-end sm:self-stretch sm:justify-between">

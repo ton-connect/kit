@@ -17,7 +17,12 @@ interface UnexpectedActivityModalProps {
     isPending?: boolean;
 }
 
-export function UnexpectedActivityModal({ agent, onClose, onConfirm, isPending = false }: UnexpectedActivityModalProps) {
+export function UnexpectedActivityModal({
+    agent,
+    onClose,
+    onConfirm,
+    isPending = false,
+}: UnexpectedActivityModalProps) {
     if (!agent) return null;
 
     return (

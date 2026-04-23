@@ -7,9 +7,18 @@
  */
 
 import type { StateInit } from '@ton/core';
-import { Address, beginCell, Cell, Dictionary, contractAddress, loadStateInit, SendMode, storeMessage, storeStateInit } from '@ton/core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Dictionary,
+    contractAddress,
+    loadStateInit,
+    SendMode,
+    storeMessage,
+    storeStateInit,
+} from '@ton/core';
 import { external, internal } from '@ton/core';
-
 import type {
     ApiClient,
     WalletAdapter,
@@ -117,9 +126,7 @@ export class AgenticWalletAdapter implements WalletAdapter {
             network: options.network,
             workchain: options.workchain,
             walletAddress:
-                typeof options.walletAddress === 'string'
-                    ? parseAddress(options.walletAddress)
-                    : options.walletAddress,
+                typeof options.walletAddress === 'string' ? parseAddress(options.walletAddress) : options.walletAddress,
             walletNftIndex: options.walletNftIndex,
             collectionAddress:
                 typeof options.collectionAddress === 'string'
@@ -197,7 +204,9 @@ export class AgenticWalletAdapter implements WalletAdapter {
             );
         }
 
-        const stateInit = beginCell().store(storeStateInit(this.walletInit as unknown as StateInit)).endCell();
+        const stateInit = beginCell()
+            .store(storeStateInit(this.walletInit as unknown as StateInit))
+            .endCell();
         return stateInit.toBoc().toString('base64') as Base64String;
     }
 

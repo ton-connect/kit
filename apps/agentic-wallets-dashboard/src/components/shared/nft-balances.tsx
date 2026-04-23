@@ -65,7 +65,9 @@ export function NftBalances({ address, compact = false, network }: NftBalancesPr
                         )}
                         <div>
                             <p className="text-sm font-medium">{nft.info?.name ?? 'NFT'}</p>
-                            <p className="text-[10px] text-neutral-600">{nft.collection?.name ?? 'Unknown collection'}</p>
+                            <p className="text-[10px] text-neutral-600">
+                                {nft.collection?.name ?? 'Unknown collection'}
+                            </p>
                         </div>
                     </div>
                 </div>

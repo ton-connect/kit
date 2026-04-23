@@ -7,7 +7,18 @@
  */
 
 import type { CliWalletService } from '../services/CliWalletService.js';
-import { header, keyValue, tableRows, printResult, printError, dim, green, red, cyan, yellow } from '../utils/output.js';
+import {
+    header,
+    keyValue,
+    tableRows,
+    printResult,
+    printError,
+    dim,
+    green,
+    red,
+    cyan,
+    yellow,
+} from '../utils/output.js';
 import { withSpinner } from '../utils/spinner.js';
 
 function relativeTime(ts: number): string {
@@ -148,7 +159,9 @@ export async function transactionStatusCommand(
     jsonMode: boolean,
 ): Promise<void> {
     try {
-        const status = await withSpinner('Fetching transaction status...', () => service.getTransactionStatus(normalizedHash));
+        const status = await withSpinner('Fetching transaction status...', () =>
+            service.getTransactionStatus(normalizedHash),
+        );
 
         const data = { success: true, ...status };
         const human =

@@ -16,6 +16,8 @@
  * with user-specific wallet instances.
  */
 
+import { createHash } from 'node:crypto';
+
 import {
     TonWalletKit,
     MemoryStorageAdapter,
@@ -37,8 +39,6 @@ import type {
     TransactionStatusResponse,
 } from '@ton/walletkit';
 import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
-import { createHash } from 'node:crypto';
-
 import { Address, beginCell, Cell, contractAddress, Dictionary, storeStateInit } from '@ton/core';
 
 import type { IContactResolver } from '../types/contacts.js';
@@ -278,10 +278,7 @@ export class McpWalletService {
         }
 
         const metadataDictCell = beginCell().storeDictDirect(dict).endCell();
-        return beginCell()
-            .storeUint(TEP64_ONCHAIN_CONTENT_PREFIX, 8)
-            .storeMaybeRef(metadataDictCell)
-            .endCell();
+        return beginCell().storeUint(TEP64_ONCHAIN_CONTENT_PREFIX, 8).storeMaybeRef(metadataDictCell).endCell();
     }
 
     private static buildAgenticWalletConfigData(nftItemIndex: bigint, collectionAddress: Address): Cell {
@@ -552,7 +549,11 @@ export class McpWalletService {
         const normalizedJettonAddress = Address.parse(jettonAddress).toString();
         const normalizedOwnerAddress = Address.parse(ownerAddress).toString();
 
-        return getJettonWalletAddressFromClient(this.wallet.getClient(), normalizedJettonAddress, normalizedOwnerAddress);
+        return getJettonWalletAddressFromClient(
+            this.wallet.getClient(),
+            normalizedJettonAddress,
+            normalizedOwnerAddress,
+        );
     }
 
     /**

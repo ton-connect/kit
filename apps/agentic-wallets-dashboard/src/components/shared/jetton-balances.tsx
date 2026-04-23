@@ -31,8 +31,10 @@ export function JettonBalances({ address, compact = false, network }: JettonBala
                     const usdPriceB = Number(b.prices?.find((p) => p.currency?.toUpperCase() === 'USD')?.value ?? '0');
                     const balanceA = Number(a.balance ?? '0');
                     const balanceB = Number(b.balance ?? '0');
-                    const usdEquivalentA = (Number.isFinite(usdPriceA) ? usdPriceA : 0) * (Number.isFinite(balanceA) ? balanceA : 0);
-                    const usdEquivalentB = (Number.isFinite(usdPriceB) ? usdPriceB : 0) * (Number.isFinite(balanceB) ? balanceB : 0);
+                    const usdEquivalentA =
+                        (Number.isFinite(usdPriceA) ? usdPriceA : 0) * (Number.isFinite(balanceA) ? balanceA : 0);
+                    const usdEquivalentB =
+                        (Number.isFinite(usdPriceB) ? usdPriceB : 0) * (Number.isFinite(balanceB) ? balanceB : 0);
                     return usdEquivalentB - usdEquivalentA;
                 }),
         [jettonsResponse?.jettons],

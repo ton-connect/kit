@@ -10,7 +10,11 @@ import { AppKit, Network, ApiClientTonApi } from '@ton/appkit';
 import { TonConnectConnector } from '@ton/appkit';
 import { THEME } from '@tonconnect/ui';
 
-import { ENV_TON_API_KEY_MAINNET, ENV_TON_API_KEY_TESTNET, ENV_TON_API_MIN_REQUEST_INTERVAL_MS } from '@/core/configs/env';
+import {
+    ENV_TON_API_KEY_MAINNET,
+    ENV_TON_API_KEY_TESTNET,
+    ENV_TON_API_MIN_REQUEST_INTERVAL_MS,
+} from '@/core/configs/env';
 
 export const appKit = new AppKit({
     networks: {

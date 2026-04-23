@@ -236,9 +236,8 @@ export function CreateAgentPage() {
     const deepLinkPayload = useMemo(() => parseCreateDeepLink(searchParams), [searchParams]);
 
     const collectionAddress = useMemo(() => collectionAddressByChain(network?.chainId), [network?.chainId]);
-    const walletFeatures = (
-        wallet as unknown as { tonConnectWallet?: { device?: { features?: unknown[] } } } | null
-    )?.tonConnectWallet?.device?.features;
+    const walletFeatures = (wallet as unknown as { tonConnectWallet?: { device?: { features?: unknown[] } } } | null)
+        ?.tonConnectWallet?.device?.features;
     const maxOutgoingMessages = Math.max(
         1,
         getMaxOutgoingMessages((Array.isArray(walletFeatures) ? walletFeatures : []) as never[]) ?? 1,
@@ -381,7 +380,8 @@ export function CreateAgentPage() {
         isDeepLinkAssetsAppliedRef.current = true;
     }, [deepLinkPayload.assets, depositAssets, maxDepositsAllowed]);
 
-    const getAssetById = (assetId: string): DepositAssetItem | undefined => depositAssets.find((asset) => asset.id === assetId);
+    const getAssetById = (assetId: string): DepositAssetItem | undefined =>
+        depositAssets.find((asset) => asset.id === assetId);
     const isSelectedInOtherDraft = (assetId: string, draftId: string): boolean =>
         assetDeposits.some((draft) => draft.id !== draftId && draft.assetId === assetId);
     const findNextUnselectedAssetId = (): string | null => {
@@ -396,7 +396,10 @@ export function CreateAgentPage() {
     const addAssetDeposit = () => {
         const nextAssetId = findNextUnselectedAssetId();
         if (!nextAssetId) return;
-        setAssetDeposits((prev) => [...prev, { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, assetId: nextAssetId, amount: '' }]);
+        setAssetDeposits((prev) => [
+            ...prev,
+            { id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, assetId: nextAssetId, amount: '' },
+        ]);
     };
 
     const updateAssetDeposit = (id: string, patch: Partial<DepositAssetDraft>) => {
@@ -481,10 +484,7 @@ export function CreateAgentPage() {
                     );
                 }
             } catch (error) {
-                if (
-                    !(error instanceof Error) ||
-                    !error.message.startsWith('Account state data is empty for')
-                ) {
+                if (!(error instanceof Error) || !error.message.startsWith('Account state data is empty for')) {
                     throw error;
                 }
             }
@@ -566,7 +566,9 @@ export function CreateAgentPage() {
                         },
                     });
 
-                    found = (ownerNfts.nfts ?? []).some((nft) => isSameTonAddress(nft.address, localAddress.toString()));
+                    found = (ownerNfts.nfts ?? []).some((nft) =>
+                        isSameTonAddress(nft.address, localAddress.toString()),
+                    );
                     if (found || (ownerNfts.nfts ?? []).length < 100) {
                         break;
                     }
@@ -679,20 +681,40 @@ export function CreateAgentPage() {
                                 const isFungible = selected.kind === 'jetton';
                                 const maxDecimals = selected.decimals ?? 9;
                                 return (
-                                    <div key={deposit.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                                    <div
+                                        key={deposit.id}
+                                        className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3"
+                                    >
                                         <div className="relative mb-3 flex items-center gap-2">
                                             <button
                                                 type="button"
-                                                onClick={() => setOpenSelectorId((current) => (current === deposit.id ? null : deposit.id))}
+                                                onClick={() =>
+                                                    setOpenSelectorId((current) =>
+                                                        current === deposit.id ? null : deposit.id,
+                                                    )
+                                                }
                                                 className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-left text-sm text-white outline-none transition-colors hover:border-white/[0.15] focus:border-amber-500/50"
                                             >
                                                 <span className="flex items-center gap-2">
                                                     <AssetIcon imageUrl={selected.imageUrl} label={selected.label} />
                                                     <span>{selected.label}</span>
-                                                    {selected.sublabel && <span className="text-neutral-500">{selected.sublabel}</span>}
+                                                    {selected.sublabel && (
+                                                        <span className="text-neutral-500">{selected.sublabel}</span>
+                                                    )}
                                                 </span>
-                                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${selectorOpen ? 'rotate-180' : ''}`}>
-                                                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                <svg
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 12 12"
+                                                    fill="none"
+                                                    className={`transition-transform ${selectorOpen ? 'rotate-180' : ''}`}
+                                                >
+                                                    <path
+                                                        d="M3 4.5L6 7.5L9 4.5"
+                                                        stroke="currentColor"
+                                                        strokeWidth="1.5"
+                                                        strokeLinecap="round"
+                                                    />
                                                 </svg>
                                             </button>
                                             <button
@@ -706,12 +728,28 @@ export function CreateAgentPage() {
                                                 <div className="absolute left-0 top-full z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-white/10 bg-[#111] shadow-xl">
                                                     <button
                                                         type="button"
-                                                        onClick={() => setJettonsOpenById((prev) => ({ ...prev, [deposit.id]: !(prev[deposit.id] ?? false) }))}
+                                                        onClick={() =>
+                                                            setJettonsOpenById((prev) => ({
+                                                                ...prev,
+                                                                [deposit.id]: !(prev[deposit.id] ?? false),
+                                                            }))
+                                                        }
                                                         className="flex w-full items-center justify-between px-4 py-2 text-left text-xs uppercase tracking-wide text-neutral-400 transition-colors hover:bg-white/[0.04]"
                                                     >
                                                         <span>Jettons</span>
-                                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${jettonsOpen ? 'rotate-180' : ''}`}>
-                                                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                        <svg
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            className={`transition-transform ${jettonsOpen ? 'rotate-180' : ''}`}
+                                                        >
+                                                            <path
+                                                                d="M3 4.5L6 7.5L9 4.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                            />
                                                         </svg>
                                                     </button>
                                                     {jettonsOpen &&
@@ -720,33 +758,65 @@ export function CreateAgentPage() {
                                                                 key={asset.id}
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    updateAssetDeposit(deposit.id, { assetId: asset.id, amount: '' });
+                                                                    updateAssetDeposit(deposit.id, {
+                                                                        assetId: asset.id,
+                                                                        amount: '',
+                                                                    });
                                                                     setOpenSelectorId(null);
                                                                 }}
                                                                 className={`flex w-full items-center justify-between gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                                                                    deposit.assetId === asset.id ? 'text-amber-500' : 'text-white'
+                                                                    deposit.assetId === asset.id
+                                                                        ? 'text-amber-500'
+                                                                        : 'text-white'
                                                                 }`}
                                                             >
                                                                 <span className="flex items-center gap-2">
-                                                                    <AssetIcon imageUrl={asset.imageUrl} label={asset.label} />
+                                                                    <AssetIcon
+                                                                        imageUrl={asset.imageUrl}
+                                                                        label={asset.label}
+                                                                    />
                                                                     <span>{asset.label}</span>
-                                                                    {asset.sublabel && <span className="text-neutral-500">{asset.sublabel}</span>}
+                                                                    {asset.sublabel && (
+                                                                        <span className="text-neutral-500">
+                                                                            {asset.sublabel}
+                                                                        </span>
+                                                                    )}
                                                                 </span>
-                                                                <span className="font-mono text-xs text-neutral-400">{asset.balance ?? '0'}</span>
+                                                                <span className="font-mono text-xs text-neutral-400">
+                                                                    {asset.balance ?? '0'}
+                                                                </span>
                                                             </button>
                                                         ))}
                                                     {jettonsOpen && availableJettons.length === 0 && (
-                                                        <div className="px-6 py-2 text-xs text-neutral-500">No jettons found</div>
+                                                        <div className="px-6 py-2 text-xs text-neutral-500">
+                                                            No jettons found
+                                                        </div>
                                                     )}
 
                                                     <button
                                                         type="button"
-                                                        onClick={() => setNftsOpenById((prev) => ({ ...prev, [deposit.id]: !(prev[deposit.id] ?? false) }))}
+                                                        onClick={() =>
+                                                            setNftsOpenById((prev) => ({
+                                                                ...prev,
+                                                                [deposit.id]: !(prev[deposit.id] ?? false),
+                                                            }))
+                                                        }
                                                         className="flex w-full items-center justify-between px-4 py-2 text-left text-xs uppercase tracking-wide text-neutral-400 transition-colors hover:bg-white/[0.04]"
                                                     >
                                                         <span>NFTs</span>
-                                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={`transition-transform ${nftsOpen ? 'rotate-180' : ''}`}>
-                                                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                                        <svg
+                                                            width="12"
+                                                            height="12"
+                                                            viewBox="0 0 12 12"
+                                                            fill="none"
+                                                            className={`transition-transform ${nftsOpen ? 'rotate-180' : ''}`}
+                                                        >
+                                                            <path
+                                                                d="M3 4.5L6 7.5L9 4.5"
+                                                                stroke="currentColor"
+                                                                strokeWidth="1.5"
+                                                                strokeLinecap="round"
+                                                            />
                                                         </svg>
                                                     </button>
                                                     {nftsOpen &&
@@ -755,20 +825,34 @@ export function CreateAgentPage() {
                                                                 key={asset.id}
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    updateAssetDeposit(deposit.id, { assetId: asset.id, amount: '' });
+                                                                    updateAssetDeposit(deposit.id, {
+                                                                        assetId: asset.id,
+                                                                        amount: '',
+                                                                    });
                                                                     setOpenSelectorId(null);
                                                                 }}
                                                                 className={`flex w-full items-center gap-2 px-6 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] ${
-                                                                    deposit.assetId === asset.id ? 'text-amber-500' : 'text-white'
+                                                                    deposit.assetId === asset.id
+                                                                        ? 'text-amber-500'
+                                                                        : 'text-white'
                                                                 }`}
                                                             >
-                                                                <AssetIcon imageUrl={asset.imageUrl} label={asset.label} />
+                                                                <AssetIcon
+                                                                    imageUrl={asset.imageUrl}
+                                                                    label={asset.label}
+                                                                />
                                                                 <span>{asset.label}</span>
-                                                                {asset.sublabel && <span className="text-neutral-500">{asset.sublabel}</span>}
+                                                                {asset.sublabel && (
+                                                                    <span className="text-neutral-500">
+                                                                        {asset.sublabel}
+                                                                    </span>
+                                                                )}
                                                             </button>
                                                         ))}
                                                     {nftsOpen && availableNfts.length === 0 && (
-                                                        <div className="px-6 py-2 text-xs text-neutral-500">No NFTs found</div>
+                                                        <div className="px-6 py-2 text-xs text-neutral-500">
+                                                            No NFTs found
+                                                        </div>
                                                     )}
                                                 </div>
                                             )}
@@ -777,8 +861,12 @@ export function CreateAgentPage() {
                                         {isFungible ? (
                                             <div>
                                                 <div className="mb-1.5 flex items-center justify-between gap-3">
-                                                    <label className="block text-xs text-neutral-500">Amount ({selected.label})</label>
-                                                    <span className="text-xs text-neutral-500">Balance: {selected.balance ?? '0'} {selected.label}</span>
+                                                    <label className="block text-xs text-neutral-500">
+                                                        Amount ({selected.label})
+                                                    </label>
+                                                    <span className="text-xs text-neutral-500">
+                                                        Balance: {selected.balance ?? '0'} {selected.label}
+                                                    </span>
                                                 </div>
                                                 <div className="relative">
                                                     <input
@@ -801,7 +889,11 @@ export function CreateAgentPage() {
                                                     />
                                                     <button
                                                         type="button"
-                                                        onClick={() => updateAssetDeposit(deposit.id, { amount: selected.balance ?? '0' })}
+                                                        onClick={() =>
+                                                            updateAssetDeposit(deposit.id, {
+                                                                amount: selected.balance ?? '0',
+                                                            })
+                                                        }
                                                         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-white/15 bg-white/[0.06] px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-white/[0.12]"
                                                     >
                                                         Max

@@ -57,7 +57,7 @@ import { asAddressFriendly } from '../../utils/address';
 import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
-import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest } from './types';
+import type { V2AddressInformation, V2SendMessageResult } from './types';
 import { padBase64, parseInternalTransactionId, prepareAddress } from './utils';
 import { TonClientError } from '../TonClientError';
 import { isHex } from '../../utils';
@@ -486,7 +486,10 @@ function toV2StackItem(item: RawStackItem): V2RawStackItem {
             return [item.type, item.value.map((nested) => toV2StackItem(nested))];
         default: {
             const neverItem: never = item;
-            throw new TonClientError(`Unsupported stack item type: ${(neverItem as { type?: string }).type ?? 'unknown'}`, 0);
+            throw new TonClientError(
+                `Unsupported stack item type: ${(neverItem as { type?: string }).type ?? 'unknown'}`,
+                0,
+            );
         }
     }
 }

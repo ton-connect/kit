@@ -18,26 +18,15 @@ const agenticMetadataSchema = z
     .object({
         name: z.string().min(1).describe('Sub-wallet display name stored as NFT metadata (TEP-64).'),
     })
-    .catchall(
-        z.union([
-            z.string(),
-            z.number(),
-            z.boolean(),
-        ]),
-    );
+    .catchall(z.union([z.string(), z.number(), z.boolean()]));
 
 export const deployAgenticSubwalletSchema = z.object({
     operatorPublicKey: z
         .string()
         .min(1)
         .describe('Public key for the new sub-wallet operator (uint256, decimal or 0x-prefixed hex).'),
-    metadata: agenticMetadataSchema.describe(
-        'Required onchain NFT metadata (TEP-64). Must include at least `name`.',
-    ),
-    amountTon: z
-        .string()
-        .optional()
-        .describe('TON amount to attach for deployment in TON units (default: "0.05").'),
+    metadata: agenticMetadataSchema.describe('Required onchain NFT metadata (TEP-64). Must include at least `name`.'),
+    amountTon: z.string().optional().describe('TON amount to attach for deployment in TON units (default: "0.05").'),
 });
 
 export function createMcpAgenticTools(service: McpWalletService) {

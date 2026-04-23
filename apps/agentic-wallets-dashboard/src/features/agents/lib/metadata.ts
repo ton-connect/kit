@@ -6,7 +6,8 @@
  *
  */
 
-import { beginCell, Cell, Dictionary } from '@ton/core';
+import type { Cell } from '@ton/core';
+import { beginCell, Dictionary } from '@ton/core';
 import { sha256_sync } from '@ton/crypto';
 
 const ONCHAIN_CONTENT_PREFIX = 0x00;

@@ -144,7 +144,11 @@ function CopyableValueBase({ value, copyValue, truncate = true, className, adapt
             <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
                 {adaptive ? displayValue : staticDisplay}
             </span>
-            {copied ? <Check size={12} className="shrink-0 text-emerald-500" /> : <Copy size={12} className="shrink-0" />}
+            {copied ? (
+                <Check size={12} className="shrink-0 text-emerald-500" />
+            ) : (
+                <Copy size={12} className="shrink-0" />
+            )}
             <span
                 ref={measureRef}
                 className="pointer-events-none absolute -z-10 whitespace-nowrap font-mono text-xs opacity-0"

@@ -28,12 +28,7 @@ export const getJettonsByAddressSchema = z.object({
 
 export const getNftsByAddressSchema = z.object({
     address: z.string().min(1).describe('Owner wallet address'),
-    limit: z
-        .number()
-        .min(1)
-        .max(100)
-        .optional()
-        .describe('Maximum number of NFTs to return (default: 20, max: 100)'),
+    limit: z.number().min(1).max(100).optional().describe('Maximum number of NFTs to return (default: 20, max: 100)'),
     offset: z.number().min(0).optional().describe('Offset for pagination (default: 0)'),
 });
 
@@ -49,7 +44,8 @@ export const getJettonWalletAddressSchema = z.object({
 export function createMcpAddressTools(service: McpWalletService) {
     return {
         get_balance_by_address: {
-            description: 'Get TON balance for any wallet address. Returns both human-readable and raw (nanoTON) values.',
+            description:
+                'Get TON balance for any wallet address. Returns both human-readable and raw (nanoTON) values.',
             inputSchema: getBalanceByAddressSchema,
             handler: async (args: z.infer<typeof getBalanceByAddressSchema>): Promise<ToolResponse> => {
                 try {
