@@ -6,7 +6,7 @@
  *
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import clsx from 'clsx';
 
@@ -73,6 +73,13 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
         setIsFlipped((prev) => !prev);
         onFlip();
     }, [onFlip]);
+
+    const buttonText = useMemo(() => {
+        if (error) return t(error);
+        if (!fromToken || !toToken) return t('swap.selectToken');
+        if (canSubmit) return t('swap.continue');
+        return t('swap.enterAmount');
+    }, [error, fromToken, toToken, canSubmit, t]);
 
     return (
         <div className={clsx(styles.widget, className)} {...props}>
@@ -148,7 +155,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 disabled={!canSubmit || isQuoteLoading || isSendingTransaction}
                 onClick={sendSwapTransaction}
             >
-                {error ? t(error) : canSubmit ? t('swap.continue') : t('swap.enterAmount')}
+                {buttonText}
             </ButtonWithConnect>
 
             <SwapInfo

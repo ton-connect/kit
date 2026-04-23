@@ -23,7 +23,7 @@ const pickFromToken = (tokens: AppkitUIToken[], defaultSymbol?: string): AppkitU
 const pickToToken = (tokens: AppkitUIToken[], defaultSymbol?: string): AppkitUIToken | null =>
     tokens.find((t) => t.symbol.toLowerCase() === defaultSymbol?.toLowerCase()) ?? tokens[1] ?? null;
 
-export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) {
+export const useSwapTokenState = ({ mappedTokens, defaultFromSymbol, defaultToSymbol }: UseSwapTokenStateOptions) => {
     const [fromToken, setFromToken] = useState<AppkitUIToken | null>(() =>
         pickFromToken(mappedTokens, defaultFromSymbol),
     );
@@ -93,4 +93,4 @@ export function useSwapTokenState({ mappedTokens, defaultFromSymbol, defaultToSy
         setFromAmount,
         onFlip,
     };
-}
+};
