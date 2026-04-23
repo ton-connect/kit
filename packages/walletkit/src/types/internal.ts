@@ -19,7 +19,6 @@ import type {
 import { WalletResponseError as _WalletResponseError } from '@tonconnect/protocol';
 
 import type { JSBridgeTransportFunction } from './jsBridge';
-import type { IntentAction } from '../api/models';
 import type {
     ExtraCurrencies,
     TransactionRequest,
@@ -36,6 +35,7 @@ import { SendModeFromValue } from '../utils/sendMode';
 import { SendModeToValue } from '../utils/sendMode';
 import { asAddressFriendly } from '../utils/address';
 import { asBase64 } from '../utils/base64';
+import type { EmbeddedRequest } from '../api/models/bridge/EmbeddedRequest';
 
 // import type { WalletInterface } from './wallet';
 
@@ -87,8 +87,8 @@ export interface RawBridgeEventConnect extends BridgeEvent {
         returnStrategy?: string;
     };
     timestamp?: number;
-    /** Parsed intent action from the `req` URL parameter (embedded requests). */
-    intentPayload?: IntentAction;
+    /** Parsed embedded request from the `req` URL parameter (embedded requests). */
+    embeddedRequest?: EmbeddedRequest;
 }
 
 export interface RawBridgeEventRestoreConnection extends BridgeEvent {

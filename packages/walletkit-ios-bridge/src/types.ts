@@ -34,8 +34,8 @@ import type {
     StreamingAPI,
     StakingProviderInterface,
     StakingAPI,
-    IntentActionRequestEvent,
     ConnectionRequestEvent,
+    EmbeddedRequestEvent,
 } from '@ton/walletkit';
 import type { OmnistonSwapProviderConfig } from '@ton/walletkit/swap/omniston';
 import type { DeDustSwapProviderConfig } from '@ton/walletkit/swap/dedust';
@@ -118,7 +118,7 @@ export interface SwiftWalletKit {
     approveConnectRequest(
         event: ConnectionRequestEvent,
         response?: ConnectionApprovalResponse,
-    ): Promise<IntentActionRequestEvent | undefined>;
+    ): Promise<EmbeddedRequestEvent | undefined>;
 
     rejectConnectRequest(event: ConnectionRequestEvent, reason?: string): Promise<void>;
 

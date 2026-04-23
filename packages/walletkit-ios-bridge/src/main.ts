@@ -29,7 +29,6 @@ import type {
     SignDataRequestEvent,
     SignMessageRequestEvent,
     SignMessageApprovalResponse,
-    IntentActionRequestEvent,
     ApiClientConfig,
     ApiClient,
     SignatureDomain,
@@ -41,6 +40,7 @@ import type {
     StreamingAPI,
     StakingProviderInterface,
     StakingAPI,
+    EmbeddedRequestEvent,
 } from '@ton/walletkit';
 import {
     MemoryStorageAdapter,
@@ -417,7 +417,7 @@ window.initWalletKit = async (configuration, storage, bridgeTransport, sessionMa
         async approveConnectRequest(
             event: ConnectionRequestEvent,
             response?: ConnectionApprovalResponse,
-        ): Promise<IntentActionRequestEvent | undefined> {
+        ): Promise<EmbeddedRequestEvent | undefined> {
             if (!initialized) throw new Error('WalletKit Bridge not initialized');
             console.log('✅ Bridge: Approving connect request:', event, event.walletAddress);
 

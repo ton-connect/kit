@@ -68,10 +68,10 @@ import type {
     SignMessageApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
-    IntentActionRequestEvent,
+    EmbeddedRequestEvent,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
-import { parseIntentFromReqParam } from '../utils/intent';
+import { parseEmbeddedRequestFromReqParam } from '../utils/embeddedRequest';
 import type { ProviderFactoryContext } from '../types/factory';
 
 const log = globalLogger.createChild('TonWalletKit');
@@ -712,14 +712,21 @@ export class TonWalletKit implements ITonWalletKit {
             domain: '',
         };
 
-        // Parse embedded intent request if present
+        // Parse embedded embedded request if present
         if (params.e) {
-            // check if we have intents supported in features
-            const hasIntents = this.config.deviceInfo?.features.some(
+            // check if we have embedded requests supported in features
+            const hasEmbeddedRequests = this.config.deviceInfo?.features.some(
                 (feature) => typeof feature === 'object' && feature.name === 'EmbeddedRequest',
             );
-            if (hasIntents) {
-                bridgeEvent.intentPayload = parseIntentFromReqParam(params.e);
+            if (hasEmbeddedRequests) {
+                bridgeEvent.embeddedRequest = parseEmbeddedRequestFromReqParam(params.e);
+            } else {
+                log.warn(
+                    'Embedded request feature is not supported in features, but we received request with embedded request payload',
+                    {
+                        features: this.config.deviceInfo?.features,
+                    },
+                );
             }
         }
 
@@ -731,7 +738,7 @@ export class TonWalletKit implements ITonWalletKit {
     async approveConnectRequest(
         event: ConnectionRequestEvent,
         response?: ConnectionApprovalResponse,
-    ): Promise<IntentActionRequestEvent | undefined> {
+    ): Promise<EmbeddedRequestEvent | undefined> {
         await this.ensureInitialized();
         return this.requestProcessor.approveConnectRequest(event, response);
     }

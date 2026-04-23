@@ -55,16 +55,16 @@ export type { SignMessageApprovalResponse } from './bridge/SignMessageApprovalRe
 export type { SignMessageRequestEvent } from './bridge/SignMessageRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
 export type {
-    IntentAction,
-    SendTransactionIntentAction,
-    SignMessageIntentAction,
-    SignDataIntentAction,
-    IntentConnectionResult,
-    IntentActionRequestEvent,
-    IntentActionSendTransactionRequestEvent,
-    IntentActionSignMessageRequestEvent,
-    IntentActionSignDataRequestEvent,
-} from './bridge/Intents';
+    EmbeddedRequestEvent,
+    EmbeddedSendTransactionRequestEvent,
+    EmbeddedSignMessageRequestEvent,
+    EmbeddedSignDataRequestEvent,
+    EmbeddedRequest,
+    EmbeddedConnectionResult,
+    SendTransactionEmbeddedRequest,
+    SignDataEmbeddedRequest,
+    SignMessageEmbeddedRequest,
+} from './bridge/EmbeddedRequest';
 export type { TONConnectSession } from './sessions/TONConnectSession';
 
 // Jetton models

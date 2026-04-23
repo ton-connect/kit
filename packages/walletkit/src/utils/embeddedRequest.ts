@@ -9,7 +9,7 @@
 import type { ParsedEmbeddedRequest } from '@tonconnect/protocol';
 import { parseEmbeddedRequest } from '@tonconnect/protocol';
 
-import type { IntentAction } from '../api/models';
+import type { EmbeddedRequest } from '../api/models';
 import type { RawConnectTransactionParamContent, RawBridgeEventSignData } from '../types/internal';
 import {
     parseConnectTransactionParamContent,
@@ -18,23 +18,23 @@ import {
 } from '../types/internal';
 import { globalLogger } from '../core/Logger';
 
-const log = globalLogger.createChild('intentParser');
+const log = globalLogger.createChild('embeddedRequestParser');
 
 /**
- * Parse the `req` URL parameter into an IntentAction using the protocol's parseEmbeddedRequest.
+ * Parse the `req` URL parameter into an EmbeddedRequest using the protocol's parseEmbeddedRequest.
  * Returns undefined if the parameter is malformed or contains an unrecognized method.
  */
-export function parseIntentFromReqParam(reqParam: string): IntentAction | undefined {
+export function parseEmbeddedRequestFromReqParam(reqParam: string): EmbeddedRequest | undefined {
     try {
         const parsed = parseEmbeddedRequest(reqParam);
-        return toIntentAction(parsed);
+        return toEmbeddedRequest(parsed);
     } catch (error) {
-        log.warn('Failed to parse intent req parameter', { error });
+        log.warn('Failed to parse embedded request req parameter', { error });
         return undefined;
     }
 }
 
-function toIntentAction(parsed: ParsedEmbeddedRequest): IntentAction | undefined {
+function toEmbeddedRequest(parsed: ParsedEmbeddedRequest): EmbeddedRequest | undefined {
     switch (parsed.method) {
         case 'sendTransaction':
         case 'signMessage': {
@@ -50,7 +50,7 @@ function toIntentAction(parsed: ParsedEmbeddedRequest): IntentAction | undefined
             return { method: 'signData', payload };
         }
         default:
-            log.warn('Unknown intent method', { method: (parsed as { method: string }).method });
+            log.warn('Unknown embedded request method', { method: (parsed as { method: string }).method });
             return undefined;
     }
 }

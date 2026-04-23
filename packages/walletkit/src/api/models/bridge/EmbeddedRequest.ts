@@ -15,63 +15,63 @@ import type { SignMessageRequestEvent } from './SignMessageRequestEvent';
 /**
  * @discriminator method
  */
-export type IntentAction = SendTransactionIntentAction | SignMessageIntentAction | SignDataIntentAction;
+export type EmbeddedRequest = SendTransactionEmbeddedRequest | SignMessageEmbeddedRequest | SignDataEmbeddedRequest;
 
-export interface SendTransactionIntentAction {
+export interface SendTransactionEmbeddedRequest {
     method: 'sendTransaction';
     transactionRequest: TransactionRequest;
 }
 
-export interface SignMessageIntentAction {
+export interface SignMessageEmbeddedRequest {
     method: 'signMessage';
     transactionRequest: TransactionRequest;
 }
 
-export interface SignDataIntentAction {
+export interface SignDataEmbeddedRequest {
     method: 'signData';
     payload: SignDataPayload;
 }
 
-declare const intentConnectionResultBrand: unique symbol;
+declare const embeddedConnectionResultBrand: unique symbol;
 
 /**
  * Opaque type holding the pre-built connection approval response.
- * Created by approveConnectRequest when an intent is present.
+ * Created by approveConnectRequest when an embedded request is present.
  * Passed through to the action approval method which attaches the action result and sends it.
  */
-export type IntentConnectionResult = { readonly [intentConnectionResultBrand]: never };
+export type EmbeddedConnectionResult = { readonly [embeddedConnectionResultBrand]: never };
 
 /**
  * @discriminator type
  */
-export type IntentActionRequestEvent =
-    | IntentActionSendTransactionRequestEvent
-    | IntentActionSignMessageRequestEvent
-    | IntentActionSignDataRequestEvent;
+export type EmbeddedRequestEvent =
+    | EmbeddedSendTransactionRequestEvent
+    | EmbeddedSignMessageRequestEvent
+    | EmbeddedSignDataRequestEvent;
 
-export interface IntentActionSendTransactionRequestEvent extends SendTransactionRequestEvent {
+export interface EmbeddedSendTransactionRequestEvent extends SendTransactionRequestEvent {
     type: 'sendTransaction';
 
     /**
      * @frozen
      */
-    connectionResult: IntentConnectionResult;
+    connectionResult: EmbeddedConnectionResult;
 }
 
-export interface IntentActionSignMessageRequestEvent extends SignMessageRequestEvent {
+export interface EmbeddedSignMessageRequestEvent extends SignMessageRequestEvent {
     type: 'signMessage';
 
     /**
      * @frozen
      */
-    connectionResult: IntentConnectionResult;
+    connectionResult: EmbeddedConnectionResult;
 }
 
-export interface IntentActionSignDataRequestEvent extends SignDataRequestEvent {
+export interface EmbeddedSignDataRequestEvent extends SignDataRequestEvent {
     type: 'signData';
 
     /**
      * @frozen
      */
-    connectionResult: IntentConnectionResult;
+    connectionResult: EmbeddedConnectionResult;
 }

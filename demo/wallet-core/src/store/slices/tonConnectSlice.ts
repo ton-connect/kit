@@ -88,23 +88,23 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
                 walletId: selectedWallet.getWalletId(),
             };
 
-            const intentResult = await state.walletCore.walletKit.approveConnectRequest(event);
+            const embeddedRequest = await state.walletCore.walletKit.approveConnectRequest(event);
 
             set((state) => {
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
             });
 
-            if (intentResult) {
-                switch (intentResult.type) {
+            if (embeddedRequest) {
+                switch (embeddedRequest.type) {
                     case 'sendTransaction':
-                        get().showTransactionRequest(intentResult);
+                        get().showTransactionRequest(embeddedRequest);
                         break;
                     case 'signMessage':
-                        get().showSignMessageRequest(intentResult);
+                        get().showSignMessageRequest(embeddedRequest);
                         break;
                     case 'signData':
-                        get().showSignDataRequest(intentResult);
+                        get().showSignDataRequest(embeddedRequest);
                         break;
                 }
             } else {
