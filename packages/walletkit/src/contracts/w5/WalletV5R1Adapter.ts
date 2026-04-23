@@ -8,7 +8,7 @@
 
 // WalletV5R1 adapter that implements WalletInterface
 
-import type { SignatureDomain, StateInit } from '@ton/core';
+import type { CommonMessageInfoInternal, SignatureDomain, StateInit } from '@ton/core';
 import {
     Address,
     beginCell,
@@ -267,6 +267,15 @@ export class WalletV5R1Adapter implements WalletAdapter {
                 body: transfer,
                 bounce: false,
             });
+            msg.info = msg.info as CommonMessageInfoInternal;
+            msg.info.createdLt = 0n;
+            msg.info.createdAt = 0;
+            msg.info.ihrFee = 0n;
+            msg.info.forwardFee = 0n;
+            msg.info.ihrDisabled = false;
+            msg.info.bounce = false;
+            msg.info.bounced = false;
+            msg.info.src = new Address(0, Buffer.alloc(32));
             return beginCell().store(storeMessageRelaxed(msg)).endCell().toBoc().toString('base64') as Base64String;
         }
 

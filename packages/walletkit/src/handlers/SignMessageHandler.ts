@@ -88,7 +88,9 @@ export class SignMessageHandler
         }
 
         const request = await checkTransactionRequestItems(requestValidation.result, wallet);
-        const preview = await createTransactionPreviewIfPossible(this.config, wallet.client, request, wallet);
+        const preview = await createTransactionPreviewIfPossible(this.config, wallet.client, request, wallet, {
+            mode: 'sign',
+        });
 
         const signMessageEvent: SignMessageRequestEvent = {
             ...event,

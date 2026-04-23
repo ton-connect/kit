@@ -10,6 +10,7 @@ import { isValidAddress } from '../../../utils/address';
 import { isValidNanotonAmount, validateTransactionMessage } from '../../../validation';
 import { CallForSuccess } from '../../../utils/retry';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../../../utils/toncenterEmulation';
+import type { TransactionPreviewOptions } from '../../../utils/toncenterEmulation';
 import { createCommentPayloadBase64 } from '../../../utils/messageBuilders';
 import { getNormalizedExtMessageHash } from '../../../utils/getNormalizedExtMessageHash';
 import { ERROR_CODES, WalletKitError } from '../../../errors';
@@ -99,9 +100,12 @@ export class WalletTonClass implements WalletTonInterface {
     async getTransactionPreview(
         this: Wallet,
         param: TransactionRequest | Promise<TransactionRequest>,
+        options?: TransactionPreviewOptions,
     ): Promise<TransactionEmulatedPreview> {
         const transaction = await param;
-        const preview = await CallForSuccess(() => createTransactionPreviewHelper(this.client, transaction, this));
+        const preview = await CallForSuccess(() =>
+            createTransactionPreviewHelper(this.client, transaction, this, options),
+        );
         return preview;
     }
 
