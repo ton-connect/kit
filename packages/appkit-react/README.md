@@ -216,11 +216,11 @@ const appKit = new AppKit({
         },
     },
     providers: [
-        new OmnistonSwapProvider({
+        createOmnistonProvider({
             apiUrl: 'https://api.ston.fi',
             defaultSlippageBps: 100, // 1%
         }),
-        new DeDustSwapProvider({
+        createDeDustProvider({
             defaultSlippageBps: 100,
             referralAddress: 'EQ...', // Optional
         }),
@@ -250,7 +250,7 @@ const {
     isLoading,
     error,
 } = useStakingQuote({
-    amount: '1000000000',
+    amount: '10',
     direction: 'stake',
 });
 
@@ -262,7 +262,7 @@ return <div>Expected Output: {quote?.amountOut}</div>;
 
 ```tsx
 const { data: quote } = useStakingQuote({
-    amount: '1000000000',
+    amount: '10',
     direction: 'stake',
 });
 

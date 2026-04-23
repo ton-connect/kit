@@ -760,7 +760,7 @@ const {
     isLoading,
     error,
 } = useStakingQuote({
-    amount: '1000000000',
+    amount: '10',
     direction: 'stake',
 });
 
@@ -813,7 +813,7 @@ Hook to build a stake transaction from a previously fetched quote.
 
 ```tsx
 const { data: quote } = useStakingQuote({
-    amount: '1000000000',
+    amount: '10',
     direction: 'stake',
 });
 

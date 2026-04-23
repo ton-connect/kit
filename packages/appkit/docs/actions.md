@@ -445,11 +445,12 @@ console.log('NFT Transfer Result:', result);
 Register a custom provider in AppKit (e.g., Swap or Streaming).
 
 ```ts
-const omnistonProvider = new OmnistonSwapProvider({
-    defaultSlippageBps: 100, // 1%
-});
-
-registerProvider(appKit, omnistonProvider);
+registerProvider(
+    appKit,
+    createOmnistonProvider({
+        defaultSlippageBps: 100, // 1%
+    }),
+);
 ```
 
 ## Signing

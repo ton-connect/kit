@@ -19,6 +19,7 @@ import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './ut
 import type { TransactionRequest } from '../../../api/models';
 import { asBase64, getUnixtime } from '../../../utils';
 import { formatUnits, parseUnits } from '../../../utils/units';
+import type { ProviderFactoryContext } from '../../../types/factory';
 
 const log = globalLogger.createChild('OmnistonSwapProvider');
 
@@ -30,17 +31,17 @@ const log = globalLogger.createChild('OmnistonSwapProvider');
  *
  * @example
  * ```typescript
- * // Import from separate entry point to avoid bundling Omniston SDK
- * import { OmnistonSwapProvider } from '@ton/walletkit/swap/omniston';
+ * // Import from a separate entry point to avoid bundling the Omniston SDK
+ * import { createOmnistonProvider } from '@ton/walletkit/swap/omniston';
  *
- * const provider = new OmnistonSwapProvider({
- *     apiUrl: 'wss://omni-ws.ston.fi',
- *     defaultSlippageBps: 100, // 1%
- *     referrerAddress: 'EQ...',
- *     referrerFeeBps: 10, // 0.1%
- * });
- *
- * kit.swap.registerProvider(provider);
+ * kit.swap.registerProvider(
+ *     createOmnistonProvider({
+ *         apiUrl: 'wss://omni-ws.ston.fi',
+ *         defaultSlippageBps: 100, // 1%
+ *         referrerAddress: 'EQ...',
+ *         referrerFeeBps: 10, // 0.1%
+ *     }),
+ * );
  * ```
  */
 export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> {
@@ -327,3 +328,13 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
         };
     }
 }
+
+/**
+ * Returns an AppKit / `ProviderInput` factory for {@link OmnistonSwapProvider}:
+ * pass to `providers: [createOmnistonProvider(config)]`.
+ */
+export const createOmnistonProvider = (
+    config: OmnistonSwapProviderConfig = {},
+): ((ctx: ProviderFactoryContext) => OmnistonSwapProvider) => {
+    return () => new OmnistonSwapProvider(config);
+};

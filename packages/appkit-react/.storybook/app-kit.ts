@@ -8,7 +8,8 @@
 
 import { AppKit, Network } from '@ton/appkit';
 import { createTonConnectConnector } from '@ton/appkit';
-import { OmnistonSwapProvider } from '@ton/appkit/swap/omniston';
+import { createOmnistonProvider } from '@ton/appkit/swap/omniston';
+import { createDeDustProvider } from '@ton/appkit/swap/dedust';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
 
 export const appKit = new AppKit({
@@ -34,5 +35,5 @@ export const appKit = new AppKit({
             },
         }),
     ],
-    providers: [new OmnistonSwapProvider(), createTonstakersProvider()],
+    providers: [createOmnistonProvider(), createDeDustProvider(), createTonstakersProvider()],
 });
