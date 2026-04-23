@@ -6,6 +6,8 @@
  *
  */
 
+import type { Network } from '@ton/appkit';
+
 import { useBalance } from '../../../balances/hooks/use-balance';
 import { useJettonBalanceByAddress } from '../../../jettons/hooks/use-jetton-balance-by-address';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
@@ -14,18 +16,20 @@ interface UseSwapBalancesOptions {
     fromToken: AppkitUIToken | null;
     toToken: AppkitUIToken | null;
     ownerAddress: string | undefined;
+    network: Network | undefined;
 }
 
-export function useSwapBalances({ fromToken, toToken, ownerAddress }: UseSwapBalancesOptions) {
+export function useSwapBalances({ fromToken, toToken, ownerAddress, network }: UseSwapBalancesOptions) {
     const isFromNative = fromToken?.address === 'ton';
     const isToNative = toToken?.address === 'ton';
 
-    const { data: tonBalance } = useBalance();
+    const { data: tonBalance } = useBalance({ network });
 
     const { data: fromJettonBalance } = useJettonBalanceByAddress({
         jettonAddress: fromToken?.address,
         ownerAddress,
         jettonDecimals: fromToken?.decimals,
+        network,
         query: { enabled: !isFromNative && !!fromToken, refetchInterval: 5000 },
     });
 
@@ -33,6 +37,7 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress }: UseSwapBal
         jettonAddress: toToken?.address,
         ownerAddress,
         jettonDecimals: toToken?.decimals,
+        network,
         query: { enabled: !isToNative && !!toToken, refetchInterval: 5000 },
     });
 

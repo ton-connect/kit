@@ -168,6 +168,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     // Always fetch TON balance: even when the stake token is a jetton we need it to check whether the user has
     // enough TON to cover network fees before sending.
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
+        network,
         query: { refetchInterval: 5000 },
     });
 

@@ -227,8 +227,9 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         fromToken,
         toToken,
         ownerAddress: address ?? undefined,
+        network,
     });
-    const { data: tonBalance } = useBalance({ query: { refetchInterval: 5000 } });
+    const { data: tonBalance } = useBalance({ network, query: { refetchInterval: 5000 } });
 
     // 3. Derivations
     const toAmount = quote?.toAmount ?? '';
