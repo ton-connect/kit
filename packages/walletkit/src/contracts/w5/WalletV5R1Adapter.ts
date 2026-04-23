@@ -413,6 +413,9 @@ export class WalletV5R1Adapter implements WalletAdapter {
                 extraCurrencySupported: true,
                 itemTypes: ['ton', 'jetton', 'nft'],
             },
+            {
+                name: 'EmbeddedRequest',
+            },
         ] as Feature[];
     }
 }
