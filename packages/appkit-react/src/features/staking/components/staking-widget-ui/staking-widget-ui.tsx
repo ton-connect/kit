@@ -6,7 +6,7 @@
  *
  */
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { ComponentProps, FC } from 'react';
 import type { StakingQuoteDirection } from '@ton/appkit';
 import clsx from 'clsx';
@@ -21,6 +21,7 @@ import styles from './staking-widget-ui.module.css';
 import type { StakingContextType } from '../staking-widget-provider';
 import { ButtonWithConnect } from '../../../../components/button-with-connect';
 import { AmountReversed } from '../../../../components/amount-reversed';
+import { LowBalanceModal } from '../../../../components/low-balance-modal';
 
 export type StakingWidgetRenderProps = StakingContextType & ComponentProps<'div'>;
 
@@ -45,8 +46,14 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
     isReversed,
     toggleReversed,
     reversedAmount,
+    onMaxClick,
     balance,
     isBalanceLoading,
+    isLowBalanceWarningOpen,
+    pendingStakeMode,
+    pendingStakeRequiredTon,
+    changePendingStake,
+    cancelPendingStake,
     className,
     ...props
 }) => {
@@ -54,17 +61,6 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
 
     const receiveToken = providerMetadata?.receiveToken;
     const stakeToken = providerMetadata?.stakeToken;
-
-    const handleMaxClick = useCallback(() => {
-        if (direction === 'unstake') {
-            if (isReversed) toggleReversed();
-            setAmount(stakedBalance?.stakedBalance ?? '');
-
-            return;
-        }
-
-        setAmount(balance ?? '');
-    }, [direction, isReversed, toggleReversed, stakedBalance?.stakedBalance, balance, setAmount]);
 
     const buttonText = useMemo(() => {
         if (error) return t(`staking.${error}`);
@@ -100,7 +96,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             isStakedBalanceLoading={isStakedBalanceLoading}
                             balance={balance}
                             isBalanceLoading={isBalanceLoading}
-                            onMaxClick={handleMaxClick}
+                            onMaxClick={onMaxClick}
                         />
 
                         <ButtonWithConnect
@@ -143,7 +139,7 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                             isStakedBalanceLoading={isStakedBalanceLoading}
                             balance={balance}
                             isBalanceLoading={isBalanceLoading}
-                            onMaxClick={handleMaxClick}
+                            onMaxClick={onMaxClick}
                         />
 
                         <ButtonWithConnect
@@ -174,6 +170,14 @@ export const StakingWidgetUI: FC<StakingWidgetRenderProps> = ({
                     direction={direction}
                 />
             </Tabs>
+
+            <LowBalanceModal
+                open={isLowBalanceWarningOpen}
+                mode={pendingStakeMode}
+                requiredTon={pendingStakeRequiredTon}
+                onChange={changePendingStake}
+                onCancel={cancelPendingStake}
+            />
         </div>
     );
 };

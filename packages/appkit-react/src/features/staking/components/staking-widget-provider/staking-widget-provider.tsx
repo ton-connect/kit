@@ -8,8 +8,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { FC, PropsWithChildren } from 'react';
-import type { Network, StakingQuoteDirection } from '@ton/appkit';
-import { validateNumericString } from '@ton/appkit';
+import type { Network, StakingQuoteDirection, TonShortfall } from '@ton/appkit';
+import { calcMaxSpendable, formatUnits, getTonShortfall, validateNumericString } from '@ton/appkit';
 import type {
     StakingQuote,
     StakingProviderInfo,
@@ -86,6 +86,18 @@ export interface StakingContextType {
     toggleReversed: () => void;
     /** Amount displayed in the reversed (bottom) input */
     reversedAmount: string;
+    /** Sets the input amount to the maximum available balance (leaves room for TON gas on native stake) */
+    onMaxClick: () => void;
+    /** True when the built transaction outflow exceeds the user's TON balance */
+    isLowBalanceWarningOpen: boolean;
+    /** `reduce` when the outgoing token is TON (user can fix by changing amount), `topup` otherwise. */
+    pendingStakeMode: 'reduce' | 'topup';
+    /** Required TON amount for the pending stake/unstake, formatted as a decimal string. Empty when no pending op. */
+    pendingStakeRequiredTon: string;
+    /** Replace amount with a value that fits into the current TON balance and close the warning */
+    changePendingStake: () => void;
+    /** Dismiss the low-balance warning without changing the amount */
+    cancelPendingStake: () => void;
 }
 
 export const StakingContext = createContext<StakingContextType>({
@@ -111,6 +123,12 @@ export const StakingContext = createContext<StakingContextType>({
     isReversed: false,
     toggleReversed: () => {},
     reversedAmount: '0',
+    onMaxClick: () => {},
+    isLowBalanceWarningOpen: false,
+    pendingStakeMode: 'reduce',
+    pendingStakeRequiredTon: '',
+    changePendingStake: () => {},
+    cancelPendingStake: () => {},
 });
 
 /**
@@ -137,6 +155,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const [unstakeMode, setUnstakeMode] = useState<UnstakeModes>(UnstakeMode.INSTANT);
     const [direction, setDirection] = useState<StakingQuoteDirection>('stake');
     const [isReversed, setIsReversed] = useState(false);
+    const [pendingStake, setPendingStake] = useState<TonShortfall | undefined>(undefined);
 
     const walletNetwork = useNetwork();
     const network = networkProp ?? walletNetwork;
@@ -148,15 +167,17 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
 
     const isNativeTon = providerMetadata?.stakeToken.address === 'ton';
 
+    // Always fetch TON balance: even when the stake token is a jetton we need it to check whether the user has
+    // enough TON to cover network fees before sending.
     const { data: nativeBalanceData, isLoading: isNativeBalanceLoading } = useBalance({
-        query: { enabled: isNativeTon },
+        query: { refetchInterval: 5000 },
     });
 
     const { data: jettonBalanceData, isLoading: isJettonBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: !isNativeTon ? providerMetadata?.stakeToken.address : undefined,
         ownerAddress: address ?? undefined,
         network,
-        query: { enabled: !isNativeTon && !!providerMetadata?.stakeToken.address && !!address },
+        query: { enabled: !isNativeTon && !!providerMetadata?.stakeToken.address && !!address, refetchInterval: 5000 },
     });
 
     const balance = isNativeTon ? nativeBalanceData : jettonBalanceData;
@@ -219,13 +240,69 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         setIsReversed((prev) => !prev);
     }, [reversedAmount]);
 
+    const handleMaxClick = useCallback(() => {
+        const outgoingToken = direction === 'stake' ? providerMetadata?.stakeToken : providerMetadata?.receiveToken;
+        const available = direction === 'stake' ? balance : stakedBalanceData?.stakedBalance;
+
+        if (direction === 'unstake') setIsReversed(false);
+
+        if (!available || !outgoingToken) {
+            setAmountRaw(available ?? '');
+            return;
+        }
+
+        setAmountRaw(calcMaxSpendable({ balance: available, token: outgoingToken, feeReserveNanos: 1_200_000_000n }));
+    }, [
+        direction,
+        balance,
+        stakedBalanceData?.stakedBalance,
+        providerMetadata?.stakeToken,
+        providerMetadata?.receiveToken,
+    ]);
+
     const handleSendTransaction = useCallback(async () => {
-        if (!quote || !address) return;
+        if (!quote || !address || !providerMetadata) return;
 
         const transactionParams = await buildTransaction({ quote, userAddress: address });
 
+        const outgoingTokenAddress =
+            direction === 'stake' ? providerMetadata.stakeToken.address : providerMetadata.receiveToken?.address;
+
+        if (outgoingTokenAddress) {
+            const shortfall = getTonShortfall({
+                messages: transactionParams.messages,
+                tonBalance: nativeBalanceData,
+                fromToken: { address: outgoingTokenAddress },
+                fromAmount: quote.amountIn,
+            });
+
+            if (shortfall) {
+                setPendingStake(shortfall);
+                return;
+            }
+        }
+
         await sendTransaction(transactionParams);
-    }, [quote, address, buildTransaction, sendTransaction]);
+    }, [quote, address, providerMetadata, direction, nativeBalanceData, buildTransaction, sendTransaction]);
+
+    const changePendingStake = useCallback(() => {
+        if (!pendingStake || pendingStake.mode !== 'reduce') return;
+        // The suggested amount is always a direct (non-reversed) outgoing amount.
+        if (isReversed) setIsReversed(false);
+        setAmountRaw(pendingStake.suggestedFromAmount);
+        setPendingStake(undefined);
+    }, [pendingStake, isReversed]);
+
+    const cancelPendingStake = useCallback(() => {
+        setPendingStake(undefined);
+    }, []);
+
+    const isLowBalanceWarningOpen = pendingStake !== undefined;
+    const pendingStakeMode: 'reduce' | 'topup' = pendingStake?.mode ?? 'reduce';
+    const pendingStakeRequiredTon = useMemo(() => {
+        if (!pendingStake) return '';
+        return formatUnits(pendingStake.requiredNanos, 9);
+    }, [pendingStake]);
 
     const { error, canSubmit } = useStakingValidation({
         amount,
@@ -262,7 +339,13 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isReversed,
             toggleReversed,
             reversedAmount,
+            onMaxClick: handleMaxClick,
             onChangeDirection: setDirection,
+            isLowBalanceWarningOpen,
+            pendingStakeMode,
+            pendingStakeRequiredTon,
+            changePendingStake,
+            cancelPendingStake,
         }),
         [
             amount,
@@ -287,7 +370,13 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             isReversed,
             toggleReversed,
             reversedAmount,
+            handleMaxClick,
             setDirection,
+            isLowBalanceWarningOpen,
+            pendingStakeMode,
+            pendingStakeRequiredTon,
+            changePendingStake,
+            cancelPendingStake,
         ],
     );
 

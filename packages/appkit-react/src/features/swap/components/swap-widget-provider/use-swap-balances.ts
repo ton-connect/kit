@@ -26,14 +26,14 @@ export function useSwapBalances({ fromToken, toToken, ownerAddress }: UseSwapBal
         jettonAddress: fromToken?.address,
         ownerAddress,
         jettonDecimals: fromToken?.decimals,
-        query: { enabled: !isFromNative && !!fromToken },
+        query: { enabled: !isFromNative && !!fromToken, refetchInterval: 5000 },
     });
 
     const { data: toJettonBalance } = useJettonBalanceByAddress({
         jettonAddress: toToken?.address,
         ownerAddress,
         jettonDecimals: toToken?.decimals,
-        query: { enabled: !isToNative && !!toToken },
+        query: { enabled: !isToNative && !!toToken, refetchInterval: 5000 },
     });
 
     return {

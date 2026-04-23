@@ -14,6 +14,7 @@ import type { GetSwapQuoteData } from '@ton/appkit/queries';
 import type { SwapProvider } from '@ton/appkit';
 import { getTonShortfall } from '@ton/appkit';
 import type { TonShortfall } from '@ton/appkit';
+import { calcMaxSpendable } from '@ton/appkit';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
@@ -26,7 +27,6 @@ import { useSendTransaction } from '../../../transaction/hooks/use-send-transact
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
-import { calcMaxFromAmount } from '../../utils/calc-max-from-amount';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
 import { useSwapValidation } from './use-swap-validation';
@@ -225,7 +225,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         toToken,
         ownerAddress: address ?? undefined,
     });
-    const { data: tonBalance } = useBalance();
+    const { data: tonBalance } = useBalance({ query: { refetchInterval: 5000 } });
 
     // 3. Derivations
     const toAmount = quote?.toAmount ?? '';
@@ -252,7 +252,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     // 5. Callbacks
     const handleMaxClick = useCallback(() => {
         if (!fromBalance || !fromToken) return;
-        setFromAmount(calcMaxFromAmount(fromBalance, fromToken));
+        setFromAmount(calcMaxSpendable({ balance: fromBalance, token: fromToken, feeReserveNanos: 350_000_000n }));
     }, [fromBalance, fromToken, setFromAmount]);
 
     const sendSwapTransaction = useCallback(async () => {
