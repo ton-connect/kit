@@ -22,6 +22,7 @@ import { UnstakeMode } from '@ton/appkit';
 import { useNetwork } from '../../../network';
 import { useStakingQuote } from '../../hooks/use-staking-quote';
 import type { UseStakingQuoteParameters } from '../../hooks/use-staking-quote';
+import { useStakingProvider } from '../../hooks/use-staking-provider';
 import { useStakingProviderInfo } from '../../hooks/use-staking-provider-info';
 import { useStakingProviderMetadata } from '../../hooks/use-staking-provider-metadata';
 import { useStakedBalance } from '../../hooks/use-staked-balance';
@@ -33,7 +34,7 @@ import { useSendTransaction } from '../../../transaction/hooks/use-send-transact
 import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import { useStakingValidation } from './use-staking-validation';
 
-export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
+export type StakingWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | 'unsupportedNetwork' | null;
 
 /**
  * Context type for the StakingWidget.
@@ -159,6 +160,15 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
     const network = networkProp ?? walletNetwork;
 
     const address = useAddress();
+    const stakingProvider = useStakingProvider();
+
+    const isNetworkSupported = useMemo(
+        () =>
+            !stakingProvider ||
+            !network ||
+            stakingProvider.getSupportedNetworks().some((n) => n.chainId === network.chainId),
+        [stakingProvider, network],
+    );
 
     const { data: providerInfo, isLoading: isProviderInfoLoading } = useStakingProviderInfo({ network });
     const providerMetadata = useStakingProviderMetadata({ network });
@@ -216,7 +226,11 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         500,
     );
 
-    const { data: quote, isFetching: isQuoteLoading, error: quoteError } = useStakingQuote(quoteParamsDebounced);
+    const {
+        data: quote,
+        isFetching: isQuoteLoading,
+        error: quoteError,
+    } = useStakingQuote({ ...quoteParamsDebounced, query: { enabled: isNetworkSupported } });
 
     const reversedAmount = useMemo(() => {
         if (direction === 'unstake' && isReversed) return quote?.amountIn || '0';
@@ -302,6 +316,7 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
         quote,
         isReversed,
         amountDecimals,
+        isNetworkSupported,
     });
 
     const value = useMemo(

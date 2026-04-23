@@ -21,6 +21,7 @@ interface UseStakingValidationOptions {
     amountDecimals?: number;
     isReversed: boolean;
     stakedBalance?: string;
+    isNetworkSupported: boolean;
 }
 
 export const useStakingValidation = ({
@@ -33,8 +34,11 @@ export const useStakingValidation = ({
     amountDecimals,
     isReversed,
     stakedBalance,
+    isNetworkSupported,
 }: UseStakingValidationOptions) => {
     const error: StakingWidgetError = useMemo(() => {
+        if (!isNetworkSupported) return 'unsupportedNetwork';
+
         const parsed = parseFloat(amount) || 0;
         if (parsed <= 0) return null;
 
@@ -62,7 +66,18 @@ export const useStakingValidation = ({
         }
 
         return null;
-    }, [amount, balance, quoteError, amountDebounced, direction, stakedBalance, isReversed, quote, amountDecimals]);
+    }, [
+        isNetworkSupported,
+        amount,
+        balance,
+        quoteError,
+        amountDebounced,
+        direction,
+        stakedBalance,
+        isReversed,
+        quote,
+        amountDecimals,
+    ]);
 
     const canSubmit = (parseFloat(amount) || 0) > 0 && error === null;
 

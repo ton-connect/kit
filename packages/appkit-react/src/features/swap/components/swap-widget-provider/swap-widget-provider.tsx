@@ -33,7 +33,7 @@ import { useSwapValidation } from './use-swap-validation';
 
 export type { AppkitUIToken };
 
-export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | null;
+export type SwapWidgetError = 'insufficientBalance' | 'tooManyDecimals' | 'quoteError' | 'unsupportedNetwork' | null;
 
 /**
  * Context type for the SwapWidget.
@@ -208,6 +208,12 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         [toToken],
     );
 
+    const isNetworkSupported = useMemo(
+        () =>
+            !swapProvider || !network || swapProvider.getSupportedNetworks().some((n) => n.chainId === network.chainId),
+        [swapProvider, network],
+    );
+
     const {
         data: quote,
         isFetching: isQuoteFetching,
@@ -219,6 +225,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         network,
         slippageBps: slippage,
         providerId: swapProvider?.providerId,
+        query: { enabled: isNetworkSupported },
     });
     // Also show "loading" while the user is still typing (debounce in-flight) so the UI doesn't flash
     // the previous quote as if it were final.
@@ -240,6 +247,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         toToken,
         fromBalance,
         quoteError,
+        isNetworkSupported,
     });
     const isLowBalanceWarningOpen = pendingSwap !== undefined;
     const lowBalanceMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';

@@ -18,6 +18,7 @@ interface UseSwapValidationOptions {
     toToken: AppkitUIToken | null;
     fromBalance: string | undefined;
     quoteError: Error | null;
+    isNetworkSupported: boolean;
 }
 
 export function useSwapValidation({
@@ -27,8 +28,11 @@ export function useSwapValidation({
     toToken,
     fromBalance,
     quoteError,
+    isNetworkSupported,
 }: UseSwapValidationOptions) {
     const error: SwapWidgetError = useMemo(() => {
+        if (!isNetworkSupported) return 'unsupportedNetwork';
+
         const amount = parseFloat(fromAmount) || 0;
         if (amount <= 0) return null;
 
@@ -46,7 +50,7 @@ export function useSwapValidation({
         }
 
         return null;
-    }, [fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);
+    }, [isNetworkSupported, fromAmount, fromToken, fromBalance, quoteError, fromAmountDebounced]);
 
     const canSubmit = (parseFloat(fromAmount) || 0) > 0 && fromToken !== null && toToken !== null && error === null;
 
