@@ -12,6 +12,8 @@ import { formatUnits } from '@ton/appkit';
 import type { Network } from '@ton/appkit';
 import type { GetSwapQuoteData } from '@ton/appkit/queries';
 import type { SwapProvider } from '@ton/appkit';
+import { getTonShortfall } from '@ton/appkit';
+import type { TonShortfall } from '@ton/appkit';
 
 import { useSwapQuote } from '../../hooks/use-swap-quote';
 import { useSwapProvider } from '../../hooks/use-swap-provider';
@@ -25,8 +27,6 @@ import { useDebounceValue } from '../../../../hooks/use-debounce-value';
 import type { AppkitUIToken } from '../../../../types/appkit-ui-token';
 import { mapSwapWidgetTokens } from '../../utils/map-swap-widget-tokens';
 import { calcMaxFromAmount } from '../../utils/calc-max-from-amount';
-import { analyzeBalanceShortfall } from '../../utils/analyze-balance-shortfall';
-import type { BalanceShortfall } from '../../utils/analyze-balance-shortfall';
 import { useSwapTokenState } from './use-swap-token-state';
 import { useSwapBalances } from './use-swap-balances';
 import { useSwapValidation } from './use-swap-validation';
@@ -178,7 +178,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     });
     const [slippage, setSlippage] = useState(defaultSlippage);
     const [fromAmountDebounced] = useDebounceValue(fromAmount, 500);
-    const [pendingSwap, setPendingSwap] = useState<BalanceShortfall | null>(null);
+    const [pendingSwap, setPendingSwap] = useState<TonShortfall | undefined>(undefined);
 
     // 2. Queries and external readers
     const walletNetwork = useNetwork();
@@ -237,7 +237,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
         fromBalance,
         quoteError,
     });
-    const isLowBalanceWarningOpen = pendingSwap !== null;
+    const isLowBalanceWarningOpen = pendingSwap !== undefined;
     const pendingSwapMode: 'reduce' | 'topup' = pendingSwap?.mode ?? 'reduce';
     const pendingSwapRequiredTon = useMemo(() => {
         if (!pendingSwap) return '';
@@ -260,7 +260,7 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
 
         const tx = await buildTransaction({ quote, userAddress: address });
 
-        const shortfall = analyzeBalanceShortfall({
+        const shortfall = getTonShortfall({
             messages: tx.messages,
             tonBalance,
             fromToken,
@@ -278,11 +278,11 @@ export const SwapWidgetProvider: FC<SwapProviderProps> = ({
     const changePendingSwap = useCallback(() => {
         if (!pendingSwap || pendingSwap.mode !== 'reduce') return;
         setFromAmount(pendingSwap.suggestedFromAmount);
-        setPendingSwap(null);
+        setPendingSwap(undefined);
     }, [pendingSwap, setFromAmount]);
 
     const cancelPendingSwap = useCallback(() => {
-        setPendingSwap(null);
+        setPendingSwap(undefined);
     }, []);
 
     const value = useMemo(
