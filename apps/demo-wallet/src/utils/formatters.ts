@@ -8,6 +8,20 @@
 
 import { Address } from '@ton/core';
 
+export function normalizeAddress(address: string): string | null {
+    try {
+        return Address.parse(address).toString();
+    } catch {
+        return null;
+    }
+}
+
+export function shortenAddress(addr?: string, count = 6): string {
+    if (!addr) return '';
+    const normalized = normalizeAddress(addr) ?? addr;
+    return normalized.length <= count * 2 ? normalized : `${normalized.slice(0, count)}...${normalized.slice(-count)}`;
+}
+
 /**
  * Compare two TON addresses for equality (handles different formats: 0:xxx, EQxxx, UQxxx)
  */
@@ -52,6 +66,5 @@ export const formatTonForDisplay = (amountOrValue: string): string => {
  * @returns Shortened address (e.g., "EQAbc...xyz123")
  */
 export const formatAddress = (addr: string): string => {
-    if (!addr) return '';
-    return `${addr.slice(0, 6)}...${addr.slice(-6)}`;
+    return shortenAddress(addr);
 };

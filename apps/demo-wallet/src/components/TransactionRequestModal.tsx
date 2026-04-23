@@ -14,7 +14,8 @@ import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { RequestModal } from './RequestModal';
-import { useActiveWalletNetwork } from './JettonFlow';
+import { TransactionRequestDetails } from './TransactionRequestDetails';
+import { useActiveWalletNetwork } from '../hooks/useJettonInfo';
 
 interface TransactionRequestModalProps {
     request: SendTransactionRequestEvent;
@@ -62,6 +63,7 @@ export const TransactionRequestModal: React.FC<TransactionRequestModalProps> = (
             isOpen={isOpen}
             title="Transaction Request"
             subtitle="A dApp wants to send a transaction from your wallet"
+            details={<TransactionRequestDetails request={request.request} />}
             warning={{
                 tone: 'red',
                 message: (

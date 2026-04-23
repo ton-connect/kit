@@ -30,6 +30,7 @@ interface RequestModalProps {
     isOpen: boolean;
     title: string;
     subtitle: string;
+    details?: React.ReactNode;
     warning: { tone: WarningTone; message: React.ReactNode };
     approveLabel: string;
     successMessage: string;
@@ -59,6 +60,7 @@ export const RequestModal: React.FC<RequestModalProps> = ({
     isOpen,
     title,
     subtitle,
+    details,
     warning,
     approveLabel,
     successMessage,
@@ -193,6 +195,8 @@ export const RequestModal: React.FC<RequestModalProps> = ({
                             </div>
                         ) : (
                             <>
+                                {details}
+
                                 {preview && preview.result === 'success' && (
                                     <div>
                                         <div className="space-y-3">

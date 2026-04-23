@@ -6,66 +6,19 @@
  *
  */
 
-import { memo, useEffect, useState } from 'react';
-import { Address } from '@ton/core';
-import type { JettonInfo, TransactionTraceMoneyFlowItem } from '@ton/walletkit';
-import { getChainNetwork, useWalletKit, useWalletStore } from '@demo/wallet-core';
-import type { NetworkType } from '@demo/wallet-core';
+import { memo } from 'react';
+import type { Address } from '@ton/core';
+import type { TransactionTraceMoneyFlowItem } from '@ton/walletkit';
 
+import { resolveTokenAddress, TON_INFO, useJettonInfo } from '../hooks/useJettonInfo';
 import { formatUnits } from '../utils/units';
-
-export function useActiveWalletNetwork(): NetworkType {
-    const savedWallets = useWalletStore((state) => state.walletManagement.savedWallets);
-    const activeWalletId = useWalletStore((state) => state.walletManagement.activeWalletId);
-    const activeWallet = savedWallets.find((w) => w.id === activeWalletId);
-    return activeWallet?.network || 'testnet';
-}
-
-function useJettonInfo(jettonAddress: Address | string | null) {
-    const walletKit = useWalletKit();
-    const network = useActiveWalletNetwork();
-    const [jettonInfo, setJettonInfo] = useState<JettonInfo | null>(null);
-    const chainNetwork = getChainNetwork(network);
-
-    useEffect(() => {
-        if (!jettonAddress) {
-            setJettonInfo(null);
-            return;
-        }
-        async function updateJettonInfo() {
-            if (!jettonAddress) {
-                return;
-            }
-            const info = await walletKit?.jettons?.getJettonInfo(jettonAddress.toString(), chainNetwork);
-            setJettonInfo(info ?? null);
-        }
-        updateJettonInfo();
-    }, [jettonAddress, walletKit, chainNetwork]);
-    return jettonInfo;
-}
-
-function safeParseAddress(address: string) {
-    try {
-        return Address.parse(address).toString();
-    } catch {
-        return null;
-    }
-}
-
-function resolveJettonAddress(jettonAddress: Address | string | undefined) {
-    if (!jettonAddress) return null;
-    if (typeof jettonAddress === 'string' && jettonAddress !== 'TON') {
-        return safeParseAddress(jettonAddress);
-    }
-    return jettonAddress;
-}
 
 export const JettonNameDisplay = memo(function JettonNameDisplay({
     jettonAddress,
 }: {
     jettonAddress: Address | string | undefined;
 }) {
-    const jettonInfo = useJettonInfo(resolveJettonAddress(jettonAddress));
+    const jettonInfo = useJettonInfo(resolveTokenAddress(jettonAddress));
     const name = jettonInfo?.name;
     return <div>{name ?? jettonAddress?.toString() ?? 'UNKNOWN'}</div>;
 });
@@ -77,10 +30,12 @@ export const JettonAmountDisplay = memo(function JettonAmountDisplay({
     amount: bigint;
     jettonAddress: Address | string | undefined;
 }) {
-    const jettonInfo = useJettonInfo(resolveJettonAddress(jettonAddress));
+    const jettonInfo = useJettonInfo(resolveTokenAddress(jettonAddress));
+    const decimals = jettonInfo?.decimals ?? 9;
+    const symbol = jettonInfo?.symbol ?? 'UNKWN';
     return (
         <div>
-            {formatUnits(amount, jettonInfo?.decimals ?? 9)} {jettonInfo?.symbol ?? 'UNKWN'}
+            {formatUnits(amount, decimals)} {symbol}
         </div>
     );
 });
@@ -90,8 +45,11 @@ export const JettonImage = memo(function JettonImage({
 }: {
     jettonAddress: Address | string | undefined;
 }) {
-    const jettonInfo = useJettonInfo(resolveJettonAddress(jettonAddress));
-    return <img src={jettonInfo?.image} alt={jettonInfo?.name} className="w-8 h-8 rounded-full" />;
+    const jettonInfo = useJettonInfo(resolveTokenAddress(jettonAddress));
+    if (!jettonInfo?.image) {
+        return <img src={TON_INFO.image} alt={TON_INFO.name} className="w-8 h-8 rounded-full" />;
+    }
+    return <img src={jettonInfo.image} alt={jettonInfo.name} className="w-8 h-8 rounded-full" />;
 });
 
 const JettonFlowItem = memo(function JettonFlowItem({

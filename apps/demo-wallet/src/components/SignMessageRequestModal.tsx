@@ -12,6 +12,7 @@ import type { SavedWallet } from '@demo/wallet-core';
 import { useSignMessageRequests } from '@demo/wallet-core';
 
 import { RequestModal } from './RequestModal';
+import { TransactionRequestDetails } from './TransactionRequestDetails';
 
 interface SignMessageRequestModalProps {
     request: SignMessageRequestEvent;
@@ -37,6 +38,7 @@ export const SignMessageRequestModal: React.FC<SignMessageRequestModalProps> = (
             isOpen={isOpen}
             title="Sign Message Request"
             subtitle="A dApp wants you to sign a transaction without broadcasting it"
+            details={<TransactionRequestDetails request={request.request} title="The dApp can submit:" />}
             warning={{
                 tone: 'yellow',
                 message: (
