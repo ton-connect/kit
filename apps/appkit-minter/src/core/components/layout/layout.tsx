@@ -6,64 +6,122 @@
  *
  */
 
-import { useState } from 'react';
 import type React from 'react';
-import { Button, TonConnectButton } from '@ton/appkit-react';
-import { Menu } from 'lucide-react';
+import { TonConnectButton } from '@ton/appkit-react';
+import { ArrowLeftRight, BookOpen, Coins, Github, PenLine, Sparkles } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
 
 import { AppLogo } from '../app-logo';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '../sheet';
-import { SidePanelContent } from './side-panel-content';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarHeader,
+    SidebarInset,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarProvider,
+    SidebarSeparator,
+    SidebarTrigger,
+    useSidebar,
+} from '../sidebar';
+import { BalanceCard } from './balance-card';
 import { ThemeSwitcher } from './theme-switcher';
+
+import { NetworkPicker } from '@/features/network';
 
 interface LayoutProps {
     children: React.ReactNode;
 }
 
-const AppBrand: React.FC = () => (
-    <div className="flex items-center gap-2">
-        <AppLogo className="size-8" />
-        <span className="text-base font-bold text-foreground">NFT Minter</span>
-    </div>
-);
+const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { to: '/', label: 'Mint', icon: Sparkles },
+    { to: '/swap', label: 'Swap', icon: ArrowLeftRight },
+    { to: '/staking', label: 'Staking', icon: Coins },
+    { to: '/sign', label: 'Sign Message', icon: PenLine },
+];
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
-    const [mobileOpen, setMobileOpen] = useState(false);
+const EXTERNAL_LINKS: readonly { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { href: 'https://docs.ton.org/ecosystem/appkit/overview', label: 'Docs', icon: BookOpen },
+    { href: 'https://github.com/ton-connect/kit', label: 'GitHub', icon: Github },
+];
+
+const AppSidebar: React.FC = () => {
+    const { setOpenMobile, isMobile } = useSidebar();
+
+    const closeOnMobile = () => {
+        if (isMobile) setOpenMobile(false);
+    };
 
     return (
-        <div className="flex min-h-svh w-full">
-            <aside className="sticky top-0 hidden h-svh w-[280px] shrink-0 flex-col gap-4 overflow-y-auto border-r border-tertiary p-4 md:flex">
-                <AppBrand />
-                <SidePanelContent />
-            </aside>
+        <Sidebar collapsible="offcanvas">
+            <SidebarHeader>
+                <Link to="/" onClick={closeOnMobile} className="flex items-center gap-2 px-2 py-1.5">
+                    <AppLogo className="size-7" />
+                    <span className="text-base font-bold text-foreground">NFT Minter</span>
+                </Link>
+            </SidebarHeader>
 
-            <div className="flex min-w-0 flex-1 flex-col">
+            <SidebarContent>
+                <SidebarGroup>
+                    <BalanceCard />
+                </SidebarGroup>
+
+                <SidebarSeparator />
+
+                <SidebarGroup>
+                    <SidebarMenu>
+                        {NAV_LINKS.map(({ to, label, icon: Icon }) => (
+                            <SidebarMenuItem key={to}>
+                                <NavLink to={to} end={to === '/'} onClick={closeOnMobile}>
+                                    {({ isActive }) => (
+                                        <SidebarMenuButton isActive={isActive} tooltip={label}>
+                                            <Icon />
+                                            <span>{label}</span>
+                                        </SidebarMenuButton>
+                                    )}
+                                </NavLink>
+                            </SidebarMenuItem>
+                        ))}
+                    </SidebarMenu>
+                </SidebarGroup>
+            </SidebarContent>
+
+            <SidebarFooter>
+                <SidebarMenu>
+                    {EXTERNAL_LINKS.map(({ href, label, icon: Icon }) => (
+                        <SidebarMenuItem key={href}>
+                            <SidebarMenuButton asChild tooltip={label}>
+                                <a href={href} target="_blank" rel="noreferrer">
+                                    <Icon />
+                                    <span>{label}</span>
+                                </a>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+                <NetworkPicker />
+            </SidebarFooter>
+        </Sidebar>
+    );
+};
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+    return (
+        <SidebarProvider>
+            <AppSidebar />
+
+            <SidebarInset>
                 <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-tertiary bg-background/80 px-4 backdrop-blur">
                     <AppLogo className="size-8 md:hidden" />
 
                     <TonConnectButton className="ml-auto" />
                     <ThemeSwitcher />
-
-                    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-                        <SheetTrigger asChild>
-                            <Button
-                                type="button"
-                                size="icon"
-                                aria-label="Open menu"
-                                variant="ghost"
-                                className="block md:!hidden"
-                            >
-                                <Menu className="size-5" />
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent
-                            side="right"
-                            className="flex w-[18rem] max-w-[85vw] flex-col gap-4 overflow-y-auto p-4 sm:max-w-[18rem]"
-                        >
-                            <SheetTitle className="sr-only">Navigation</SheetTitle>
-                            <SidePanelContent onNavigate={() => setMobileOpen(false)} />
-                        </SheetContent>
-                    </Sheet>
+                    <div className="md:hidden">
+                        <SidebarTrigger />
+                    </div>
                 </header>
 
                 <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
@@ -71,7 +129,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <footer className="py-2 text-center text-xs text-tertiary-foreground">
                     <p>Powered by AppKit & TonConnect</p>
                 </footer>
-            </div>
-        </div>
+            </SidebarInset>
+        </SidebarProvider>
     );
 };
