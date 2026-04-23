@@ -23,7 +23,7 @@ import type { TonStakersProviderConfig } from '@ton/walletkit/staking/tonstakers
 
 import { bridgeRequest } from '../transport/nativeBridge';
 import { getKit } from '../utils/bridge';
-import { get, release, retain, retainWithId } from '../utils/registry';
+import { get, release, retainWithId } from '../utils/registry';
 
 /**
  * JS-side proxy that implements [StakingProviderInterface] by forwarding every call to a
@@ -82,8 +82,11 @@ class ProxyStakingProvider implements StakingProviderInterface {
 export async function createTonStakersStakingProvider(args?: { config?: TonStakersProviderConfig }) {
     const instance = await getKit();
     const provider = TonStakersStakingProvider.createFromContext(instance.createFactoryContext(), args?.config ?? {});
-    const providerId = retain('stakingProvider', provider);
-    return { providerId };
+    // Retain under the provider's own id (e.g. 'tonstakers') rather than a generated handle, so that
+    // the id we hand back to Kotlin matches what StakingManager stores when registerProvider(provider)
+    // indexes providers by `provider.providerId`. Mirrors the swap bridge's createOmnistonSwapProvider.
+    retainWithId(provider.providerId, provider);
+    return { providerId: provider.providerId };
 }
 
 export async function registerStakingProvider(args: { providerId: string }) {
