@@ -13,7 +13,7 @@ import { SignMessageCard } from '@/features/signing';
 
 export const SignMessagePage: React.FC = () => {
     return (
-        <Layout title="Sign Message">
+        <Layout>
             <SignMessageCard className="w-full max-w-[488px] mx-auto" />
         </Layout>
     );

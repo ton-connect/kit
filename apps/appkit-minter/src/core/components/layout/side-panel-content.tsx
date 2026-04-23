@@ -13,6 +13,7 @@ import { NavLink } from 'react-router-dom';
 
 import { BalanceCard } from './balance-card';
 
+import { Separator } from '@/core/components/separator';
 import { cn } from '@/core/lib/utils';
 import { NetworkPicker } from '@/features/network';
 
@@ -36,6 +37,8 @@ export const SidePanelContent: FC<SidePanelContentProps> = ({ onNavigate }) => {
     return (
         <div className="flex flex-col gap-4">
             <BalanceCard />
+
+            <Separator />
 
             <nav className="flex flex-col gap-1">
                 {NAV_LINKS.map(({ to, label, icon: Icon }) => (

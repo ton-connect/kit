@@ -13,7 +13,7 @@ import { Layout } from '@/core/components';
 
 export const StakingPage: React.FC = () => {
     return (
-        <Layout title="Staking">
+        <Layout>
             <div className="w-full max-w-[434px] mx-auto">
                 <StakingWidget />
             </div>

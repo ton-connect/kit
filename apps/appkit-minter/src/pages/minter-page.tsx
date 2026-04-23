@@ -19,7 +19,7 @@ export const MinterPage: React.FC = () => {
     const isConnected = !!wallet;
 
     return (
-        <Layout title="Mint">
+        <Layout>
             <div className="space-y-4">
                 <CardGenerator />
 

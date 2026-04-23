@@ -8,24 +8,10 @@
 
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
-import { Network, useBalance, useDefaultNetwork, useSelectedWallet } from '@ton/appkit-react';
+import { formatLargeValue, Network, useBalance, useDefaultNetwork, useSelectedWallet } from '@ton/appkit-react';
 import { Check, Copy, ExternalLink, Wallet } from 'lucide-react';
 
 const TESTNET_CHAIN_ID = Network.testnet().chainId;
-
-const formatTon = (nano: string | null | undefined): string => {
-    if (!nano) return '0';
-    let value: bigint;
-    try {
-        value = BigInt(nano);
-    } catch {
-        return '0';
-    }
-    const whole = value / 1_000_000_000n;
-    const frac = value % 1_000_000_000n;
-    const fracStr = frac.toString().padStart(9, '0').slice(0, 4).replace(/0+$/, '');
-    return fracStr ? `${whole.toString()}.${fracStr}` : whole.toString();
-};
 
 const truncateAddress = (address: string): string =>
     address.length <= 12 ? address : `${address.slice(0, 4)}…${address.slice(-4)}`;
@@ -47,9 +33,7 @@ export const BalanceCard: FC = () => {
 
     const address = wallet?.getAddress() ?? '';
 
-    const { data: balance, isLoading } = useBalance({
-        query: { refetchInterval: 20000, enabled: !!wallet },
-    });
+    const { data: balance, isLoading } = useBalance();
 
     const handleCopy = useCallback(async () => {
         if (!address) return;
@@ -72,13 +56,13 @@ export const BalanceCard: FC = () => {
     const explorers = getExplorerUrls(defaultNetwork?.chainId, address);
 
     return (
-        <div className="mb-2">
-            <p className="text-xs font-medium uppercase tracking-wider text-tertiary-foreground">TON Balance</p>
+        <div className="mb-2 px-1">
+            <p className="text-base font-semibold text-foreground">Balance</p>
             <p className="mt-1 flex items-baseline gap-1.5">
                 {isLoading ? (
                     <span className="inline-block h-8 w-28 animate-pulse rounded bg-tertiary" />
                 ) : (
-                    <span className="text-3xl font-bold text-foreground">{formatTon(balance)}</span>
+                    <span className="text-3xl font-bold text-foreground">{formatLargeValue(balance || '0', 4)}</span>
                 )}
                 <span className="text-base font-medium text-tertiary-foreground">TON</span>
             </p>
