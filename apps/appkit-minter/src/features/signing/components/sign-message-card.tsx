@@ -7,16 +7,21 @@
  */
 
 import { useState } from 'react';
-import type { FC, ComponentProps } from 'react';
-import { useSignText, useSelectedWallet } from '@ton/appkit-react';
+import type { ComponentProps, FC } from 'react';
+import { Button, useSelectedWallet, useSignText } from '@ton/appkit-react';
+import { Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@ton/appkit-react';
 
-export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
+import { cn } from '@/core/lib/utils';
+
+export const SignMessageCard: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
     const [message, setMessage] = useState('');
     const [signature, setSignature] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
 
     const [wallet] = useSelectedWallet();
+    const isConnected = !!wallet;
+
     const { mutate: signText, isPending } = useSignText({
         mutation: {
             onSuccess: (result) => {
@@ -30,66 +35,59 @@ export const SignMessageCard: FC<ComponentProps<'div'>> = (props) => {
     });
 
     const handleSign = () => {
-        if (!wallet || !message.trim()) {
-            toast.error('Please enter a message to sign');
-            return;
-        }
-
+        if (!isConnected || !message.trim()) return;
         signText({ text: message });
     };
 
-    const handleCopySignature = () => {
-        if (signature) {
-            navigator.clipboard.writeText(signature);
-            toast.success('Signature copied to clipboard!');
-        }
+    const handleCopySignature = async () => {
+        if (!signature) return;
+        await navigator.clipboard.writeText(signature);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
+    const canSign = isConnected && message.trim().length > 0 && !isPending;
+
     return (
-        <div {...props}>
-            <div className="space-y-4">
-                {/* Message Input */}
-                <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Message to sign</label>
-                    <textarea
-                        className="w-full p-3 bg-tertiary border border-tertiary rounded-lg text-foreground placeholder:text-tertiary-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                        rows={3}
-                        placeholder="Enter your message here..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        disabled={isPending}
-                    />
-                </div>
-
-                {/* Sign Button */}
-                <Button
-                    fullWidth
-                    variant="fill"
-                    onClick={handleSign}
-                    disabled={!wallet || !message.trim() || isPending}
-                    loading={isPending}
-                >
-                    {isPending ? 'Signing...' : 'Sign Message'}
-                </Button>
-
-                {/* Signature Result */}
-                {signature && (
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-foreground">Signature</label>
-                        <div className="p-3 bg-tertiary border border-tertiary rounded-lg">
-                            <code className="text-xs text-foreground break-all">{signature}</code>
-                        </div>
-                        <Button fullWidth variant="secondary" size="s" onClick={handleCopySignature}>
-                            Copy Signature
-                        </Button>
-                    </div>
-                )}
-
-                {/* Info */}
-                {!wallet && (
-                    <p className="text-sm text-tertiary-foreground text-center">Connect wallet to sign messages</p>
-                )}
+        <div className={cn('mx-auto flex w-full max-w-[434px] flex-col gap-4', className)} {...props}>
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-foreground">Sign Message</h2>
             </div>
+
+            <div className="flex flex-col gap-2 rounded-2xl bg-secondary p-4">
+                <label htmlFor="sign-message-input" className="text-xs font-medium text-tertiary-foreground">
+                    Message
+                </label>
+                <textarea
+                    id="sign-message-input"
+                    className="min-h-28 w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-tertiary-foreground"
+                    placeholder="Enter your message here..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    disabled={isPending}
+                />
+            </div>
+
+            <Button size="l" variant="fill" fullWidth onClick={handleSign} disabled={!canSign} loading={isPending}>
+                {isConnected ? 'Sign Message' : 'Connect wallet to sign'}
+            </Button>
+
+            {signature && (
+                <div className="flex flex-col gap-2 rounded-2xl bg-secondary p-4">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-tertiary-foreground">Signature</span>
+                        <button
+                            type="button"
+                            onClick={handleCopySignature}
+                            aria-label="Copy signature"
+                            className="flex size-6 items-center justify-center rounded text-tertiary-foreground transition-colors hover:text-foreground"
+                        >
+                            {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
+                        </button>
+                    </div>
+                    <code className="break-all font-mono text-xs text-foreground">{signature}</code>
+                </div>
+            )}
         </div>
     );
 };
