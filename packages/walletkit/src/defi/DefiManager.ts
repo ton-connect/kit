@@ -11,7 +11,7 @@ import type { DefiProvider } from '../api/interfaces';
 import { resolveProvider } from '../types';
 import type { ProviderInput } from '../types';
 import type { ProviderFactoryContext } from '../types/factory';
-import { DefiManagerError } from './errors';
+import { DefiError } from './errors';
 import type { SharedKitEvents } from '../types/emitter';
 import type { EventEmitter } from '../core/EventEmitter';
 
@@ -23,7 +23,7 @@ export abstract class DefiManager<
 
     protected providers: T[] = [];
     protected defaultProviderId?: string;
-    protected abstract createError(message: string, code: string, details?: unknown): DefiManagerError;
+    protected abstract createError(message: string, code: string, details?: unknown): DefiError;
     protected eventEmitter: EventEmitter<E>;
 
     constructor(createFactoryContext: () => ProviderFactoryContext<E>) {
@@ -36,14 +36,14 @@ export abstract class DefiManager<
      * it is removed first and replaced by the new instance. Emits `provider:registered`,
      * and `provider:default-changed` when the first provider becomes the default.
      * @param input - Provider instance or factory that produces one
-     * @throws DefiManagerError if the resolved provider has no providerId
+     * @throws DefiError if the resolved provider has no providerId
      */
     registerProvider(input: ProviderInput<T>): void {
         const provider = resolveProvider(input, this.createFactoryContext());
         const providerId = provider.providerId;
 
         if (!providerId) {
-            throw this.createError('Provider must have a providerId', DefiManagerError.INVALID_PROVIDER);
+            throw this.createError('Provider must have a providerId', DefiError.INVALID_PROVIDER);
         }
 
         const oldProvider = this.providers.find((p) => p.providerId === providerId);
@@ -77,13 +77,13 @@ export abstract class DefiManager<
     /**
      * Set the default provider to use when none is specified
      * @param providerId - Provider name
-     * @throws DefiManagerError if provider not found
+     * @throws DefiError if provider not found
      */
     setDefaultProvider(providerId: string): void {
         const provider = this.providers.find((p) => p.providerId === providerId);
 
         if (!provider) {
-            throw this.createError(`Provider '${providerId}' not found`, DefiManagerError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerId}' not found`, DefiError.PROVIDER_NOT_FOUND, {
                 provider: providerId,
                 registered: this.providers.map((p) => p.providerId),
             });
@@ -97,7 +97,7 @@ export abstract class DefiManager<
      * Get a provider by name, or the default provider
      * @param providerId - Optional provider name
      * @returns Provider instance
-     * @throws DefiManagerError if provider not found or no default set
+     * @throws DefiError if provider not found or no default set
      */
     getProvider(providerId?: string): T {
         const providerName = providerId || this.defaultProviderId;
@@ -105,13 +105,13 @@ export abstract class DefiManager<
         if (!providerName) {
             throw this.createError(
                 'No default provider set. Register a provider first.',
-                DefiManagerError.NO_DEFAULT_PROVIDER,
+                DefiError.NO_DEFAULT_PROVIDER,
             );
         }
 
         const provider = this.providers.find((p) => p.providerId === providerName);
         if (!provider) {
-            throw this.createError(`Provider '${providerName}' not found`, DefiManagerError.PROVIDER_NOT_FOUND, {
+            throw this.createError(`Provider '${providerName}' not found`, DefiError.PROVIDER_NOT_FOUND, {
                 provider: providerName,
                 registered: this.providers.map((p) => p.providerId),
             });

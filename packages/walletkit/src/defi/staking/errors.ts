@@ -6,14 +6,14 @@
  *
  */
 
-import { DefiManagerError } from '../errors';
+import { DefiError } from '../errors';
 
 export enum StakingErrorCode {
     InvalidParams = 'INVALID_PARAMS',
     UnsupportedOperation = 'UNSUPPORTED_OPERATION',
 }
 
-export class StakingError extends DefiManagerError {
+export class StakingError extends DefiError {
     public readonly code: StakingErrorCode;
 
     constructor(message: string, code: StakingErrorCode, details?: unknown) {

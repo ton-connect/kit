@@ -405,6 +405,19 @@ export class TonStakersStakingProvider extends StakingProvider {
         });
     }
 
+    getSupportedNetworks(): Network[] {
+        return Object.keys(this.chainConfig).map((chainId) => {
+            switch (chainId) {
+                case Network.mainnet().chainId:
+                    return Network.mainnet();
+                case Network.testnet().chainId:
+                    return Network.testnet();
+                default:
+                    return Network.custom(chainId);
+            }
+        });
+    }
+
     getStakingProviderMetadata(network?: Network): StakingProviderMetadata {
         const targetNetwork = network ?? Network.mainnet();
         const metadata = this.metadataByNetwork[targetNetwork.chainId];

@@ -7,6 +7,7 @@
  */
 
 import type {
+    Network,
     TransactionRequest,
     SwapQuoteParams,
     SwapQuote,
@@ -40,6 +41,12 @@ export abstract class SwapProvider<
 > implements SwapProviderInterface<TQuoteOptions, TSwapOptions> {
     readonly type = 'swap';
     abstract readonly providerId: string;
+
+    /**
+     * Get supported networks for this provider
+     * @returns Array of networks supported by this provider
+     */
+    abstract getSupportedNetworks(): Network[];
 
     /**
      * Get a quote for swapping tokens

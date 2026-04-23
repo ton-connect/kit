@@ -6,9 +6,9 @@
  *
  */
 
-import { DefiManagerError } from '../errors';
+import { DefiError } from '../errors';
 
-export class SwapError extends DefiManagerError {
+export class SwapError extends DefiError {
     static readonly INVALID_QUOTE = 'INVALID_QUOTE';
     static readonly INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY';
     static readonly QUOTE_EXPIRED = 'QUOTE_EXPIRED';

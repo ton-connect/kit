@@ -13,6 +13,7 @@ import { Address } from '@ton/core';
 import type { OmnistonQuoteMetadata, OmnistonSwapProviderConfig, OmnistonProviderOptions } from './models';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToAddress, toOmnistonAddress, isOmnistonQuoteMetadata } from './utils';
@@ -82,6 +83,10 @@ export class OmnistonSwapProvider extends SwapProvider<OmnistonProviderOptions> 
             defaultSlippageBps: this.defaultSlippageBps,
             hasReferrer: !!this.referrerAddress,
         });
+    }
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
     }
 
     getMetadata(): SwapProviderMetadata {

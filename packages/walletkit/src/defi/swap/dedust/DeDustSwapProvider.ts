@@ -17,6 +17,7 @@ import type {
 import type { DeDustSwapResponse } from './DeDustPrivateTypes';
 import { SwapProvider } from '../SwapProvider';
 import type { SwapQuoteParams, SwapQuote, SwapParams, SwapProviderMetadata } from '../../../api/models';
+import { Network } from '../../../api/models';
 import { SwapError } from '../errors';
 import { globalLogger } from '../../../core/Logger';
 import { tokenToMinter, validateNetwork, isDeDustQuoteMetadata } from './utils';
@@ -110,6 +111,10 @@ export class DeDustSwapProvider extends SwapProvider<DeDustProviderOptions, DeDu
 
     getMetadata(): SwapProviderMetadata {
         return this.metadata;
+    }
+
+    getSupportedNetworks(): Network[] {
+        return [Network.mainnet()];
     }
 
     async getQuote(params: SwapQuoteParams<DeDustProviderOptions>): Promise<SwapQuote> {
