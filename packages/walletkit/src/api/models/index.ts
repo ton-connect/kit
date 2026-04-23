@@ -12,6 +12,7 @@ export type { MasterchainInfo } from './blockchain/MasterchainInfo';
 // Core models
 export type { AddressBook, AddressBookEntry } from './core/AddressBook';
 export { AssetType } from './core/AssetType';
+export type { BaseProvider, BaseProviderEvents, BaseProviderUpdate } from './core/BaseProvider';
 export type { DAppInfo } from './core/DAppInfo';
 export type { ExtraCurrencies } from './core/ExtraCurrencies';
 export { Network } from './core/Network';

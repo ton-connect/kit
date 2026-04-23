@@ -6,8 +6,7 @@
  *
  */
 
-import type { Network } from '../models';
-import type { BaseProvider } from './BaseProvider';
+import type { Network, BaseProvider } from '../models';
 
 /**
  * Type of provider
