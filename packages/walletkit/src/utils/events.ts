@@ -121,7 +121,7 @@ export function parseTonConnectTransactionRequest(
                 errors = errors.concat(itemsValidation.errors);
             }
         } else {
-            const messagesValidation = validateTransactionMessages(params.messages ?? [], isTonConnect, false);
+            const messagesValidation = validateTransactionMessages(params.messages ?? [], isTonConnect, true);
             if (!messagesValidation.isValid) {
                 errors = errors.concat(messagesValidation.errors);
             }
