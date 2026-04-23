@@ -23,6 +23,7 @@ export type { SendMode } from './core/SendMode';
 export { SendModeFlag, SendModeBase } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
+export type { TokenAddress } from './core/TokenAddress';
 export type { TokenAnimation } from './core/TokenAnimation';
 export type { TokenImage } from './core/TokenImage';
 export type { TokenInfo } from './core/TokenInfo';
