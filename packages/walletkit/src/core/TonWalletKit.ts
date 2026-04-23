@@ -714,7 +714,13 @@ export class TonWalletKit implements ITonWalletKit {
 
         // Parse embedded intent request if present
         if (params.e) {
-            bridgeEvent.intentPayload = parseIntentFromReqParam(params.e);
+            // check if we have intents supported in features
+            const hasIntents = this.config.deviceInfo?.features.some(
+                (feature) => typeof feature === 'object' && feature.name === 'EmbeddedRequest',
+            );
+            if (hasIntents) {
+                bridgeEvent.intentPayload = parseIntentFromReqParam(params.e);
+            }
         }
 
         return bridgeEvent;

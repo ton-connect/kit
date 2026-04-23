@@ -49,5 +49,8 @@ export function getTonConnectFeatures(): Feature[] {
             name: 'SignData',
             types: ['text', 'binary', 'cell'],
         },
+        {
+            name: 'EmbeddedRequest',
+        },
     ];
 }
