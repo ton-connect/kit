@@ -139,6 +139,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
 
     async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
         const query: Record<string, unknown> = {};
+        if (request.collectionAddress) query.collection = request.collectionAddress;
         if (request.pagination?.limit) query.limit = request.pagination.limit;
         if (request.pagination?.offset) query.offset = request.pagination.offset;
 

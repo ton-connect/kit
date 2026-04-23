@@ -93,6 +93,7 @@ export class ApiClientToncenter extends BaseApiClient implements ApiClient {
     async nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse> {
         const props: Record<string, unknown> = {
             owner_address: request.ownerAddress,
+            collection_address: request.collectionAddress,
             limit: request.pagination?.limit ?? 10,
             offset: request.pagination?.offset ?? 0,
         };
