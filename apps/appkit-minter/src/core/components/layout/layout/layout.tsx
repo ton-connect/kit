@@ -11,7 +11,7 @@ import { TonConnectButton } from '@ton/appkit-react';
 import { ArrowLeftRight, BookOpen, Coins, Github, PenLine, Sparkles } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 
-import { AppLogo } from '../app-logo';
+import { AppLogo } from '../../app-logo';
 import {
     Sidebar,
     SidebarContent,
@@ -26,9 +26,9 @@ import {
     SidebarSeparator,
     SidebarTrigger,
     useSidebar,
-} from '../sidebar';
-import { BalanceCard } from './balance-card';
-import { ThemeSwitcher } from './theme-switcher';
+} from '../../sidebar';
+import { BalanceCard } from '../balance-card';
+import { ThemeSwitcher } from '../theme-switcher';
 
 import { NetworkPicker } from '@/features/network';
 
@@ -126,7 +126,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">{children}</main>
 
-                <footer className="py-2 text-center text-xs text-tertiary-foreground">
+                <footer className="pt-2 pb-4 text-center text-xs text-tertiary-foreground">
                     <p>Powered by AppKit & TonConnect</p>
                 </footer>
             </SidebarInset>

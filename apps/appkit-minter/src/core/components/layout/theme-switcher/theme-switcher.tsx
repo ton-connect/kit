@@ -11,7 +11,7 @@ import { Button } from '@ton/appkit-react';
 
 import { useTheme } from '@/core/hooks';
 
-export function ThemeSwitcher() {
+export const ThemeSwitcher = () => {
     const { theme, setTheme } = useTheme();
 
     return (
@@ -20,4 +20,4 @@ export function ThemeSwitcher() {
             <span className="sr-only">Toggle theme</span>
         </Button>
     );
-}
+};

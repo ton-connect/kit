@@ -8,7 +8,7 @@
 
 import { useCallback, useState } from 'react';
 import type { FC } from 'react';
-import { formatLargeValue, Network, useBalance, useDefaultNetwork, useSelectedWallet } from '@ton/appkit-react';
+import { formatLargeValue, Network, useAddress, useBalance, useDefaultNetwork } from '@ton/appkit-react';
 import { Check, Copy, ExternalLink, Wallet } from 'lucide-react';
 
 const TESTNET_CHAIN_ID = Network.testnet().chainId;
@@ -27,13 +27,12 @@ const getExplorerUrls = (chainId: string | undefined, address: string) => {
 };
 
 export const BalanceCard: FC = () => {
-    const [wallet] = useSelectedWallet();
-    const [defaultNetwork] = useDefaultNetwork();
     const [copied, setCopied] = useState(false);
 
-    const address = wallet?.getAddress() ?? '';
+    const address = useAddress();
+    const [defaultNetwork] = useDefaultNetwork();
 
-    const { data: balance, isLoading } = useBalance();
+    const { data: balance, isLoading } = useBalance({ query: { refetchInterval: 15000 } });
 
     const handleCopy = useCallback(async () => {
         if (!address) return;
@@ -42,7 +41,7 @@ export const BalanceCard: FC = () => {
         setTimeout(() => setCopied(false), 2000);
     }, [address]);
 
-    if (!wallet) {
+    if (!address) {
         return (
             <div className="mb-2 flex items-center gap-3">
                 <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">

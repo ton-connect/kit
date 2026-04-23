@@ -30,15 +30,15 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
-function useSidebar() {
+const useSidebar = () => {
     const context = React.useContext(SidebarContext);
     if (!context) {
         throw new Error('useSidebar must be used within a SidebarProvider.');
     }
     return context;
-}
+};
 
-function SidebarProvider({ className, style, children, ...props }: React.ComponentProps<'div'>) {
+const SidebarProvider = ({ className, style, children, ...props }: React.ComponentProps<'div'>) => {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -61,9 +61,9 @@ function SidebarProvider({ className, style, children, ...props }: React.Compone
             </div>
         </SidebarContext.Provider>
     );
-}
+};
 
-function Sidebar({ className, children }: React.ComponentProps<'div'>) {
+const Sidebar = ({ className, children }: React.ComponentProps<'div'>) => {
     const { isMobile, openMobile, setOpenMobile } = useSidebar();
 
     if (isMobile) {
@@ -95,9 +95,9 @@ function Sidebar({ className, children }: React.ComponentProps<'div'>) {
             {children}
         </aside>
     );
-}
+};
 
-function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
+const SidebarTrigger = ({ className, onClick, ...props }: React.ComponentProps<typeof Button>) => {
     const { toggleSidebar } = useSidebar();
     return (
         <Button
@@ -115,21 +115,21 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
             <span className="sr-only">Toggle Sidebar</span>
         </Button>
     );
-}
+};
 
-function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
+const SidebarInset = ({ className, ...props }: React.ComponentProps<'main'>) => {
     return <main data-slot="sidebar-inset" className={cn('flex min-w-0 flex-1 flex-col', className)} {...props} />;
-}
+};
 
-function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
+const SidebarHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
     return <div data-slot="sidebar-header" className={cn('flex flex-col gap-2 p-2', className)} {...props} />;
-}
+};
 
-function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
+const SidebarFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
     return <div data-slot="sidebar-footer" className={cn('flex flex-col gap-2 p-2', className)} {...props} />;
-}
+};
 
-function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
+const SidebarContent = ({ className, ...props }: React.ComponentProps<'div'>) => {
     return (
         <div
             data-slot="sidebar-content"
@@ -137,28 +137,28 @@ function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
             {...props}
         />
     );
-}
+};
 
-function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
+const SidebarGroup = ({ className, ...props }: React.ComponentProps<'div'>) => {
     return <div data-slot="sidebar-group" className={cn('flex w-full min-w-0 flex-col p-2', className)} {...props} />;
-}
+};
 
-function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof Separator>) {
+const SidebarSeparator = ({ className, ...props }: React.ComponentProps<typeof Separator>) => {
     return <Separator data-slot="sidebar-separator" className={cn('mx-2 w-auto bg-tertiary', className)} {...props} />;
-}
+};
 
-function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
+const SidebarMenu = ({ className, ...props }: React.ComponentProps<'ul'>) => {
     return <ul data-slot="sidebar-menu" className={cn('flex w-full min-w-0 flex-col gap-1', className)} {...props} />;
-}
+};
 
-function SidebarMenuItem({ className, ...props }: React.ComponentProps<'li'>) {
+const SidebarMenuItem = ({ className, ...props }: React.ComponentProps<'li'>) => {
     return <li data-slot="sidebar-menu-item" className={cn('relative', className)} {...props} />;
-}
+};
 
 const sidebarMenuButtonClasses =
     'flex h-12 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-foreground outline-hidden transition-colors hover:bg-tertiary focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 data-[active=true]:bg-tertiary data-[active=true]:font-medium [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate';
 
-function SidebarMenuButton({
+const SidebarMenuButton = ({
     asChild = false,
     isActive = false,
     className,
@@ -166,7 +166,7 @@ function SidebarMenuButton({
 }: React.ComponentProps<'button'> & {
     asChild?: boolean;
     isActive?: boolean;
-}) {
+}) => {
     const Comp = asChild ? Slot.Root : 'button';
     return (
         <Comp
@@ -176,7 +176,7 @@ function SidebarMenuButton({
             {...props}
         />
     );
-}
+};
 
 export {
     Sidebar,
