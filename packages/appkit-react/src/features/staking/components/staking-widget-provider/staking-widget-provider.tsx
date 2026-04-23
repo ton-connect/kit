@@ -18,7 +18,6 @@ import type {
     StakingProviderMetadata,
 } from '@ton/appkit';
 import { UnstakeMode } from '@ton/appkit';
-import { keepPreviousData } from '@tanstack/react-query';
 
 import { useNetwork } from '../../../network';
 import { convertByRate } from '../../utils/convert-by-rate';
@@ -213,7 +212,6 @@ export const StakingWidgetProvider: FC<StakingProviderProps> = ({ children, netw
             unstakeMode,
             isReversed,
             network,
-            query: { placeholderData: keepPreviousData },
         },
         500,
     );
