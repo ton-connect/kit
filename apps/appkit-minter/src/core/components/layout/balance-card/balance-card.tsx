@@ -11,10 +11,9 @@ import type { FC } from 'react';
 import { formatLargeValue, Network, useAddress, useBalance, useDefaultNetwork } from '@ton/appkit-react';
 import { Check, Copy, ExternalLink, Wallet } from 'lucide-react';
 
-const TESTNET_CHAIN_ID = Network.testnet().chainId;
+import { truncateAddress } from '@/core/utils/truncate-address';
 
-const truncateAddress = (address: string): string =>
-    address.length <= 12 ? address : `${address.slice(0, 4)}…${address.slice(-4)}`;
+const TESTNET_CHAIN_ID = Network.testnet().chainId;
 
 const getExplorerUrls = (chainId: string | undefined, address: string) => {
     const isTestnet = chainId === TESTNET_CHAIN_ID;
@@ -42,14 +41,7 @@ export const BalanceCard: FC = () => {
     }, [address]);
 
     if (!address) {
-        return (
-            <div className="mb-2 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
-                    <Wallet className="size-5 text-primary" />
-                </div>
-                <p className="text-sm text-tertiary-foreground">Connect your wallet to see your TON balance</p>
-            </div>
-        );
+        return null;
     }
 
     const explorers = getExplorerUrls(defaultNetwork?.chainId, address);

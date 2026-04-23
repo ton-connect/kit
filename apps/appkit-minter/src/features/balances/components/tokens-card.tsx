@@ -7,13 +7,14 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { FC, ComponentProps } from 'react';
+import type { ComponentProps, FC } from 'react';
 import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
-import { CurrencyItem, useJettons, useBalance } from '@ton/appkit-react';
-import { AlertCircle } from 'lucide-react';
+import { useBalance, useJettons } from '@ton/appkit-react';
 import { Button } from '@ton/appkit-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
+import { JettonCard } from './jetton-card';
 import { TokenTransferModal } from './token-transfer-modal';
 
 import { cn } from '@/core/lib/utils';
@@ -39,12 +40,13 @@ export const TokensCard: FC<ComponentProps<'div'>> = ({ className, ...props }) =
         refetch: onRefresh,
     } = useJettons({ query: { refetchInterval: 20000 } });
 
-    const jettons = useMemo(() => jettonsResponse?.jettons ?? [], [jettonsResponse?.jettons]);
+    const jettons = useMemo(
+        () => jettonsResponse?.jettons?.filter((j) => j.balance !== '0') ?? [],
+        [jettonsResponse?.jettons],
+    );
 
     const isLoading = isBalanceLoading || isJettonsLoading;
     const isError = isBalanceError || isJettonsError;
-
-    const totalTokens = jettons.length + 1; // +1 for TON
 
     if (isError) {
         return (
@@ -62,69 +64,54 @@ export const TokensCard: FC<ComponentProps<'div'>> = ({ className, ...props }) =
         );
     }
 
+    if (isLoading) {
+        return (
+            <div className={cn('flex items-center justify-center py-8', className)} {...props}>
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <span className="ml-3 text-sm text-tertiary-foreground">Loading balances...</span>
+            </div>
+        );
+    }
+
     return (
         <>
-            <div className={cn('', className)} {...props}>
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                        <span className="ml-3 text-sm text-tertiary-foreground">Loading balances...</span>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {/* Summary */}
-                        <div className="flex items-center p-3 bg-secondary rounded-lg border border-secondary">
-                            <p className="text-sm font-semibold text-foreground mr-auto">
-                                {totalTokens} {totalTokens === 1 ? 'Asset' : 'Assets'}
-                            </p>
-                            <Button size="m" className="mr-2" variant="bezeled" onClick={() => onRefresh()}>
-                                Refresh
-                            </Button>
-                        </div>
-
-                        {/* Token List */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-secondary">
-                                <CurrencyItem
-                                    ticker="TON"
-                                    name="Toncoin"
-                                    balance={balance || '0'}
-                                    onClick={() => setSelectedToken({ type: 'TON' })}
-                                    icon="./ton.png"
-                                    isVerified
-                                />
-                            </div>
-
-                            {/* Jettons */}
-                            {jettons.map((jetton) => {
-                                const info = getFormattedJettonInfo(jetton);
-
-                                if (!info || !info.symbol) {
-                                    return null;
-                                }
-
-                                return (
-                                    <div
-                                        key={jetton.address}
-                                        className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-secondary"
-                                    >
-                                        <CurrencyItem
-                                            ticker={info.symbol}
-                                            name={info.name}
-                                            balance={jetton.balance}
-                                            icon={info.image}
-                                            isVerified={jetton.isVerified}
-                                            onClick={() => setSelectedToken({ type: 'JETTON', jetton })}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
+            <div className="flex items-center justify-between px-2 py-4 border-b">
+                <p className="text-lg font-semibold text-foreground">Jettons</p>
+                <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
+                    <RefreshCw size={16} />
+                </Button>
             </div>
 
-            {/* Token Transfer Modal */}
+            <div className={cn('flex flex-col', className)} {...props}>
+                <JettonCard
+                    ticker="TON"
+                    name="Toncoin"
+                    image="/ton.png"
+                    balance={balance || '0'}
+                    onClick={() => setSelectedToken({ type: 'TON' })}
+                    address="ton"
+                />
+
+                {jettons.map((jetton, index) => {
+                    const info = getFormattedJettonInfo(jetton);
+
+                    if (!info?.symbol) return null;
+
+                    return (
+                        <JettonCard
+                            key={jetton.address}
+                            ticker={info.symbol}
+                            name={info.name}
+                            image={info.image}
+                            balance={info.balance}
+                            onClick={() => setSelectedToken({ type: 'JETTON', jetton })}
+                            isLastItem={index === jettons.length - 1}
+                            address={jetton.address}
+                        />
+                    );
+                })}
+            </div>
+
             {selectedToken && (
                 <TokenTransferModal
                     tokenType={selectedToken.type}

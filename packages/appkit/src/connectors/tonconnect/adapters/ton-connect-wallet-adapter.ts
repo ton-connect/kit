@@ -53,7 +53,7 @@ export class TonConnectWalletAdapter implements WalletInterface {
         if (!account) {
             throw new Error('Wallet not connected');
         }
-        return Address.parse(account.address).toString({ bounceable: true });
+        return Address.parse(account.address).toString();
     }
 
     getPublicKey(): Hex {

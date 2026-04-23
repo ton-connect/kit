@@ -7,8 +7,8 @@
  */
 
 import type React from 'react';
-import { TonConnectButton } from '@ton/appkit-react';
-import { ArrowLeftRight, BookOpen, Coins, Github, PenLine, Sparkles } from 'lucide-react';
+import { TonConnectButton, useAddress } from '@ton/appkit-react';
+import { ArrowLeftRight, BookOpen, Coins, Github, ImageIcon, PenLine, Sparkles, Wallet } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { AppLogo } from '../../app-logo';
@@ -38,6 +38,8 @@ interface LayoutProps {
 
 const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { to: '/', label: 'Mint', icon: Sparkles },
+    { to: '/jettons', label: 'Jettons', icon: Wallet },
+    { to: '/nfts', label: 'NFTs', icon: ImageIcon },
     { to: '/swap', label: 'Swap', icon: ArrowLeftRight },
     { to: '/staking', label: 'Staking', icon: Coins },
     { to: '/sign', label: 'Sign Message', icon: PenLine },
@@ -50,6 +52,7 @@ const EXTERNAL_LINKS: readonly { href: string; label: string; icon: React.Compon
 
 const AppSidebar: React.FC = () => {
     const { setOpenMobile, isMobile } = useSidebar();
+    const address = useAddress();
 
     const closeOnMobile = () => {
         if (isMobile) setOpenMobile(false);
@@ -65,11 +68,15 @@ const AppSidebar: React.FC = () => {
             </SidebarHeader>
 
             <SidebarContent>
-                <SidebarGroup>
-                    <BalanceCard />
-                </SidebarGroup>
+                {address && (
+                    <>
+                        <SidebarGroup>
+                            <BalanceCard />
+                        </SidebarGroup>
 
-                <SidebarSeparator />
+                        <SidebarSeparator />
+                    </>
+                )}
 
                 <SidebarGroup>
                     <SidebarMenu>
