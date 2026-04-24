@@ -13,7 +13,6 @@ import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';
-import { Card } from './Card';
 import { DAppInfo } from './DAppInfo';
 import { WalletPreview } from './WalletPreview';
 import { createComponentLogger } from '../utils/logger';
@@ -114,9 +113,10 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <Card>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center sm:p-4 z-50">
+            <div className="bg-white w-full h-full sm:rounded-lg sm:max-w-md sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden">
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="text-center">
@@ -289,30 +289,30 @@ export const ConnectRequestModal: React.FC<ConnectRequestModalProps> = ({
                                 </div>
                             </div>
                         </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex space-x-3">
-                            <Button
-                                data-testid="connect-reject"
-                                variant="secondary"
-                                onClick={handleReject}
-                                disabled={isLoading}
-                                className="flex-1"
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                data-testid="connect-approve"
-                                onClick={handleApprove}
-                                isLoading={isLoading}
-                                disabled={!selectedWallet || isLoading}
-                                className="flex-1"
-                            >
-                                Connect
-                            </Button>
-                        </div>
                     </div>
-                </Card>
+                </div>
+
+                {/* Action Buttons — always visible at bottom */}
+                <div className="flex space-x-3 p-4 border-t border-gray-200 bg-white">
+                    <Button
+                        data-testid="connect-reject"
+                        variant="secondary"
+                        onClick={handleReject}
+                        disabled={isLoading}
+                        className="flex-1"
+                    >
+                        Reject
+                    </Button>
+                    <Button
+                        data-testid="connect-approve"
+                        onClick={handleApprove}
+                        isLoading={isLoading}
+                        disabled={!selectedWallet || isLoading}
+                        className="flex-1"
+                    >
+                        Connect
+                    </Button>
+                </div>
             </div>
         </div>
     );

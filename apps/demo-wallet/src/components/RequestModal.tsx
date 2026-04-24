@@ -13,9 +13,6 @@ import type { SavedWallet } from '@demo/wallet-core';
 import { toast } from 'sonner';
 
 import { Button } from './Button';
-import { Card } from './Card';
-import { DAppInfo } from './DAppInfo';
-import { WalletPreview } from './WalletPreview';
 import { HoldToSignButton } from './HoldToSignButton';
 import { JettonFlow } from './JettonFlow';
 import { SuccessCard } from './SuccessCard';
@@ -143,10 +140,18 @@ export const RequestModal: React.FC<RequestModalProps> = ({
 
     const warningClasses = WARNING_CLASSES[warning.tone];
 
+    let dAppHost: string | undefined;
+    try {
+        dAppHost = request.dAppInfo?.url ? new URL(request.dAppInfo.url).host : undefined;
+    } catch (_e) {
+        dAppHost = request.dAppInfo?.url;
+    }
+
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <Card>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center sm:p-4 z-50">
+            <div className="bg-white w-full h-full sm:rounded-lg sm:max-w-md sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden">
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto p-6">
                     <div className="space-y-6">
                         <div className="text-center">
                             <h2 data-testid={testIds.request} className="text-xl font-bold text-gray-900">
@@ -155,18 +160,70 @@ export const RequestModal: React.FC<RequestModalProps> = ({
                             <p className="text-gray-600 text-sm mt-1">{subtitle}</p>
                         </div>
 
-                        <DAppInfo
-                            iconUrl={request.dAppInfo?.iconUrl}
-                            name={request.dAppInfo?.name}
-                            url={request.dAppInfo?.url}
-                            description={request.dAppInfo?.description}
-                        />
-
-                        {currentWallet && (
-                            <div>
-                                <WalletPreview wallet={currentWallet} isActive={true} isCompact={true} />
+                        {/* Combined dApp + Wallet block */}
+                        <div className="border rounded-lg bg-gray-50 overflow-hidden">
+                            {/* dApp row */}
+                            <div className="flex items-center space-x-3 p-4">
+                                {request.dAppInfo?.iconUrl ? (
+                                    <img
+                                        src={request.dAppInfo.iconUrl}
+                                        alt={request.dAppInfo.name}
+                                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                        {request.dAppInfo?.name || 'Unknown dApp'}
+                                    </p>
+                                    {dAppHost && <p className="text-xs text-gray-500 truncate">{dAppHost}</p>}
+                                </div>
                             </div>
-                        )}
+
+                            {/* Wallet row */}
+                            {currentWallet && (
+                                <>
+                                    <div className="border-t border-gray-200" />
+                                    <div className="flex items-center space-x-3 p-4">
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center flex-shrink-0">
+                                            <svg
+                                                className="w-5 h-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-900 truncate">
+                                                {currentWallet.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500 font-mono truncate">
+                                                {currentWallet.address.slice(0, 6)}...{currentWallet.address.slice(-6)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
 
                         {isExpired ? (
                             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -245,39 +302,40 @@ export const RequestModal: React.FC<RequestModalProps> = ({
                                 </div>
                             </>
                         )}
-
-                        <div className="flex space-x-3">
-                            <Button
-                                variant="secondary"
-                                onClick={onReject}
-                                disabled={isLoading}
-                                className={isExpired ? 'w-full' : 'flex-1'}
-                                data-testid={testIds.reject}
-                            >
-                                Reject
-                            </Button>
-                            {!isExpired &&
-                                (holdToSign ? (
-                                    <HoldToSignButton
-                                        onComplete={handleApprove}
-                                        isLoading={isLoading}
-                                        disabled={isLoading}
-                                        holdDuration={3000}
-                                    />
-                                ) : (
-                                    <Button
-                                        onClick={handleApprove}
-                                        isLoading={isLoading}
-                                        disabled={isLoading}
-                                        className="flex-1"
-                                        data-testid={testIds.approve}
-                                    >
-                                        {approveLabel}
-                                    </Button>
-                                ))}
-                        </div>
                     </div>
-                </Card>
+                </div>
+
+                {/* Action buttons — always visible at bottom */}
+                <div className="flex space-x-3 p-4 border-t border-gray-200 bg-white">
+                    <Button
+                        variant="secondary"
+                        onClick={onReject}
+                        disabled={isLoading}
+                        className={isExpired ? 'w-full' : 'flex-1'}
+                        data-testid={testIds.reject}
+                    >
+                        Reject
+                    </Button>
+                    {!isExpired &&
+                        (holdToSign ? (
+                            <HoldToSignButton
+                                onComplete={handleApprove}
+                                isLoading={isLoading}
+                                disabled={isLoading}
+                                holdDuration={3000}
+                            />
+                        ) : (
+                            <Button
+                                onClick={handleApprove}
+                                isLoading={isLoading}
+                                disabled={isLoading}
+                                className="flex-1"
+                                data-testid={testIds.approve}
+                            >
+                                {approveLabel}
+                            </Button>
+                        ))}
+                </div>
             </div>
         </div>
     );
