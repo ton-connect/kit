@@ -22,17 +22,17 @@ export const JettonsPage: React.FC = () => {
             title={
                 <div className="w-full flex items-center justify-between px-2 pt-2 pb-4 border-b md:p-0 md:border-none">
                     <p className="text-lg font-semibold text-foreground mr-3">Jettons</p>
-                    <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
-                        <RefreshCw size={16} />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <DepositButton />
+                        <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
+                            <RefreshCw size={16} />
+                        </Button>
+                    </div>
                 </div>
             }
         >
             {wallet ? (
-                <div className="space-y-4">
-                    <DepositButton />
-                    <TokensCard />
-                </div>
+                <TokensCard />
             ) : (
                 <EmptyState
                     icon={Wallet}

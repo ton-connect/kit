@@ -8,7 +8,7 @@
 
 import type { FC } from 'react';
 
-import { CollectionsList } from '@/features/nft_purchase';
+import { CollectionsList } from '@/features/nft-purchase';
 import { Layout } from '@/core/components';
 
 export const NftPurchasePage: FC = () => {

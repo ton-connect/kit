@@ -21,9 +21,14 @@ export const DepositButton: FC = () => {
 
     return (
         <>
-            <Button variant="secondary" onClick={() => setIsOpen(true)}>
-                <ArrowRightLeft className="size-4 mr-2" />
-                Deposit between wallets
+            <Button
+                size="icon"
+                variant="bezeled"
+                onClick={() => setIsOpen(true)}
+                title="Deposit between wallets"
+                aria-label="Deposit between wallets"
+            >
+                <ArrowRightLeft size={16} />
             </Button>
             <DepositModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
         </>

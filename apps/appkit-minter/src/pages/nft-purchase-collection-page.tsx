@@ -10,7 +10,7 @@ import type { FC } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 
-import { NftsList } from '@/features/nft_purchase';
+import { NftsList } from '@/features/nft-purchase';
 import { Layout } from '@/core/components';
 
 export const NftPurchaseCollectionPage: FC = () => {

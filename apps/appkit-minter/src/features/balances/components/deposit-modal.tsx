@@ -28,8 +28,11 @@ import {
 import type { WalletInterface } from '@ton/appkit';
 import { getBalanceByAddressQueryKey, getJettonsByAddressQueryKey } from '@ton/appkit/queries';
 import { useQueryClient } from '@tanstack/react-query';
+import { ArrowDown } from 'lucide-react';
 
 import { TransactionStatus } from '@/features/transaction';
+import { truncateAddress } from '@/core/utils/truncate-address';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/core/components/select';
 
 interface DepositModalProps {
     isOpen: boolean;
@@ -44,13 +47,8 @@ const connectorLabel = (connectorId: string): string => {
     return connectorId;
 };
 
-const truncateAddress = (address: string): string => {
-    if (address.length <= 12) return address;
-    return `${address.slice(0, 4)}…${address.slice(-4)}`;
-};
-
 const walletOptionLabel = (wallet: WalletInterface): string =>
-    `${connectorLabel(wallet.connectorId)} — ${truncateAddress(wallet.getAddress())}`;
+    `${connectorLabel(wallet.connectorId)} — ${truncateAddress(wallet.getAddress(), 4, 4)}`;
 
 export const DepositModal: FC<DepositModalProps> = ({ isOpen, onClose }) => {
     const appKit = useAppKit();
@@ -104,6 +102,15 @@ export const DepositModal: FC<DepositModalProps> = ({ isOpen, onClose }) => {
             const nextDest = wallets.find((w) => w.getWalletId() !== walletId)?.getWalletId() ?? '';
             setDestinationId(nextDest);
         }
+    };
+
+    const handleFlip = () => {
+        if (!destinationId) return;
+        const nextSource = destinationId;
+        const nextDestination = sourceId;
+        setSourceId(nextSource);
+        setDestinationId(nextDestination);
+        setAssetKey(TON_ASSET_KEY);
     };
 
     const invalidateBalances = async () => {
@@ -165,110 +172,116 @@ export const DepositModal: FC<DepositModalProps> = ({ isOpen, onClose }) => {
     return (
         <Modal title="Deposit between wallets" open={isOpen} onOpenChange={(open) => !open && handleClose()}>
             {txBoc ? (
-                <div className="space-y-6">
+                <div className="flex flex-col gap-4">
                     <TransactionStatus boc={txBoc} />
-                    <Button fullWidth onClick={handleClose}>
+                    <Button fullWidth size="l" onClick={handleClose}>
                         Close
                     </Button>
                 </div>
             ) : (
-                <>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium text-foreground">From</label>
-                            <select
-                                value={sourceId}
-                                onChange={(e) => handleSourceChange(e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border bg-card p-2 text-sm text-foreground"
-                            >
+                <div className="flex flex-col gap-3">
+                    <Input.Container size="m">
+                        <Input.Header>
+                            <Input.Title>From</Input.Title>
+                        </Input.Header>
+                        <Select value={sourceId} onValueChange={handleSourceChange}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select source wallet" />
+                            </SelectTrigger>
+                            <SelectContent>
                                 {wallets.map((w) => (
-                                    <option key={w.getWalletId()} value={w.getWalletId()}>
+                                    <SelectItem key={w.getWalletId()} value={w.getWalletId()}>
                                         {walletOptionLabel(w)}
-                                    </option>
+                                    </SelectItem>
                                 ))}
-                            </select>
-                        </div>
+                            </SelectContent>
+                        </Select>
+                    </Input.Container>
 
-                        <div>
-                            <label className="text-sm font-medium text-foreground">To</label>
-                            <select
-                                value={destinationId}
-                                onChange={(e) => setDestinationId(e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border bg-card p-2 text-sm text-foreground"
-                            >
+                    <Input.Container size="s">
+                        <Input.Header>
+                            <Input.Title>To</Input.Title>
+                        </Input.Header>
+                        <Select value={destinationId} onValueChange={setDestinationId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select destination wallet" />
+                            </SelectTrigger>
+                            <SelectContent>
                                 {destinationOptions.map((w) => (
-                                    <option key={w.getWalletId()} value={w.getWalletId()}>
+                                    <SelectItem key={w.getWalletId()} value={w.getWalletId()}>
                                         {walletOptionLabel(w)}
-                                    </option>
+                                    </SelectItem>
                                 ))}
-                            </select>
-                        </div>
+                            </SelectContent>
+                        </Select>
+                    </Input.Container>
 
-                        <div>
-                            <label className="text-sm font-medium text-foreground">Asset</label>
-                            <select
-                                value={assetKey}
-                                onChange={(e) => setAssetKey(e.target.value)}
-                                className="mt-1 w-full rounded-md border border-border bg-card p-2 text-sm text-foreground"
-                            >
-                                <option value={TON_ASSET_KEY}>TON</option>
+                    <Input.Container size="s">
+                        <Input.Header>
+                            <Input.Title>Asset</Input.Title>
+                        </Input.Header>
+                        <Select value={assetKey} onValueChange={setAssetKey}>
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={TON_ASSET_KEY}>TON</SelectItem>
                                 {sourceJettons.map((j) => {
                                     const info = getFormattedJettonInfo(j);
                                     return (
-                                        <option key={j.address} value={j.address}>
+                                        <SelectItem key={j.address} value={j.address}>
                                             {info.symbol ?? 'Jetton'} ({j.balance})
-                                        </option>
+                                        </SelectItem>
                                     );
                                 })}
-                            </select>
-                        </div>
+                            </SelectContent>
+                        </Select>
+                    </Input.Container>
 
-                        <Input size="s">
-                            <Input.Header>
-                                <Input.Title>Amount</Input.Title>
-                            </Input.Header>
-                            <Input.Field>
-                                <Input.Input
-                                    type="number"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    placeholder="0.00"
-                                    step="any"
-                                    min="0"
-                                />
-                            </Input.Field>
-                        </Input>
+                    <Input.Container size="s" error={Boolean(error)}>
+                        <Input.Header>
+                            <Input.Title>Amount</Input.Title>
+                        </Input.Header>
+                        <Input.Field>
+                            <Input.Input
+                                type="number"
+                                inputMode="decimal"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                placeholder="0.00"
+                                step="any"
+                                min="0"
+                            />
+                        </Input.Field>
+                    </Input.Container>
 
-                        <Input size="s">
-                            <Input.Header>
-                                <Input.Title>Comment (optional)</Input.Title>
-                            </Input.Header>
-                            <Input.Field>
-                                <Input.Input
-                                    type="text"
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                    placeholder="Add a comment"
-                                />
-                            </Input.Field>
-                        </Input>
+                    <Input.Container size="s">
+                        <Input.Header>
+                            <Input.Title>Comment (optional)</Input.Title>
+                        </Input.Header>
+                        <Input.Field>
+                            <Input.Input
+                                type="text"
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Add a comment"
+                            />
+                        </Input.Field>
+                    </Input.Container>
 
-                        {error && (
-                            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg">
-                                <p className="text-sm text-destructive">{error}</p>
-                            </div>
-                        )}
-                    </div>
+                    {error && <p className="text-xs text-error">{error}</p>}
 
-                    <div className="flex mt-6 gap-3">
-                        <Button loading={isSubmitting} disabled={!canSubmit} onClick={handleSubmit} className="flex-1">
-                            Deposit
-                        </Button>
-                        <Button variant="secondary" onClick={handleClose} className="flex-1">
-                            Cancel
-                        </Button>
-                    </div>
-                </>
+                    <Button
+                        fullWidth
+                        size="l"
+                        loading={isSubmitting}
+                        disabled={!canSubmit}
+                        onClick={handleSubmit}
+                        className="mt-2"
+                    >
+                        Deposit
+                    </Button>
+                </div>
             )}
         </Modal>
     );

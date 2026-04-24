@@ -44,7 +44,7 @@ import { BalanceCard } from '../balance-card';
 import { HeaderWallet } from '../header-wallet';
 import { ThemeSwitcher } from '../theme-switcher';
 
-import { NetworkPicker } from '@/features/network';
+// import { NetworkPicker } from '@/features/network';
 
 interface LayoutProps {
     children: ReactNode;
@@ -151,7 +151,7 @@ const AppSidebar: FC = () => {
                         </SidebarMenuItem>
                     ))}
                 </SidebarMenu>
-                <NetworkPicker />
+                {/* <NetworkPicker /> */}
             </SidebarFooter>
         </Sidebar>
     );
