@@ -143,8 +143,27 @@ const SidebarGroup = ({ className, ...props }: React.ComponentProps<'div'>) => {
     return <div data-slot="sidebar-group" className={cn('flex w-full min-w-0 flex-col p-2', className)} {...props} />;
 };
 
+const SidebarGroupLabel = ({ className, ...props }: React.ComponentProps<'div'>) => {
+    return (
+        <div
+            data-slot="sidebar-group-label"
+            className={cn(
+                'px-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-tertiary-foreground',
+                className,
+            )}
+            {...props}
+        />
+    );
+};
+
 const SidebarSeparator = ({ className, ...props }: React.ComponentProps<typeof Separator>) => {
-    return <Separator data-slot="sidebar-separator" className={cn('mx-2 w-auto bg-tertiary', className)} {...props} />;
+    return (
+        <Separator
+            data-slot="sidebar-separator"
+            className={cn('bg-tertiary data-[orientation=horizontal]:w-auto', className)}
+            {...props}
+        />
+    );
 };
 
 const SidebarMenu = ({ className, ...props }: React.ComponentProps<'ul'>) => {
@@ -156,7 +175,7 @@ const SidebarMenuItem = ({ className, ...props }: React.ComponentProps<'li'>) =>
 };
 
 const sidebarMenuButtonClasses =
-    'flex h-12 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm text-foreground outline-hidden transition-colors hover:bg-tertiary focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 data-[active=true]:bg-tertiary data-[active=true]:font-medium [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate';
+    'flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2 py-1 text-left text-sm text-foreground outline-hidden transition-colors hover:bg-tertiary focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 data-[active=true]:bg-tertiary data-[active=true]:font-medium [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate';
 
 const SidebarMenuButton = ({
     asChild = false,
@@ -183,6 +202,7 @@ export {
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarInset,
     SidebarMenu,

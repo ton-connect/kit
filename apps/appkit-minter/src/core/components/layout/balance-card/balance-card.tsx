@@ -31,7 +31,7 @@ export const BalanceCard: FC = () => {
     const address = useAddress();
     const [defaultNetwork] = useDefaultNetwork();
 
-    const { data: balance, isLoading } = useBalance({ query: { refetchInterval: 15000 } });
+    const { data: balance, isLoading } = useBalance();
 
     const handleCopy = useCallback(async () => {
         if (!address) return;

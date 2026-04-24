@@ -89,7 +89,6 @@ export const GaslessPage: FC = () => {
         <Layout title="Gasless Transfer">
             <div className="w-full max-w-[434px] mx-auto p-6 space-y-6">
                 <div className="space-y-2">
-                    <h2 className="text-xl font-semibold">Send USDT (Gasless)</h2>
                     <p className="text-sm text-muted-foreground">
                         Send USDT without having TON for gas. The fee will be paid in USDT.
                     </p>

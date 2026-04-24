@@ -41,10 +41,6 @@ export const CardGenerator: React.FC<CardGeneratorProps> = ({ className }) => {
 
     return (
         <div className={cn('mx-auto flex w-full max-w-[434px] flex-col gap-4', className)}>
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">Mint NFT</h2>
-            </div>
-
             <div className="flex justify-center rounded-2xl bg-secondary p-6">
                 {currentCard ? (
                     <div className="w-56">

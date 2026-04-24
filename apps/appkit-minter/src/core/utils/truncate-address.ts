@@ -6,5 +6,5 @@
  *
  */
 
-export const truncateAddress = (address: string, startPart = 6, endPart = 6): string =>
+export const truncateAddress = (address: string, startPart = 5, endPart = 5) =>
     address.length <= startPart + endPart ? address : `${address.slice(0, startPart)}…${address.slice(-endPart)}`;

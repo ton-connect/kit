@@ -7,17 +7,27 @@
  */
 
 import type React from 'react';
-import { TonConnectButton, useSelectedWallet } from '@ton/appkit-react';
-import { ImageIcon } from 'lucide-react';
+import { Button, TonConnectButton, useNfts, useSelectedWallet } from '@ton/appkit-react';
+import { ImageIcon, RefreshCw } from 'lucide-react';
 
 import { NftsCard } from '@/features/nft';
 import { EmptyState, Layout } from '@/core/components';
 
 export const NftsPage: React.FC = () => {
     const [wallet] = useSelectedWallet();
+    const { refetch: onRefresh } = useNfts();
 
     return (
-        <Layout>
+        <Layout
+            title={
+                <div className="flex items-center justify-between px-2 pt-2 pb-4 border-b mb-3 md:m-0 md:p-0 md:border-none">
+                    <p className="text-lg font-semibold text-foreground mr-3">NFTs</p>
+                    <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
+                        <RefreshCw size={16} />
+                    </Button>
+                </div>
+            }
+        >
             {wallet ? (
                 <NftsCard />
             ) : (

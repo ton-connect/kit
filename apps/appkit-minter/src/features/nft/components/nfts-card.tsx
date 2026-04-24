@@ -10,7 +10,7 @@ import { useMemo, useState } from 'react';
 import type { FC, ComponentProps } from 'react';
 import type { NFT } from '@ton/appkit';
 import { NftItem, useNfts } from '@ton/appkit-react';
-import { AlertCircle, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@ton/appkit-react';
 
 import { NftTransferModal } from './nft-transfer-modal';
@@ -65,14 +65,6 @@ export const NftsCard: FC<ComponentProps<'div'>> = (props) => {
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {/* Summary */}
-                        <div className="flex items-center justify-between px-2 py-4 border-b">
-                            <p className="text-lg font-semibold text-foreground">NFTs</p>
-                            <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
-                                <RefreshCw size={16} />
-                            </Button>
-                        </div>
-
                         {/* NFT Grid */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             {nfts.slice(0, 8).map((nft) => (

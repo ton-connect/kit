@@ -6,4 +6,12 @@
  *
  */
 
-export * from './components/sign-message-card';
+export {
+    Popover,
+    PopoverAnchor,
+    PopoverContent,
+    PopoverDescription,
+    PopoverHeader,
+    PopoverTitle,
+    PopoverTrigger,
+} from './popover';

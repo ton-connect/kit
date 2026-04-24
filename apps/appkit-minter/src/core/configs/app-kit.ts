@@ -63,7 +63,16 @@ export const appKit = new AppKit({
             },
         }),
         ...(ENV_PRIVY_APP_ID
-            ? [createPrivyConnector({ appId: ENV_PRIVY_APP_ID, defaultNetwork: Network.mainnet() })]
+            ? [
+                  createPrivyConnector({
+                      appId: ENV_PRIVY_APP_ID,
+                      defaultNetwork: Network.mainnet(),
+                      metadata: {
+                          name: 'Privy',
+                          iconUrl: 'https://framerusercontent.com/images/oPqxoNxeHrQ9qgbjTUGuANdXdQ.png',
+                      },
+                  }),
+              ]
             : []),
     ],
     providers: [

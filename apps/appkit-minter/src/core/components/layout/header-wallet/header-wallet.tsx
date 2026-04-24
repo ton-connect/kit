@@ -6,64 +6,127 @@
  *
  */
 
-import { useCallback, useState } from 'react';
-import { TonConnectButton, useSelectedWallet, useDisconnect } from '@ton/appkit-react';
-import { Wallet, Check, Copy, LogOut } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import type { ComponentProps, FC } from 'react';
+import {
+    Button,
+    TonConnectButton,
+    useConnect,
+    useConnectedWallets,
+    useDisconnect,
+    useSelectedWallet,
+} from '@ton/appkit-react';
+import { TONCONNECT_DEFAULT_CONNECTOR_ID } from '@ton/appkit';
+import { ChevronDown, Plus, Wallet } from 'lucide-react';
 
+import { WalletCard } from './wallet-card';
+
+import { cn } from '@/core/lib/utils';
 import { truncateAddress } from '@/core/utils/truncate-address';
+import { Popover, PopoverContent, PopoverTrigger } from '@/core/components/popover';
 
-export const HeaderWallet = () => {
-    const [wallet] = useSelectedWallet();
+export const HeaderWallet: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
+    const wallets = useConnectedWallets();
+    const [selectedWallet, setWalletId] = useSelectedWallet();
     const { mutate: disconnect, isPending: isDisconnecting } = useDisconnect();
-    const [copied, setCopied] = useState(false);
+    const { mutate: connect, isPending: isConnecting } = useConnect();
 
-    const address = wallet?.getAddress() ?? '';
-    const connectorId = wallet?.connectorId ?? '';
+    const [isOpen, setIsOpen] = useState(false);
+    const [copiedWalletId, setCopiedWalletId] = useState<string | null>(null);
 
-    const handleCopy = useCallback(async () => {
+    const selectedWalletId = selectedWallet?.getWalletId() ?? null;
+    const selectedAddress = selectedWallet?.getAddress() ?? '';
+
+    const hasTonConnect = useMemo(
+        () => wallets.some((w) => w.connectorId === TONCONNECT_DEFAULT_CONNECTOR_ID),
+        [wallets],
+    );
+
+    const handleCopy = useCallback(async (walletId: string, address: string) => {
         if (!address) return;
         await navigator.clipboard.writeText(address);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    }, [address]);
+        setCopiedWalletId(walletId);
+        setTimeout(() => setCopiedWalletId((prev) => (prev === walletId ? null : prev)), 2000);
+    }, []);
 
-    const handleDisconnect = useCallback(() => {
-        if (!connectorId) return;
-        disconnect({ connectorId });
-    }, [connectorId, disconnect]);
+    const handleSelect = useCallback(
+        (walletId: string) => {
+            if (walletId !== selectedWalletId) setWalletId(walletId);
+            setIsOpen(false);
+        },
+        [selectedWalletId, setWalletId],
+    );
+
+    const handleDisconnect = useCallback(
+        (connectorId: string) => {
+            disconnect({ connectorId });
+        },
+        [disconnect],
+    );
+
+    const handleAddTonConnect = useCallback(() => {
+        connect({ connectorId: TONCONNECT_DEFAULT_CONNECTOR_ID });
+        setIsOpen(false);
+    }, [connect]);
+
+    if (wallets.length === 0) {
+        return (
+            <div className={className} {...props}>
+                <TonConnectButton />
+            </div>
+        );
+    }
+
+    const canAddTonConnect = !hasTonConnect;
+    const isMultiWallet = wallets.length > 1;
 
     return (
-        <div className="ml-auto flex items-center gap-2">
-            {wallet && (
-                <div className="flex items-center gap-1.5 rounded-md border border-border bg-card/50 px-2 py-1">
-                    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Wallet className="size-3 text-primary" />
+        <div className={className} {...props}>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                    <Button variant="secondary" size="s" aria-haspopup="menu" icon={<Wallet className="size-4" />}>
+                        <span>{truncateAddress(selectedAddress)}</span>
+                        <ChevronDown className={cn('size-3.5 transition-transform', isOpen && 'rotate-180')} />
+                    </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-80" align="center">
+                    <div className="flex flex-col gap-1">
+                        {wallets.map((wallet) => {
+                            const walletId = wallet.getWalletId();
+                            return (
+                                <WalletCard
+                                    key={walletId}
+                                    wallet={wallet}
+                                    isActive={walletId === selectedWalletId}
+                                    selectable={isMultiWallet}
+                                    isCopied={copiedWalletId === walletId}
+                                    isDisconnecting={isDisconnecting}
+                                    onSelect={() => handleSelect(walletId)}
+                                    onCopy={() => void handleCopy(walletId, wallet.getAddress())}
+                                    onDisconnect={() => handleDisconnect(wallet.connectorId)}
+                                />
+                            );
+                        })}
                     </div>
-                    <span className="font-mono text-xs text-foreground" title={address}>
-                        {truncateAddress(address)}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={handleCopy}
-                        title="Copy address"
-                        aria-label="Copy address"
-                        className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
-                    >
-                        {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleDisconnect}
-                        disabled={isDisconnecting}
-                        title="Disconnect"
-                        aria-label="Disconnect"
-                        className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground disabled:opacity-50"
-                    >
-                        <LogOut className="size-3.5" />
-                    </button>
-                </div>
-            )}
-            <TonConnectButton />
+
+                    {canAddTonConnect && (
+                        <div className="mx-auto">
+                            <Button
+                                variant="ghost"
+                                size="s"
+                                onClick={handleAddTonConnect}
+                                disabled={isConnecting}
+                                loading={isConnecting}
+                                icon={<Plus className="size-3.5" />}
+                                className="px-2 py-1 text-xs"
+                            >
+                                Add TonConnect Wallet
+                            </Button>
+                        </div>
+                    )}
+                </PopoverContent>
+            </Popover>
         </div>
     );
 };

@@ -12,7 +12,7 @@ import type { Jetton } from '@ton/appkit';
 import { getFormattedJettonInfo } from '@ton/appkit';
 import { useBalance, useJettons } from '@ton/appkit-react';
 import { Button } from '@ton/appkit-react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 import { JettonCard } from './jetton-card';
 import { TokenTransferModal } from './token-transfer-modal';
@@ -27,11 +27,7 @@ interface SelectedToken {
 export const TokensCard: FC<ComponentProps<'div'>> = ({ className, ...props }) => {
     const [selectedToken, setSelectedToken] = useState<SelectedToken | null>(null);
 
-    const {
-        data: balance,
-        isLoading: isBalanceLoading,
-        isError: isBalanceError,
-    } = useBalance({ query: { refetchInterval: 20000 } });
+    const { data: balance, isLoading: isBalanceLoading, isError: isBalanceError } = useBalance();
 
     const {
         data: jettonsResponse,
@@ -75,13 +71,6 @@ export const TokensCard: FC<ComponentProps<'div'>> = ({ className, ...props }) =
 
     return (
         <>
-            <div className="flex items-center justify-between px-2 py-4 border-b">
-                <p className="text-lg font-semibold text-foreground">Jettons</p>
-                <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
-                    <RefreshCw size={16} />
-                </Button>
-            </div>
-
             <div className={cn('flex flex-col', className)} {...props}>
                 <JettonCard
                     ticker="TON"

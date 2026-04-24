@@ -13,7 +13,7 @@ import { Layout } from '@/core/components';
 
 export const MinterPage: React.FC = () => {
     return (
-        <Layout>
+        <Layout title="Mint NFT">
             <CardGenerator />
         </Layout>
     );

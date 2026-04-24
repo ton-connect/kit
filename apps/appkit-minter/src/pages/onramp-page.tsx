@@ -19,7 +19,7 @@ import {
 
 export const OnrampPage: React.FC = () => {
     return (
-        <Layout title="Buy">
+        <Layout title={<span className="hidden md:block">Onramp</span>}>
             <div className="w-full max-w-[422px] mx-auto">
                 <CryptoOnrampWidget
                     tokens={ONRAMP_TOKENS}
