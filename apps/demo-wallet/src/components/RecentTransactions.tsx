@@ -13,7 +13,7 @@ import { useWalletStore } from '@demo/wallet-core';
 import { Base64NormalizeUrl, HexToBase64 } from '@ton/walletkit';
 import type { Event, Action } from '@ton/walletkit';
 
-import { formatTonForDisplay, sameAddress } from '../utils';
+import { formatTonForDisplay, getTonviewerTxUrl, sameAddress } from '../utils';
 import { TraceRow } from './TraceRow';
 import { TransactionErrorState, TransactionLoadingState, TransactionEmptyState, ActionCard } from './transactions';
 
@@ -26,14 +26,20 @@ interface RecentTransactionsProps {
  * Displays a list of recent blockchain transactions for the current wallet
  */
 export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ embedded = false }) => {
-    const { events, loadEvents, address, hasNextEvents, pendingTransactions } = useWalletStore(
-        useShallow((state) => ({
-            events: state.walletManagement.events,
-            loadEvents: state.loadEvents,
-            address: state.walletManagement.address,
-            hasNextEvents: state.walletManagement.hasNextEvents,
-            pendingTransactions: state.walletManagement.pendingTransactions,
-        })),
+    const { events, loadEvents, address, hasNextEvents, pendingTransactions, network } = useWalletStore(
+        useShallow((state) => {
+            const activeWallet = state.walletManagement.savedWallets.find(
+                (w) => w.id === state.walletManagement.activeWalletId,
+            );
+            return {
+                events: state.walletManagement.events,
+                loadEvents: state.loadEvents,
+                address: state.walletManagement.address,
+                hasNextEvents: state.walletManagement.hasNextEvents,
+                pendingTransactions: state.walletManagement.pendingTransactions,
+                network: activeWallet?.network || 'testnet',
+            };
+        }),
     );
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [isPaginating, setIsPaginating] = useState(false);
@@ -253,6 +259,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                 const isPending = p.finality !== 'confirmed' && p.finality !== 'finalized';
 
                                 const finality = p.finality ?? 'pending';
+                                const pendingExplorerHash = p.externalHash ?? p.traceId;
                                 if (p.action) {
                                     return (
                                         <motion.div key={itemKey} {...motionProps}>
@@ -263,7 +270,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                                 traceLink={
                                                     isPending
                                                         ? undefined
-                                                        : `/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`
+                                                        : getTonviewerTxUrl(network, pendingExplorerHash)
                                                 }
                                                 isPending={isPending}
                                                 finality={finality}
@@ -321,9 +328,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                             myAddress={address || ''}
                                             timestamp={preview?.timestamp ?? Math.floor(Date.now() / 1000)}
                                             traceLink={
-                                                isPending
-                                                    ? undefined
-                                                    : `/wallet/trace/${p.traceId}${p.externalHash ? ':' + p.externalHash : ''}`
+                                                isPending ? undefined : getTonviewerTxUrl(network, pendingExplorerHash)
                                             }
                                             isPending={isPending}
                                             finality={finality}
@@ -378,7 +383,7 @@ export const RecentTransactions: React.FC<RecentTransactionsProps> = memo(({ emb
                                         action={relevantAction}
                                         myAddress={address || ''}
                                         timestamp={ev.timestamp}
-                                        traceLink={`/wallet/trace/${traceId}`}
+                                        traceLink={getTonviewerTxUrl(network, externalHash)}
                                         finality="done"
                                         debugId={`event-${traceId.slice(0, 12)}`}
                                     />

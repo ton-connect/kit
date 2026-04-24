@@ -7,6 +7,7 @@
  */
 
 import { Address } from '@ton/core';
+import { Base64ToHex } from '@ton/walletkit';
 
 export function normalizeAddress(address: string): string | null {
     try {
@@ -68,3 +69,27 @@ export const formatTonForDisplay = (amountOrValue: string): string => {
 export const formatAddress = (addr: string): string => {
     return shortenAddress(addr);
 };
+
+type ExplorerNetwork = 'mainnet' | 'testnet' | 'tetra';
+
+function getTonviewerHost(network: ExplorerNetwork): string {
+    if (network === 'testnet') return 'testnet.tonviewer.com';
+    if (network === 'tetra') return 'tetra.tonviewer.com';
+    return 'tonviewer.com';
+}
+
+function toHexHash(hash: string): string {
+    if (/^(0x)?[0-9a-fA-F]+$/.test(hash)) {
+        return hash.startsWith('0x') ? hash.slice(2) : hash;
+    }
+    try {
+        const hex = Base64ToHex(hash);
+        return hex.startsWith('0x') ? hex.slice(2) : hex;
+    } catch {
+        return hash;
+    }
+}
+
+export function getTonviewerTxUrl(network: ExplorerNetwork, hash: string): string {
+    return `https://${getTonviewerHost(network)}/transaction/${toHexHash(hash)}`;
+}
