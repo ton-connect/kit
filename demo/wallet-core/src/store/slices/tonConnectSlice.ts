@@ -90,6 +90,7 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
 
             const embeddedRequest = await state.walletCore.walletKit.approveConnectRequest(event);
 
+            state.clearCurrentRequestFromQueue();
             set((state) => {
                 state.tonConnect.pendingConnectRequestEvent = undefined;
                 state.tonConnect.isConnectModalOpen = false;
@@ -98,17 +99,24 @@ export const createTonConnectSlice: TonConnectSliceCreator = (set: SetState, get
             if (embeddedRequest) {
                 switch (embeddedRequest.type) {
                     case 'sendTransaction':
-                        get().showTransactionRequest(embeddedRequest);
+                        get().enqueueRequest({
+                            type: 'transaction',
+                            request: embeddedRequest,
+                        });
                         break;
                     case 'signMessage':
-                        get().showSignMessageRequest(embeddedRequest);
+                        get().enqueueRequest({
+                            type: 'signMessage',
+                            request: embeddedRequest,
+                        });
                         break;
                     case 'signData':
-                        get().showSignDataRequest(embeddedRequest);
+                        get().enqueueRequest({
+                            type: 'signData',
+                            request: embeddedRequest,
+                        });
                         break;
                 }
-            } else {
-                state.clearCurrentRequestFromQueue();
             }
         } catch (error) {
             log.error('Failed to approve connect request:', error);
