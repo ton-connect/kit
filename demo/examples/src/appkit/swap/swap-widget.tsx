@@ -11,6 +11,7 @@ import { SwapWidget } from '@ton/appkit-react';
 
 const tokens = [
     {
+        id: 'ton',
         address: 'ton',
         symbol: 'TON',
         name: 'Toncoin',
@@ -19,6 +20,7 @@ const tokens = [
         logo: 'https://ton.org/symbol.png',
     },
     {
+        id: 'usdt',
         address: 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs',
         symbol: 'USDT',
         name: 'Tether',
@@ -30,7 +32,7 @@ const tokens = [
 
 export const SwapWidgetExample = () => {
     // SAMPLE_START: SWAP_WIDGET
-    return <SwapWidget tokens={tokens} network={Network.mainnet()} defaultFromSymbol="TON" defaultToSymbol="USDT" />;
+    return <SwapWidget tokens={tokens} network={Network.mainnet()} defaultFromId="ton" defaultToId="usdt" />;
     // SAMPLE_END: SWAP_WIDGET
 };
 

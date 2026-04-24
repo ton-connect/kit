@@ -76,3 +76,15 @@ export interface SignDataResponse {
     /** Original payload that was signed */
     payload: SignDataRequest;
 }
+
+/**
+ * SignMessage Response - returned from wallet.
+ *
+ * Wallet signs a transaction-shaped request with the internal message opcode
+ * (instead of external), so the resulting BoC can be relayed on-chain by a
+ * third party (e.g. a gasless relayer) rather than broadcast directly.
+ */
+export interface SignMessageResponse {
+    /** Signed internal message BoC (base64) ready to be relayed */
+    internalBoc: Base64String;
+}

@@ -24,6 +24,7 @@ export type { SendMode } from './core/SendMode';
 export { SendModeFlag, SendModeBase } from './core/SendMode';
 export type { SignData, SignDataText, SignDataBinary, SignDataCell } from './core/SignData';
 export type { TokenAmount } from './core/TokenAmount';
+export type { TokenAddress } from './core/TokenAddress';
 export type { TokenAnimation } from './core/TokenAnimation';
 export type { TokenImage } from './core/TokenImage';
 export type { TokenInfo } from './core/TokenInfo';
@@ -51,7 +52,20 @@ export type {
     SendTransactionRequestEvent,
     SendTransactionRequestEventPreview,
 } from './bridge/SendTransactionRequestEvent';
+export type { SignMessageApprovalResponse } from './bridge/SignMessageApprovalResponse';
+export type { SignMessageRequestEvent } from './bridge/SignMessageRequestEvent';
 export type { RequestErrorEvent } from './bridge/RequestErrorEvent';
+export type {
+    IntentAction,
+    SendTransactionIntentAction,
+    SignMessageIntentAction,
+    SignDataIntentAction,
+    IntentConnectionResult,
+    IntentActionRequestEvent,
+    IntentActionSendTransactionRequestEvent,
+    IntentActionSignMessageRequestEvent,
+    IntentActionSignDataRequestEvent,
+} from './bridge/Intents';
 export type { TONConnectSession } from './sessions/TONConnectSession';
 
 // Jetton models
@@ -95,11 +109,41 @@ export type { StakingQuoteParams } from './staking/StakingQuoteParams';
 export type { UnstakeModes } from './staking/UnstakeMode';
 export { UnstakeMode } from './staking/UnstakeMode';
 
+// Gasless models
+export type { GaslessConfig } from './gasless/GaslessConfig';
+export type { GaslessGasJetton } from './gasless/GaslessGasJetton';
+export type { GaslessEstimateParams } from './gasless/GaslessEstimateParams';
+export type { GaslessEstimateResult } from './gasless/GaslessEstimateResult';
+export type { GaslessSendParams } from './gasless/GaslessSendParams';
+
+// Onramp models
+export type { OnrampParams } from './onramp/OnrampParams';
+export type { OnrampQuote } from './onramp/OnrampQuote';
+export type { OnrampQuoteParams } from './onramp/OnrampQuoteParams';
+export type { OnrampLimits } from './onramp/OnrampLimits';
+export type { OnrampLimitParams } from './onramp/OnrampLimitParams';
+
+// Crypto onramp models
+export type { CryptoOnrampQuote } from './crypto-onramp/CryptoOnrampQuote';
+export type { CryptoOnrampQuoteParams } from './crypto-onramp/CryptoOnrampQuoteParams';
+export type { CryptoOnrampDepositParams } from './crypto-onramp/CryptoOnrampDepositParams';
+export type { CryptoOnrampDeposit } from './crypto-onramp/CryptoOnrampDeposit';
+export type { CryptoOnrampStatusParams } from './crypto-onramp/CryptoOnrampStatusParams';
+export type { CryptoOnrampStatus } from './crypto-onramp/CryptoOnrampStatus';
+
 // Transaction models
 export * from './transactions/Transaction';
 export type { TransactionAddressMetadata, TransactionAddressMetadataEntry } from './transactions/TransactionMetadata';
 export type { TransactionTraceMoneyFlow as TransactionMoneyFlow } from './transactions/TransactionTraceMoneyFlow';
 export type { TransactionRequest, TransactionRequestMessage } from './transactions/TransactionRequest';
+export type { SignedSendTransactionOptions } from './transactions/SignedSendTransactionOptions';
+export type {
+    StructuredItem,
+    StructuredItemType,
+    TonTransferItem,
+    JettonTransferItem,
+    NftTransferItem,
+} from './transactions/StructuredItem';
 export * from './transactions/TransactionTrace';
 export type { TransactionEmulatedPreview } from './transactions/emulation/TransactionEmulatedPreview';
 export type { TransactionEmulatedTrace } from './transactions/emulation/TransactionEmulatedTrace';

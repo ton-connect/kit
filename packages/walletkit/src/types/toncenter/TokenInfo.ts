@@ -55,7 +55,7 @@ export function toApiTokenInfo(data: TokenInfo): APITokenInfo {
         name: data.name,
         description: data.description,
         image: {
-            url: data.image ?? data.extra?._image_medium,
+            url: data.extra?._image_medium ?? data.image,
             smallUrl: data.extra?._image_small,
             mediumUrl: data.extra?._image_medium,
             largeUrl: data.extra?._image_big,

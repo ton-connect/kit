@@ -1,0 +1,53 @@
+/**
+ * Copyright (c) TonTech.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+
+import type { Network, OnrampParams, OnrampQuote, OnrampQuoteParams } from '../../api/models';
+import type { OnrampProviderInterface } from '../../api/interfaces';
+
+/**
+ * Abstract base class for onramp providers
+ *
+ * Provides a common interface for implementing fiat-to-crypto onramp functionality
+ * across different gateways.
+ *
+ * @example
+ * ```typescript
+ * class MyOnrampProvider extends OnrampProvider {
+ *   async getQuote(params: OnrampQuoteParams): Promise<OnrampQuote> {
+ *     // Implementation
+ *   }
+ *
+ *   async buildOnrampUrl(params: OnrampParams): Promise<string> {
+ *     // Implementation
+ *   }
+ * }
+ * ```
+ */
+export abstract class OnrampProvider<
+    TQuoteOptions = undefined,
+    TOnrampOptions = undefined,
+> implements OnrampProviderInterface<TQuoteOptions, TOnrampOptions> {
+    readonly type = 'onramp';
+    abstract readonly providerId: string;
+
+    /**
+     * Get a quote for onramping fiat to crypto
+     * @param params - Quote parameters including currencies and amount
+     * @returns Promise resolving to onramp quote with pricing information
+     */
+    abstract getQuote(params: OnrampQuoteParams<TQuoteOptions>): Promise<OnrampQuote>;
+
+    /**
+     * Build an onramp URL for redirecting the user to the provider
+     * @param params - Onramp parameters including quote and user address
+     * @returns Promise resolving to a URL string
+     */
+    abstract buildOnrampUrl(params: OnrampParams<TOnrampOptions>): Promise<string>;
+
+    abstract getSupportedNetworks(): Network[];
+}

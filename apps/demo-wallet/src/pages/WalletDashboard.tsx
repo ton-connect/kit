@@ -8,7 +8,14 @@
 
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet, useWalletKit, useTonConnect, useTransactionRequests, useSignDataRequests } from '@demo/wallet-core';
+import {
+    useWallet,
+    useWalletKit,
+    useTonConnect,
+    useTransactionRequests,
+    useSignDataRequests,
+    useSignMessageRequests,
+} from '@demo/wallet-core';
 
 import {
     AnimatedBalance,
@@ -18,6 +25,7 @@ import {
     ConnectRequestModal,
     TransactionRequestModal,
     SignDataRequestModal,
+    SignMessageRequestModal,
     DisconnectNotifications,
     NftsCard,
     RecentTransactions,
@@ -64,6 +72,7 @@ export const WalletDashboard: React.FC = () => {
     const { pendingTransactionRequest, isTransactionModalOpen } = useTransactionRequests();
     const { pendingSignDataRequest, isSignDataModalOpen, approveSignDataRequest, rejectSignDataRequest } =
         useSignDataRequests();
+    const { pendingSignMessageRequest, isSignMessageModalOpen } = useSignMessageRequests();
     const { error } = useTonWallet();
 
     // Use the paste handler hook
@@ -378,6 +387,15 @@ export const WalletDashboard: React.FC = () => {
                     isOpen={isSignDataModalOpen}
                     onApprove={approveSignDataRequest}
                     onReject={rejectSignDataRequest}
+                />
+            )}
+
+            {/* Sign Message Request Modal */}
+            {pendingSignMessageRequest && (
+                <SignMessageRequestModal
+                    request={pendingSignMessageRequest}
+                    savedWallets={savedWallets}
+                    isOpen={isSignMessageModalOpen}
                 />
             )}
         </Layout>

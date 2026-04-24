@@ -6,10 +6,10 @@
  *
  */
 
-import type { SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
+import type { Feature, SendTransactionResponse, Hex, UserFriendlyAddress } from '@ton/walletkit';
 
 import type { TransactionRequest } from './transaction';
-import type { SignDataRequest, SignDataResponse } from './signing';
+import type { SignDataRequest, SignDataResponse, SignMessageResponse } from './signing';
 import type { Network } from './network';
 
 /**
@@ -37,6 +37,13 @@ export interface WalletInterface {
     /** Get unique wallet identifier */
     getWalletId(): string;
 
+    /**
+     * Features supported by the underlying wallet (e.g. SendTransaction, SignData, SignMessage).
+     * Returns undefined when the connector cannot report capabilities.
+     * Callers should gracefully degrade when a feature is missing.
+     */
+    getSupportedFeatures(): Feature[] | undefined;
+
     // ==========================================
     // Actions requiring wallet signature
     // ==========================================
@@ -46,4 +53,13 @@ export interface WalletInterface {
 
     /** Sign arbitrary data using TonConnect signData */
     signData(payload: SignDataRequest): Promise<SignDataResponse>;
+
+    /**
+     * Sign a transaction-shaped request without broadcasting it.
+     * The wallet returns a signed internal-message BoC that a third party can relay
+     * on-chain (e.g. a gasless relayer).
+     *
+     * Requires the wallet to support the SignMessage feature (see getSupportedFeatures).
+     */
+    signMessage(request: TransactionRequest): Promise<SignMessageResponse>;
 }

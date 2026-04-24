@@ -9,8 +9,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppKitProvider } from '@ton/appkit-react';
 
+import { PrivyBridgeProvider } from './privyProvider';
+
 import { appKit } from '@/core/configs/app-kit';
-import { AppRouter, ThemeProvider, ToasterProvider } from '@/core/components';
+import { ENV_PRIVY_APP_ID } from '@/core/configs/env';
+import { AppRouter, ThemeProvider, ToasterProvider, TelegramPrivyAutoConnect } from '@/core/components';
 
 import './core/styles/index.css';
 
@@ -21,8 +24,17 @@ export const App = () => {
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <QueryClientProvider client={queryClient}>
                 <AppKitProvider appKit={appKit}>
-                    <AppRouter />
-                    <ToasterProvider />
+                    <PrivyBridgeProvider>
+                        <AppRouter />
+                        <ToasterProvider />
+
+                        {ENV_PRIVY_APP_ID && (
+                            <>
+                                <TelegramPrivyAutoConnect />
+                                {/* <PrivyDebugPanel /> */}
+                            </>
+                        )}
+                    </PrivyBridgeProvider>
                 </AppKitProvider>
             </QueryClientProvider>
         </ThemeProvider>

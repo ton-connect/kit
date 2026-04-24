@@ -25,8 +25,8 @@ export const Default: Story = {
         tokens: STORY_TOKENS,
         network: undefined,
         fiatSymbol: '$',
-        defaultFromSymbol: 'TON',
-        defaultToSymbol: 'USDT',
+        defaultFromId: 'ton',
+        defaultToId: 'usdt',
     },
 };
 
@@ -35,8 +35,8 @@ export const CustomUI: Story = {
         tokens: STORY_TOKENS,
         network: undefined,
         fiatSymbol: '$',
-        defaultFromSymbol: 'TON',
-        defaultToSymbol: 'USDT',
+        defaultFromId: 'ton',
+        defaultToId: 'usdt',
     },
     render: (args) => (
         <SwapWidget {...args}>

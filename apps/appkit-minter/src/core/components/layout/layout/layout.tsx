@@ -8,7 +8,19 @@
 
 import type React from 'react';
 import { TonConnectButton, useAddress } from '@ton/appkit-react';
-import { ArrowLeftRight, BookOpen, Coins, Github, ImageIcon, PenLine, Sparkles, Wallet } from 'lucide-react';
+import {
+    ArrowLeftRight,
+    BookOpen,
+    Coins,
+    CreditCard,
+    Fuel,
+    Github,
+    ImageIcon,
+    PenLine,
+    ShoppingBag,
+    Sparkles,
+    Wallet,
+} from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 
 import { AppLogo } from '../../app-logo';
@@ -34,6 +46,7 @@ import { NetworkPicker } from '@/features/network';
 
 interface LayoutProps {
     children: React.ReactNode;
+    title?: string;
 }
 
 const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -42,6 +55,9 @@ const NAV_LINKS: readonly { to: string; label: string; icon: React.ComponentType
     { to: '/nfts', label: 'NFTs', icon: ImageIcon },
     { to: '/swap', label: 'Swap', icon: ArrowLeftRight },
     { to: '/staking', label: 'Staking', icon: Coins },
+    { to: '/onramp', label: 'Onramp', icon: CreditCard },
+    { to: '/buy-nft', label: 'Buy NFT', icon: ShoppingBag },
+    { to: '/gasless', label: 'Gasless', icon: Fuel },
     { to: '/sign', label: 'Sign Message', icon: PenLine },
 ];
 

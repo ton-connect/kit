@@ -9,10 +9,12 @@
 // Balances
 export {
     getBalanceByAddressQueryOptions,
+    getBalanceByAddressQueryKey,
     handleBalanceUpdate,
     type GetBalanceByAddressData,
     type GetBalanceErrorType,
     type GetBalanceByAddressQueryConfig,
+    type GetBalanceByAddressQueryKey,
 } from './balances/get-balance-by-address';
 
 // Connectors
@@ -37,6 +39,33 @@ export {
     type DisconnectVariables,
 } from './connectors/disconnect';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteQueryConfig,
+    type GetCryptoOnrampQuoteQueryOptions,
+    type GetCryptoOnrampQuoteData,
+    type GetCryptoOnrampQuoteErrorType,
+    type GetCryptoOnrampQuoteQueryFnData,
+    type GetCryptoOnrampQuoteQueryKey,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    getCryptoOnrampStatusQueryOptions,
+    type GetCryptoOnrampStatusQueryConfig,
+    type GetCryptoOnrampStatusQueryOptions,
+    type GetCryptoOnrampStatusData,
+    type GetCryptoOnrampStatusErrorType,
+    type GetCryptoOnrampStatusQueryFnData,
+    type GetCryptoOnrampStatusQueryKey,
+} from './crypto-onramp/get-crypto-onramp-status';
+export {
+    createCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositMutationOptions,
+    type CreateCryptoOnrampDepositData,
+    type CreateCryptoOnrampDepositErrorType,
+    type CreateCryptoOnrampDepositVariables,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+
 // Jettons
 export {
     getJettonInfoQueryOptions,
@@ -59,10 +88,12 @@ export {
 } from './jettons/get-jetton-balance-by-address';
 export {
     getJettonsByAddressQueryOptions,
+    getJettonsByAddressQueryKey,
     handleJettonsUpdate,
     type GetJettonsByAddressData,
     type GetJettonsErrorType,
     type GetJettonsByAddressQueryConfig,
+    type GetJettonsByAddressQueryKey,
 } from './jettons/get-jettons-by-address';
 export {
     transferJettonMutationOptions,
@@ -165,6 +196,50 @@ export {
     type BuildSwapTransactionVariables,
 } from './swap/build-swap-transaction';
 
+// Onramp
+export {
+    getOnrampQuoteQueryOptions,
+    type GetOnrampQuoteQueryConfig,
+    type GetOnrampQuoteQueryOptions,
+    type GetOnrampQuoteData,
+    type GetOnrampQuoteErrorType,
+    type GetOnrampQuoteQueryFnData,
+    type GetOnrampQuoteQueryKey,
+} from './onramp/get-onramp-quote';
+export {
+    buildOnrampUrlMutationOptions,
+    type BuildOnrampUrlMutationOptions,
+    type BuildOnrampUrlData,
+    type BuildOnrampUrlErrorType,
+    type BuildOnrampUrlVariables,
+} from './onramp/build-onramp-url';
+
+// Gasless
+export {
+    getGaslessConfigQueryOptions,
+    type GetGaslessConfigQueryConfig,
+    type GetGaslessConfigData,
+    type GetGaslessConfigErrorType,
+} from './gasless/get-gasless-config';
+export {
+    estimateGaslessMutationOptions,
+    type EstimateGaslessMutationConfig,
+    type EstimateGaslessData,
+    type EstimateGaslessErrorType,
+    type EstimateGaslessMutate,
+    type EstimateGaslessMutateAsync,
+    type EstimateGaslessVariables,
+} from './gasless/estimate-gasless';
+export {
+    sendGaslessTransactionMutationOptions,
+    type SendGaslessTransactionMutationConfig,
+    type SendGaslessTransactionData,
+    type SendGaslessTransactionErrorType,
+    type SendGaslessTransactionMutate,
+    type SendGaslessTransactionMutateAsync,
+    type SendGaslessTransactionVariables,
+} from './gasless/send-gasless-transaction';
+
 // Staking
 export {
     getStakingQuoteQueryOptions,
@@ -220,6 +295,18 @@ export {
     type SendTransactionParameters,
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
+export {
+    signMessageMutationOptions,
+    type SignMessageData,
+    type SignMessageErrorType,
+    type SignMessageMutate,
+    type SignMessageMutateAsync,
+    type SignMessageMutationOptions,
+    type SignMessageOptions,
+    type SignMessageVariables,
+    type SignMessageParameters,
+    type SignMessageReturnType,
+} from './transaction/sign-message';
 export {
     getTransactionStatusQueryOptions,
     type GetTransactionStatusData,

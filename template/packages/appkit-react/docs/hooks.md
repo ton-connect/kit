@@ -194,6 +194,28 @@ Hook to get all registered swap providers. The returned array keeps a stable ref
 
 %%demo/examples/src/appkit/hooks/swap#USE_SWAP_PROVIDERS%%
 
+## Onramp
+
+### `useOnrampQuote`
+
+Hook to get an onramp quote for a specific fiat/crypto pair.
+
+%%demo/examples/src/appkit/hooks/onramp#USE_ONRAMP_QUOTE%%
+
+### `useOnrampProvider`
+
+Hook to get a specific onramp provider.
+
+%%demo/examples/src/appkit/hooks/onramp#USE_ONRAMP_PROVIDER%%
+
+### `useOnrampProviders`
+
+Hook to get all registered onramp providers.
+
+### `useBuildOnrampUrl`
+
+Hook to build an onramp URL for redirecting the user to the provider.
+
 ## Staking
 
 ### `useStakingProviders`
@@ -245,6 +267,12 @@ Hook to build a stake transaction from a previously fetched quote.
 Hook to send a transaction to the blockchain.
 
 %%demo/examples/src/appkit/hooks/transaction#USE_SEND_TRANSACTION%%
+
+### `useSignMessage`
+
+Hook to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+%%demo/examples/src/appkit/hooks/transaction#USE_SIGN_MESSAGE%%
 
 ### `useTransferTon`
 

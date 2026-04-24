@@ -724,6 +724,41 @@ return (
 );
 ```
 
+## Onramp
+
+### `useOnrampQuote`
+
+Hook to get an onramp quote for a specific fiat/crypto pair.
+
+```tsx
+const { data: quote, isLoading } = useOnrampQuote({
+    fiatCurrency: 'USD',
+    cryptoCurrency: 'TON',
+    amount: '100',
+});
+
+if (isLoading) return <div>Loading quote...</div>;
+return <div>Quote: {quote?.cryptoAmount} TON</div>;
+```
+
+### `useOnrampProvider`
+
+Hook to get a specific onramp provider.
+
+```tsx
+const provider = useOnrampProvider({ id: 'moonpay' });
+
+return <div>Provider: {provider?.providerId}</div>;
+```
+
+### `useOnrampProviders`
+
+Hook to get all registered onramp providers.
+
+### `useBuildOnrampUrl`
+
+Hook to build an onramp URL for redirecting the user to the provider.
+
 ## Staking
 
 ### `useStakingProviders`
@@ -877,6 +912,41 @@ return (
             <div>
                 <h4>Transaction Sent!</h4>
                 <p>BOC: {data.boc}</p>
+            </div>
+        )}
+    </div>
+);
+```
+
+### `useSignMessage`
+
+Hook to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+```tsx
+const { mutate: signMessage, isPending, error, data } = useSignMessage();
+
+const handleSign = () => {
+    signMessage({
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+        messages: [
+            {
+                address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                amount: '100000000', // 0.1 TON in nanotons
+            },
+        ],
+    });
+};
+
+return (
+    <div>
+        <button onClick={handleSign} disabled={isPending}>
+            {isPending ? 'Signing...' : 'Sign Message'}
+        </button>
+        {error && <div>Error: {error.message}</div>}
+        {data && (
+            <div>
+                <h4>Message Signed!</h4>
+                <p>Internal BOC: {data.internalBoc}</p>
             </div>
         )}
     </div>

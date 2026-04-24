@@ -6,8 +6,7 @@
  *
  */
 
-import { Address } from '@ton/core';
-import type { ChainId, SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
+import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
 import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
@@ -18,15 +17,18 @@ import type {
     RawBridgeEventTransaction,
     RawConnectTransactionParamContent,
 } from '../types/internal';
-import { validateTransactionMessages as validateTonConnectTransactionMessages } from '../validation/transaction';
+import {
+    validateTransactionMessages as validateTonConnectTransactionMessages,
+    validateStructuredItems,
+} from '../validation/transaction';
 import { globalLogger } from '../core/Logger';
-import { isValidAddress } from '../utils/address';
 import { createTransactionPreview as createTransactionPreviewHelper } from '../utils/toncenterEmulation';
+import { validateNetwork, validateFrom, validateValidUntil } from './transactionValidators';
 import { BasicHandler } from './BasicHandler';
 import { CallForSuccess } from '../utils/retry';
+import { resolveItemsToMessages } from '../utils/itemsResolver';
 import type { WalletKitEventEmitter } from '../types/emitter';
 import type { WalletManager } from '../core/WalletManager';
-import type { ReturnWithValidationResult } from '../validation/types';
 import { WalletKitError, ERROR_CODES } from '../errors';
 import type { Wallet } from '../api/interfaces';
 import type { TransactionEmulatedPreview, TransactionRequest, SendTransactionRequestEvent } from '../api/models';
@@ -103,6 +105,12 @@ export class TransactionHandler
             } as SendTransactionRpcResponseError;
         }
         const request = requestValidation.result;
+
+        // Resolve structured items into messages so downstream code only sees messages
+        if (request.items && request.items.length > 0) {
+            request.messages = await resolveItemsToMessages(request.items, wallet);
+            request.items = undefined;
+        }
 
         let preview: TransactionEmulatedPreview | undefined;
         if (!this.config.eventProcessor?.disableTransactionEmulation) {
@@ -181,21 +189,21 @@ export class TransactionHandler
             const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
             const params = parseConnectTransactionParamContent(rawParams);
 
-            const validUntilValidation = this.validateValidUntil(params.validUntil);
+            const validUntilValidation = validateValidUntil(params.validUntil);
             if (!validUntilValidation.isValid) {
                 errors = errors.concat(validUntilValidation.errors);
             } else {
                 params.validUntil = validUntilValidation.result;
             }
 
-            const networkValidation = this.validateNetwork(params.network, wallet);
+            const networkValidation = validateNetwork(params.network, wallet);
             if (!networkValidation.isValid) {
                 errors = errors.concat(networkValidation.errors);
             } else {
                 params.network = networkValidation.result;
             }
 
-            const fromValidation = this.validateFrom(params.from, wallet);
+            const fromValidation = validateFrom(params.from, wallet);
             if (!fromValidation.isValid) {
                 errors = errors.concat(fromValidation.errors);
             } else {
@@ -203,9 +211,16 @@ export class TransactionHandler
             }
 
             const isTonConnect = !event.isLocal;
-            const messagesValidation = validateTonConnectTransactionMessages(params.messages, isTonConnect);
-            if (!messagesValidation.isValid) {
-                errors = errors.concat(messagesValidation.errors);
+            if (params.items && params.items.length > 0) {
+                const itemsValidation = validateStructuredItems(params.items);
+                if (!itemsValidation.isValid) {
+                    errors = errors.concat(itemsValidation.errors);
+                }
+            } else {
+                const messagesValidation = validateTonConnectTransactionMessages(params.messages ?? [], isTonConnect);
+                if (!messagesValidation.isValid) {
+                    errors = errors.concat(messagesValidation.errors);
+                }
             }
 
             return {
@@ -220,71 +235,5 @@ export class TransactionHandler
                 validation: { isValid: errors.length === 0, errors: errors },
             };
         }
-    }
-
-    /**
-     * Parse network from various possible formats
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateNetwork(network: any, wallet: Wallet): ReturnWithValidationResult<ChainId | undefined> {
-        let errors: string[] = [];
-        if (typeof network === 'string') {
-            const walletNetwork = wallet.getNetwork();
-            if (network !== walletNetwork.chainId) {
-                errors.push('Invalid network not equal to wallet network');
-            } else {
-                return { result: network, isValid: errors.length === 0, errors: errors };
-            }
-        } else {
-            errors.push('Invalid network not a string');
-        }
-
-        return { result: undefined, isValid: errors.length === 0, errors: errors };
-    }
-
-    private validateFrom(from: unknown, wallet: Wallet): ReturnWithValidationResult<string> {
-        let errors: string[] = [];
-
-        if (typeof from !== 'string') {
-            errors.push('Invalid from address not a string');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        if (!isValidAddress(from)) {
-            errors.push('Invalid from address');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        const fromAddress = Address.parse(from);
-        const walletAddress = Address.parse(wallet.getAddress());
-        if (!fromAddress.equals(walletAddress)) {
-            errors.push('Invalid from address not equal to wallet address');
-            return { result: '', isValid: errors.length === 0, errors: errors };
-        }
-
-        return { result: from, isValid: errors.length === 0, errors: errors };
-    }
-
-    /**
-     * Parse validUntil timestamp
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private validateValidUntil(validUntil: any): ReturnWithValidationResult<number> {
-        let errors: string[] = [];
-        if (typeof validUntil === 'undefined') {
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-        if (typeof validUntil !== 'number' || isNaN(validUntil)) {
-            errors.push('Invalid validUntil timestamp not a number');
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-
-        const now = Math.floor(Date.now() / 1000);
-        if (validUntil < now) {
-            errors.push('Invalid validUntil timestamp');
-            return { result: 0, isValid: errors.length === 0, errors: errors };
-        }
-
-        return { result: validUntil, isValid: errors.length === 0, errors: errors };
     }
 }

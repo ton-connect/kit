@@ -60,6 +60,46 @@
         "types": "./dist/cjs/defi/staking/tonstakers/index.d.ts",
         "default": "./dist/cjs/defi/staking/tonstakers/index.js"
       }
+    },
+    "./onramp/ton-pay": {
+      "import": {
+        "types": "./dist/esm/defi/onramp/ton-pay/index.d.ts",
+        "default": "./dist/esm/defi/onramp/ton-pay/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/onramp/ton-pay/index.d.ts",
+        "default": "./dist/cjs/defi/onramp/ton-pay/index.js"
+      }
+    },
+    "./gasless/tonapi": {
+      "import": {
+        "types": "./dist/esm/defi/gasless/tonapi/index.d.ts",
+        "default": "./dist/esm/defi/gasless/tonapi/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/gasless/tonapi/index.d.ts",
+        "default": "./dist/cjs/defi/gasless/tonapi/index.js"
+      }
+    },
+    "./crypto-onramp/swaps-xyz": {
+      "import": {
+        "types": "./dist/esm/defi/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/esm/defi/crypto-onramp/swaps-xyz/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/cjs/defi/crypto-onramp/swaps-xyz/index.js"
+      }
+    },
+    "./crypto-onramp/layerswap": {
+      "import": {
+        "types": "./dist/esm/defi/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/esm/defi/crypto-onramp/layerswap/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/defi/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/cjs/defi/crypto-onramp/layerswap/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -75,6 +115,18 @@
       ],
       "staking/tonstakers": [
         "./dist/cjs/defi/staking/tonstakers/index.d.ts"
+      ],
+      "onramp/ton-pay": [
+        "./dist/cjs/defi/onramp/ton-pay/index.d.ts"
+      ],
+      "gasless/tonapi": [
+        "./dist/cjs/defi/gasless/tonapi/index.d.ts"
+      ],
+      "crypto-onramp/swaps-xyz": [
+        "./dist/cjs/defi/crypto-onramp/swaps-xyz/index.d.ts"
+      ],
+      "crypto-onramp/layerswap": [
+        "./dist/cjs/defi/crypto-onramp/layerswap/index.d.ts"
       ]
     }
   },
@@ -123,10 +175,14 @@
   "peerDependenciesMeta": {
     "@ston-fi/omniston-sdk": {
       "optional": true
+    },
+    "@ton-api/client": {
+      "optional": true
     }
   },
   "optionalDependencies": {
-    "@ston-fi/omniston-sdk": "^0.7.9"
+    "@ston-fi/omniston-sdk": "^0.7.9",
+    "@ton-api/client": "^0.4.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",

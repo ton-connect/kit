@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    text-align: left;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
+    border: var(--ta-border-width-m) solid var(--ta-color-background-tertiary);
+    border-radius: var(--ta-border-radius-xl);
+    cursor: pointer;
+    background: transparent;
+}
+
+.icon {
+    border-radius: var(--ta-border-radius-s);
+}
+
+.name {
+    composes: bodySemibold from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text);
+}
+
+.methods {
+    composes: labelRegular from "../../../../styles/typography.module.css";
+    color: var(--ta-color-text-secondary);
+}

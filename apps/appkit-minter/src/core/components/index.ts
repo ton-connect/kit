@@ -15,3 +15,7 @@ export { Sheet } from './sheet';
 export { Separator } from './separator';
 export { Sidebar } from './sidebar';
 export { ToasterProvider } from './toaster-provider';
+
+// Integrations
+export { TelegramPrivyAutoConnect } from './telegram-privy-auto-connect';
+export { PrivyDebugPanel } from './privy-debug-panel';

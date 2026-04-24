@@ -15,13 +15,15 @@ export * from './components/block';
 export * from './components/info-block';
 export * from './components/button';
 export * from './components/logo';
+export * from './components/logo-with-network';
 export * from './components/modal';
 export * from './components/skeleton';
 export * from './components/ton-icon';
 export * from './components/input';
 export * from './components/token-select-modal';
-export * from './components/tabs';
+export * from './components/currency-item';
 export * from './components/centered-amount-input';
+export * from './components/tabs';
 export * from './components/amount-presets';
 export * from './components/collapsible';
 export * from './components/low-balance-modal';
@@ -36,5 +38,10 @@ export * from './features/settings';
 export * from './features/swap';
 export * from './features/signing';
 export * from './features/staking';
+export * from './features/onramp';
+export * from './features/gasless';
+export * from './features/crypto-onramp';
 
 export * from './types/appkit-ui-token';
+
+export * from './privy';

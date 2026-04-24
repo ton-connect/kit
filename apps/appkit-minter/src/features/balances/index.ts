@@ -10,3 +10,4 @@
 export { TokensCard } from './components/tokens-card';
 export { JettonCard } from './components/jetton-card';
 export { TokenTransferModal } from './components/token-transfer-modal';
+export { DepositButton } from './components/deposit-button';

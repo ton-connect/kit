@@ -10,7 +10,7 @@ import type React from 'react';
 import { TonConnectButton, useSelectedWallet } from '@ton/appkit-react';
 import { Wallet } from 'lucide-react';
 
-import { TokensCard } from '@/features/balances';
+import { TokensCard, DepositButton } from '@/features/balances';
 import { EmptyState, Layout } from '@/core/components';
 
 export const JettonsPage: React.FC = () => {
@@ -19,7 +19,10 @@ export const JettonsPage: React.FC = () => {
     return (
         <Layout>
             {wallet ? (
-                <TokensCard />
+                <div className="space-y-4">
+                    <DepositButton />
+                    <TokensCard />
+                </div>
             ) : (
                 <EmptyState
                     icon={Wallet}

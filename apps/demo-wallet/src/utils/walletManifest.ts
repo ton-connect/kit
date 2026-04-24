@@ -41,7 +41,6 @@ export function getTonConnectDeviceInfo(): DeviceInfo {
 
 export function getTonConnectFeatures(): Feature[] {
     return [
-        'SendTransaction',
         {
             name: 'SendTransaction',
             maxMessages: 4,

@@ -29,6 +29,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     fromToken,
     toToken,
     tokens,
+    tokenSections,
     fromAmount,
     toAmount,
     fiatSymbol,
@@ -66,6 +67,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
     const { t } = useI18n();
 
     const [activeField, setActiveField] = useState<'from' | 'to' | null>(null);
+
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
 
@@ -123,6 +125,7 @@ export const SwapWidgetUI: FC<SwapWidgetRenderProps> = ({
                 open={activeField !== null}
                 onClose={() => setActiveField(null)}
                 tokens={tokens}
+                tokenSections={tokenSections}
                 onSelect={(token) => {
                     if (activeField === 'from') setFromToken(token);
                     else setToToken(token);

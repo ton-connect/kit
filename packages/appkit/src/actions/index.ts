@@ -41,6 +41,23 @@ export {
     type WatchConnectorByIdReturnType,
 } from './connectors/watch-connector-by-id';
 
+// Crypto onramp
+export {
+    getCryptoOnrampQuote,
+    type GetCryptoOnrampQuoteOptions,
+    type GetCryptoOnrampQuoteReturnType,
+} from './crypto-onramp/get-crypto-onramp-quote';
+export {
+    createCryptoOnrampDeposit,
+    type CreateCryptoOnrampDepositOptions,
+    type CreateCryptoOnrampDepositReturnType,
+} from './crypto-onramp/create-crypto-onramp-deposit';
+export {
+    getCryptoOnrampStatus,
+    type GetCryptoOnrampStatusOptions,
+    type GetCryptoOnrampStatusReturnType,
+} from './crypto-onramp/get-crypto-onramp-status';
+
 // Jettons
 export { getJettonInfo, type GetJettonInfoOptions, type GetJettonInfoReturnType } from './jettons/get-jetton-info';
 export {
@@ -70,6 +87,11 @@ export {
     type CreateTransferJettonTransactionParameters,
     type CreateTransferJettonTransactionReturnType,
 } from './jettons/create-transfer-jetton-transaction';
+export {
+    createTransferJettonTransactionForWallet,
+    type CreateTransferJettonTransactionForWalletParameters,
+    type CreateTransferJettonTransactionForWalletReturnType,
+} from './jettons/create-transfer-jetton-transaction-for-wallet';
 export {
     transferJetton,
     type TransferJettonParameters,
@@ -108,6 +130,26 @@ export { transferNft, type TransferNftParameters, type TransferNftReturnType } f
 // Providers
 export { registerProvider, type RegisterProviderOptions } from './providers/register-provider';
 
+// Gasless
+export {
+    getGaslessConfig,
+    type GetGaslessConfigOptions,
+    type GetGaslessConfigReturnType,
+    type GetGaslessConfigErrorType,
+} from './gasless/get-gasless-config';
+export {
+    estimateGasless,
+    type EstimateGaslessParameters,
+    type EstimateGaslessReturnType,
+    type EstimateGaslessErrorType,
+} from './gasless/estimate-gasless';
+export {
+    sendGaslessTransaction,
+    type SendGaslessTransactionParameters,
+    type SendGaslessTransactionReturnType,
+    type SendGaslessTransactionErrorType,
+} from './gasless/send-gasless-transaction';
+
 // Signing
 export { signText, type SignTextParameters, type SignTextReturnType } from './signing/sign-text';
 export { signBinary, type SignBinaryParameters, type SignBinaryReturnType } from './signing/sign-binary';
@@ -133,6 +175,22 @@ export {
     type BuildSwapTransactionOptions,
     type BuildSwapTransactionReturnType,
 } from './swap/build-swap-transaction';
+
+// Onramp
+export { getOnrampManager, type GetOnrampManagerReturnType } from './onramp/get-onramp-manager';
+export {
+    getOnrampProvider,
+    type GetOnrampProviderOptions,
+    type GetOnrampProviderReturnType,
+} from './onramp/get-onramp-provider';
+export { getOnrampProviders, type GetOnrampProvidersReturnType } from './onramp/get-onramp-providers';
+export { getOnrampQuote, type GetOnrampQuoteOptions, type GetOnrampQuoteReturnType } from './onramp/get-onramp-quote';
+export {
+    watchOnrampProviders,
+    type WatchOnrampProvidersParameters,
+    type WatchOnrampProvidersReturnType,
+} from './onramp/watch-onramp-providers';
+export { buildOnrampUrl, type BuildOnrampUrlOptions, type BuildOnrampUrlReturnType } from './onramp/build-onramp-url';
 
 // Staking
 export { getStakingManager, type GetStakingManagerReturnType } from './staking/get-staking-manager';
@@ -179,6 +237,12 @@ export {
     type SendTransactionParameters,
     type SendTransactionReturnType,
 } from './transaction/send-transaction';
+export {
+    signMessage,
+    type SignMessageParameters,
+    type SignMessageReturnType,
+    type SignMessageErrorType,
+} from './transaction/sign-message';
 export { transferTon, type TransferTonParameters, type TransferTonReturnType } from './transaction/transfer-ton';
 export {
     getTransactionStatus,
@@ -206,6 +270,11 @@ export {
     type CreateTransferTonTransactionParameters,
     type CreateTransferTonTransactionReturnType,
 } from './transaction/create-transfer-ton-transaction';
+export {
+    createTransferTonTransactionForWallet,
+    type CreateTransferTonTransactionForWalletParameters,
+    type CreateTransferTonTransactionForWalletReturnType,
+} from './transaction/create-transfer-ton-transaction-for-wallet';
 
 // Wallets
 export { getConnectedWallets, type GetConnectedWalletsReturnType } from './wallets/get-connected-wallets';

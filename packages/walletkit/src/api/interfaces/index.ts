@@ -12,9 +12,12 @@ export type { WalletSigner, ISigner } from './WalletSigner';
 
 // Defi interfaces
 export type { DefiManagerAPI } from './DefiManagerAPI';
-export type { DefiProvider } from './DefiProvider';
 export type { SwapAPI, SwapProviderInterface } from './SwapAPI';
+export type { OnrampAPI, OnrampProviderInterface } from './OnrampAPI';
+export type { DefiProvider, DefiProviderType } from './DefiProvider';
+export type { CryptoOnrampAPI, CryptoOnrampProviderInterface } from './CryptoOnrampAPI';
 export type { StakingAPI, StakingProviderInterface } from './StakingAPI';
+export type { GaslessAPI, GaslessProviderInterface } from './GaslessAPI';
 
 export type { TONConnectSessionManager } from './TONConnectSessionManager';
 

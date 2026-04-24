@@ -60,6 +60,46 @@
         "types": "./dist/cjs/staking/tonstakers/index.d.ts",
         "default": "./dist/cjs/staking/tonstakers/index.js"
       }
+    },
+    "./onramp/ton-pay": {
+      "import": {
+        "types": "./dist/esm/onramp/ton-pay/index.d.ts",
+        "default": "./dist/esm/onramp/ton-pay/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/onramp/ton-pay/index.d.ts",
+        "default": "./dist/cjs/onramp/ton-pay/index.js"
+      }
+    },
+    "./gasless/tonapi": {
+      "import": {
+        "types": "./dist/esm/gasless/tonapi/index.d.ts",
+        "default": "./dist/esm/gasless/tonapi/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/gasless/tonapi/index.d.ts",
+        "default": "./dist/cjs/gasless/tonapi/index.js"
+      }
+    },
+    "./crypto-onramp/swaps-xyz": {
+      "import": {
+        "types": "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/esm/crypto-onramp/swaps-xyz/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/crypto-onramp/swaps-xyz/index.d.ts",
+        "default": "./dist/cjs/crypto-onramp/swaps-xyz/index.js"
+      }
+    },
+    "./crypto-onramp/layerswap": {
+      "import": {
+        "types": "./dist/esm/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/esm/crypto-onramp/layerswap/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/crypto-onramp/layerswap/index.d.ts",
+        "default": "./dist/cjs/crypto-onramp/layerswap/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -75,6 +115,18 @@
       ],
       "staking/tonstakers": [
         "./dist/esm/staking/tonstakers/index.d.ts"
+      ],
+      "onramp/ton-pay": [
+        "./dist/esm/onramp/ton-pay/index.d.ts"
+      ],
+      "gasless/tonapi": [
+        "./dist/esm/gasless/tonapi/index.d.ts"
+      ],
+      "crypto-onramp/swaps-xyz": [
+        "./dist/esm/crypto-onramp/swaps-xyz/index.d.ts"
+      ],
+      "crypto-onramp/layerswap": [
+        "./dist/esm/crypto-onramp/layerswap/index.d.ts"
       ]
     }
   },
@@ -103,6 +155,9 @@
       "optional": true
     },
     "@ston-fi/omniston-sdk": {
+      "optional": true
+    },
+    "@ton-api/client": {
       "optional": true
     },
     "@tanstack/query-core": {

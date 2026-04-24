@@ -10,6 +10,7 @@ import {
     AppKit,
     Network,
     createTonConnectConnector,
+    createPrivyConnector,
     ApiClientTonApi,
     ApiClientToncenter,
     createTonCenterStreamingProvider,
@@ -17,8 +18,12 @@ import {
 import { createDeDustProvider } from '@ton/appkit/swap/dedust';
 import { createOmnistonProvider } from '@ton/appkit/swap/omniston';
 import { createTonstakersProvider } from '@ton/appkit/staking/tonstakers';
+import { TonApiGaslessProvider } from '@ton/appkit/gasless/tonapi';
+import { TonApiClient } from '@ton-api/client';
+import { LayerswapCryptoOnrampProvider } from '@ton/appkit/crypto-onramp/layerswap';
 
-import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET } from '@/core/configs/env';
+import { ENV_TON_API_KEY_TESTNET, ENV_TON_API_KEY_MAINNET, ENV_PRIVY_APP_ID } from '@/core/configs/env';
+import { loadStoredNetworkChainId } from '@/features/network';
 
 const mainnetApiClient = new ApiClientToncenter({
     network: Network.mainnet(),
@@ -35,20 +40,39 @@ const tetraApiClient = new ApiClientTonApi({
     endpoint: 'https://tetra.tonapi.io',
 });
 
+const CONFIGURED_CHAIN_IDS = new Set([Network.mainnet().chainId, Network.testnet().chainId, Network.tetra().chainId]);
+
+const storedChainId = loadStoredNetworkChainId();
+const initialDefaultNetwork =
+    storedChainId && CONFIGURED_CHAIN_IDS.has(storedChainId) ? Network.custom(storedChainId) : undefined;
+const mainnetTonApi = new TonApiClient({
+    baseUrl: 'https://tonapi.io',
+});
+
 export const appKit = new AppKit({
     networks: {
         [Network.mainnet().chainId]: { apiClient: mainnetApiClient },
         [Network.testnet().chainId]: { apiClient: testnetApiClient },
         [Network.tetra().chainId]: { apiClient: tetraApiClient },
     },
+    defaultNetwork: initialDefaultNetwork,
     connectors: [
         createTonConnectConnector({
             tonConnectOptions: {
                 manifestUrl: 'https://tonconnect-sdk-demo-dapp.vercel.app/tonconnect-manifest.json',
             },
         }),
+        ...(ENV_PRIVY_APP_ID
+            ? [createPrivyConnector({ appId: ENV_PRIVY_APP_ID, defaultNetwork: Network.mainnet() })]
+            : []),
     ],
-    providers: [createOmnistonProvider(), createDeDustProvider(), createTonstakersProvider()],
+    providers: [
+        createDeDustProvider(),
+        createOmnistonProvider(),
+        createTonstakersProvider({}),
+        new TonApiGaslessProvider({ client: mainnetTonApi }),
+        new LayerswapCryptoOnrampProvider(),
+    ],
 });
 
 // TODO: replace in normal config

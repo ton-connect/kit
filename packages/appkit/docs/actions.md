@@ -438,6 +438,56 @@ const result = await transferNft(appKit, {
 console.log('NFT Transfer Result:', result);
 ```
 
+## Onramp
+
+### `getOnrampManager`
+
+Get the `OnrampManager` instance.
+
+### `getOnrampProvider`
+
+Get a specific onramp provider by its ID.
+
+### `getOnrampProviders`
+
+Get all registered onramp providers.
+
+### `watchOnrampProviders`
+
+Watch for new onramp providers registration.
+
+### `getOnrampQuote`
+
+Get an onramp quote from registered providers.
+
+```ts
+const quote = await getOnrampQuote(appKit, {
+    fiatCurrency: 'USD',
+    cryptoCurrency: 'TON',
+    amount: '100',
+    isFiatAmount: true,
+});
+console.log('Onramp Quote:', quote);
+```
+
+### `buildOnrampUrl`
+
+Build an onramp URL for redirecting the user to the provider.
+
+```ts
+const quote = await getOnrampQuote(appKit, {
+    fiatCurrency: 'USD',
+    cryptoCurrency: 'TON',
+    amount: '100',
+});
+
+const url = await buildOnrampUrl(appKit, {
+    quote,
+    userAddress: 'UQ...wallet-address...',
+});
+console.log('Onramp URL:', url);
+```
+
 ## Providers
 
 ### `registerProvider`
@@ -672,6 +722,25 @@ const result = await sendTransaction(appKit, {
 });
 
 console.log('Transaction Result:', result);
+```
+
+### `signMessage`
+
+Ask the connected wallet to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+```ts
+const result = await signMessage(appKit, {
+    messages: [
+        {
+            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+            amount: '100000000', // 0.1 TON in nanotons
+        },
+    ],
+});
+
+// result.internalBoc is a signed internal message BoC (base64)
+// that can be relayed on-chain by a third party (e.g. a gasless relayer).
+console.log('Signed Message:', result);
 ```
  
 ### `transferTon`

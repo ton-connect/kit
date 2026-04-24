@@ -11,4 +11,8 @@ export { JettonsPage } from './jettons-page';
 export { NftsPage } from './nfts-page';
 export { SwapPage } from './swap-page';
 export { StakingPage } from './staking-page';
+export { OnrampPage } from './onramp-page';
 export { SignMessagePage } from './sign-message-page';
+export { NftPurchasePage } from './nft-purchase-page';
+export { NftPurchaseCollectionPage } from './nft-purchase-collection-page';
+export { GaslessPage } from './gasless-page';

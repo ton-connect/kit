@@ -208,6 +208,36 @@ Transfer a NFT to a recipient address.
 
 %%demo/examples/src/appkit/actions/nft#TRANSFER_NFT%%
 
+## Onramp
+
+### `getOnrampManager`
+
+Get the `OnrampManager` instance.
+
+### `getOnrampProvider`
+
+Get a specific onramp provider by its ID.
+
+### `getOnrampProviders`
+
+Get all registered onramp providers.
+
+### `watchOnrampProviders`
+
+Watch for new onramp providers registration.
+
+### `getOnrampQuote`
+
+Get an onramp quote from registered providers.
+
+%%demo/examples/src/appkit/actions/onramp#GET_ONRAMP_QUOTE%%
+
+### `buildOnrampUrl`
+
+Build an onramp URL for redirecting the user to the provider.
+
+%%demo/examples/src/appkit/actions/onramp#BUILD_ONRAMP_URL%%
+
 ## Providers
 
 ### `registerProvider`
@@ -331,6 +361,12 @@ Create a TON transfer transaction request without sending it.
 Send a transaction to the blockchain.
  
 %%demo/examples/src/appkit/actions/transaction#SEND_TRANSACTION%%
+
+### `signMessage`
+
+Ask the connected wallet to sign a transaction-shaped request without broadcasting it. Returns a signed internal-message BoC that can be relayed on-chain by a third party (e.g. a gasless relayer). Requires wallet support for the `SignMessage` feature.
+
+%%demo/examples/src/appkit/actions/transaction#SIGN_MESSAGE%%
  
 ### `transferTon`
  

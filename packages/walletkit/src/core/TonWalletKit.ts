@@ -61,13 +61,17 @@ import type {
     RequestErrorEvent,
     DisconnectionEvent,
     SignDataRequestEvent,
+    SignMessageRequestEvent,
     ConnectionRequestEvent,
     SendTransactionApprovalResponse,
     SignDataApprovalResponse,
+    SignMessageApprovalResponse,
     TONConnectSession,
     ConnectionApprovalResponse,
+    IntentActionRequestEvent,
 } from '../api/models';
 import { asAddressFriendly } from '../utils';
+import { parseIntentFromReqParam } from '../utils/intent';
 import type { ProviderFactoryContext } from '../types/factory';
 
 const log = globalLogger.createChild('TonWalletKit');
@@ -98,7 +102,6 @@ export class TonWalletKit implements ITonWalletKit {
     private initializer: Initializer;
     private eventProcessor!: StorageEventProcessor;
     private bridgeManager!: BridgeManager;
-
     private config: TonWalletKitOptions;
 
     // Event emitter for this kit instance
@@ -522,6 +525,20 @@ export class TonWalletKit implements ITonWalletKit {
         this.eventRouter.removeSignDataRequestCallback();
     }
 
+    onSignMessageRequest(cb: (event: SignMessageRequestEvent) => void): void {
+        if (this.eventRouter) {
+            this.eventRouter.onSignMessageRequest(cb);
+        } else {
+            this.ensureInitialized().then(() => {
+                this.eventRouter.onSignMessageRequest(cb);
+            });
+        }
+    }
+
+    removeSignMessageRequestCallback(): void {
+        this.eventRouter.removeSignMessageRequestCallback();
+    }
+
     removeDisconnectCallback(): void {
         this.eventRouter.removeDisconnectCallback();
     }
@@ -670,6 +687,7 @@ export class TonWalletKit implements ITonWalletKit {
         clientId: string;
         requestId: string;
         r: string;
+        e?: string;
         returnStrategy?: string;
     }): RawBridgeEventConnect | undefined {
         const rString = params.r;
@@ -678,7 +696,8 @@ export class TonWalletKit implements ITonWalletKit {
         if (!r?.manifestUrl || !params.clientId) {
             return undefined;
         }
-        return {
+
+        const bridgeEvent: RawBridgeEventConnect = {
             from: params.clientId,
             id: params.requestId,
             method: 'connect',
@@ -692,11 +711,21 @@ export class TonWalletKit implements ITonWalletKit {
             timestamp: Date.now(),
             domain: '',
         };
+
+        // Parse embedded intent request if present
+        if (params.e) {
+            bridgeEvent.intentPayload = parseIntentFromReqParam(params.e);
+        }
+
+        return bridgeEvent;
     }
 
     // === Request Processing API (Delegated) ===
 
-    async approveConnectRequest(event: ConnectionRequestEvent, response?: ConnectionApprovalResponse): Promise<void> {
+    async approveConnectRequest(
+        event: ConnectionRequestEvent,
+        response?: ConnectionApprovalResponse,
+    ): Promise<IntentActionRequestEvent | undefined> {
         await this.ensureInitialized();
         return this.requestProcessor.approveConnectRequest(event, response);
     }
@@ -737,6 +766,19 @@ export class TonWalletKit implements ITonWalletKit {
     async rejectSignDataRequest(event: SignDataRequestEvent, reason?: string): Promise<void> {
         await this.ensureInitialized();
         return this.requestProcessor.rejectSignDataRequest(event, reason);
+    }
+
+    async approveSignMessageRequest(
+        event: SignMessageRequestEvent,
+        response?: SignMessageApprovalResponse,
+    ): Promise<SignMessageApprovalResponse> {
+        await this.ensureInitialized();
+        return this.requestProcessor.approveSignMessageRequest(event, response);
+    }
+
+    async rejectSignMessageRequest(event: SignMessageRequestEvent, reason?: string): Promise<void> {
+        await this.ensureInitialized();
+        return this.requestProcessor.rejectSignMessageRequest(event, reason);
     }
 
     // === TON Client Access ===

@@ -24,3 +24,5 @@ export class DefiError extends Error {
         this.details = details;
     }
 }
+
+export { DefiError as DefiManagerError };

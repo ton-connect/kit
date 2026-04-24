@@ -7,8 +7,10 @@
  */
 
 import type { FC, ComponentProps, ChangeEvent } from 'react';
-import { useDefaultNetwork, useNetworks, useSelectedWallet, Network } from '@ton/appkit-react';
+import { useDefaultNetwork, useNetworks, Network } from '@ton/appkit-react';
 import { ChevronDown } from 'lucide-react';
+
+import { saveStoredNetworkChainId } from '../storage';
 
 import { cn } from '@/core/lib/utils';
 
@@ -25,10 +27,11 @@ const getNetworkLabel = (chainId: string): string => {
 export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...props }) => {
     const [defaultNetwork, setDefaultNetwork] = useDefaultNetwork();
     const networks = useNetworks();
-    const [wallet] = useSelectedWallet();
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
+
+        saveStoredNetworkChainId(value);
 
         if (value === '') {
             setDefaultNetwork(undefined);
@@ -36,10 +39,6 @@ export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...prop
             setDefaultNetwork(Network.custom(value));
         }
     };
-
-    if (wallet) {
-        return null;
-    }
 
     return (
         <div className={cn('relative inline-block w-full', className)}>
@@ -49,7 +48,6 @@ export const NetworkPicker: FC<ComponentProps<'select'>> = ({ className, ...prop
                 )}
                 value={defaultNetwork?.chainId ?? ''}
                 onChange={handleChange}
-                disabled={!!wallet}
                 {...props}
             >
                 <option value="">Any Network</option>
