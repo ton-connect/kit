@@ -20,7 +20,7 @@ export const NftsPage: React.FC = () => {
     return (
         <Layout
             title={
-                <div className="flex items-center justify-between px-2 pt-2 pb-4 border-b mb-3 md:m-0 md:p-0 md:border-none">
+                <div className="w-full flex items-center justify-between px-2 pt-2 pb-4 border-b mb-3 md:m-0 md:p-0 md:border-none">
                     <p className="text-lg font-semibold text-foreground mr-3">NFTs</p>
                     <Button size="icon" variant="bezeled" onClick={() => onRefresh()}>
                         <RefreshCw size={16} />

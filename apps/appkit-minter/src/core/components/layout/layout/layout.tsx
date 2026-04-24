@@ -165,7 +165,7 @@ export const Layout: FC<LayoutProps> = ({ children, title }) => {
             <SidebarInset>
                 <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-tertiary bg-background/80 px-4 backdrop-blur">
                     <AppLogo className="size-8 md:hidden" />
-                    <div className="hidden text-lg font-semibold md:block">
+                    <div className="hidden text-lg font-semibold md:flex md:justify-center md:items-center">
                         {typeof title === 'string' ? <h1>{title}</h1> : title}
                     </div>
 
@@ -177,7 +177,7 @@ export const Layout: FC<LayoutProps> = ({ children, title }) => {
                 </header>
 
                 <main className="mx-auto w-full max-w-4xl flex-1 p-4">
-                    <div className="md:hidden">
+                    <div className="w-full flex justify-start items-center md:hidden">
                         {typeof title === 'string' ? <h1 className="mb-2 text-lg font-semibold">{title}</h1> : title}
                     </div>
 

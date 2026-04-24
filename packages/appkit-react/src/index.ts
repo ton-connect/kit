@@ -14,6 +14,7 @@ export * from '@ton/appkit';
 export * from './components/block';
 export * from './components/info-block';
 export * from './components/button';
+export * from './components/button-with-connect';
 export * from './components/logo';
 export * from './components/logo-with-network';
 export * from './components/modal';

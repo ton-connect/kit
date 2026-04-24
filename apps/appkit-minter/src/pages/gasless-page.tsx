@@ -9,19 +9,23 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { FC } from 'react';
 import {
-    useGaslessConfig,
-    useSendGaslessTransaction,
+    ButtonWithConnect,
+    InfoBlock,
+    Input,
     useAddress,
+    useGaslessConfig,
     useJettonBalanceByAddress,
     useJettonWalletAddress,
+    useSendGaslessTransaction,
 } from '@ton/appkit-react';
 import type { Base64String } from '@ton/appkit-react';
-import { parseUnits, createJettonTransferPayload, compareAddress } from '@ton/appkit';
+import { compareAddress, createJettonTransferPayload, parseUnits } from '@ton/appkit';
 import { toast } from 'sonner';
 
 import { Layout } from '@/core/components';
 
 const USDT_MASTER_MAINNET = 'EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs';
+const USDT_DECIMALS = 6;
 
 export const GaslessPage: FC = () => {
     const address = useAddress();
@@ -31,10 +35,10 @@ export const GaslessPage: FC = () => {
     const [amount, setAmount] = useState('0.1');
     const [recipient, setRecipient] = useState('');
 
-    const { data: usdtBalance } = useJettonBalanceByAddress({
+    const { data: usdtBalance, isLoading: isBalanceLoading } = useJettonBalanceByAddress({
         jettonAddress: USDT_MASTER_MAINNET,
         ownerAddress: address,
-        jettonDecimals: 6,
+        jettonDecimals: USDT_DECIMALS,
     });
 
     const { data: usdtWalletAddress } = useJettonWalletAddress({
@@ -42,16 +46,28 @@ export const GaslessPage: FC = () => {
         ownerAddress: address,
     });
 
-    // Set own address as default recipient
     useEffect(() => {
-        if (address && !recipient) {
-            setRecipient(address);
-        }
+        if (address && !recipient) setRecipient(address);
     }, [address, recipient]);
 
-    const isUsdtSupported = useMemo(() => {
-        return gaslessConfig?.supportedGasJettons.some((j) => compareAddress(j.jettonMaster, USDT_MASTER_MAINNET));
-    }, [gaslessConfig]);
+    const isUsdtSupported = useMemo(
+        () => gaslessConfig?.supportedGasJettons.some((j) => compareAddress(j.jettonMaster, USDT_MASTER_MAINNET)),
+        [gaslessConfig],
+    );
+
+    const buttonText = useMemo(() => {
+        if (isSending) return 'Sending…';
+        if (isConfigLoading) return 'Loading…';
+        if (!isUsdtSupported) return 'USDT Not Supported';
+        return 'Send Gasless';
+    }, [isSending, isConfigLoading, isUsdtSupported]);
+
+    const canSubmit =
+        Boolean(address) &&
+        Boolean(usdtWalletAddress) &&
+        Boolean(isUsdtSupported) &&
+        Boolean(recipient) &&
+        Number(amount) > 0;
 
     const handleSend = async () => {
         if (!address || !usdtWalletAddress) {
@@ -61,7 +77,7 @@ export const GaslessPage: FC = () => {
 
         try {
             const payload = createJettonTransferPayload({
-                amount: parseUnits(amount, 6), // USDT has 6 decimals
+                amount: parseUnits(amount, USDT_DECIMALS),
                 destination: recipient,
                 responseDestination: address,
             });
@@ -86,65 +102,72 @@ export const GaslessPage: FC = () => {
     };
 
     return (
-        <Layout title="Gasless Transfer">
-            <div className="w-full max-w-[434px] mx-auto p-6 space-y-6">
-                <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                        Send USDT without having TON for gas. The fee will be paid in USDT.
-                    </p>
-                </div>
+        <Layout title="Gasless">
+            <div className="w-full max-w-[440px] mx-auto flex flex-col gap-4">
+                <p className="text-sm text-tertiary-foreground mb-3">
+                    Send USDT without TON for gas — the fee is paid in USDT.
+                </p>
 
-                {!address && (
-                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-600 text-sm">
-                        Please connect your wallet first.
-                    </div>
-                )}
+                <Input.Container size="s">
+                    <Input.Header>
+                        <Input.Title>Recipient</Input.Title>
+                    </Input.Header>
+                    <Input.Field>
+                        <Input.Input
+                            placeholder="UQ… or EQ…"
+                            value={recipient}
+                            onChange={(e) => setRecipient(e.target.value)}
+                        />
+                    </Input.Field>
+                </Input.Container>
 
-                {address && (
-                    <div className="space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium uppercase text-muted-foreground">
-                                Your USDT Balance
-                            </label>
-                            <div className="text-lg font-mono">
+                <Input.Container size="s">
+                    <Input.Header>
+                        <Input.Title>Amount (USDT)</Input.Title>
+                    </Input.Header>
+                    <Input.Field>
+                        <Input.Input
+                            type="number"
+                            inputMode="decimal"
+                            placeholder="0"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                        />
+                    </Input.Field>
+                </Input.Container>
+
+                <InfoBlock.Container>
+                    <InfoBlock.Row>
+                        <InfoBlock.Label>Your USDT balance</InfoBlock.Label>
+                        {isBalanceLoading ? (
+                            <InfoBlock.ValueSkeleton />
+                        ) : (
+                            <InfoBlock.Value>
                                 {usdtBalance ? Number(usdtBalance).toFixed(2) : '0.00'} USDT
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Recipient Address</label>
-                            <input
-                                className="w-full p-2 bg-secondary rounded-md border border-border"
-                                value={recipient}
-                                onChange={(e) => setRecipient(e.target.value)}
-                                placeholder="Address"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Amount (USDT)</label>
-                            <input
-                                className="w-full p-2 bg-secondary rounded-md border border-border"
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                            />
-                        </div>
-
-                        <button
-                            className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-50"
-                            onClick={handleSend}
-                            disabled={isSending || isConfigLoading || !isUsdtSupported}
-                        >
-                            {isSending ? 'Sending...' : isUsdtSupported ? 'Send Gasless' : 'USDT Not Supported'}
-                        </button>
-
-                        {!isConfigLoading && !isUsdtSupported && (
-                            <p className="text-xs text-red-500 text-center">
-                                Relayer does not support USDT for gas fees on this network.
-                            </p>
+                            </InfoBlock.Value>
                         )}
-                    </div>
+                    </InfoBlock.Row>
+                    <InfoBlock.Row>
+                        <InfoBlock.Label>Gas fee</InfoBlock.Label>
+                        <InfoBlock.Value>Paid in USDT</InfoBlock.Value>
+                    </InfoBlock.Row>
+                </InfoBlock.Container>
+
+                <ButtonWithConnect
+                    variant="fill"
+                    size="l"
+                    fullWidth
+                    disabled={!canSubmit || isSending || isConfigLoading}
+                    loading={isSending}
+                    onClick={handleSend}
+                >
+                    {buttonText}
+                </ButtonWithConnect>
+
+                {!isConfigLoading && !isUsdtSupported && (
+                    <p className="text-xs text-error text-center">
+                        Relayer does not support USDT for gas fees on this network.
+                    </p>
                 )}
             </div>
         </Layout>

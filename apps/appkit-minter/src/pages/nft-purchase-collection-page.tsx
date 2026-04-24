@@ -21,18 +21,18 @@ export const NftPurchaseCollectionPage: FC = () => {
     }
 
     return (
-        <Layout title="Buy NFT">
-            <div className="space-y-4">
+        <Layout
+            title={
                 <Link
                     to="/buy-nft"
-                    className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="inline-flex items-center mb-4 gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors md:mb-0"
                 >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="size-5" />
                     Back to collections
                 </Link>
-
-                <NftsList collectionAddress={collectionAddress} />
-            </div>
+            }
+        >
+            <NftsList collectionAddress={collectionAddress} />
         </Layout>
     );
 };
