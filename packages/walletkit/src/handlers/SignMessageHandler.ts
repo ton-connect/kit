@@ -6,8 +6,8 @@
  *
  */
 
-import type { SendTransactionRpcResponseError, WalletResponseTemplateError } from '@tonconnect/protocol';
-import { SEND_TRANSACTION_ERROR_CODES } from '@tonconnect/protocol';
+import type { WalletResponseTemplateError } from '@tonconnect/protocol';
+import { SIGN_MESSAGE_ERROR_CODES } from '@tonconnect/protocol';
 
 import type { TonWalletKitOptions, ValidationResult } from '../types';
 import type {
@@ -67,11 +67,11 @@ export class SignMessageHandler
             log.error('Wallet not found', { event });
             return {
                 error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.UNKNOWN_APP_ERROR,
+                    code: SIGN_MESSAGE_ERROR_CODES.UNKNOWN_APP_ERROR,
                     message: 'Wallet not found',
                 },
                 id: event.id,
-            } as SendTransactionRpcResponseError;
+            } as SignMessageRpcResponseError;
         }
 
         const requestValidation = this.parseTonConnectTransactionRequest(event, wallet);
@@ -80,7 +80,7 @@ export class SignMessageHandler
             this.eventEmitter.emit('eventError', event, 'sign-message-handler');
             return {
                 error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.BAD_REQUEST_ERROR,
+                    code: SIGN_MESSAGE_ERROR_CODES.BAD_REQUEST_ERROR,
                     message: 'Failed to parse sign message request',
                 },
                 id: event.id,

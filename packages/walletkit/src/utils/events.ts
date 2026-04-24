@@ -73,6 +73,48 @@ export async function checkTransactionRequestItems(
     return newRequest;
 }
 
+export function validateTransactionRequestForWallet(
+    request: TransactionRequest,
+    wallet: Wallet,
+    isLocal?: boolean,
+    requireNetworkAndFrom: boolean = true,
+): ValidationResult {
+    let errors: string[] = [];
+
+    const validUntilValidation = validateValidUntil(request.validUntil);
+    if (!validUntilValidation.isValid) {
+        errors = errors.concat(validUntilValidation.errors);
+    }
+
+    if (requireNetworkAndFrom || request.network?.chainId) {
+        const networkValidation = validateNetwork(request.network?.chainId, wallet);
+        if (!networkValidation.isValid) {
+            errors = errors.concat(networkValidation.errors);
+        }
+    }
+
+    if (requireNetworkAndFrom || request.fromAddress) {
+        const fromValidation = validateFrom(request.fromAddress, wallet);
+        if (!fromValidation.isValid) {
+            errors = errors.concat(fromValidation.errors);
+        }
+    }
+
+    if (request.items && request.items.length > 0) {
+        const itemsValidation = validateStructuredItems(request.items);
+        if (!itemsValidation.isValid) {
+            errors = errors.concat(itemsValidation.errors);
+        }
+    } else {
+        const messagesValidation = validateTransactionMessages(request.messages ?? [], !isLocal, true);
+        if (!messagesValidation.isValid) {
+            errors = errors.concat(messagesValidation.errors);
+        }
+    }
+
+    return { isValid: errors.length === 0, errors };
+}
+
 export function parseTonConnectTransactionRequest(
     event: RawBridgeEventTransaction | RawBridgeEventSignMessage,
     wallet: Wallet,
@@ -92,44 +134,12 @@ export function parseTonConnectTransactionRequest(
         }
         const rawParams = JSON.parse(event.params[0]) as RawConnectTransactionParamContent;
         const params = parseConnectTransactionParamContent(rawParams);
-
-        const validUntilValidation = validateValidUntil(params.validUntil);
-        if (!validUntilValidation.isValid) {
-            errors = errors.concat(validUntilValidation.errors);
-        } else {
-            params.validUntil = validUntilValidation.result;
-        }
-
-        const networkValidation = validateNetwork(params.network, wallet);
-        if (!networkValidation.isValid) {
-            errors = errors.concat(networkValidation.errors);
-        } else {
-            params.network = networkValidation.result;
-        }
-
-        const fromValidation = validateFrom(params.from, wallet);
-        if (!fromValidation.isValid) {
-            errors = errors.concat(fromValidation.errors);
-        } else {
-            params.from = fromValidation.result;
-        }
-
-        const isTonConnect = !event.isLocal;
-        if (params.items && params.items.length > 0) {
-            const itemsValidation = validateStructuredItems(params.items);
-            if (!itemsValidation.isValid) {
-                errors = errors.concat(itemsValidation.errors);
-            }
-        } else {
-            const messagesValidation = validateTransactionMessages(params.messages ?? [], isTonConnect, true);
-            if (!messagesValidation.isValid) {
-                errors = errors.concat(messagesValidation.errors);
-            }
-        }
+        const request = toTransactionRequest(params);
+        const validation = validateTransactionRequestForWallet(request, wallet, event.isLocal);
 
         return {
-            result: toTransactionRequest(params),
-            validation: { isValid: errors.length === 0, errors: errors },
+            result: request,
+            validation,
         };
     } catch (error) {
         log.error('Failed to parse transaction request', { error });

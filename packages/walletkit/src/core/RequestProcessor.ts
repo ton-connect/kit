@@ -24,6 +24,7 @@ import {
     SEND_TRANSACTION_ERROR_CODES,
     SessionCrypto,
     SIGN_DATA_ERROR_CODES,
+    SIGN_MESSAGE_ERROR_CODES,
 } from '@tonconnect/protocol';
 import { getSecureRandomBytes } from '@ton/crypto';
 
@@ -70,6 +71,7 @@ import {
     getClientForWallet,
     getWalletAddressFromEvent,
     getWalletFromEvent,
+    validateTransactionRequestForWallet,
 } from '../utils/events';
 
 const log = globalLogger.createChild('RequestProcessor');
@@ -193,8 +195,27 @@ export class RequestProcessor {
         }
 
         const wallet = this.validateWallet(event);
-        const request = await checkTransactionRequestItems(event.embeddedRequest.transactionRequest, wallet);
-        const preview = await createTransactionPreviewIfPossible(this.walletKitOptions, wallet.client, request, wallet);
+        const transactionRequest = event.embeddedRequest.transactionRequest;
+        const validation = validateTransactionRequestForWallet(transactionRequest, wallet, event.isLocal, false);
+        if (!validation.isValid) {
+            throw new WalletKitError(
+                ERROR_CODES.VALIDATION_ERROR,
+                `Invalid embedded transaction request: ${validation.errors.join(', ')}`,
+                undefined,
+                { errors: validation.errors },
+            );
+        }
+
+        const request = await checkTransactionRequestItems(transactionRequest, wallet);
+        const preview = await createTransactionPreviewIfPossible(
+            this.walletKitOptions,
+            wallet.client,
+            request,
+            wallet,
+            {
+                mode: event.embeddedRequest.method === 'signMessage' ? 'sign' : 'send',
+            },
+        );
 
         return {
             request,
@@ -634,7 +655,7 @@ export class RequestProcessor {
         try {
             const response = {
                 error: {
-                    code: SEND_TRANSACTION_ERROR_CODES.USER_REJECTS_ERROR,
+                    code: SIGN_MESSAGE_ERROR_CODES.USER_REJECTS_ERROR,
                     message: reason || 'User rejected sign message request',
                 },
                 id: event.id,
@@ -695,13 +716,17 @@ export class RequestProcessor {
                     this.analytics.emitWalletSignDataAccepted({
                         wallet_id: sessionData?.publicKey,
                         trace_id: event.traceId,
-                        network_id: wallet?.getNetwork().chainId,
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        network_id: wallet.getNetwork().chainId,
                         client_id: event.from,
                     });
                     this.analytics.emitWalletSignDataSent({
                         wallet_id: sessionData?.publicKey,
                         trace_id: event.traceId,
-                        network_id: wallet?.getNetwork().chainId,
+                        dapp_name: event.dAppInfo?.name,
+                        origin_url: event.dAppInfo?.url,
+                        network_id: wallet.getNetwork().chainId,
                         client_id: event.from,
                     });
                 }
