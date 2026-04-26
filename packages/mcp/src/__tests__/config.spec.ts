@@ -24,7 +24,6 @@ import {
     getActiveWallet,
     getAgenticCollectionAddress,
     listPendingAgenticDeployments,
-    loadConfig,
     loadConfigWithMigration,
     removePendingAgenticDeployment,
     removeWallet,
@@ -54,7 +53,7 @@ describe('mcp config registry', () => {
         rmSync(tempDir, { recursive: true, force: true });
     });
 
-    it('saves config with strict permissions and reads it back', () => {
+    it('saves config with strict permissions and reads it back', async () => {
         const standard = createStandardWalletRecord({
             name: 'Main wallet',
             network: 'mainnet',
@@ -66,7 +65,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(loaded?.version).toBe(2);
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
@@ -173,7 +172,7 @@ describe('mcp config registry', () => {
         expect(getAgenticCollectionAddress(createEmptyConfig(), 'testnet')).toBeDefined();
     });
 
-    it('persists pending agentic deployment drafts in config', () => {
+    it('persists pending agentic deployment drafts in config', async () => {
         const draft = createPendingAgenticDeployment({
             name: 'Pending agent',
             network: 'testnet',
@@ -186,7 +185,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(listPendingAgenticDeployments(loaded ?? createEmptyConfig())).toEqual([
             expect.objectContaining({
                 id: draft.id,
@@ -210,7 +209,7 @@ describe('mcp config registry', () => {
         expect(listPendingAgenticDeployments(nextConfig)).toEqual([]);
     });
 
-    it('throws for unsupported config version', () => {
+    it('throws for unsupported config version', async () => {
         writeFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -220,7 +219,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        expect(() => loadConfig()).toThrow(ConfigError);
+        await expect(loadConfigWithMigration()).rejects.toThrow(ConfigError);
     });
 });
 

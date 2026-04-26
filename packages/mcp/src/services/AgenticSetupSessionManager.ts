@@ -121,8 +121,10 @@ export class AgenticSetupSessionManager {
             return;
         }
 
+        // Snapshot first, then swap, so unawaited concurrent callers don't see an empty map.
+        const stored = await this.store.listSessions();
         this.sessions.clear();
-        for (const session of await this.store.listSessions()) {
+        for (const session of stored) {
             this.sessions.set(session.setup_id, this.fromStoredSession(session));
         }
     }
@@ -162,7 +164,9 @@ export class AgenticSetupSessionManager {
     }
 
     private cleanupExpiredSessions(): void {
-        this.syncFromStore();
+        // Don't re-read the store here: persistSession is fire-and-forget,
+        // and a syncFromStore racing with an in-flight upsert would wipe sessions
+        // this manager just registered.
         const now = Date.now();
         for (const [_setupId, session] of this.sessions.entries()) {
             if (new Date(session.expiresAt).getTime() <= now && session.status === 'pending') {

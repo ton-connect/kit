@@ -159,7 +159,7 @@ describe('createTonWalletMCP registry mode', () => {
             expect(balance).toMatchObject({
                 success: true,
                 address: second.address,
-                balanceNano: '2000000000',
+                amountRaw: '2000000000',
             });
             expect(closeContext).toHaveBeenCalledTimes(3);
         } finally {
