@@ -19,6 +19,7 @@ import {
     WalletV5R1Adapter,
 } from '@ton/walletkit';
 
+import { AsyncLock } from '../limits/async-lock.js';
 import { formatAssetAddress, formatWalletAddress, normalizeAddressForComparison } from '../utils/address.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 import { createApiClient } from '../utils/ton-client.js';
@@ -127,6 +128,10 @@ export interface TonConfig {
     pending_agentic_deployments?: PendingAgenticDeployment[];
     pending_agentic_key_rotations?: PendingAgenticKeyRotation[];
     agentic_setup_sessions?: StoredAgenticSetupSession[];
+    // Opaque on-disk blob owned by the limits subsystem. Validation is intentionally
+    // deferred to LimitsStore so corruption only fails spend operations, not unrelated
+    // reads (wallet listing, balances, NFTs, etc.) that also load the config.
+    limits_state?: unknown;
 }
 
 interface LegacyTonConfig {
@@ -239,6 +244,7 @@ function normalizeConfig(raw: TonConfig): TonConfig {
                   agentic_setup_sessions: raw.agentic_setup_sessions.map(normalizeSetupSession),
               }
             : {}),
+        ...(raw.limits_state !== undefined ? { limits_state: raw.limits_state } : {}),
     };
 }
 
@@ -408,6 +414,31 @@ export function saveConfig(config: TonConfig): void {
         mode: 0o600,
     });
     ensureConfigPermissions();
+}
+
+// Process-wide lock for load+mutate+save sequences; concurrent writers must
+// go through the helpers below to avoid clobbering each other's reads.
+const configLock = new AsyncLock();
+
+export async function mutateConfig(mutator: (config: TonConfig) => TonConfig | Promise<TonConfig>): Promise<TonConfig> {
+    return configLock.runExclusive(async () => {
+        const current = (await loadConfigWithMigration()) ?? createEmptyConfig();
+        const next = await mutator(current);
+        saveConfig(next);
+        return next;
+    });
+}
+
+export async function mutateExistingConfig(
+    mutator: (config: TonConfig) => TonConfig | Promise<TonConfig>,
+): Promise<TonConfig | null> {
+    return configLock.runExclusive(async () => {
+        const current = await loadConfigWithMigration();
+        if (!current) return null;
+        const next = await mutator(current);
+        saveConfig(next);
+        return next;
+    });
 }
 
 export function deleteConfig(): boolean {

@@ -23,6 +23,7 @@ import {
     ConfigBackedAgenticSetupSessionStore,
 } from './services/AgenticSetupSessionManager.js';
 import { AgenticOnboardingService } from './services/AgenticOnboardingService.js';
+import { buildLimitsStore } from './runtime/wallet-runtime.js';
 import {
     createMcpAddressTools,
     createMcpAgenticOnboardingTools,
@@ -102,10 +103,12 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
     registerTool('get_known_jettons', knownJettonsTools.get_known_jettons);
 
     if (config.wallet) {
+        const limitsStore = await buildLimitsStore();
         const walletService = await McpWalletService.create({
             wallet: config.wallet,
             contacts: config.contacts,
             networks: config.networks,
+            limitsStore,
         });
 
         const balanceTools = createMcpBalanceTools(walletService);
@@ -130,6 +133,7 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         registerTool('send_jetton', transferTools.send_jetton);
         registerTool('send_raw_transaction', transferTools.send_raw_transaction);
         registerTool('emulate_transaction', transferTools.emulate_transaction);
+        registerTool('get_limits_state', transferTools.get_limits_state);
         registerTool('get_transaction_status', transactionTools.get_transaction_status);
         registerTool('get_swap_quote', swapTools.get_swap_quote);
         registerTool('get_nfts', nftTools.get_nfts);
@@ -268,6 +272,11 @@ export async function createTonWalletMCP(config: TonMcpFactoryConfig): Promise<M
         'emulate_transaction',
         transferToolDefs.emulate_transaction,
         (service) => createMcpTransferTools(service).emulate_transaction,
+    );
+    registerRegistryWalletTool(
+        'get_limits_state',
+        transferToolDefs.get_limits_state,
+        (service) => createMcpTransferTools(service).get_limits_state,
     );
     registerRegistryWalletTool(
         'agentic_deploy_subwallet',

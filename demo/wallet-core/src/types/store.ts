@@ -294,8 +294,7 @@ export interface SwapSlice {
 
 // Combined app state
 export interface AppState
-    extends
-        AuthSlice,
+    extends AuthSlice,
         WalletCoreSlice,
         WalletManagementSlice,
         TonConnectSlice,

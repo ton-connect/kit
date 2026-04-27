@@ -28,6 +28,9 @@ import type {
     StoredWallet,
     TonNetwork,
 } from '../registry/config.js';
+import { loadConfigWithMigration, mutateExistingConfig } from '../registry/config.js';
+import { LimitsStore } from '../limits/store.js';
+import { parseLimitsState } from '../limits/types.js';
 import { parsePrivateKeyInput } from '../utils/private-key.js';
 import { createApiClient } from '../utils/ton-client.js';
 
@@ -120,12 +123,14 @@ async function createServiceFromStoredStandard(
             walletVersion: wallet.wallet_version,
         });
         await addWallet(kit, adapter);
+        const limitsStore = await buildLimitsStore();
         const service = await McpWalletService.create({
             wallet: adapter,
             contacts,
             networks: {
                 [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
             },
+            limitsStore,
         });
         return {
             service,
@@ -137,6 +142,33 @@ async function createServiceFromStoredStandard(
         await closeKitSafely(kit);
         throw error;
     }
+}
+
+// Process-wide singleton so sibling wallets share one counter, lock, and
+// in-flight set; otherwise concurrent sends could each pass the cap check.
+let limitsStorePromise: Promise<LimitsStore> | null = null;
+
+export async function buildLimitsStore(): Promise<LimitsStore> {
+    if (!limitsStorePromise) {
+        limitsStorePromise = (async () => {
+            const initial = await loadConfigWithMigration().catch(() => null);
+            // Parse here (not in normalizeConfig) so a corrupt blob fails closed
+            // for spend operations without blocking unrelated config reads.
+            const initialState = initial?.limits_state !== undefined ? parseLimitsState(initial.limits_state) : null;
+            return new LimitsStore({
+                initialState,
+                persist: async (state) => {
+                    await mutateExistingConfig((current) => ({ ...current, limits_state: state }));
+                },
+            });
+        })();
+    }
+    return limitsStorePromise;
+}
+
+/** @internal Test-only helper for resetting the singleton. */
+export function __resetLimitsStoreForTests(): void {
+    limitsStorePromise = null;
 }
 
 async function createServiceFromStoredAgentic(
@@ -160,12 +192,14 @@ async function createServiceFromStoredAgentic(
             walletAddress: wallet.address,
         });
         await addWallet(kit, adapter);
+        const limitsStore = await buildLimitsStore();
         const service = await McpWalletService.create({
             wallet: adapter,
             contacts,
             networks: {
                 [wallet.network]: toncenterApiKey ? { apiKey: toncenterApiKey } : undefined,
             },
+            limitsStore,
         });
         return {
             service,

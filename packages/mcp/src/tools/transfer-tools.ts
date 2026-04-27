@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 import type { McpWalletService } from '../services/McpWalletService.js';
-import { toRawAmount, TON_DECIMALS } from './types.js';
+import { toRawAmount, TON_DECIMALS, toStructuredError } from './types.js';
 import type { ToolResponse } from './types.js';
 
 export const sendTonSchema = z.object({
@@ -43,6 +43,8 @@ export const emulateTransactionSchema = z.object({
     validUntil: z.number().optional().describe('Unix timestamp after which the transaction becomes invalid'),
 });
 
+export const getLimitsStateSchema = z.object({});
+
 export function createMcpTransferTools(service: McpWalletService) {
     return {
         send_ton: {
@@ -61,7 +63,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 type: 'text' as const,
                                 text: JSON.stringify({
                                     success: false,
-                                    error: result.message,
+                                    error: toStructuredError(result),
                                 }),
                             },
                         ],
@@ -151,7 +153,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 type: 'text' as const,
                                 text: JSON.stringify({
                                     success: false,
-                                    error: result.message,
+                                    error: toStructuredError(result),
                                 }),
                             },
                         ],
@@ -203,7 +205,7 @@ export function createMcpTransferTools(service: McpWalletService) {
                                 type: 'text' as const,
                                 text: JSON.stringify({
                                     success: false,
-                                    error: result.message,
+                                    error: toStructuredError(result),
                                 }),
                             },
                         ],
@@ -236,6 +238,14 @@ export function createMcpTransferTools(service: McpWalletService) {
                     ],
                 };
             },
+        },
+        get_limits_state: {
+            description:
+                'Return the configured spend limits and current rolling-window spend counters for the active wallet (read-only).',
+            inputSchema: getLimitsStateSchema,
+            handler: async (): Promise<ToolResponse> => ({
+                content: [{ type: 'text' as const, text: JSON.stringify(service.getLimitsState(), null, 2) }],
+            }),
         },
         emulate_transaction: {
             description:

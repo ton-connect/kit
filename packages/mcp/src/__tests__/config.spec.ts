@@ -32,6 +32,8 @@ import {
     upsertPendingAgenticDeployment,
     upsertWallet,
 } from '../registry/config.js';
+import { __resetLimitsStoreForTests, buildLimitsStore } from '../runtime/wallet-runtime.js';
+import { LimitsStateCorruptError } from '../limits/types.js';
 
 describe('mcp config registry', () => {
     const baseAddress = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
@@ -207,6 +209,31 @@ describe('mcp config registry', () => {
         const config = upsertPendingAgenticDeployment(createEmptyConfig(), draft);
         const nextConfig = removePendingAgenticDeployment(config, { id: draft.id });
         expect(listPendingAgenticDeployments(nextConfig)).toEqual([]);
+    });
+
+    it('reads config containing corrupt limits_state without throwing; buildLimitsStore is the fail-closed boundary', async () => {
+        __resetLimitsStoreForTests();
+        writeFileSync(
+            process.env.TON_CONFIG_PATH!,
+            JSON.stringify({
+                version: 2,
+                active_wallet_id: null,
+                networks: {},
+                wallets: [],
+                limits_state: { not: 'a valid limits_state shape' },
+            }),
+            'utf-8',
+        );
+
+        const loaded = await loadConfigWithMigration();
+        expect(loaded?.version).toBe(2);
+        expect(loaded?.wallets).toEqual([]);
+        // The corrupt blob round-trips verbatim — read-only consumers (list_wallets,
+        // balances, NFTs, etc.) must not be blocked by spend-counter corruption.
+        expect(loaded?.limits_state).toEqual({ not: 'a valid limits_state shape' });
+
+        await expect(buildLimitsStore()).rejects.toBeInstanceOf(LimitsStateCorruptError);
+        __resetLimitsStoreForTests();
     });
 
     it('throws for unsupported config version', async () => {

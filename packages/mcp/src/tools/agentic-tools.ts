@@ -9,7 +9,7 @@
 import { z } from 'zod';
 
 import type { McpWalletService } from '../services/McpWalletService.js';
-import { toRawAmount, TON_DECIMALS } from './types.js';
+import { toRawAmount, TON_DECIMALS, toStructuredError } from './types.js';
 import type { ToolResponse } from './types.js';
 
 const TON_AMOUNT_REGEX = /^\d+(?:\.\d{1,9})?$/;
@@ -55,7 +55,7 @@ export function createMcpAgenticTools(service: McpWalletService) {
                                     type: 'text' as const,
                                     text: JSON.stringify({
                                         success: false,
-                                        error: result.message,
+                                        error: toStructuredError(result),
                                     }),
                                 },
                             ],
