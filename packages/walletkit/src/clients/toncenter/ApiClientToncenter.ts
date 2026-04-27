@@ -23,7 +23,7 @@ import type {
     TransactionsByAddressRequest,
     GetEventsResponse,
     GetEventsRequest,
-} from '../../types/toncenter/ApiClient';
+} from '../../api/interfaces/ApiClient';
 import type { NftItemsResponseV3 } from './types/v3/NftItemsResponseV3';
 import { toNftItemsResponse } from './types/v3/NftItemsResponseV3';
 import type {

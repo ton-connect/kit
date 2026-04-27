@@ -19,7 +19,7 @@ import type {
     GetTraceRequest,
     GetTransactionByHashRequest,
     TransactionsByAddressRequest,
-} from '../../types/toncenter/ApiClient';
+} from '../../api/interfaces/ApiClient';
 import { Network } from '../../api/models';
 import type {
     Base64String,

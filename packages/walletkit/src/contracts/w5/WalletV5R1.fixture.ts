@@ -9,7 +9,7 @@
 import { Dictionary } from '@ton/core';
 
 import { mockFn } from '../../../mock.config';
-import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClient';
+import type { ApiClient, GetEventsResponse } from '../../api/interfaces/ApiClient';
 import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';

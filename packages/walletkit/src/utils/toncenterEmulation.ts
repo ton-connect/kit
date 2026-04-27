@@ -24,7 +24,7 @@ import { Result, AssetType } from '../api/models';
 import { SendModeToValue } from './sendMode';
 import type { Wallet } from '../api/interfaces';
 import { asAddressFriendly, asMaybeAddressFriendly } from './address';
-import type { ApiClient } from '../types/toncenter/ApiClient';
+import type { ApiClient } from '../api/interfaces/ApiClient';
 
 // import { ConnectMessageTransactionMessage } from '@/types/connect';
 

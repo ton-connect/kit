@@ -8,9 +8,9 @@
 
 import type { Address } from '@ton/core';
 
-import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from './emulation';
-import type { FullAccountState } from './api';
-import type { Event } from './AccountEvent';
+import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { FullAccountState } from '../../types/toncenter/api';
+import type { Event } from '../../types/toncenter/AccountEvent';
 import type {
     Base64String,
     UserNFTsRequest,
@@ -23,7 +23,7 @@ import type {
     RawStackItem,
     GetMethodResult,
     MasterchainInfo,
-} from '../../api/models';
+} from '../models';
 import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 
 export interface LimitRequest {
