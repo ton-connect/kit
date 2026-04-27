@@ -45,6 +45,7 @@ import type {
     UserFriendlyAddress,
     Hex,
     Base64String,
+    SignedSendTransactionOptions,
 } from '../../api/models';
 
 const log = globalLogger.createChild('WalletV4R2Adapter');
@@ -142,7 +143,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     async getSignedSendTransaction(
         input: TransactionRequest,
-        options?: { fakeSignature?: boolean; internal?: boolean },
+        options?: SignedSendTransactionOptions,
     ): Promise<Base64String> {
         if (options?.internal) {
             throw new Error('WalletV4R2 does not support internal message signing (gasless). Use WalletV5R1.');
