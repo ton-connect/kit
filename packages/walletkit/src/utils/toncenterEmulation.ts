@@ -9,9 +9,8 @@
 import type { Slice } from '@ton/core';
 import { Address, Cell } from '@ton/core';
 
-import type { EmulationTokenInfoWallets, ToncenterEmulationResponse } from '../types/toncenter/emulation';
-import { toTransactionEmulatedTrace } from '../types/toncenter/emulation';
-import type { ErrorInfo } from '../errors/WalletKitError';
+import { toTransactionEmulatedTrace } from '../clients/toncenter/mappers/map-emulation-trace';
+import type { EmulationResponse, EmulationTokenInfoWallet } from '../api/models/emulation';
 import { ERROR_CODES } from '../errors/codes';
 import { CallForSuccess } from './retry';
 import type {
@@ -36,15 +35,7 @@ export interface ToncenterMessage {
     body: string;
 }
 
-export type ToncenterEmulationResult =
-    | {
-          result: 'success';
-          emulationResult: ToncenterEmulationResponse;
-      }
-    | {
-          result: 'error';
-          emulationError: ErrorInfo;
-      };
+export type { EmulationResult as ToncenterEmulationResult } from '../api/models/emulation';
 
 const TON_PROXY_ADDRESSES = [
     'EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez',
@@ -133,9 +124,9 @@ function parseJettonTransfer(slice: Slice): JettonTransfer {
 }
 
 /**
- * Processes toncenter emulation result to extract money flow
+ * Processes emulation result to extract money flow
  */
-export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse): TransactionTraceMoneyFlow {
+export function processToncenterMoneyFlow(emulation: EmulationResponse): TransactionTraceMoneyFlow {
     if (!emulation || !emulation.transactions) {
         return {
             outputs: '0',
@@ -146,13 +137,13 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         };
     }
 
-    const firstTx = emulation.transactions[emulation.trace.tx_hash];
+    const firstTx = emulation.transactions[emulation.trace.txHash];
 
     // Get all transactions for our account
     const ourTxes = Object.values(emulation.transactions).filter((t) => t.account === firstTx.account);
 
-    const messagesFrom = ourTxes.flatMap((t) => t.out_msgs);
-    const messagesTo = ourTxes.flatMap((t) => t.in_msg).filter((m) => m !== null);
+    const messagesFrom = ourTxes.flatMap((t) => t.outMsgs);
+    const messagesTo = ourTxes.flatMap((t) => t.inMsg).filter((m) => m !== null);
 
     // Calculate TON outputs
     const outputs = messagesFrom
@@ -178,20 +169,20 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
     const jettonTransfers: TransactionTraceMoneyFlowItem[] = [];
 
     for (const t of Object.values(emulation.transactions)) {
-        if (!t.in_msg?.source) {
+        if (!t.inMsg?.source) {
             continue;
         }
 
         let parsed: JettonTransfer | null = null;
         try {
-            parsed = parseJettonTransfer(Cell.fromBase64(t.in_msg.message_content.body).beginParse());
+            parsed = parseJettonTransfer(Cell.fromBase64(t.inMsg.messageContent.body).beginParse());
         } catch (_) {
             continue;
         }
         if (!parsed) {
             continue;
         }
-        const from = asMaybeAddressFriendly(t.in_msg.source);
+        const from = t.inMsg.source;
         const to = parsed.destination instanceof Address ? parsed.destination : null;
         if (!to) {
             continue;
@@ -199,12 +190,12 @@ export function processToncenterMoneyFlow(emulation: ToncenterEmulationResponse)
         const jettonAmount = parsed.amount;
 
         const metadata = emulation.metadata[t.account];
-        if (!metadata || !metadata?.token_info) {
+        if (!metadata || !metadata?.tokenInfo) {
             continue;
         }
 
-        const tokenInfo = metadata.token_info.find((t) => t.valid && t.type === 'jetton_wallets') as
-            | EmulationTokenInfoWallets
+        const tokenInfo = metadata.tokenInfo.find((t) => t.valid && t.type === 'jetton_wallets') as
+            | EmulationTokenInfoWallet
             | undefined;
 
         if (!tokenInfo) {
@@ -295,7 +286,7 @@ export async function createTransactionPreview(
         };
     }
 
-    let emulationResult: ToncenterEmulationResponse;
+    let emulationResult: EmulationResponse;
     try {
         const emulatedResult = await CallForSuccess(() => client.fetchEmulation(txData, true));
         if (emulatedResult.result === 'success') {

@@ -11,7 +11,8 @@ import { Dictionary } from '@ton/core';
 import { mockFn } from '../../../mock.config';
 import type { ApiClient, GetEventsResponse } from '../../api/interfaces/ApiClient';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
+import type { MasterchainInfo, ToncenterTracesResponse } from '../../types';
+import type { EmulationResponse } from '../../api/models/emulation';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
 import type { NftItemsResponse } from '../../clients/toncenter/types/nfts';
 import type { WalletV5R1Id } from './WalletV5R1';
@@ -76,9 +77,10 @@ const walletDataBase64 = walletDataCell.toBoc().toString('base64');
 
 export function createMockApiClient(): ApiClient {
     return {
+        getMasterchainInfo: mockFn().mockResolvedValue({} as MasterchainInfo),
         nftItemsByAddress: mockFn().mockResolvedValue({} as NftItemsResponse),
         nftItemsByOwner: mockFn().mockResolvedValue({} as NftItemsResponse),
-        fetchEmulation: mockFn().mockResolvedValue({} as ToncenterEmulationResponse),
+        fetchEmulation: mockFn().mockResolvedValue({} as EmulationResponse),
         sendBoc: mockFn().mockResolvedValue('mock-tx-hash'),
         runGetMethod: mockFn().mockResolvedValue({}),
         getAccountState: mockFn().mockResolvedValue({

@@ -8,7 +8,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { ToncenterEmulationResponse } from '../../../types/toncenter/emulation';
+import type { ToncenterEmulationResponse } from '../types/raw-emulation';
 import { mapToncenterEmulationResponse } from './map-emulation';
 
 // 32 bytes of 0x00 in base64

@@ -34,7 +34,7 @@ import type {
     UserFriendlyAddress,
     UserNFTsRequest,
 } from '../../api/models';
-import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
+import type { EmulationResult } from '../../api/models/emulation';
 import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
 import { BaseApiClient } from '../BaseApiClient';
@@ -166,7 +166,7 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return Base64ToBigInt(hash).toString(16);
     }
 
-    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<ToncenterEmulationResult> {
+    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<EmulationResult> {
         throw new Error('Method not implemented.');
     }
 

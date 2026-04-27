@@ -15,7 +15,7 @@
 import { describe, it, expect } from 'vitest';
 import { beginCell, external, internal, SendMode, storeMessage } from '@ton/core';
 
-import type { ToncenterEmulationResponse } from '../../../types/toncenter/emulation';
+import type { ToncenterEmulationResponse } from '../types/raw-emulation';
 import { WalletV4R2 } from '../../../contracts/v4r2/WalletV4R2';
 import { WalletV4R2CodeCell } from '../../../contracts/v4r2/WalletV4R2.source';
 import { defaultWalletIdV4R2 } from '../../../contracts/v4r2/constants';

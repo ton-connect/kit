@@ -6,9 +6,8 @@
  *
  */
 
+import type { ToncenterEmulationResponse, EmulationAction as RawAction } from '../types/raw-emulation';
 import type {
-    ToncenterEmulationResponse,
-    EmulationAction as RawAction,
     EmulationMessage as RawMessage,
     EmulationAddressMetadata as RawAddressMetadata,
     EmulationTraceNode as RawTraceNode,

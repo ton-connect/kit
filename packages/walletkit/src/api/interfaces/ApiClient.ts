@@ -24,7 +24,7 @@ import type {
     GetMethodResult,
     MasterchainInfo,
 } from '../models';
-import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
+import type { EmulationResult } from '../models/emulation';
 
 export interface LimitRequest {
     limit?: number;
@@ -97,7 +97,7 @@ export interface GetEventsResponse {
 export interface ApiClient {
     nftItemsByAddress(request: NFTsRequest): Promise<NFTsResponse>;
     nftItemsByOwner(request: UserNFTsRequest): Promise<NFTsResponse>;
-    fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<ToncenterEmulationResult>;
+    fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult>;
     sendBoc(boc: Base64String): Promise<string>;
     runGetMethod(
         address: UserFriendlyAddress,

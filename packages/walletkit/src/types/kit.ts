@@ -12,7 +12,7 @@ import type { CONNECT_EVENT_ERROR_CODES, SendTransactionRpcResponseError } from 
 
 import type { JettonsAPI } from './jettons';
 import type { StreamingAPI } from '../api/interfaces';
-import type { ApiClient } from './toncenter/ApiClient';
+import type { ApiClient } from '../api/interfaces/ApiClient';
 import type { Wallet, WalletAdapter } from '../api/interfaces';
 import type { Network } from '../api/models/core/Network';
 import type { WalletId } from '../utils/walletId';
