@@ -14,9 +14,10 @@ import type { ProviderFactoryContext } from '../types/factory';
 import { DefiManagerError } from './errors';
 import type { SharedKitEvents } from '../types/emitter';
 
-export abstract class DefiManager<T extends DefiProvider, E extends SharedKitEvents = SharedKitEvents>
-    implements DefiManagerAPI<T>
-{
+export abstract class DefiManager<
+    T extends DefiProvider,
+    E extends SharedKitEvents = SharedKitEvents,
+> implements DefiManagerAPI<T> {
     public createFactoryContext: () => ProviderFactoryContext<E>;
 
     protected providers: Map<string, T> = new Map();
