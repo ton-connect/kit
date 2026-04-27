@@ -289,7 +289,6 @@ export class WalletV4R2Adapter implements WalletAdapter {
 
     getSupportedFeatures(): Feature[] | undefined {
         return [
-            'SendTransaction',
             {
                 name: 'SendTransaction',
                 maxMessages: 4,
@@ -297,6 +296,7 @@ export class WalletV4R2Adapter implements WalletAdapter {
                 itemTypes: ['ton', 'jetton', 'nft'],
             },
             { name: 'SignData', types: ['text', 'binary', 'cell'] },
+            { name: 'EmbeddedRequest' },
         ] as Feature[];
     }
 }
