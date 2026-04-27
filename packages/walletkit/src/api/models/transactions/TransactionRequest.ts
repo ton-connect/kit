@@ -15,11 +15,11 @@ import type { StructuredItem } from './StructuredItem';
 
 /**
  * Request to send a transaction on the TON blockchain.
- * Contains either `messages` (raw format) or `items` (structured format), never both.
+ * Contains `messages` or `items`. If items are present, but messages are not — wallet app is responsible for resolving items into messages.
  */
 export interface TransactionRequest {
     /**
-     * List of messages to include in the transaction (raw format)
+     * List of messages to include in the transaction
      */
     messages: TransactionRequestMessage[];
 
