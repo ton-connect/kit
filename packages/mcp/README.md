@@ -129,9 +129,76 @@ Examples of user requests, approximate corresponding raw CLI commands via `npx @
 | `AGENTIC_COLLECTION_ADDRESS` | `EQByQ19qvWxW7VibSbGEgZiYMqilHY5y1a_eeSL2VaXhfy07` | Agentic collection address override for single-wallet mode |
 | `TONCENTER_API_KEY` |  | API key for Toncenter (optional, for higher rate limits) |
 | `TON_CONFIG_PATH` | `~/.config/ton/config.json` | Config path for registry mode |
+| `TON_LIMITS_PATH` | `~/.config/ton/limits.json` | Optional path to the plain-JSON transaction limits file for agentic wallets |
 | `AGENTIC_CALLBACK_BASE_URL` |  | Optional public base URL for agentic onboarding callbacks |
 | `AGENTIC_CALLBACK_HOST` | `127.0.0.1` | Host for the local callback server in stdio mode |
 | `AGENTIC_CALLBACK_PORT` | random free port | Port for the local callback server in stdio mode |
+
+## Transaction limits for agentic wallets (opt-in)
+
+You can cap how much an agentic wallet may send by dropping a JSON file at `~/.config/ton/limits.json` (override the path with `TON_LIMITS_PATH`). MCP only reads this file; it never writes to it.
+
+Each asset (TON, plus any number of jettons keyed by jetton-master address) gets one `per_tx` ceiling and one or more independent rolling-window caps. For example, `5 TON/hour` AND `20 TON/day` are checked independently and reset on their own timelines. Jetton caps are keyed by master address, so a single cap covers every agentic wallet that holds that token.
+
+Schema (`version: 1`):
+
+```json
+{
+    "version": 1,
+    "ton": {
+        "per_tx": "1",
+        "limits": [
+            { "window": "1h", "max": "5" },
+            { "window": "1d", "max": "20" }
+        ]
+    },
+    "jettons": [
+        {
+            "master_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+            "decimals": 6,
+            "symbol": "USDT",
+            "per_tx": "50",
+            "limits": [
+                { "window": "1h", "max": "100.1" },
+                { "window": "1d", "max": "500" },
+                { "window": "30d", "max": "5000" }
+            ]
+        }
+    ]
+}
+```
+
+Field reference:
+
+- `per_tx`: max spend for a single transaction. Must be `<=` every `max`.
+- `limits[].window`: a duration string (`"30s"`, `"5m"`, `"2h"`, `"1d"`) or a positive number of seconds. Window durations must be unique per asset.
+- `limits[].max`: max cumulative spend within that window.
+
+Behaviour:
+
+- A request is admitted only if it fits within `per_tx` and every configured window for the asset.
+- Each window opens on the first metered commit and resets when `now >= windowStart + window`. There is no wall-clock anchor; windows track session activity.
+- Missing file: limits are off, sends behave as before.
+- Malformed file: agentic sends fail closed with a `LIMITS_CONFIG_INVALID` error.
+- Partial file: omit `ton` to leave TON uncapped, or omit `jettons` to leave all jettons uncapped. At least one must be present.
+- Jettons not listed in the file pass through unmetered. `send_jetton` matches the supplied master directly.
+- `send_raw_transaction` is allowed and metered: every message's `amount` counts toward the TON limit. For jettons, MCP resolves the wallet's own jetton wallet for each configured master and, when a message targets one of them, parses the TEP-74 transfer/burn payload and meters the amount. Other messages count only their TON amount.
+- `emulate_transaction` is not metered (no funds move).
+
+Storage and observability:
+
+- Live counters (`limits_state`) persist inside the existing encrypted `config.json`, keyed per-asset and per-window. They are shared across all agentic wallets in that config.
+- `get_limits_state` returns the configured limits, current `now_ms`, and per-window spend including `window_started_at_ms` / `window_resets_at_ms`. Note the asymmetry: `limits.jettons` is an array (matching the input config schema above), while `spent.jettons` is an object keyed by jetton master address for O(1) lookup.
+- Rejected sends return a JSON envelope with a `code` of `LIMIT_EXCEEDED` or `LIMITS_CONFIG_INVALID`. `LIMIT_EXCEEDED` also includes `asset`, `kind` (`"per_tx"` or `"window"`), and for window failures, `window_ms`, `spent`, `remaining`, and `window_resets_at_ms` when a window is active.
+
+Known v1 limitations:
+
+- Two MCP processes sharing one config may see stale counters.
+- Swap flows that call the wallet adapter directly (bypassing `send_ton`, `send_jetton`, `send_raw_transaction`) are not covered.
+- If the encrypted config write fails after a successful send, the in-memory counter stays correct for the current process, but a restart before the next successful save can reset counters and allow overspend. This is surfaced as a `LIMIT_STATE_PERSIST_FAILED` log line.
+- If persisted `limits_state` on disk fails schema validation (manual edit, partial write, corruption), the loader fails closed with a `LIMITS_STATE_CORRUPT` error rather than zeroing the counters. Operators must inspect or remove the corrupt state before the wallet will resume.
+- Single-wallet mode (`MNEMONIC` / `PRIVATE_KEY`) does not persist `limits_state`: there is no config file to write to, so per-window counters are in-memory only and reset on every process restart. Use Agentic Wallets / registry mode if you need durable enforcement across restarts.
+- Serverless mode operates per-request without shared state; counters are not enforced across invocations.
 
 ## Available Tools
 

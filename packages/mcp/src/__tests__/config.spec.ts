@@ -24,7 +24,6 @@ import {
     getActiveWallet,
     getAgenticCollectionAddress,
     listPendingAgenticDeployments,
-    loadConfig,
     loadConfigWithMigration,
     removePendingAgenticDeployment,
     removeWallet,
@@ -33,6 +32,8 @@ import {
     upsertPendingAgenticDeployment,
     upsertWallet,
 } from '../registry/config.js';
+import { __resetLimitsStoreForTests, buildLimitsStore } from '../runtime/wallet-runtime.js';
+import { LimitsStateCorruptError } from '../limits/types.js';
 
 describe('mcp config registry', () => {
     const baseAddress = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
@@ -54,7 +55,7 @@ describe('mcp config registry', () => {
         rmSync(tempDir, { recursive: true, force: true });
     });
 
-    it('saves config with strict permissions and reads it back', () => {
+    it('saves config with strict permissions and reads it back', async () => {
         const standard = createStandardWalletRecord({
             name: 'Main wallet',
             network: 'mainnet',
@@ -66,7 +67,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(loaded?.version).toBe(2);
         expect(loaded?.wallets).toHaveLength(1);
         expect(loaded?.active_wallet_id).toBe(standard.id);
@@ -173,7 +174,7 @@ describe('mcp config registry', () => {
         expect(getAgenticCollectionAddress(createEmptyConfig(), 'testnet')).toBeDefined();
     });
 
-    it('persists pending agentic deployment drafts in config', () => {
+    it('persists pending agentic deployment drafts in config', async () => {
         const draft = createPendingAgenticDeployment({
             name: 'Pending agent',
             network: 'testnet',
@@ -186,7 +187,7 @@ describe('mcp config registry', () => {
 
         saveConfig(config);
 
-        const loaded = loadConfig();
+        const loaded = await loadConfigWithMigration();
         expect(listPendingAgenticDeployments(loaded ?? createEmptyConfig())).toEqual([
             expect.objectContaining({
                 id: draft.id,
@@ -210,7 +211,32 @@ describe('mcp config registry', () => {
         expect(listPendingAgenticDeployments(nextConfig)).toEqual([]);
     });
 
-    it('throws for unsupported config version', () => {
+    it('reads config containing corrupt limits_state without throwing; buildLimitsStore is the fail-closed boundary', async () => {
+        __resetLimitsStoreForTests();
+        writeFileSync(
+            process.env.TON_CONFIG_PATH!,
+            JSON.stringify({
+                version: 2,
+                active_wallet_id: null,
+                networks: {},
+                wallets: [],
+                limits_state: { not: 'a valid limits_state shape' },
+            }),
+            'utf-8',
+        );
+
+        const loaded = await loadConfigWithMigration();
+        expect(loaded?.version).toBe(2);
+        expect(loaded?.wallets).toEqual([]);
+        // The corrupt blob round-trips verbatim — read-only consumers (list_wallets,
+        // balances, NFTs, etc.) must not be blocked by spend-counter corruption.
+        expect(loaded?.limits_state).toEqual({ not: 'a valid limits_state shape' });
+
+        await expect(buildLimitsStore()).rejects.toBeInstanceOf(LimitsStateCorruptError);
+        __resetLimitsStoreForTests();
+    });
+
+    it('throws for unsupported config version', async () => {
         writeFileSync(
             process.env.TON_CONFIG_PATH!,
             JSON.stringify({
@@ -220,7 +246,7 @@ describe('mcp config registry', () => {
             'utf-8',
         );
 
-        expect(() => loadConfig()).toThrow(ConfigError);
+        await expect(loadConfigWithMigration()).rejects.toThrow(ConfigError);
     });
 });
 

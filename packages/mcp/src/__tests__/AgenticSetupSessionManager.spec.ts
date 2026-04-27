@@ -106,7 +106,7 @@ describe('AgenticSetupSessionManager', () => {
 
     it('restores persisted callback payloads and callback urls from config-backed store', async () => {
         const store = new ConfigBackedAgenticSetupSessionStore();
-        const manager = new AgenticSetupSessionManager({ store });
+        const manager = await AgenticSetupSessionManager.create({ store });
         managers.push(manager);
 
         const session = await manager.createSession('setup-5');
@@ -124,9 +124,7 @@ describe('AgenticSetupSessionManager', () => {
         });
         expect(response.status).toBe(200);
 
-        const reopened = new AgenticSetupSessionManager({
-            store,
-        });
+        const reopened = await AgenticSetupSessionManager.create({ store });
         managers.push(reopened);
 
         expect(reopened.getSession('setup-5')).toMatchObject({

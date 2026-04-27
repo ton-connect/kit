@@ -47,11 +47,25 @@ import type { NetworkType } from '../types/config.js';
 import { AgenticWalletCodeCell } from '../contracts/agentic_wallet/AgenticWallet.source.js';
 import { createApiClient } from '../utils/ton-client.js';
 import { UINT_256_MAX } from '../utils/math.js';
+import type { LimitsStore, ReservationRequest } from '../limits/store.js';
+import { LimitExceededError, LimitsConfigInvalidError } from '../limits/types.js';
+import type { NormalizedLimits, ReservationToken } from '../limits/types.js';
+import { createEmptyState } from '../limits/enforcer.js';
+import { loadLimits } from '../limits/loader.js';
+import { toLimitsAssetSpendView, toLimitsConfigView } from '../limits/views.js';
+import type { LimitsAssetSpendView, LimitsStateView } from '../limits/views.js';
+import { parseJettonOutflowAmount } from '../limits/parse-message.js';
+import { getJettonWalletInfoFromClient } from '../limits/jetton-wallet-info.js';
+import { normalizeAddressForComparison } from '../utils/address.js';
 
 const OP_DEPLOY_WALLET = 0x0609e47b;
 const AGENTIC_DEFAULT_VALID_UNTIL = 600;
 const TEP64_ONCHAIN_CONTENT_PREFIX = 0x00;
 const TEP64_SNAKE_CONTENT_PREFIX = 0x00;
+
+function limitErrorResult(err: LimitExceededError | LimitsConfigInvalidError): TransferResult {
+    return { success: false, message: err.message, errorCode: err.code, errorDetails: err.toWireObject() };
+}
 
 /**
  * Jetton information
@@ -142,6 +156,8 @@ export interface TransferResult {
     success: boolean;
     message: string;
     normalizedHash?: string;
+    errorCode?: 'LIMIT_EXCEEDED' | 'LIMITS_CONFIG_INVALID';
+    errorDetails?: Record<string, unknown>;
 }
 
 export interface DeployAgenticSubwalletResult extends TransferResult {
@@ -199,6 +215,7 @@ export interface McpWalletServiceConfig {
         mainnet?: NetworkConfig;
         testnet?: NetworkConfig;
     };
+    limitsStore?: LimitsStore;
 }
 
 interface McpWalletServiceInternalConfig {
@@ -209,6 +226,7 @@ interface McpWalletServiceInternalConfig {
         mainnet?: NetworkConfig;
         testnet?: NetworkConfig;
     };
+    limitsStore?: LimitsStore;
 }
 
 interface DeployAgenticSubwalletParams {
@@ -230,11 +248,13 @@ interface AgenticRootWalletState {
 export class McpWalletService {
     private readonly config: McpWalletServiceConfig;
     private readonly wallet: Wallet;
+    private readonly limitsStore: LimitsStore | null;
     private kit: TonWalletKit | null = null;
 
     private constructor(config: McpWalletServiceInternalConfig) {
         this.config = config;
         this.wallet = config.wallet;
+        this.limitsStore = config.limitsStore ?? null;
     }
 
     private static parseUint256(input: string, fieldName: string): bigint {
@@ -392,6 +412,33 @@ export class McpWalletService {
     static async create(config: McpWalletServiceConfig): Promise<McpWalletService> {
         const wallet = await wrapWalletInterface(config.wallet);
         return new McpWalletService({ ...config, wallet });
+    }
+
+    private resolveActiveLimits(): NormalizedLimits | LimitsConfigInvalidError | null {
+        if (!this.limitsStore) return null;
+        const result = loadLimits();
+        if (!result.configured) return null;
+        return 'error' in result ? result.error : result.limits;
+    }
+
+    getLimitsState(): LimitsStateView {
+        const result = this.limitsStore ? loadLimits() : { configured: false as const };
+        const limits = result.configured && !('error' in result) ? result.limits : null;
+        const state = this.limitsStore?.getState() ?? createEmptyState();
+        const now = Date.now();
+
+        const jettons: Record<string, LimitsAssetSpendView> = {};
+        for (const address of new Set([...Object.keys(state.jettons), ...(limits?.jettons?.keys() ?? [])])) {
+            const view = toLimitsAssetSpendView({ kind: 'jetton', masterAddress: address }, limits, state, now);
+            if (view) jettons[address] = view;
+        }
+
+        return {
+            configured: result.configured,
+            now_ms: now,
+            spent: { ton: toLimitsAssetSpendView({ kind: 'ton' }, limits, state, now), jettons },
+            limits: limits ? toLimitsConfigView(limits) : null,
+        };
     }
 
     /**
@@ -658,66 +705,97 @@ export class McpWalletService {
     }
 
     /**
-     * Send TON
+     * Reserve → send → commit/refund:
+     *   - reservation failure: return without touching the wallet
+     *   - broadcast failure: refund (no spend occurred on-chain)
+     *   - commit failure AFTER broadcast: log and keep the in-memory spend; refunding
+     *     here would under-count the window cap because funds already moved.
      */
-    async sendTon(toAddress: string, amountNano: string, comment?: string): Promise<TransferResult> {
+    private async sendWithLimits(
+        build: () => Promise<TransactionRequest> | TransactionRequest,
+        successMessage: string,
+    ): Promise<TransferResult> {
+        const active = this.resolveActiveLimits();
+        if (active instanceof LimitsConfigInvalidError) return limitErrorResult(active);
+
+        let request: TransactionRequest;
+        let reservations: ReservationRequest[];
         try {
-            const tx = await this.wallet.createTransferTonTransaction({
-                recipientAddress: toAddress,
-                transferAmount: amountNano,
-                comment,
-            });
-
-            const response = await this.wallet.sendTransaction(tx);
-
-            return {
-                success: true,
-                message: `Successfully sent ${amountNano} nanoTON to ${toAddress}`,
-                normalizedHash: response.normalizedHash,
-            };
+            request = await build();
+            reservations = await this.collectRawTransactionRequests(request.messages, active);
         } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
+            return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
         }
+
+        const store = active && reservations.length > 0 ? this.limitsStore : null;
+
+        let tokens: ReservationToken[] = [];
+        if (store) {
+            try {
+                tokens = await store.reserveMany(reservations, active!);
+            } catch (err) {
+                if (err instanceof LimitExceededError) return limitErrorResult(err);
+                throw err;
+            }
+        }
+
+        let response;
+        try {
+            response = await this.wallet.sendTransaction(request);
+        } catch (error) {
+            if (store) await store.refundMany(tokens);
+            return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+        }
+
+        if (store) {
+            try {
+                await store.commitMany(tokens);
+            } catch (err) {
+                // eslint-disable-next-line no-console
+                console.error(
+                    JSON.stringify({
+                        code: 'LIMIT_COMMIT_FAILED_AFTER_BROADCAST',
+                        normalizedHash: response.normalizedHash,
+                        tokens: tokens.map((t) => ({ asset: t.asset, amount: t.amount.toString() })),
+                        error: err instanceof Error ? err.message : String(err),
+                    }),
+                );
+            }
+        }
+
+        return { success: true, message: successMessage, normalizedHash: response.normalizedHash };
     }
 
-    /**
-     * Send Jetton
-     */
+    async sendTon(toAddress: string, amountNano: string, comment?: string): Promise<TransferResult> {
+        return this.sendWithLimits(
+            () =>
+                this.wallet.createTransferTonTransaction({
+                    recipientAddress: toAddress,
+                    transferAmount: amountNano,
+                    comment,
+                }),
+            `Successfully sent ${amountNano} nanoTON to ${toAddress}`,
+        );
+    }
+
     async sendJetton(
         toAddress: string,
         jettonAddress: string,
         amountRaw: string,
         comment?: string,
     ): Promise<TransferResult> {
-        try {
-            const tx = await this.wallet.createTransferJettonTransaction({
-                recipientAddress: toAddress,
-                jettonAddress,
-                transferAmount: amountRaw,
-                comment,
-            });
-
-            const response = await this.wallet.sendTransaction(tx);
-
-            return {
-                success: true,
-                message: `Successfully sent jettons to ${toAddress}`,
-                normalizedHash: response.normalizedHash,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
-        }
+        return this.sendWithLimits(
+            () =>
+                this.wallet.createTransferJettonTransaction({
+                    recipientAddress: toAddress,
+                    jettonAddress,
+                    transferAmount: amountRaw,
+                    comment,
+                }),
+            `Successfully sent jettons to ${toAddress}`,
+        );
     }
 
-    /**
-     * Send a raw transaction request directly
-     */
     async sendRawTransaction(request: {
         messages: Array<{
             address: string;
@@ -729,20 +807,48 @@ export class McpWalletService {
         validUntil?: number;
         fromAddress?: string;
     }): Promise<TransferResult> {
-        try {
-            const tx = await this.wallet.sendTransaction(request as TransactionRequest);
+        return this.sendWithLimits(
+            () => request as TransactionRequest,
+            `Successfully sent transaction with ${request.messages.length} message(s)`,
+        );
+    }
 
-            return {
-                success: true,
-                message: `Successfully sent transaction with ${request.messages.length} message(s)`,
-                normalizedHash: tx.normalizedHash,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
+    private async collectRawTransactionRequests(
+        messages: Array<{ address: string; amount: string; payload?: string }>,
+        limits: NormalizedLimits | null,
+    ): Promise<ReservationRequest[]> {
+        if (!limits) return [];
+
+        const owner = normalizeAddressForComparison(this.wallet.getAddress());
+        const masters = owner && limits.jettons?.size ? limits.jettons : null;
+
+        const requests: ReservationRequest[] = [];
+        const jettonProbes: Array<{ address: string; amount: bigint }> = [];
+
+        for (const message of messages) {
+            const tonAmount = BigInt(message.amount);
+            if (tonAmount > 0n) requests.push({ asset: { kind: 'ton' }, amount: tonAmount });
+
+            if (!masters) continue;
+            const jettonAmount = parseJettonOutflowAmount(message.payload);
+            if (jettonAmount && jettonAmount > 0n) {
+                jettonProbes.push({ address: message.address, amount: jettonAmount });
+            }
         }
+        if (!masters || jettonProbes.length === 0) return requests;
+
+        // Jetton transfer messages target our jetton-wallet, not the master. Resolve
+        // (owner, master) on-chain so we only meter our own outflows for tracked masters.
+        const client = this.wallet.getClient();
+        const infos = await Promise.all(jettonProbes.map((p) => getJettonWalletInfoFromClient(client, p.address)));
+        for (const [i, info] of infos.entries()) {
+            if (!info || normalizeAddressForComparison(info.owner) !== owner) continue;
+            const masterAddress = normalizeAddressForComparison(info.master);
+            if (masterAddress && masters.has(masterAddress)) {
+                requests.push({ asset: { kind: 'jetton', masterAddress }, amount: jettonProbes[i]!.amount });
+            }
+        }
+        return requests;
     }
 
     /**
@@ -751,18 +857,12 @@ export class McpWalletService {
     async deployAgenticSubwallet(params: DeployAgenticSubwalletParams): Promise<DeployAgenticSubwalletResult> {
         try {
             this.assertAgenticWalletVersion();
-
             if (!/^\d+$/.test(params.amountNano) || BigInt(params.amountNano) <= 0n) {
                 throw new Error('amountNano must be a positive integer in nanotons');
             }
-
             const operatorPublicKey = McpWalletService.parseUint256(params.operatorPublicKey, 'operatorPublicKey');
-            if (operatorPublicKey === 0n) {
-                throw new Error('operatorPublicKey must be non-zero');
-            }
-
-            const metadataName = params.metadata?.name;
-            if (typeof metadataName !== 'string' || metadataName.trim().length === 0) {
+            if (operatorPublicKey === 0n) throw new Error('operatorPublicKey must be non-zero');
+            if (typeof params.metadata?.name !== 'string' || params.metadata.name.trim().length === 0) {
                 throw new Error('metadata.name is required and must be a non-empty string');
             }
 
@@ -772,7 +872,6 @@ export class McpWalletService {
                     'Current wallet has deployedByUser=false and cannot deploy sub-wallets. Use the user-root wallet.',
                 );
             }
-            const nftItemContent = McpWalletService.buildOnchainMetadata(params.metadata);
 
             const subwalletNftIndex = McpWalletService.calculateAgenticWalletIndex(
                 rootState.ownerAddress,
@@ -780,41 +879,33 @@ export class McpWalletService {
                 false,
             );
             const queryId = McpWalletService.createQueryId();
-
             const childWalletData = beginCell()
                 .storeAddress(rootState.ownerAddress)
-                .storeMaybeRef(nftItemContent)
+                .storeMaybeRef(McpWalletService.buildOnchainMetadata(params.metadata))
                 .storeUint(operatorPublicKey, 256)
                 .storeUint(operatorPublicKey, 256)
                 .storeBit(false)
                 .endCell();
-
             const deployBody = McpWalletService.createDeployWalletBody(
                 queryId,
                 childWalletData,
                 rootState.originOperatorPublicKey,
             );
-
             const childInit = {
                 code: AgenticWalletCodeCell,
                 data: McpWalletService.buildAgenticWalletConfigData(subwalletNftIndex, rootState.collectionAddress),
             };
-            const childAddress = contractAddress(0, childInit);
-            const childAddressFriendly = childAddress.toString();
+            const childAddressFriendly = contractAddress(0, childInit).toString();
             const childState = await this.wallet.getClient().getAccountState(childAddressFriendly);
-
             if (childState.data) {
                 let isInitialized: boolean;
                 try {
                     isInitialized = McpWalletService.isAgenticWalletInitialized(childState.data);
                 } catch (error) {
                     throw new Error(
-                        `Failed to preflight sub-wallet ${childAddressFriendly}: ${
-                            error instanceof Error ? error.message : 'Unknown error'
-                        }`,
+                        `Failed to preflight sub-wallet ${childAddressFriendly}: ${error instanceof Error ? error.message : 'Unknown error'}`,
                     );
                 }
-
                 if (isInitialized) {
                     throw new Error(
                         `Sub-wallet already initialized for operatorPublicKey=${operatorPublicKey.toString()} at ${childAddressFriendly}`,
@@ -822,24 +913,25 @@ export class McpWalletService {
                 }
             }
 
-            const stateInit = beginCell().store(storeStateInit(childInit)).endCell();
-
-            const response = await this.wallet.sendTransaction({
+            const request: TransactionRequest = {
                 validUntil: Math.floor(Date.now() / 1000) + AGENTIC_DEFAULT_VALID_UNTIL,
                 messages: [
                     {
                         address: childAddressFriendly,
                         amount: params.amountNano,
-                        stateInit: stateInit.toBoc().toString('base64'),
+                        stateInit: beginCell().store(storeStateInit(childInit)).endCell().toBoc().toString('base64'),
                         payload: deployBody.toBoc().toString('base64'),
                     },
                 ],
-            } as TransactionRequest);
+            } as TransactionRequest;
 
+            const result = await this.sendWithLimits(
+                () => request,
+                `Successfully sent deploy transaction for sub-wallet ${childAddressFriendly}`,
+            );
+            if (!result.success) return result;
             return {
-                success: true,
-                message: `Successfully sent deploy transaction for sub-wallet ${childAddressFriendly}`,
-                normalizedHash: response.normalizedHash,
+                ...result,
                 subwalletAddress: childAddressFriendly,
                 subwalletNftIndex: subwalletNftIndex.toString(),
                 ownerAddress: rootState.ownerAddress.toString(),
@@ -849,10 +941,7 @@ export class McpWalletService {
                 queryId: queryId.toString(),
             };
         } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
+            return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
         }
     }
 
@@ -1049,26 +1138,15 @@ export class McpWalletService {
      * Send NFT
      */
     async sendNft(nftAddress: string, toAddress: string, comment?: string): Promise<TransferResult> {
-        try {
-            const tx = await this.wallet.createTransferNftTransaction({
-                nftAddress,
-                recipientAddress: toAddress,
-                comment,
-            });
-
-            const response = await this.wallet.sendTransaction(tx);
-
-            return {
-                success: true,
-                message: `Successfully sent NFT ${nftAddress} to ${toAddress}`,
-                normalizedHash: response.normalizedHash,
-            };
-        } catch (error) {
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : 'Unknown error',
-            };
-        }
+        return this.sendWithLimits(
+            () =>
+                this.wallet.createTransferNftTransaction({
+                    nftAddress,
+                    recipientAddress: toAddress,
+                    comment,
+                }),
+            `Successfully sent NFT ${nftAddress} to ${toAddress}`,
+        );
     }
 
     /**
