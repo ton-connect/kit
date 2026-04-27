@@ -79,9 +79,7 @@ export type {
     GetEventsResponse,
 } from './toncenter/ApiClient';
 
-export type { NftItem } from './toncenter/NftItem';
-
-export type { NftItems } from './toncenter/NftItems';
+export type { NftItem, NftItems } from '../clients/toncenter/types/nfts';
 export { emulationEvent, toEvent, toAddressBook } from './toncenter/AccountEvent';
 
 // Account Event types

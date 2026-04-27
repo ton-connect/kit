@@ -8,7 +8,7 @@
 
 import type { AccountStatus } from '@ton/core';
 
-import type { RawStackItem } from '../../utils';
+import type { RawStackItem } from '../../../utils';
 
 export interface InternalTransactionId {
     lt: string;

@@ -13,7 +13,7 @@ import type { ApiClient, GetEventsResponse } from '../../types/toncenter/ApiClie
 import type { FullAccountState } from '../../types/toncenter/api';
 import type { ToncenterEmulationResponse, ToncenterTracesResponse } from '../../types';
 import type { ResponseUserJettons } from '../../types/export/responses/jettons';
-import type { NftItemsResponse } from '../../types/toncenter/NftItemsResponse';
+import type { NftItemsResponse } from '../../clients/toncenter/types/nfts';
 import type { WalletV5R1Id } from './WalletV5R1';
 import { walletV5ConfigToCell } from './WalletV5R1';
 import { WalletV5R1Adapter } from './WalletV5R1Adapter';

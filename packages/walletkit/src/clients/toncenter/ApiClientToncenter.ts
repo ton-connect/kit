@@ -24,8 +24,8 @@ import type {
     GetEventsResponse,
     GetEventsRequest,
 } from '../../types/toncenter/ApiClient';
-import type { NftItemsResponseV3 } from '../../types/toncenter/v3/NftItemsResponseV3';
-import { toNftItemsResponse } from '../../types/toncenter/v3/NftItemsResponseV3';
+import type { NftItemsResponseV3 } from './types/v3/NftItemsResponseV3';
+import { toNftItemsResponse } from './types/v3/NftItemsResponseV3';
 import type {
     ToncenterResponseJettonMasters,
     ToncenterResponseJettonWallets,
@@ -36,8 +36,8 @@ import type {
 import { toTransactionsResponse } from '../../types/toncenter/emulation';
 import { CallForSuccess } from '../../utils/retry';
 import { globalLogger } from '../../core/Logger';
-import type { DNSRecordsResponseV3 } from '../../types/toncenter/v3/DNSRecordsResponseV3';
-import { toDnsRecords } from '../../types/toncenter/v3/DNSRecordsResponseV3';
+import type { DNSRecordsResponseV3 } from './types/v3/DNSRecordsResponseV3';
+import { toDnsRecords } from './types/v3/DNSRecordsResponseV3';
 import { toAddressBook, toEvent } from '../../types/toncenter/AccountEvent';
 import { Network } from '../../api/models';
 import type {
@@ -58,7 +58,7 @@ import { asAddressFriendly } from '../../utils/address';
 import type { ToncenterEmulationResult } from '../../utils/toncenterEmulation';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
-import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest, TonBlockIdExt } from './types';
+import type { V2AddressInformation, V2SendMessageResult, V3RunGetMethodRequest, TonBlockIdExt } from './types/internal';
 import { padBase64, parseInternalTransactionId, prepareAddress } from './utils';
 import { TonClientError } from '../TonClientError';
 import { isHex } from '../../utils';
