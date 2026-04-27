@@ -16,6 +16,8 @@ import type {
     SendTransactionRpcResponseSuccess,
     SignDataRpcResponseError,
     SignDataRpcResponseSuccess,
+    SignMessageRpcResponseError,
+    SignMessageRpcResponseSuccess,
     SignDataPayload as TonConnectSignDataPayload,
     TonProofItemReply,
 } from '@tonconnect/protocol';
@@ -375,28 +377,31 @@ export class RequestProcessor {
         return newSession;
     }
 
-    /**
-     * Send an embedded request approval: creates session, attaches action result to ConnectEventSuccess, sends to bridge.
-     */
-    private async sendEmbeddedApproval(
-        event: BridgeEvent & { connectionResult: EmbeddedConnectionResult },
-        result: unknown,
-    ): Promise<void> {
-        const connResult = event.connectionResult as unknown as ConnectEventSuccess;
-        const response = { ...connResult, response: { result } as ConnectEventSuccess['response'] };
-        await this.bridgeManager.sendResponse(event, response);
-    }
+    private async sendBridgeMessage(
+        event: BridgeEvent,
+        result:
+            | SendTransactionRpcResponseSuccess
+            | SignMessageRpcResponseSuccess
+            | SignDataRpcResponseSuccess
+            | undefined,
+        error: SendTransactionRpcResponseError | SignMessageRpcResponseError | SignDataRpcResponseError | undefined,
+    ) {
+        if (!hasConnectionResult(event)) {
+            await this.bridgeManager.sendResponse(event, error ?? result);
+            return;
+        }
 
-    /**
-     * Send an embedded request rejection: attaches error to ConnectEventSuccess, sends to bridge (no session created).
-     */
-    private async sendEmbeddedRejection(
-        event: BridgeEvent & { connectionResult: EmbeddedConnectionResult },
-        error: { code: number; message: string },
-    ): Promise<void> {
+        if (error) {
+            const connResult = event.connectionResult as unknown as ConnectEventSuccess;
+            const response = { ...connResult, response: { error: error.error } as ConnectEventSuccess['response'] };
+            await this.bridgeManager.sendResponse(event, response);
+            return;
+        }
+
         const connResult = event.connectionResult as unknown as ConnectEventSuccess;
-        const response = { ...connResult, response: { error } as ConnectEventSuccess['response'] };
+        const response = { ...connResult, response: { result: result?.result } as ConnectEventSuccess['response'] };
         await this.bridgeManager.sendResponse(event, response);
+        return;
     }
 
     /**
@@ -477,15 +482,12 @@ export class RequestProcessor {
     ): Promise<SendTransactionApprovalResponse> {
         try {
             if (response) {
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, response.signedBoc);
-                } else {
-                    const tonConnectResponse: SendTransactionRpcResponseSuccess = {
-                        result: response.signedBoc,
-                        id: event.id || '',
-                    };
-                    await this.bridgeManager.sendResponse(event, tonConnectResponse);
-                }
+                const tonConnectResponse: SendTransactionRpcResponseSuccess = {
+                    result: response.signedBoc,
+                    id: event.id || '',
+                };
+                await this.sendBridgeMessage(event, tonConnectResponse, undefined);
+
                 this.sendTransactionAnalytics(event, response.signedBoc);
                 return response;
             } else {
@@ -503,11 +505,7 @@ export class RequestProcessor {
                     id: event.id || '',
                 };
 
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, signedBoc);
-                } else {
-                    await this.bridgeManager.sendResponse(event, transactionResponse);
-                }
+                await this.sendBridgeMessage(event, transactionResponse, undefined);
 
                 this.sendTransactionAnalytics(event, signedBoc);
                 return { signedBoc };
@@ -563,11 +561,8 @@ export class RequestProcessor {
                           id: event.id,
                       };
 
-            if (hasConnectionResult(event)) {
-                await this.sendEmbeddedRejection(event, response.error);
-            } else {
-                await this.bridgeManager.sendResponse(event, response);
-            }
+            await this.sendBridgeMessage(event, undefined, response);
+
             const wallet = getWalletFromEvent(this.walletManager, event);
 
             if (this.analytics) {
@@ -608,15 +603,13 @@ export class RequestProcessor {
                         `Invalid internalBoc: ${bocValidation.errors.join(', ')}`,
                     );
                 }
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, { internalBoc: response.internalBoc });
-                } else {
-                    const tonConnectResponse = {
-                        result: { internalBoc: response.internalBoc },
-                        id: event.id || '',
-                    };
-                    await this.bridgeManager.sendResponse(event, tonConnectResponse);
-                }
+
+                const tonConnectResponse = {
+                    result: { internalBoc: response.internalBoc },
+                    id: event.id || '',
+                };
+                await this.sendBridgeMessage(event, tonConnectResponse, undefined);
+
                 return response;
             } else {
                 const wallet = getWalletFromEvent(this.walletManager, event);
@@ -631,15 +624,12 @@ export class RequestProcessor {
                 const internalBoc = await wallet.getSignedSendTransaction(event.request, { internal: true });
                 const actionResult = { internalBoc: internalBoc };
 
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, actionResult);
-                } else {
-                    const tonConnectResponse = {
-                        result: actionResult,
-                        id: event.id || '',
-                    };
-                    await this.bridgeManager.sendResponse(event, tonConnectResponse);
-                }
+                const tonConnectResponse = {
+                    result: actionResult,
+                    id: event.id || '',
+                };
+                await this.sendBridgeMessage(event, tonConnectResponse, undefined);
+
                 return { internalBoc };
             }
         } catch (error) {
@@ -660,11 +650,7 @@ export class RequestProcessor {
                 },
                 id: event.id,
             };
-            if (hasConnectionResult(event)) {
-                await this.sendEmbeddedRejection(event, response.error);
-            } else {
-                await this.bridgeManager.sendResponse(event, response);
-            }
+            await this.sendBridgeMessage(event, undefined, response);
         } catch (error) {
             log.error('Failed to reject sign message request', { error });
             throw error;
@@ -700,15 +686,11 @@ export class RequestProcessor {
                     payload: toTonConnectSignDataPayload(event.payload),
                 };
 
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, signDataResult);
-                } else {
-                    const tonConnectResponse: SignDataRpcResponseSuccess = {
-                        id: event.id || '',
-                        result: signDataResult,
-                    };
-                    await this.bridgeManager.sendResponse(event, tonConnectResponse);
-                }
+                const tonConnectResponse: SignDataRpcResponseSuccess = {
+                    id: event.id || '',
+                    result: signDataResult,
+                };
+                await this.sendBridgeMessage(event, tonConnectResponse, undefined);
 
                 if (this.analytics) {
                     const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
@@ -792,15 +774,11 @@ export class RequestProcessor {
                     payload: toTonConnectSignDataPayload(signData.payload),
                 };
 
-                if (hasConnectionResult(event)) {
-                    await this.sendEmbeddedApproval(event, signDataResult);
-                } else {
-                    const response: SignDataRpcResponseSuccess = {
-                        id: event.id,
-                        result: signDataResult,
-                    };
-                    await this.bridgeManager.sendResponse(event, response);
-                }
+                const response: SignDataRpcResponseSuccess = {
+                    id: event.id,
+                    result: signDataResult,
+                };
+                await this.sendBridgeMessage(event, response, undefined);
 
                 if (this.analytics) {
                     const sessionData = event.from ? await this.sessionManager.getSession(event.from) : undefined;
@@ -860,11 +838,8 @@ export class RequestProcessor {
                           id: event.id,
                       };
 
-            if (hasConnectionResult(event)) {
-                await this.sendEmbeddedRejection(event, response.error);
-            } else {
-                await this.bridgeManager.sendResponse(event, response);
-            }
+            await this.sendBridgeMessage(event, undefined, response);
+
             const wallet = getWalletFromEvent(this.walletManager, event);
 
             if (this.analytics) {
