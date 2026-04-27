@@ -35,7 +35,7 @@ const TON_INFO: JettonInfo = {
     description: 'The Open Network native token',
     decimals: 9,
     totalSupply: '5000000000000000000',
-    image: 'https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/ee9fb21d17bc8d75c2a5f7b5f5f62d2bacec6b128f58b63cb841e98f7b74c4fc',
+    // image: 'https://asset.ston.fi/img/EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c/ee9fb21d17bc8d75c2a5f7b5f5f62d2bacec6b128f58b63cb841e98f7b74c4fc',
     verification: {
         verified: true,
         source: 'manual' as const,
