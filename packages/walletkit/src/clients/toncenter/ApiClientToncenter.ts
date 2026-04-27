@@ -27,13 +27,9 @@ import type {
 } from '../../api/interfaces/ApiClient';
 import type { NftItemsResponseV3 } from './types/v3/NftItemsResponseV3';
 import { toNftItemsResponse } from './types/v3/NftItemsResponseV3';
-import type {
-    ToncenterResponseJettonMasters,
-    ToncenterResponseJettonWallets,
-    ToncenterTracesResponse,
-    ToncenterTransactionsResponse,
-    EmulationTokenInfoMasters,
-} from '../../types/toncenter/emulation';
+import type { ToncenterTracesResponse, ToncenterTransactionsResponse } from '../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters, ToncenterResponseJettonWallets } from './types/jettons';
+import type { EmulationTokenInfoMasters } from './types/metadata';
 import { toTransactionsResponse } from './mappers/map-transactions';
 import { CallForSuccess } from '../../utils/retry';
 import { globalLogger } from '../../core/Logger';

@@ -144,9 +144,3 @@ export interface NftItemsResponse extends NftItems {
     addressBook: { [key: UserFriendlyAddress]: AddressBookRow };
     metadata: NftMetadata;
 }
-
-export interface NftCollections {
-    addressBook?: { [key: string]: AddressBookRow };
-    metadata?: { [key: string]: AddressMetadata };
-    nftCollections?: NftCollection[];
-}

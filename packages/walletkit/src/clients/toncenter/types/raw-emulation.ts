@@ -20,9 +20,9 @@ export interface ToncenterEmulationResponse extends MetadataV3 {
     is_incomplete: boolean;
 }
 
-export type EmulationActionType = 'jetton_swap' | 'call_contract' | string;
+type EmulationActionType = 'jetton_swap' | 'call_contract' | string;
 
-export interface EmulationActionBase {
+interface EmulationActionBase {
     trace_id: string | null;
     action_id: string;
     start_lt: string;
@@ -80,7 +80,7 @@ export interface EmulationTonTransferDetails {
     encrypted: boolean;
 }
 
-export type EmulationActionDetails =
+type EmulationActionDetails =
     | EmulationTonTransferDetails
     | EmulationJettonSwapDetails
     | EmulationCallContractDetails

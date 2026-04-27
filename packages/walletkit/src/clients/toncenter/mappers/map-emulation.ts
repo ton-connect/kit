@@ -9,12 +9,12 @@
 import type { ToncenterEmulationResponse, EmulationAction as RawAction } from '../types/raw-emulation';
 import type {
     EmulationMessage as RawMessage,
-    EmulationAddressMetadata as RawAddressMetadata,
     EmulationTraceNode as RawTraceNode,
     EmulationAccountState as RawAccountState,
     EmulationTransactionDescription as RawDescription,
     ToncenterTransaction as RawTransaction,
 } from '../../../types/toncenter/emulation';
+import type { EmulationAddressMetadata as RawAddressMetadata } from '../types/metadata';
 import type {
     EmulationResponse,
     EmulationTraceNode,

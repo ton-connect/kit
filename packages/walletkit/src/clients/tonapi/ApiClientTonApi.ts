@@ -36,7 +36,8 @@ import type {
 } from '../../api/models';
 import type { EmulationResult } from '../../api/models/emulation';
 import type { FullAccountState } from '../../types/toncenter/api';
-import type { ToncenterResponseJettonMasters, ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { ToncenterTracesResponse } from '../../types/toncenter/emulation';
+import type { ToncenterResponseJettonMasters } from '../toncenter/types/jettons';
 import { BaseApiClient } from '../BaseApiClient';
 import type { BaseApiClientConfig } from '../BaseApiClient';
 import { TonClientError } from '../TonClientError';

@@ -9,6 +9,19 @@
 import type { AddressBookRowV3, MetadataV3 } from './v3/AddressBookRowV3';
 import type { EmulationAction } from '../../clients/toncenter/types/raw-emulation';
 
+export type {
+    EmulationAddressMetadata,
+    EmulationTokenInfo,
+    EmulationTokenInfoBase,
+    EmulationTokenInfoWallets,
+    EmulationTokenInfoMasters,
+} from '../../clients/toncenter/types/metadata';
+export type {
+    ToncenterResponseJettonMasters,
+    ToncenterResponseJettonWallets,
+    ToncenterJettonWallet,
+} from '../../clients/toncenter/types/jettons';
+
 export interface ToncenterTracesResponse extends MetadataV3 {
     traces: ToncenterTraceItem[];
 }
@@ -164,70 +177,4 @@ export interface EmulationAccountState {
     frozen_hash: string | null;
     data_hash: string | null;
     code_hash: string | null;
-}
-
-// Metadata by address
-export interface EmulationAddressMetadata {
-    is_indexed: boolean;
-    token_info?: EmulationTokenInfo[];
-}
-
-export type EmulationTokenInfo =
-    | EmulationTokenInfoWallets
-    | EmulationTokenInfoMasters
-    | (EmulationTokenInfoBase & Record<string, unknown>);
-
-export interface EmulationTokenInfoBase {
-    valid: boolean;
-    type: string;
-}
-
-export interface EmulationTokenInfoWallets extends EmulationTokenInfoBase {
-    type: 'jetton_wallets';
-    extra: {
-        balance: string;
-        jetton: string; // jetton master address
-        owner: string; // owner address
-    };
-}
-
-export interface EmulationTokenInfoMasters extends EmulationTokenInfoBase {
-    type: 'jetton_masters';
-    name: string;
-    symbol: string;
-    description: string;
-    image?: string;
-    extra: {
-        _image_big?: string;
-        _image_medium?: string;
-        _image_small?: string;
-        decimals: string;
-        image_data?: string; // base64 encoded image data
-        social?: string[];
-        uri?: string;
-        websites?: string[];
-        [key: string]: unknown;
-    };
-}
-
-export interface ToncenterResponseJettonMasters {
-    jetton_masters: ToncenterJettonWallet[];
-    address_book: Record<string, AddressBookRowV3>;
-    metadata: Record<string, EmulationAddressMetadata>;
-}
-
-export interface ToncenterResponseJettonWallets {
-    jetton_wallets: ToncenterJettonWallet[];
-    address_book: Record<string, AddressBookRowV3>;
-    metadata: Record<string, EmulationAddressMetadata>;
-}
-
-export interface ToncenterJettonWallet {
-    address: string;
-    balance: string;
-    owner: string;
-    jetton: string;
-    last_transaction_lt: string;
-    code_hash: string;
-    data_hash: string;
 }
