@@ -70,6 +70,16 @@
         "types": "./dist/cjs/onramp/ton-pay/index.d.ts",
         "default": "./dist/cjs/onramp/ton-pay/index.js"
       }
+    },
+    "./gasless/tonapi": {
+      "import": {
+        "types": "./dist/esm/gasless/tonapi/index.d.ts",
+        "default": "./dist/esm/gasless/tonapi/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/gasless/tonapi/index.d.ts",
+        "default": "./dist/cjs/gasless/tonapi/index.js"
+      }
     }
   },
   "typesVersions": {
@@ -88,6 +98,9 @@
       ],
       "onramp/ton-pay": [
         "./dist/esm/onramp/ton-pay/index.d.ts"
+      ],
+      "gasless/tonapi": [
+        "./dist/esm/gasless/tonapi/index.d.ts"
       ]
     }
   },
@@ -116,6 +129,9 @@
       "optional": true
     },
     "@ston-fi/omniston-sdk": {
+      "optional": true
+    },
+    "@ton-api/client": {
       "optional": true
     },
     "@tanstack/query-core": {

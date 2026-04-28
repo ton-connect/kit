@@ -11,7 +11,7 @@ import type { BaseProvider } from './BaseProvider';
 /**
  * Type of provider
  */
-export type DefiProviderType = 'swap' | 'staking' | 'onramp';
+export type DefiProviderType = 'swap' | 'staking' | 'onramp' | 'gasless';
 
 /**
  * Base interface for all DeFi providers

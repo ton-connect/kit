@@ -10,3 +10,4 @@ export * from './errors';
 export * from './DefiManager';
 export * from './swap';
 export * from './onramp';
+export * from './gasless';
