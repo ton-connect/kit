@@ -1,5 +1,26 @@
 # @ton/appkit-react
 
+## 0.0.6-alpha.2
+
+### Patch Changes
+
+- d411dff: Renamed `Transaction` component to `Send` and updated all associated types and hooks:
+    - `Transaction` → `Send`
+    - `TransactionProps` → `SendProps`
+    - `TransactionRenderProps` → `SendRenderProps`
+    - `TransactionRequest` → `SendRequest`
+    - `TransactionProvider` → `SendProvider`
+    - `TransactionContext` → `SendContext`
+    - `TransactionContextType` → `SendContextType`
+    - `TransactionProviderProps` → `SendProviderProps`
+    - `useTransactionContext` → `useSendContext`
+
+- 1f552f7: Added new connector and provider factory options
+- 4a060fb: Implemented staking infrastructure including \`StakingManager\` and \`TonStakersStakingProvider\` with support for multiple unstake modes (delayed, instant, best rate). Added core type updates and exported staking features from the package root.
+- Updated dependencies [1f552f7]
+- Updated dependencies [4a060fb]
+    - @ton/appkit@0.0.5-alpha.2
+
 ## 0.0.6-alpha.1
 
 ### Patch Changes

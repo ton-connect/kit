@@ -1,5 +1,16 @@
 # @ton/mcp
 
+## 0.1.15-alpha.14
+
+### Patch Changes
+
+- 4e73308: Encrypt local TON config files on first read when an existing plaintext config is detected.
+- d8e7aa5: Added option to generate TON Proof
+- Updated dependencies [74e0b78]
+- Updated dependencies [1f552f7]
+- Updated dependencies [4a060fb]
+    - @ton/walletkit@0.0.12-alpha.2
+
 ## 0.1.15-alpha.13
 
 ### Patch Changes

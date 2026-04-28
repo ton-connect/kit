@@ -1,5 +1,13 @@
 # @ton/walletkit
 
+## 0.0.12-alpha.2
+
+### Patch Changes
+
+- 74e0b78: Move signature domain from signer to wallet adapters (WalletV4R2, WalletV5R1), removing `DefaultDomainSignature` export and `domain` parameter from `Signer.fromMnemonic`/`Signer.fromPrivateKey`
+- 1f552f7: Added new connector and provider factory options
+- 4a060fb: Implemented staking infrastructure including \`StakingManager\` and \`TonStakersStakingProvider\` with support for multiple unstake modes (delayed, instant, best rate). Added core type updates and exported staking features from the package root.
+
 ## 0.0.12-alpha.1
 
 ### Patch Changes
