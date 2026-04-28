@@ -53,9 +53,11 @@ import type { TonApiDnsResolveResponse, TonApiDnsBackresolveResponse } from './t
 import type { TonApiMethodExecutionResult } from './types/methods';
 import type { TonApiMasterchainHeadResponse } from './types/masterchain';
 import { mapTonApiGetMethodArgs, mapTonApiTvmStackRecord } from './mappers/map-methods';
+import { mapTonApiEmulationResponse } from './mappers/map-emulation';
 import { Base64Normalize, Base64ToBigInt, Base64ToHex, getNormalizedExtMessageHash, isHex } from '../../utils';
 import type { TonApiTransactionsResponse, TonApiTransaction } from './types/transactions';
 import type { TonApiTrace } from './types/traces';
+import type { TonApiMessageConsequences } from './types/emulation';
 import type { TonApiAccountEventsResponse } from './types/events';
 import { mapTonApiTransaction } from './mappers/map-transactions';
 import { mapTonApiTrace, mapTonApiTraceTransaction } from './mappers/map-traces';
@@ -167,8 +169,15 @@ export class ApiClientTonApi extends BaseApiClient implements ApiClient {
         return Base64ToBigInt(hash).toString(16);
     }
 
-    async fetchEmulation(_messageBoc: Base64String, _ignoreSignature?: boolean): Promise<EmulationResult> {
-        throw new Error('Method not implemented.');
+    async fetchEmulation(messageBoc: Base64String, ignoreSignature?: boolean): Promise<EmulationResult> {
+        const result = await this.postJson<TonApiMessageConsequences>('/v2/wallet/emulate', {
+            boc: messageBoc,
+            ignore_signature_check: ignoreSignature === true,
+        });
+        return {
+            result: 'success',
+            emulationResult: mapTonApiEmulationResponse(result),
+        };
     }
 
     async runGetMethod(

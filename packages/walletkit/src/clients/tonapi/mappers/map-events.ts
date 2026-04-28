@@ -20,7 +20,7 @@ export function normalizeTonApiAccountAddress(account: TonApiAccountRef): string
 export function mapTonApiEvent(raw: TonApiAccountEvent) {
     return {
         eventId: toHex(raw.event_id),
-        account: toAccount(raw.account, {}),
+        account: toAccount(raw.account.address, {}),
         timestamp: Number(raw.timestamp ?? 0),
         actions: (raw.actions ?? []).map((action) => {
             const status: 'success' | 'failure' = action.status === 'failed' ? 'failure' : 'success';

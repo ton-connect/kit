@@ -201,6 +201,11 @@ describe('mapToncenterEmulationResponse', () => {
         expect(mapped.actions).toEqual([]);
         expect(mapped.codeCells).toEqual({});
         expect(mapped.dataCells).toEqual({});
+        expect(mapped.moneyFlow).toBeDefined();
+        expect(mapped.moneyFlow.outputs).toBe('1000000000');
+        expect(mapped.moneyFlow.inputs).toBe('0');
+        expect(mapped.moneyFlow.ourTransfers).toHaveLength(1);
+        expect(mapped.moneyFlow.ourTransfers[0].assetType).toBe('ton');
     });
 
     it('maps out_msg value through', () => {

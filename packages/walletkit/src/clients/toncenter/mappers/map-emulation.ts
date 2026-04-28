@@ -14,7 +14,6 @@ import type {
     EmulationTransactionDescription as RawDescription,
     ToncenterTransaction as RawTransaction,
 } from '../../../types/toncenter/emulation';
-import type { EmulationAddressMetadata as RawAddressMetadata } from '../types/metadata';
 import type {
     EmulationResponse,
     EmulationTraceNode,
@@ -24,11 +23,10 @@ import type {
     EmulationMessage,
     EmulationAction,
     EmulationAddressBookEntry,
-    EmulationAddressMetadata,
-    EmulationTokenInfo,
 } from '../../../api/models/emulation';
 import { Base64ToHex } from '../../../utils/base64';
 import { asAddressFriendly, asMaybeAddressFriendly } from '../../../utils/address';
+import { computeMoneyFlow } from './map-emulation-money-flow';
 
 function mapTraceNode(node: RawTraceNode): EmulationTraceNode {
     return {
@@ -173,13 +171,6 @@ function mapAction(action: RawAction): EmulationAction {
     };
 }
 
-function mapMetadata(raw: RawAddressMetadata): EmulationAddressMetadata {
-    return {
-        isIndexed: raw.is_indexed,
-        tokenInfo: raw.token_info as EmulationTokenInfo[] | undefined,
-    };
-}
-
 export function mapToncenterEmulationResponse(raw: ToncenterEmulationResponse): EmulationResponse {
     const transactions: Record<string, EmulationTransaction> = Object.fromEntries(
         Object.entries(raw.transactions ?? {}).map(([hash, tx]) => [Base64ToHex(hash), mapTransaction(tx)]),
@@ -194,10 +185,6 @@ export function mapToncenterEmulationResponse(raw: ToncenterEmulationResponse): 
                 interfaces: row.interfaces ?? [],
             },
         ]),
-    );
-
-    const metadata: Record<string, EmulationAddressMetadata> = Object.fromEntries(
-        Object.entries(raw.metadata ?? {}).map(([addr, meta]) => [addr, mapMetadata(meta)]),
     );
 
     const codeCells: Record<string, string> = Object.fromEntries(
@@ -218,6 +205,6 @@ export function mapToncenterEmulationResponse(raw: ToncenterEmulationResponse): 
         codeCells,
         dataCells,
         addressBook,
-        metadata,
+        moneyFlow: computeMoneyFlow(raw),
     };
 }

@@ -8,9 +8,9 @@
 
 import type { EmulationAction } from './EmulationAction';
 import type { EmulationAddressBookEntry } from './EmulationAddressBookEntry';
-import type { EmulationAddressMetadata } from './EmulationAddressMetadata';
 import type { EmulationTraceNode } from './EmulationTraceNode';
 import type { EmulationTransaction } from './EmulationTransaction';
+import type { TransactionTraceMoneyFlow } from '../transactions/TransactionTraceMoneyFlow';
 
 export interface EmulationResponse {
     mcBlockSeqno: number;
@@ -22,5 +22,5 @@ export interface EmulationResponse {
     codeCells: Record<string, string>;
     dataCells: Record<string, string>;
     addressBook: Record<string, EmulationAddressBookEntry>;
-    metadata: Record<string, EmulationAddressMetadata>;
+    moneyFlow: TransactionTraceMoneyFlow;
 }
